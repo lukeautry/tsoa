@@ -1,0 +1,21 @@
+{
+  "name": "lucid-cms-api",
+  "version": "1.0.0",
+  "scripts": {
+    "typings": "typings",
+    "build": "tsc",
+    "start": "node ./dist/server.js"
+  },
+  "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.1",
+    "express": "^4.13.4",
+    "method-override": "^2.3.6"
+  },
+  "devDependencies": {
+    "tslint": "^3.11.0",
+    "typescript": "^1.8.10",
+    "typings": "^1.2.0"
+  }
+}
