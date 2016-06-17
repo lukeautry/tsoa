@@ -4,7 +4,8 @@
   "scripts": {
     "typings": "typings",
     "build": "tsc",
-    "start": "node ./dist/server.js"
+    "start": "node ./dist/server.js",
+    "prepublish": "npm run typings install && npm run build"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
