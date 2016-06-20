@@ -1,11 +1,11 @@
-import {IRoute} from '../routing/route';
+import {Route} from '../routing/route';
 
 export class Controller {
     public path: string;
-    private routes: IRoute[];
+    private routes: Route[];
 
-    public addRoute(route: IRoute) {
-        this.routes = this.routes || new Array<IRoute>();
+    public addRoute(route: Route) {
+        this.routes = this.routes || new Array<Route>();
         this.routes.push(route);
     }
 

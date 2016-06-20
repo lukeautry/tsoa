@@ -9,6 +9,7 @@
         "experimentalDecorators": true
     },
     "files": [
-        "./src/server.ts"
+        "./src/server.ts",
+        "./src/swagger/generator.ts"
     ]
 }

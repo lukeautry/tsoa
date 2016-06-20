@@ -1,11 +1,14 @@
 {
   "name": "lucid-cms-api",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {
     "typings": "typings",
-    "build": "tsc",
+    "build": "npm run clean && npm run lint && tsc",
     "start": "node ./dist/server.js",
-    "prepublish": "npm run typings install && npm run build"
+    "prepublish": "npm run typings install && npm run build",
+    "clean": "rimraf dist",
+    "lint": "tslint 'src/**/*.ts' --exclude '**/*.d.ts'",
+    "swagger-gen": "node ./dist/swagger/generator.js"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -15,6 +18,8 @@
     "method-override": "^2.3.6"
   },
   "devDependencies": {
+    "glob": "^7.0.4",
+    "rimraf": "^2.5.2",
     "tslint": "^3.11.0",
     "typescript": "^1.8.10",
     "typings": "^1.2.0"

@@ -13,7 +13,7 @@
     ],
     "interface-name": [
       true,
-      "always-prefix"
+      "never-prefix"
     ],
     "jsdoc-format": true,
     "label-position": true,
@@ -51,9 +51,13 @@
     "no-inferrable-types": true,
     "no-internal-module": true,
     "no-invalid-this": true,
-    "no-reference": true,
+    "no-reference": false,
     "no-require-imports": false,
     "no-shadowed-variable": true,
+    "quotemark": [
+      true,
+      "single"
+    ],
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,

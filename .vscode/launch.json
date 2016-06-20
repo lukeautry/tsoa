@@ -20,6 +20,26 @@
             "externalConsole": false,
             "sourceMaps": true,
             "outDir": "${workspaceRoot}/dist"
+        },
+        {
+            "name": "Swagger Generation",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/swagger/generator.ts",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build",
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "externalConsole": false,
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/dist"
         }
     ]
 }
