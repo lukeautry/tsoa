@@ -12,11 +12,11 @@ export class UsersController extends Controller {
         };
     }
 
-    @Get(':id')
-    public async Get(id: number): Promise<User> {
+    @Get('{userId}')
+    public async Get(userId: number): Promise<User> {
         return {
             email: 'test2',
-            id: id
+            id: userId
         };
     }
 
@@ -28,8 +28,8 @@ export class UsersController extends Controller {
         };
     }
 
-    @Delete(':id')
-    public async Delete(id: number): Promise<void> {
+    @Delete('{userId}')
+    public async Delete(userId: number): Promise<void> {
         return Promise.resolve();
     }
 

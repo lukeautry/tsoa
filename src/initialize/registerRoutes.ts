@@ -19,7 +19,11 @@ function addRoute(app: express.Express, route: Route) {
     methodMap[Method.Put] = app.put;
 
     const func = methodMap[route.method];
-    func.call(app, route.path, (req: express.Request, res: express.Response) => requestHandler(req, res, route));
+    func.call(app, getExpressPath(route.path), (req: express.Request, res: express.Response) => requestHandler(req, res, route));
+}
+
+function getExpressPath(path: string) {
+    return path.replace('{', ':').replace('}', '');
 }
 
 function requestHandler(request: express.Request, response: express.Response, route: Route) {

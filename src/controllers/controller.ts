@@ -14,7 +14,7 @@ export class Controller {
             return {
                 execute: r.execute,
                 method: r.method,
-                path: `/${this.path.toLowerCase()}/${r.path.toLowerCase()}`
+                path: `/${this.path}/${r.path}`
             };
         });
     }
