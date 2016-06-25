@@ -1,5 +1,5 @@
-import * as ts from 'typescript';
 import {Swagger} from './swagger';
+import * as ts from 'typescript';
 
 const referencedTypes: { [typeName: string]: boolean} = {};
 

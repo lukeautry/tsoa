@@ -1,8 +1,8 @@
-import * as express from 'express';
 import {Controller} from '../routing/controller';
-import {Route} from '../routing/route';
-import {Method} from '../routing/method';
 import {Exception} from '../routing/exceptions';
+import {Method} from '../routing/method';
+import {Route} from '../routing/route';
+import * as express from 'express';
 
 export function RegisterExpressRoutes(app: express.Express, controllerTypes: (typeof Controller)[]) {
     controllerTypes.forEach(controllerType => {

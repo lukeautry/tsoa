@@ -1,6 +1,6 @@
-import * as ts from 'typescript';
-import {SpecBuilder} from './specBuilder';
 import {ApiMethod} from './apiMethod';
+import {SpecBuilder} from './specBuilder';
+import * as ts from 'typescript';
 
 export class ApiController {
     private pathValue: string;

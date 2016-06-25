@@ -1,7 +1,7 @@
-import * as ts from 'typescript';
-import {SpecBuilder} from './specBuilder';
 import {ApiController} from './apiController';
 import {DefinitionsBuilder} from './definitionsBuilder';
+import {SpecBuilder} from './specBuilder';
+import * as ts from 'typescript';
 
 export class PathsBuilder {
     private program: ts.Program;

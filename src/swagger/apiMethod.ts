@@ -1,9 +1,9 @@
-import * as ts from 'typescript';
+import {ApiMethodParameter} from './apiMethodParameter';
+import {getSwaggerType} from './typeConversion';
 import {Method} from '../routing/method';
 import {SpecBuilder} from './specBuilder';
-import {ApiMethodParameter} from './apiMethodParameter';
 import {Swagger} from './swagger';
-import {getSwaggerType} from './typeConversion';
+import * as ts from 'typescript';
 
 export class ApiMethod {
     private method: string;

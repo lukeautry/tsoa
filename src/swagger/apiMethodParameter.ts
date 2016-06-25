@@ -1,5 +1,5 @@
-import * as ts from 'typescript';
 import {getSwaggerType, getPathableSwaggerType} from './typeConversion';
+import * as ts from 'typescript';
 
 export class ApiMethodParameter {
     constructor(

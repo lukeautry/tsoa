@@ -1,8 +1,8 @@
 import {Controller} from './routing/controller';
-import {SwaggerGenerator} from './swagger/generator';
 import {Method} from './routing/method';
-import {Route, Post, Get, Patch, Delete, Put} from './routing/routes';
 import {RegisterExpressRoutes} from './adapters/express';
+import {Route, Post, Get, Patch, Delete, Put} from './routing/routes';
+import {SwaggerGenerator} from './swagger/generator';
 
 export {
     Controller,

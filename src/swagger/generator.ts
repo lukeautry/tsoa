@@ -1,6 +1,6 @@
-import * as fs from 'fs';
 import {PathsBuilder} from './pathsBuilder';
 import {SpecBuilder} from './specBuilder';
+import * as fs from 'fs';
 
 export namespace SwaggerGenerator {
     export function Generate(outFile: string, entryFile: string) {
