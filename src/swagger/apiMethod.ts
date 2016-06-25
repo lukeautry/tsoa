@@ -12,7 +12,8 @@ export class ApiMethod {
     constructor(
         private node: ts.MethodDeclaration,
         private controllerPath: string,
-        private specBuilder: SpecBuilder
+        private specBuilder: SpecBuilder,
+        private typeChecker: ts.TypeChecker
     ) {
         this.processMethodDecorators();
     }
@@ -28,6 +29,7 @@ export class ApiMethod {
         const swaggerType = getSwaggerType(this.node.type);
         const pathObject: any = {};
         pathObject[this.method] = swaggerType ? this.get200Operation(swaggerType) : this.get204Operation();
+        pathObject[this.method].description = this.getMethodDescription();
         pathObject[this.method].parameters = this.node.parameters
             .map(p => new ApiMethodParameter(p, this.path, this.method).getParameter());
 
@@ -91,5 +93,14 @@ export class ApiMethod {
                 '204': { description: 'No content' }
             }
         };
+    }
+
+    private getMethodDescription() {
+        let symbol = this.typeChecker.getSymbolAtLocation(this.node.name);
+
+        let comments = symbol.getDocumentationComment();
+        if (comments.length) { return ts.displayPartsToString(comments); }
+
+        return '';
     }
 }

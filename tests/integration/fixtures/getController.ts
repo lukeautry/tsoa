@@ -4,6 +4,10 @@ import {TestModel} from './testModel';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
+    /**
+     * This is a description of the getModel method
+     * this is some more text on another line
+     */
     @Get()
     public async getModel(): Promise<TestModel> {
         return null;

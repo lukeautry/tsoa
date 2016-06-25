@@ -45,6 +45,11 @@ describe('GET route generation', () => {
         }).to.throw('Not a type that can be used as a path or query parameter.');
     });
 
+    it('should generate a path description from jsdoc comment', () => {
+        const path = verifyPath(baseRoute);
+        chai.expect(path.get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
+    });
+
     function verifyPath(route: string, isCollection?: boolean) {
         return VerifyPath(spec, route, path => path.get, isCollection);
     }

@@ -22,7 +22,7 @@ export class PathsBuilder {
 
         nodes
             .filter(n => n.kind === ts.SyntaxKind.ClassDeclaration && this.isExportedNode(n))
-            .map(c => new ApiController(c as ts.ClassDeclaration, this.specBuilder))
+            .map(c => new ApiController(c as ts.ClassDeclaration, this.specBuilder, this.typeChecker))
             .filter(c => c.isValid())
             .forEach(c => c.generatePaths());
 
