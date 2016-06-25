@@ -9,8 +9,7 @@
     "build": "npm run clean && npm run lint && tsc",
     "prepublish": "npm run typings install && npm run build",
     "clean": "rimraf dist",
-    "lint": "tslint 'src/**/*.ts' --exclude '**/*.d.ts'",
-    "swagger-gen": "node ./dist/swagger/generator.js"
+    "lint": "tslint 'src/**/*.ts' --exclude '**/*.d.ts'"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -26,5 +25,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lukeautry/lucid-web-api.git"
+  },
+  "bin": {
+    "lucid-swagger-generate": "dist/swagger/cli.js"
   }
 }

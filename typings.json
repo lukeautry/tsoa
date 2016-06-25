@@ -6,6 +6,7 @@
     "method-override": "registry:dt/method-override#0.0.0+20160317120654",
     "mime": "registry:dt/mime#0.0.0+20160316155526",
     "node": "registry:dt/node#6.0.0+20160613154055",
-    "serve-static": "registry:dt/serve-static#0.0.0+20160606155157"
+    "serve-static": "registry:dt/serve-static#0.0.0+20160606155157",
+    "yargs": "registry:dt/yargs#0.0.0+20160619033636"
   }
 }
