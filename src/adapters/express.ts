@@ -27,23 +27,18 @@ function getExpressPath(path: string) {
 }
 
 function requestHandler(request: express.Request, response: express.Response, route: Route) {
-    response.contentType('applicaton/json');
-
     route.execute(getParams(request))
         .then(data => {
             if (data) {
-                response.status(200);
-                response.write(JSON.stringify(data));
+                response.json(data);
             } else {
                 response.status(204);
+                response.end();
             }
-
-            response.end();
         })
         .catch((error: Exception) => {
             response.status(error.status);
-            response.write(JSON.stringify(error));
-            response.end();
+            response.json(error);
         });
 }
 
