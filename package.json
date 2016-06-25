@@ -9,7 +9,7 @@
     "build": "npm run clean && npm run lint && tsc",
     "prepublish": "npm run typings install && npm run build",
     "clean": "rimraf dist",
-    "lint": "tslint 'src/**/*.ts' --exclude '**/*.d.ts'"
+    "lint": "tslint ./src/**/*.ts"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
