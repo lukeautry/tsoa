@@ -1,7 +1,7 @@
 {
   "name": "lucid-web-api",
   "description": "A framework for building web APIs with TypeScript",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "typings": "./dist/index.d.ts",
   "scripts": {
     "typings": "typings",
