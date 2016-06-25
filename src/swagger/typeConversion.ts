@@ -1,5 +1,5 @@
-/// <reference path="./swagger.d.ts" />
 import * as ts from 'typescript';
+import {Swagger} from './swagger';
 
 const referencedTypes: { [typeName: string]: boolean} = {};
 

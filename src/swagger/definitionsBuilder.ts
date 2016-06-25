@@ -1,8 +1,7 @@
-/// <reference path="./swagger.d.ts" />
-
 import * as ts from 'typescript';
 import {getSwaggerType, getReferencedTypes} from './typeConversion';
 import {SpecBuilder} from './specBuilder';
+import {Swagger} from './swagger';
 
 export class DefinitionsBuilder {
     private program: ts.Program;

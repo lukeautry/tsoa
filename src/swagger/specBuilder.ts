@@ -1,4 +1,4 @@
-/// <reference path="./swagger.d.ts" />
+import {Swagger} from './swagger';
 
 export class SpecBuilder {
     private definitions: { [definitionsName: string]: Swagger.Schema } = {};

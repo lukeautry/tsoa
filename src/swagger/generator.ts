@@ -1,6 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
-/// <reference path="./swagger.d.ts" />
-
 import * as fs from 'fs';
 import {PathsBuilder} from './pathsBuilder';
 import {SpecBuilder} from './specBuilder';

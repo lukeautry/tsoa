@@ -1,5 +1,3 @@
-/// <reference path="./swagger.d.ts" />
-
 import * as ts from 'typescript';
 import {SpecBuilder} from './specBuilder';
 import {ApiController} from './apiController';

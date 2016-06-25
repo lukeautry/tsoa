@@ -1,5 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
-
 import * as express from 'express';
 import {Controller} from '../routing/controller';
 import {Route} from '../routing/route';

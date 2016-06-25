@@ -1,4 +1,4 @@
-declare module Swagger {
+export namespace Swagger {
   export interface Info {
     title: string;
     version: string;
@@ -30,16 +30,13 @@ declare module Swagger {
     externalDocs?: ExternalDocs;
   }
 
-  export interface Example {
-    // Example type interface is intentionally loose
-  }
+  export interface Example { }
 
   export interface Header extends BaseSchema {
     type: string;
   }
 
-  // ----------------------------- Parameter -----------------------------------
-  interface BaseParameter {
+  export interface BaseParameter {
     name: string;
     in: string;
     required?: boolean;
@@ -69,14 +66,13 @@ declare module Swagger {
     collectionFormat?: string;
   }
 
-  type Parameter =
+  export type Parameter =
     BodyParameter |
     FormDataParameter |
     QueryParameter |
     PathParameter |
     HeaderParameter;
 
-  // ------------------------------- Path --------------------------------------
   export interface Path {
     $ref?: string;
     get?: Operation;
@@ -89,7 +85,6 @@ declare module Swagger {
     parameters?: [Parameter];
   }
 
-  // ----------------------------- Operation -----------------------------------
   export interface Operation {
     responses: { [responseName: string]: Response };
     summary?: string;
@@ -102,10 +97,9 @@ declare module Swagger {
     schemes?: [string];
     deprecated?: boolean;
     security?: [Secuirty];
-    tags?:[string];
+    tags?: [string];
   }
 
-  // ----------------------------- Response ------------------------------------
   export interface Response {
     description: string;
     schema?: Schema;
@@ -113,8 +107,7 @@ declare module Swagger {
     examples?: { [exampleName: string]: Example };
   }
 
-  // ------------------------------ Schema -------------------------------------
-  interface BaseSchema {
+  export interface BaseSchema {
     format?: string;
     title?: string;
     description?: string;
@@ -158,22 +151,19 @@ declare module Swagger {
     wrapped?: boolean;
   }
 
-  // ----------------------------- Security ------------------------------------
-  interface BaseSecurity {
+  export interface BaseSecurity {
     type: string;
     description?: string;
   }
 
-  export interface BasicAuthenticationSecurity extends BaseSecurity {
-    // It's the exact same interface as BaseSecurity
-  }
+  export interface BasicAuthenticationSecurity extends BaseSecurity { }
 
   export interface ApiKeySecurity extends BaseSecurity {
     name: string;
     in: string;
   }
 
-  interface BaseOAuthSecuirty extends BaseSecurity {
+  export interface BaseOAuthSecuirty extends BaseSecurity {
     flow: string;
   }
 
@@ -201,7 +191,7 @@ declare module Swagger {
     [scopeName: string]: string;
   }
 
-  type Secuirty =
+  export type Secuirty =
     BasicAuthenticationSecurity |
     OAuth2AccessCodeSecurity |
     OAuth2ApplicationSecurity |
@@ -209,7 +199,6 @@ declare module Swagger {
     OAuth2PasswordSecurity |
     ApiKeySecurity;
 
-  // --------------------------------- Spec ------------------------------------
   export interface Spec {
     swagger: string;
     info: Info;
@@ -219,12 +208,12 @@ declare module Swagger {
     schemes?: [string];
     consumes?: [string];
     produces?: [string];
-    paths: {[pathName: string]: Path}
-    definitions?: {[definitionsName: string]: Schema }
-    parameters?: {[parameterName: string]: BodyParameter|QueryParameter}
-    responses?: {[responseName: string]: Response }
-    security?: [Secuirty]
-    securityDefinitions?: { [securityDefinitionName: string]: Secuirty}
-    tags?: [Tag]
+    paths: {[pathName: string]: Path};
+    definitions?: {[definitionsName: string]: Schema };
+    parameters?: {[parameterName: string]: BodyParameter|QueryParameter};
+    responses?: {[responseName: string]: Response };
+    security?: [Secuirty];
+    securityDefinitions?: { [securityDefinitionName: string]: Secuirty};
+    tags?: [Tag];
   }
 }
