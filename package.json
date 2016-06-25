@@ -14,12 +14,13 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.13.4"
+    "express": "^4.13.4",
+    "typescript": "^1.8.10",
+    "yargs": "^4.7.1"
   },
   "devDependencies": {
     "rimraf": "^2.5.2",
     "tslint": "^3.11.0",
-    "typescript": "^1.8.10",
     "typings": "^1.2.0"
   },
   "repository": {
