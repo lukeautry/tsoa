@@ -9,6 +9,11 @@
             "taskName": "build",
             "isBuildCommand": true,
             "args": ["run", "build"]
+        },
+        {
+            "taskName": "test",
+            "isTestCommand": true,
+            "args": ["test"]
         }
     ]
 }

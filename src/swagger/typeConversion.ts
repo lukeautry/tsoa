@@ -18,7 +18,7 @@ export function getPathableSwaggerType(type: ts.TypeNode) {
         return swaggerType.type;
     }
 
-    throw new Error('Not a type that can be used as a path parameter.');
+    throw new Error('Not a type that can be used as a path or query parameter.');
 }
 
 export function getSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {

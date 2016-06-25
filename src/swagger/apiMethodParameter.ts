@@ -37,7 +37,7 @@ export class ApiMethodParameter {
     private getQueryParameter(parameter: ts.ParameterDeclaration) {
         const type = getPathableSwaggerType(parameter.type);
         if (!type) {
-            throw new Error('Invalid path parameter type: only string, number, and bool values can be passed in the path.');
+            throw new Error('Invalid query parameter type: only string, number, and bool values can be passed in the path.');
         }
 
         const identifier = parameter.name as ts.Identifier;

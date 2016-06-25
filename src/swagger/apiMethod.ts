@@ -22,9 +22,8 @@ export class ApiMethod {
     }
 
     public generate() {
-        if (!this.isValid()) {
-            throw new Error('This isn\'t a valid a controller method.');
-        }
+        if (!this.isValid()) { throw new Error('This isn\'t a valid a controller method.'); }
+        if (!this.node.type) { throw new Error('Controller methods must have a return type.'); }
 
         const swaggerType = getSwaggerType(this.node.type);
         const pathObject: any = {};

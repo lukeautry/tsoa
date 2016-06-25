@@ -5,11 +5,12 @@
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "typings": "typings",
     "build": "npm run clean && npm run lint && tsc",
-    "prepublish": "npm run typings install && npm run build",
     "clean": "rimraf dist",
-    "lint": "tslint ./src/**/*.ts"
+    "lint": "tslint ./src/**/*.ts",
+    "prepublish": "npm run typings install && npm run build",
+    "test": "mocha tests/**/*.spec.ts --require ts-node/register",
+    "typings": "typings"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -19,7 +20,10 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
     "rimraf": "^2.5.2",
+    "ts-node": "^0.9.3",
     "tslint": "^3.11.0",
     "typings": "^1.2.0"
   },

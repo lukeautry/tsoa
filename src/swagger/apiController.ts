@@ -19,8 +19,7 @@ export class ApiController {
     public generatePaths() {
         this.node.members
             .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-            .map(m => m as ts.MethodDeclaration)
-            .map(m => new ApiMethod(m, this.pathValue, this.specBuilder))
+            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue, this.specBuilder))
             .filter(apiMethod => apiMethod.isValid())
             .forEach(apiMethod => apiMethod.generate());
     }
