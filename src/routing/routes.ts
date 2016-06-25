@@ -1,4 +1,4 @@
-import {Controller} from '../controllers/controller';
+import {Controller} from './controller';
 import {Method} from './method';
 import {validateParameters} from './validation';
 

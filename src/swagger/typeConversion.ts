@@ -1,6 +1,8 @@
 /// <reference path="./swagger.d.ts" />
 import * as ts from 'typescript';
 
+const referencedTypes: { [typeName: string]: boolean} = {};
+
 const typeMap: { [kind: number]: Swagger.Schema } = {};
 typeMap[ts.SyntaxKind.NumberKeyword] = { format: 'int64', type: 'integer' };
 typeMap[ts.SyntaxKind.StringKeyword] = { type: 'string' };
@@ -27,6 +29,8 @@ export function getSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
         const arrayType = propertyType as ts.ArrayTypeNode;
         if (arrayType.elementType.kind === ts.SyntaxKind.TypeReference) {
             const typeReference = (arrayType.elementType as any).typeName.text;
+            cacheReferencedType(typeReference);
+
             return {
                 items: {
                     $ref: `#/definitions/${typeReference}`
@@ -54,10 +58,24 @@ export function getSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
     }
 
     if (typeReference.kind === ts.SyntaxKind.TypeReference) {
+        const typeName = typeReference.typeName.text;
+        cacheReferencedType(typeName);
+
         return {
-            $ref: `#/definitions/${typeReference.typeName.text}`
+            $ref: `#/definitions/${typeName}`
         };
     }
 
     return getSwaggerType(typeReference);
+}
+
+export function getReferencedTypes() {
+    return Object.keys(referencedTypes);
+}
+
+/**
+ * Store this type name as a model that needs to later be crawled
+ */
+function cacheReferencedType(typeName: string) {
+    referencedTypes[typeName] = true;
 }

@@ -1,10 +1,11 @@
 {
-  "name": "lucid-cms-api",
+  "name": "lucid-web-api",
+  "description": "A framework for building web APIs with TypeScript",
   "version": "0.0.1",
+  "typings": "./dist/index.d.ts",
   "scripts": {
     "typings": "typings",
     "build": "npm run clean && npm run lint && tsc",
-    "start": "node ./dist/server.js",
     "prepublish": "npm run typings install && npm run build",
     "clean": "rimraf dist",
     "lint": "tslint 'src/**/*.ts' --exclude '**/*.d.ts'",
@@ -13,15 +14,16 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^1.15.1",
-    "express": "^4.13.4",
-    "method-override": "^2.3.6"
+    "express": "^4.13.4"
   },
   "devDependencies": {
-    "glob": "^7.0.4",
     "rimraf": "^2.5.2",
     "tslint": "^3.11.0",
     "typescript": "^1.8.10",
     "typings": "^1.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/lucid-web-api.git"
   }
 }

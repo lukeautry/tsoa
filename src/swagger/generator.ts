@@ -2,20 +2,21 @@
 /// <reference path="./swagger.d.ts" />
 
 import * as fs from 'fs';
-import {getDefinitions} from './definitions';
-import {getPaths} from './paths';
+import {PathsBuilder} from './pathsBuilder';
 import {SpecBuilder} from './specBuilder';
 
-(async function generateMetadata() {
-    const builder = new SpecBuilder();
-    await getDefinitions(builder);
-    await getPaths(builder);
+export namespace SwaggerGenerator {
+    export function Generate(outFile: string, entryFile: string) {
+        const builder = new SpecBuilder();
 
-    const spec = builder.generate();
-    fs.writeFile('./dist/swagger.json', JSON.stringify(spec, null, '\t'), err => {
-        if (err) {
-            throw new Error(err.toString());
-        };
-    });
-})();
+        const pathsBuilder = new PathsBuilder(builder, entryFile);
+        pathsBuilder.generate();
 
+        const spec = builder.generate();
+        fs.writeFile(outFile, JSON.stringify(spec, null, '\t'), err => {
+            if (err) {
+                throw new Error(err.toString());
+            };
+        });
+    }
+}

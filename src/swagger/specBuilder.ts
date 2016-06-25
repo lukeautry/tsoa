@@ -26,7 +26,6 @@ export class SpecBuilder {
             definitions: this.definitions,
             host: 'localhost:3000',
             info: {
-                // license: 'MIT',
                 title: 'Lucid Web API',
                 version: '0.0.1'
             },

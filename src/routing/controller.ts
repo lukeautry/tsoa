@@ -1,4 +1,4 @@
-import {Route} from '../routing/route';
+import {Route} from './route';
 
 export class Controller {
     public path: string;
@@ -9,7 +9,7 @@ export class Controller {
         this.routes.push(route);
     }
 
-    public getRoutes() {
+    public getRoutes(): Route[] {
         return this.routes.map(r => {
             return {
                 execute: r.execute,

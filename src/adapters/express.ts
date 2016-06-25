@@ -1,11 +1,13 @@
+/// <reference path="../../typings/index.d.ts" />
+
 import * as express from 'express';
-import {controllers} from '../controllers/index';
+import {Controller} from '../routing/controller';
 import {Route} from '../routing/route';
 import {Method} from '../routing/method';
 import {Exception} from '../routing/exceptions';
 
-export function RegisterRoutes(app: express.Express) {
-    controllers.forEach(controllerType => {
+export function RegisterExpressRoutes(app: express.Express, controllerTypes: (typeof Controller)[]) {
+    controllerTypes.forEach(controllerType => {
         new controllerType().getRoutes().forEach(r => addRoute(app, r));
     });
 }
