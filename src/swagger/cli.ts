@@ -6,24 +6,17 @@ import * as yargs from 'yargs';
 (function runGenerator() {
     const argv: GeneratorArguments = yargs.argv;
 
-    interface GeneratorArguments {
-        outFile: string;
-        mainFile: string;
-    }
-
     const outFile = argv.outFile;
-    if (!outFile) {
-        process.stdout.write('Must provide -outFile argument, e.g. ./dist/swagger.json');
-        return;
-    }
+    if (!outFile) { throw new Error('Must provide --outFile argument, e.g. --outFile=./dist/swagger.json'); }
 
     const mainFile = argv.mainFile;
-    if (!mainFile) {
-        process.stdout.write('Must provide -mainFile argument, e.g. ./src/server.ts');
-        return;
-    }
+    if (!mainFile) { throw new Error('Must provide --mainFile argument, e.g. --mainFile=./src/server.ts'); }
 
     SwaggerGenerator.Generate(outFile, mainFile);
 })();
 
+interface GeneratorArguments {
+    outFile: string;
+    mainFile: string;
+}
 
