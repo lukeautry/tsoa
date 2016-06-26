@@ -27,7 +27,6 @@ export class ApiMethod {
         pathObject[this.method] = swaggerType ? this.get200Operation(swaggerType) : this.get204Operation();
         pathObject[this.method].description = this.getMethodDescription();
         pathObject[this.method].parameters = this.getMethodParameters();
-        pathObject[this.method].examples = this.getMethodExample();
 
         Generator.Current().AddPath(`/${this.controllerPath}${this.path}`, pathObject);
     }
