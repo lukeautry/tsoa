@@ -1,5 +1,6 @@
 import {Controller} from '../../../src/routing/controller';
-import {Route, Put} from '../../../src/routing/routes';
+import {Route} from '../../../src/decorators/route';
+import {Put} from '../../../src/decorators/methods';
 import {TestModel} from './testModel';
 
 @Route('PutTest')

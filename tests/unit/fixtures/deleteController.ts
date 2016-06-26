@@ -1,5 +1,6 @@
 import {Controller} from '../../../src/routing/controller';
-import {Route, Delete} from '../../../src/routing/routes';
+import {Route} from '../../../src/decorators/route';
+import {Delete} from '../../../src/decorators/methods';
 import {TestModel} from './testModel';
 
 @Route('DeleteTest')

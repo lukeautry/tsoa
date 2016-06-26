@@ -1,5 +1,6 @@
 import {Controller} from '../../../src/routing/controller';
-import {Route, Get} from '../../../src/routing/routes';
+import {Route} from '../../../src/decorators/route';
+import {Get} from '../../../src/decorators/methods';
 import {TestModel} from './testModel';
 
 @Route('GetTest')

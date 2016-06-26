@@ -69,6 +69,22 @@ describe('GET route generation', () => {
         verifyParameterDescription('numberParam');
     });
 
+    it('should generate example from example decorator', () => {
+        const path = verifyPath(baseRoute);
+        const examples = path.get.responses['200'].examples['application/json'] as any;
+        expect(examples.id).to.equal(1);
+        expect(examples.boolArray).to.deep.equal([true, false]);
+        expect(examples.boolValue).to.equal(true);
+        expect(examples.modelValue.email).to.equal('test@test.com');
+        expect(examples.modelValue.id).to.equal(100);
+        expect(examples.modelsArray).to.be.undefined;
+        expect(examples.numberArray).to.deep.equal([1, 2, 3]);
+        expect(examples.numberValue).to.equal(1);
+        expect(examples.optionalString).to.equal('optional string');
+        expect(examples.stringArray).to.deep.equal(['string one', 'string two']);
+        expect(examples.stringValue).to.equal('a string');
+    });
+
     function verifyParameterDescription(parameterName: string) {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
         const path = verifyPath(actionRoute);
