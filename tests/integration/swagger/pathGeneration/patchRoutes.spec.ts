@@ -1,10 +1,10 @@
 /// <reference path="../../../../typings/index.d.ts" />
-import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {Generator} from '../../../../src/swagger/generator';
 import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PATCH route generation', () => {
-    const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/patchController.ts');
+    const spec = new Generator().GetSpec('./tests/integration/fixtures/patchController.ts');
     const baseRoute = '/PatchTest';
 
     it('should generate a path for a PATCH route with no path argument', () => {

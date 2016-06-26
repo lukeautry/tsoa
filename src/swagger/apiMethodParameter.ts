@@ -5,28 +5,32 @@ export class ApiMethodParameter {
     constructor(
         private parameter: ts.ParameterDeclaration,
         private path: string,
-        private method: string
+        private method: string,
+        private hasBodyParameter: boolean
     ) { }
 
     public getParameter(): any {
         const parameterIdentifier = this.parameter.name as ts.Identifier;
-        if (this.path.indexOf(`{${parameterIdentifier.text}}`) !== -1) {
+        if (this.path.includes(`{${parameterIdentifier.text}}`)) {
             return this.getPathParameter(this.parameter);
         }
 
-        if (!this.supportsBodyParameters(this.method)) {
-            return this.getQueryParameter(this.parameter);
+        if (this.supportsBodyParameters(this.method)) {
+            return this.getBodyParameter(this.parameter);
         }
 
-        return this.getBodyParameter(this.parameter);
+        return this.getQueryParameter(this.parameter);
     }
 
     private getBodyParameter(parameter: ts.ParameterDeclaration) {
+        if (this.hasBodyParameter) {
+            throw new Error('Only one body parameter allowed per controller method.');
+        }
+
         const type = GetSwaggerType(parameter.type);
         const identifier = parameter.name as ts.Identifier;
 
         return {
-            description: 'placeholder',
             in: 'body',
             name: identifier.text,
             required: !parameter.questionToken,
@@ -42,7 +46,6 @@ export class ApiMethodParameter {
 
         const identifier = parameter.name as ts.Identifier;
         return {
-            description: 'Placeholder',
             in: 'query',
             name: identifier.text,
             required: !parameter.questionToken,
@@ -58,7 +61,6 @@ export class ApiMethodParameter {
 
         const identifier = parameter.name as ts.Identifier;
         return {
-            description: 'Placeholder',
             in: 'path',
             name: identifier.text,
             required: true, // Path parameters should always be required...right?

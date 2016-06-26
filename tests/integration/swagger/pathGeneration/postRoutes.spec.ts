@@ -1,10 +1,11 @@
 /// <reference path="../../../../typings/index.d.ts" />
-import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {Generator} from '../../../../src/swagger/generator';
 import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
+import * as chai from 'chai';
 
 describe('POST route generation', () => {
-    const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/postController.ts');
+    const spec = new Generator().GetSpec('./tests/integration/fixtures/postController.ts');
     const baseRoute = '/PostTest';
 
     it('should generate a path for a POST route with no path argument', () => {
@@ -30,6 +31,12 @@ describe('POST route generation', () => {
     it('should generate a parameter for body parameters', () => {
         const path = verifyPath(baseRoute);
         VerifyBodyParameter(path.post.parameters as any, 'model', modelName, 'body');
+    });
+
+    it('should reject multiple body parameters', () => {
+        chai.expect(() => {
+            new Generator().GetSpec('./tests/integration/fixtures/invalidPostController.ts');
+        }).to.throw('Only one body parameter allowed per controller method.');
     });
 
     function verifyPath(route: string, isCollection?: boolean) {

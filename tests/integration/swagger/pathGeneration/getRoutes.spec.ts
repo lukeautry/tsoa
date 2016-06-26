@@ -1,4 +1,4 @@
-import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {Generator} from '../../../../src/swagger/generator';
 import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 import * as chai from 'chai';
@@ -6,7 +6,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('GET route generation', () => {
-    const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/getController.ts');
+    const spec = new Generator().GetSpec('./tests/integration/fixtures/getController.ts');
     const baseRoute = '/GetTest';
 
     it('should generate a path for a GET route with no path argument', () => {
@@ -43,8 +43,8 @@ describe('GET route generation', () => {
 
     it('should reject complex types as arguments', () => {
         expect(() => {
-            SwaggerGenerator.GetSpec('./tests/integration/fixtures/invalidGetController.ts');
-        }).to.throw('Not a type that can be used as a path or query parameter.');
+            new Generator().GetSpec('./tests/integration/fixtures/invalidGetController.ts');
+        }).to.throw('TestModel isn\'t a type that can be used as a path or query parameter.');
     });
 
     it('should generate a path description from jsdoc comment', () => {

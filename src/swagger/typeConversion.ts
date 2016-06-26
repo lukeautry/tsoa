@@ -1,4 +1,4 @@
-import {SwaggerGenerator} from './generator';
+import {Generator} from './generator';
 import {Swagger} from './swagger';
 import * as ts from 'typescript';
 
@@ -13,7 +13,7 @@ export function GetPathableSwaggerType(type: ts.TypeNode) {
         return swaggerType.type;
     }
 
-    throw new Error('Not a type that can be used as a path or query parameter.');
+    throw new Error(`${(type as any).typeName.text} isn't a type that can be used as a path or query parameter.`);
 }
 
 export function GetSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
@@ -26,7 +26,7 @@ export function GetSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
             const typeName = (arrayType.elementType as any).typeName.text;
 
             const definitionSchema = generateReferencedType(typeName);
-            SwaggerGenerator.AddDefinition(typeName, definitionSchema);
+            Generator.Current().AddDefinition(typeName, definitionSchema);
 
             return {
                 items: { $ref: `#/definitions/${typeName}` },
@@ -56,7 +56,7 @@ export function GetSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
         const typeName = typeReference.typeName.text;
 
         const definitionSchema = generateReferencedType(typeName);
-        SwaggerGenerator.AddDefinition(typeName, definitionSchema);
+        Generator.Current().AddDefinition(typeName, definitionSchema);
 
         return {
             $ref: `#/definitions/${typeName}`
@@ -70,9 +70,9 @@ function generateReferencedType(typeName: string): Swagger.Schema {
     const existingType = referencedTypes[typeName];
     if (referencedTypes[typeName]) { return existingType; }
 
-    const interfaces = SwaggerGenerator.nodes
+    const interfaces = Generator.Current().Nodes()
         .filter(node => {
-            if (node.kind !== ts.SyntaxKind.InterfaceDeclaration || !SwaggerGenerator.IsExportedNode(node)) { return false; }
+            if (node.kind !== ts.SyntaxKind.InterfaceDeclaration || !Generator.IsExportedNode(node)) { return false; }
             return (node as ts.InterfaceDeclaration).name.text.toLowerCase() === typeName.toLowerCase();
         }) as ts.InterfaceDeclaration[];
 
@@ -146,7 +146,7 @@ function getPropertyDescription(propertyDeclaration: ts.PropertyDeclaration) {
 }
 
 function getNodeDescription(node: ts.InterfaceDeclaration | ts.PropertyDeclaration) {
-    let symbol = SwaggerGenerator.typeChecker.getSymbolAtLocation(node.name);
+    let symbol = Generator.Current().TypeChecker().getSymbolAtLocation(node.name);
 
     let comments = symbol.getDocumentationComment();
     if (comments.length) { return ts.displayPartsToString(comments); }

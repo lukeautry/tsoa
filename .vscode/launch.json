@@ -8,7 +8,7 @@
             "program": "${workspaceRoot}/src/swagger/cli.ts",
             "stopOnEntry": false,
             "args": [
-                "--outFile=./dist/swagger.json", "--mainFile=./tests/integration/fixtures/getController.ts"
+                "--outFile=./dist/swagger.json", "--mainFile=./tests/integration/fixtures/invalidPostController.ts"
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build",

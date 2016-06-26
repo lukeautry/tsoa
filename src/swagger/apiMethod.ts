@@ -2,7 +2,7 @@ import {ApiMethodParameter} from './apiMethodParameter';
 import {GetSwaggerType} from './typeConversion';
 import {Method} from '../routing/method';
 import {Swagger} from './swagger';
-import {SwaggerGenerator} from './generator';
+import {Generator} from './generator';
 import * as ts from 'typescript';
 
 export class ApiMethod {
@@ -29,10 +29,19 @@ export class ApiMethod {
         const pathObject: any = {};
         pathObject[this.method] = swaggerType ? this.get200Operation(swaggerType) : this.get204Operation();
         pathObject[this.method].description = this.getMethodDescription();
-        pathObject[this.method].parameters = this.node.parameters
-            .map(p => new ApiMethodParameter(p, this.path, this.method).getParameter());
+        pathObject[this.method].parameters = this.getMethodParameters();
 
-        SwaggerGenerator.AddPath(`/${this.controllerPath}${this.path}`, pathObject);
+        Generator.Current().AddPath(`/${this.controllerPath}${this.path}`, pathObject);
+    }
+
+    private getMethodParameters() {
+        let hasBodyParameter = false;
+        return this.node.parameters.map(p => {
+            const parameter = new ApiMethodParameter(p, this.path, this.method, hasBodyParameter).getParameter();
+            if (parameter.in === 'body') { hasBodyParameter = true; }
+
+            return parameter;
+        });
     }
 
     private processMethodDecorators() {

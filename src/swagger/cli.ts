@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {SwaggerGenerator} from './generator';
+import {Generator} from './generator';
 import * as yargs from 'yargs';
 
 (function runGenerator() {
@@ -12,7 +12,7 @@ import * as yargs from 'yargs';
     const mainFile = argv.mainFile;
     if (!mainFile) { throw new Error('Must provide --mainFile argument, e.g. --mainFile=./src/server.ts'); }
 
-    SwaggerGenerator.GenerateJson(outFile, mainFile);
+    new Generator().GenerateJson(outFile, mainFile);
 })();
 
 interface GeneratorArguments {
