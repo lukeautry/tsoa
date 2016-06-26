@@ -1,4 +1,4 @@
-import {GetSwaggerType, getPathableSwaggerType} from './typeConversion';
+import {GetSwaggerType, GetPathableSwaggerType} from './typeConversion';
 import * as ts from 'typescript';
 
 export class ApiMethodParameter {
@@ -29,13 +29,13 @@ export class ApiMethodParameter {
             description: 'placeholder',
             in: 'body',
             name: identifier.text,
-            required: true,
+            required: !parameter.questionToken,
             schema: type
         };
     }
 
     private getQueryParameter(parameter: ts.ParameterDeclaration) {
-        const type = getPathableSwaggerType(parameter.type);
+        const type = GetPathableSwaggerType(parameter.type);
         if (!type) {
             throw new Error('Invalid query parameter type: only string, number, and bool values can be passed in the path.');
         }
@@ -45,13 +45,13 @@ export class ApiMethodParameter {
             description: 'Placeholder',
             in: 'query',
             name: identifier.text,
-            required: true,
+            required: !parameter.questionToken,
             type: type
         };
     }
 
     private getPathParameter(parameter: ts.ParameterDeclaration) {
-        const type = getPathableSwaggerType(parameter.type);
+        const type = GetPathableSwaggerType(parameter.type);
         if (!type) {
             throw new Error('Invalid path parameter type: only string, number, and bool values can be passed in the path.');
         }
@@ -61,7 +61,7 @@ export class ApiMethodParameter {
             description: 'Placeholder',
             in: 'path',
             name: identifier.text,
-            required: true, // TODO: For now, everything is required
+            required: true, // Path parameters should always be required...right?
             type: type
         };
     }

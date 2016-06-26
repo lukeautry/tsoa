@@ -30,7 +30,8 @@ export class GetTestController extends Controller {
         booleanPathParam: boolean,
         booleanParam: boolean,
         stringParam: string,
-        numberParam: number): Promise<TestModel> {
+        numberParam: number,
+        optionalStringParam?: string): Promise<TestModel> {
         return null;
     }
 }

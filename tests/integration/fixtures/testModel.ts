@@ -13,6 +13,7 @@ export interface TestModel extends Model {
     boolArray: boolean[];
     modelValue: TestSubModel;
     modelsArray: TestSubModel[];
+    optionalString?: string;
 }
 
 export interface TestSubModel extends Model {

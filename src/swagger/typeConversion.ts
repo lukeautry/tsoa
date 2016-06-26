@@ -7,7 +7,7 @@ const referencedTypes: { [typeName: string]: Swagger.Schema } = {};
 /**
  * Get a path parameter compatible swagger type from a type node
  */
-export function getPathableSwaggerType(type: ts.TypeNode) {
+export function GetPathableSwaggerType(type: ts.TypeNode) {
     const swaggerType = getSchemaFromSyntaxKind(type.kind);
     if (swaggerType) {
         return swaggerType.type;

@@ -35,4 +35,9 @@ describe('Definition generation', () => {
 
         expect(property).to.exist;
     });
+
+    it('should generate an optional property from an optional property', () => {
+        const definition = spec.definitions['TestModel'];
+        expect(definition.required).to.not.contain('optionalString');
+    });
 });

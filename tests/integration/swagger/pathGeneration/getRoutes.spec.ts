@@ -3,6 +3,8 @@ import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 import * as chai from 'chai';
 
+const expect = chai.expect;
+
 describe('GET route generation', () => {
     const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/getController.ts');
     const baseRoute = '/GetTest';
@@ -40,14 +42,23 @@ describe('GET route generation', () => {
     });
 
     it('should reject complex types as arguments', () => {
-        chai.expect(() => {
+        expect(() => {
             SwaggerGenerator.GetSpec('./tests/integration/fixtures/invalidGetController.ts');
         }).to.throw('Not a type that can be used as a path or query parameter.');
     });
 
     it('should generate a path description from jsdoc comment', () => {
         const path = verifyPath(baseRoute);
-        chai.expect(path.get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
+        expect(path.get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
+    });
+
+    it('should generate optional parameters from optional parameters', () => {
+        const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
+        const path = verifyPath(actionRoute);
+
+        const parameter = path.get.parameters.filter(p => p.name === 'optionalStringParam')[0];
+        expect(parameter).to.exist;
+        expect(parameter.required).to.be.false;
     });
 
     function verifyPath(route: string, isCollection?: boolean) {
