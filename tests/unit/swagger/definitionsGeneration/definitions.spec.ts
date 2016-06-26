@@ -5,7 +5,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('Definition generation', () => {
-    const spec = new Generator().GetSpec('./tests/integration/fixtures/getController.ts');
+    const spec = new Generator().GetSpec('./tests/unit/fixtures/getController.ts');
 
     it('should generate a definition for referenced models', () => {
         const expectedModels = ['TestModel', 'TestSubModel'];

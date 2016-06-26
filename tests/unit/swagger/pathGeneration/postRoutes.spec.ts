@@ -5,7 +5,7 @@ import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/veri
 import * as chai from 'chai';
 
 describe('POST route generation', () => {
-    const spec = new Generator().GetSpec('./tests/integration/fixtures/postController.ts');
+    const spec = new Generator().GetSpec('./tests/unit/fixtures/postController.ts');
     const baseRoute = '/PostTest';
 
     it('should generate a path for a POST route with no path argument', () => {
@@ -35,7 +35,7 @@ describe('POST route generation', () => {
 
     it('should reject multiple body parameters', () => {
         chai.expect(() => {
-            new Generator().GetSpec('./tests/integration/fixtures/invalidPostController.ts');
+            new Generator().GetSpec('./tests/unit/fixtures/invalidPostController.ts');
         }).to.throw('Only one body parameter allowed per controller method.');
     });
 
