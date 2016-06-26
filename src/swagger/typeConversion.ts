@@ -1,19 +1,14 @@
+import {SwaggerGenerator} from './generator';
 import {Swagger} from './swagger';
 import * as ts from 'typescript';
 
-const referencedTypes: { [typeName: string]: boolean} = {};
-
-const typeMap: { [kind: number]: Swagger.Schema } = {};
-typeMap[ts.SyntaxKind.NumberKeyword] = { format: 'int64', type: 'integer' };
-typeMap[ts.SyntaxKind.StringKeyword] = { type: 'string' };
-typeMap[ts.SyntaxKind.BooleanKeyword] = { type: 'boolean' };
-typeMap[ts.SyntaxKind.VoidKeyword] = null;
+const referencedTypes: { [typeName: string]: Swagger.Schema } = {};
 
 /**
  * Get a path parameter compatible swagger type from a type node
  */
 export function getPathableSwaggerType(type: ts.TypeNode) {
-    const swaggerType = typeMap[type.kind];
+    const swaggerType = getSchemaFromSyntaxKind(type.kind);
     if (swaggerType) {
         return swaggerType.type;
     }
@@ -21,25 +16,25 @@ export function getPathableSwaggerType(type: ts.TypeNode) {
     throw new Error('Not a type that can be used as a path or query parameter.');
 }
 
-export function getSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
-    const swaggerType = typeMap[propertyType.kind];
+export function GetSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
+    const swaggerType = getSchemaFromSyntaxKind(propertyType.kind);
     if (swaggerType !== undefined) { return swaggerType; }
 
     if (propertyType.kind === ts.SyntaxKind.ArrayType) {
         const arrayType = propertyType as ts.ArrayTypeNode;
         if (arrayType.elementType.kind === ts.SyntaxKind.TypeReference) {
-            const typeReference = (arrayType.elementType as any).typeName.text;
-            cacheReferencedType(typeReference);
+            const typeName = (arrayType.elementType as any).typeName.text;
+
+            const definitionSchema = generateReferencedType(typeName);
+            SwaggerGenerator.AddDefinition(typeName, definitionSchema);
 
             return {
-                items: {
-                    $ref: `#/definitions/${typeReference}`
-                },
+                items: { $ref: `#/definitions/${typeName}` },
                 type: 'array'
             };
         }
 
-        const primitiveArrayType = typeMap[arrayType.elementType.kind];
+        const primitiveArrayType = getSchemaFromSyntaxKind(arrayType.elementType.kind);
         if (!primitiveArrayType) { throw new Error('Property was an array type, but it wasn\'t a type reference or a primitive.'); }
 
         return {
@@ -59,23 +54,112 @@ export function getSwaggerType(propertyType: ts.TypeNode): Swagger.Schema {
 
     if (typeReference.kind === ts.SyntaxKind.TypeReference) {
         const typeName = typeReference.typeName.text;
-        cacheReferencedType(typeName);
+
+        const definitionSchema = generateReferencedType(typeName);
+        SwaggerGenerator.AddDefinition(typeName, definitionSchema);
 
         return {
             $ref: `#/definitions/${typeName}`
         };
     }
 
-    return getSwaggerType(typeReference);
+    return GetSwaggerType(typeReference);
 }
 
-export function getReferencedTypes() {
-    return Object.keys(referencedTypes);
+function generateReferencedType(typeName: string): Swagger.Schema {
+    const existingType = referencedTypes[typeName];
+    if (referencedTypes[typeName]) { return existingType; }
+
+    const interfaces = SwaggerGenerator.nodes
+        .filter(node => {
+            if (node.kind !== ts.SyntaxKind.InterfaceDeclaration || !SwaggerGenerator.IsExportedNode(node)) { return false; }
+            return (node as ts.InterfaceDeclaration).name.text.toLowerCase() === typeName.toLowerCase();
+        }) as ts.InterfaceDeclaration[];
+
+    if (!interfaces.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
+    if (interfaces.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
+
+    const interfaceDeclaration = interfaces[0];
+    const requiredProperties = new Array<string>();
+    const properties: { [propertyName: string]: Swagger.Schema } = {};
+
+    interfaceDeclaration.members
+        .filter(m => m.kind === ts.SyntaxKind.PropertySignature)
+        .forEach((m: any) => {
+            const propertyDeclaration = m as ts.PropertyDeclaration;
+            const propertyName = (propertyDeclaration.name as ts.Identifier).text;
+
+            const isRequired = !m.questionToken;
+            if (isRequired) { requiredProperties.push(propertyName); }
+
+            const property = GetSwaggerType(propertyDeclaration.type);
+            const description = getPropertyDescription(propertyDeclaration);
+            if (description) {
+                property.description = description;
+            }
+
+            properties[propertyName] = property;
+        });
+
+    getExtendedProperties(interfaceDeclaration, requiredProperties, properties);
+
+    const definitionSchema = {
+        description: getModelDescription(interfaceDeclaration),
+        properties: properties,
+        required: requiredProperties,
+        type: 'object'
+    };
+
+    cacheReferencedType(typeName, definitionSchema);
+    return definitionSchema;
 }
 
-/**
- * Store this type name as a model that needs to later be crawled
- */
-function cacheReferencedType(typeName: string) {
-    referencedTypes[typeName] = true;
+function getExtendedProperties(
+    interfaceDeclaration: ts.InterfaceDeclaration,
+    requiredProperties: string[],
+    properties: { [propertyName: string]: Swagger.Schema }
+) {
+    const heritageClauses = interfaceDeclaration.heritageClauses;
+    if (!heritageClauses) { return; }
+
+    heritageClauses.forEach(c => {
+        c.types.forEach(t => {
+            const baseInterfaceName = t.expression as ts.Identifier;
+            const baseInterfaceSchema = generateReferencedType(baseInterfaceName.text);
+
+            Object.assign(properties, baseInterfaceSchema.properties);
+            Object.assign(requiredProperties, baseInterfaceSchema.required);
+        });
+    });
+}
+
+function cacheReferencedType(typeName: string, schema: Swagger.Schema) {
+    referencedTypes[typeName] = schema;
+}
+
+function getModelDescription(interfaceDeclaration: ts.InterfaceDeclaration) {
+    return getNodeDescription(interfaceDeclaration);
+}
+
+function getPropertyDescription(propertyDeclaration: ts.PropertyDeclaration) {
+    return getNodeDescription(propertyDeclaration);
+}
+
+function getNodeDescription(node: ts.InterfaceDeclaration | ts.PropertyDeclaration) {
+    let symbol = SwaggerGenerator.typeChecker.getSymbolAtLocation(node.name);
+
+    let comments = symbol.getDocumentationComment();
+    if (comments.length) { return ts.displayPartsToString(comments); }
+
+    return '';
+}
+
+function getSchemaFromSyntaxKind(kind: ts.SyntaxKind) {
+    const typeMap: { [kind: number]: Swagger.Schema } = {};
+    typeMap[ts.SyntaxKind.NumberKeyword] = { format: 'int64', type: 'integer' };
+    typeMap[ts.SyntaxKind.StringKeyword] = { type: 'string' };
+    typeMap[ts.SyntaxKind.BooleanKeyword] = { type: 'boolean' };
+    typeMap[ts.SyntaxKind.VoidKeyword] = null;
+
+    return typeMap[kind];
 }

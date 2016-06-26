@@ -1,8 +1,8 @@
 import {ApiMethodParameter} from './apiMethodParameter';
-import {getSwaggerType} from './typeConversion';
+import {GetSwaggerType} from './typeConversion';
 import {Method} from '../routing/method';
-import {SpecBuilder} from './specBuilder';
 import {Swagger} from './swagger';
+import {SwaggerGenerator} from './generator';
 import * as ts from 'typescript';
 
 export class ApiMethod {
@@ -12,7 +12,6 @@ export class ApiMethod {
     constructor(
         private node: ts.MethodDeclaration,
         private controllerPath: string,
-        private specBuilder: SpecBuilder,
         private typeChecker: ts.TypeChecker
     ) {
         this.processMethodDecorators();
@@ -26,14 +25,14 @@ export class ApiMethod {
         if (!this.isValid()) { throw new Error('This isn\'t a valid a controller method.'); }
         if (!this.node.type) { throw new Error('Controller methods must have a return type.'); }
 
-        const swaggerType = getSwaggerType(this.node.type);
+        const swaggerType = GetSwaggerType(this.node.type);
         const pathObject: any = {};
         pathObject[this.method] = swaggerType ? this.get200Operation(swaggerType) : this.get204Operation();
         pathObject[this.method].description = this.getMethodDescription();
         pathObject[this.method].parameters = this.node.parameters
             .map(p => new ApiMethodParameter(p, this.path, this.method).getParameter());
 
-        this.specBuilder.addPath(`/${this.controllerPath}${this.path}`, pathObject);
+        SwaggerGenerator.AddPath(`/${this.controllerPath}${this.path}`, pathObject);
     }
 
     private processMethodDecorators() {

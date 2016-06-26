@@ -1,7 +1,7 @@
-/// <reference path="../../../typings/index.d.ts" />
-import {SwaggerGenerator} from '../../../src/swagger/generator';
-import {VerifyPath, modelName} from '../utilities/verifyPath';
-import {VerifyBodyParameter, VerifyPathableParameter} from '../utilities/verifyParameter';
+/// <reference path="../../../../typings/index.d.ts" />
+import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {VerifyPath, modelName} from '../../utilities/verifyPath';
+import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PUT route generation', () => {
     const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/putController.ts');

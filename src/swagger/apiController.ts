@@ -1,5 +1,4 @@
 import {ApiMethod} from './apiMethod';
-import {SpecBuilder} from './specBuilder';
 import * as ts from 'typescript';
 
 export class ApiController {
@@ -7,7 +6,6 @@ export class ApiController {
 
     constructor(
         private node: ts.ClassDeclaration,
-        private specBuilder: SpecBuilder,
         private typeChecker: ts.TypeChecker
     ) {
         this.pathValue = this.getControllerRouteValue(node);
@@ -20,7 +18,7 @@ export class ApiController {
     public generatePaths() {
         this.node.members
             .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue, this.specBuilder, this.typeChecker))
+            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue, this.typeChecker))
             .filter(apiMethod => apiMethod.isValid())
             .forEach(apiMethod => apiMethod.generate());
     }

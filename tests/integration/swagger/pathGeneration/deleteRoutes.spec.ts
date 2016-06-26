@@ -1,6 +1,6 @@
-import {SwaggerGenerator} from '../../../src/swagger/generator';
-import {VerifyPath} from '../utilities/verifyPath';
-import {VerifyPathableParameter} from '../utilities/verifyParameter';
+import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {VerifyPath} from '../../utilities/verifyPath';
+import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('DELETE route generation', () => {
     const spec = SwaggerGenerator.GetSpec('./tests/integration/fixtures/deleteController.ts');

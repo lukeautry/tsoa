@@ -1,4 +1,10 @@
-export interface TestModel {
+/**
+ * This is a description of a model
+ */
+export interface TestModel extends Model {
+    /**
+     * This is a description of this model property, numberValue
+     */
     numberValue: number;
     numberArray: number[];
     stringValue: string;
@@ -9,7 +15,10 @@ export interface TestModel {
     modelsArray: TestSubModel[];
 }
 
-export interface TestSubModel {
-    id: number;
+export interface TestSubModel extends Model {
     email: string;
+}
+
+export interface Model {
+    id: number;
 }

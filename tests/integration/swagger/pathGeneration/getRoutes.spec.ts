@@ -1,6 +1,6 @@
-import {SwaggerGenerator} from '../../../src/swagger/generator';
-import {VerifyPath} from '../utilities/verifyPath';
-import {VerifyPathableParameter} from '../utilities/verifyParameter';
+import {SwaggerGenerator} from '../../../../src/swagger/generator';
+import {VerifyPath} from '../../utilities/verifyPath';
+import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 import * as chai from 'chai';
 
 describe('GET route generation', () => {

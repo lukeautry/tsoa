@@ -1,4 +1,4 @@
-import {getSwaggerType, getPathableSwaggerType} from './typeConversion';
+import {GetSwaggerType, getPathableSwaggerType} from './typeConversion';
 import * as ts from 'typescript';
 
 export class ApiMethodParameter {
@@ -22,7 +22,7 @@ export class ApiMethodParameter {
     }
 
     private getBodyParameter(parameter: ts.ParameterDeclaration) {
-        const type = getSwaggerType(parameter.type);
+        const type = GetSwaggerType(parameter.type);
         const identifier = parameter.name as ts.Identifier;
 
         return {
