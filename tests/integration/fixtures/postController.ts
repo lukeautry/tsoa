@@ -23,4 +23,9 @@ export class GetPostController extends Controller {
     public async postWithId(id: number): Promise<TestModel> {
         return null;
     }
+
+    @Post('WithBodyAndQueryParams')
+    public async postWithBodyAndQueryParams(model: TestModel, query: string): Promise<TestModel> {
+        return null;
+    }
 }

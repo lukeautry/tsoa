@@ -39,6 +39,12 @@ describe('POST route generation', () => {
         }).to.throw('Only one body parameter allowed per controller method.');
     });
 
+    it('should be able to parse body and query parameters together', () => {
+        const path = verifyPath(`${baseRoute}/WithBodyAndQueryParams`);
+        VerifyBodyParameter(path.post.parameters as any, 'model', modelName, 'body');
+        VerifyPathableParameter(path.post.parameters as any, 'query', 'string', 'query');
+    });
+
     function verifyPath(route: string, isCollection?: boolean) {
         return VerifyPath(spec, route, path => path.post, isCollection);
     }

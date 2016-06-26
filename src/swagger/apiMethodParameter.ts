@@ -16,19 +16,23 @@ export class ApiMethodParameter {
         }
 
         if (this.supportsBodyParameters(this.method)) {
-            return this.getBodyParameter(this.parameter);
+            try {
+                return this.getQueryParameter(this.parameter);
+            } catch (err) {
+                return this.getBodyParameter(this.parameter);
+            }
         }
 
         return this.getQueryParameter(this.parameter);
     }
 
     private getBodyParameter(parameter: ts.ParameterDeclaration) {
-        if (this.hasBodyParameter) {
-            throw new Error('Only one body parameter allowed per controller method.');
-        }
-
         const type = GetSwaggerType(parameter.type);
         const identifier = parameter.name as ts.Identifier;
+
+        if (this.hasBodyParameter) {
+            throw new Error(`Only one body parameter allowed per controller method. Attempted to parse ${identifier.text} as a body parameter.`);
+        }
 
         return {
             in: 'body',
