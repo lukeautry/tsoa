@@ -23,7 +23,7 @@ function addRoute(app: express.Express, route: Route) {
 }
 
 function getExpressPath(path: string) {
-    return path.replace('{', ':').replace('}', '');
+    return path.replace(/{/g, ':').replace(/}/g, '');
 }
 
 function requestHandler(request: express.Request, response: express.Response, route: Route) {

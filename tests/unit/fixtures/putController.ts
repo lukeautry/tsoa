@@ -4,7 +4,7 @@ import {Put} from '../../../src/decorators/methods';
 import {TestModel} from './testModel';
 
 @Route('PutTest')
-export class GetPutController extends Controller {
+export class PutTestController extends Controller {
     @Put()
     public async putModel(model: TestModel): Promise<TestModel> {
         return null;

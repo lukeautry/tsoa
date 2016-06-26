@@ -4,7 +4,7 @@ import {Post} from '../../../src/decorators/methods';
 import {TestModel} from './testModel';
 
 @Route('PostTest')
-export class GetPostController extends Controller {
+export class PostTestController extends Controller {
     @Post()
     public async postModel(model: TestModel): Promise<TestModel> {
         return null;
