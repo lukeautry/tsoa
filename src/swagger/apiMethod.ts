@@ -9,11 +9,7 @@ export class ApiMethod {
     private method: string;
     private path: string;
 
-    constructor(
-        private node: ts.MethodDeclaration,
-        private controllerPath: string,
-        private typeChecker: ts.TypeChecker
-    ) {
+    constructor(private node: ts.MethodDeclaration, private controllerPath: string) {
         this.processMethodDecorators();
     }
 
@@ -104,7 +100,7 @@ export class ApiMethod {
     }
 
     private getMethodDescription() {
-        let symbol = this.typeChecker.getSymbolAtLocation(this.node.name);
+        let symbol = Generator.Current().TypeChecker().getSymbolAtLocation(this.node.name);
 
         let comments = symbol.getDocumentationComment();
         if (comments.length) { return ts.displayPartsToString(comments); }

@@ -61,6 +61,23 @@ describe('GET route generation', () => {
         expect(parameter.required).to.be.false;
     });
 
+    it('should generate parameter description from jsdoc comment on path parameter', () => {
+        verifyParameterDescription('numberPathParam');
+    });
+
+    it('should generate parameter description from jsdoc comment on query parameter', () => {
+        verifyParameterDescription('numberParam');
+    });
+
+    function verifyParameterDescription(parameterName: string) {
+        const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
+        const path = verifyPath(actionRoute);
+
+        const parameter = path.get.parameters.filter(p => p.name === parameterName)[0];
+        expect(parameter).to.exist;
+        expect(parameter.description).to.equal(`This is a description for ${parameterName}`);
+    }
+
     function verifyPath(route: string, isCollection?: boolean) {
         return VerifyPath(spec, route, path => path.get, isCollection);
     }

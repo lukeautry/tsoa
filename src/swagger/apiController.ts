@@ -4,10 +4,7 @@ import * as ts from 'typescript';
 export class ApiController {
     private pathValue: string;
 
-    constructor(
-        private node: ts.ClassDeclaration,
-        private typeChecker: ts.TypeChecker
-    ) {
+    constructor(private node: ts.ClassDeclaration) {
         this.pathValue = this.getControllerRouteValue(node);
     }
 
@@ -18,7 +15,7 @@ export class ApiController {
     public generatePaths() {
         this.node.members
             .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue, this.typeChecker))
+            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue))
             .filter(apiMethod => apiMethod.isValid())
             .forEach(apiMethod => apiMethod.generate());
     }

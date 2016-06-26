@@ -23,6 +23,10 @@ export class GetTestController extends Controller {
         return null;
     }
 
+    /**
+     * @param numberPathParam This is a description for numberPathParam
+     * @param numberParam This is a description for numberParam
+     */
     @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
     public async getModelByParams(
         numberPathParam: number,

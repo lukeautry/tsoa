@@ -1,3 +1,4 @@
+import {Generator} from './generator';
 import {GetSwaggerType, GetPathableSwaggerType} from './typeConversion';
 import * as ts from 'typescript';
 
@@ -35,6 +36,7 @@ export class ApiMethodParameter {
         }
 
         return {
+            description: this.getParameterDescription(parameter),
             in: 'body',
             name: identifier.text,
             required: !parameter.questionToken,
@@ -44,12 +46,10 @@ export class ApiMethodParameter {
 
     private getQueryParameter(parameter: ts.ParameterDeclaration) {
         const type = GetPathableSwaggerType(parameter.type);
-        if (!type) {
-            throw new Error('Invalid query parameter type: only string, number, and bool values can be passed in the path.');
-        }
-
         const identifier = parameter.name as ts.Identifier;
+
         return {
+            description: this.getParameterDescription(parameter),
             in: 'query',
             name: identifier.text,
             required: !parameter.questionToken,
@@ -59,17 +59,24 @@ export class ApiMethodParameter {
 
     private getPathParameter(parameter: ts.ParameterDeclaration) {
         const type = GetPathableSwaggerType(parameter.type);
-        if (!type) {
-            throw new Error('Invalid path parameter type: only string, number, and bool values can be passed in the path.');
-        }
-
         const identifier = parameter.name as ts.Identifier;
+
         return {
+            description: this.getParameterDescription(parameter),
             in: 'path',
             name: identifier.text,
             required: true, // Path parameters should always be required...right?
             type: type
         };
+    }
+
+    private getParameterDescription(node: ts.ParameterDeclaration) {
+        const symbol = Generator.Current().TypeChecker().getSymbolAtLocation(node.name);
+
+        const comments = symbol.getDocumentationComment();
+        if (comments.length) { return ts.displayPartsToString(comments); }
+
+        return undefined;
     }
 
     private supportsBodyParameters(method: string) {

@@ -75,7 +75,7 @@ export class Generator {
 
         this.nodes
             .filter(n => n.kind === ts.SyntaxKind.ClassDeclaration && Generator.IsExportedNode(n))
-            .map(c => new ApiController(c as ts.ClassDeclaration, this.typeChecker))
+            .map(c => new ApiController(c as ts.ClassDeclaration))
             .filter(c => c.isValid())
             .forEach(c => c.generatePaths());
     }
