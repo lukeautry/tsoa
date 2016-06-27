@@ -43,9 +43,11 @@ function routeGenerator(method: Method, path?: string) {
     };
 }
 
-function getParamNames(func: Function) {
-    const pattern = /[A-Z][a-z]+[(]{1}(.+?)[)]{1}/g;
-    const match = pattern.exec(func.toString());
+function getParamNames(func: Function): string[] {
+    const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+    const ARGUMENT_NAMES = /([^\s,]+)/g;
+    const fnStr = func.toString().replace(STRIP_COMMENTS, '');
+    const result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
 
-    return match && match[1] ? match[1].split(', ') : [];
+    return result || [];
 }

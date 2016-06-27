@@ -1,23 +1,16 @@
 /// <reference path="../../typings/index.d.ts" />
-
+import {app} from '../fixtures/server';
+import * as chai from 'chai';
 import * as request from 'supertest';
-import * as express from 'express';
-import {Server} from '../fixtures/server';
 
 describe('Server', () => {
-    let server: express.Express = null;
-
-    beforeEach(() => {
-        server = Server();
-    });
-
-    afterEach(() => {
-        server.close();
-    });
-
     it('responds to /GetTest', done => {
-        request(server)
+        request(app)
             .get('/GetTest')
-            .expect(200, done);
+            .expect(200)
+            .end((err, res) => {
+                chai.expect(res.body.id).to.equal(1);
+                done();
+            });
     });
 });

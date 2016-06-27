@@ -9,20 +9,17 @@ import {PatchTestController} from './controllers/patchController';
 import {GetTestController} from './controllers/getController';
 import {DeleteTestController} from './controllers/deleteController';
 
-export function Server() {
-    const app = express();
-    app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(bodyParser.json());
-    app.use(methodOverride());
+export const app: express.Express = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(methodOverride());
 
-    RegisterExpressRoutes(app, [
-        GetTestController,
-        PostTestController,
-        PatchTestController,
-        DeleteTestController,
-        PutTestController
-    ]);
+RegisterExpressRoutes(app, [
+    GetTestController,
+    PostTestController,
+    PatchTestController,
+    DeleteTestController,
+    PutTestController
+]);
 
-    app.listen(3000);
-    return app;
-}
+app.listen(3000);

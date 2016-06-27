@@ -2,14 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Swagger Generation",
+            "name": "Start",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/src/swagger/cli.ts",
+            "program": "${workspaceRoot}/tests/fixtures/server.ts",
             "stopOnEntry": false,
-            "args": [
-                "--outFile=./dist/swagger.json", "--mainFile=./tests/unit/fixtures/controllers/getController.ts"
-            ],
+            "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build",
             "runtimeExecutable": null,

@@ -1,7 +1,8 @@
 import {Controller} from '../../../src/routing/controller';
-import {Route} from '../../../src/decorators/route';
-import {Get} from '../../../src/decorators/methods';
 import {Example} from '../../../src/decorators/example';
+import {Get} from '../../../src/decorators/methods';
+import {ModelService} from '../services/modelService';
+import {Route} from '../../../src/decorators/route';
 import {TestModel} from '../testModel';
 
 @Route('GetTest')
@@ -27,7 +28,7 @@ export class GetTestController extends Controller {
         stringValue: 'a string'
     })
     public async getModel(): Promise<TestModel> {
-        return null;
+        return new ModelService().getModel();
     }
 
     @Get('Current')
