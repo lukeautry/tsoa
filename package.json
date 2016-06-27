@@ -9,7 +9,7 @@
     "clean": "rimraf dist",
     "lint": "tslint ./src/**/*.ts",
     "prepublish": "npm run typings install && npm run build",
-    "test": "mocha tests/**/*.spec.ts --require ts-node/register",
+    "test": "mocha **/*.spec.ts --require ts-node/register",
     "typings": "typings"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
