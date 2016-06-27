@@ -4,7 +4,7 @@ import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PATCH route generation', () => {
-    const spec = new Generator().GetSpec('./tests/unit/fixtures/patchController.ts');
+    const spec = new Generator().GetSpec('./tests/fixtures/controllers/patchController.ts');
     const baseRoute = '/PatchTest';
 
     it('should generate a path for a PATCH route with no path argument', () => {

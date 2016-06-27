@@ -6,7 +6,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('GET route generation', () => {
-    const spec = new Generator().GetSpec('./tests/unit/fixtures/getController.ts');
+    const spec = new Generator().GetSpec('./tests/fixtures/controllers/getController.ts');
     const baseRoute = '/GetTest';
 
     it('should generate a path for a GET route with no path argument', () => {
@@ -43,7 +43,7 @@ describe('GET route generation', () => {
 
     it('should reject complex types as arguments', () => {
         expect(() => {
-            new Generator().GetSpec('./tests/unit/fixtures/invalidGetController.ts');
+            new Generator().GetSpec('./tests/fixtures/controllers/invalidGetController.ts');
         }).to.throw('TestModel isn\'t a type that can be used as a path or query parameter.');
     });
 

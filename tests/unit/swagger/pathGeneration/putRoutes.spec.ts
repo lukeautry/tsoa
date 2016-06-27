@@ -4,7 +4,7 @@ import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PUT route generation', () => {
-    const spec = new Generator().GetSpec('./tests/unit/fixtures/putController.ts');
+    const spec = new Generator().GetSpec('./tests/fixtures/controllers/putController.ts');
     const baseRoute = '/PutTest';
 
     it('should generate a path for a PUT route with no path argument', () => {

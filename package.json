@@ -20,9 +20,12 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
+    "body-parser": "^1.15.2",
     "chai": "^3.5.0",
+    "method-override": "^2.3.6",
     "mocha": "^2.5.3",
     "rimraf": "^2.5.2",
+    "supertest": "^1.2.0",
     "ts-node": "^0.9.3",
     "tslint": "^3.11.0",
     "typings": "^1.2.0"

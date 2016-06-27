@@ -3,7 +3,7 @@ import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('DELETE route generation', () => {
-    const spec = new Generator().GetSpec('./tests/unit/fixtures/deleteController.ts');
+    const spec = new Generator().GetSpec('./tests/fixtures/controllers/deleteController.ts');
     const baseRoute = '/DeleteTest';
 
     it('should generate a path for a DELETE route with no path argument', () => {

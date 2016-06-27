@@ -1,10 +1,10 @@
 /// <reference path="../../../typings/index.d.ts" />
 import {RegisterExpressRoutes} from '../../../src/adapters/express';
-import {GetTestController} from '../fixtures/getController';
-import {PostTestController} from '../fixtures/postController';
-import {PatchTestController} from '../fixtures/patchController';
-import {DeleteTestController} from '../fixtures/deleteController';
-import {PutTestController} from '../fixtures/putController';
+import {GetTestController} from '../../fixtures/controllers/getController';
+import {PostTestController} from '../../fixtures/controllers/postController';
+import {PatchTestController} from '../../fixtures/controllers/patchController';
+import {DeleteTestController} from '../../fixtures/controllers/deleteController';
+import {PutTestController} from '../../fixtures/controllers/putController';
 import * as chai from 'chai';
 import * as express from 'express';
 

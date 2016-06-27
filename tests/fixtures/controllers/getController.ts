@@ -2,7 +2,7 @@ import {Controller} from '../../../src/routing/controller';
 import {Route} from '../../../src/decorators/route';
 import {Get} from '../../../src/decorators/methods';
 import {Example} from '../../../src/decorators/example';
-import {TestModel} from './testModel';
+import {TestModel} from '../testModel';
 
 @Route('GetTest')
 export class GetTestController extends Controller {

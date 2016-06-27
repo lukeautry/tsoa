@@ -1,7 +1,7 @@
 import {Controller} from '../../../src/routing/controller';
 import {Route} from '../../../src/decorators/route';
 import {Put} from '../../../src/decorators/methods';
-import {TestModel} from './testModel';
+import {TestModel} from '../testModel';
 
 @Route('PutTest')
 export class PutTestController extends Controller {
