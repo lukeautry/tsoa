@@ -36,5 +36,9 @@
   },
   "bin": {
     "lucid-swagger-generate": "dist/swagger/cli.js"
-  }
+  },
+  "engines": {
+    "node": ">=4.4.4"
+  },
+  "engineStrict": true
 }
