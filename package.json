@@ -1,6 +1,6 @@
 {
-  "name": "lucid-web-api",
-  "description": "A framework for building web APIs with TypeScript",
+  "name": "swagger-ts",
+  "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "version": "0.0.17",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -32,10 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lukeautry/lucid-web-api.git"
+    "url": "https://github.com/lukeautry/swagger-ts.git"
   },
   "bin": {
-    "lucid-swagger-generate": "dist/swagger/cli.js"
+    "swagger-ts-generate": "dist/swagger/cli.js"
   },
   "engines": {
     "node": ">=4.4.4"
