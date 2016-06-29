@@ -38,7 +38,7 @@
     "swagger-ts-generate": "dist/swagger/cli.js"
   },
   "engines": {
-    "node": ">=4.4.4"
+    "node": ">=6.0.0"
   },
   "engineStrict": true
 }

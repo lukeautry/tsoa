@@ -52,7 +52,7 @@ describe('GET route generation', () => {
         expect(path.get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
     });
 
-    it('should generate optional parameters from optional parameters', () => {
+    it('should generate optional parameters from default value', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
         const path = verifyPath(actionRoute);
 

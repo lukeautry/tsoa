@@ -2,12 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Start",
+            "name": "Generate",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/tests/fixtures/server.ts",
+            "program": "${workspaceRoot}/src/swagger/cli.ts",
             "stopOnEntry": false,
-            "args": [],
+            "args": [
+                "--mainFile=./tests/fixtures/server.ts", "--outFile=./dist/swagger.json"
+            ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build",
             "runtimeExecutable": null,

@@ -39,7 +39,7 @@ export class ApiMethodParameter {
             description: this.getParameterDescription(parameter),
             in: 'body',
             name: identifier.text,
-            required: !parameter.questionToken,
+            required: !parameter.initializer,
             schema: type
         };
     }
@@ -52,7 +52,7 @@ export class ApiMethodParameter {
             description: this.getParameterDescription(parameter),
             in: 'query',
             name: identifier.text,
-            required: !parameter.questionToken,
+            required: !parameter.initializer,
             type: type
         };
     }

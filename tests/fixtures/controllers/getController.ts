@@ -33,12 +33,16 @@ export class GetTestController extends Controller {
 
     @Get('Current')
     public async getCurrentModel(): Promise<TestModel> {
-        return null;
+        return new ModelService().getModel();
     }
 
     @Get('Multi')
     public async getMultipleModels(): Promise<TestModel[]> {
-        return null;
+        return [
+            new ModelService().getModel(),
+            new ModelService().getModel(),
+            new ModelService().getModel()
+        ];
     }
 
     /**
@@ -53,7 +57,7 @@ export class GetTestController extends Controller {
         booleanParam: boolean,
         stringParam: string,
         numberParam: number,
-        optionalStringParam?: string): Promise<TestModel> {
-        return null;
+        optionalStringParam: string = undefined): Promise<TestModel> {
+        return new ModelService().getModel();
     }
 }
