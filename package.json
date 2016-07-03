@@ -1,7 +1,7 @@
 {
   "name": "swagger-ts",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
