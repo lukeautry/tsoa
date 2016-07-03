@@ -451,7 +451,7 @@ function validateModel(modelValue: any, typeName: string): any {
         modelValue[key] = validateParam(property, modelValue[key], key);
     });
 
-    return modelDefinition;
+    return modelValue;
 }
 
 function validateArray(array: any[], arrayType: string, arrayName: string): any[] {
