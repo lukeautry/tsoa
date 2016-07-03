@@ -1,4 +1,3 @@
-import {Controller} from '../../../src/routing/controller';
 import {Example} from '../../../src/decorators/example';
 import {Get} from '../../../src/decorators/methods';
 import {ModelService} from '../services/modelService';
@@ -6,7 +5,7 @@ import {Route} from '../../../src/decorators/route';
 import {TestModel} from '../testModel';
 
 @Route('GetTest')
-export class GetTestController extends Controller {
+export class GetTestController {
     /**
      * This is a description of the getModel method
      * this is some more text on another line
@@ -57,7 +56,13 @@ export class GetTestController extends Controller {
         booleanParam: boolean,
         stringParam: string,
         numberParam: number,
-        optionalStringParam: string = undefined): Promise<TestModel> {
-        return new ModelService().getModel();
+        optionalStringParam?: string): Promise<TestModel> {
+            const model = new ModelService().getModel();
+            model.optionalString = optionalStringParam;
+            model.numberValue = numberPathParam;
+            model.boolValue = booleanPathParam;
+            model.stringValue = stringPathParam;
+
+            return model;
     }
 }

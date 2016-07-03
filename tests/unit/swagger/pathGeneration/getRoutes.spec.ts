@@ -1,4 +1,5 @@
-import {Generator} from '../../../../src/swagger/generator';
+import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
+import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 import * as chai from 'chai';
@@ -6,7 +7,8 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('GET route generation', () => {
-    const spec = new Generator().GetSpec('./tests/fixtures/controllers/getController.ts');
+    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/getController.ts');
+    const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/GetTest';
 
     it('should generate a path for a GET route with no path argument', () => {
@@ -43,8 +45,9 @@ describe('GET route generation', () => {
 
     it('should reject complex types as arguments', () => {
         expect(() => {
-            new Generator().GetSpec('./tests/fixtures/controllers/invalidGetController.ts');
-        }).to.throw('TestModel isn\'t a type that can be used as a path or query parameter.');
+            const invalidMetadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/invalidGetController.ts');
+            new SpecGenerator(invalidMetadata).GetSpec();
+        }).to.throw('Parameter \'myModel\' can\'t be passed as a query parameter.');
     });
 
     it('should generate a path description from jsdoc comment', () => {

@@ -1,11 +1,13 @@
 /// <reference path="../../../../typings/index.d.ts" />
-import {Generator} from '../../../../src/swagger/generator';
+import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
+import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import * as chai from 'chai';
 
 const expect = chai.expect;
 
 describe('Definition generation', () => {
-    const spec = new Generator().GetSpec('./tests/fixtures/controllers/getController.ts');
+    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/getController.ts');
+    const spec = new SpecGenerator(metadata).GetSpec();
 
     it('should generate a definition for referenced models', () => {
         const expectedModels = ['TestModel', 'TestSubModel'];

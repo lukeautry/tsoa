@@ -1,23 +1,35 @@
-import {ApiMethod} from './apiMethod';
 import * as ts from 'typescript';
+import {Controller} from './metadataGenerator';
+import {MethodGenerator} from './methodGenerator';
 
-export class ApiController {
+export class ControllerGenerator {
     private pathValue: string;
 
     constructor(private node: ts.ClassDeclaration) {
         this.pathValue = this.getControllerRouteValue(node);
     }
 
-    public isValid() {
+    public IsValid() {
         return !!this.pathValue;
     }
 
-    public generatePaths() {
-        this.node.members
+    public Generate(): Controller {
+        const sourceFile = this.node.parent.getSourceFile();
+
+        return {
+            location: sourceFile.fileName,
+            methods: this.buildMethods(),
+            name: this.node.name.text,
+            path: this.pathValue
+        };
+    }
+
+    private buildMethods() {
+        return this.node.members
             .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-            .map((m: ts.MethodDeclaration) => new ApiMethod(m, this.pathValue))
-            .filter(apiMethod => apiMethod.isValid())
-            .forEach(apiMethod => apiMethod.generate());
+            .map((m: ts.MethodDeclaration) => new MethodGenerator(m))
+            .filter(generator => generator.IsValid())
+            .map(generator => generator.Generate());
     }
 
     private getControllerRouteValue(node: ts.ClassDeclaration) {

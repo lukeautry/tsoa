@@ -1,10 +1,9 @@
-import {Controller} from '../../../src/routing/controller';
 import {Route} from '../../../src/decorators/route';
 import {Delete} from '../../../src/decorators/methods';
 import {TestModel} from '../testModel';
 
 @Route('DeleteTest')
-export class DeleteTestController extends Controller {
+export class DeleteTestController {
     @Delete()
     public async deleteWithReturnValue(): Promise<TestModel> {
         return null;

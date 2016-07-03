@@ -1,10 +1,11 @@
-/// <reference path="../../../../typings/index.d.ts" />
-import {Generator} from '../../../../src/swagger/generator';
+import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
+import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PUT route generation', () => {
-    const spec = new Generator().GetSpec('./tests/fixtures/controllers/putController.ts');
+    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/putController.ts');
+    const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/PutTest';
 
     it('should generate a path for a PUT route with no path argument', () => {

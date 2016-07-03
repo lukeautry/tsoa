@@ -1,10 +1,9 @@
-import {Controller} from '../../../src/routing/controller';
 import {Route} from '../../../src/decorators/route';
 import {Patch} from '../../../src/decorators/methods';
 import {TestModel} from '../testModel';
 
 @Route('PatchTest')
-export class PatchTestController extends Controller {
+export class PatchTestController {
     @Patch()
     public async patchModel(model: TestModel): Promise<TestModel> {
         return null;

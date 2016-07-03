@@ -5,10 +5,10 @@
             "name": "Generate",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/src/swagger/cli.ts",
+            "program": "${workspaceRoot}/src/cli.ts",
             "stopOnEntry": false,
             "args": [
-                "--mainFile=./tests/fixtures/server.ts", "--outFile=./dist/swagger.json"
+                "--entryFile=./tests/fixtures/server.ts", "--swaggerDir=./dist", "--routesDir=./tests/fixtures"
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build",

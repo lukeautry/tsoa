@@ -2,24 +2,18 @@
 import * as methodOverride from 'method-override';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import {RegisterExpressRoutes} from '../../src/adapters/express';
-import {PutTestController} from './controllers/putController';
-import {PostTestController} from './controllers/postController';
-import {PatchTestController} from './controllers/patchController';
-import {GetTestController} from './controllers/getController';
-import {DeleteTestController} from './controllers/deleteController';
+import './controllers/putController';
+import './controllers/postController';
+import './controllers/patchController';
+import './controllers/getController';
+import './controllers/deleteController';
+import {RegisterRoutes} from './routes';
 
 export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 
-RegisterExpressRoutes(app, [
-    GetTestController,
-    PostTestController,
-    PatchTestController,
-    DeleteTestController,
-    PutTestController
-]);
+RegisterRoutes(app);
 
 app.listen(3000);

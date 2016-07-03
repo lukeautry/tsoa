@@ -6,17 +6,21 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "build": "npm run clean && npm run lint && tsc",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint ./src/**/*.ts",
     "prepublish": "npm run typings install && npm run build",
-    "test": "mocha **/*.spec.ts --require ts-node/register",
-    "typings": "typings"
+    "test": "npm run swagger-gen && mocha **/*.spec.ts --require ts-node/register",
+    "typings": "typings",
+    "swagger-gen": "ts-node ./src/cli.ts --entryFile=./tests/fixtures/server.ts --swaggerDir=./dist --routesDir=./tests/fixtures"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "app-root-path": "^1.2.1",
     "express": "^4.13.4",
+    "handlebars": "^4.0.5",
     "typescript": "^1.8.10",
+    "typescript-formatter": "^2.2.0",
     "yargs": "^4.7.1"
   },
   "devDependencies": {
@@ -35,7 +39,7 @@
     "url": "https://github.com/lukeautry/swagger-ts.git"
   },
   "bin": {
-    "swagger-ts-generate": "dist/swagger/cli.js"
+    "swagger-ts-generate": "dist/cli.js"
   },
   "engines": {
     "node": ">=6.0.0"

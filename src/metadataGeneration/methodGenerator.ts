@@ -1,43 +1,40 @@
-import {ApiMethodParameter} from './apiMethodParameter';
-import {GetSwaggerType} from './typeConversion';
-import {Method} from '../routing/method';
-import {Swagger} from './swagger';
-import {Generator} from './generator';
 import * as ts from 'typescript';
+import {Method, MetadataGenerator} from './metadataGenerator';
+import {ResolveType} from './resolveType';
+import {ParameterGenerator} from './parameterGenerator';
 
-export class ApiMethod {
+export class MethodGenerator {
     private method: string;
     private path: string;
 
-    constructor(private node: ts.MethodDeclaration, private controllerPath: string) {
+    constructor(private node: ts.MethodDeclaration) {
         this.processMethodDecorators();
     }
 
-    public isValid() {
+    public IsValid() {
         return !!this.method;
     }
 
-    public generate() {
-        if (!this.isValid()) { throw new Error('This isn\'t a valid a controller method.'); }
+    public Generate(): Method {
+        if (!this.IsValid()) { throw new Error('This isn\'t a valid a controller method.'); }
         if (!this.node.type) { throw new Error('Controller methods must have a return type.'); }
 
-        const swaggerType = GetSwaggerType(this.node.type);
-        const pathObject: any = {};
+        const identifier = this.node.name as ts.Identifier;
 
-        pathObject[this.method] = swaggerType ? this.get200Operation(swaggerType) : this.get204Operation();
-        pathObject[this.method].description = this.getMethodDescription();
-        pathObject[this.method].parameters = this.getMethodParameters();
-
-        Generator.Current().AddPath(`/${this.controllerPath}${this.path}`, pathObject);
+        return {
+            description: this.getMethodDescription(),
+            example: this.getMethodExample(),
+            method: this.method,
+            name: identifier.text,
+            parameters: this.getParameters(),
+            path: this.path,
+            type: ResolveType(this.node.type)
+        };
     }
 
-    private getMethodParameters() {
-        let hasBodyParameter = false;
+    private getParameters() {
         return this.node.parameters.map(p => {
-            const parameter = new ApiMethodParameter(p, this.path, this.method, hasBodyParameter).getParameter();
-            if (parameter.in === 'body') { hasBodyParameter = true; }
-
-            return parameter;
+            return new ParameterGenerator(p, this.method, this.path).Generate();
         });
     }
 
@@ -73,41 +70,11 @@ export class ApiMethod {
     }
 
     private getValidMethods() {
-        const validMethods = new Array<string>();
-
-        for (let member in Method) {
-            const isValueProperty = parseInt(member, 10) >= 0;
-            if (isValueProperty) {
-                validMethods.push(Method[member]);
-            }
-        }
-
-        return validMethods;
-    }
-
-    private get200Operation(swaggerType: Swagger.Schema) {
-        return {
-            produces: ['application/json'],
-            responses: {
-                '200': {
-                    description: '',
-                    examples: this.getMethodExample(),
-                    schema: swaggerType
-                }
-            }
-        };
-    }
-
-    private get204Operation() {
-        return {
-            responses: {
-                '204': { description: 'No content' }
-            }
-        };
+        return ['get', 'post', 'patch', 'delete', 'put'];
     }
 
     private getMethodDescription() {
-        let symbol = Generator.Current().TypeChecker().getSymbolAtLocation(this.node.name);
+        let symbol = MetadataGenerator.Current().TypeChecker().getSymbolAtLocation(this.node.name);
 
         let comments = symbol.getDocumentationComment();
         if (comments.length) { return ts.displayPartsToString(comments); }
@@ -115,7 +82,38 @@ export class ApiMethod {
         return '';
     }
 
-    private getMethodExample(): any {
+    // private getMethodParameters() {
+    //     let hasBodyParameter = false;
+    //     return this.node.parameters.map(p => {
+    //         const parameter = new ApiMethodParameter(p, this.path, this.method, hasBodyParameter).getParameter();
+    //         if (parameter.in === 'body') { hasBodyParameter = true; }
+
+    //         return parameter;
+    //     });
+    // }
+
+    // private get200Operation(swaggerType: Swagger.Schema) {
+    //     return {
+    //         produces: ['application/json'],
+    //         responses: {
+    //             '200': {
+    //                 description: '',
+    //                 examples: this.getMethodExample(),
+    //                 schema: swaggerType
+    //             }
+    //         }
+    //     };
+    // }
+
+    // private get204Operation() {
+    //     return {
+    //         responses: {
+    //             '204': { description: 'No content' }
+    //         }
+    //     };
+    // }
+
+    private getMethodExample() {
         const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
         if (!exampleDecorators.length) { return undefined; }
         if (exampleDecorators.length > 1) {
@@ -131,7 +129,7 @@ export class ApiMethod {
             example[p.name.text] = this.getInitializerValue(p.initializer);
         });
 
-        return { 'application/json': example };
+        return example;
     }
 
     private getInitializerValue(initializer: any) {

@@ -1,11 +1,12 @@
-/// <reference path="../../../../typings/index.d.ts" />
-import {Generator} from '../../../../src/swagger/generator';
-import {VerifyPath, modelName} from '../../utilities/verifyPath';
+import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
+import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
+import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import * as chai from 'chai';
 
 describe('POST route generation', () => {
-    const spec = new Generator().GetSpec('./tests/fixtures/controllers/postController.ts');
+    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/postController.ts');
+    const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/PostTest';
 
     it('should generate a path for a POST route with no path argument', () => {
@@ -35,7 +36,8 @@ describe('POST route generation', () => {
 
     it('should reject multiple body parameters', () => {
         chai.expect(() => {
-            new Generator().GetSpec('./tests/fixtures/controllers/invalidPostController.ts');
+            const invalidMetadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/invalidPostController.ts');
+            new SpecGenerator(invalidMetadata).GetSpec();
         }).to.throw('Only one body parameter allowed per controller method.');
     });
 
