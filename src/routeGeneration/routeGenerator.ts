@@ -93,8 +93,8 @@ export class RouteGenerator {
 
     private getTemplateProperty(source: Parameter | Property) {
         const templateProperty: TemplateProperty = {
-            required: source.required,
             name: source.name,
+            required: source.required,
             typeName: this.getStringRepresentationOfType(source.type)
         };
 
