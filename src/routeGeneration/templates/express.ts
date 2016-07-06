@@ -11,7 +11,7 @@ export const expressTemplate = `
 
             let validatedParams: any[] = [];
             try {
-                validatedParams = getValidatedParams(params, req);
+                validatedParams = getValidatedParams(params, req, '{{bodyParamName}}');
             } catch (err) {
                 res.status(err.status || 500);
                 res.json(err);
@@ -40,17 +40,20 @@ export const expressTemplate = `
             });
     }
 
-    function getRequestParams(request: any) {
+    function getRequestParams(request: any, bodyParamName?: string) {
         const merged: any = {};
-        for (let attrname in request.body) { merged[attrname] = request.body[attrname]; }
+        if (bodyParamName) {
+            merged[bodyParamName] = request.body;            
+        }
+
         for (let attrname in request.params) { merged[attrname] = request.params[attrname]; }
         for (let attrname in request.query) { merged[attrname] = request.query[attrname]; }
         return merged;
     }
 
-    function getValidatedParams(params: any, request: any): any[] {
-        const requestParams = getRequestParams(request);
-
+    function getValidatedParams(params: any, request: any, bodyParamName?: string): any[] {
+        const requestParams = getRequestParams(request, bodyParamName);
+        
         return Object.keys(params).map(key => {
             return validateParam(params[key], requestParams[key], key);
         });

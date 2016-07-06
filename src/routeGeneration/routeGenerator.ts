@@ -1,6 +1,6 @@
+import {expressTemplate} from './templates/express';
 import {Metadata, Type, ArrayType, ReferenceType, Parameter, Property} from '../metadataGeneration/metadataGenerator';
 import {templateHelpersContent} from './templateHelpers';
-import {expressTemplate} from './templates/express';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
@@ -46,7 +46,9 @@ export class RouteGenerator {
             controllers: this.metadata.Controllers.map(controller => {
                 return {
                     actions: controller.methods.map(method => {
+                        const bodyParameter = method.parameters.find(parameter => parameter.in === 'body');
                         return {
+                            bodyParamName: bodyParameter ? bodyParameter.name : undefined,
                             method: method.method.toLowerCase(),
                             name: method.name,
                             parameters: method.parameters.map(parameter => this.getTemplateProperty(parameter)),

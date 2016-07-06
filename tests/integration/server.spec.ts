@@ -81,9 +81,7 @@ describe('Server', () => {
             stringValue: 'test1234'
         };
 
-        return verifyPostRequest('/PostTest', {
-            model: data
-        }, (err: any, res: any) => {
+        return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
             const model = res.body as TestModel;
             expect(model).to.deep.equal(model);
         });
