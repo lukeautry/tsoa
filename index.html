@@ -19,18 +19,32 @@
     </section>
 
     <section class="main-content">
-      <h3>
-<a id="what-is-it" class="anchor" href="#what-is-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is it?</h3>
+      <p><a href="https://codeship.com/projects/160322"> <img src="https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master" alt="Codeship Status for lukeautry/tsoa"></a></p>
+
+<h2>
+<a id="goal" class="anchor" href="#goal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Goal</h2>
 
 <ul>
-<li>TypeScript controllers (classes) and models (interfaces) as a single source of truth for your RESTful API</li>
-<li>
-<a href="http://swagger.io/">Swagger</a> spec generation: enables documentation and client SDK generation</li>
-<li>Route generation: middleware routes generated from controllers</li>
+<li>TypeScript controllers and models as the single source of truth for your API</li>
+<li>A valid swagger spec is generated from your controllers and models, including:
+
+<ul>
+<li>Paths (e.g. GET /Users)</li>
+<li>Definitions based on TypeScript interfaces (models)</li>
+<li>Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)</li>
+<li>jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)</li>
+</ul>
+</li>
+<li>Routes are generated for middleware of choice
+
+<ul>
+<li>Express currently included, other middleware can be supported using a simple handlebars template</li>
+</ul>
+</li>
 </ul>
 
-<h3>
-<a id="philosophy" class="anchor" href="#philosophy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Philosophy</h3>
+<h2>
+<a id="philosophy" class="anchor" href="#philosophy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Philosophy</h2>
 
 <ul>
 <li>Rely on TypeScript type annotations to generate API metadata if possible</li>
@@ -38,6 +52,101 @@
 <li>Use jsdoc for pure text metadata (e.g. endpoint descriptions)</li>
 <li>Minimize boilerplate</li>
 </ul>
+
+<h2>
+<a id="how-it-works" class="anchor" href="#how-it-works" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How it works</h2>
+
+<h3>
+<a id="create-controllers" class="anchor" href="#create-controllers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Create Controllers</h3>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-c">// controllers/usersController.ts</span>
+
+<span class="pl-k">import</span> {Get, Route} <span class="pl-k">from</span> <span class="pl-s">'tsoa'</span>;
+<span class="pl-k">import</span> {UserService} <span class="pl-k">from</span> <span class="pl-s">'../services/userService'</span>;
+<span class="pl-k">import</span> {User, UserCreationRequest} <span class="pl-k">from</span> <span class="pl-s">'../models/user'</span>;
+
+@Route(<span class="pl-s">'Users'</span>)
+<span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">UsersController</span> {
+    @<span class="pl-en">Get</span>('{<span class="pl-v">id</span>})
+    <span class="pl-k">public</span> <span class="pl-k">async</span> <span class="pl-en">getUser</span>(<span class="pl-v">id</span>: <span class="pl-k">number</span>): <span class="pl-en">Promise</span>&lt;User&gt; {
+        <span class="pl-k">return</span> <span class="pl-k">await</span> <span class="pl-k">new</span> UserService().get(id);
+    }
+
+    @<span class="pl-en">Post</span>()
+    <span class="pl-k">public</span> <span class="pl-k">async</span> <span class="pl-en">createUser</span>(<span class="pl-v">request</span>: UserCreationRequest): <span class="pl-en">Promise</span>&lt;User&gt; {
+        <span class="pl-k">return</span> <span class="pl-k">await</span> <span class="pl-k">new</span> UserService().create(reqest);
+    }
+}</pre></div>
+
+<h3>
+<a id="create-models" class="anchor" href="#create-models" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Create Models</h3>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-c">// models/user.ts</span>
+
+<span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">User</span> {
+    <span class="pl-v">id</span>: <span class="pl-k">number</span>;
+    <span class="pl-v">email</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">name</span>: Name;
+    <span class="pl-v">status</span><span class="pl-k">?</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">phoneNumbers</span>: <span class="pl-k">string</span>[];
+}
+
+<span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">Name</span> {
+    <span class="pl-v">first</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">last</span><span class="pl-k">?</span>: <span class="pl-k">string</span>;
+}
+
+<span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">UserCreationRequest</span> {
+    <span class="pl-v">email</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">name</span>: Name;
+    <span class="pl-v">phoneNumbers</span>: <span class="pl-k">string</span>[];
+}</pre></div>
+
+<h3>
+<a id="generate" class="anchor" href="#generate" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Generate!</h3>
+
+<p>From command line/npm script:</p>
+
+<pre><code>swagger-ts-generate --entryFile=./src/server.ts --swaggerDir=./dist --routesDir=./src
+</code></pre>
+
+<ul>
+<li>entryFile: Entry point for your application</li>
+<li>swaggerDir: Where you want swagger.json to be dropped</li>
+<li>routesDir: Where you want routes.ts to be dropped</li>
+</ul>
+
+<h3>
+<a id="consume-generated-routes" class="anchor" href="#consume-generated-routes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Consume generated routes</h3>
+
+<div class="highlight highlight-source-ts"><pre><span class="pl-k">import</span> <span class="pl-k">*</span> <span class="pl-k">as</span> methodOverride <span class="pl-k">from</span> <span class="pl-s">'method-override'</span>;
+<span class="pl-k">import</span> <span class="pl-k">*</span> <span class="pl-k">as</span> express <span class="pl-k">from</span> <span class="pl-s">'express'</span>;
+<span class="pl-k">import</span> <span class="pl-k">*</span> <span class="pl-k">as</span> bodyParser <span class="pl-k">from</span> <span class="pl-s">'body-parser'</span>;
+<span class="pl-k">import</span> {RegisterRoutes} <span class="pl-k">from</span> <span class="pl-s">'./routes'</span>;
+
+<span class="pl-c">// controllers need to be referenced in order to get crawled by the generator</span>
+<span class="pl-k">import</span> <span class="pl-s">'./controllers/usersController'</span>;
+
+app: express.Express <span class="pl-k">=</span> express();
+app.use(bodyParser.urlencoded({ extended: <span class="pl-c1">true</span> }));
+app.use(bodyParser.json());
+app.use(methodOverride());
+
+RegisterRoutes(app);
+
+app.listen(<span class="pl-c1">3000</span>);
+</pre></div>
+
+<h3>
+<a id="use-awesome-swagger-tools" class="anchor" href="#use-awesome-swagger-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use awesome Swagger tools</h3>
+
+<p>Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that generate documentation, client SDKs, and more.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<pre><code>npm install tsoa --save
+</code></pre>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/lukeautry/tsoa">tsoa</a> is maintained by <a href="https://github.com/lukeautry">lukeautry</a>.</span>
