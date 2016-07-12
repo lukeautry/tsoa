@@ -10,6 +10,7 @@
     - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
     - Express currently included, other middleware can be supported using a simple handlebars template
+    - Validate request payloads
 
 ## Philosophy
 
