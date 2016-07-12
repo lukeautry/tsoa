@@ -11,6 +11,13 @@
 - Routes are generated for middleware of choice
     - Express currently included, other middleware can be supported using a simple handlebars template
 
+### Philosophy
+
+- Rely on TypeScript type annotations to generate API metadata if possible
+- If regular type annotations aren't an appropriate way to express metadata, use decorators
+- Use jsdoc for pure text metadata (e.g. endpoint descriptions)
+- Minimize boilerplate
+
 ## How it works
 
 ### Create Controllers
