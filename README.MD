@@ -1,4 +1,4 @@
-[ ![Codeship Status for lukeautry/swagger-ts](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
+[ ![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
 
 ## Goal
 
@@ -18,7 +18,7 @@
 ```typescript
 // controllers/usersController.ts
 
-import {Get, Route} from 'swagger-ts';
+import {Get, Route} from 'tsoa';
 import {UserService} from '../services/userService';
 import {User, UserCreationRequest} from '../models/user';
 
