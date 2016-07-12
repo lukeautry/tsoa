@@ -1,0 +1,6 @@
+{
+  "name": "tsoa",
+  "tagline": "Build swagger-compliant REST APIs using TypeScript and Node",
+  "body": "### What is it?\r\n\r\n* TypeScript controllers (classes) and models (interfaces) as a single source of truth for your RESTful API\r\n* [Swagger](http://swagger.io/) spec generation: enables documentation and client SDK generation\r\n* Route generation: middleware routes generated from controllers\r\n\r\n### Philosophy\r\n\r\n* Rely on TypeScript type annotations to generate API metadata if possible\r\n* If regular type annotations aren't an appropriate way to express metadata, use decorators\r\n* Use jsdoc for pure text metadata (e.g. endpoint descriptions)\r\n* Minimize boilerplate\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
