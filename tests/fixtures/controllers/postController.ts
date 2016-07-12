@@ -1,11 +1,16 @@
 import {Route} from '../../../src/decorators/route';
-import {Post} from '../../../src/decorators/methods';
+import {Post, Patch} from '../../../src/decorators/methods';
 import {TestModel} from '../testModel';
 
 @Route('PostTest')
 export class PostTestController {
     @Post()
     public async postModel(model: TestModel): Promise<TestModel> {
+        return model;
+    }
+
+    @Patch()
+    public async updateModel(model: TestModel): Promise<TestModel> {
         return model;
     }
 

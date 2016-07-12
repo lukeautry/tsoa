@@ -51,17 +51,17 @@ export class SpecGenerator {
 
         this.metadata.Controllers.forEach(controller => {
             controller.methods.forEach(method => {
-                paths[`/${controller.path}${method.path}`] = this.buildPathObject(method);
+                const path = `/${controller.path}${method.path}`;
+                paths[path] = paths[path] || {};
+                this.buildPathMethod(method, paths[path]);
             });
         });
 
         return paths;
     }
 
-    private buildPathObject(method: Method) {
+    private buildPathMethod(method: Method, pathObject: any) {
         const swaggerType = this.getSwaggerType(method.type);
-
-        const pathObject: any = {};
         const pathMethod: any = pathObject[method.method] = swaggerType
             ? this.get200Operation(swaggerType, method.example)
             : this.get204Operation();
@@ -71,8 +71,6 @@ export class SpecGenerator {
         if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
             throw new Error('Only one body parameter allowed per controller method.');
         }
-
-        return pathObject;
     }
 
     private buildParameter(parameter: Parameter) {
