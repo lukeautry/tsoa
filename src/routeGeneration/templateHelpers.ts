@@ -25,7 +25,7 @@ export const templateHelpersContent = `
     function validateNumber(numberValue: string, name: string): number {
         const parsedNumber = parseInt(numberValue, 10);
         if (isNaN(parsedNumber)) {
-            throw new InvalidRequestException(name + 'should be a valid number.');
+            throw new InvalidRequestException(name + ' should be a valid number.');
         }
 
         return parsedNumber;
@@ -40,7 +40,7 @@ export const templateHelpersContent = `
         if (boolValue.toLowerCase() === 'true') { return true; }
         if (boolValue.toLowerCase() === 'false') { return false; }
 
-        throw new InvalidRequestException(name + 'should be valid boolean value.');
+        throw new InvalidRequestException(name + ' should be valid boolean value.');
     }
 
     function validateModel(modelValue: any, typeName: string): any {
