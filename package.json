@@ -1,5 +1,5 @@
 {
-  "name": "swagger-ts",
+  "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "version": "0.0.21",
   "main": "./dist/index.js",
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lukeautry/swagger-ts.git"
+    "url": "https://github.com/lukeautry/tsoa.git"
   },
   "bin": {
     "swagger-ts-generate": "dist/cli.js"

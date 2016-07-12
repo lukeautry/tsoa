@@ -98,5 +98,5 @@ Now that you have a swagger spec (swagger.json), you can use all kinds of amazin
 ## Installation
 
 ```
-npm install swagger-ts --save
+npm install tsoa --save
 ```
