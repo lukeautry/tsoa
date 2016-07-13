@@ -430,7 +430,7 @@ function validateParam(typeData: any, value: any, name?: string) {
 
     switch (typeData.typeName) {
         case 'string':
-            return validateString(value);
+            return validateString(value, name);
         case 'boolean':
             return validateBool(value, name);
         case 'number':
@@ -445,13 +445,17 @@ function validateParam(typeData: any, value: any, name?: string) {
 function validateNumber(numberValue: string, name: string): number {
     const parsedNumber = parseInt(numberValue, 10);
     if (isNaN(parsedNumber)) {
-        throw new InvalidRequestException(name + 'should be a valid number.');
+        throw new InvalidRequestException(name + ' should be a valid number.');
     }
 
     return parsedNumber;
 }
 
-function validateString(stringValue: string) {
+function validateString(stringValue: string, name: string) {
+    if (typeof stringValue !== "string") {
+        throw new InvalidRequestException(name + ' should be a valid string.');
+    }
+
     return stringValue.toString();
 }
 
@@ -460,7 +464,7 @@ function validateBool(boolValue: any, name: string): boolean {
     if (boolValue.toLowerCase() === 'true') { return true; }
     if (boolValue.toLowerCase() === 'false') { return false; }
 
-    throw new InvalidRequestException(name + 'should be valid boolean value.');
+    throw new InvalidRequestException(name + ' should be valid boolean value.');
 }
 
 function validateModel(modelValue: any, typeName: string): any {

@@ -68,23 +68,44 @@ describe('Server', () => {
     });
 
     it('parsed body parameters', () => {
-        const data: TestModel = {
-            boolArray: [true, false],
-            boolValue: false,
-            id: 1,
-            modelValue: { email: 'test@test.com', id: 2 },
-            modelsArray: [ { email: 'test@test.com', id: 1 } ],
-            numberArray: [1, 2],
-            numberValue: 5,
-            optionalString: 'test1234',
-            stringArray: ['test', 'testtwo'],
-            stringValue: 'test1234'
-        };
+        const data = getFakeModel();
 
         return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
             const model = res.body as TestModel;
             expect(model).to.deep.equal(model);
         });
+    });
+
+    it('should reject invalid strings', () => {
+        const invalidValues = [
+            null,
+            1,
+            undefined,
+            {}
+        ];
+
+        return Promise.all(invalidValues.map((value: any) => {
+            const data = getFakeModel();
+            data.stringValue = value;
+
+            return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+        }));
+    });
+
+    it('should reject invalid numbers', () => {
+        const invalidValues = [
+            'test',
+            null,
+            undefined,
+            {}
+        ];
+
+        return Promise.all(invalidValues.map((value: any) => {
+            const data = getFakeModel();
+            data.numberValue = value;
+
+            return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+        }));
     });
 
     it('returns error if missing required path parameter', () => {
@@ -130,5 +151,20 @@ describe('Server', () => {
                     resolve();
                 });
         });
+    }
+
+    function getFakeModel(): TestModel {
+        return {
+            boolArray: [true, false],
+            boolValue: false,
+            id: 1,
+            modelValue: { email: 'test@test.com', id: 2 },
+            modelsArray: [{ email: 'test@test.com', id: 1 }],
+            numberArray: [1, 2],
+            numberValue: 5,
+            optionalString: 'test1234',
+            stringArray: ['test', 'testtwo'],
+            stringValue: 'test1234'
+        };
     }
 });

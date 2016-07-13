@@ -10,7 +10,7 @@ export const templateHelpersContent = `
 
         switch (typeData.typeName) {
             case 'string':
-                return validateString(value);
+                return validateString(value, name);
             case 'boolean':
                 return validateBool(value, name);
             case 'number':
@@ -31,7 +31,11 @@ export const templateHelpersContent = `
         return parsedNumber;
     }
 
-    function validateString(stringValue: string) {
+    function validateString(stringValue: string, name: string) {
+        if (typeof stringValue !== "string") {
+            throw new InvalidRequestException(name + ' should be a valid string.');
+        }
+
         return stringValue.toString();
     }
 
