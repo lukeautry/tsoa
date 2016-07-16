@@ -2,7 +2,7 @@
 /**
  * THIS IS GENERATED CODE - DO NOT EDIT
  */
-import {ValidateParam} from '../../src/routeGeneration/templateHelpers';
+import { ValidateParam } from '../../src/routeGeneration/templateHelpers';
 import { PutTestController } from './controllers/putController';
 import { PostTestController } from './controllers/postController';
 import { PatchTestController } from './controllers/patchController';

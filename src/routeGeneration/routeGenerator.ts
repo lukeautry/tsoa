@@ -86,9 +86,9 @@ export class RouteGenerator {
         });
     }
 
-    private getStringRepresentationOfType(type: Type) {
+    private getStringRepresentationOfType(type: Type): string {
         if (typeof type === 'string' || type instanceof String) {
-            return type;
+            return type as string;
         }
 
         const arrayType = type as ArrayType;
