@@ -32,7 +32,7 @@ import {User, UserCreationRequest} from '../models/user';
 
 @Route('Users')
 export class UsersController {
-    @Get('{id})
+    @Get('{id}')
     public async getUser(id: number): Promise<User> {
         return await new UserService().get(id);
     }
