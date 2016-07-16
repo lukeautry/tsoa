@@ -5,7 +5,7 @@ import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import * as chai from 'chai';
 
 describe('POST route generation', () => {
-    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/postController.ts');
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
     const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/PostTest';
 
@@ -36,7 +36,7 @@ describe('POST route generation', () => {
 
     it('should reject multiple body parameters', () => {
         chai.expect(() => {
-            const invalidMetadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/invalidPostController.ts');
+            const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
             new SpecGenerator(invalidMetadata).GetSpec();
         }).to.throw('Only one body parameter allowed per controller method.');
     });

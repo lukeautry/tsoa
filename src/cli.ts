@@ -16,7 +16,7 @@ import * as yargs from 'yargs';
     const routesDir = argv.routesDir;
     if (!routesDir) { throw new Error('Must provide --routesDir argument, e.g. --routesDir=./dist'); }
 
-    const metadata = new MetadataGenerator().Generate(entryFile);
+    const metadata = new MetadataGenerator(entryFile).Generate();
     new SpecGenerator(metadata).GenerateJson(swaggerDir);
     new RouteGenerator(metadata, routesDir).GenerateExpressRoutes();
 })();

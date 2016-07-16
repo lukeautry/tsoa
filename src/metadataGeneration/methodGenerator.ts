@@ -7,7 +7,7 @@ export class MethodGenerator {
     private method: string;
     private path: string;
 
-    constructor(private node: ts.MethodDeclaration) {
+    constructor(private readonly node: ts.MethodDeclaration) {
         this.processMethodDecorators();
     }
 
@@ -74,7 +74,7 @@ export class MethodGenerator {
     }
 
     private getMethodDescription() {
-        let symbol = MetadataGenerator.Current().TypeChecker().getSymbolAtLocation(this.node.name);
+        let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(this.node.name);
 
         let comments = symbol.getDocumentationComment();
         if (comments.length) { return ts.displayPartsToString(comments); }

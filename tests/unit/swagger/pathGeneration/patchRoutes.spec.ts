@@ -4,7 +4,7 @@ import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('PATCH route generation', () => {
-    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/patchController.ts');
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/patchController.ts').Generate();
     const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/PatchTest';
 

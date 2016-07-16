@@ -43,7 +43,7 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     const existingType = localReferenceTypeCache[typeName];
     if (existingType) { return existingType; }
 
-    const interfaces = MetadataGenerator.Current().Nodes()
+    const interfaces = MetadataGenerator.current.nodes
         .filter(node => {
             if (node.kind !== ts.SyntaxKind.InterfaceDeclaration || !MetadataGenerator.IsExportedNode(node)) { return false; }
             return (node as ts.InterfaceDeclaration).name.text.toLowerCase() === typeName.toLowerCase();
@@ -76,7 +76,7 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     referenceType.properties = referenceType.properties.concat(extendedProperties);
 
     if (cacheReferenceType) {
-        MetadataGenerator.Current().AddReferenceType(referenceType);
+        MetadataGenerator.current.AddReferenceType(referenceType);
     }
 
     localReferenceTypeCache[typeName] = referenceType;
@@ -109,7 +109,7 @@ function getPropertyDescription(propertyDeclaration: ts.PropertyDeclaration) {
 }
 
 function getNodeDescription(node: ts.InterfaceDeclaration | ts.PropertyDeclaration) {
-    let symbol = MetadataGenerator.Current().TypeChecker().getSymbolAtLocation(node.name);
+    let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
 
     let comments = symbol.getDocumentationComment();
     if (comments.length) { return ts.displayPartsToString(comments); }

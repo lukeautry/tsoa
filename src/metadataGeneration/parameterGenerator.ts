@@ -4,9 +4,9 @@ import * as ts from 'typescript';
 
 export class ParameterGenerator {
     constructor(
-        private parameter: ts.ParameterDeclaration,
-        private method: string,
-        private path: string
+        private readonly parameter: ts.ParameterDeclaration,
+        private readonly method: string,
+        private readonly path: string
     ) { }
 
     public Generate(): Parameter {
@@ -78,7 +78,7 @@ export class ParameterGenerator {
     }
 
     private getParameterDescription(node: ts.ParameterDeclaration) {
-        const symbol = MetadataGenerator.Current().TypeChecker().getSymbolAtLocation(node.name);
+        const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
 
         const comments = symbol.getDocumentationComment();
         if (comments.length) { return ts.displayPartsToString(comments); }

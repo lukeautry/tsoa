@@ -9,7 +9,7 @@
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint ./src/**/*.ts",
     "prepublish": "npm run typings install && npm run build",
-    "test": "npm run swagger-gen && mocha **/*.spec.ts --require ts-node/register",
+    "test": "npm run swagger-gen && mocha **/*.spec.ts --compilers ts:ts-node/register",
     "typings": "typings",
     "swagger-gen": "ts-node ./src/cli.ts --entryFile=./tests/fixtures/server.ts --swaggerDir=./dist --routesDir=./tests/fixtures",
     "tsc": "tsc"

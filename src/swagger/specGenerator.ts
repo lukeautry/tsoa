@@ -3,7 +3,7 @@ import {Swagger} from './swagger';
 import * as fs from 'fs';
 
 export class SpecGenerator {
-    constructor(private metadata: Metadata) { }
+    constructor(private readonly metadata: Metadata) { }
 
     public GenerateJson(outDir: string) {
         fs.writeFile(`${outDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {

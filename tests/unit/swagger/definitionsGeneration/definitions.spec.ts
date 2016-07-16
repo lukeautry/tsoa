@@ -6,7 +6,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('Definition generation', () => {
-    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/getController.ts');
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
     const spec = new SpecGenerator(metadata).GetSpec();
 
     it('should generate a definition for referenced models', () => {

@@ -4,7 +4,7 @@ import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
 
 describe('DELETE route generation', () => {
-    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/deleteController.ts');
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/deleteController.ts').Generate();
     const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/DeleteTest';
 

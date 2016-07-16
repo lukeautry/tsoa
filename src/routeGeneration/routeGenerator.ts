@@ -8,7 +8,7 @@ import * as tsfmt from 'typescript-formatter';
 const appRoot: string = require('app-root-path').path;
 
 export class RouteGenerator {
-    constructor(private metadata: Metadata, private routeDir: string) { }
+    constructor(private readonly metadata: Metadata, private readonly routeDir: string) { }
 
     public GenerateRoutes(middlewareTemplate: string) {
         const fileName = `${this.routeDir}/routes.ts`;

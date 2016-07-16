@@ -7,7 +7,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 
 describe('GET route generation', () => {
-    const metadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/getController.ts');
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
     const spec = new SpecGenerator(metadata).GetSpec();
     const baseRoute = '/GetTest';
 
@@ -45,7 +45,7 @@ describe('GET route generation', () => {
 
     it('should reject complex types as arguments', () => {
         expect(() => {
-            const invalidMetadata = new MetadataGenerator().Generate('./tests/fixtures/controllers/invalidGetController.ts');
+            const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
             new SpecGenerator(invalidMetadata).GetSpec();
         }).to.throw('Parameter \'myModel\' can\'t be passed as a query parameter.');
     });

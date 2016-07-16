@@ -2,28 +2,24 @@ import * as ts from 'typescript';
 import {ControllerGenerator} from './controllerGenerator';
 
 export class MetadataGenerator {
-    private static current: MetadataGenerator;
-    private nodes = new Array<ts.Node>();
-    private typeChecker: ts.TypeChecker;
+    public static current: MetadataGenerator;
+    public readonly nodes = new Array<ts.Node>();
+    public readonly typeChecker: ts.TypeChecker;
+    private readonly program: ts.Program;
     private referenceTypes: { [typeName: string]: ReferenceType } = {};
-
-    public static Current() {
-        return MetadataGenerator.current;
-    }
 
     public static IsExportedNode(node: ts.Node) {
         return (node.flags & ts.NodeFlags.Export) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
     }
 
-    constructor() {
+    constructor(entryFile: string) {
+        this.program = ts.createProgram([entryFile], {});
+        this.typeChecker = this.program.getTypeChecker();
         MetadataGenerator.current = this;
     }
 
-    public Generate(entryFile: string): Metadata {
-        const program = ts.createProgram([entryFile], {});
-        this.typeChecker = program.getTypeChecker();
-
-        program.getSourceFiles().forEach(sf => {
+    public Generate(): Metadata {
+        this.program.getSourceFiles().forEach(sf => {
             ts.forEachChild(sf, node => {
                 this.nodes.push(node);
             });
@@ -35,10 +31,6 @@ export class MetadataGenerator {
             Controllers: controllers,
             ReferenceTypes: this.referenceTypes
         };
-    }
-
-    public Nodes() {
-        return this.nodes;
     }
 
     public TypeChecker() {
