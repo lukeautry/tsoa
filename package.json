@@ -19,6 +19,7 @@
     "app-root-path": "^1.2.1",
     "express": "^4.13.4",
     "handlebars": "^4.0.5",
+    "moment": "^2.14.1",
     "typescript": "^1.8.10",
     "typescript-formatter": "^2.2.0",
     "yargs": "^4.7.1"

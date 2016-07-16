@@ -27,6 +27,10 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     }
 
     let typeReference: any = typeNode;
+    if (typeReference.typeName.text === 'Date') {
+        return 'datetime';
+    }
+
     if (typeReference.typeName.text === 'Promise') {
         typeReference = typeReference.typeArguments[0];
         return ResolveType(typeReference);

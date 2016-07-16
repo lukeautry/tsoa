@@ -121,6 +121,7 @@ export class SpecGenerator {
         typeMap['number'] = { format: 'int64', type: 'integer' };
         typeMap['string'] = { type: 'string' };
         typeMap['boolean'] = { type: 'boolean' };
+        typeMap['datetime'] = { format: 'date-time', type: 'string' };
         typeMap['void'] = null;
 
         return typeMap[primitiveTypeName];

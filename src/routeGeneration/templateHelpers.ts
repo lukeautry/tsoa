@@ -1,78 +1,93 @@
-export const templateHelpersContent = `
-    function validateParam(typeData: any, value: any, name?: string) {
-        if (value === undefined) {
-            if (typeData.required) {
-                throw new InvalidRequestException(name + ' is a required parameter.');
-            } else {
-                return undefined;
-            }
-        }
+import * as moment from 'moment';
 
-        switch (typeData.typeName) {
-            case 'string':
-                return validateString(value, name);
-            case 'boolean':
-                return validateBool(value, name);
-            case 'number':
-                return validateNumber(value, name);
-            case 'array':
-                return validateArray(value, typeData.arrayType, name);
-            default:
-                return validateModel(value, typeData.typeName);
+let models: any = null;
+
+export function ValidateParam(typeData: any, value: any, generatedModels: any, name?: string) {
+    models = generatedModels;
+
+    if (value === undefined) {
+        if (typeData.required) {
+            throw new InvalidRequestException(name + ' is a required parameter.');
+        } else {
+            return undefined;
         }
     }
 
-    function validateNumber(numberValue: string, name: string): number {
-        const parsedNumber = parseInt(numberValue, 10);
-        if (isNaN(parsedNumber)) {
-            throw new InvalidRequestException(name + ' should be a valid number.');
-        }
+    switch (typeData.typeName) {
+        case 'string':
+            return validateString(value, name);
+        case 'boolean':
+            return validateBool(value, name);
+        case 'number':
+            return validateNumber(value, name);
+        case 'array':
+            return validateArray(value, typeData.arrayType, name);
+        case 'datetime':
+            return validateDate(value, name);
+        default:
+            return validateModel(value, typeData.typeName);
+    }
+}
 
-        return parsedNumber;
+function validateNumber(numberValue: string, name: string): number {
+    const parsedNumber = parseInt(numberValue, 10);
+    if (isNaN(parsedNumber)) {
+        throw new InvalidRequestException(name + ' should be a valid number.');
     }
 
-    function validateString(stringValue: string, name: string) {
-        if (typeof stringValue !== "string") {
-            throw new InvalidRequestException(name + ' should be a valid string.');
-        }
+    return parsedNumber;
+}
 
-        return stringValue.toString();
+function validateDate(dateValue: string, name: string): Date {
+    const validatedDate = moment(dateValue, moment.ISO_8601, true);
+    if (!validatedDate.isValid()) {
+        throw new InvalidRequestException(name + ' should be a valid ISO 8601 date, i.e. YYYY-MM-DDTHH:mm:ss');
     }
 
-    function validateBool(boolValue: any, name: string): boolean {
-        if (boolValue === true || boolValue === false) { return boolValue; }
-        if (boolValue.toLowerCase() === 'true') { return true; }
-        if (boolValue.toLowerCase() === 'false') { return false; }
+    return validatedDate.toDate();
+}
 
-        throw new InvalidRequestException(name + ' should be valid boolean value.');
+function validateString(stringValue: string, name: string) {
+    if (typeof stringValue !== 'string') {
+        throw new InvalidRequestException(name + ' should be a valid string.');
     }
 
-    function validateModel(modelValue: any, typeName: string): any {
-        const modelDefinition = models[typeName];
+    return stringValue.toString();
+}
 
-        Object.keys(modelDefinition).forEach((key: string) => {
-            const property = modelDefinition[key];
-            modelValue[key] = validateParam(property, modelValue[key], key);
-        });
+function validateBool(boolValue: any, name: string): boolean {
+    if (boolValue === true || boolValue === false) { return boolValue; }
+    if (boolValue.toLowerCase() === 'true') { return true; }
+    if (boolValue.toLowerCase() === 'false') { return false; }
 
-        return modelValue;
-    }
+    throw new InvalidRequestException(name + ' should be valid boolean value.');
+}
 
-    function validateArray(array: any[], arrayType: string, arrayName: string): any[] {
-        return array.map(element => validateParam({
-            required: true,
-            typeName: arrayType,
-        }, element));
-    }
+function validateModel(modelValue: any, typeName: string): any {
+    const modelDefinition = models[typeName];
 
-    interface Exception extends Error {
-        status: number;
-    }
+    Object.keys(modelDefinition).forEach((key: string) => {
+        const property = modelDefinition[key];
+        modelValue[key] = ValidateParam(property, modelValue[key], models, key);
+    });
 
-    class InvalidRequestException implements Exception {
-        public status = 400;
-        public name = 'Invalid Request';
+    return modelValue;
+}
 
-        constructor(public message: string) { }
-    }
-`;
+function validateArray(array: any[], arrayType: string, arrayName: string): any[] {
+    return array.map(element => ValidateParam({
+        required: true,
+        typeName: arrayType,
+    }, element, models, undefined));
+}
+
+interface Exception extends Error {
+    status: number;
+}
+
+class InvalidRequestException implements Exception {
+    public status = 400;
+    public name = 'Invalid Request';
+
+    constructor(public message: string) { }
+}

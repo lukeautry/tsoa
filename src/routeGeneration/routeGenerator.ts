@@ -1,6 +1,5 @@
 import {expressTemplate} from './templates/express';
 import {Metadata, Type, ArrayType, ReferenceType, Parameter, Property} from '../metadataGeneration/metadataGenerator';
-import {templateHelpersContent} from './templateHelpers';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
@@ -26,7 +25,19 @@ export class RouteGenerator {
     }
 
     private buildContent(middlewareTemplate: string) {
+        let canImportByAlias: boolean;
+        try {
+            require('tsoa');
+            canImportByAlias = true;
+        } catch (err) {
+            canImportByAlias = false;
+        }
+
         const routesTemplate = handlebars.compile(`
+            /**
+             * THIS IS GENERATED CODE - DO NOT EDIT
+             */
+            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}
@@ -61,7 +72,7 @@ export class RouteGenerator {
                 };
             }),
             models: this.getModels()
-        }).concat(templateHelpersContent);
+        });
     }
 
     private getModels(): TemplateModel[] {

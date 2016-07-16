@@ -77,12 +77,7 @@ describe('Server', () => {
     });
 
     it('should reject invalid strings', () => {
-        const invalidValues = [
-            null,
-            1,
-            undefined,
-            {}
-        ];
+        const invalidValues = [ null, 1, undefined, {} ];
 
         return Promise.all(invalidValues.map((value: any) => {
             const data = getFakeModel();
@@ -92,13 +87,28 @@ describe('Server', () => {
         }));
     });
 
+    it('should parse valid date', () => {
+        const data = getFakeModel();
+        data.dateValue = '2016-01-01T00:00:00Z' as any;
+
+        return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
+            expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+        }, 200);
+    });
+
+    it('should reject invalid dates', () => {
+        const invalidValues = [ null, 1, {} ];
+
+        return Promise.all(invalidValues.map((value: any) => {
+            const data = getFakeModel();
+            data.dateValue = value;
+
+            return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+        }));
+    });
+
     it('should reject invalid numbers', () => {
-        const invalidValues = [
-            'test',
-            null,
-            undefined,
-            {}
-        ];
+        const invalidValues = [ 'test', null, undefined, {} ];
 
         return Promise.all(invalidValues.map((value: any) => {
             const data = getFakeModel();

@@ -1,5 +1,5 @@
 export const expressTemplate = `
-    export function RegisterRoutes(app: any) {
+export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
         app.{{method}}('/{{../path}}{{path}}', function (req: any, res: any) {
@@ -55,7 +55,7 @@ export const expressTemplate = `
         const requestParams = getRequestParams(request, bodyParamName);
         
         return Object.keys(params).map(key => {
-            return validateParam(params[key], requestParams[key], key);
+            return ValidateParam(params[key], requestParams[key], models, key);
         });
     }
 }`;

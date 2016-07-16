@@ -1,6 +1,7 @@
 import {Example} from './decorators/example';
 import {Post, Get, Patch, Delete, Put} from './decorators/methods';
 import {Route} from './decorators/route';
+import {ValidateParam} from './routeGeneration/templateHelpers';
 
 export {
     Delete,
@@ -9,5 +10,6 @@ export {
     Patch,
     Post,
     Put,
-    Route
+    Route,
+    ValidateParam
 }

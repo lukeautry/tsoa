@@ -13,6 +13,7 @@ export interface TestModel extends Model {
     boolArray: boolean[];
     modelValue: TestSubModel;
     modelsArray: TestSubModel[];
+    dateValue?: Date;
     optionalString?: string;
 }
 
