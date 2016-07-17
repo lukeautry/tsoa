@@ -105,7 +105,7 @@ app.listen(3000);
 
 ### Use awesome Swagger tools
 
-Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that generate documentation, client SDKs, and more.
+Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
 
 ## Installation
 
