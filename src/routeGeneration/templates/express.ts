@@ -2,7 +2,7 @@ export const expressTemplate = `
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
-        app.{{method}}('{{../../basePath}}{{../path}}{{path}}', function (req: any, res: any) {
+        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', function (req: any, res: any) {
             const params = {
                 {{#each parameters}}
                 '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },

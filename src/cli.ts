@@ -55,7 +55,7 @@ yargs
         },
         'basePath': {
             alias: 'b',
-            default: '/',
+            default: '',
             describe: 'Base API path; e.g. the \'v1\' in https://myapi.com/v1'
         }
     }, (args: SwaggerArgs) => {
