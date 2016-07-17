@@ -60,7 +60,7 @@ export class RouteGenerator {
         `.concat(middlewareTemplate));
 
         return routesTemplate({
-            basePath: this.options.basePath,
+            basePath: this.options.basePath ? `/${this.options.basePath}` : '',
             controllers: this.metadata.Controllers.map(controller => {
                 return {
                     actions: controller.methods.map(method => {
