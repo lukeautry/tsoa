@@ -4,14 +4,14 @@ import { SpecGenerator } from './swagger/specGenerator';
 import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 
+const appRoot: string = require('app-root-path').path;
+
 const entryFileConfig = {
     alias: 'e',
     describe: 'Server entry point; this should be your top level file, e.g. server.ts/app.ts',
     required: true,
     type: 'string'
 };
-
-let packageJson: any = undefined;
 
 yargs
     .usage('Usage: $0 <command> [options]')
@@ -88,24 +88,8 @@ yargs
     .argv;
 
 function getPackageJsonValue(key: string) {
-    if (!packageJson) {
-        packageJson = loadMainPackageJson();
-    }
-
+    const packageJson = require(`${appRoot}/package.json`);
     return packageJson[key] || '';
-}
-
-function loadMainPackageJson(attempts = 0): any {
-    if (attempts > 5) {
-        throw new Error('Can\'t resolve package.json file');
-    }
-
-    const mainPath = attempts === 1 ? './' : Array(attempts).join('../');
-    try {
-        return require.main.require(mainPath + 'package.json');
-    } catch (e) {
-        return loadMainPackageJson(attempts + 1);
-    }
 }
 
 interface SwaggerArgs extends yargs.Argv {
