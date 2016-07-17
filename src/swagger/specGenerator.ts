@@ -1,15 +1,22 @@
-import {Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter} from '../metadataGeneration/metadataGenerator';
-import {Swagger} from './swagger';
+import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
+import { Swagger } from './swagger';
 import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
 
 export class SpecGenerator {
     constructor(private readonly metadata: Metadata) { }
 
     public GenerateJson(outDir: string) {
-        fs.writeFile(`${outDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {
-            if (err) {
-                throw new Error(err.toString());
-            };
+        mkdirp(outDir, dirErr => {
+            if (dirErr) {
+                throw dirErr;
+            }
+
+            fs.writeFile(`${outDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {
+                if (err) {
+                    throw new Error(err.toString());
+                };
+            });
         });
     }
 
