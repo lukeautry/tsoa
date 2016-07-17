@@ -23,9 +23,38 @@ yargs
             required: true,
             type: 'string'
         },
+        'host': {
+            alias: 'ho',
+            describe: 'API host, e.g. localhost:3000 or https://myapi.com/v1',
+            required: true,
+            type: 'string'
+        },
+        'ver': {
+            alias: 'v',
+            describe: 'API version number; defaults to npm package version',
+            type: 'string'
+        },
+        'name': {
+            alias: 'n',
+            describe: 'API name; defaults to npm package name',
+            type: 'string'
+        },
+        'description': {
+            alias: 'd',
+            describe: 'API description; defaults to npm package description'
+        },
+        'license': {
+            alias: 'l',
+            describe: 'API license; defaults to npm package license'
+        }
     }, (args: SwaggerArgs) => {
         const metadata = new MetadataGenerator(args.entryFile).Generate();
-        new SpecGenerator(metadata).GenerateJson(args.swaggerDir);
+        new SpecGenerator(metadata, {
+            description: args.description,
+            host: args.host,
+            name: args.name,
+            version: args.ver
+        }).GenerateJson(args.swaggerDir);
     })
 
     .command('routes', 'Generate routes', {
@@ -48,6 +77,10 @@ yargs
 interface SwaggerArgs extends yargs.Argv {
     entryFile: string;
     swaggerDir: string;
+    host: string;
+    name?: string;
+    ver?: string;
+    description?: string;
 }
 
 interface RoutesArgs extends yargs.Argv {

@@ -10,7 +10,7 @@
     "lint": "tslint ./src/**/*.ts",
     "prepublish": "npm run typings install && npm run build",
     "routes-gen": "ts-node ./src/cli.ts routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
-    "swagger-gen": "ts-node ./src/cli.ts swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist",
+    "swagger-gen": "ts-node ./src/cli.ts swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist --host=localhost:3000",
     "test": "npm run swagger-gen && npm run routes-gen && mocha **/*.spec.ts --compilers ts:ts-node/register",
     "tsc": "tsc",
     "typings": "typings"

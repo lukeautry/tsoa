@@ -1,3 +1,4 @@
+import {getDefaultOptions} from '../../../fixtures/defaultOptions';
 import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyPath} from '../../utilities/verifyPath';
@@ -8,7 +9,7 @@ const expect = chai.expect;
 
 describe('GET route generation', () => {
     const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
-    const spec = new SpecGenerator(metadata).GetSpec();
+    const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/GetTest';
 
     it('should generate a path for a GET route with no path argument', () => {
@@ -46,7 +47,7 @@ describe('GET route generation', () => {
     it('should reject complex types as arguments', () => {
         expect(() => {
             const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
-            new SpecGenerator(invalidMetadata).GetSpec();
+            new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
         }).to.throw('Parameter \'myModel\' can\'t be passed as a query parameter.');
     });
 

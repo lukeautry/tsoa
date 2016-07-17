@@ -8,7 +8,7 @@
             "program": "${workspaceRoot}/src/cli.ts",
             "stopOnEntry": false,
             "args": [
-                "swagger", "--entry-file=./tests/fixtures/server.ts", "--swagger-dir=./dist"
+                "swagger", "--entry-file=./tests/fixtures/server.ts", "--swagger-dir=./dist", "--host=localhost:3000"
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build",

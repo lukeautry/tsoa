@@ -2,10 +2,11 @@ import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGene
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyPath} from '../../utilities/verifyPath';
 import {VerifyPathableParameter} from '../../utilities/verifyParameter';
+import {getDefaultOptions} from '../../../fixtures/defaultOptions';
 
 describe('DELETE route generation', () => {
     const metadata = new MetadataGenerator('./tests/fixtures/controllers/deleteController.ts').Generate();
-    const spec = new SpecGenerator(metadata).GetSpec();
+    const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/DeleteTest';
 
     it('should generate a path for a DELETE route with no path argument', () => {

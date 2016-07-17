@@ -1,11 +1,12 @@
+import {getDefaultOptions} from '../../../fixtures/defaultOptions';
 import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';
-import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
+import {VerifyPath, modelName} from '../../utilities/verifyPath';
 
 describe('PATCH route generation', () => {
     const metadata = new MetadataGenerator('./tests/fixtures/controllers/patchController.ts').Generate();
-    const spec = new SpecGenerator(metadata).GetSpec();
+    const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/PatchTest';
 
     it('should generate a path for a PATCH route with no path argument', () => {

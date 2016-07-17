@@ -3,16 +3,28 @@ import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 
-export class SpecGenerator {
-    constructor(private readonly metadata: Metadata) { }
+export interface Options {
+    host: string;
+    name?: string;
+    version?: string;
+    description?: string;
+    basePath?: string;
+}
 
-    public GenerateJson(outDir: string) {
-        mkdirp(outDir, dirErr => {
+export class SpecGenerator {
+    private readonly packageJson: any;
+
+    constructor(private readonly metadata: Metadata, private readonly options: Options) {
+        this.packageJson = this.loadMainPackageJson();
+    }
+
+    public GenerateJson(swaggerDir: string) {
+        mkdirp(swaggerDir, dirErr => {
             if (dirErr) {
                 throw dirErr;
             }
 
-            fs.writeFile(`${outDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {
+            fs.writeFile(`${swaggerDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {
                 if (err) {
                     throw new Error(err.toString());
                 };
@@ -22,13 +34,14 @@ export class SpecGenerator {
 
     public GetSpec(): Swagger.Spec {
         return {
-            basePath: '/',
+            basePath: this.options.basePath || '/',
             consumes: ['application/json'],
             definitions: this.buildDefinitions(),
-            host: 'localhost:3000',
+            host: this.options.host,
             info: {
-                title: 'Lucid Web API',
-                version: '0.0.1'
+                description: this.options.description || this.getPackageJsonValue('description'),
+                title: this.options.name || this.getPackageJsonValue('name'),
+                version: this.options.version || this.getPackageJsonValue('version')
             },
             paths: this.buildPaths(),
             produces: ['application/json'],
@@ -155,5 +168,22 @@ export class SpecGenerator {
 
     private get204Operation() {
         return { responses: { '204': { description: 'No content' } } };
+    }
+
+    private getPackageJsonValue(key: string): string {
+        return this.packageJson[key] || '';
+    }
+
+    private loadMainPackageJson(attempts = 0): any {
+        if (attempts > 5) {
+            throw new Error('Can\'t resolve main package.json file');
+        }
+
+        const mainPath = attempts === 1 ? './' : Array(attempts).join('../');
+        try {
+            return require.main.require(mainPath + 'package.json');
+        } catch (e) {
+            return this.loadMainPackageJson(attempts + 1);
+        }
     }
 }
