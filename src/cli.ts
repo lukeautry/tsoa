@@ -55,8 +55,8 @@ yargs
         },
         'basePath': {
             alias: 'b',
-            default: '',
-            describe: 'Base API path; e.g. the \'v1\' in https://myapi.com/v1'
+            default: '/',
+            describe: 'Base API path; e.g. the \'/v1\' in https://myapi.com/v1'
         }
     }, (args: SwaggerArgs) => {
         const metadata = new MetadataGenerator(args.entryFile).Generate();
@@ -74,7 +74,7 @@ yargs
         basePath: {
             alias: 'b',
             default: '/',
-            description: 'Base API path; e.g. the \'v1\' in https://myapi.com/v1'
+            description: 'Base API path; e.g. the \'/v1\' in https://myapi.com/v1'
         },
         'entry-file': entryFileConfig,
         'routes-dir': {

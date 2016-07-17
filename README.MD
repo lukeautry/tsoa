@@ -133,7 +133,7 @@ Options:
   --name, -n         API name; defaults to npm package name             [string]
   --description, -d  API description; defaults to npm package description
   --license, -l      API license; defaults to npm package license
-  --basePath, -b     Base API path; e.g. the 'v1' in https://myapi.com/v1 [default: "/"]
+  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]
 ```
 
 ### Route generation
@@ -147,7 +147,8 @@ Options:
   --routes-dir, -r  Routes directory; generated routes.ts (which contains the
                     generated code wiring up routes using middleware of choice)
                     will be dropped here                     [string] [required]
-  --middleware, -m  Middleware provider                        [string] [choices: "express"] [default: "express"]               
+  --middleware, -m  Middleware provider                        [string] [choices: "express"] [default: "express"]
+  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]               
 ```
 
 ## Examples
