@@ -141,3 +141,7 @@ Options:
                     generated code wiring up routes using middleware of choice)
                     will be dropped here                     [string] [required]
 ```
+
+## Examples
+
+[An example project is available here](https://github.com/lukeautry/tsoa-example)
