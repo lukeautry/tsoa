@@ -78,7 +78,7 @@ tsoa swagger --entryFile=./src/server.ts --swaggerDir=./dist
 tsoa routes --entryFile=./src/server.ts --routesDir=./src
 ```
 
-See [CLI documentation](#cli)
+See [CLI documentation](#command-line-interface)
 
 ### Consume generated routes
 
@@ -112,7 +112,7 @@ Now that you have a swagger spec (swagger.json), you can use all kinds of amazin
 npm install tsoa --save
 ```
 
-## <a name="cli"></a>Command Line Interface
+## Command Line Interface
 
 ### Swagger.json generation
 
