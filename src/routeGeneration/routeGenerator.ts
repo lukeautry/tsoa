@@ -7,11 +7,16 @@ import * as tsfmt from 'typescript-formatter';
 
 const appRoot: string = require('app-root-path').path;
 
+export interface Options {
+    basePath: string;
+    routeDir: string;
+}
+
 export class RouteGenerator {
-    constructor(private readonly metadata: Metadata, private readonly routeDir: string) { }
+    constructor(private readonly metadata: Metadata, private readonly options: Options) { }
 
     public GenerateRoutes(middlewareTemplate: string) {
-        const fileName = `${this.routeDir}/routes.ts`;
+        const fileName = `${this.options.routeDir}/routes.ts`;
         const content = this.buildContent(middlewareTemplate);
 
         return new Promise<void>((resolve, reject) => {
@@ -55,6 +60,7 @@ export class RouteGenerator {
         `.concat(middlewareTemplate));
 
         return routesTemplate({
+            basePath: this.options.basePath,
             controllers: this.metadata.Controllers.map(controller => {
                 return {
                     actions: controller.methods.map(method => {
@@ -102,7 +108,7 @@ export class RouteGenerator {
 
     private getRelativeImportPath(controllerLocation: string) {
         controllerLocation = controllerLocation.replace('.ts', '');
-        return `./${path.relative(path.join(appRoot, this.routeDir), controllerLocation).replace(/\\/g, '/')}`;
+        return `./${path.relative(path.join(appRoot, this.options.routeDir), controllerLocation).replace(/\\/g, '/')}`;
     }
 
     private getTemplateProperty(source: Parameter | Property) {

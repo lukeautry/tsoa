@@ -147,6 +147,7 @@ Options:
   --routes-dir, -r  Routes directory; generated routes.ts (which contains the
                     generated code wiring up routes using middleware of choice)
                     will be dropped here                     [string] [required]
+  --middleware, -m  Middleware provider                        [string] [choices: "express"] [default: "express"]               
 ```
 
 ## Examples

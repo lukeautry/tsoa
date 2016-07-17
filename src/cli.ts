@@ -71,16 +71,39 @@ yargs
     })
 
     .command('routes', 'Generate routes', {
+        basePath: {
+            alias: 'b',
+            default: '/',
+            description: 'Base API path; e.g. the \'v1\' in https://myapi.com/v1'
+        },
         'entry-file': entryFileConfig,
         'routes-dir': {
             alias: 'r',
             describe: 'Routes directory; generated routes.ts (which contains the generated code wiring up routes using middleware of choice) will be dropped here',
             required: true,
             type: 'string'
+        },
+        middleware: {
+            alias: 'm',
+            choices: ['express'],
+            default: 'express',
+            describe: 'Middleware provider',
+            type: 'string',
         }
     }, (args: RoutesArgs) => {
         const metadata = new MetadataGenerator(args.entryFile).Generate();
-        new RouteGenerator(metadata, args.routesDir).GenerateExpressRoutes();
+        const routeGenerator = new RouteGenerator(metadata, {
+            basePath: args.basePath,
+            routeDir: args.routesDir
+        });
+
+        switch (args.middleware) {
+            case 'express':
+                routeGenerator.GenerateExpressRoutes();
+                break;
+            default:
+                routeGenerator.GenerateExpressRoutes();
+        }
     })
 
     .help('help')
@@ -106,5 +129,6 @@ interface SwaggerArgs extends yargs.Argv {
 interface RoutesArgs extends yargs.Argv {
     entryFile: string;
     routesDir: string;
+    middleware: string;
     basePath?: string;
 }
