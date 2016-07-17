@@ -82,37 +82,6 @@ export class MethodGenerator {
         return '';
     }
 
-    // private getMethodParameters() {
-    //     let hasBodyParameter = false;
-    //     return this.node.parameters.map(p => {
-    //         const parameter = new ApiMethodParameter(p, this.path, this.method, hasBodyParameter).getParameter();
-    //         if (parameter.in === 'body') { hasBodyParameter = true; }
-
-    //         return parameter;
-    //     });
-    // }
-
-    // private get200Operation(swaggerType: Swagger.Schema) {
-    //     return {
-    //         produces: ['application/json'],
-    //         responses: {
-    //             '200': {
-    //                 description: '',
-    //                 examples: this.getMethodExample(),
-    //                 schema: swaggerType
-    //             }
-    //         }
-    //     };
-    // }
-
-    // private get204Operation() {
-    //     return {
-    //         responses: {
-    //             '204': { description: 'No content' }
-    //         }
-    //     };
-    // }
-
     private getMethodExample() {
         const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
         if (!exampleDecorators.length) { return undefined; }

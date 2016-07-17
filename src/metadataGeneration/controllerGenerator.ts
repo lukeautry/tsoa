@@ -3,14 +3,14 @@ import {Controller} from './metadataGenerator';
 import {MethodGenerator} from './methodGenerator';
 
 export class ControllerGenerator {
-    private pathValue: string;
+    private readonly pathValue: string;
 
-    constructor(private node: ts.ClassDeclaration) {
+    constructor(private readonly node: ts.ClassDeclaration) {
         this.pathValue = this.getControllerRouteValue(node);
     }
 
     public IsValid() {
-        return !!this.pathValue;
+        return !!this.pathValue || this.pathValue === '';
     }
 
     public Generate(): Controller {
@@ -48,6 +48,6 @@ export class ControllerGenerator {
         }
 
         const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;
-        return value.text;
+        return value ? value.text : '';
     }
 }
