@@ -71,11 +71,14 @@ export interface UserCreationRequest {
 
 From command line/npm script:
 ```
-swagger-ts-generate --entryFile=./src/server.ts --swaggerDir=./dist --routesDir=./src
+// generate swagger.json
+tsoa swagger --entryFile=./src/server.ts --swaggerDir=./dist
+
+// generate routes
+tsoa routes --entryFile=./src/server.ts --routesDir=./src
 ```
-- entryFile: Entry point for your application
-- swaggerDir: Where you want swagger.json to be dropped
-- routesDir: Where you want routes.ts to be dropped
+
+See CLI
 
 ### Consume generated routes
 
@@ -107,4 +110,31 @@ Now that you have a swagger spec (swagger.json), you can use all kinds of amazin
 
 ```
 npm install tsoa --save
+```
+
+## Command Line Interface
+
+### Swagger.json generation
+
+```
+Usage: tsoa swagger [options]
+
+Options:
+  --entry-file, -e   Server entry point; this should be your top level file,
+                     e.g. server.ts/app.ts                   [string] [required]
+  --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
+                     here                                    [string] [required]
+```
+
+### Route generation
+
+```
+Usage: tsoa routes [options]
+
+Options:
+  --entry-file, -e  Server entry point; this should be your top level file, e.g.
+                    server.ts/app.ts                         [string] [required]
+  --routes-dir, -r  Routes directory; generated routes.ts (which contains the
+                    generated code wiring up routes using middleware of choice)
+                    will be dropped here                     [string] [required]                                 [string] [required]
 ```
