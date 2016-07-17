@@ -39,6 +39,7 @@
 
 <ul>
 <li>Express currently included, other middleware can be supported using a simple handlebars template</li>
+<li>Validate request payloads</li>
 </ul>
 </li>
 </ul>
@@ -51,6 +52,7 @@
 <li>If regular type annotations aren't an appropriate way to express metadata, use decorators</li>
 <li>Use jsdoc for pure text metadata (e.g. endpoint descriptions)</li>
 <li>Minimize boilerplate</li>
+<li>Models are always represented by interfaces; the contract between API client is best represented through a data structure, not a class or object</li>
 </ul>
 
 <h2>
@@ -67,7 +69,7 @@
 
 @Route(<span class="pl-s">'Users'</span>)
 <span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">UsersController</span> {
-    @<span class="pl-en">Get</span>('{<span class="pl-v">id</span>})
+    @<span class="pl-en">Get</span>('{<span class="pl-v">id</span>}')
     <span class="pl-k">public</span> <span class="pl-k">async</span> <span class="pl-en">getUser</span>(<span class="pl-v">id</span>: <span class="pl-k">number</span>): <span class="pl-en">Promise</span>&lt;User&gt; {
         <span class="pl-k">return</span> <span class="pl-k">await</span> <span class="pl-k">new</span> UserService().get(id);
     }
@@ -107,14 +109,14 @@
 
 <p>From command line/npm script:</p>
 
-<pre><code>swagger-ts-generate --entryFile=./src/server.ts --swaggerDir=./dist --routesDir=./src
+<pre><code>// generate swagger.json
+tsoa swagger --entryFile=./src/server.ts --swaggerDir=./dist
+
+// generate routes
+tsoa routes --entryFile=./src/server.ts --routesDir=./src
 </code></pre>
 
-<ul>
-<li>entryFile: Entry point for your application</li>
-<li>swaggerDir: Where you want swagger.json to be dropped</li>
-<li>routesDir: Where you want routes.ts to be dropped</li>
-</ul>
+<p>See <a href="#command-line-interface">CLI documentation</a></p>
 
 <h3>
 <a id="consume-generated-routes" class="anchor" href="#consume-generated-routes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Consume generated routes</h3>
@@ -127,7 +129,7 @@
 <span class="pl-c">// controllers need to be referenced in order to get crawled by the generator</span>
 <span class="pl-k">import</span> <span class="pl-s">'./controllers/usersController'</span>;
 
-app: express.Express <span class="pl-k">=</span> express();
+<span class="pl-k">const</span> <span class="pl-v">app</span>: express.Express <span class="pl-k">=</span> express();
 app.use(bodyParser.urlencoded({ extended: <span class="pl-c1">true</span> }));
 app.use(bodyParser.json());
 app.use(methodOverride());
@@ -140,12 +142,40 @@ app.listen(<span class="pl-c1">3000</span>);
 <h3>
 <a id="use-awesome-swagger-tools" class="anchor" href="#use-awesome-swagger-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use awesome Swagger tools</h3>
 
-<p>Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that generate documentation, client SDKs, and more.</p>
+<p>Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that <a href="http://swagger.io/">generate documentation, client SDKs, and more</a>.</p>
 
 <h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
 
 <pre><code>npm install tsoa --save
+</code></pre>
+
+<h2>
+<a id="command-line-interface" class="anchor" href="#command-line-interface" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Command Line Interface</h2>
+
+<h3>
+<a id="swaggerjson-generation" class="anchor" href="#swaggerjson-generation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Swagger.json generation</h3>
+
+<pre><code>Usage: tsoa swagger [options]
+
+Options:
+  --entry-file, -e   Server entry point; this should be your top level file,
+                     e.g. server.ts/app.ts                   [string] [required]
+  --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
+                     here                                    [string] [required]
+</code></pre>
+
+<h3>
+<a id="route-generation" class="anchor" href="#route-generation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Route generation</h3>
+
+<pre><code>Usage: tsoa routes [options]
+
+Options:
+  --entry-file, -e  Server entry point; this should be your top level file, e.g.
+                    server.ts/app.ts                         [string] [required]
+  --routes-dir, -r  Routes directory; generated routes.ts (which contains the
+                    generated code wiring up routes using middleware of choice)
+                    will be dropped here                     [string] [required]
 </code></pre>
 
       <footer class="site-footer">
