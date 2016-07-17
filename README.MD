@@ -18,6 +18,7 @@
 - If regular type annotations aren't an appropriate way to express metadata, use decorators
 - Use jsdoc for pure text metadata (e.g. endpoint descriptions)
 - Minimize boilerplate
+- Models are always represented by interfaces; the contract between API client is best represented through a data structure, not a class or object
 
 ## How it works
 
