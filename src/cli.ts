@@ -1,30 +1,56 @@
 #!/usr/bin/env node
-import {MetadataGenerator} from './metadataGeneration/metadataGenerator';
-import {SpecGenerator} from './swagger/specGenerator';
-import {RouteGenerator} from './routeGeneration/routeGenerator';
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
+import { SpecGenerator } from './swagger/specGenerator';
+import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 
-(function runGenerator() {
-    const argv: GeneratorArguments = yargs.argv;
+const entryFileConfig = {
+    alias: 'e',
+    describe: 'Server entry point; this should be your top level file, e.g. server.ts/app.ts',
+    required: true,
+    type: 'string'
+};
 
-    const swaggerDir = argv.swaggerDir;
-    if (!swaggerDir) { throw new Error('Must provide --swaggerDir argument, e.g. --swaggerDir=./dist'); }
+yargs
+    .usage('Usage: $0 <command> [options]')
+    .demand(1)
 
-    const entryFile = argv.entryFile;
-    if (!entryFile) { throw new Error('Must provide --entryFile argument, e.g. --entryFile=./src/server.ts'); }
+    .command('swagger', 'Generate swagger spec', {
+        'entry-file': entryFileConfig,
+        'swagger-dir': {
+            alias: 's',
+            describe: 'Swagger directory; generated swagger.json will be dropped here',
+            required: true,
+            type: 'string'
+        },
+    }, (args: SwaggerArgs) => {
+        const metadata = new MetadataGenerator(args.entryFile).Generate();
+        new SpecGenerator(metadata).GenerateJson(args.swaggerDir);
+    })
 
-    const routesDir = argv.routesDir;
-    if (!routesDir) { throw new Error('Must provide --routesDir argument, e.g. --routesDir=./dist'); }
+    .command('routes', 'Generate routes', {
+        'entry-file': entryFileConfig,
+        'routes-dir': {
+            alias: 'r',
+            describe: 'Routes directory; generated routes.ts (which contains the generated code wiring up routes using middleware of choice) will be dropped here',
+            required: true,
+            type: 'string'
+        }
+    }, (args: RoutesArgs) => {
+        const metadata = new MetadataGenerator(args.entryFile).Generate();
+        new RouteGenerator(metadata, args.routesDir).GenerateExpressRoutes();
+    })
 
-    const metadata = new MetadataGenerator(entryFile).Generate();
-    new SpecGenerator(metadata).GenerateJson(swaggerDir);
-    new RouteGenerator(metadata, routesDir).GenerateExpressRoutes();
-})();
+    .help('help')
+    .alias('help', 'h')
+    .argv;
 
-interface GeneratorArguments {
-    swaggerDir: string;
-    routesDir: string;
+interface SwaggerArgs extends yargs.Argv {
     entryFile: string;
+    swaggerDir: string;
 }
 
-
+interface RoutesArgs extends yargs.Argv {
+    entryFile: string;
+    routesDir: string;
+}

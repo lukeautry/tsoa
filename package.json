@@ -9,10 +9,11 @@
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint ./src/**/*.ts",
     "prepublish": "npm run typings install && npm run build",
-    "test": "npm run swagger-gen && mocha **/*.spec.ts --compilers ts:ts-node/register",
-    "typings": "typings",
-    "swagger-gen": "ts-node ./src/cli.ts --entryFile=./tests/fixtures/server.ts --swaggerDir=./dist --routesDir=./tests/fixtures",
-    "tsc": "tsc"
+    "routes-gen": "ts-node ./src/cli.ts routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
+    "swagger-gen": "ts-node ./src/cli.ts swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist",
+    "test": "npm run swagger-gen && npm run routes-gen && mocha **/*.spec.ts --compilers ts:ts-node/register",
+    "tsc": "tsc",
+    "typings": "typings"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -23,7 +24,7 @@
     "moment": "^2.14.1",
     "typescript": "^2.0.0",
     "typescript-formatter": "^2.2.0",
-    "yargs": "^4.7.1"
+    "yargs": "^4.8.0"
   },
   "devDependencies": {
     "body-parser": "^1.15.2",
@@ -41,7 +42,7 @@
     "url": "https://github.com/lukeautry/tsoa.git"
   },
   "bin": {
-    "swagger-ts-generate": "dist/cli.js"
+    "tsoa": "dist/cli.js"
   },
   "engines": {
     "node": ">=6.0.0"
