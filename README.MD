@@ -92,7 +92,7 @@ import {RegisterRoutes} from './routes';
 // controllers need to be referenced in order to get crawled by the generator
 import './controllers/usersController';
 
-app: express.Express = express();
+const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
