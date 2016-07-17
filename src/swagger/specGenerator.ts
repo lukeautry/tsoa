@@ -5,18 +5,15 @@ import * as mkdirp from 'mkdirp';
 
 export interface Options {
     host: string;
-    name?: string;
-    version?: string;
-    description?: string;
-    basePath?: string;
+    name: string;
+    version: string;
+    description: string;
+    basePath: string;
+    license: string;
 }
 
 export class SpecGenerator {
-    private readonly packageJson: any;
-
-    constructor(private readonly metadata: Metadata, private readonly options: Options) {
-        this.packageJson = this.loadMainPackageJson();
-    }
+    constructor(private readonly metadata: Metadata, private readonly options: Options) { }
 
     public GenerateJson(swaggerDir: string) {
         mkdirp(swaggerDir, dirErr => {
@@ -34,14 +31,17 @@ export class SpecGenerator {
 
     public GetSpec(): Swagger.Spec {
         return {
-            basePath: this.options.basePath || '/',
+            basePath: this.options.basePath,
             consumes: ['application/json'],
             definitions: this.buildDefinitions(),
             host: this.options.host,
             info: {
-                description: this.options.description || this.getPackageJsonValue('description'),
-                title: this.options.name || this.getPackageJsonValue('name'),
-                version: this.options.version || this.getPackageJsonValue('version')
+                description: this.options.description,
+                license: {
+                    name: this.options.license
+                },
+                title: this.options.name,
+                version: this.options.version
             },
             paths: this.buildPaths(),
             produces: ['application/json'],
@@ -168,22 +168,5 @@ export class SpecGenerator {
 
     private get204Operation() {
         return { responses: { '204': { description: 'No content' } } };
-    }
-
-    private getPackageJsonValue(key: string): string {
-        return this.packageJson[key] || '';
-    }
-
-    private loadMainPackageJson(attempts = 0): any {
-        if (attempts > 5) {
-            throw new Error('Can\'t resolve main package.json file');
-        }
-
-        const mainPath = attempts === 1 ? './' : Array(attempts).join('../');
-        try {
-            return require.main.require(mainPath + 'package.json');
-        } catch (e) {
-            return this.loadMainPackageJson(attempts + 1);
-        }
     }
 }

@@ -11,6 +11,8 @@ const entryFileConfig = {
     type: 'string'
 };
 
+let packageJson: any = undefined;
+
 yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
@@ -25,35 +27,46 @@ yargs
         },
         'host': {
             alias: 'ho',
-            describe: 'API host, e.g. localhost:3000 or https://myapi.com/v1',
+            describe: 'API host, e.g. localhost:3000 or https://myapi.com',
             required: true,
             type: 'string'
         },
         'ver': {
             alias: 'v',
+            default: getPackageJsonValue('version'),
             describe: 'API version number; defaults to npm package version',
             type: 'string'
         },
         'name': {
             alias: 'n',
+            default: getPackageJsonValue('name'),
             describe: 'API name; defaults to npm package name',
             type: 'string'
         },
         'description': {
             alias: 'd',
+            default: getPackageJsonValue('description'),
             describe: 'API description; defaults to npm package description'
         },
         'license': {
             alias: 'l',
+            default: getPackageJsonValue('license'),
             describe: 'API license; defaults to npm package license'
+        },
+        'basePath': {
+            alias: 'b',
+            default: '/',
+            describe: 'Base API path; e.g. the \'v1\' in https://myapi.com/v1'
         }
     }, (args: SwaggerArgs) => {
         const metadata = new MetadataGenerator(args.entryFile).Generate();
         new SpecGenerator(metadata, {
+            basePath: args.basePath,
             description: args.description,
             host: args.host,
+            license: args.license,
             name: args.name,
-            version: args.ver
+            version: args.ver,
         }).GenerateJson(args.swaggerDir);
     })
 
@@ -74,6 +87,27 @@ yargs
     .alias('help', 'h')
     .argv;
 
+function getPackageJsonValue(key: string) {
+    if (!packageJson) {
+        packageJson = loadMainPackageJson();
+    }
+
+    return packageJson[key] || '';
+}
+
+function loadMainPackageJson(attempts = 0): any {
+    if (attempts > 5) {
+        throw new Error('Can\'t resolve package.json file');
+    }
+
+    const mainPath = attempts === 1 ? './' : Array(attempts).join('../');
+    try {
+        return require.main.require(mainPath + 'package.json');
+    } catch (e) {
+        return loadMainPackageJson(attempts + 1);
+    }
+}
+
 interface SwaggerArgs extends yargs.Argv {
     entryFile: string;
     swaggerDir: string;
@@ -81,9 +115,12 @@ interface SwaggerArgs extends yargs.Argv {
     name?: string;
     ver?: string;
     description?: string;
+    basePath?: string;
+    license?: string;
 }
 
 interface RoutesArgs extends yargs.Argv {
     entryFile: string;
     routesDir: string;
+    basePath?: string;
 }

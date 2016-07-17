@@ -14,28 +14,5 @@ describe('Schema details generation', () => {
     it('should set API description if provided', () => expect(spec.info.description).to.equal(getDefaultOptions().description));
     it('should set API version if provided', () => expect(spec.info.version).to.equal(getDefaultOptions().version));
     it('should set API host if provided', () => expect(spec.host).to.equal(getDefaultOptions().host));
-
-    it('should fall back to package.json name for API name', () => {
-        const defaultOptions = getDefaultOptions();
-        defaultOptions.name = undefined;
-
-        const localSpec = new SpecGenerator(metadata, defaultOptions).GetSpec();
-        expect(localSpec.info.title).to.equal(process.env.npm_package_name);
-    });
-
-    it('should fall back to package.json name for API version', () => {
-        const defaultOptions = getDefaultOptions();
-        defaultOptions.version = undefined;
-
-        const localSpec = new SpecGenerator(metadata, defaultOptions).GetSpec();
-        expect(localSpec.info.version).to.equal(process.env.npm_package_version);
-    });
-
-    it('should fall back to package.json name for API name', () => {
-        const defaultOptions = getDefaultOptions();
-        defaultOptions.description = undefined;
-
-        const localSpec = new SpecGenerator(metadata, defaultOptions).GetSpec();
-        expect(localSpec.info.description).to.equal(process.env.npm_package_description);
-    });
+    it('should set API host if provided', () => expect(spec.info.license.name).to.equal(getDefaultOptions().license));
 });

@@ -127,6 +127,13 @@ Options:
                      e.g. server.ts/app.ts                   [string] [required]
   --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
                      here                                    [string] [required]
+  --host, --ho       API host, e.g. localhost:3000 or https://myapi.com/v1
+                                                             [string] [required]
+  --ver, -v          API version number; defaults to npm package version[string]
+  --name, -n         API name; defaults to npm package name             [string]
+  --description, -d  API description; defaults to npm package description
+  --license, -l      API license; defaults to npm package license
+  --basePath, -b     Base API path; e.g. the 'v1' in https://myapi.com/v1 [default: "/"]
 ```
 
 ### Route generation
