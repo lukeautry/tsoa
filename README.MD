@@ -136,5 +136,5 @@ Options:
                     server.ts/app.ts                         [string] [required]
   --routes-dir, -r  Routes directory; generated routes.ts (which contains the
                     generated code wiring up routes using middleware of choice)
-                    will be dropped here                     [string] [required]                                 [string] [required]
+                    will be dropped here                     [string] [required]
 ```
