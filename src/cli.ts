@@ -13,6 +13,11 @@ const entryFileConfig = {
     type: 'string'
 };
 
+const versionDefault = getPackageJsonValue('version');
+const nameDefault = getPackageJsonValue('name');
+const descriptionDefault = getPackageJsonValue('description');
+const licenseDefault = getPackageJsonValue('licenseDefault');
+
 yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
@@ -33,30 +38,37 @@ yargs
         },
         'ver': {
             alias: 'v',
-            default: getPackageJsonValue('version'),
+            default: versionDefault,
             describe: 'API version number; defaults to npm package version',
+            required: !versionDefault,
             type: 'string'
         },
         'name': {
             alias: 'n',
-            default: getPackageJsonValue('name'),
+            default: nameDefault,
             describe: 'API name; defaults to npm package name',
+            required: !nameDefault,
             type: 'string'
         },
         'description': {
             alias: 'd',
-            default: getPackageJsonValue('description'),
-            describe: 'API description; defaults to npm package description'
+            default: descriptionDefault,
+            describe: 'API description; defaults to npm package description',
+            required: !descriptionDefault,
+            type: 'string'
         },
         'license': {
             alias: 'l',
-            default: getPackageJsonValue('license'),
-            describe: 'API license; defaults to npm package license'
+            default: licenseDefault,
+            describe: 'API license; defaults to npm package license',
+            required: !licenseDefault,
+            type: 'string'
         },
         'basePath': {
             alias: 'b',
             default: '/',
-            describe: 'Base API path; e.g. the \'/v1\' in https://myapi.com/v1'
+            describe: 'Base API path; e.g. the \'/v1\' in https://myapi.com/v1',
+            type: 'string'
         }
     }, (args: SwaggerArgs) => {
         const metadata = new MetadataGenerator(args.entryFile).Generate();
@@ -110,9 +122,13 @@ yargs
     .alias('help', 'h')
     .argv;
 
-function getPackageJsonValue(key: string) {
-    const packageJson = require(`${appRoot}/package.json`);
-    return packageJson[key] || '';
+function getPackageJsonValue(key: string): string {
+    try {
+        const packageJson = require(`${appRoot}/package.json`);
+        return packageJson[key] || undefined;
+    } catch (err) {
+        return undefined;
+    }
 }
 
 interface SwaggerArgs extends yargs.Argv {
