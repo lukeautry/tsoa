@@ -16,7 +16,7 @@ const entryFileConfig = {
 const versionDefault = getPackageJsonValue('version');
 const nameDefault = getPackageJsonValue('name');
 const descriptionDefault = getPackageJsonValue('description');
-const licenseDefault = getPackageJsonValue('licenseDefault');
+const licenseDefault = getPackageJsonValue('license');
 
 yargs
     .usage('Usage: $0 <command> [options]')
