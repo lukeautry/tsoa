@@ -11,10 +11,14 @@ describe('Definition generation', () => {
     const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
 
     it('should generate a definition for referenced models', () => {
-        const expectedModels = ['TestModel', 'TestSubModel'];
+        const expectedModels = ['TestModel', 'TestSubModel', 'Result'];
         expectedModels.forEach(modelName => {
             expect(spec.definitions[modelName], `${modelName} should have been automatically generated.`).to.exist;
         });
+    });
+
+    it('should generate an member of type object for union type', () => {
+        expect(spec.definitions['Result'].properties['value'].type).to.equal('object');
     });
 
     it('should generate a definition description from a model jsdoc comment', () => {

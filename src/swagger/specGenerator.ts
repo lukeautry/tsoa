@@ -142,6 +142,7 @@ export class SpecGenerator {
         typeMap['string'] = { type: 'string' };
         typeMap['boolean'] = { type: 'boolean' };
         typeMap['datetime'] = { format: 'date-time', type: 'string' };
+        typeMap['object'] = { type: 'object' };
         typeMap['void'] = null;
 
         return typeMap[primitiveTypeName];

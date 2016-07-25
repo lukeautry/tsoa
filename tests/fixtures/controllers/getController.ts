@@ -65,4 +65,20 @@ export class GetTestController {
 
             return model;
     }
+
+    @Get('ResponseWithUnionTypeProperty')
+    public async getResponseWithUnionTypeProperty(): Promise<Result> {
+        return {
+            value: 'success'
+        };
+    }
+
+    @Get('UnionTypeResponse')
+    public async getUnionTypeResponse(): Promise<string | boolean> {
+        return '';
+    }
+}
+
+export interface Result {
+    value: 'success' | 'failure';
 }

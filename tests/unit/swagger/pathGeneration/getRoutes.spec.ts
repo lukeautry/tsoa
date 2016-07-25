@@ -50,6 +50,11 @@ describe('GET route generation', () => {
         verifyPath(actionRoute, true);
     });
 
+    it('should set a valid response type for union type return type', () => {
+        const actionRoute = `${baseRoute}/UnionTypeResponse`;
+        expect(spec.paths[actionRoute].get.responses['200'].schema.type).to.equal('object');
+    });
+
     it('should reject complex types as arguments', () => {
         expect(() => {
             const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();

@@ -28,6 +28,9 @@ const models: any = {
         'optionalString': { typeName: 'string', required: false },
         'id': { typeName: 'number', required: true },
     },
+    'Result': {
+        'value': { typeName: 'object', required: true },
+    },
 };
 
 export function RegisterRoutes(app: any) {
@@ -334,6 +337,38 @@ export function RegisterRoutes(app: any) {
 
         const controller = new GetTestController();
         promiseHandler(controller.getModelByParams.apply(controller, validatedParams), res);
+    });
+    app.get('/GetTest/ResponseWithUnionTypeProperty', function(req: any, res: any) {
+        const params = {
+        };
+
+        let validatedParams: any[] = [];
+        try {
+            validatedParams = getValidatedParams(params, req, '');
+        } catch (err) {
+            res.status(err.status || 500);
+            res.json(err);
+            return;
+        }
+
+        const controller = new GetTestController();
+        promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), res);
+    });
+    app.get('/GetTest/UnionTypeResponse', function(req: any, res: any) {
+        const params = {
+        };
+
+        let validatedParams: any[] = [];
+        try {
+            validatedParams = getValidatedParams(params, req, '');
+        } catch (err) {
+            res.status(err.status || 500);
+            res.json(err);
+            return;
+        }
+
+        const controller = new GetTestController();
+        promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), res);
     });
     app.delete('/DeleteTest', function(req: any, res: any) {
         const params = {

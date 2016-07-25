@@ -22,6 +22,10 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
         };
     }
 
+    if (typeNode.kind === ts.SyntaxKind.UnionType) {
+        return 'object';
+    }
+
     if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
         throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
     }
