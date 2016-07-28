@@ -83,8 +83,8 @@ export class SpecGenerator {
     private buildPathMethod(method: Method, pathObject: any) {
         const swaggerType = this.getSwaggerType(method.type);
         const pathMethod: any = pathObject[method.method] = swaggerType
-            ? this.get200Operation(swaggerType, method.example)
-            : this.get204Operation();
+            ? this.get200Operation(swaggerType, method.example, method.name)
+            : this.get204Operation(method.name);
 
         pathMethod.description = method.description;
         pathMethod.parameters = method.parameters.map(p => this.buildParameter(p));
@@ -158,8 +158,9 @@ export class SpecGenerator {
         return { $ref: `#/definitions/${referenceType.name}` };
     }
 
-    private get200Operation(swaggerType: Swagger.Schema, example: any) {
+    private get200Operation(swaggerType: Swagger.Schema, example: any, methodName: string) {
         return {
+            operationId: methodName,
             produces: ['application/json'],
             responses: {
                 '200': { description: '', examples: { 'application/json': example }, schema: swaggerType }
@@ -167,7 +168,12 @@ export class SpecGenerator {
         };
     }
 
-    private get204Operation() {
-        return { responses: { '204': { description: 'No content' } } };
+    private get204Operation(methodName: string) {
+        return {
+            operationId: methodName,
+            responses: {
+                '204': { description: 'No content' }
+            }
+        };
     }
 }
