@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 import {app} from '../fixtures/server';
 import {TestModel} from '../fixtures/testModel';
 import * as chai from 'chai';
@@ -134,7 +133,7 @@ describe('Server', () => {
 
     function verifyRequest(
         verifyResponse: (err: any, res: request.Response) => any,
-        methodOperation: (request: request.SuperTest) => request.Test,
+        methodOperation: (request: request.SuperTest<any>) => request.Test,
         expectedStatus?: number
     ) {
         expectedStatus = expectedStatus || 200;

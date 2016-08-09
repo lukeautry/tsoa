@@ -7,10 +7,5 @@
         "target": "es6",
         "experimentalDecorators": true,
         "declaration": true
-    },
-    "files": [
-        "./src/index.ts",
-        "./src/cli.ts",        
-        "./typings/index.d.ts"
-    ]
+    }
 }

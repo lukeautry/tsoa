@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 import * as methodOverride from 'method-override';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';

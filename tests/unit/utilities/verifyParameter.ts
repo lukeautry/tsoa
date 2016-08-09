@@ -1,4 +1,3 @@
-/// <reference path="../../../typings/index.d.ts" />
 import {Swagger} from '../../../src/swagger/swagger';
 import * as chai from 'chai';
 
