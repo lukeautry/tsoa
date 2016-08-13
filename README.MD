@@ -128,7 +128,7 @@ Options:
   --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
                      here                                    [string] [required]
   --host, --ho       API host, e.g. localhost:3000 or https://myapi.com/v1
-                                                             [string] [required]
+                                                             [string]
   --ver, -v          API version number; defaults to npm package version[string]
   --name, -n         API name; defaults to npm package name             [string]
   --description, -d  API description; defaults to npm package description
