@@ -33,7 +33,7 @@ yargs
         'host': {
             alias: 'ho',
             describe: 'API host, e.g. localhost:3000 or https://myapi.com',
-            required: true,
+            required: false,
             type: 'string'
         },
         'ver': {

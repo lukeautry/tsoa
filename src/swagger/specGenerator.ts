@@ -30,7 +30,7 @@ export class SpecGenerator {
     }
 
     public GetSpec(): Swagger.Spec {
-        return {
+        const spec: Swagger.Spec =  {
             basePath: this.options.basePath,
             consumes: ['application/json'],
             definitions: this.buildDefinitions(),
@@ -47,6 +47,10 @@ export class SpecGenerator {
             produces: ['application/json'],
             swagger: '2.0'
         };
+
+        if (this.options.host) { spec.host = this.options.host; }
+
+        return spec;
     }
 
     private buildDefinitions() {
