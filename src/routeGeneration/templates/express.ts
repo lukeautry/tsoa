@@ -2,7 +2,7 @@ export const expressTemplate = `
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
-        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', function (req: any, res: any) {
+        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', function (req: any, res: any, next: any) {
             const params = {
                 {{#each parameters}}
                 '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
@@ -19,12 +19,12 @@ export function RegisterRoutes(app: any) {
             }
 
             const controller = new {{../name}}();
-            promiseHandler(controller.{{name}}.apply(controller, validatedParams), res);
+            promiseHandler(controller.{{name}}.apply(controller, validatedParams), res, next);
         });
     {{/each}}
     {{/each}}
 
-    function promiseHandler(promise: any, response: any) {
+    function promiseHandler(promise: any, response: any, next: any) {
         return promise
             .then((data: any) => {
                 if (data) {
@@ -35,8 +35,7 @@ export function RegisterRoutes(app: any) {
                 }
             })
             .catch((error: any) => {
-                response.status(error.status || 500);
-                response.json(error);
+                next(error);
             });
     }
 
