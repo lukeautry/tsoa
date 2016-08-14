@@ -25,7 +25,7 @@
     "moment": "^2.14.1",
     "typescript": "^2.0.0",
     "typescript-formatter": "^2.3.0",
-    "yargs": "^4.8.0"
+    "yargs": "^4.8.1"
   },
   "devDependencies": {
     "@types/body-parser": "0.0.30",
@@ -45,11 +45,11 @@
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",
     "method-override": "^2.3.6",
-    "mocha": "^2.5.3",
-    "rimraf": "^2.5.3",
-    "supertest": "^1.2.0",
-    "ts-node": "^0.9.3",
-    "tslint": "^3.13.0"
+    "mocha": "^3.0.2",
+    "rimraf": "^2.5.4",
+    "supertest": "^2.0.0",
+    "ts-node": "^1.2.2",
+    "tslint": "^3.14.0"
   },
   "repository": {
     "type": "git",
