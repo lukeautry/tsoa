@@ -13,9 +13,7 @@ export function RegisterRoutes(app: any) {
             try {
                 validatedParams = getValidatedParams(params, req, '{{bodyParamName}}');
             } catch (err) {
-                res.status(err.status || 500);
-                res.json(err);
-                return;
+                return next(err);
             }
 
             const controller = new {{../name}}();
@@ -34,9 +32,7 @@ export function RegisterRoutes(app: any) {
                     response.end();
                 }
             })
-            .catch((error: any) => {
-                next(error);
-            });
+            .catch((error: any) => next(error));
     }
 
     function getRequestParams(request: any, bodyParamName?: string) {

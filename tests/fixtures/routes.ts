@@ -34,7 +34,7 @@ const models: any = {
 };
 
 export function RegisterRoutes(app: any) {
-    app.put('/PutTest', function(req: any, res: any) {
+    app.put('/PutTest', function(req: any, res: any, next: any) {
         const params = {
             'model': { typeName: 'TestModel', required: true },
         };
@@ -43,15 +43,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, 'model');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PutTestController();
-        promiseHandler(controller.putModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.putModel.apply(controller, validatedParams), res, next);
     });
-    app.put('/PutTest/Location', function(req: any, res: any) {
+    app.put('/PutTest/Location', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -59,15 +57,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PutTestController();
-        promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), res);
+        promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), res, next);
     });
-    app.put('/PutTest/Multi', function(req: any, res: any) {
+    app.put('/PutTest/Multi', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -75,15 +71,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PutTestController();
-        promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), res);
+        promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), res, next);
     });
-    app.put('/PutTest/WithId/:id', function(req: any, res: any) {
+    app.put('/PutTest/WithId/:id', function(req: any, res: any, next: any) {
         const params = {
             'id': { typeName: 'number', required: true },
         };
@@ -92,15 +86,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PutTestController();
-        promiseHandler(controller.putWithId.apply(controller, validatedParams), res);
+        promiseHandler(controller.putWithId.apply(controller, validatedParams), res, next);
     });
-    app.post('/PostTest', function(req: any, res: any) {
+    app.post('/PostTest', function(req: any, res: any, next: any) {
         const params = {
             'model': { typeName: 'TestModel', required: true },
         };
@@ -109,15 +101,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, 'model');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.postModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.postModel.apply(controller, validatedParams), res, next);
     });
-    app.patch('/PostTest', function(req: any, res: any) {
+    app.patch('/PostTest', function(req: any, res: any, next: any) {
         const params = {
             'model': { typeName: 'TestModel', required: true },
         };
@@ -126,15 +116,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, 'model');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.updateModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.updateModel.apply(controller, validatedParams), res, next);
     });
-    app.post('/PostTest/Location', function(req: any, res: any) {
+    app.post('/PostTest/Location', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -142,15 +130,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), res);
+        promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), res, next);
     });
-    app.post('/PostTest/Multi', function(req: any, res: any) {
+    app.post('/PostTest/Multi', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -158,15 +144,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), res);
+        promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), res, next);
     });
-    app.post('/PostTest/WithId/:id', function(req: any, res: any) {
+    app.post('/PostTest/WithId/:id', function(req: any, res: any, next: any) {
         const params = {
             'id': { typeName: 'number', required: true },
         };
@@ -175,15 +159,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.postWithId.apply(controller, validatedParams), res);
+        promiseHandler(controller.postWithId.apply(controller, validatedParams), res, next);
     });
-    app.post('/PostTest/WithBodyAndQueryParams', function(req: any, res: any) {
+    app.post('/PostTest/WithBodyAndQueryParams', function(req: any, res: any, next: any) {
         const params = {
             'model': { typeName: 'TestModel', required: true },
             'query': { typeName: 'string', required: true },
@@ -193,15 +175,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, 'model');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PostTestController();
-        promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), res);
+        promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), res, next);
     });
-    app.patch('/PatchTest', function(req: any, res: any) {
+    app.patch('/PatchTest', function(req: any, res: any, next: any) {
         const params = {
             'model': { typeName: 'TestModel', required: true },
         };
@@ -210,15 +190,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, 'model');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PatchTestController();
-        promiseHandler(controller.patchModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.patchModel.apply(controller, validatedParams), res, next);
     });
-    app.patch('/PatchTest/Location', function(req: any, res: any) {
+    app.patch('/PatchTest/Location', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -226,15 +204,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PatchTestController();
-        promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), res);
+        promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), res, next);
     });
-    app.patch('/PatchTest/Multi', function(req: any, res: any) {
+    app.patch('/PatchTest/Multi', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -242,15 +218,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PatchTestController();
-        promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), res);
+        promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), res, next);
     });
-    app.patch('/PatchTest/WithId/:id', function(req: any, res: any) {
+    app.patch('/PatchTest/WithId/:id', function(req: any, res: any, next: any) {
         const params = {
             'id': { typeName: 'number', required: true },
         };
@@ -259,15 +233,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new PatchTestController();
-        promiseHandler(controller.patchWithId.apply(controller, validatedParams), res);
+        promiseHandler(controller.patchWithId.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest', function(req: any, res: any) {
+    app.get('/GetTest', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -275,15 +247,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.getModel.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest/Current', function(req: any, res: any) {
+    app.get('/GetTest/Current', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -291,15 +261,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), res);
+        promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest/Multi', function(req: any, res: any) {
+    app.get('/GetTest/Multi', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -307,15 +275,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), res);
+        promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam', function(req: any, res: any) {
+    app.get('/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam', function(req: any, res: any, next: any) {
         const params = {
             'numberPathParam': { typeName: 'number', required: true },
             'stringPathParam': { typeName: 'string', required: true },
@@ -330,15 +296,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getModelByParams.apply(controller, validatedParams), res);
+        promiseHandler(controller.getModelByParams.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest/ResponseWithUnionTypeProperty', function(req: any, res: any) {
+    app.get('/GetTest/ResponseWithUnionTypeProperty', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -346,15 +310,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), res);
+        promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), res, next);
     });
-    app.get('/GetTest/UnionTypeResponse', function(req: any, res: any) {
+    app.get('/GetTest/UnionTypeResponse', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -362,15 +324,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new GetTestController();
-        promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), res);
+        promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), res, next);
     });
-    app.delete('/DeleteTest', function(req: any, res: any) {
+    app.delete('/DeleteTest', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -378,15 +338,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new DeleteTestController();
-        promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), res);
+        promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), res, next);
     });
-    app.delete('/DeleteTest/Current', function(req: any, res: any) {
+    app.delete('/DeleteTest/Current', function(req: any, res: any, next: any) {
         const params = {
         };
 
@@ -394,15 +352,13 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new DeleteTestController();
-        promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), res);
+        promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), res, next);
     });
-    app.delete('/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam', function(req: any, res: any) {
+    app.delete('/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam', function(req: any, res: any, next: any) {
         const params = {
             'numberPathParam': { typeName: 'number', required: true },
             'stringPathParam': { typeName: 'string', required: true },
@@ -416,16 +372,14 @@ export function RegisterRoutes(app: any) {
         try {
             validatedParams = getValidatedParams(params, req, '');
         } catch (err) {
-            res.status(err.status || 500);
-            res.json(err);
-            return;
+            return next(err);
         }
 
         const controller = new DeleteTestController();
-        promiseHandler(controller.getModelByParams.apply(controller, validatedParams), res);
+        promiseHandler(controller.getModelByParams.apply(controller, validatedParams), res, next);
     });
 
-    function promiseHandler(promise: any, response: any) {
+    function promiseHandler(promise: any, response: any, next: any) {
         return promise
             .then((data: any) => {
                 if (data) {
@@ -435,10 +389,7 @@ export function RegisterRoutes(app: any) {
                     response.end();
                 }
             })
-            .catch((error: any) => {
-                response.status(error.status || 500);
-                response.json(error);
-            });
+            .catch((error: any) => next(error));
     }
 
     function getRequestParams(request: any, bodyParamName?: string) {

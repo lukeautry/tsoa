@@ -1,5 +1,5 @@
-import {app} from '../fixtures/server';
-import {TestModel} from '../fixtures/testModel';
+import { app } from '../fixtures/server';
+import { TestModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -39,7 +39,7 @@ describe('Server', () => {
 
     it('returns error if missing required query parameter', () => {
         return verifyGetRequest(`/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
-            expect(err.message).to.equal('numberParam is a required parameter.');
+            expect(err.text).to.equal('numberParam is a required parameter.');
         }, 400);
     });
 
@@ -76,7 +76,7 @@ describe('Server', () => {
     });
 
     it('should reject invalid strings', () => {
-        const invalidValues = [ null, 1, undefined, {} ];
+        const invalidValues = [null, 1, undefined, {}];
 
         return Promise.all(invalidValues.map((value: any) => {
             const data = getFakeModel();
@@ -96,7 +96,7 @@ describe('Server', () => {
     });
 
     it('should reject invalid dates', () => {
-        const invalidValues = [ null, 1, {} ];
+        const invalidValues = [null, 1, {}];
 
         return Promise.all(invalidValues.map((value: any) => {
             const data = getFakeModel();
@@ -107,7 +107,7 @@ describe('Server', () => {
     });
 
     it('should reject invalid numbers', () => {
-        const invalidValues = [ 'test', null, undefined, {} ];
+        const invalidValues = ['test', null, undefined, {}];
 
         return Promise.all(invalidValues.map((value: any) => {
             const data = getFakeModel();
@@ -119,7 +119,7 @@ describe('Server', () => {
 
     it('returns error if missing required path parameter', () => {
         return verifyGetRequest(`/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
-            expect(err).to.contain('Cannot GET');
+            expect(err.text).to.contain('Cannot GET');
         }, 404);
     });
 
@@ -143,9 +143,9 @@ describe('Server', () => {
                 .end((err, res) => {
                     let parsedError: any;
                     try {
-                        parsedError = JSON.parse((res.error as any).text);
+                        parsedError = JSON.parse((res.error as any));
                     } catch (err) {
-                        parsedError = (res.error as any).text;
+                        parsedError = (res.error as any);
                     }
 
                     if (err) {
