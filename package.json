@@ -56,7 +56,7 @@
     "url": "https://github.com/lukeautry/tsoa.git"
   },
   "bin": {
-    "tsoa": "dist/cli.js"
+    "tsoa": "dist/src/cli.js"
   },
   "engines": {
     "node": ">=6.0.0"
