@@ -6,6 +6,10 @@
         "module": "commonjs",
         "target": "es6",
         "experimentalDecorators": true,
-        "declaration": true
-    }
+        "declaration": true,
+        "baseUrl": "./src"
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
 }

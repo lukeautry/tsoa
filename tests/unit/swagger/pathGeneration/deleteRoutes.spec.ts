@@ -1,3 +1,4 @@
+import 'mocha';
 import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';
 import {VerifyPath} from '../../utilities/verifyPath';

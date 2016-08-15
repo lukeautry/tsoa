@@ -1,3 +1,4 @@
+import 'mocha';
 import { app } from '../fixtures/server';
 import { TestModel } from '../fixtures/testModel';
 import * as chai from 'chai';

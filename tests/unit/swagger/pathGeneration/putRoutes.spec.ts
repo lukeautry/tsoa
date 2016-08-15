@@ -1,3 +1,4 @@
+import 'mocha';
 import {getDefaultOptions} from '../../../fixtures/defaultOptions';
 import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';

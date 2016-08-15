@@ -1,3 +1,4 @@
+import 'mocha';
 import {VerifyPath, modelName} from '../../utilities/verifyPath';
 import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
 import {SpecGenerator} from '../../../../src/swagger/specGenerator';
