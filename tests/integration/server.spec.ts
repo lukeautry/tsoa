@@ -92,7 +92,6 @@ describe('Server', () => {
         data.dateValue = '2016-01-01T00:00:00Z' as any;
 
         return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
-            console.log(res);
             expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
         }, 200);
     });
