@@ -27,7 +27,7 @@ export class ParameterGenerator {
     }
 
     private getBodyParameter(parameter: ts.ParameterDeclaration) {
-        const type = ResolveType(parameter.type);
+        const type = this.getValidatedType(parameter);
         const identifier = parameter.name as ts.Identifier;
 
         return {
@@ -40,7 +40,7 @@ export class ParameterGenerator {
     }
 
     private getQueryParameter(parameter: ts.ParameterDeclaration) {
-        const type = ResolveType(parameter.type);
+        const type = this.getValidatedType(parameter);
         const identifier = parameter.name as ts.Identifier;
 
         if (!this.isPathableType(type)) {
@@ -57,7 +57,7 @@ export class ParameterGenerator {
     }
 
     private getPathParameter(parameter: ts.ParameterDeclaration) {
-        const type = ResolveType(parameter.type);
+        const type = this.getValidatedType(parameter); ;
         const identifier = parameter.name as ts.Identifier;
 
         if (!this.isPathableType(type)) {
@@ -83,7 +83,7 @@ export class ParameterGenerator {
         const comments = symbol.getDocumentationComment();
         if (comments.length) { return ts.displayPartsToString(comments); }
 
-        return undefined;
+        return '';
     }
 
     private supportsBodyParameters(method: string) {
@@ -97,5 +97,10 @@ export class ParameterGenerator {
 
         const type = parameterType as string;
         return !!['string', 'boolean', 'number'].find(t => t === type);
+    }
+
+    private getValidatedType(parameter: ts.ParameterDeclaration) {
+        if (!parameter.type) { throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned.`); }
+        return ResolveType(parameter.type);
     }
 }

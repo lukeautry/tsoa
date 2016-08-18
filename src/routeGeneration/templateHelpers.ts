@@ -2,7 +2,7 @@ import * as moment from 'moment';
 
 let models: any = null;
 
-export function ValidateParam(typeData: any, value: any, generatedModels: any, name?: string) {
+export function ValidateParam(typeData: any, value: any, generatedModels: any, name = '') {
     models = generatedModels;
 
     if (value === undefined) {

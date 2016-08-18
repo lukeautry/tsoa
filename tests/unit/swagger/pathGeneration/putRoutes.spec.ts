@@ -10,6 +10,14 @@ describe('PUT route generation', () => {
     const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/PutTest';
 
+    const getValidatedParameters = (actionRoute: string) => {
+        const path = verifyPath(actionRoute);
+        if (!path.put) { throw new Error('No patch operation.'); }
+        if (!path.put.parameters) { throw new Error('No parameters'); }
+
+        return path.put.parameters as any;
+    };
+
     it('should generate a path for a PUT route with no path argument', () => {
         verifyPath(baseRoute);
     });
@@ -25,14 +33,13 @@ describe('PUT route generation', () => {
     });
 
     it('should generate a parameter for path parameters', () => {
-        const actionRoute = `${baseRoute}/WithId/{id}`;
-        const path = verifyPath(actionRoute);
-        VerifyPathableParameter(path.put.parameters as any, 'id', 'integer', 'path');
+        const parameters = getValidatedParameters(`${baseRoute}/WithId/{id}`);
+        VerifyPathableParameter(parameters, 'id', 'integer', 'path');
     });
 
     it('should generate a parameter for body parameters', () => {
-        const path = verifyPath(baseRoute);
-        VerifyBodyParameter(path.put.parameters as any, 'model', modelName, 'body');
+        const parameters = getValidatedParameters(baseRoute);
+        VerifyBodyParameter(parameters, 'model', modelName, 'body');
     });
 
     function verifyPath(route: string, isCollection?: boolean) {

@@ -7,7 +7,7 @@ export const modelName = '#/definitions/TestModel';
 export function VerifyPath(
     spec: Swagger.Spec,
     route: string,
-    getOperation: (path: Swagger.Path) => Swagger.Operation,
+    getOperation: ((path: Swagger.Path) => Swagger.Operation | undefined),
     isCollection?: boolean,
     isNoContent?: boolean
 ) {
@@ -15,8 +15,8 @@ export function VerifyPath(
     expect(path, `Path object for ${route} route wasn\'t generated.`).to.exist;
 
     const operation = getOperation(path);
-    expect(operation, `Method for ${route} route wasn\'t generated.`).to.exist;
-    expect(operation.responses, `Response object for ${route} route wasn\'t generated.`).to.exist;
+    if (!operation) { throw new Error(`Method for ${route} route wasn\'t generated.`); }
+    if (!operation.responses) { throw new Error(`Response object for ${route} route wasn\'t generated.`); }
 
     if (isNoContent) {
         const successResponse = operation.responses['204'];
@@ -26,7 +26,8 @@ export function VerifyPath(
 
     const successResponse = operation.responses['200'];
     expect(successResponse, `200 response for ${route} route wasn\'t generated.`).to.exist;
-    expect(successResponse.schema, `Schema for 200 response ${route} route wasn\'t generated.`).to.exist;
+
+    if (!successResponse.schema) { throw new Error(`Schema for 200 response ${route} route wasn\'t generated.`); }
 
     if (isCollection) {
         expect(successResponse.schema.type).to.equal('array');

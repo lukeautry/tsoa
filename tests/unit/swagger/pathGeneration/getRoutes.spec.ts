@@ -13,6 +13,32 @@ describe('GET route generation', () => {
     const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/GetTest';
 
+    const getValidatedGetOperation = (actionRoute: string) => {
+        const path = verifyPath(actionRoute);
+        if (!path.get) { throw new Error('No get operation.'); }
+
+        return path.get;
+    };
+
+    const getValidatedSuccessResponse = (route: string) => {
+        const get = getValidatedGetOperation(route);
+
+        const responses = get.responses;
+        if (!responses) { throw new Error('No responses.'); }
+
+        const successResponse = responses['200'];
+        if (!successResponse) { throw new Error('No success response.'); }
+
+        return successResponse;
+    };
+
+    const getValidatedParameters = (actionRoute: string) => {
+        const get = getValidatedGetOperation(actionRoute);
+        if (!get.parameters) { throw new Error('No operation parameters.'); }
+
+        return get.parameters as any;
+    };
+
     it('should generate a path for a GET route with no path argument', () => {
         verifyPath(baseRoute);
     });
@@ -30,20 +56,20 @@ describe('GET route generation', () => {
 
     it('should generate a parameter for path parameters', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute);
+        const parameters = getValidatedParameters(actionRoute);
 
-        VerifyPathableParameter(path.get.parameters as any, 'booleanPathParam', 'boolean', 'path');
-        VerifyPathableParameter(path.get.parameters as any, 'numberPathParam', 'integer', 'path');
-        VerifyPathableParameter(path.get.parameters as any, 'stringPathParam', 'string', 'path');
+        VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
+        VerifyPathableParameter(parameters, 'numberPathParam', 'integer', 'path');
+        VerifyPathableParameter(parameters, 'stringPathParam', 'string', 'path');
     });
 
     it('should generate a parameter for query parameters', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute);
+        const parameters = getValidatedParameters(actionRoute);
 
-        VerifyPathableParameter(path.get.parameters as any, 'booleanParam', 'boolean', 'query');
-        VerifyPathableParameter(path.get.parameters as any, 'numberParam', 'integer', 'query');
-        VerifyPathableParameter(path.get.parameters as any, 'stringParam', 'string', 'query');
+        VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
+        VerifyPathableParameter(parameters, 'numberParam', 'integer', 'query');
+        VerifyPathableParameter(parameters, 'stringParam', 'string', 'query');
     });
 
     it('should set a valid response type for collection responses', () => {
@@ -53,7 +79,26 @@ describe('GET route generation', () => {
 
     it('should set a valid response type for union type return type', () => {
         const actionRoute = `${baseRoute}/UnionTypeResponse`;
-        expect(spec.paths[actionRoute].get.responses['200'].schema.type).to.equal('object');
+
+        const paths = spec.paths;
+        if (!paths) { throw new Error('No paths.'); }
+
+        const path = paths[actionRoute];
+        if (!path) { throw new Error('No path.'); }
+
+        const getOperation = path.get;
+        if (!getOperation) { throw new Error('No get operation.'); }
+
+        const responses = getOperation.responses;
+        if (!responses) { throw new Error('No responses.'); }
+
+        const successResponse = responses['200'];
+        if (!successResponse) { throw new Error('No success response.'); }
+
+        if (!successResponse.schema) { throw new Error('No response schema.'); }
+        if (!successResponse.schema.type) { throw new Error('No response schema type.'); }
+
+        expect(successResponse.schema.type).to.equal('object');
     });
 
     it('should reject complex types as arguments', () => {
@@ -64,15 +109,17 @@ describe('GET route generation', () => {
     });
 
     it('should generate a path description from jsdoc comment', () => {
-        const path = verifyPath(baseRoute);
-        expect(path.get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
+        const get = getValidatedGetOperation(baseRoute);
+        if (!get.description) { throw new Error('No description.'); }
+
+        expect(get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
     });
 
     it('should generate optional parameters from default value', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute);
+        const parameters = getValidatedParameters(actionRoute);
 
-        const parameter = path.get.parameters.filter(p => p.name === 'optionalStringParam')[0];
+        const parameter = parameters.filter((p: any) => p.name === 'optionalStringParam')[0];
         expect(parameter).to.exist;
         expect(parameter.required).to.be.false;
     });
@@ -86,26 +133,30 @@ describe('GET route generation', () => {
     });
 
     it('should generate example from example decorator', () => {
-        const path = verifyPath(baseRoute);
-        const examples = path.get.responses['200'].examples['application/json'] as any;
-        expect(examples.id).to.equal(1);
-        expect(examples.boolArray).to.deep.equal([true, false]);
-        expect(examples.boolValue).to.equal(true);
-        expect(examples.modelValue.email).to.equal('test@test.com');
-        expect(examples.modelValue.id).to.equal(100);
-        expect(examples.modelsArray).to.be.undefined;
-        expect(examples.numberArray).to.deep.equal([1, 2, 3]);
-        expect(examples.numberValue).to.equal(1);
-        expect(examples.optionalString).to.equal('optional string');
-        expect(examples.stringArray).to.deep.equal(['string one', 'string two']);
-        expect(examples.stringValue).to.equal('a string');
+        const response = getValidatedSuccessResponse(baseRoute);
+        if (!response.examples) { throw new Error('No examples.'); }
+
+        const jsonExample = response.examples['application/json'] as any;
+        if (!jsonExample) { throw new Error('No json example.'); }
+
+        expect(jsonExample.id).to.equal(1);
+        expect(jsonExample.boolArray).to.deep.equal([true, false]);
+        expect(jsonExample.boolValue).to.equal(true);
+        expect(jsonExample.modelValue.email).to.equal('test@test.com');
+        expect(jsonExample.modelValue.id).to.equal(100);
+        expect(jsonExample.modelsArray).to.be.undefined;
+        expect(jsonExample.numberArray).to.deep.equal([1, 2, 3]);
+        expect(jsonExample.numberValue).to.equal(1);
+        expect(jsonExample.optionalString).to.equal('optional string');
+        expect(jsonExample.stringArray).to.deep.equal(['string one', 'string two']);
+        expect(jsonExample.stringValue).to.equal('a string');
     });
 
     function verifyParameterDescription(parameterName: string) {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute);
+        const parameters = getValidatedParameters(actionRoute);
 
-        const parameter = path.get.parameters.filter(p => p.name === parameterName)[0];
+        const parameter = parameters.filter((p: any) => p.name === parameterName)[0];
         expect(parameter).to.exist;
         expect(parameter.description).to.equal(`This is a description for ${parameterName}`);
     }

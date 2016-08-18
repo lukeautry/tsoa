@@ -21,23 +21,31 @@ describe('DELETE route generation', () => {
 
     it('should generate a parameter for path parameters', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute, false, true);
+        const parameters = getVerifiedParameters(actionRoute);
 
-        VerifyPathableParameter(path.delete.parameters as any, 'booleanPathParam', 'boolean', 'path');
-        VerifyPathableParameter(path.delete.parameters as any, 'numberPathParam', 'integer', 'path');
-        VerifyPathableParameter(path.delete.parameters as any, 'stringPathParam', 'string', 'path');
+        VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
+        VerifyPathableParameter(parameters, 'numberPathParam', 'integer', 'path');
+        VerifyPathableParameter(parameters, 'stringPathParam', 'string', 'path');
     });
 
     it('should generate a parameter for query parameters', () => {
         const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
-        const path = verifyPath(actionRoute, false, true);
+        const parameters = getVerifiedParameters(actionRoute);
 
-        VerifyPathableParameter(path.delete.parameters as any, 'booleanParam', 'boolean', 'query');
-        VerifyPathableParameter(path.delete.parameters as any, 'numberParam', 'integer', 'query');
-        VerifyPathableParameter(path.delete.parameters as any, 'stringParam', 'string', 'query');
+        VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
+        VerifyPathableParameter(parameters, 'numberParam', 'integer', 'query');
+        VerifyPathableParameter(parameters, 'stringParam', 'string', 'query');
     });
 
     function verifyPath(route: string, isCollection?: boolean, isNoContent?: boolean) {
         return VerifyPath(spec, route, path => path.delete, isCollection, isNoContent);
+    }
+
+    function getVerifiedParameters(actionRoute: string) {
+        const path = verifyPath(actionRoute, false, true);
+        if (!path.delete) { throw new Error('No delete operation.'); }
+        if (!path.delete.parameters) { throw new Error('No operation parameters.'); }
+
+        return path.delete.parameters as any;
     }
 });

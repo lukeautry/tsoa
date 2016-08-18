@@ -11,6 +11,14 @@ describe('POST route generation', () => {
     const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
     const baseRoute = '/PostTest';
 
+    const getValidatedParameters = (actionRoute: string) => {
+        const path = verifyPath(actionRoute);
+        if (!path.post) { throw new Error('No patch operation.'); }
+        if (!path.post.parameters) { throw new Error('No parameters'); }
+
+        return path.post.parameters as any;
+    };
+
     it('should generate a path for a POST route with no path argument', () => {
         verifyPath(baseRoute);
     });
@@ -27,13 +35,13 @@ describe('POST route generation', () => {
 
     it('should generate a parameter for path parameters', () => {
         const actionRoute = `${baseRoute}/WithId/{id}`;
-        const path = verifyPath(actionRoute);
-        VerifyPathableParameter(path.post.parameters as any, 'id', 'integer', 'path');
+        const parameters = getValidatedParameters(actionRoute);
+        VerifyPathableParameter(parameters, 'id', 'integer', 'path');
     });
 
     it('should generate a parameter for body parameters', () => {
-        const path = verifyPath(baseRoute);
-        VerifyBodyParameter(path.post.parameters as any, 'model', modelName, 'body');
+        const parameters = getValidatedParameters(baseRoute);
+        VerifyBodyParameter(parameters, 'model', modelName, 'body');
     });
 
     it('should reject multiple body parameters', () => {
@@ -44,9 +52,9 @@ describe('POST route generation', () => {
     });
 
     it('should be able to parse body and query parameters together', () => {
-        const path = verifyPath(`${baseRoute}/WithBodyAndQueryParams`);
-        VerifyBodyParameter(path.post.parameters as any, 'model', modelName, 'body');
-        VerifyPathableParameter(path.post.parameters as any, 'query', 'string', 'query');
+        const parameters = getValidatedParameters(`${baseRoute}/WithBodyAndQueryParams`);
+        VerifyBodyParameter(parameters, 'model', modelName, 'body');
+        VerifyPathableParameter(parameters, 'query', 'string', 'query');
     });
 
     function verifyPath(route: string, isCollection?: boolean) {

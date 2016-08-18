@@ -125,9 +125,9 @@ yargs
 function getPackageJsonValue(key: string): string {
     try {
         const packageJson = require(`${appRoot}/package.json`);
-        return packageJson[key] || undefined;
+        return packageJson[key] || '';
     } catch (err) {
-        return undefined;
+        return '';
     }
 }
 
@@ -135,16 +135,16 @@ interface SwaggerArgs extends yargs.Argv {
     entryFile: string;
     swaggerDir: string;
     host: string;
-    name?: string;
-    ver?: string;
-    description?: string;
-    basePath?: string;
-    license?: string;
+    name: string;
+    ver: string;
+    description: string;
+    basePath: string;
+    license: string;
 }
 
 interface RoutesArgs extends yargs.Argv {
     entryFile: string;
     routesDir: string;
     middleware: string;
-    basePath?: string;
+    basePath: string;
 }

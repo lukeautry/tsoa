@@ -7,7 +7,9 @@
         "target": "es6",
         "experimentalDecorators": true,
         "declaration": true,
-        "baseUrl": "./src"
+        "baseUrl": "./src",
+        "noUnusedLocals": true,
+        "strictNullChecks": true
     },
     "include": [
         "./src/**/*.ts"

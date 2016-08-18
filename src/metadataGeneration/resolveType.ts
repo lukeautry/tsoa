@@ -67,6 +67,8 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
                 const propertyDeclaration = property as ts.PropertyDeclaration;
                 const identifier = propertyDeclaration.name as ts.Identifier;
 
+                if (!propertyDeclaration.type) { throw new Error('No valid type found for property declaration.'); }
+
                 return {
                     description: getPropertyDescription(propertyDeclaration),
                     name: identifier.text,
@@ -94,6 +96,8 @@ function getExtendedProperties(interfaceDeclaration: ts.InterfaceDeclaration): P
     if (!heritageClauses) { return properties; }
 
     heritageClauses.forEach(c => {
+        if (!c.types) { return; }
+
         c.types.forEach(t => {
             const baseInterfaceName = t.expression as ts.Identifier;
             generateReferenceType(baseInterfaceName.text, false).properties

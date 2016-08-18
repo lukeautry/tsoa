@@ -1,3 +1,4 @@
+/// <reference path="../ambient.d.ts" />
 import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
@@ -16,12 +17,12 @@ export class SpecGenerator {
     constructor(private readonly metadata: Metadata, private readonly options: Options) { }
 
     public GenerateJson(swaggerDir: string) {
-        mkdirp(swaggerDir, dirErr => {
+        mkdirp(swaggerDir, (dirErr: any) => {
             if (dirErr) {
                 throw dirErr;
             }
 
-            fs.writeFile(`${swaggerDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), err => {
+            fs.writeFile(`${swaggerDir}/swagger.json`, JSON.stringify(this.GetSpec(), null, '\t'), (err: any) => {
                 if (err) {
                     throw new Error(err.toString());
                 };
@@ -29,7 +30,7 @@ export class SpecGenerator {
         });
     }
 
-    public GetSpec(): Swagger.Spec {
+    public GetSpec() {
         const spec: Swagger.Spec =  {
             basePath: this.options.basePath,
             consumes: ['application/json'],
@@ -86,9 +87,9 @@ export class SpecGenerator {
 
     private buildPathMethod(method: Method, pathObject: any) {
         const swaggerType = this.getSwaggerType(method.type);
-        const pathMethod: any = pathObject[method.method] = swaggerType
-            ? this.get200Operation(swaggerType, method.example, method.name)
-            : this.get204Operation(method.name);
+        const pathMethod: any = pathObject[method.method] = swaggerType.type === 'void'
+            ? this.get204Operation(method.name)
+            : this.get200Operation(swaggerType, method.example, method.name);
 
         pathMethod.description = method.description;
         pathMethod.parameters = method.parameters.map(p => this.buildParameter(p));
@@ -147,7 +148,7 @@ export class SpecGenerator {
         typeMap['boolean'] = { type: 'boolean' };
         typeMap['datetime'] = { format: 'date-time', type: 'string' };
         typeMap['object'] = { type: 'object' };
-        typeMap['void'] = null;
+        typeMap['void'] = { type: 'void'} ;
 
         return typeMap[primitiveTypeName];
     }

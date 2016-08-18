@@ -2,7 +2,7 @@ import {Example} from '../../../src/decorators/example';
 import {Get} from '../../../src/decorators/methods';
 import {ModelService} from '../services/modelService';
 import {Route} from '../../../src/decorators/route';
-import {TestModel} from '../testModel';
+import {TestModel, TestSubModel} from '../testModel';
 
 @Route('GetTest')
 export class GetTestController {
@@ -19,7 +19,7 @@ export class GetTestController {
             email: 'test@test.com',
             id: 100,
         },
-        modelsArray: null,
+        modelsArray: new Array<TestSubModel>(),
         numberArray: [1, 2, 3],
         numberValue: 1,
         optionalString: 'optional string',

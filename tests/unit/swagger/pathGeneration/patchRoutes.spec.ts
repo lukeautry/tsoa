@@ -24,15 +24,24 @@ describe('PATCH route generation', () => {
         verifyPath(actionRoute, true);
     });
 
+    const getValidatedParameters = (actionRoute: string) => {
+        const path = verifyPath(actionRoute);
+        if (!path.patch) { throw new Error('No patch operation.'); }
+        if (!path.patch.parameters) { throw new Error('No parameters'); }
+
+        return path.patch.parameters as any;
+    };
+
     it('should generate a parameter for path parameters', () => {
         const actionRoute = `${baseRoute}/WithId/{id}`;
-        const path = verifyPath(actionRoute);
-        VerifyPathableParameter(path.patch.parameters as any, 'id', 'integer', 'path');
+        const parameters = getValidatedParameters(actionRoute);
+
+        VerifyPathableParameter(parameters, 'id', 'integer', 'path');
     });
 
     it('should generate a parameter for body parameters', () => {
-        const path = verifyPath(baseRoute);
-        VerifyBodyParameter(path.patch.parameters as any, 'model', modelName, 'body');
+        const parameters = getValidatedParameters(baseRoute);
+        VerifyBodyParameter(parameters, 'model', modelName, 'body');
     });
 
     function verifyPath(route: string, isCollection?: boolean) {

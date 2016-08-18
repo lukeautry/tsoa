@@ -142,5 +142,3 @@ interface TemplateProperty {
     required: boolean;
     arrayType?: string;
 }
-
-type TemplateParameter = TemplateProperty;

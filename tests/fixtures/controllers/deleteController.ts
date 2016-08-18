@@ -1,17 +1,18 @@
 import {Route} from '../../../src/decorators/route';
 import {Delete} from '../../../src/decorators/methods';
 import {TestModel} from '../testModel';
+import {ModelService} from '../services/modelService';
 
 @Route('DeleteTest')
 export class DeleteTestController {
     @Delete()
     public async deleteWithReturnValue(): Promise<TestModel> {
-        return null;
+        return new ModelService().getModel();
     }
 
     @Delete('Current')
     public async deleteCurrent(): Promise<void> {
-        return null;
+        return;
     }
 
     @Delete('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
@@ -22,6 +23,6 @@ export class DeleteTestController {
         booleanParam: boolean,
         stringParam: string,
         numberParam: number): Promise<void> {
-        return null;
+        return;
     }
 }

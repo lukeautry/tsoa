@@ -92,6 +92,7 @@ describe('Server', () => {
         data.dateValue = '2016-01-01T00:00:00Z' as any;
 
         return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
+            console.log(res);
             expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
         }, 200);
     });
@@ -135,13 +136,12 @@ describe('Server', () => {
     function verifyRequest(
         verifyResponse: (err: any, res: request.Response) => any,
         methodOperation: (request: request.SuperTest<any>) => request.Test,
-        expectedStatus?: number
+        expectedStatus = 200
     ) {
-        expectedStatus = expectedStatus || 200;
         return new Promise((resolve, reject) => {
             methodOperation(request(app))
                 .expect(expectedStatus)
-                .end((err, res) => {
+                .end((err: any, res: any) => {
                     let parsedError: any;
                     try {
                         parsedError = JSON.parse((res.error as any));

@@ -43,7 +43,7 @@ export class MethodGenerator {
             return this.getValidMethods().some(m => m.toLowerCase() === identifier.text.toLowerCase());
         });
 
-        if (!pathDecorators.length) { return; }
+        if (!pathDecorators || !pathDecorators.length) { return; }
         if (pathDecorators.length > 1) {
             throw new Error(`Only one path decorator allowed per method. Found: ${pathDecorators.map(d => d.text).join(', ')}`);
         }
@@ -84,7 +84,7 @@ export class MethodGenerator {
 
     private getMethodExample() {
         const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
-        if (!exampleDecorators.length) { return undefined; }
+        if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
         if (exampleDecorators.length > 1) {
             throw new Error('Only one Example decorator allowed per controller method.');
         }
