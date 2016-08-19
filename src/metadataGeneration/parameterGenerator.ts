@@ -57,7 +57,7 @@ export class ParameterGenerator {
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration) {
-    const type = this.getValidatedType(parameter);;
+    const type = this.getValidatedType(parameter);
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {

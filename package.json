@@ -7,13 +7,14 @@
   "scripts": {
     "build": "npm run clean && npm run lint && tsc",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
-    "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
+    "lint": "tslint --exclude=./node_modules/** ./**/*.ts && npm run format",
     "format": "tsfmt -r",
     "prepublish": "npm run build",
     "deploy": "npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
     "swagger-gen": "node ./dist/cli.js swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist --host=localhost:3000",
-    "test": "npm run build && npm run swagger-gen && npm run routes-gen && mocha **/*.spec.ts --compilers ts:ts-node/register",
+    "pretest": "npm run build && npm run swagger-gen && npm run routes-gen",
+    "test": "mocha **/*.spec.ts --compilers ts:ts-node/register",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
