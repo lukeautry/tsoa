@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
-
 const appRoot: string = require('app-root-path').path;
 
 export interface Options {

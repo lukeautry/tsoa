@@ -7,13 +7,13 @@
   "scripts": {
     "build": "npm run clean && npm run lint && tsc",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
-    "lint": "tslint --exclude=./node_modules/** ./**/*.ts && npm run format",
+    "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
     "format": "tsfmt -r",
     "prepublish": "npm run build",
     "deploy": "npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
     "swagger-gen": "node ./dist/cli.js swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist --host=localhost:3000",
-    "pretest": "npm run build && npm run swagger-gen && npm run routes-gen",
+    "pretest": "npm run build && npm run swagger-gen && npm run routes-gen && npm run format",
     "test": "mocha **/*.spec.ts --compilers ts:ts-node/register",
     "tsc": "tsc"
   },
