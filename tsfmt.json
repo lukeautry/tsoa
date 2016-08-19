@@ -1,0 +1,17 @@
+{
+  "indentSize": 2,
+  "tabSize": 2,
+  "newLineCharacter": "\r\n",
+  "convertTabsToSpaces": true,
+  "insertSpaceAfterCommaDelimiter": true,
+  "insertSpaceAfterSemicolonInForStatements": true,
+  "insertSpaceBeforeAndAfterBinaryOperators": false,
+  "insertSpaceAfterKeywordsInControlFlowStatements": true,
+  "insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
+  "insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": false,
+  "insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": false,
+  "noSpaceBeforeOpenParenInFuncDecl": false,
+  "placeOpenBraceOnNewLineForFunctions": false,
+  "placeOpenBraceOnNewLineForControlBlocks": false
+}

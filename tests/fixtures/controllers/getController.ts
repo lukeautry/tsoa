@@ -1,84 +1,84 @@
-import {Example} from '../../../src/decorators/example';
-import {Get} from '../../../src/decorators/methods';
-import {ModelService} from '../services/modelService';
-import {Route} from '../../../src/decorators/route';
-import {TestModel, TestSubModel} from '../testModel';
+import { Example } from '../../../src/decorators/example';
+import { Get } from '../../../src/decorators/methods';
+import { ModelService } from '../services/modelService';
+import { Route } from '../../../src/decorators/route';
+import { TestModel, TestSubModel } from '../testModel';
 
 @Route('GetTest')
 export class GetTestController {
-    /**
-     * This is a description of the getModel method
-     * this is some more text on another line
-     */
-    @Get()
-    @Example<TestModel>({
-        boolArray: [true, false],
-        boolValue: true,
-        id: 1,
-        modelValue: {
-            email: 'test@test.com',
-            id: 100,
-        },
-        modelsArray: new Array<TestSubModel>(),
-        numberArray: [1, 2, 3],
-        numberValue: 1,
-        optionalString: 'optional string',
-        stringArray: ['string one', 'string two'],
-        stringValue: 'a string'
-    })
-    public async getModel(): Promise<TestModel> {
-        return new ModelService().getModel();
-    }
+  /**
+   * This is a description of the getModel method
+   * this is some more text on another line
+   */
+  @Get()
+  @Example<TestModel>({
+    boolArray: [true, false],
+    boolValue: true,
+    id: 1,
+    modelValue: {
+      email: 'test@test.com',
+      id: 100,
+    },
+    modelsArray: new Array<TestSubModel>(),
+    numberArray: [1, 2, 3],
+    numberValue: 1,
+    optionalString: 'optional string',
+    stringArray: ['string one', 'string two'],
+    stringValue: 'a string'
+  })
+  public async getModel(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
 
-    @Get('Current')
-    public async getCurrentModel(): Promise<TestModel> {
-        return new ModelService().getModel();
-    }
+  @Get('Current')
+  public async getCurrentModel(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
 
-    @Get('Multi')
-    public async getMultipleModels(): Promise<TestModel[]> {
-        return [
-            new ModelService().getModel(),
-            new ModelService().getModel(),
-            new ModelService().getModel()
-        ];
-    }
+  @Get('Multi')
+  public async getMultipleModels(): Promise<TestModel[]> {
+    return [
+      new ModelService().getModel(),
+      new ModelService().getModel(),
+      new ModelService().getModel()
+    ];
+  }
 
-    /**
-     * @param numberPathParam This is a description for numberPathParam
-     * @param numberParam This is a description for numberParam
-     */
-    @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
-    public async getModelByParams(
-        numberPathParam: number,
-        stringPathParam: string,
-        booleanPathParam: boolean,
-        booleanParam: boolean,
-        stringParam: string,
-        numberParam: number,
-        optionalStringParam?: string): Promise<TestModel> {
-            const model = new ModelService().getModel();
-            model.optionalString = optionalStringParam;
-            model.numberValue = numberPathParam;
-            model.boolValue = booleanPathParam;
-            model.stringValue = stringPathParam;
+  /**
+   * @param numberPathParam This is a description for numberPathParam
+   * @param numberParam This is a description for numberParam
+   */
+  @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
+  public async getModelByParams(
+    numberPathParam: number,
+    stringPathParam: string,
+    booleanPathParam: boolean,
+    booleanParam: boolean,
+    stringParam: string,
+    numberParam: number,
+    optionalStringParam?: string): Promise<TestModel> {
+    const model = new ModelService().getModel();
+    model.optionalString = optionalStringParam;
+    model.numberValue = numberPathParam;
+    model.boolValue = booleanPathParam;
+    model.stringValue = stringPathParam;
 
-            return model;
-    }
+    return model;
+  }
 
-    @Get('ResponseWithUnionTypeProperty')
-    public async getResponseWithUnionTypeProperty(): Promise<Result> {
-        return {
-            value: 'success'
-        };
-    }
+  @Get('ResponseWithUnionTypeProperty')
+  public async getResponseWithUnionTypeProperty(): Promise<Result> {
+    return {
+      value: 'success'
+    };
+  }
 
-    @Get('UnionTypeResponse')
-    public async getUnionTypeResponse(): Promise<string | boolean> {
-        return '';
-    }
+  @Get('UnionTypeResponse')
+  public async getUnionTypeResponse(): Promise<string | boolean> {
+    return '';
+  }
 }
 
 export interface Result {
-    value: 'success' | 'failure';
+  value: 'success' | 'failure';
 }

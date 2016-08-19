@@ -1,63 +1,63 @@
 import 'mocha';
-import {VerifyPath, modelName} from '../../utilities/verifyPath';
-import {VerifyBodyParameter, VerifyPathableParameter} from '../../utilities/verifyParameter';
-import {SpecGenerator} from '../../../../src/swagger/specGenerator';
-import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
-import {getDefaultOptions} from '../../../fixtures/defaultOptions';
+import { VerifyPath, modelName } from '../../utilities/verifyPath';
+import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
+import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import * as chai from 'chai';
 
 describe('POST route generation', () => {
-    const metadata = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
-    const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
-    const baseRoute = '/PostTest';
+  const metadata = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
+  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+  const baseRoute = '/PostTest';
 
-    const getValidatedParameters = (actionRoute: string) => {
-        const path = verifyPath(actionRoute);
-        if (!path.post) { throw new Error('No patch operation.'); }
-        if (!path.post.parameters) { throw new Error('No parameters'); }
+  const getValidatedParameters = (actionRoute: string) => {
+    const path = verifyPath(actionRoute);
+    if (!path.post) { throw new Error('No patch operation.'); }
+    if (!path.post.parameters) { throw new Error('No parameters'); }
 
-        return path.post.parameters as any;
-    };
+    return path.post.parameters as any;
+  };
 
-    it('should generate a path for a POST route with no path argument', () => {
-        verifyPath(baseRoute);
-    });
+  it('should generate a path for a POST route with no path argument', () => {
+    verifyPath(baseRoute);
+  });
 
-    it('should generate a path for a POST route with a path argument', () => {
-        const actionRoute = `${baseRoute}/Location`;
-        verifyPath(actionRoute);
-    });
+  it('should generate a path for a POST route with a path argument', () => {
+    const actionRoute = `${baseRoute}/Location`;
+    verifyPath(actionRoute);
+  });
 
-    it('should set a valid response type for collection responses', () => {
-        const actionRoute = `${baseRoute}/Multi`;
-        verifyPath(actionRoute, true);
-    });
+  it('should set a valid response type for collection responses', () => {
+    const actionRoute = `${baseRoute}/Multi`;
+    verifyPath(actionRoute, true);
+  });
 
-    it('should generate a parameter for path parameters', () => {
-        const actionRoute = `${baseRoute}/WithId/{id}`;
-        const parameters = getValidatedParameters(actionRoute);
-        VerifyPathableParameter(parameters, 'id', 'integer', 'path');
-    });
+  it('should generate a parameter for path parameters', () => {
+    const actionRoute = `${baseRoute}/WithId/{id}`;
+    const parameters = getValidatedParameters(actionRoute);
+    VerifyPathableParameter(parameters, 'id', 'integer', 'path');
+  });
 
-    it('should generate a parameter for body parameters', () => {
-        const parameters = getValidatedParameters(baseRoute);
-        VerifyBodyParameter(parameters, 'model', modelName, 'body');
-    });
+  it('should generate a parameter for body parameters', () => {
+    const parameters = getValidatedParameters(baseRoute);
+    VerifyBodyParameter(parameters, 'model', modelName, 'body');
+  });
 
-    it('should reject multiple body parameters', () => {
-        chai.expect(() => {
-            const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
-            new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
-        }).to.throw('Only one body parameter allowed per controller method.');
-    });
+  it('should reject multiple body parameters', () => {
+    chai.expect(() => {
+      const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
+      new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
+    }).to.throw('Only one body parameter allowed per controller method.');
+  });
 
-    it('should be able to parse body and query parameters together', () => {
-        const parameters = getValidatedParameters(`${baseRoute}/WithBodyAndQueryParams`);
-        VerifyBodyParameter(parameters, 'model', modelName, 'body');
-        VerifyPathableParameter(parameters, 'query', 'string', 'query');
-    });
+  it('should be able to parse body and query parameters together', () => {
+    const parameters = getValidatedParameters(`${baseRoute}/WithBodyAndQueryParams`);
+    VerifyBodyParameter(parameters, 'model', modelName, 'body');
+    VerifyPathableParameter(parameters, 'query', 'string', 'query');
+  });
 
-    function verifyPath(route: string, isCollection?: boolean) {
-        return VerifyPath(spec, route, path => path.post, isCollection);
-    }
+  function verifyPath(route: string, isCollection?: boolean) {
+    return VerifyPath(spec, route, path => path.post, isCollection);
+  }
 });

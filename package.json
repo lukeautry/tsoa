@@ -8,6 +8,7 @@
     "build": "npm run clean && npm run lint && tsc",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
+    "format": "tsfmt -r",
     "prepublish": "npm run build",
     "deploy": "npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",

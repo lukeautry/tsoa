@@ -111,7 +111,7 @@ export namespace Swagger {
     format?: string;
     title?: string;
     description?: string;
-    default?: string|boolean|number|Object;
+    default?: string | boolean | number | Object;
     multipleOf?: number;
     maximum?: number;
     exclusiveMaximum?: number;
@@ -125,21 +125,21 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: [string|boolean|number|Object];
+    enum?: [string | boolean | number | Object];
     type?: string;
-    items?: Schema|[Schema];
+    items?: Schema | [Schema];
   }
 
   export interface Schema extends BaseSchema {
     $ref?: string;
     allOf?: [Schema];
     additionalProperties?: boolean;
-    properties?: {[propertyName: string]: Schema};
+    properties?: { [propertyName: string]: Schema };
     discriminator?: string;
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
-    example?: {[exampleName: string]: Example};
+    example?: { [exampleName: string]: Example };
     required?: string[];
   }
 
@@ -208,12 +208,12 @@ export namespace Swagger {
     schemes?: [string];
     consumes?: [string];
     produces?: [string];
-    paths: {[pathName: string]: Path};
-    definitions?: {[definitionsName: string]: Schema };
-    parameters?: {[parameterName: string]: BodyParameter|QueryParameter};
-    responses?: {[responseName: string]: Response };
+    paths: { [pathName: string]: Path };
+    definitions?: { [definitionsName: string]: Schema };
+    parameters?: { [parameterName: string]: BodyParameter | QueryParameter };
+    responses?: { [responseName: string]: Response };
     security?: [Secuirty];
-    securityDefinitions?: { [securityDefinitionName: string]: Secuirty};
+    securityDefinitions?: { [securityDefinitionName: string]: Secuirty };
     tags?: [Tag];
   }
 }

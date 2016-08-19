@@ -1,106 +1,106 @@
-import {MetadataGenerator, Parameter, Type} from './metadataGenerator';
-import {ResolveType} from './resolveType';
+import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
+import { ResolveType } from './resolveType';
 import * as ts from 'typescript';
 
 export class ParameterGenerator {
-    constructor(
-        private readonly parameter: ts.ParameterDeclaration,
-        private readonly method: string,
-        private readonly path: string
-    ) { }
+  constructor(
+    private readonly parameter: ts.ParameterDeclaration,
+    private readonly method: string,
+    private readonly path: string
+  ) { }
 
-    public Generate(): Parameter {
-        const parameterIdentifier = this.parameter.name as ts.Identifier;
-        if (this.path.includes(`{${parameterIdentifier.text}}`)) {
-            return this.getPathParameter(this.parameter);
-        }
+  public Generate(): Parameter {
+    const parameterIdentifier = this.parameter.name as ts.Identifier;
+    if (this.path.includes(`{${parameterIdentifier.text}}`)) {
+      return this.getPathParameter(this.parameter);
+    }
 
-        if (this.supportsBodyParameters(this.method)) {
-            try {
-                return this.getQueryParameter(this.parameter);
-            } catch (err) {
-                return this.getBodyParameter(this.parameter);
-            }
-        }
-
+    if (this.supportsBodyParameters(this.method)) {
+      try {
         return this.getQueryParameter(this.parameter);
+      } catch (err) {
+        return this.getBodyParameter(this.parameter);
+      }
     }
 
-    private getBodyParameter(parameter: ts.ParameterDeclaration) {
-        const type = this.getValidatedType(parameter);
-        const identifier = parameter.name as ts.Identifier;
+    return this.getQueryParameter(this.parameter);
+  }
 
-        return {
-            description: this.getParameterDescription(parameter),
-            in: 'body',
-            name: identifier.text,
-            required: !parameter.questionToken,
-            type: type
-        };
+  private getBodyParameter(parameter: ts.ParameterDeclaration) {
+    const type = this.getValidatedType(parameter);
+    const identifier = parameter.name as ts.Identifier;
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'body',
+      name: identifier.text,
+      required: !parameter.questionToken,
+      type: type
+    };
+  }
+
+  private getQueryParameter(parameter: ts.ParameterDeclaration) {
+    const type = this.getValidatedType(parameter);
+    const identifier = parameter.name as ts.Identifier;
+
+    if (!this.isPathableType(type)) {
+      throw new Error(`Parameter '${identifier.text}' can't be passed as a query parameter.`);
     }
 
-    private getQueryParameter(parameter: ts.ParameterDeclaration) {
-        const type = this.getValidatedType(parameter);
-        const identifier = parameter.name as ts.Identifier;
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'query',
+      name: identifier.text,
+      required: !parameter.questionToken,
+      type: type
+    };
+  }
 
-        if (!this.isPathableType(type)) {
-            throw new Error(`Parameter '${identifier.text}' can't be passed as a query parameter.`);
-        }
+  private getPathParameter(parameter: ts.ParameterDeclaration) {
+    const type = this.getValidatedType(parameter);;
+    const identifier = parameter.name as ts.Identifier;
 
-        return {
-            description: this.getParameterDescription(parameter),
-            in: 'query',
-            name: identifier.text,
-            required: !parameter.questionToken,
-            type: type
-        };
+    if (!this.isPathableType(type)) {
+      throw new Error(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
     }
 
-    private getPathParameter(parameter: ts.ParameterDeclaration) {
-        const type = this.getValidatedType(parameter); ;
-        const identifier = parameter.name as ts.Identifier;
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'path',
+      name: identifier.text,
+      // TODISCUSS: Path parameters should always be required...right?
+      // Apparently express doesn't think so, but I think being able to
+      // have combinations of required and optional path params makes behavior
+      // pretty confusing to clients
+      required: true,
+      type: type
+    };
+  }
 
-        if (!this.isPathableType(type)) {
-            throw new Error(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
-        }
+  private getParameterDescription(node: ts.ParameterDeclaration) {
+    const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
 
-        return {
-            description: this.getParameterDescription(parameter),
-            in: 'path',
-            name: identifier.text,
-            // TODISCUSS: Path parameters should always be required...right?
-            // Apparently express doesn't think so, but I think being able to
-            // have combinations of required and optional path params makes behavior
-            // pretty confusing to clients
-            required: true,
-            type: type
-        };
+    const comments = symbol.getDocumentationComment();
+    if (comments.length) { return ts.displayPartsToString(comments); }
+
+    return '';
+  }
+
+  private supportsBodyParameters(method: string) {
+    return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
+  }
+
+  private isPathableType(parameterType: Type) {
+    if (!(typeof parameterType === 'string' || parameterType instanceof String)) {
+      return false;
     }
 
-    private getParameterDescription(node: ts.ParameterDeclaration) {
-        const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+    const type = parameterType as string;
+    return !!['string', 'boolean', 'number'].find(t => t === type);
+  }
 
-        const comments = symbol.getDocumentationComment();
-        if (comments.length) { return ts.displayPartsToString(comments); }
-
-        return '';
-    }
-
-    private supportsBodyParameters(method: string) {
-        return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
-    }
-
-    private isPathableType(parameterType: Type) {
-        if (!(typeof parameterType === 'string' || parameterType instanceof String)) {
-            return false;
-        }
-
-        const type = parameterType as string;
-        return !!['string', 'boolean', 'number'].find(t => t === type);
-    }
-
-    private getValidatedType(parameter: ts.ParameterDeclaration) {
-        if (!parameter.type) { throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned.`); }
-        return ResolveType(parameter.type);
-    }
+  private getValidatedType(parameter: ts.ParameterDeclaration) {
+    if (!parameter.type) { throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned.`); }
+    return ResolveType(parameter.type);
+  }
 }

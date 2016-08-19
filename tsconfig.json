@@ -11,6 +11,10 @@
         "noUnusedLocals": true,
         "strictNullChecks": true
     },
+    "filesGlob": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+    ],
     "include": [
         "./src/**/*.ts"
     ]
