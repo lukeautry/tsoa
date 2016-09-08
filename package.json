@@ -4,6 +4,14 @@
   "version": "0.0.55",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "keywords": [
+    "typescript",
+    "swagger",
+    "node",
+    "node.js",
+    "codegen",
+    "generation"
+  ],
   "scripts": {
     "build": "npm run clean && npm run lint && tsc",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
