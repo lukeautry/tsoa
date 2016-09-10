@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { MetadataGenerator } from 'metadataGeneration/metadataGenerator';
-import { SpecGenerator } from 'swagger/specGenerator';
-import { RouteGenerator } from 'routeGeneration/routeGenerator';
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
+import { SpecGenerator } from './swagger/specGenerator';
+import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 
 const appRoot: string = require('app-root-path').path;

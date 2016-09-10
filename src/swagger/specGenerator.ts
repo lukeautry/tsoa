@@ -1,5 +1,5 @@
 /// <reference path="../ambient.d.ts" />
-import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from 'metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
