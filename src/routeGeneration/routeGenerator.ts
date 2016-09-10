@@ -1,5 +1,5 @@
 import { expressTemplate } from './templates/express';
-import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from 'metadataGeneration/metadataGenerator';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';

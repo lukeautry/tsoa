@@ -9,7 +9,8 @@ export class MetadataGenerator {
   private referenceTypes: { [typeName: string]: ReferenceType } = {};
 
   public static IsExportedNode(node: ts.Node) {
-    return (node.flags & ts.NodeFlags.Export) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
+    return true;
+    // return (node.flags & ts.NodeFlags.) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
   }
 
   constructor(entryFile: string) {

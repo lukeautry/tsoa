@@ -1,21 +1,21 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
+        "outDir": "dist",
         "sourceMap": true,
         "noImplicitAny": true,
         "module": "commonjs",
         "target": "es6",
         "experimentalDecorators": true,
         "declaration": true,
-        "baseUrl": "./src",
+        "baseUrl": "src",
         "noUnusedLocals": true,
         "strictNullChecks": true
     },
+    "include": [
+        "src/**/*.ts"
+    ],
     "filesGlob": [
         "src/**/*.ts",
         "tests/**/*.ts"
-    ],
-    "include": [
-        "./src/**/*.ts"
     ]
 }
