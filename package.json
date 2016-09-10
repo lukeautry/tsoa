@@ -1,9 +1,17 @@
 {
   "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "0.0.57",
+  "version": "0.0.58",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "keywords": [
+    "typescript",
+    "swagger",
+    "node",
+    "node.js",
+    "codegen",
+    "generation"
+  ],
   "scripts": {
     "start": "tsc -w",
     "build": "npm run clean && npm run lint && tsc",
@@ -11,7 +19,7 @@
     "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
     "format": "tsfmt -r",
     "prepublish": "npm run build && npm run convert-line-endings",
-    "convert-line-endings": "dos2unix ./dist/**/*.js",
+    "convert-line-endings": "crlf --set=LF dist/**/*.js",
     "deploy": "npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
     "swagger-gen": "node ./dist/cli.js swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist --host=localhost:3000",
@@ -48,7 +56,7 @@
     "@types/yargs": "0.0.28",
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",
-    "dos2unix": "^1.1.2",
+    "crlf": "^1.1.0",
     "method-override": "^2.3.6",
     "mocha": "^3.0.2",
     "rimraf": "^2.5.4",
