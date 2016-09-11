@@ -18,7 +18,7 @@
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
     "format": "tsfmt -r",
-    "deploy": "npm run build npm version patch && git push origin master && npm publish",
+    "deploy": "npm run build && npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes --entry-file=./tests/fixtures/server.ts --routes-dir=./tests/fixtures",
     "swagger-gen": "node ./dist/cli.js swagger --entry-file=./tests/fixtures/server.ts --swagger-dir=./dist --host=localhost:3000",
     "pretest": "npm run build && npm run swagger-gen && npm run routes-gen && npm run format",
