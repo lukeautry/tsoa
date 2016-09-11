@@ -10,7 +10,6 @@ export class MetadataGenerator {
 
   public static IsExportedNode(node: ts.Node) {
     return true;
-    // return (node.flags & ts.NodeFlags.) !== 0 || (node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
   }
 
   constructor(entryFile: string) {
