@@ -1,7 +1,7 @@
 {
   "indentSize": 2,
   "tabSize": 2,
-  "newLineCharacter": "\r\n",
+  "newLineCharacter": "\n",
   "convertTabsToSpaces": true,
   "insertSpaceAfterCommaDelimiter": true,
   "insertSpaceAfterSemicolonInForStatements": true,
