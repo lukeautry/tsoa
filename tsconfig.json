@@ -9,7 +9,8 @@
         "declaration": true,
         "baseUrl": "src",
         "noUnusedLocals": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "newLine": "LF"
     },
     "include": [
         "src/**/*.ts"
