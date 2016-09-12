@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/server';
-import { TestModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -73,6 +73,15 @@ describe('Server', () => {
     return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
       const model = res.body as TestModel;
       expect(model).to.deep.equal(model);
+    });
+  });
+
+  it('parses class model as body parameter', () => {
+    const data = getFakeClassModel();
+
+    return verifyPostRequest('/PostTest/WithClassModel', data, (err: any, res: any) => {
+      const model = res.body as TestClassModel;
+      expect(model.id).to.equal(700); // this gets changed on the server
     });
   });
 
@@ -175,5 +184,13 @@ describe('Server', () => {
       stringArray: ['test', 'testtwo'],
       stringValue: 'test1234'
     };
+  }
+
+  function getFakeClassModel() {
+    const model = new TestClassModel('test', 'test', 'test');
+    model.id = 100;
+    model.publicStringProperty = 'test';
+
+    return model;
   }
 });

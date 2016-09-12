@@ -129,6 +129,21 @@ export function RegisterRoutes(app: any) {
     const controller = new PostTestController();
     promiseHandler(controller.updateModel.apply(controller, validatedParams), res, next);
   });
+  app.post('/PostTest/WithClassModel', function(req: any, res: any, next: any) {
+    const params = {
+      'model': { typeName: 'TestClassModel', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, 'model');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new PostTestController();
+    promiseHandler(controller.postClassModel.apply(controller, validatedParams), res, next);
+  });
   app.post('/PostTest/Location', function(req: any, res: any, next: any) {
     const params = {
     };
