@@ -28,6 +28,13 @@ const models: any = {
     'optionalString': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
+  'TestClassModel': {
+    'publicStringProperty': { typeName: 'string', required: true },
+    'optionalPublicStringProperty': { typeName: 'string', required: false },
+    'publicConstructorVar': { typeName: 'string', required: true },
+    'optionalPublicConstructorVar': { typeName: 'string', required: false },
+    'id': { typeName: 'number', required: true },
+  },
   'Result': {
     'value': { typeName: 'object', required: true },
   },
@@ -266,6 +273,20 @@ export function RegisterRoutes(app: any) {
 
     const controller = new GetTestController();
     promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), res, next);
+  });
+  app.get('/GetTest/ClassModel', function(req: any, res: any, next: any) {
+    const params = {
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getClassModel.apply(controller, validatedParams), res, next);
   });
   app.get('/GetTest/Multi', function(req: any, res: any, next: any) {
     const params = {

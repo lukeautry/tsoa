@@ -47,38 +47,16 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
   const existingType = localReferenceTypeCache[typeName];
   if (existingType) { return existingType; }
 
-  const interfaces = MetadataGenerator.current.nodes
-    .filter(node => {
-      if (node.kind !== ts.SyntaxKind.InterfaceDeclaration || !MetadataGenerator.IsExportedNode(node)) { return false; }
-      return (node as ts.InterfaceDeclaration).name.text.toLowerCase() === typeName.toLowerCase();
-    }) as ts.InterfaceDeclaration[];
-
-  if (!interfaces.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
-  if (interfaces.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
-
-  const interfaceDeclaration = interfaces[0];
+  const modelTypeDeclaration = getModelTypeDeclaration(typeName);
+  const properties = getModelTypeProperties(modelTypeDeclaration);
 
   const referenceType: ReferenceType = {
-    description: getModelDescription(interfaceDeclaration),
+    description: getModelDescription(modelTypeDeclaration),
     name: typeName,
-    properties: interfaceDeclaration.members
-      .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
-      .map((property: any) => {
-        const propertyDeclaration = property as ts.PropertyDeclaration;
-        const identifier = propertyDeclaration.name as ts.Identifier;
-
-        if (!propertyDeclaration.type) { throw new Error('No valid type found for property declaration.'); }
-
-        return {
-          description: getPropertyDescription(propertyDeclaration),
-          name: identifier.text,
-          required: !property.questionToken,
-          type: ResolveType(propertyDeclaration.type)
-        };
-      })
+    properties: properties
   };
 
-  const extendedProperties = getExtendedProperties(interfaceDeclaration);
+  const extendedProperties = getInheritedProperties(modelTypeDeclaration);
   referenceType.properties = referenceType.properties.concat(extendedProperties);
 
   if (cacheReferenceType) {
@@ -89,18 +67,88 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
   return referenceType;
 }
 
-function getExtendedProperties(interfaceDeclaration: ts.InterfaceDeclaration): Property[] {
+function getModelTypeDeclaration(typeName: string) {
+  const modelTypes = MetadataGenerator.current.nodes
+    .filter(node => {
+      if ((node.kind !== ts.SyntaxKind.InterfaceDeclaration && node.kind !== ts.SyntaxKind.ClassDeclaration) || !MetadataGenerator.IsExportedNode(node)) {
+        return false;
+      }
+
+      const modelTypeDeclaration = node as ts.InterfaceDeclaration | ts.ClassDeclaration;
+      return (modelTypeDeclaration.name as ts.Identifier).text.toLowerCase() === typeName.toLowerCase();
+    }) as Array<ts.InterfaceDeclaration | ts.ClassDeclaration>;
+
+  if (!modelTypes.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
+  if (modelTypes.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
+
+  return modelTypes[0];
+}
+
+function getModelTypeProperties(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+  if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+    const interfaceDeclaration = node as ts.InterfaceDeclaration;
+    return interfaceDeclaration.members
+      .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
+      .map((property: any) => {
+        const propertyDeclaration = property as ts.PropertyDeclaration;
+        const identifier = propertyDeclaration.name as ts.Identifier;
+
+        if (!propertyDeclaration.type) { throw new Error('No valid type found for property declaration.'); }
+
+        return {
+          description: getNodeDescription(propertyDeclaration),
+          name: identifier.text,
+          required: !property.questionToken,
+          type: ResolveType(propertyDeclaration.type)
+        };
+      });
+  }
+
+  const classDeclaration = node as ts.ClassDeclaration;
+
+  let properties = classDeclaration.members.filter((member: any) => {
+    if (member.kind !== ts.SyntaxKind.PropertyDeclaration) { return false; }
+
+    const propertySignature = member as ts.PropertySignature;
+    return propertySignature && propertySignature.modifiers && hasPublicModifier(propertySignature);
+  }) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
+
+  const classConstructor = classDeclaration.members.find((member: any) => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
+  if (classConstructor && classConstructor.parameters) {
+    properties = properties.concat(classConstructor.parameters.filter(parameter => hasPublicModifier(parameter)) as any);
+  }
+
+  return properties
+    .map(declaration => {
+      const identifier = declaration.name as ts.Identifier;
+
+      if (!declaration.type) { throw new Error('No valid type found for property declaration.'); }
+
+      return {
+        description: getNodeDescription(declaration),
+        name: identifier.text,
+        required: !declaration.questionToken,
+        type: ResolveType(declaration.type)
+      };
+    });
+}
+
+function hasPublicModifier(node: ts.Node) {
+  return node.modifiers && node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword);
+}
+
+function getInheritedProperties(modelTypeDeclaration: ts.InterfaceDeclaration | ts.ClassDeclaration): Property[] {
   const properties = new Array<Property>();
 
-  const heritageClauses = interfaceDeclaration.heritageClauses;
+  const heritageClauses = modelTypeDeclaration.heritageClauses;
   if (!heritageClauses) { return properties; }
 
-  heritageClauses.forEach(c => {
-    if (!c.types) { return; }
+  heritageClauses.forEach(clause => {
+    if (!clause.types) { return; }
 
-    c.types.forEach(t => {
-      const baseInterfaceName = t.expression as ts.Identifier;
-      generateReferenceType(baseInterfaceName.text, false).properties
+    clause.types.forEach(t => {
+      const baseIdentifier = t.expression as ts.Identifier;
+      generateReferenceType(baseIdentifier.text, false).properties
         .forEach(property => properties.push(property));
     });
   });
@@ -108,16 +156,12 @@ function getExtendedProperties(interfaceDeclaration: ts.InterfaceDeclaration): P
   return properties;
 }
 
-function getModelDescription(interfaceDeclaration: ts.InterfaceDeclaration) {
-  return getNodeDescription(interfaceDeclaration);
+function getModelDescription(modelTypeDeclaration: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+  return getNodeDescription(modelTypeDeclaration);
 }
 
-function getPropertyDescription(propertyDeclaration: ts.PropertyDeclaration) {
-  return getNodeDescription(propertyDeclaration);
-}
-
-function getNodeDescription(node: ts.InterfaceDeclaration | ts.PropertyDeclaration) {
-  let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+function getNodeDescription(node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
+  let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
 
   let comments = symbol.getDocumentationComment();
   if (comments.length) { return ts.displayPartsToString(comments); }

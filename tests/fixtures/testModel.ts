@@ -24,3 +24,21 @@ export interface TestSubModel extends Model {
 export interface Model {
   id: number;
 }
+
+export class TestClassBaseModel {
+  public id: number;
+}
+
+export class TestClassModel extends TestClassBaseModel {
+  public publicStringProperty: string;
+  public optionalPublicStringProperty?: string;
+  protected protectedStringProperty: string;
+
+  constructor(
+    public publicConstructorVar: string,
+    protected protectedConstructorVar: string,
+    public optionalPublicConstructorVar?: string
+  ) {
+    super();
+  }
+}
