@@ -163,6 +163,16 @@ function getModelDescription(modelTypeDeclaration: ts.InterfaceDeclaration | ts.
 function getNodeDescription(node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
   let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
 
+  /**
+   * TODO: Workaround for what seems like a bug in the compiler
+   * Warrants more investigation and possibly a PR against typescript
+   */
+  // 
+  if (node.kind === ts.SyntaxKind.Parameter) {
+    // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'
+    symbol.flags = 0;
+  }
+
   let comments = symbol.getDocumentationComment();
   if (comments.length) { return ts.displayPartsToString(comments); }
 

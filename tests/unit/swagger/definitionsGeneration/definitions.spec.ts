@@ -135,5 +135,29 @@ describe('Definition generation', () => {
       const property = properties['id'];
       expect(property).to.exist;
     });
+
+    it('should generate a definition description from a model jsdoc comment', () => {
+      expect(definition.description).to.equal('This is a description of TestClassModel');
+    });
+
+    it('should generate a property description from a property jsdoc comment', () => {
+      const propertyName = 'publicStringProperty';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+      expect(property.description).to.equal('This is a description of a public string property');
+    });
+
+    it('should generate a property description from a constructor var jsdoc comment', () => {
+      const propertyName = 'publicConstructorVar';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+      expect(property.description).to.equal('This is a description for publicConstructorVar');
+    });
   });
 });
