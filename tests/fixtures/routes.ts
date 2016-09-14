@@ -31,6 +31,7 @@ const models: any = {
   'TestClassModel': {
     'publicStringProperty': { typeName: 'string', required: true },
     'optionalPublicStringProperty': { typeName: 'string', required: false },
+    'stringProperty': { typeName: 'string', required: true },
     'publicConstructorVar': { typeName: 'string', required: true },
     'optionalPublicConstructorVar': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },

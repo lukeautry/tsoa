@@ -84,7 +84,16 @@ describe('Definition generation', () => {
     it('should generate a required property from a required property', () => {
       const propertyName = 'publicStringProperty';
       if (!properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was expected to exist.`);
+        throw new Error(`Property '${propertyName}' was expected to exist.`);
+      }
+
+      expect(definition.required).to.contain(propertyName);
+    });
+
+    it('should generate a required property from a required property with no access modifier', () => {
+      const propertyName = 'stringProperty';
+      if (!properties[propertyName]) {
+        throw new Error(`Property '${propertyName}' was expected to exist.`);
       }
 
       expect(definition.required).to.contain(propertyName);
@@ -93,7 +102,7 @@ describe('Definition generation', () => {
     it('should generate an optional property from an optional property', () => {
       const propertyName = 'optionalPublicStringProperty';
       if (!properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was expected to exist.`);
+        throw new Error(`Property '${propertyName}' was expected to exist.`);
       }
 
       expect(definition.required).to.not.contain(propertyName);
@@ -102,7 +111,7 @@ describe('Definition generation', () => {
     it('should generate a required property from a required constructor var', () => {
       const propertyName = 'publicConstructorVar';
       if (!properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was expected to exist.`);
+        throw new Error(`Property '${propertyName}' was expected to exist.`);
       }
 
       expect(definition.required).to.contain(propertyName);
@@ -111,7 +120,7 @@ describe('Definition generation', () => {
     it('should generate an optional property from an optional constructor var', () => {
       const propertyName = 'optionalPublicConstructorVar';
       if (!properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was expected to exist.`);
+        throw new Error(`Property '${propertyName}' was expected to exist.`);
       }
 
       expect(definition.required).to.not.contain(propertyName);
@@ -120,14 +129,14 @@ describe('Definition generation', () => {
     it('should not generate a property for a non-public property', () => {
       const propertyName = 'protectedStringProperty';
       if (properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was not expected to exist.`);
+        throw new Error(`Property '${propertyName}' was not expected to exist.`);
       }
     });
 
     it('should not generate a property for a non-public constructor var', () => {
       const propertyName = 'protectedConstructorVar';
       if (properties[propertyName]) {
-        throw new Error(`Property '{propertyName}' was not expected to exist.`);
+        throw new Error(`Property '${propertyName}' was not expected to exist.`);
       }
     });
 
