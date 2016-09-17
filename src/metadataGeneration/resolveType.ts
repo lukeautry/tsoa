@@ -110,7 +110,7 @@ function getModelTypeProperties(node: ts.InterfaceDeclaration | ts.ClassDeclarat
     if (member.kind !== ts.SyntaxKind.PropertyDeclaration) { return false; }
 
     const propertySignature = member as ts.PropertySignature;
-    return propertySignature && propertySignature.modifiers && hasPublicModifier(propertySignature);
+    return propertySignature && hasPublicModifier(propertySignature);
   }) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
 
   const classConstructor = classDeclaration.members.find((member: any) => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
@@ -134,7 +134,9 @@ function getModelTypeProperties(node: ts.InterfaceDeclaration | ts.ClassDeclarat
 }
 
 function hasPublicModifier(node: ts.Node) {
-  return node.modifiers && node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword);
+  return !node.modifiers || node.modifiers.every(modifier => {
+    return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
+  });
 }
 
 function getInheritedProperties(modelTypeDeclaration: ts.InterfaceDeclaration | ts.ClassDeclaration): Property[] {

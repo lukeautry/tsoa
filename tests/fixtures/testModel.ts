@@ -38,6 +38,8 @@ export class TestClassModel extends TestClassBaseModel {
    */
   public publicStringProperty: string;
   public optionalPublicStringProperty?: string;
+  /* tslint:disable-next-line */
+  stringProperty: string;
   protected protectedStringProperty: string;
 
   /**
