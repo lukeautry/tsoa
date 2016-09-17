@@ -28,6 +28,13 @@ const models: any = {
     'optionalString': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
+  'TestClassModel': {
+    'publicStringProperty': { typeName: 'string', required: true },
+    'optionalPublicStringProperty': { typeName: 'string', required: false },
+    'publicConstructorVar': { typeName: 'string', required: true },
+    'optionalPublicConstructorVar': { typeName: 'string', required: false },
+    'id': { typeName: 'number', required: true },
+  },
   'Result': {
     'value': { typeName: 'object', required: true },
   },
@@ -121,6 +128,21 @@ export function RegisterRoutes(app: any) {
 
     const controller = new PostTestController();
     promiseHandler(controller.updateModel.apply(controller, validatedParams), res, next);
+  });
+  app.post('/PostTest/WithClassModel', function(req: any, res: any, next: any) {
+    const params = {
+      'model': { typeName: 'TestClassModel', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, 'model');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new PostTestController();
+    promiseHandler(controller.postClassModel.apply(controller, validatedParams), res, next);
   });
   app.post('/PostTest/Location', function(req: any, res: any, next: any) {
     const params = {
@@ -266,6 +288,20 @@ export function RegisterRoutes(app: any) {
 
     const controller = new GetTestController();
     promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), res, next);
+  });
+  app.get('/GetTest/ClassModel', function(req: any, res: any, next: any) {
+    const params = {
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getClassModel.apply(controller, validatedParams), res, next);
   });
   app.get('/GetTest/Multi', function(req: any, res: any, next: any) {
     const params = {

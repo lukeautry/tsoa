@@ -2,7 +2,7 @@ import { Example } from '../../../src/decorators/example';
 import { Get } from '../../../src/decorators/methods';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
-import { TestModel, TestSubModel } from '../testModel';
+import { TestModel, TestSubModel, TestClassModel } from '../testModel';
 
 @Route('GetTest')
 export class GetTestController {
@@ -33,6 +33,11 @@ export class GetTestController {
   @Get('Current')
   public async getCurrentModel(): Promise<TestModel> {
     return new ModelService().getModel();
+  }
+
+  @Get('ClassModel')
+  public async getClassModel(): Promise<TestClassModel> {
+    return new ModelService().getClassModel();
   }
 
   @Get('Multi')

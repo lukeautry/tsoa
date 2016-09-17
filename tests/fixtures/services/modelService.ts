@@ -1,4 +1,4 @@
-import { TestModel, TestSubModel } from '../testModel';
+import { TestModel, TestSubModel, TestClassModel } from '../testModel';
 
 export class ModelService {
   public getModel(): TestModel {
@@ -17,5 +17,13 @@ export class ModelService {
       stringArray: ['string one', 'string two'],
       stringValue: 'a string'
     };
+  }
+
+  public getClassModel(): TestClassModel {
+    const testClassModel = new TestClassModel('constructor var', 'private constructor var');
+    testClassModel.id = 1;
+    testClassModel.publicStringProperty = 'public string property';
+
+    return testClassModel;
   }
 }

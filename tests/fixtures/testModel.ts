@@ -24,3 +24,30 @@ export interface TestSubModel extends Model {
 export interface Model {
   id: number;
 }
+
+export class TestClassBaseModel {
+  public id: number;
+}
+
+/**
+ * This is a description of TestClassModel
+ */
+export class TestClassModel extends TestClassBaseModel {
+  /**
+   * This is a description of a public string property
+   */
+  public publicStringProperty: string;
+  public optionalPublicStringProperty?: string;
+  protected protectedStringProperty: string;
+
+  /**
+   * @param publicConstructorVar This is a description for publicConstructorVar
+   */
+  constructor(
+    public publicConstructorVar: string,
+    protected protectedConstructorVar: string,
+    public optionalPublicConstructorVar?: string
+  ) {
+    super();
+  }
+}
