@@ -190,6 +190,7 @@ describe('Server', () => {
     const model = new TestClassModel('test', 'test', 'test');
     model.id = 100;
     model.publicStringProperty = 'test';
+    model.stringProperty = 'test';
 
     return model;
   }
