@@ -1,6 +1,6 @@
 import { Route } from '../../../src/decorators/route';
 import { Post, Patch } from '../../../src/decorators/methods';
-import { TestModel } from '../testModel';
+import { TestModel, TestClassModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
 @Route('PostTest')
@@ -13,6 +13,14 @@ export class PostTestController {
   @Patch()
   public async updateModel(model: TestModel): Promise<TestModel> {
     return await new ModelService().getModel();
+  }
+
+  @Post('WithClassModel')
+  public async postClassModel(model: TestClassModel): Promise<TestClassModel> {
+    const augmentedModel = new TestClassModel('test', 'test2', 'test3');
+    augmentedModel.id = 700;
+
+    return augmentedModel;
   }
 
   @Post('Location')
