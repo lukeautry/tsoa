@@ -13,6 +13,7 @@ import { DeleteTestController } from './controllers/deleteController';
 const models: any = {
   'TestSubModel': {
     'email': { typeName: 'string', required: true },
+    'circular': { typeName: 'TestModel', required: false },
     'id': { typeName: 'number', required: true },
   },
   'TestModel': {

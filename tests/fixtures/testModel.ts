@@ -19,6 +19,7 @@ export interface TestModel extends Model {
 
 export interface TestSubModel extends Model {
   email: string;
+  circular?: TestModel;
 }
 
 export interface Model {

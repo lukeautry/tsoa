@@ -8,6 +8,7 @@ syntaxKindMap[ts.SyntaxKind.BooleanKeyword] = 'boolean';
 syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 
 const localReferenceTypeCache: { [typeName: string]: ReferenceType } = {};
+const inProgressTypes: { [typeName: string]: boolean } = {};
 
 export function ResolveType(typeNode: ts.TypeNode): Type {
   const primitiveType = syntaxKindMap[typeNode.kind];
@@ -47,6 +48,12 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
   const existingType = localReferenceTypeCache[typeName];
   if (existingType) { return existingType; }
 
+  if (inProgressTypes[typeName]) {
+    return createCircularDependencyResolver(typeName);
+  }
+
+  inProgressTypes[typeName] = true;
+
   const modelTypeDeclaration = getModelTypeDeclaration(typeName);
   const properties = getModelTypeProperties(modelTypeDeclaration);
 
@@ -64,6 +71,24 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
   }
 
   localReferenceTypeCache[typeName] = referenceType;
+  return referenceType;
+}
+
+function createCircularDependencyResolver(typeName: string) {
+  const referenceType = {
+    description: '',
+    name: typeName,
+    properties: new Array<Property>()
+  };
+
+  MetadataGenerator.current.OnFinish(referenceTypes => {
+    const realReferenceType = referenceTypes[typeName];
+    if (!realReferenceType) { return; }
+    referenceType.description = realReferenceType.description;
+    referenceType.name = realReferenceType.name;
+    referenceType.properties = realReferenceType.properties;
+  });
+
   return referenceType;
 }
 

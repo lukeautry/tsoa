@@ -7,6 +7,7 @@ export class MetadataGenerator {
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
   private referenceTypes: { [typeName: string]: ReferenceType } = {};
+  private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: ReferenceType }) => void>();
 
   public static IsExportedNode(node: ts.Node) {
     return true;
@@ -27,6 +28,8 @@ export class MetadataGenerator {
 
     const controllers = this.buildControllers();
 
+    this.circularDependencyResolvers.forEach(c => c(this.referenceTypes));
+
     return {
       Controllers: controllers,
       ReferenceTypes: this.referenceTypes
@@ -43,6 +46,10 @@ export class MetadataGenerator {
 
   public GetReferenceType(typeName: string) {
     return this.referenceTypes[typeName];
+  }
+
+  public OnFinish(callback: (referenceTypes: { [typeName: string]: ReferenceType }) => void) {
+    this.circularDependencyResolvers.push(callback);
   }
 
   private buildControllers() {
