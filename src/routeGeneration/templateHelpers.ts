@@ -5,7 +5,7 @@ let models: any = null;
 export function ValidateParam(typeData: any, value: any, generatedModels: any, name = '') {
   models = generatedModels;
 
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     if (typeData.required) {
       throw new InvalidRequestException(name + ' is a required parameter.');
     } else {
