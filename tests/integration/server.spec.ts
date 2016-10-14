@@ -106,7 +106,7 @@ describe('Server', () => {
   });
 
   it('should reject invalid dates', () => {
-    const invalidValues = [null, 1, {}];
+    const invalidValues = [1, {}];
 
     return Promise.all(invalidValues.map((value: any) => {
       const data = getFakeModel();
