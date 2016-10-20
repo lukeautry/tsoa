@@ -1,6 +1,6 @@
 import { Type, Parameter } from './metadataGenerator';
-import {MethodGenerator} from "./methodGenerator";
 import * as ts from 'typescript';
+import * as tsserver from '../tsserver';
 
 
 export interface Method {
@@ -16,11 +16,11 @@ export interface Method {
 
 export class ExtraTagsGenerator {
 
-    public static getTags(generator: MethodGenerator): string[]{
+    public static getTags(node: tsserver.Node): string[]{
         let tags: string[] = [];
-        generator.node.jsDocComments.forEach((comment)=>{
+        node.jsDocComments.forEach((comment: ts.JSDocComment)=> {
             if(comment.tags){
-                comment.tags.forEach((tag)=>{
+                comment.tags.forEach((tag: tsserver.JSDocTag)=>{
                     tags = ExtraTagsGenerator.processTag(tag);
                 });
             }
@@ -28,7 +28,7 @@ export class ExtraTagsGenerator {
         return tags;
     }
 
-    private static processTag(tag: ts.JsDocTag): string[]{
+    private static processTag(tag: tsserver.JSDocTag): string[]{
         let tags: string[] = [];
         if(tag && tag.tagName.text == "tags"){
             switch(tag.tagName.text){
@@ -47,9 +47,9 @@ export function ExtraTags(target: Object, propertyKey: string, descriptor: Typed
     descriptor.value = function(...args: any[]){
         let result = originalMethod.apply(this, args);
         // here we should add our extra tags
-        result.tags = ExtraTagsGenerator.getTags(this);
+        result.tags = ExtraTagsGenerator.getTags(this.node);
         return result;
-    }
+    };
     return descriptor;
 }
 
