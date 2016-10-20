@@ -1,7 +1,7 @@
 {
   "name": "sl-tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "0.0.63",
+  "version": "0.1.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
