@@ -3,3 +3,4 @@ node_modules
 typings
 .idea
 yarn.lock
+*.log

@@ -18,7 +18,7 @@ export class ExtraTagsGenerator {
 
     public static getTags(node: tsserver.Node): string[]{
         let tags: string[] = [];
-        node.jsDocComments.forEach((comment: ts.JSDocComment)=> {
+        node.jsDocComments && node.jsDocComments.forEach((comment: ts.JSDocComment)=> {
             if(comment.tags){
                 comment.tags.forEach((tag: tsserver.JSDocTag)=>{
                     tags = ExtraTagsGenerator.processTag(tag);
