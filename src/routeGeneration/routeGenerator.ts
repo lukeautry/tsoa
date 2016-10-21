@@ -31,7 +31,7 @@ export class RouteGenerator {
   private buildContent(middlewareTemplate: string) {
     let canImportByAlias: boolean;
     try {
-      require('sl-tsoa');
+      require('tsoa');
       canImportByAlias = true;
     } catch (err) {
       canImportByAlias = false;
@@ -42,7 +42,7 @@ export class RouteGenerator {
             /**
              * THIS IS GENERATED CODE - DO NOT EDIT
              */
-            import {ValidateParam} from '${canImportByAlias ? 'sl-tsoa' : '../../src/routeGeneration/templateHelpers'}';
+            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}

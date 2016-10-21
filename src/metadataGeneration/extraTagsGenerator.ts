@@ -18,9 +18,9 @@ export class ExtraTagsGenerator {
 
     public static getTags(node: tsserver.Node): string[]{
         let tags: string[] = [];
-        node.jsDocComments && node.jsDocComments.forEach((comment: ts.JSDocComment)=> {
+        node.jsDocComments && node.jsDocComments.forEach((comment: ts.JSDoc)=> {
             if(comment.tags){
-                comment.tags.forEach((tag: tsserver.JSDocTag)=>{
+                comment.tags.forEach((tag: ts.JSDocTag)=>{
                     tags = ExtraTagsGenerator.processTag(tag);
                 });
             }
@@ -28,7 +28,7 @@ export class ExtraTagsGenerator {
         return tags;
     }
 
-    private static processTag(tag: tsserver.JSDocTag): string[]{
+    private static processTag(tag: ts.JSDocTag): string[]{
         let tags: string[] = [];
         if(tag && tag.tagName.text == "tags"){
             switch(tag.tagName.text){
