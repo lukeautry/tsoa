@@ -38,10 +38,10 @@ export class RouteGenerator {
     }
 
     const routesTemplate = handlebars.compile(`
+            /* tslint:disable */
             /**
              * THIS IS GENERATED CODE - DO NOT EDIT
              */
-            /* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';

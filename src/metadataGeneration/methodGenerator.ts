@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
-import { Method, MetadataGenerator } from './metadataGenerator';
+import { MetadataGenerator } from './metadataGenerator';
+import { Method, ExtraTags } from './extraTagsGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 
@@ -15,6 +16,7 @@ export class MethodGenerator {
     return !!this.method;
   }
 
+  @ExtraTags
   public Generate(): Method {
     if (!this.IsValid()) { throw new Error('This isn\'t a valid a controller method.'); }
     if (!this.node.type) { throw new Error('Controller methods must have a return type.'); }

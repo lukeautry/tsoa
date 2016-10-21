@@ -1,5 +1,6 @@
 /// <reference path="../ambient.d.ts" />
-import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Parameter } from '../metadataGeneration/metadataGenerator';
+import { Method, ExtraMethodProperty } from '../metadataGeneration/extraTagsGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
@@ -85,6 +86,7 @@ export class SpecGenerator {
     return paths;
   }
 
+  @ExtraMethodProperty
   private buildPathMethod(method: Method, pathObject: any) {
     const swaggerType = this.getSwaggerType(method.type);
     const pathMethod: any = pathObject[method.method] = swaggerType.type === 'void'

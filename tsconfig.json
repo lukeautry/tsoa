@@ -10,7 +10,6 @@
         "noUnusedLocals": true,
         "strictNullChecks": true,
         "newLine": "LF"
-
     },
     "include": [
         "src/**/*.ts"
