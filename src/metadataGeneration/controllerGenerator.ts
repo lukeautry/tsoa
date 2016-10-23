@@ -4,9 +4,11 @@ import { MethodGenerator } from './methodGenerator';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
+  private readonly jwtEnabled: boolean = false;
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.pathValue = this.getControllerRouteValue(node);
+    this.jwtEnabled = this.getControllerJWTValue(node) !== undefined;
   }
 
   public IsValid() {
@@ -23,7 +25,8 @@ export class ControllerGenerator {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.pathValue || ''
+      path: this.pathValue || '',
+      jwtEnabled: this.jwtEnabled
     };
   }
 
@@ -35,22 +38,31 @@ export class ControllerGenerator {
       .map(generator => generator.Generate());
   }
 
+  private getControllerJWTValue(node: ts.ClassDeclaration) {
+    return this.getControllerDecoratorValue(node, 'JWT');
+  }
+
   private getControllerRouteValue(node: ts.ClassDeclaration) {
+    return this.getControllerDecoratorValue(node, 'Route');
+  }
+
+  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string) {
     if (!node.decorators) { return undefined; }
 
     const matchedAttributes = node.decorators
       .map(d => d.expression as ts.CallExpression)
       .filter(expression => {
         const subExpression = expression.expression as ts.Identifier;
-        return subExpression.text === 'Route';
+        return subExpression.text === decoratorName;
       });
 
     if (!matchedAttributes.length) { return undefined; }
     if (matchedAttributes.length > 1) {
-      throw new Error('A controller can only have a single "Route" decorator.');
+      throw new Error('A controller can only have a single "`decoratorName`" decorator.');
     }
 
     const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;
     return value ? value.text : '';
   }
+
 }

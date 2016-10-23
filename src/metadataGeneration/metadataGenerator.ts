@@ -71,6 +71,7 @@ export interface Controller {
   methods: Method[];
   name: string;
   path: string;
+  jwtEnabled: boolean;
 }
 
 export interface Method {

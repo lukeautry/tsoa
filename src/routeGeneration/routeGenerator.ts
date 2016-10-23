@@ -43,6 +43,7 @@ export class RouteGenerator {
              */
             /* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
+            import {IJwtHolder} from '${canImportByAlias ? 'tsoa' : '../../src/interfaces/jwtHolder'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}

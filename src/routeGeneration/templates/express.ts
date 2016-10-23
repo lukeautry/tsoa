@@ -17,6 +17,15 @@ export function RegisterRoutes(app: any) {
             }
 
             const controller = new {{../name}}();
+            {{#if jwtEnabled}}
+            if (controller is IJwtHolder) {
+                if (req.user) {
+                    if (req.user.iss) controller.iss = req.user.iss;
+                    if (req.user.sub) controller.sub = req.user.sub;
+                    if (req.user.aud) controller.aud = req.user.aud;
+                }
+            }
+            {{/if}}
             promiseHandler(controller.{{name}}.apply(controller, validatedParams), res, next);
         });
     {{/each}}
