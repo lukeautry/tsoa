@@ -43,7 +43,7 @@ export class RouteGenerator {
              */
             /* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
-            import {IJwtHolder} from '${canImportByAlias ? 'tsoa' : '../../src/interfaces/jwtHolder'}';
+            import {JwtHolder} from '${canImportByAlias ? 'tsoa' : '../../src/interfaces/jwtHolder'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}
@@ -75,7 +75,8 @@ export class RouteGenerator {
           }),
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
-          path: controller.path
+          path: controller.path,
+          jwtEnabled: controller.jwtEnabled
         };
       }),
       models: this.getModels()

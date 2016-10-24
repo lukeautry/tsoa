@@ -17,8 +17,8 @@ export function RegisterRoutes(app: any) {
             }
 
             const controller = new {{../name}}();
-            {{#if jwtEnabled}}
-            if (controller is IJwtHolder) {
+            {{#if ../jwtEnabled}}
+            if (controller instanceof JwtHolder) {
                 if (req.user) {
                     if (req.user.iss) controller.iss = req.user.iss;
                     if (req.user.sub) controller.sub = req.user.sub;

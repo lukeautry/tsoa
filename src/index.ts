@@ -3,7 +3,7 @@ import { Post, Get, Patch, Delete, Put } from './decorators/methods';
 import { Route } from './decorators/route';
 import { JWT } from './decorators/jwt';
 import { ValidateParam } from './routeGeneration/templateHelpers';
-import { IJwtHolder } from './interfaces/jwtHolder';
+import { JwtHolder } from './interfaces/jwtHolder';
 
 export {
   Delete,
@@ -15,5 +15,5 @@ export {
   Route,
   ValidateParam,
   JWT,
-  IJwtHolder
+  JwtHolder
 }

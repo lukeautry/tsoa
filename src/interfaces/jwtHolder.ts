@@ -1,5 +1,5 @@
-export interface IJwtHolder {
-    sub: string;
-    iss: string;
-    aud: string;
+export class JwtHolder {
+    public sub: string;
+    public iss: string;
+    public aud: string;
 }
