@@ -1,7 +1,7 @@
 export namespace Swagger {
   export interface Info {
-    title: string;
-    version: string;
+    title?: string;
+    version?: string;
     description?: string;
     termsOfService?: string;
     contact?: Contact;

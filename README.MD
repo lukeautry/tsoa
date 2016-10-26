@@ -69,15 +69,15 @@ export interface UserCreationRequest {
 }
 ```
 
-### Generate!
+### Generate
 
 From command line/npm script:
 ```
 // generate swagger.json
-tsoa swagger --entryFile=./src/server.ts --swaggerDir=./dist
+tsoa swagger
 
 // generate routes
-tsoa routes --entryFile=./src/server.ts --routesDir=./src
+tsoa routes
 ```
 
 See [CLI documentation](#command-line-interface)
@@ -93,7 +93,7 @@ import {RegisterRoutes} from './routes';
 // controllers need to be referenced in order to get crawled by the generator
 import './controllers/usersController';
 
-const app: express.Express = express();
+const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
@@ -116,23 +116,19 @@ npm install tsoa --save
 
 ## Command Line Interface
 
+For information on the configuration object (tsoa.json), check out the following:
+
+[Configuration definition](./src/config.ts)
+
+[Configuration sample](./tsoa.json)
+
 ### Swagger.json generation
 
 ```
 Usage: tsoa swagger [options]
 
 Options:
-  --entry-file, -e   Server entry point; this should be your top level file,
-                     e.g. server.ts/app.ts                   [string] [required]
-  --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
-                     here                                    [string] [required]
-  --host, --ho       API host, e.g. localhost:3000 or https://myapi.com/v1
-                                                             [string]
-  --ver, -v          API version number; defaults to npm package version[string]
-  --name, -n         API name; defaults to npm package name             [string]
-  --description, -d  API description; defaults to npm package description
-  --license, -l      API license; defaults to npm package license
-  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]
+   --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
 ```
 
 ### Route generation
@@ -141,13 +137,7 @@ Options:
 Usage: tsoa routes [options]
 
 Options:
-  --entry-file, -e  Server entry point; this should be your top level file, e.g.
-                    server.ts/app.ts                         [string] [required]
-  --routes-dir, -r  Routes directory; generated routes.ts (which contains the
-                    generated code wiring up routes using middleware of choice)
-                    will be dropped here                     [string] [required]
-  --middleware, -m  Middleware provider                        [string] [choices: "express"] [default: "express"]
-  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]               
+  --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
 ```
 
 ## Examples

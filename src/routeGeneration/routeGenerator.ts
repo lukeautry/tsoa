@@ -1,21 +1,18 @@
 import { expressTemplate } from './templates/express';
 import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
+
 const appRoot: string = require('app-root-path').path;
 
-export interface Options {
-  basePath: string;
-  routeDir: string;
-}
-
 export class RouteGenerator {
-  constructor(private readonly metadata: Metadata, private readonly options: Options) { }
+  constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
 
   public GenerateRoutes(middlewareTemplate: string) {
-    const fileName = `${this.options.routeDir}/routes.ts`;
+    const fileName = `${this.options.routesDir}/routes.ts`;
     const content = this.buildContent(middlewareTemplate);
 
     return new Promise<void>((resolve, reject) => {
@@ -107,7 +104,7 @@ export class RouteGenerator {
 
   private getRelativeImportPath(controllerLocation: string) {
     controllerLocation = controllerLocation.replace('.ts', '');
-    return `./${path.relative(path.join(appRoot, this.options.routeDir), controllerLocation).replace(/\\/g, '/')}`;
+    return `./${path.relative(path.join(appRoot, this.options.routesDir), controllerLocation).replace(/\\/g, '/')}`;
   }
 
   private getTemplateProperty(source: Parameter | Property) {
