@@ -4,11 +4,11 @@ import { MethodGenerator } from './methodGenerator';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
-  private readonly jwtEnabled: boolean = false;
+  private readonly jwtUserProperty: string | undefined;
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.pathValue = this.getControllerRouteValue(node);
-    this.jwtEnabled = this.getControllerJWTValue(node) !== undefined;
+    this.jwtUserProperty = this.getControllerJWTValue(node);
   }
 
   public IsValid() {
@@ -22,11 +22,11 @@ export class ControllerGenerator {
     const sourceFile = this.node.parent.getSourceFile();
 
     return {
+      jwtUserProperty: this.jwtUserProperty || '',
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.pathValue || '',
-      jwtEnabled: this.jwtEnabled
+      path: this.pathValue || ''
     };
   }
 
@@ -39,14 +39,14 @@ export class ControllerGenerator {
   }
 
   private getControllerJWTValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'JWT');
+    return this.getControllerDecoratorValue(node, 'JWT', 'user');
   }
 
   private getControllerRouteValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'Route');
+    return this.getControllerDecoratorValue(node, 'Route', '');
   }
 
-  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string) {
+  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string, defaultValue: string) {
     if (!node.decorators) { return undefined; }
 
     const matchedAttributes = node.decorators
@@ -62,7 +62,7 @@ export class ControllerGenerator {
     }
 
     const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;
-    return value ? value.text : '';
+    return value ? value.text : defaultValue;
   }
 
 }

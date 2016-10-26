@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/server';
-import { TestModel, TestClassModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel, BooleanResponseModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -64,6 +64,13 @@ describe('Server', () => {
     return verifyGetRequest(`/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
+    });
+  });
+
+  it('[JWTEnabled] can handle get request with no path argument', () => {
+    return verifyGetRequest('/JwtGetTest', (err, res) => {
+      const model = res.body as BooleanResponseModel;
+      expect(model.success).to.equal(true);
     });
   });
 

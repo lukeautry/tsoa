@@ -17,13 +17,11 @@ export function RegisterRoutes(app: any) {
             }
 
             const controller = new {{../name}}();
-            {{#if ../jwtEnabled}}
-            if (controller instanceof JwtHolder) {
-                if (req.user) {
-                    if (req.user.iss) controller.iss = req.user.iss;
-                    if (req.user.sub) controller.sub = req.user.sub;
-                    if (req.user.aud) controller.aud = req.user.aud;
-                }
+            {{#if ../jwtUserProperty}}
+            if (req.{{../jwtUserProperty}}) {
+                if (req.{{../jwtUserProperty}}.iss) controller.iss = req.{{../jwtUserProperty}}.iss;
+                if (req.{{../jwtUserProperty}}.sub) controller.sub = req.{{../jwtUserProperty}}.sub;
+                if (req.{{../jwtUserProperty}}.aud) controller.aud = req.{{../jwtUserProperty}}.aud;
             }
             {{/if}}
             promiseHandler(controller.{{name}}.apply(controller, validatedParams), res, next);
