@@ -1,20 +1,11 @@
-/// <reference path="../ambient.d.ts" />
+import { SwaggerConfig } from './../config';
 import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 
-export interface Options {
-  host: string;
-  name: string;
-  version: string;
-  description: string;
-  basePath: string;
-  license: string;
-}
-
 export class SpecGenerator {
-  constructor(private readonly metadata: Metadata, private readonly options: Options) { }
+  constructor(private readonly metadata: Metadata, private readonly config: SwaggerConfig) { }
 
   public GenerateJson(swaggerDir: string) {
     mkdirp(swaggerDir, (dirErr: any) => {
@@ -31,19 +22,11 @@ export class SpecGenerator {
   }
 
   public GetSpec() {
-    const spec: Swagger.Spec = {
-      basePath: this.options.basePath,
+    let spec: Swagger.Spec = {
+      basePath: this.config.basePath,
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
-      host: this.options.host,
-      info: {
-        description: this.options.description,
-        license: {
-          name: this.options.license
-        },
-        title: this.options.name,
-        version: this.options.version
-      },
+      info: {},
       paths: this.buildPaths(),
       produces: ['application/json'],
       swagger: '2.0'
@@ -54,7 +37,15 @@ export class SpecGenerator {
       spec.securityDefinitions = this.buildJwtSecurityDefinition();
     }
 
-    if (this.options.host) { spec.host = this.options.host; }
+    if (this.config.description) { spec.info.description = this.config.description; }
+    if (this.config.license) { spec.info.license = { name: this.config.license }; }
+    if (this.config.name) { spec.info.title = this.config.name; }
+    if (this.config.version) { spec.info.version = this.config.version; }
+    if (this.config.host) { spec.host = this.config.host; }
+
+    if (this.config.spec) {
+      spec = Object.assign(spec, this.config.spec);
+    }
 
     return spec;
   }
