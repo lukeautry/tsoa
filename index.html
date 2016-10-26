@@ -53,7 +53,7 @@
 <li>If regular type annotations aren't an appropriate way to express metadata, use decorators</li>
 <li>Use jsdoc for pure text metadata (e.g. endpoint descriptions)</li>
 <li>Minimize boilerplate</li>
-<li>Models are always represented by interfaces; the contract between API client is best represented through a data structure, not a class or object</li>
+<li>Models are best represented by interfaces (pure data structures), but can also be represented by classes</li>
 </ul>
 
 <h2>
@@ -71,7 +71,7 @@
 @Route(<span class="pl-s">'Users'</span>)
 <span class="pl-k">export</span> <span class="pl-k">class</span> <span class="pl-en">UsersController</span> {
     @<span class="pl-en">Get</span>('{<span class="pl-v">id</span>}')
-    <span class="pl-k">public</span> <span class="pl-k">async</span> <span class="pl-en">getUser</span>(<span class="pl-v">id</span>: <span class="pl-k">number</span>): <span class="pl-en">Promise</span>&lt;User&gt; {
+    <span class="pl-k">public</span> <span class="pl-k">async</span> <span class="pl-en">getUser</span>(<span class="pl-v">id</span>: <span class="pl-c1">number</span>): <span class="pl-en">Promise</span>&lt;User&gt; {
         <span class="pl-k">return</span> <span class="pl-k">await</span> <span class="pl-k">new</span> UserService().get(id);
     }
 
@@ -87,34 +87,34 @@
 <div class="highlight highlight-source-ts"><pre><span class="pl-c">// models/user.ts</span>
 
 <span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">User</span> {
-    <span class="pl-v">id</span>: <span class="pl-k">number</span>;
-    <span class="pl-v">email</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">id</span>: <span class="pl-c1">number</span>;
+    <span class="pl-v">email</span>: <span class="pl-c1">string</span>;
     <span class="pl-v">name</span>: Name;
-    <span class="pl-v">status</span><span class="pl-k">?</span>: <span class="pl-k">string</span>;
-    <span class="pl-v">phoneNumbers</span>: <span class="pl-k">string</span>[];
+    <span class="pl-v">status</span><span class="pl-k">?</span>: <span class="pl-c1">string</span>;
+    <span class="pl-v">phoneNumbers</span>: <span class="pl-c1">string</span>[];
 }
 
 <span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">Name</span> {
-    <span class="pl-v">first</span>: <span class="pl-k">string</span>;
-    <span class="pl-v">last</span><span class="pl-k">?</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">first</span>: <span class="pl-c1">string</span>;
+    <span class="pl-v">last</span><span class="pl-k">?</span>: <span class="pl-c1">string</span>;
 }
 
 <span class="pl-k">export</span> <span class="pl-k">interface</span> <span class="pl-en">UserCreationRequest</span> {
-    <span class="pl-v">email</span>: <span class="pl-k">string</span>;
+    <span class="pl-v">email</span>: <span class="pl-c1">string</span>;
     <span class="pl-v">name</span>: Name;
-    <span class="pl-v">phoneNumbers</span>: <span class="pl-k">string</span>[];
+    <span class="pl-v">phoneNumbers</span>: <span class="pl-c1">string</span>[];
 }</pre></div>
 
 <h3>
-<a id="generate" class="anchor" href="#generate" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Generate!</h3>
+<a id="generate" class="anchor" href="#generate" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Generate</h3>
 
 <p>From command line/npm script:</p>
 
 <pre><code>// generate swagger.json
-tsoa swagger --entryFile=./src/server.ts --swaggerDir=./dist
+tsoa swagger
 
 // generate routes
-tsoa routes --entryFile=./src/server.ts --routesDir=./src
+tsoa routes
 </code></pre>
 
 <p>See <a href="#command-line-interface">CLI documentation</a></p>
@@ -130,7 +130,7 @@ tsoa routes --entryFile=./src/server.ts --routesDir=./src
 <span class="pl-c">// controllers need to be referenced in order to get crawled by the generator</span>
 <span class="pl-k">import</span> <span class="pl-s">'./controllers/usersController'</span>;
 
-<span class="pl-k">const</span> <span class="pl-v">app</span>: express.Express <span class="pl-k">=</span> express();
+<span class="pl-k">const</span> <span class="pl-v">app</span> = express();
 app.use(bodyParser.urlencoded({ extended: <span class="pl-c1">true</span> }));
 app.use(bodyParser.json());
 app.use(methodOverride());
@@ -154,23 +154,19 @@ app.listen(<span class="pl-c1">3000</span>);
 <h2>
 <a id="command-line-interface" class="anchor" href="#command-line-interface" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Command Line Interface</h2>
 
+<p>For information on the configuration object (tsoa.json), check out the following:</p>
+
+<p><a href="./src/config.ts">Configuration definition</a></p>
+
+<p><a href="./tsoa.json">Configuration sample</a></p>
+
 <h3>
 <a id="swaggerjson-generation" class="anchor" href="#swaggerjson-generation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Swagger.json generation</h3>
 
 <pre><code>Usage: tsoa swagger [options]
 
 Options:
-  --entry-file, -e   Server entry point; this should be your top level file,
-                     e.g. server.ts/app.ts                   [string] [required]
-  --swagger-dir, -s  Swagger directory; generated swagger.json will be dropped
-                     here                                    [string] [required]
-  --host, --ho       API host, e.g. localhost:3000 or https://myapi.com/v1
-                                                             [string]
-  --ver, -v          API version number; defaults to npm package version[string]
-  --name, -n         API name; defaults to npm package name             [string]
-  --description, -d  API description; defaults to npm package description
-  --license, -l      API license; defaults to npm package license
-  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]
+   --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
 </code></pre>
 
 <h3>
@@ -179,13 +175,7 @@ Options:
 <pre><code>Usage: tsoa routes [options]
 
 Options:
-  --entry-file, -e  Server entry point; this should be your top level file, e.g.
-                    server.ts/app.ts                         [string] [required]
-  --routes-dir, -r  Routes directory; generated routes.ts (which contains the
-                    generated code wiring up routes using middleware of choice)
-                    will be dropped here                     [string] [required]
-  --middleware, -m  Middleware provider                        [string] [choices: "express"] [default: "express"]
-  --basePath, -b     Base API path; e.g. the '/v1' in https://myapi.com/v1 [default: "/"]               
+  --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
 </code></pre>
 
 <h2>
