@@ -17,7 +17,16 @@ export class RouteGenerator {
 
     return new Promise<void>((resolve, reject) => {
       tsfmt.processString(fileName, content, {} as any)
-        .then(result => fs.writeFile(fileName, result.dest, (err) => resolve()));
+        .then(result => {
+          fs.writeFile(fileName, result.dest, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        }
+      );
     });
   }
 

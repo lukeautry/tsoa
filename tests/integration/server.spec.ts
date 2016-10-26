@@ -5,24 +5,25 @@ import * as chai from 'chai';
 import * as request from 'supertest';
 
 const expect = chai.expect;
+const basePath = '/v1';
 
 describe('Server', () => {
   it('can handle get request with no path argument', () => {
-    return verifyGetRequest('/GetTest', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest', (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with path argument', () => {
-    return verifyGetRequest('/GetTest/Current', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest/Current', (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with collection return value', () => {
-    return verifyGetRequest('/GetTest/Multi', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
       models.forEach(m => {
@@ -32,14 +33,14 @@ describe('Server', () => {
   });
 
   it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(`/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('returns error if missing required query parameter', () => {
-    return verifyGetRequest(`/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(err.text).to.equal('numberParam is a required parameter.');
     }, 400);
   });
@@ -49,7 +50,7 @@ describe('Server', () => {
     const boolValue = false;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(`/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.numberValue).to.equal(numberValue);
       expect(model.boolValue).to.equal(boolValue);
@@ -61,14 +62,14 @@ describe('Server', () => {
     const numberValue = 600;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(`/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
     });
   });
 
   it('[JWTEnabled] can handle get request with no path argument', () => {
-    return verifyGetRequest('/JwtGetTest', (err, res) => {
+    return verifyGetRequest(basePath + '/JwtGetTest', (err, res) => {
       const model = res.body as BooleanResponseModel;
       expect(model.success).to.equal(true);
     });
@@ -77,7 +78,7 @@ describe('Server', () => {
   it('parsed body parameters', () => {
     const data = getFakeModel();
 
-    return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       const model = res.body as TestModel;
       expect(model).to.deep.equal(model);
     });
@@ -86,7 +87,7 @@ describe('Server', () => {
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
-    return verifyPostRequest('/PostTest/WithClassModel', data, (err: any, res: any) => {
+    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (err: any, res: any) => {
       const model = res.body as TestClassModel;
       expect(model.id).to.equal(700); // this gets changed on the server
     });
@@ -99,7 +100,7 @@ describe('Server', () => {
       const data = getFakeModel();
       data.stringValue = value;
 
-      return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+      return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
     }));
   });
 
@@ -107,7 +108,7 @@ describe('Server', () => {
     const data = getFakeModel();
     data.dateValue = '2016-01-01T00:00:00Z' as any;
 
-    return verifyPostRequest('/PostTest', data, (err: any, res: any) => {
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
@@ -119,7 +120,7 @@ describe('Server', () => {
       const data = getFakeModel();
       data.dateValue = value;
 
-      return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+      return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
     }));
   });
 
@@ -130,12 +131,12 @@ describe('Server', () => {
       const data = getFakeModel();
       data.numberValue = value;
 
-      return verifyPostRequest('/PostTest', data, (err: any, res: any) => null, 400);
+      return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
     }));
   });
 
   it('returns error if missing required path parameter', () => {
-    return verifyGetRequest(`/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(err.text).to.contain('Cannot GET');
     }, 404);
   });
