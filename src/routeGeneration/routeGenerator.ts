@@ -26,7 +26,7 @@ export class RouteGenerator {
             }
           });
         }
-      );
+        );
     });
   }
 

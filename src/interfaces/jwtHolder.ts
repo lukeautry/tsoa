@@ -1,5 +1,5 @@
 export interface JwtHolder {
-    sub: string;
-    iss: string;
-    aud: string;
+  sub: string;
+  iss: string;
+  aud: string;
 }

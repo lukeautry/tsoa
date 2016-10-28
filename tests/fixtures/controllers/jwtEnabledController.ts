@@ -7,13 +7,13 @@ import { BooleanResponseModel } from '../../fixtures/testModel';
 @JWT('user_jwt_data')
 @Route('JwtGetTest')
 export class JwtGetTestController implements JwtHolder {
-    public aud: string;
-    public iss: string;
-    public sub: string;
+  public aud: string;
+  public iss: string;
+  public sub: string;
 
-    // Returns true if jwt validation passed successfully
-    @Get()
-    public async GetWithJwt(): Promise<BooleanResponseModel> {
-        return <BooleanResponseModel>{success: (this.iss === '1' && this.aud === '1' && this.sub === '1')};
-    }
+  // Returns true if jwt validation passed successfully
+  @Get()
+  public async GetWithJwt(): Promise<BooleanResponseModel> {
+    return <BooleanResponseModel>{ success: (this.iss === '1' && this.aud === '1' && this.sub === '1') };
+  }
 }

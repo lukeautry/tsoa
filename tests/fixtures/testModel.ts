@@ -23,7 +23,7 @@ export interface TestSubModel extends Model {
 }
 
 export interface BooleanResponseModel {
-    success: boolean;
+  success: boolean;
 }
 
 export interface Model {

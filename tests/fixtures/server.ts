@@ -14,7 +14,7 @@ export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
-app.use('/v1/JwtGetTest', jwt(<Options>{userProperty: 'user_jwt_data'}));
+app.use('/v1/JwtGetTest', jwt(<Options>{ userProperty: 'user_jwt_data' }));
 RegisterRoutes(app);
 
 // It's important that this come after the main routes are registered
