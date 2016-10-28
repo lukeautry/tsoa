@@ -17,7 +17,16 @@ export class RouteGenerator {
 
     return new Promise<void>((resolve, reject) => {
       tsfmt.processString(fileName, content, {} as any)
-        .then(result => fs.writeFile(fileName, result.dest, (err) => resolve()));
+        .then(result => {
+          fs.writeFile(fileName, result.dest, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        }
+      );
     });
   }
 
@@ -69,6 +78,7 @@ export class RouteGenerator {
               path: this.getExpressPath(method.path)
             };
           }),
+          jwtUserProperty: controller.jwtUserProperty,
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
           path: controller.path

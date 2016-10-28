@@ -22,6 +22,10 @@ export interface TestSubModel extends Model {
   circular?: TestModel;
 }
 
+export interface BooleanResponseModel {
+    success: boolean;
+}
+
 export interface Model {
   id: number;
 }

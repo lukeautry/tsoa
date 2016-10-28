@@ -32,6 +32,11 @@ export class SpecGenerator {
       swagger: '2.0'
     };
 
+    // Check if we have jwt enabled api
+    if (this.metadata.Controllers.some((controller) => controller.jwtUserProperty !== '')) {
+      spec.securityDefinitions = this.buildJwtSecurityDefinition();
+    }
+
     if (this.config.description) { spec.info.description = this.config.description; }
     if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.name) { spec.info.title = this.config.name; }
@@ -62,6 +67,17 @@ export class SpecGenerator {
     return definitions;
   }
 
+  private buildJwtSecurityDefinition() {
+    return {
+      'Bearer': <Swagger.ApiKeySecurity>{
+        description: 'JWT token with bearer word in front of it',
+        in: 'header',
+        name: 'Authorization',
+        type: 'apiKey'
+      }
+    };
+  }
+
   private buildPaths() {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
@@ -69,14 +85,14 @@ export class SpecGenerator {
       controller.methods.forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
-        this.buildPathMethod(method, paths[path]);
+        this.buildPathMethod(method, paths[path], controller.jwtUserProperty);
       });
     });
 
     return paths;
   }
 
-  private buildPathMethod(method: Method, pathObject: any) {
+  private buildPathMethod(method: Method, pathObject: any, jwtUserProperty: string) {
     const swaggerType = this.getSwaggerType(method.type);
     const pathMethod: any = pathObject[method.method] = swaggerType.type === 'void'
       ? this.get204Operation(method.name)
@@ -84,6 +100,15 @@ export class SpecGenerator {
 
     pathMethod.description = method.description;
     pathMethod.parameters = method.parameters.map(p => this.buildParameter(p));
+
+    if (jwtUserProperty !== '') {
+      pathMethod.security = [
+        {
+          'Bearer': []
+        }
+      ];
+    }
+
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }

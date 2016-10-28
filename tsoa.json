@@ -7,7 +7,7 @@
         "name": "tsoa app",
         "description": "a description",
         "license": "MIT",
-        "basePath": "/",
+        "basePath": "/v1",
         "spec": {
             "api_key": {
                 "type": "apiKey",
@@ -28,7 +28,7 @@
     "routes": {
         "basePath": "/v1",
         "entryFile": "./tests/fixtures/server.ts",
-        "routesDir": "./tests/fixture",
+        "routesDir": "./tests/fixtures",
         "middleware": "express"
     }
 }
