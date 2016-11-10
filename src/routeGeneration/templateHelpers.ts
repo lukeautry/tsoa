@@ -66,10 +66,12 @@ function validateBool(boolValue: any, name: string): boolean {
 function validateModel(modelValue: any, typeName: string): any {
   const modelDefinition = models[typeName];
 
-  Object.keys(modelDefinition).forEach((key: string) => {
-    const property = modelDefinition[key];
-    modelValue[key] = ValidateParam(property, modelValue[key], models, key);
-  });
+  if (modelDefinition) {
+    Object.keys(modelDefinition).forEach((key: string) => {
+      const property = modelDefinition[key];
+      modelValue[key] = ValidateParam(property, modelValue[key], models, key);
+    });
+  }
 
   return modelValue;
 }
