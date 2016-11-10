@@ -372,6 +372,36 @@ export function RegisterRoutes(app: any) {
     const controller = new GetTestController();
     promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), res, next);
   });
+  app.get('/v1/GetTest/InjectedRequest', function(req: any, res: any, next: any) {
+    const params = {
+      'request': { typeName: 'object', required: true, injected: 'request' },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/InjectedValue', function(req: any, res: any, next: any) {
+    const params = {
+      'someValue': { typeName: 'object', required: true, injected: 'inject' },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), res, next);
+  });
   app.delete('/v1/DeleteTest', function(req: any, res: any, next: any) {
     const params = {
     };
@@ -468,7 +498,13 @@ export function RegisterRoutes(app: any) {
     const requestParams = getRequestParams(request, bodyParamName);
 
     return Object.keys(params).map(key => {
-      return ValidateParam(params[key], requestParams[key], models, key);
+      if (params[key].injected === 'inject') {
+        return undefined;
+      } else if (params[key].injected === 'request') {
+        return request;
+      } else {
+        return ValidateParam(params[key], requestParams[key], models, key);
+      }
     });
   }
 }

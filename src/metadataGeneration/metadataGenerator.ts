@@ -84,12 +84,15 @@ export interface Method {
   type: Type;
 }
 
+export type InjectType = 'request' | 'inject';
+
 export interface Parameter {
   description: string;
   in: string;
   name: string;
   required: boolean;
   type: Type;
+  injected?: InjectType;
 }
 
 export type Type = PrimitiveType | ReferenceType | ArrayType;

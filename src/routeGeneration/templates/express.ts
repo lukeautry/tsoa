@@ -5,7 +5,7 @@ export function RegisterRoutes(app: any) {
         app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', function (req: any, res: any, next: any) {
             const params = {
                 {{#each parameters}}
-                '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
+                '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
                 {{/each}}
             };
 
@@ -57,7 +57,13 @@ export function RegisterRoutes(app: any) {
         const requestParams = getRequestParams(request, bodyParamName);
         
         return Object.keys(params).map(key => {
-            return ValidateParam(params[key], requestParams[key], models, key);
+            if (params[key].injected === 'inject') {
+              return undefined;
+            } else if (params[key].injected === 'request') {
+              return request;
+            } else {
+              return ValidateParam(params[key], requestParams[key], models, key);
+            }
         });
     }
 }`;

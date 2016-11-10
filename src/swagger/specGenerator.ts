@@ -99,7 +99,7 @@ export class SpecGenerator {
       : this.get200Operation(swaggerType, method.example, method.name);
 
     pathMethod.description = method.description;
-    pathMethod.parameters = method.parameters.map(p => this.buildParameter(p));
+    pathMethod.parameters = method.parameters.filter(p => !p.injected).map(p => this.buildParameter(p));
 
     if (jwtUserProperty !== '') {
       pathMethod.security = [

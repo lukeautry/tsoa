@@ -39,6 +39,22 @@ describe('Server', () => {
     });
   });
 
+  it('injects express request in parameters', () => {
+    return verifyGetRequest(basePath + `/GetTest/InjectedRequest`, (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+      expect(model.stringValue).to.equal('fancyStringForContext');
+    });
+  });
+
+  it('injects undefined as custom value in parameters', () => {
+    return verifyGetRequest(basePath + `/GetTest/InjectedValue`, (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+      expect(model.stringValue).to.be.undefined;
+    });
+  });
+
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(err.text).to.equal('numberParam is a required parameter.');
