@@ -1,4 +1,5 @@
 import { Example } from './decorators/example';
+import { Inject, Request } from './decorators/inject';
 import { Post, Get, Patch, Delete, Put } from './decorators/methods';
 import { Route } from './decorators/route';
 import { JWT } from './decorators/jwt';
@@ -9,9 +10,11 @@ export {
   Delete,
   Example,
   Get,
+  Inject,
   Patch,
   Post,
   Put,
+  Request,
   Route,
   ValidateParam,
   JWT,

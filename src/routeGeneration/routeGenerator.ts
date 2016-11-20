@@ -1,5 +1,5 @@
 import { expressTemplate } from './templates/express';
-import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { InjectType, Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
@@ -123,6 +123,10 @@ export class RouteGenerator {
       required: source.required,
       typeName: this.getStringRepresentationOfType(source.type)
     };
+    const parameter = source as Parameter;
+    if (parameter.injected) {
+      templateProperty.injected = parameter.injected;
+    }
 
     const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
@@ -147,4 +151,5 @@ interface TemplateProperty {
   typeName: string;
   required: boolean;
   arrayType?: string;
+  injected?: InjectType;
 }

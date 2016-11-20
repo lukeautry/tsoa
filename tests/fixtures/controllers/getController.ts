@@ -1,4 +1,5 @@
 import { Example } from '../../../src/decorators/example';
+import { Inject, Request } from '../../../src/decorators/inject';
 import { Get } from '../../../src/decorators/methods';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
@@ -81,6 +82,22 @@ export class GetTestController {
   @Get('UnionTypeResponse')
   public async getUnionTypeResponse(): Promise<string | boolean> {
     return '';
+  }
+
+  @Get('InjectedRequest')
+  public async getInjectedRequest( @Request() request: Object): Promise<TestModel> {
+    let model = new ModelService().getModel();
+    // set the stringValue from the request context to test successful injection
+    model.stringValue = (<any>request).stringValue;
+    return model;
+  }
+
+  @Get('InjectedValue')
+  public async getInjectedValue( @Inject() someValue: string): Promise<TestModel> {
+    let model = new ModelService().getModel();
+    // set the stringValue to the injected value to test successful injection
+    model.stringValue = someValue;
+    return model;
   }
 }
 

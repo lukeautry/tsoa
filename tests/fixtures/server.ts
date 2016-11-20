@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 app.use('/v1/JwtGetTest', jwt(<Options>{ userProperty: 'user_jwt_data' }));
+// set a context value in express request object to test request injection
+app.use((req: any, res: any, next: any) => {
+  req.stringValue = 'fancyStringForContext';
+  next();
+});
 RegisterRoutes(app);
 
 // It's important that this come after the main routes are registered
