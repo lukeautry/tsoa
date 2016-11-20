@@ -104,6 +104,28 @@ app.listen(3000);
 
 ```
 
+### Get access to the request object of express in Controllers
+
+To access the request object of express in a controller method use the `@Request`-decorator:
+```typescript
+// controllers/usersController.ts
+
+import * as express from 'express';
+import {Get, Route, Request} from 'tsoa';
+import {User, UserCreationRequest} from '../models/user';
+
+@Route('Users')
+export class UsersController {
+    @Get('{id}')
+    public async getUser(id: number, @Request() request: express.Request): Promise<User> {
+        // TODO: implement some code that uses request as well
+    }
+}
+```
+Note that the parameter `request` does not appear in your swagger definition file. 
+Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
+In this case you should write your own custom template where you inject the needed objects/values in the method-call. 
+
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
