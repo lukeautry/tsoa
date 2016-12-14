@@ -15,7 +15,7 @@
       true,
       "never-prefix"
     ],
-    "jsdoc-format": true,
+    "jsdoc-format": false,
     "label-position": true,
     "label-undefined": true,
     "member-access": [

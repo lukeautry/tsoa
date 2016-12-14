@@ -402,6 +402,21 @@ export function RegisterRoutes(app: any) {
     const controller = new GetTestController();
     promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), res, next);
   });
+  app.get('/v1/GetTest/DateParam', function(req: any, res: any, next: any) {
+    const params = {
+      'date': { typeName: 'datetime', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getByDataParam.apply(controller, validatedParams), res, next);
+  });
   app.delete('/v1/DeleteTest', function(req: any, res: any, next: any) {
     const params = {
     };

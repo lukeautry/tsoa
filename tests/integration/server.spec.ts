@@ -129,6 +129,12 @@ describe('Server', () => {
     }, 200);
   });
 
+  it('should parse valid date as query param', () => {
+    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+    }, 200);
+  });
+
   it('should reject invalid dates', () => {
     const invalidValues = [1, {}];
 

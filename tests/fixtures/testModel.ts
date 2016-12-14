@@ -3,8 +3,8 @@
  */
 export interface TestModel extends Model {
   /**
-   * This is a description of this model property, numberValue
-   */
+  * This is a description of this model property, numberValue
+  */
   numberValue: number;
   numberArray: number[];
   stringValue: string;
@@ -39,8 +39,8 @@ export class TestClassBaseModel {
  */
 export class TestClassModel extends TestClassBaseModel {
   /**
-   * This is a description of a public string property
-   */
+  * This is a description of a public string property
+  */
   public publicStringProperty: string;
   public optionalPublicStringProperty?: string;
   /* tslint:disable-next-line */
@@ -48,8 +48,8 @@ export class TestClassModel extends TestClassBaseModel {
   protected protectedStringProperty: string;
 
   /**
-   * @param publicConstructorVar This is a description for publicConstructorVar
-   */
+  * @param publicConstructorVar This is a description for publicConstructorVar
+  */
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,

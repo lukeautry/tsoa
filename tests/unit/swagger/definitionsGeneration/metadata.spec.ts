@@ -20,7 +20,7 @@ describe('Metadata generation', () => {
     const definedMethods = ['getModel', 'getCurrentModel',
       'getClassModel', 'getMultipleModels', 'getModelByParams',
       'getResponseWithUnionTypeProperty', 'getUnionTypeResponse',
-      'getInjectedRequest', 'getInjectedValue'];
+      'getInjectedRequest', 'getInjectedValue', 'getByDataParam'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);

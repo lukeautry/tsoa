@@ -14,9 +14,11 @@ export class ParameterGenerator {
     const injectDecorators = this.getDecorators(identifier => {
       return this.getValidInjectors().some(m => m.toLowerCase() === identifier.text.toLowerCase());
     });
+
     if (injectDecorators && injectDecorators.length > 1) {
       throw new Error(`Only one inject decorator allowed per parameter. Found: ${injectDecorators.map(d => d.text).join(', ')}`);
     }
+
     if (injectDecorators && injectDecorators.length === 1) {
       return {
         description: this.getParameterDescription(this.parameter),
@@ -27,6 +29,7 @@ export class ParameterGenerator {
         type: 'object'
       };
     }
+
     if (this.path.includes(`{${parameterIdentifier.text}}`)) {
       return this.getPathParameter(this.parameter);
     }
@@ -112,7 +115,7 @@ export class ParameterGenerator {
     }
 
     const type = parameterType as string;
-    return !!['string', 'boolean', 'number'].find(t => t === type);
+    return !!['string', 'boolean', 'number', 'datetime'].find(t => t === type);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {

@@ -8,9 +8,9 @@ import { TestModel, TestSubModel, TestClassModel } from '../testModel';
 @Route('GetTest')
 export class GetTestController {
   /**
-   * This is a description of the getModel method
-   * this is some more text on another line
-   */
+  * This is a description of the getModel method
+  * this is some more text on another line
+  */
   @Get()
   @Example<TestModel>({
     boolArray: [true, false],
@@ -51,9 +51,9 @@ export class GetTestController {
   }
 
   /**
-   * @param numberPathParam This is a description for numberPathParam
-   * @param numberParam This is a description for numberParam
-   */
+  * @param numberPathParam This is a description for numberPathParam
+  * @param numberParam This is a description for numberParam
+  */
   @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
   public async getModelByParams(
     numberPathParam: number,
@@ -97,6 +97,14 @@ export class GetTestController {
     let model = new ModelService().getModel();
     // set the stringValue to the injected value to test successful injection
     model.stringValue = someValue;
+    return model;
+  }
+
+  @Get('DateParam')
+  public async getByDataParam(date: Date): Promise<TestModel> {
+    const model = new ModelService().getModel();
+    model.dateValue = date;
+
     return model;
   }
 }
