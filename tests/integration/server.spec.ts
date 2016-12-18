@@ -163,6 +163,21 @@ describe('Server', () => {
     }, 404);
   });
 
+  it('returns error if invalid request', () => {
+    const data = getFakeModel();
+    data.dateValue = 1 as any;
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      expect(err.text).to.equal('dateValue should be a valid ISO 8601 date, i.e. YYYY-MM-DDTHH:mm:ss');
+    }, 400);
+  });
+
+  it('returns error if thrown in controller', () => {
+    return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
+      expect(err.text).to.equal('error thrown');
+    }, 400);
+  });
+
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
