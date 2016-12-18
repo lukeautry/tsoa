@@ -16,7 +16,14 @@ export class RouteGenerator {
     const content = this.buildContent(middlewareTemplate);
 
     return new Promise<void>((resolve, reject) => {
-      tsfmt.processString(fileName, content, {} as any)
+      tsfmt.processString(fileName, content, {
+        editorconfig: true,
+        replace: true,
+        tsconfig: true,
+        tsfmt: true,
+        tslint: true,
+        verify: true
+      })
         .then(result => {
           fs.writeFile(fileName, result.dest, (err) => {
             if (err) {
@@ -43,11 +50,7 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
-    const routesTemplate = handlebars.compile(`
-            /**
-             * THIS IS GENERATED CODE - DO NOT EDIT
-             */
-            /* tslint:disable */
+    const routesTemplate = handlebars.compile(`/* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';

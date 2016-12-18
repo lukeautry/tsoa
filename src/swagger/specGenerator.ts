@@ -129,6 +129,8 @@ export class SpecGenerator {
       swaggerParameter.type = parameterType.type;
     }
 
+    if (parameterType.format) { swaggerParameter.format = parameterType.format; }
+
     return swaggerParameter;
   }
 
@@ -158,13 +160,14 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForPrimitiveType(primitiveTypeName: PrimitiveType) {
-    const typeMap: { [name: string]: Swagger.Schema } = {};
-    typeMap['number'] = { format: 'int64', type: 'integer' };
-    typeMap['string'] = { type: 'string' };
-    typeMap['boolean'] = { type: 'boolean' };
-    typeMap['datetime'] = { format: 'date-time', type: 'string' };
-    typeMap['object'] = { type: 'object' };
-    typeMap['void'] = { type: 'void' };
+    const typeMap: { [name: string]: Swagger.Schema } = {
+      boolean: { type: 'boolean' },
+      datetime: { format: 'date-time', type: 'string' },
+      number: { format: 'int64', type: 'integer' },
+      object: { type: 'object' },
+      string: { type: 'string' },
+      void: { type: 'void' }
+    };
 
     return typeMap[primitiveTypeName];
   }

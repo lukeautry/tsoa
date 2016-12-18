@@ -1,7 +1,3 @@
-
-/**
- * THIS IS GENERATED CODE - DO NOT EDIT
- */
 /* tslint:disable */
 import { ValidateParam } from '../../src/routeGeneration/templateHelpers';
 import { PutTestController } from './controllers/putController';

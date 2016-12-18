@@ -14,14 +14,14 @@
   ],
   "scripts": {
     "start": "tsc -w",
-    "build": "npm run clean && npm run lint && tsc",
+    "build": "npm run clean && tsc",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
-    "lint": "tslint --exclude=./node_modules/** ./**/*.ts",
+    "lint": "tslint --exclude=./node_modules/** ./src/**/*.ts ./tests/**/*.ts",
     "format": "tsfmt -r",
     "deploy": "npm run build && npm version patch && git push origin master && npm publish",
     "routes-gen": "node ./dist/cli.js routes",
     "swagger-gen": "node ./dist/cli.js swagger",
-    "pretest": "npm run build && npm run swagger-gen && npm run routes-gen && npm run format",
+    "pretest": "npm run build && npm run swagger-gen && npm run routes-gen && npm run lint",
     "test": "mocha **/*.spec.ts --compilers ts:ts-node/register",
     "tsc": "tsc"
   },
@@ -33,6 +33,7 @@
     "handlebars": "^4.0.5",
     "mkdirp": "^0.5.1",
     "moment": "^2.14.1",
+    "tslint": "^4.1.1",
     "typescript": "^2.1.4",
     "typescript-formatter": "^4.0.1",
     "yargs": "^4.8.1"

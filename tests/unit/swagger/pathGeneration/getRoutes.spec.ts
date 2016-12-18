@@ -43,6 +43,16 @@ describe('GET route generation', () => {
     verifyPath(baseRoute);
   });
 
+  it('should generate params for date type parameter', () => {
+    const parameters = getValidatedParameters(`${baseRoute}/DateParam`);
+
+    const parameter = parameters[0];
+    if (!parameter) { throw new Error('Should have one parameter.'); }
+
+    chai.expect(parameter.type).to.equal('string');
+    chai.expect(parameter.format).to.equal('date-time');
+  });
+
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator(pathlessMetadata, getDefaultOptions()).GetSpec();
