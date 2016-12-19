@@ -9,9 +9,7 @@ export class MetadataGenerator {
   private referenceTypes: { [typeName: string]: ReferenceType } = {};
   private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: ReferenceType }) => void>();
 
-  public static IsExportedNode(node: ts.Node) {
-    return true;
-  }
+  public IsExportedNode(node: ts.Node) { return true; }
 
   constructor(entryFile: string) {
     this.program = ts.createProgram([entryFile], {});
@@ -54,7 +52,7 @@ export class MetadataGenerator {
 
   private buildControllers() {
     return this.nodes
-      .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && MetadataGenerator.IsExportedNode(node))
+      .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
       .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
