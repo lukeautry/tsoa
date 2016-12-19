@@ -95,7 +95,7 @@ function createCircularDependencyResolver(typeName: string) {
 function getModelTypeDeclaration(typeName: string) {
   const modelTypes = MetadataGenerator.current.nodes
     .filter(node => {
-      if ((node.kind !== ts.SyntaxKind.InterfaceDeclaration && node.kind !== ts.SyntaxKind.ClassDeclaration) || !MetadataGenerator.IsExportedNode(node)) {
+      if ((node.kind !== ts.SyntaxKind.InterfaceDeclaration && node.kind !== ts.SyntaxKind.ClassDeclaration) || !MetadataGenerator.current.IsExportedNode(node)) {
         return false;
       }
 
