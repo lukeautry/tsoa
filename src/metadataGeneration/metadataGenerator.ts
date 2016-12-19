@@ -80,6 +80,7 @@ export interface Method {
   parameters: Parameter[];
   path: string;
   type: Type;
+  tags: string[];
 }
 
 export type InjectType = 'request' | 'inject';

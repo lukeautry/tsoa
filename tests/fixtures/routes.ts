@@ -427,6 +427,20 @@ export function RegisterRoutes(app: any) {
     const controller = new GetTestController();
     promiseHandler(controller.getThrowsError.apply(controller, validatedParams), res, next);
   });
+  app.get('/v1/GetTest/GeneratesTags', function(req: any, res: any, next: any) {
+    const params = {
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), res, next);
+  });
   app.delete('/v1/DeleteTest', function(req: any, res: any, next: any) {
     const params = {
     };

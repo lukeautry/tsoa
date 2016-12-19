@@ -28,6 +28,7 @@ export class MethodGenerator {
       name: identifier.text,
       parameters: this.getParameters(),
       path: this.path,
+      tags: this.getMethodTags(),
       type: ResolveType(this.node.type)
     };
   }
@@ -99,6 +100,17 @@ export class MethodGenerator {
     });
 
     return example;
+  }
+
+  private getMethodTags() {
+    const tagsDecorators = this.getDecorators(identifier => identifier.text === 'Tags');
+    if (!tagsDecorators || !tagsDecorators.length) { return []; }
+    if (tagsDecorators.length > 1) { throw new Error('Only one Tags decorator allowed per controller method.'); }
+
+    const decorator = tagsDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return expression.arguments.map((a: any) => a.text);
   }
 
   private getInitializerValue(initializer: any) {

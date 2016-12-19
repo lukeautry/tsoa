@@ -53,6 +53,11 @@ describe('GET route generation', () => {
     chai.expect(parameter.format).to.equal('date-time');
   });
 
+  it('should generate tags for tag decorated method', () => {
+    const operation = getValidatedGetOperation(`${baseRoute}/GeneratesTags`);
+    chai.expect(operation.tags).to.deep.equal(['test', 'test-two']);
+  });
+
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator(pathlessMetadata, getDefaultOptions()).GetSpec();

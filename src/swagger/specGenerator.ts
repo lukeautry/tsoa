@@ -101,6 +101,8 @@ export class SpecGenerator {
     pathMethod.description = method.description;
     pathMethod.parameters = method.parameters.filter(p => !p.injected).map(p => this.buildParameter(p));
 
+    if (method.tags.length) { pathMethod.tags = method.tags; }
+
     if (jwtUserProperty !== '') {
       pathMethod.security = [
         {

@@ -165,3 +165,5 @@ Options:
 ## Examples
 
 [An example project is available here](https://github.com/lukeautry/tsoa-example)
+
+Also see example controllers in [the tests](tests/fixtures/controllers)

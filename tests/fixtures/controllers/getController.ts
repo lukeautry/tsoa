@@ -4,6 +4,7 @@ import { Get } from '../../../src/decorators/methods';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
 import { TestModel, TestSubModel, TestClassModel } from '../testModel';
+import { Tags } from '../../../src/decorators/tags';
 
 @Route('GetTest')
 export class GetTestController {
@@ -114,6 +115,12 @@ export class GetTestController {
       message: 'error thrown',
       status: 400
     };
+  }
+
+  @Get('GeneratesTags')
+  @Tags('test', 'test-two')
+  public async getGeneratesTags(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 }
 
