@@ -1,4 +1,5 @@
 import { expressTemplate } from './templates/express';
+import { hapiTemplate } from './templates/hapi';
 import { InjectType, Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
@@ -39,6 +40,10 @@ export class RouteGenerator {
 
   public GenerateExpressRoutes() {
     return this.GenerateRoutes(expressTemplate);
+  }
+
+  public GenerateHapiRoutes() {
+    return this.GenerateRoutes(hapiTemplate);
   }
 
   private buildContent(middlewareTemplate: string) {
