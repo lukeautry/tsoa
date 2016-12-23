@@ -90,6 +90,9 @@ yargs
       case 'hapi':
         routeGenerator.GenerateHapiRoutes();
         break;
+      case 'koa':
+        routeGenerator.GenerateKoaRoutes();
+        break;
       default:
         routeGenerator.GenerateExpressRoutes();
     }

@@ -1,5 +1,6 @@
 import { expressTemplate } from './templates/express';
 import { hapiTemplate } from './templates/hapi';
+import { koaTemplate } from './templates/koa';
 import { InjectType, Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
@@ -44,6 +45,10 @@ export class RouteGenerator {
 
   public GenerateHapiRoutes() {
     return this.GenerateRoutes(hapiTemplate, path => path);
+  }
+
+  public GenerateKoaRoutes() {
+    return this.GenerateRoutes(koaTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
   }
 
   private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
