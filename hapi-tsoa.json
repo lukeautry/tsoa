@@ -27,8 +27,8 @@
     },
     "routes": {
         "basePath": "/v1",
-        "entryFile": "./tests/fixtures/express/server.ts",
-        "routesDir": "./tests/fixtures/express",
-        "middleware": "express"
+        "entryFile": "./tests/fixtures/hapi/server.ts",
+        "routesDir": "./tests/fixtures/hapi",
+        "middleware": "hapi"
     }
 }

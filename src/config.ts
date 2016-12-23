@@ -77,5 +77,5 @@ export interface RoutesConfig {
   /**
   * Middleware provider
   */
-  middleware?: 'express';
+  middleware?: 'express' | 'hapi';
 }

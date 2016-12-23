@@ -1,12 +1,12 @@
 import * as methodOverride from 'method-override';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import './controllers/putController';
-import './controllers/postController';
-import './controllers/patchController';
-import './controllers/getController';
-import './controllers/deleteController';
-import './controllers/jwtEnabledController';
+import '../controllers/putController';
+import '../controllers/postController';
+import '../controllers/patchController';
+import '../controllers/getController';
+import '../controllers/deleteController';
+import '../controllers/jwtEnabledController';
 import { jwt, Options } from './express-jwt-mock';
 import { RegisterRoutes } from './routes';
 

@@ -87,6 +87,9 @@ yargs
       case 'express':
         routeGenerator.GenerateExpressRoutes();
         break;
+      case 'hapi':
+        routeGenerator.GenerateHapiRoutes();
+        break;
       default:
         routeGenerator.GenerateExpressRoutes();
     }
