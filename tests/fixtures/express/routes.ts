@@ -1,11 +1,11 @@
 /* tslint:disable */
-import { ValidateParam } from '../../src/routeGeneration/templateHelpers';
-import { PutTestController } from './controllers/putController';
-import { PostTestController } from './controllers/postController';
-import { PatchTestController } from './controllers/patchController';
-import { GetTestController } from './controllers/getController';
-import { DeleteTestController } from './controllers/deleteController';
-import { JwtGetTestController } from './controllers/jwtEnabledController';
+import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { PutTestController } from './../controllers/putController';
+import { PostTestController } from './../controllers/postController';
+import { PatchTestController } from './../controllers/patchController';
+import { GetTestController } from './../controllers/getController';
+import { DeleteTestController } from './../controllers/deleteController';
+import { JwtGetTestController } from './../controllers/jwtEnabledController';
 
 const models: any = {
   'TestSubModel': {

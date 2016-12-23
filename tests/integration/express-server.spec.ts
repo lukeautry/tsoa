@@ -1,5 +1,5 @@
 import 'mocha';
-import { app } from '../fixtures/server';
+import { app } from '../fixtures/express/server';
 import { TestModel, TestClassModel, BooleanResponseModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';

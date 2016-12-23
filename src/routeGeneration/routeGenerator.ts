@@ -12,9 +12,9 @@ const appRoot: string = require('app-root-path').path;
 export class RouteGenerator {
   constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
 
-  public GenerateRoutes(middlewareTemplate: string) {
+  public GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
-    const content = this.buildContent(middlewareTemplate);
+    const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     return new Promise<void>((resolve, reject) => {
       tsfmt.processString(fileName, content, {
@@ -39,14 +39,14 @@ export class RouteGenerator {
   }
 
   public GenerateExpressRoutes() {
-    return this.GenerateRoutes(expressTemplate);
+    return this.GenerateRoutes(expressTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
   }
 
   public GenerateHapiRoutes() {
-    return this.GenerateRoutes(hapiTemplate);
+    return this.GenerateRoutes(hapiTemplate, path => path);
   }
 
-  private buildContent(middlewareTemplate: string) {
+  private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     let canImportByAlias: boolean;
     try {
       require('tsoa');
@@ -56,7 +56,7 @@ export class RouteGenerator {
     }
 
     const routesTemplate = handlebars.compile(`/* tslint:disable */
-            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
+            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}
@@ -83,7 +83,7 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: method.parameters.map(parameter => this.getTemplateProperty(parameter)),
-              path: this.getExpressPath(method.path)
+              path: pathTransformer(method.path)
             };
           }),
           jwtUserProperty: controller.jwtUserProperty,
@@ -142,10 +142,6 @@ export class RouteGenerator {
     }
 
     return templateProperty;
-  }
-
-  private getExpressPath(path: string) {
-    return path.replace(/{/g, ':').replace(/}/g, '');
   }
 }
 
