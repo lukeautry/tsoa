@@ -10,7 +10,7 @@
     - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
     - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
-    - Express currently included, other middleware can be supported using a simple handlebars template
+    - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
     - Validate request payloads
 
 ## Philosophy

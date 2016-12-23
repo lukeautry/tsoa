@@ -8,7 +8,7 @@ import '../controllers/jwtEnabledController';
 import { RegisterRoutes } from './routes';
 
 export const server = new hapi.Server();
-server.connection({ port: 3000 });
+server.connection({ port: 3003 });
 
 RegisterRoutes(server);
 

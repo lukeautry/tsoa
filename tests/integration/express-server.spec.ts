@@ -7,7 +7,7 @@ import * as request from 'supertest';
 const expect = chai.expect;
 const basePath = '/v1';
 
-describe('Server', () => {
+describe('Express Server', () => {
   it('can handle get request with no path argument', () => {
     return verifyGetRequest(basePath + '/GetTest', (err, res) => {
       const model = res.body as TestModel;
