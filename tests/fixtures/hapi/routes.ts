@@ -42,6 +42,7 @@ const models: any = {
   },
 };
 
+/* tslint:disable:forin */
 import * as hapi from 'hapi';
 
 export function RegisterRoutes(server: hapi.Server) {

@@ -42,6 +42,7 @@ const models: any = {
   },
 };
 
+/* tslint:disable:forin */
 import * as KoaRouter from 'koa-router';
 
 export function RegisterRoutes(router: KoaRouter) {

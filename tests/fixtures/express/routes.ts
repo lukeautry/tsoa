@@ -42,6 +42,7 @@ const models: any = {
   },
 };
 
+/* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
   app.put('/v1/PutTest', function(req: any, res: any, next: any) {
     const params = {
