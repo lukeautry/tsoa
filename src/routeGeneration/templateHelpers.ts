@@ -17,11 +17,11 @@ export function ValidateParam(typeData: any, value: any, generatedModels: any, n
     case 'string':
       return validateString(value, name);
     case 'boolean':
-      return validateBool(value, name);
+      return validateBool(value, <any>name);
     case 'number':
-      return validateNumber(value, name);
+      return validateNumber(value, <any>name);
     case 'array':
-      return validateArray(value, typeData.arrayType, name);
+      return validateArray(value, typeData.arrayType, <any>name);
     case 'datetime':
       return validateDate(value, name);
     default:

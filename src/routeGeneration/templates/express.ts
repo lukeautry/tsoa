@@ -1,4 +1,5 @@
 export const expressTemplate = `
+/* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
@@ -45,7 +46,7 @@ export function RegisterRoutes(app: any) {
     function getRequestParams(request: any, bodyParamName?: string) {
         const merged: any = {};
         if (bodyParamName) {
-            merged[bodyParamName] = request.body;            
+            merged[bodyParamName] = request.body;
         }
 
         for (let attrname in request.params) { merged[attrname] = request.params[attrname]; }
@@ -55,7 +56,7 @@ export function RegisterRoutes(app: any) {
 
     function getValidatedParams(params: any, request: any, bodyParamName?: string): any[] {
         const requestParams = getRequestParams(request, bodyParamName);
-        
+
         return Object.keys(params).map(key => {
             if (params[key].injected === 'inject') {
               return undefined;

@@ -1,4 +1,5 @@
 export const koaTemplate = `
+/* tslint:disable:forin */
 import * as KoaRouter from 'koa-router';
 
 export function RegisterRoutes(router: KoaRouter) {
@@ -41,14 +42,14 @@ export function RegisterRoutes(router: KoaRouter) {
         .catch((error: any) => {
           context.status = error.status || 500;
           context.body = error;
-          next();  
+          next();
         });
     }
 
     function getRequestParams(context: KoaRouter.IRouterContext, bodyParamName?: string) {
         const merged: any = {};
         if (bodyParamName) {
-            merged[bodyParamName] = context.request.body;            
+            merged[bodyParamName] = context.request.body;
         }
 
         for (let attrname in context.params) { merged[attrname] = context.params[attrname]; }
@@ -58,7 +59,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
     function getValidatedParams(params: any, context: KoaRouter.IRouterContext, bodyParamName?: string): any[] {
         const requestParams = getRequestParams(context, bodyParamName);
-        
+
         return Object.keys(params).map(key => {
             if (params[key].injected === 'inject') {
               return undefined;
