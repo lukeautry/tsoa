@@ -115,7 +115,7 @@ export class ParameterGenerator {
     }
 
     const type = parameterType as string;
-    return !!['string', 'boolean', 'number', 'datetime'].find(t => t === type);
+    return !!['string', 'boolean', 'number', 'datetime', 'buffer'].find(t => t === type);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {

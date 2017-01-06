@@ -21,7 +21,7 @@ describe('Metadata generation', () => {
       'getClassModel', 'getMultipleModels', 'getModelByParams',
       'getResponseWithUnionTypeProperty', 'getUnionTypeResponse',
       'getInjectedRequest', 'getInjectedValue', 'getByDataParam',
-      'getThrowsError', 'getGeneratesTags'];
+      'getThrowsError', 'getGeneratesTags', 'getBuffer'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);

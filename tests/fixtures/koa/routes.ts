@@ -525,6 +525,24 @@ export function RegisterRoutes(router: KoaRouter) {
     const controller = new GetTestController();
     promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), context, next);
   });
+  router.get('/v1/GetTest/HandleBufferType', async (context, next) => {
+    const params = {
+      'buffer': { typeName: 'buffer', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, context, '');
+    } catch (error) {
+      context.status = error.status || 500;
+      context.body = error;
+      next();
+      return;
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getBuffer.apply(controller, validatedParams), context, next);
+  });
   router.delete('/v1/DeleteTest', async (context, next) => {
     const params = {
     };

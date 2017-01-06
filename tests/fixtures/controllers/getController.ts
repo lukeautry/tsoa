@@ -122,6 +122,11 @@ export class GetTestController {
   public async getGeneratesTags(): Promise<TestModel> {
     return new ModelService().getModel();
   }
+
+  @Get('HandleBufferType')
+  public async getBuffer(buffer: Buffer): Promise<Buffer> {
+    return new Buffer('testbuffer');
+  }
 }
 
 export interface CustomError extends Error {
