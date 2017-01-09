@@ -25,6 +25,8 @@ export class GetTestController {
     numberArray: [1, 2, 3],
     numberValue: 1,
     optionalString: 'optional string',
+    strLiteralArr: ['Foo', 'Bar'],
+    strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
     stringValue: 'a string'
   })

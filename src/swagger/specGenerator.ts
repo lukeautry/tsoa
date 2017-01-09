@@ -52,16 +52,20 @@ export class SpecGenerator {
 
   private buildDefinitions() {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
-
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
-
       definitions[referenceType.name] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
         required: referenceType.properties.filter(p => p.required).map(p => p.name),
         type: 'object'
       };
+      if (referenceType.enum) {
+        definitions[referenceType.name].type = 'string';
+        delete definitions[referenceType.name].properties;
+        delete definitions[referenceType.name].required;
+        definitions[referenceType.name].enum = referenceType.enum as [string];
+      }
     });
 
     return definitions;

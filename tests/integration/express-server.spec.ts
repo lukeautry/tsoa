@@ -226,6 +226,8 @@ describe('Express Server', () => {
       numberArray: [1, 2],
       numberValue: 5,
       optionalString: 'test1234',
+      strLiteralArr: ['Foo', 'Bar'],
+      strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
       stringValue: 'test1234'
     };

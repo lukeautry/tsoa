@@ -53,9 +53,11 @@ export interface User {
     id: number;
     email: string;
     name: Name;
-    status?: string;
+    status?: status;
     phoneNumbers: string[];
 }
+
+export type status = 'Happy' | 'Sad';
 
 export interface Name {
     first: string;
@@ -68,6 +70,8 @@ export interface UserCreationRequest {
     phoneNumbers: string[];
 }
 ```
+
+Note that type aliases are only supported for string literal types like `type status = 'Happy' | 'Sad'`
 
 ### Generate
 

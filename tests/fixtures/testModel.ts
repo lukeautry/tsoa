@@ -13,9 +13,17 @@ export interface TestModel extends Model {
   boolArray: boolean[];
   modelValue: TestSubModel;
   modelsArray: TestSubModel[];
+  // strLiteralVal: string ; // StrLiteral;
+  // strLiteralArr: string[] ; // StrLiteral[];
+  strLiteralVal: StrLiteral;
+  strLiteralArr: StrLiteral[];
   dateValue?: Date;
   optionalString?: string;
 }
+
+// shortened from StringLiteral to make the tslint enforced
+// alphabetical sorting cleaner
+export type StrLiteral = 'Foo' | 'Bar';
 
 export interface TestSubModel extends Model {
   email: string;
