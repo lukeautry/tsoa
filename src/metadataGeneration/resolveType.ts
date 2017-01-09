@@ -63,9 +63,9 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     properties: properties
   };
   if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-    let innerType = modelTypeDeclaration.type;
+    const innerType = modelTypeDeclaration.type;
     if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
-      let unionTypes = (innerType as any).types;
+      const unionTypes = (innerType as any).types;
       referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
     }
   }
