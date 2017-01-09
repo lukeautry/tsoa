@@ -102,6 +102,7 @@ export interface ReferenceType {
   description: string;
   name: string;
   properties: Property[];
+  enum?: string[];
 }
 
 export interface Property {
