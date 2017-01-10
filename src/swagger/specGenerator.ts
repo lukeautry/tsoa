@@ -145,7 +145,9 @@ export class SpecGenerator {
 
     properties.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type);
-      swaggerType.description = property.description;
+      if (!swaggerType.$ref) {
+        swaggerType.description = property.description;
+      }
       swaggerProperties[property.name] = swaggerType;
     });
 
