@@ -170,6 +170,7 @@ export class SpecGenerator {
   private getSwaggerTypeForPrimitiveType(primitiveTypeName: PrimitiveType) {
     const typeMap: { [name: string]: Swagger.Schema } = {
       boolean: { type: 'boolean' },
+      buffer: { type: 'string', format: 'base64' },
       datetime: { format: 'date-time', type: 'string' },
       number: { format: 'int64', type: 'integer' },
       object: { type: 'object' },

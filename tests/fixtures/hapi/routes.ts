@@ -557,6 +557,25 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   });
   server.route({
+    method: 'get',
+    path: '/v1/GetTest/HandleBufferType',
+    handler: (request: any, reply) => {
+      const params = {
+        'buffer': { typeName: 'buffer', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, request, '');
+      } catch (err) {
+        return reply(err).code(err.status || 500);
+      }
+
+      const controller = new GetTestController();
+      return promiseHandler(controller.getBuffer.apply(controller, validatedParams), request, reply);
+    }
+  });
+  server.route({
     method: 'delete',
     path: '/v1/DeleteTest',
     handler: (request: any, reply) => {

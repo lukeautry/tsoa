@@ -24,6 +24,8 @@ export function ValidateParam(typeData: any, value: any, generatedModels: any, n
       return validateArray(value, typeData.arrayType, <any>name);
     case 'datetime':
       return validateDate(value, name);
+    case 'buffer':
+      return validateBuffer(value, name);
     default:
       return validateModel(value, typeData.typeName);
   }
@@ -81,6 +83,10 @@ function validateArray(array: any[], arrayType: string, arrayName: string): any[
     required: true,
     typeName: arrayType,
   }, element, models, undefined));
+}
+
+function validateBuffer(value: string, name: string) {
+  return new Buffer(value);
 }
 
 interface Exception extends Error {

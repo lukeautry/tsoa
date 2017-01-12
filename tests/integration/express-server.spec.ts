@@ -3,6 +3,7 @@ import { app } from '../fixtures/express/server';
 import { TestModel, TestClassModel, BooleanResponseModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
+import { base64image } from '../fixtures/base64image';
 
 const expect = chai.expect;
 const basePath = '/v1';
@@ -81,6 +82,13 @@ describe('Express Server', () => {
     return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
+    });
+  });
+
+  it.only('parses buffer parameter', () => {
+    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
+      /* tslint:disable */
+      console.log(res);
     });
   });
 

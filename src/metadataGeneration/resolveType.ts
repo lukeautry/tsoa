@@ -32,9 +32,8 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
   let typeReference: any = typeNode;
-  if (typeReference.typeName.text === 'Date') {
-    return 'datetime';
-  }
+  if (typeReference.typeName.text === 'Date') { return 'datetime'; }
+  if (typeReference.typeName.text === 'Buffer') { return 'buffer'; }
 
   if (typeReference.typeName.text === 'Promise') {
     typeReference = typeReference.typeArguments[0];
