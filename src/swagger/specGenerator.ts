@@ -38,7 +38,7 @@ export class SpecGenerator {
     }
 
     if (this.config.description) { spec.info.description = this.config.description; }
-    if (this.config.license) { spec.info.license = {name: this.config.license}; }
+    if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.name) { spec.info.title = this.config.name; }
     if (this.config.version) { spec.info.version = this.config.version; }
     if (this.config.host) { spec.host = this.config.host; }
@@ -174,7 +174,7 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForPrimitiveType(primitiveTypeName: PrimitiveType) {
-    const typeMap: {[name: string]: Swagger.Schema} = {
+    const typeMap: { [name: string]: Swagger.Schema } = {
       boolean: { type: 'boolean' },
       buffer: { type: 'string', format: 'base64' },
       datetime: { format: 'date-time', type: 'string' },
@@ -202,7 +202,7 @@ export class SpecGenerator {
       operationId: methodName,
       produces: ['application/json'],
       responses: {
-        '200': { description: '', examples: {'application/json': example}, schema: swaggerType }
+        '200': { description: '', examples: { 'application/json': example }, schema: swaggerType }
       }
     };
   }
