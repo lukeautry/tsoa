@@ -45,11 +45,11 @@ export class SpecGenerator {
 
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
-      const mergeFuncs: {[key: string]: Function} = {
+      const mergeFuncs: { [key: string]: Function } = {
+        immediate: Object.assign,
         recursive: require('merge').recursive,
-        immediate: Object.assign
       };
-      
+
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
 
