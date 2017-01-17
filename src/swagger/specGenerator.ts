@@ -44,7 +44,13 @@ export class SpecGenerator {
     if (this.config.host) { spec.host = this.config.host; }
 
     if (this.config.spec) {
-      spec = Object.assign(spec, this.config.spec);
+      this.config.specMerging = this.config.specMerging || 'immediate';
+      const mergeFuncs: {[key: string]: Function} = {
+        recursive: require('merge').recursive,
+        immediate: Object.assign
+      };
+      
+      spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
 
     return spec;
