@@ -201,7 +201,7 @@ export class FooController {
 @provideSingleton(FooService)
 export class FooService {
     constructor(
-        // maybe even more dependecies to be injected...
+        // maybe even more dependencies to be injected...
     )
 }
 ```
