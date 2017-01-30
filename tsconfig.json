@@ -9,14 +9,14 @@
         "declaration": true,
         "noUnusedLocals": true,
         "strictNullChecks": true,
-        "newLine": "LF"
-
+        "newLine": "LF",
+        "noUnusedParameters": false,
+        "emitDecoratorMetadata": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
     },
     "include": [
         "src/**/*.ts"
-    ],
-    "filesGlob": [
-        "src/**/*.ts",
-        "tests/**/*.ts"
     ]
 }

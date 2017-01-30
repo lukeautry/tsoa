@@ -3,8 +3,8 @@
  */
 export interface TestModel extends Model {
   /**
-   * This is a description of this model property, numberValue
-   */
+  * This is a description of this model property, numberValue
+  */
   numberValue: number;
   numberArray: number[];
   stringValue: string;
@@ -13,9 +13,17 @@ export interface TestModel extends Model {
   boolArray: boolean[];
   modelValue: TestSubModel;
   modelsArray: TestSubModel[];
+  // strLiteralVal: string ; // StrLiteral;
+  // strLiteralArr: string[] ; // StrLiteral[];
+  strLiteralVal: StrLiteral;
+  strLiteralArr: StrLiteral[];
   dateValue?: Date;
   optionalString?: string;
 }
+
+// shortened from StringLiteral to make the tslint enforced
+// alphabetical sorting cleaner
+export type StrLiteral = 'Foo' | 'Bar';
 
 export interface TestSubModel extends Model {
   email: string;
@@ -39,8 +47,8 @@ export class TestClassBaseModel {
  */
 export class TestClassModel extends TestClassBaseModel {
   /**
-   * This is a description of a public string property
-   */
+  * This is a description of a public string property
+  */
   public publicStringProperty: string;
   public optionalPublicStringProperty?: string;
   /* tslint:disable-next-line */
@@ -48,8 +56,8 @@ export class TestClassModel extends TestClassBaseModel {
   protected protectedStringProperty: string;
 
   /**
-   * @param publicConstructorVar This is a description for publicConstructorVar
-   */
+  * @param publicConstructorVar This is a description for publicConstructorVar
+  */
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,

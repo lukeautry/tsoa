@@ -1,13 +1,14 @@
 import 'mocha';
-import { app } from '../fixtures/server';
+import { app } from '../fixtures/express/server';
 import { TestModel, TestClassModel, BooleanResponseModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
+import { base64image } from '../fixtures/base64image';
 
 const expect = chai.expect;
 const basePath = '/v1';
 
-describe('Server', () => {
+describe('Express Server', () => {
   it('can handle get request with no path argument', () => {
     return verifyGetRequest(basePath + '/GetTest', (err, res) => {
       const model = res.body as TestModel;
@@ -39,6 +40,22 @@ describe('Server', () => {
     });
   });
 
+  it('injects express request in parameters', () => {
+    return verifyGetRequest(basePath + `/GetTest/InjectedRequest`, (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+      expect(model.stringValue).to.equal('fancyStringForContext');
+    });
+  });
+
+  it('injects undefined as custom value in parameters', () => {
+    return verifyGetRequest(basePath + `/GetTest/InjectedValue`, (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+      expect(model.stringValue).to.be.undefined;
+    });
+  });
+
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(err.text).to.equal('numberParam is a required parameter.');
@@ -65,6 +82,13 @@ describe('Server', () => {
     return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
+    });
+  });
+
+  it.only('parses buffer parameter', () => {
+    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
+      /* tslint:disable */
+      console.log(res);
     });
   });
 
@@ -113,6 +137,12 @@ describe('Server', () => {
     }, 200);
   });
 
+  it('should parse valid date as query param', () => {
+    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+    }, 200);
+  });
+
   it('should reject invalid dates', () => {
     const invalidValues = [1, {}];
 
@@ -139,6 +169,21 @@ describe('Server', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(err.text).to.contain('Cannot GET');
     }, 404);
+  });
+
+  it('returns error if invalid request', () => {
+    const data = getFakeModel();
+    data.dateValue = 1 as any;
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      expect(err.text).to.equal('dateValue should be a valid ISO 8601 date, i.e. YYYY-MM-DDTHH:mm:ss');
+    }, 400);
+  });
+
+  it('returns error if thrown in controller', () => {
+    return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
+      expect(err.text).to.equal('error thrown');
+    }, 400);
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
@@ -189,6 +234,8 @@ describe('Server', () => {
       numberArray: [1, 2],
       numberValue: 5,
       optionalString: 'test1234',
+      strLiteralArr: ['Foo', 'Bar'],
+      strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
       stringValue: 'test1234'
     };

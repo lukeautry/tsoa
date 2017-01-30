@@ -10,7 +10,7 @@
     - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
     - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
-    - Express currently included, other middleware can be supported using a simple handlebars template
+    - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
     - Validate request payloads
 
 ## Philosophy
@@ -53,9 +53,11 @@ export interface User {
     id: number;
     email: string;
     name: Name;
-    status?: string;
+    status?: status;
     phoneNumbers: string[];
 }
+
+export type status = 'Happy' | 'Sad';
 
 export interface Name {
     first: string;
@@ -68,6 +70,8 @@ export interface UserCreationRequest {
     phoneNumbers: string[];
 }
 ```
+
+Note that type aliases are only supported for string literal types like `type status = 'Happy' | 'Sad'`
 
 ### Generate
 
@@ -103,6 +107,28 @@ RegisterRoutes(app);
 app.listen(3000);
 
 ```
+
+### Get access to the request object of express in Controllers
+
+To access the request object of express in a controller method use the `@Request`-decorator:
+```typescript
+// controllers/usersController.ts
+
+import * as express from 'express';
+import {Get, Route, Request} from 'tsoa';
+import {User, UserCreationRequest} from '../models/user';
+
+@Route('Users')
+export class UsersController {
+    @Get('{id}')
+    public async getUser(id: number, @Request() request: express.Request): Promise<User> {
+        // TODO: implement some code that uses request as well
+    }
+}
+```
+Note that the parameter `request` does not appear in your swagger definition file. 
+Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
+In this case you should write your own custom template where you inject the needed objects/values in the method-call. 
 
 ### Use awesome Swagger tools
 
@@ -143,3 +169,5 @@ Options:
 ## Examples
 
 [An example project is available here](https://github.com/lukeautry/tsoa-example)
+
+Also see example controllers in [the tests](tests/fixtures/controllers)

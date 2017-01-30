@@ -15,9 +15,8 @@
       true,
       "never-prefix"
     ],
-    "jsdoc-format": true,
+    "jsdoc-format": false,
     "label-position": true,
-    "label-undefined": true,
     "member-access": [
       "check-accessor"
     ],
@@ -31,7 +30,7 @@
     "no-arg": true,
     "no-bitwise": false,
     "no-conditional-assignment": true,
-    "no-consecutive-blank-lines": false,
+    "no-consecutive-blank-lines": "true",
     "no-console": [
       true,
       "log",
@@ -42,13 +41,10 @@
       "trace"
     ],
     "no-construct": true,
-    "no-constructor-vars": false,
     "no-debugger": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-empty": true,
     "no-eval": true,
-    "no-inferrable-types": true,
     "no-internal-module": true,
     "no-invalid-this": true,
     "no-reference": false,
@@ -61,9 +57,7 @@
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
-    "no-unreachable": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": false,

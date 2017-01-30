@@ -17,13 +17,15 @@ export function ValidateParam(typeData: any, value: any, generatedModels: any, n
     case 'string':
       return validateString(value, name);
     case 'boolean':
-      return validateBool(value, name);
+      return validateBool(value, <any>name);
     case 'number':
-      return validateNumber(value, name);
+      return validateNumber(value, <any>name);
     case 'array':
-      return validateArray(value, typeData.arrayType, name);
+      return validateArray(value, typeData.arrayType, <any>name);
     case 'datetime':
       return validateDate(value, name);
+    case 'buffer':
+      return validateBuffer(value, name);
     default:
       return validateModel(value, typeData.typeName);
   }
@@ -66,10 +68,12 @@ function validateBool(boolValue: any, name: string): boolean {
 function validateModel(modelValue: any, typeName: string): any {
   const modelDefinition = models[typeName];
 
-  Object.keys(modelDefinition).forEach((key: string) => {
-    const property = modelDefinition[key];
-    modelValue[key] = ValidateParam(property, modelValue[key], models, key);
-  });
+  if (modelDefinition) {
+    Object.keys(modelDefinition).forEach((key: string) => {
+      const property = modelDefinition[key];
+      modelValue[key] = ValidateParam(property, modelValue[key], models, key);
+    });
+  }
 
   return modelValue;
 }
@@ -79,6 +83,10 @@ function validateArray(array: any[], arrayType: string, arrayName: string): any[
     required: true,
     typeName: arrayType,
   }, element, models, undefined));
+}
+
+function validateBuffer(value: string, name: string) {
+  return new Buffer(value);
 }
 
 interface Exception extends Error {

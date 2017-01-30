@@ -43,6 +43,21 @@ describe('GET route generation', () => {
     verifyPath(baseRoute);
   });
 
+  it('should generate params for date type parameter', () => {
+    const parameters = getValidatedParameters(`${baseRoute}/DateParam`);
+
+    const parameter = parameters[0];
+    if (!parameter) { throw new Error('Should have one parameter.'); }
+
+    chai.expect(parameter.type).to.equal('string');
+    chai.expect(parameter.format).to.equal('date-time');
+  });
+
+  it('should generate tags for tag decorated method', () => {
+    const operation = getValidatedGetOperation(`${baseRoute}/GeneratesTags`);
+    chai.expect(operation.tags).to.deep.equal(['test', 'test-two']);
+  });
+
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator(pathlessMetadata, getDefaultOptions()).GetSpec();
@@ -99,6 +114,24 @@ describe('GET route generation', () => {
     if (!successResponse.schema.type) { throw new Error('No response schema type.'); }
 
     expect(successResponse.schema.type).to.equal('object');
+  });
+
+  it('should not generate a parameter for a parameter decorated with @Request', () => {
+    const actionRoute = `${baseRoute}/InjectedRequest`;
+    const get = getValidatedGetOperation(actionRoute);
+    expect(get.parameters).not.to.be.undefined;
+    if (get.parameters) {
+      expect(get.parameters.length).to.equal(0);
+    }
+  });
+
+  it('should not generate a parameter for a parameter decorated with @Reject', () => {
+    const actionRoute = `${baseRoute}/InjectedValue`;
+    const get = getValidatedGetOperation(actionRoute);
+    expect(get.parameters).not.to.be.undefined;
+    if (get.parameters) {
+      expect(get.parameters.length).to.equal(0);
+    }
   });
 
   it('should reject complex types as arguments', () => {

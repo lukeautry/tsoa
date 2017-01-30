@@ -1,5 +1,7 @@
 import { expressTemplate } from './templates/express';
-import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { hapiTemplate } from './templates/hapi';
+import { koaTemplate } from './templates/koa';
+import { InjectType, Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
@@ -11,12 +13,19 @@ const appRoot: string = require('app-root-path').path;
 export class RouteGenerator {
   constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
 
-  public GenerateRoutes(middlewareTemplate: string) {
+  public GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
-    const content = this.buildContent(middlewareTemplate);
+    const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     return new Promise<void>((resolve, reject) => {
-      tsfmt.processString(fileName, content, {} as any)
+      tsfmt.processString(fileName, content, {
+        editorconfig: true,
+        replace: true,
+        tsconfig: true,
+        tsfmt: true,
+        tslint: true,
+        verify: true
+      })
         .then(result => {
           fs.writeFile(fileName, result.dest, (err) => {
             if (err) {
@@ -31,10 +40,18 @@ export class RouteGenerator {
   }
 
   public GenerateExpressRoutes() {
-    return this.GenerateRoutes(expressTemplate);
+    return this.GenerateRoutes(expressTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
   }
 
-  private buildContent(middlewareTemplate: string) {
+  public GenerateHapiRoutes() {
+    return this.GenerateRoutes(hapiTemplate, path => path);
+  }
+
+  public GenerateKoaRoutes() {
+    return this.GenerateRoutes(koaTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
+  }
+
+  private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     let canImportByAlias: boolean;
     try {
       require('tsoa');
@@ -43,12 +60,8 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
-    const routesTemplate = handlebars.compile(`
-            /**
-             * THIS IS GENERATED CODE - DO NOT EDIT
-             */
-            /* tslint:disable */
-            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../src/routeGeneration/templateHelpers'}';
+    const routesTemplate = handlebars.compile(`/* tslint:disable */
+            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
             {{/each}}
@@ -75,7 +88,7 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: method.parameters.map(parameter => this.getTemplateProperty(parameter)),
-              path: this.getExpressPath(method.path)
+              path: pathTransformer(method.path)
             };
           }),
           jwtUserProperty: controller.jwtUserProperty,
@@ -123,6 +136,10 @@ export class RouteGenerator {
       required: source.required,
       typeName: this.getStringRepresentationOfType(source.type)
     };
+    const parameter = source as Parameter;
+    if (parameter.injected) {
+      templateProperty.injected = parameter.injected;
+    }
 
     const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
@@ -130,10 +147,6 @@ export class RouteGenerator {
     }
 
     return templateProperty;
-  }
-
-  private getExpressPath(path: string) {
-    return path.replace(/{/g, ':').replace(/}/g, '');
   }
 }
 
@@ -147,4 +160,5 @@ interface TemplateProperty {
   typeName: string;
   required: boolean;
   arrayType?: string;
+  injected?: InjectType;
 }

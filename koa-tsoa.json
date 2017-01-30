@@ -1,7 +1,7 @@
 {
     "swagger": {
         "outputDirectory": "./dist",
-        "entryFile": "./tests/fixtures/express/server.ts",
+        "entryFile": "./tests/fixtures/server.ts",
         "host": "localhost:3000",
         "version": "1.0",
         "name": "tsoa app",
@@ -27,8 +27,8 @@
     },
     "routes": {
         "basePath": "/v1",
-        "entryFile": "./tests/fixtures/express/server.ts",
-        "routesDir": "./tests/fixtures/express",
-        "middleware": "express"
+        "entryFile": "./tests/fixtures/koa/server.ts",
+        "routesDir": "./tests/fixtures/koa",
+        "middleware": "koa"
     }
 }

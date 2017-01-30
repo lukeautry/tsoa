@@ -10,6 +10,7 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
 export function ResolveType(typeNode: ts.TypeNode): Type {
   const primitiveType = syntaxKindMap[typeNode.kind];
   if (primitiveType) {
@@ -30,11 +31,9 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
     throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
-
   let typeReference: any = typeNode;
-  if (typeReference.typeName.text === 'Date') {
-    return 'datetime';
-  }
+  if (typeReference.typeName.text === 'Date') { return 'datetime'; }
+  if (typeReference.typeName.text === 'Buffer') { return 'buffer'; }
 
   if (typeReference.typeName.text === 'Promise') {
     typeReference = typeReference.typeArguments[0];
@@ -62,6 +61,13 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     name: typeName,
     properties: properties
   };
+  if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+    const innerType = modelTypeDeclaration.type;
+    if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
+      const unionTypes = (innerType as any).types;
+      referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
+    }
+  }
 
   const extendedProperties = getInheritedProperties(modelTypeDeclaration);
   referenceType.properties = referenceType.properties.concat(extendedProperties);
@@ -93,15 +99,24 @@ function createCircularDependencyResolver(typeName: string) {
 }
 
 function getModelTypeDeclaration(typeName: string) {
+  const nodeIsNotUsable = (node: ts.Node) => {
+    switch (node.kind) {
+      case ts.SyntaxKind.InterfaceDeclaration:
+      case ts.SyntaxKind.ClassDeclaration:
+      case ts.SyntaxKind.TypeAliasDeclaration:
+        return false;
+      default: return true;
+    }
+  };
   const modelTypes = MetadataGenerator.current.nodes
     .filter(node => {
-      if ((node.kind !== ts.SyntaxKind.InterfaceDeclaration && node.kind !== ts.SyntaxKind.ClassDeclaration) || !MetadataGenerator.IsExportedNode(node)) {
+      if (nodeIsNotUsable(node) || !MetadataGenerator.current.IsExportedNode(node)) {
         return false;
       }
 
-      const modelTypeDeclaration = node as ts.InterfaceDeclaration | ts.ClassDeclaration;
+      const modelTypeDeclaration = node as UsableDeclaration;
       return (modelTypeDeclaration.name as ts.Identifier).text.toLowerCase() === typeName.toLowerCase();
-    }) as Array<ts.InterfaceDeclaration | ts.ClassDeclaration>;
+    }) as Array<UsableDeclaration>;
 
   if (!modelTypes.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
   if (modelTypes.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
@@ -109,7 +124,7 @@ function getModelTypeDeclaration(typeName: string) {
   return modelTypes[0];
 }
 
-function getModelTypeProperties(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+function getModelTypeProperties(node: UsableDeclaration) {
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
     return interfaceDeclaration.members
@@ -127,6 +142,16 @@ function getModelTypeProperties(node: ts.InterfaceDeclaration | ts.ClassDeclarat
           type: ResolveType(propertyDeclaration.type)
         };
       });
+  }
+
+  if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+    /**
+     * TOOD
+     * 
+     * Flesh this out so that we can properly support Type Alii instead of just assuming
+     * string literal enums
+    */
+    return [];
   }
 
   const classDeclaration = node as ts.ClassDeclaration;
@@ -164,9 +189,11 @@ function hasPublicModifier(node: ts.Node) {
   });
 }
 
-function getInheritedProperties(modelTypeDeclaration: ts.InterfaceDeclaration | ts.ClassDeclaration): Property[] {
+function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Property[] {
   const properties = new Array<Property>();
-
+  if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+    return [];
+  }
   const heritageClauses = modelTypeDeclaration.heritageClauses;
   if (!heritageClauses) { return properties; }
 
@@ -183,17 +210,17 @@ function getInheritedProperties(modelTypeDeclaration: ts.InterfaceDeclaration | 
   return properties;
 }
 
-function getModelDescription(modelTypeDeclaration: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+function getModelDescription(modelTypeDeclaration: UsableDeclaration) {
   return getNodeDescription(modelTypeDeclaration);
 }
 
-function getNodeDescription(node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
+function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
   let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
 
   /**
-   * TODO: Workaround for what seems like a bug in the compiler
-   * Warrants more investigation and possibly a PR against typescript
-   */
+  * TODO: Workaround for what seems like a bug in the compiler
+  * Warrants more investigation and possibly a PR against typescript
+  */
   // 
   if (node.kind === ts.SyntaxKind.Parameter) {
     // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'

@@ -1,15 +1,17 @@
 import { Example } from '../../../src/decorators/example';
+import { Inject, Request } from '../../../src/decorators/inject';
 import { Get } from '../../../src/decorators/methods';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
 import { TestModel, TestSubModel, TestClassModel } from '../testModel';
+import { Tags } from '../../../src/decorators/tags';
 
 @Route('GetTest')
 export class GetTestController {
   /**
-   * This is a description of the getModel method
-   * this is some more text on another line
-   */
+  * This is a description of the getModel method
+  * this is some more text on another line
+  */
   @Get()
   @Example<TestModel>({
     boolArray: [true, false],
@@ -23,6 +25,8 @@ export class GetTestController {
     numberArray: [1, 2, 3],
     numberValue: 1,
     optionalString: 'optional string',
+    strLiteralArr: ['Foo', 'Bar'],
+    strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
     stringValue: 'a string'
   })
@@ -50,9 +54,9 @@ export class GetTestController {
   }
 
   /**
-   * @param numberPathParam This is a description for numberPathParam
-   * @param numberParam This is a description for numberParam
-   */
+  * @param numberPathParam This is a description for numberPathParam
+  * @param numberParam This is a description for numberParam
+  */
   @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
   public async getModelByParams(
     numberPathParam: number,
@@ -82,6 +86,54 @@ export class GetTestController {
   public async getUnionTypeResponse(): Promise<string | boolean> {
     return '';
   }
+
+  @Get('InjectedRequest')
+  public async getInjectedRequest( @Request() request: Object): Promise<TestModel> {
+    let model = new ModelService().getModel();
+    // set the stringValue from the request context to test successful injection
+    model.stringValue = (<any>request).stringValue;
+    return model;
+  }
+
+  @Get('InjectedValue')
+  public async getInjectedValue( @Inject() someValue: string): Promise<TestModel> {
+    let model = new ModelService().getModel();
+    // set the stringValue to the injected value to test successful injection
+    model.stringValue = someValue;
+    return model;
+  }
+
+  @Get('DateParam')
+  public async getByDataParam(date: Date): Promise<TestModel> {
+    const model = new ModelService().getModel();
+    model.dateValue = date;
+
+    return model;
+  }
+
+  @Get('ThrowsError')
+  public async getThrowsError(): Promise<TestModel> {
+    throw {
+      message: 'error thrown',
+      status: 400
+    };
+  }
+
+  @Get('GeneratesTags')
+  @Tags('test', 'test-two')
+  public async getGeneratesTags(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Get('HandleBufferType')
+  public async getBuffer(buffer: Buffer): Promise<Buffer> {
+    return new Buffer('testbuffer');
+  }
+}
+
+export interface CustomError extends Error {
+  message: string;
+  status: number;
 }
 
 export interface Result {

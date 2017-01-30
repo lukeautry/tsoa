@@ -44,7 +44,13 @@ export class SpecGenerator {
     if (this.config.host) { spec.host = this.config.host; }
 
     if (this.config.spec) {
-      spec = Object.assign(spec, this.config.spec);
+      this.config.specMerging = this.config.specMerging || 'immediate';
+      const mergeFuncs: { [key: string]: Function } = {
+        immediate: Object.assign,
+        recursive: require('merge').recursive,
+      };
+
+      spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
 
     return spec;
@@ -52,16 +58,20 @@ export class SpecGenerator {
 
   private buildDefinitions() {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
-
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
-
       definitions[referenceType.name] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
         required: referenceType.properties.filter(p => p.required).map(p => p.name),
         type: 'object'
       };
+      if (referenceType.enum) {
+        definitions[referenceType.name].type = 'string';
+        delete definitions[referenceType.name].properties;
+        delete definitions[referenceType.name].required;
+        definitions[referenceType.name].enum = referenceType.enum as [string];
+      }
     });
 
     return definitions;
@@ -99,7 +109,9 @@ export class SpecGenerator {
       : this.get200Operation(swaggerType, method.example, method.name);
 
     pathMethod.description = method.description;
-    pathMethod.parameters = method.parameters.map(p => this.buildParameter(p));
+    pathMethod.parameters = method.parameters.filter(p => !p.injected).map(p => this.buildParameter(p));
+
+    if (method.tags.length) { pathMethod.tags = method.tags; }
 
     if (jwtUserProperty !== '') {
       pathMethod.security = [
@@ -129,6 +141,8 @@ export class SpecGenerator {
       swaggerParameter.type = parameterType.type;
     }
 
+    if (parameterType.format) { swaggerParameter.format = parameterType.format; }
+
     return swaggerParameter;
   }
 
@@ -137,7 +151,9 @@ export class SpecGenerator {
 
     properties.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type);
-      swaggerType.description = property.description;
+      if (!swaggerType.$ref) {
+        swaggerType.description = property.description;
+      }
       swaggerProperties[property.name] = swaggerType;
     });
 
@@ -158,13 +174,15 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForPrimitiveType(primitiveTypeName: PrimitiveType) {
-    const typeMap: { [name: string]: Swagger.Schema } = {};
-    typeMap['number'] = { format: 'int64', type: 'integer' };
-    typeMap['string'] = { type: 'string' };
-    typeMap['boolean'] = { type: 'boolean' };
-    typeMap['datetime'] = { format: 'date-time', type: 'string' };
-    typeMap['object'] = { type: 'object' };
-    typeMap['void'] = { type: 'void' };
+    const typeMap: { [name: string]: Swagger.Schema } = {
+      boolean: { type: 'boolean' },
+      buffer: { type: 'string', format: 'base64' },
+      datetime: { format: 'date-time', type: 'string' },
+      number: { format: 'int64', type: 'integer' },
+      object: { type: 'object' },
+      string: { type: 'string' },
+      void: { type: 'void' }
+    };
 
     return typeMap[primitiveTypeName];
   }

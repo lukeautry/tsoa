@@ -1,21 +1,19 @@
-
-/**
- * THIS IS GENERATED CODE - DO NOT EDIT
- */
 /* tslint:disable */
-import { ValidateParam } from '../../src/routeGeneration/templateHelpers';
-import { PutTestController } from './controllers/putController';
-import { PostTestController } from './controllers/postController';
-import { PatchTestController } from './controllers/patchController';
-import { GetTestController } from './controllers/getController';
-import { DeleteTestController } from './controllers/deleteController';
-import { JwtGetTestController } from './controllers/jwtEnabledController';
+import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { PutTestController } from './../controllers/putController';
+import { PostTestController } from './../controllers/postController';
+import { PatchTestController } from './../controllers/patchController';
+import { GetTestController } from './../controllers/getController';
+import { DeleteTestController } from './../controllers/deleteController';
+import { JwtGetTestController } from './../controllers/jwtEnabledController';
 
 const models: any = {
   'TestSubModel': {
     'email': { typeName: 'string', required: true },
     'circular': { typeName: 'TestModel', required: false },
     'id': { typeName: 'number', required: true },
+  },
+  'StrLiteral': {
   },
   'TestModel': {
     'numberValue': { typeName: 'number', required: true },
@@ -26,6 +24,8 @@ const models: any = {
     'boolArray': { typeName: 'array', required: true, arrayType: 'boolean' },
     'modelValue': { typeName: 'TestSubModel', required: true },
     'modelsArray': { typeName: 'array', required: true, arrayType: 'TestSubModel' },
+    'strLiteralVal': { typeName: 'StrLiteral', required: true },
+    'strLiteralArr': { typeName: 'array', required: true, arrayType: 'StrLiteral' },
     'dateValue': { typeName: 'datetime', required: false },
     'optionalString': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
@@ -46,6 +46,7 @@ const models: any = {
   },
 };
 
+/* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
   app.put('/v1/PutTest', function(req: any, res: any, next: any) {
     const params = {
@@ -372,6 +373,94 @@ export function RegisterRoutes(app: any) {
     const controller = new GetTestController();
     promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), res, next);
   });
+  app.get('/v1/GetTest/InjectedRequest', function(req: any, res: any, next: any) {
+    const params = {
+      'request': { typeName: 'object', required: true, injected: 'request' },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/InjectedValue', function(req: any, res: any, next: any) {
+    const params = {
+      'someValue': { typeName: 'object', required: true, injected: 'inject' },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/DateParam', function(req: any, res: any, next: any) {
+    const params = {
+      'date': { typeName: 'datetime', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getByDataParam.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/ThrowsError', function(req: any, res: any, next: any) {
+    const params = {
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getThrowsError.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/GeneratesTags', function(req: any, res: any, next: any) {
+    const params = {
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), res, next);
+  });
+  app.get('/v1/GetTest/HandleBufferType', function(req: any, res: any, next: any) {
+    const params = {
+      'buffer': { typeName: 'buffer', required: true },
+    };
+
+    let validatedParams: any[] = [];
+    try {
+      validatedParams = getValidatedParams(params, req, '');
+    } catch (err) {
+      return next(err);
+    }
+
+    const controller = new GetTestController();
+    promiseHandler(controller.getBuffer.apply(controller, validatedParams), res, next);
+  });
   app.delete('/v1/DeleteTest', function(req: any, res: any, next: any) {
     const params = {
     };
@@ -468,7 +557,13 @@ export function RegisterRoutes(app: any) {
     const requestParams = getRequestParams(request, bodyParamName);
 
     return Object.keys(params).map(key => {
-      return ValidateParam(params[key], requestParams[key], models, key);
+      if (params[key].injected === 'inject') {
+        return undefined;
+      } else if (params[key].injected === 'request') {
+        return request;
+      } else {
+        return ValidateParam(params[key], requestParams[key], models, key);
+      }
     });
   }
 }
