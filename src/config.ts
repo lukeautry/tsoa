@@ -88,4 +88,9 @@ export interface RoutesConfig {
   * Middleware provider
   */
   middleware?: 'express' | 'hapi' | 'koa';
+
+  /**
+   * Kernel module; e.g. './inversify/ioc' where kernel is defined (https://github.com/inversify/InversifyJS)
+   */
+  kernelModule?: string;
 }

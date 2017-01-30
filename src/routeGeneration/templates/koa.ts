@@ -22,7 +22,11 @@ export function RegisterRoutes(router: KoaRouter) {
               return;
             }
 
+            {{#if ../../kernelModule}}
+            const controller = kernel.get<{{../name}}>({{../name}});
+            {{else}}
             const controller = new {{../name}}();
+            {{/if}}
             promiseHandler(controller.{{name}}.apply(controller, validatedParams), context, next);
         });
     {{/each}}
