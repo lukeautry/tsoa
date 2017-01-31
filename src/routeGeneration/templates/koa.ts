@@ -23,7 +23,7 @@ export function RegisterRoutes(router: KoaRouter) {
             }
 
             {{#if ../../iocModule}}
-            const controller = kernel.get<{{../name}}>({{../name}});
+            const controller = iocContainer.get<{{../name}}>({{../name}});
             {{else}}
             const controller = new {{../name}}();
             {{/if}}

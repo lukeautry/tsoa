@@ -63,7 +63,7 @@ export class RouteGenerator {
     const routesTemplate = handlebars.compile(`/* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
             {{#if iocModule}}
-            import { kernel } from '{{iocModule}}';
+            import { iocContainer } from '{{iocModule}}';
             {{/if}}
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
