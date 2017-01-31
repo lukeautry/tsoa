@@ -100,8 +100,8 @@ export class RouteGenerator {
           path: controller.path
         };
       }),
-      models: this.getModels(),
-      iocModule: this.options.iocModule
+      iocModule: this.options.iocModule,
+      models: this.getModels()
     });
   }
 
