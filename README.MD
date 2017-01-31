@@ -134,7 +134,8 @@ In this case you should write your own custom template where you inject the need
 
 By default all the controllers are created by the auto-generated routes template using an empty default constructor.
 If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS).
-To tell `tsoa` to use your DI-kernel you have to reference your module exporting the DI-kernel in the config file (e.g. `tsoa.json`):
+To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
+The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
 ```json
 {
   "swagger": {
@@ -144,24 +145,24 @@ To tell `tsoa` to use your DI-kernel you have to reference your module exporting
     "entryFile": "...",
     "routesDir": "...",
     "middleware": "...",
-    "kernelModule": "./inversify/ioc",
+    "iocModule": "./inversify/ioc",
     ...
   }
 }
 ```
 Note that the path is relative to the `routesDir` and does not contain the extension.
 
-Here is some example code how to setup the kernel and your controller.
+Here is some example code how to setup the container and your controller.
 
 `./inversify/ioc.ts`:
 ```ts
-import { Kernel, inject, interfaces } from 'inversify';
+import { Container, inject, interfaces } from 'inversify';
 import { autoProvide, makeProvideDecorator, makeFluentProvideDecorator } from 'inversify-binding-decorators';
 
-let kernel = new Kernel();
+let iocContainer = new Container();
 
-let provide = makeProvideDecorator(kernel);
-let fluentProvider = makeFluentProvideDecorator(kernel);
+let provide = makeProvideDecorator(iocContainer);
+let fluentProvider = makeFluentProvideDecorator(iocContainer);
 
 let provideNamed = function(
   identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>,
@@ -180,7 +181,7 @@ let provideSingleton = function(
       .done();
 };
 
-export { kernel, autoProvide, provide, provideSingleton, provideNamed, inject };
+export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inject };
 ```
 
 `./contollers/fooController.ts`

@@ -17,7 +17,7 @@ export function RegisterRoutes(app: any) {
                 return next(err);
             }
 
-            {{#if ../../kernelModule}}
+            {{#if ../../iocModule}}
             const controller = kernel.get<{{../name}}>({{../name}});
             {{else}}
             const controller = new {{../name}}();

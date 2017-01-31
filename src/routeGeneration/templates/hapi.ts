@@ -23,7 +23,7 @@ export function RegisterRoutes(server: hapi.Server) {
                     return reply(err).code(err.status || 500);
                 }
 
-                {{#if ../../kernelModule}}
+                {{#if ../../iocModule}}
                 const controller = kernel.get<{{../name}}>({{../name}});
                 {{else}}
                 const controller = new {{../name}}();

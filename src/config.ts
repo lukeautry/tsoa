@@ -90,7 +90,7 @@ export interface RoutesConfig {
   middleware?: 'express' | 'hapi' | 'koa';
 
   /**
-   * Kernel module; e.g. './inversify/ioc' where kernel is defined (https://github.com/inversify/InversifyJS)
+   * IOC module; e.g. './inversify/ioc' where IOC container named `iocContainer` is defined (https://github.com/inversify/InversifyJS)
    */
-  kernelModule?: string;
+  iocModule?: string;
 }

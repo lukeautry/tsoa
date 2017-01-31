@@ -62,8 +62,8 @@ export class RouteGenerator {
 
     const routesTemplate = handlebars.compile(`/* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
-            {{#if kernelModule}}
-            import { kernel } from '{{kernelModule}}';
+            {{#if iocModule}}
+            import { kernel } from '{{iocModule}}';
             {{/if}}
             {{#each controllers}}
             import { {{name}} } from '{{modulePath}}';
@@ -101,7 +101,7 @@ export class RouteGenerator {
         };
       }),
       models: this.getModels(),
-      kernelModule: this.options.kernelModule
+      iocModule: this.options.iocModule
     });
   }
 
