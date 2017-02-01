@@ -17,7 +17,11 @@ export function RegisterRoutes(app: any) {
                 return next(err);
             }
 
+            {{#if ../../iocModule}}
+            const controller = iocContainer.get<{{../name}}>({{../name}});
+            {{else}}
             const controller = new {{../name}}();
+            {{/if}}
             {{#if ../jwtUserProperty}}
             if (req.{{../jwtUserProperty}}) {
                 if (req.{{../jwtUserProperty}}.iss) controller.iss = req.{{../jwtUserProperty}}.iss;

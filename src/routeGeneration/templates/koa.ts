@@ -22,7 +22,11 @@ export function RegisterRoutes(router: KoaRouter) {
               return;
             }
 
+            {{#if ../../iocModule}}
+            const controller = iocContainer.get<{{../name}}>({{../name}});
+            {{else}}
             const controller = new {{../name}}();
+            {{/if}}
             promiseHandler(controller.{{name}}.apply(controller, validatedParams), context, next);
         });
     {{/each}}

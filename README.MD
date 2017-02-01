@@ -130,6 +130,83 @@ Note that the parameter `request` does not appear in your swagger definition fil
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call. 
 
+### Dependency injection / IOC
+
+By default all the controllers are created by the auto-generated routes template using an empty default constructor.
+If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS).
+To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
+The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
+```json
+{
+  "swagger": {
+    ...
+  },
+  "routes": {
+    "entryFile": "...",
+    "routesDir": "...",
+    "middleware": "...",
+    "iocModule": "./inversify/ioc",
+    ...
+  }
+}
+```
+Note that the path is relative to the `routesDir` and does not contain the extension.
+
+Here is some example code how to setup the container and your controller.
+
+`./inversify/ioc.ts`:
+```ts
+import { Container, inject, interfaces } from 'inversify';
+import { autoProvide, makeProvideDecorator, makeFluentProvideDecorator } from 'inversify-binding-decorators';
+
+let iocContainer = new Container();
+
+let provide = makeProvideDecorator(iocContainer);
+let fluentProvider = makeFluentProvideDecorator(iocContainer);
+
+let provideNamed = function(
+  identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>,
+  name: string
+) {
+    return fluentProvider(identifier)
+      .whenTargetNamed(name)
+      .done();
+};
+
+let provideSingleton = function(
+  identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>
+) {
+    return fluentProvider(identifier)
+      .inSingletonScope()
+      .done();
+};
+
+export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inject };
+```
+
+`./contollers/fooController.ts`
+```ts
+import { Route } from 'tsoa';
+import { provideSingleton, inject } from '../inversify/ioc';
+
+@Route('foo')
+@provideSingleton(FooController)
+export class FooController {
+
+  constructor(
+    @inject(FooService) private fooService: FooService
+  ) { }
+  ...
+}
+
+@provideSingleton(FooService)
+export class FooService {
+    constructor(
+        // maybe even more dependencies to be injected...
+    )
+}
+```
+
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
