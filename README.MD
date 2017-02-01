@@ -41,7 +41,7 @@ export class UsersController {
 
     @Post()
     public async createUser(request: UserCreationRequest): Promise<User> {
-        return await new UserService().create(reqest);
+        return await new UserService().create(request);
     }
 }
 ```
