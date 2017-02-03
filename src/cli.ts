@@ -26,7 +26,7 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
   try {
     config = require(`${appRoot}/${configPath}`);
   } catch (err) {
-    if(err.code === 'MODULE_NOT_FOUND') {
+    if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
       throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
