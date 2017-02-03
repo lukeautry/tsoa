@@ -26,7 +26,13 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
   try {
     config = require(`${appRoot}/${configPath}`);
   } catch (err) {
-    throw new Error(`No config file found at '${configPath}'`);
+    if(err.code === 'MODULE_NOT_FOUND') {
+      throw Error(`No config file found at '${configPath}'`);
+    } else if (err.name === 'SyntaxError') {
+      throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
+    } else {
+      throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
+    }
   }
 
   return config;
@@ -55,7 +61,7 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
 
 const configuration = {
   alias: 'c',
-  describe: 'path from app root to tsoa configuration file; app root is the first package.json found in the working directory or its ancestors',
+  describe: 'tsoa configuration file; default is tsoa.json in the working directory',
   required: false,
   type: 'string'
 };
