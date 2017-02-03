@@ -85,11 +85,8 @@ describe('Express Server', () => {
     });
   });
 
-  it.only('parses buffer parameter', () => {
-    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
-      /* tslint:disable */
-      console.log(res);
-    });
+  it('parses buffer parameter', () => {
+    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => { return; });
   });
 
   it('[JWTEnabled] can handle get request with no path argument', () => {
