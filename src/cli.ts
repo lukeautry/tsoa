@@ -55,7 +55,7 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
 
 const configuration = {
   alias: 'c',
-  describe: 'tsoa configuration file; default is tsoa.json in the working directory',
+  describe: 'path from app root to tsoa configuration file; app root is the first package.json found in the working directory or its ancestors',
   required: false,
   type: 'string'
 };
