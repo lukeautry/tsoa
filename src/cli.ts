@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* tslint:disable:no-console */
 import { Config, SwaggerConfig, RoutesConfig } from './config';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { SpecGenerator } from './swagger/specGenerator';
@@ -73,34 +74,42 @@ yargs
   .command('swagger', 'Generate swagger spec', {
     configuration
   }, (args: CommandLineArgs) => {
-    const config = getConfig(args.configuration);
-    const swaggerConfig = validateSwaggerConfig(config.swagger);
+    try {
+      const config = getConfig(args.configuration);
+      const swaggerConfig = validateSwaggerConfig(config.swagger);
 
-    const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
-    new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
+      const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
+      new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
+    } catch (err) {
+      console.error(err);
+    }
   })
 
   .command('routes', 'Generate routes', {
     configuration
   }, (args: CommandLineArgs) => {
-    const config = getConfig(args.configuration);
-    const routesConfig = validateRoutesConfig(config.routes);
+    try {
+      const config = getConfig(args.configuration);
+      const routesConfig = validateRoutesConfig(config.routes);
 
-    const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
-    const routeGenerator = new RouteGenerator(metadata, routesConfig);
+      const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
+      const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
-    switch (routesConfig.middleware) {
-      case 'express':
-        routeGenerator.GenerateExpressRoutes();
-        break;
-      case 'hapi':
-        routeGenerator.GenerateHapiRoutes();
-        break;
-      case 'koa':
-        routeGenerator.GenerateKoaRoutes();
-        break;
-      default:
-        routeGenerator.GenerateExpressRoutes();
+      switch (routesConfig.middleware) {
+        case 'express':
+          routeGenerator.GenerateExpressRoutes();
+          break;
+        case 'hapi':
+          routeGenerator.GenerateHapiRoutes();
+          break;
+        case 'koa':
+          routeGenerator.GenerateKoaRoutes();
+          break;
+        default:
+          routeGenerator.GenerateExpressRoutes();
+      }
+    } catch (err) {
+      console.error(err);
     }
   })
 

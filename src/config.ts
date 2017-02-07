@@ -56,7 +56,7 @@ export interface SwaggerConfig {
   * Note that generated properties will always take precedence over what get specified here
   */
   spec?: any;
-  
+
   /**
    * Alter how the spec is merged to generated swagger spec.
    * Possible values:
