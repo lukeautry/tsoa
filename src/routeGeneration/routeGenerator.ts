@@ -80,7 +80,9 @@ export class RouteGenerator {
             };
         `.concat(middlewareTemplate));
 
+
     return routesTemplate({
+      authenticationModule: this.options.authenticationModule,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
       controllers: this.metadata.Controllers.map(controller => {
         return {
@@ -91,7 +93,8 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: method.parameters.map(parameter => this.getTemplateProperty(parameter)),
-              path: pathTransformer(method.path)
+              path: pathTransformer(method.path),
+              security: method.security
             };
           }),
           jwtUserProperty: controller.jwtUserProperty,
@@ -101,7 +104,10 @@ export class RouteGenerator {
         };
       }),
       iocModule: this.options.iocModule,
-      models: this.getModels()
+      models: this.getModels(),
+      useSecirity: this.metadata.Controllers.some(
+        controller => controller.methods.some(methods => methods.security !== undefined)
+      )
     });
   }
 

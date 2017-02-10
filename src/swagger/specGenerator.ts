@@ -1,5 +1,5 @@
 import { SwaggerConfig } from './../config';
-import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/metadataGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
@@ -32,10 +32,16 @@ export class SpecGenerator {
       swagger: '2.0'
     };
 
+
+    let securityDefinitions = {};
+
+    if (this.config.securityDefinitions) { securityDefinitions = this.config.securityDefinitions; }
+
     // Check if we have jwt enabled api
     if (this.metadata.Controllers.some((controller) => controller.jwtUserProperty !== '')) {
-      spec.securityDefinitions = this.buildJwtSecurityDefinition();
+      Object.assign(securityDefinitions, this.buildJwtSecurityDefinition());
     }
+    spec.securityDefinitions = securityDefinitions;
 
     if (this.config.description) { spec.info.description = this.config.description; }
     if (this.config.license) { spec.info.license = { name: this.config.license }; }
@@ -103,23 +109,25 @@ export class SpecGenerator {
   }
 
   private buildPathMethod(method: Method, pathObject: any, jwtUserProperty: string) {
-    const swaggerType = this.getSwaggerType(method.type);
-    const pathMethod: any = pathObject[method.method] = swaggerType.type === 'void'
-      ? this.get204Operation(method.name)
-      : this.get200Operation(swaggerType, method.example, method.name);
-
+    const pathMethod: any = pathObject[method.method] = this.buildOperation(method);
     pathMethod.description = method.description;
     pathMethod.parameters = method.parameters.filter(p => !p.injected).map(p => this.buildParameter(p));
 
     if (method.tags.length) { pathMethod.tags = method.tags; }
 
+    const security: any[] = [];
     if (jwtUserProperty !== '') {
-      pathMethod.security = [
-        {
-          'Bearer': []
-        }
-      ];
+      security.push({
+        'Bearer': []
+      });
     }
+
+    if (method.security) {
+      const methodSecurity: any = {};
+      methodSecurity[method.security.name] = method.security.scopes ? method.security.scopes : [];
+      security.push(methodSecurity);
+    }
+    if (security.length > 0) { pathMethod.security = security; }
 
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
@@ -160,6 +168,35 @@ export class SpecGenerator {
     return swaggerProperties;
   }
 
+  private buildOperation(method: Method) {
+    const swaggerType = this.getSwaggerType(method.type);
+    const responses: any = {};
+
+    method.responses.forEach((res: ResponseType) => {
+      responses[res.name] = {
+        description: res.description
+      };
+      if (res.schema) {
+        responses[res.name]['schema'] = this.getSwaggerType(res.schema);
+      }
+    });
+
+    if (swaggerType.type !== 'void') {
+      responses['200'] = { description: '', schema: swaggerType };
+      if (method.example) {
+        responses['200']['examples'] = { 'application/json': method.example };
+      }
+    } else {
+      responses['204'] = { description: 'No content' };
+    }
+
+    return {
+      operationId: method.name,
+      produces: ['application/json'],
+      responses: responses
+    };
+  }
+
   private getSwaggerType(type: Type) {
     if (typeof type === 'string' || type instanceof String) {
       return this.getSwaggerTypeForPrimitiveType(type as PrimitiveType);
@@ -195,24 +232,5 @@ export class SpecGenerator {
 
   private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {
     return { $ref: `#/definitions/${referenceType.name}` };
-  }
-
-  private get200Operation(swaggerType: Swagger.Schema, example: any, methodName: string) {
-    return {
-      operationId: methodName,
-      produces: ['application/json'],
-      responses: {
-        '200': { description: '', examples: { 'application/json': example }, schema: swaggerType }
-      }
-    };
-  }
-
-  private get204Operation(methodName: string) {
-    return {
-      operationId: methodName,
-      responses: {
-        '204': { description: 'No content' }
-      }
-    };
   }
 }
