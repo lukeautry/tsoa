@@ -7,6 +7,8 @@ import '../controllers/patchController';
 import '../controllers/getController';
 import '../controllers/deleteController';
 import '../controllers/jwtEnabledController';
+import '../controllers/securityController';
+
 import { jwt, Options } from './express-jwt-mock';
 import { RegisterRoutes } from './routes';
 
