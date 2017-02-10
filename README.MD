@@ -270,7 +270,7 @@ export function koaAuthentication(request: Request, securityName: string, scopes
 ```
 `./contollers/securityController.ts`
 ```ts
-import { Get, Route, Security, Request } from 'tsoa';
+import { Get, Route, Security, DefaultResponse } from 'tsoa';
 
 @Route('secure')
 export class SecureController {
