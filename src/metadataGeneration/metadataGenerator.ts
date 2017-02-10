@@ -81,6 +81,8 @@ export interface Method {
   path: string;
   type: Type;
   tags: string[];
+  responses: ResponseType[];
+  security?: Security;
 }
 
 export type InjectType = 'request' | 'inject';
@@ -94,6 +96,11 @@ export interface Parameter {
   injected?: InjectType;
 }
 
+export interface Security {
+  name: string;
+  scopes?: string[];
+}
+
 export type Type = PrimitiveType | ReferenceType | ArrayType;
 
 export type PrimitiveType = string;
@@ -103,6 +110,12 @@ export interface ReferenceType {
   name: string;
   properties: Property[];
   enum?: string[];
+}
+
+export interface ResponseType {
+    description: string;
+    name: string;
+    schema?: Type;
 }
 
 export interface Property {
