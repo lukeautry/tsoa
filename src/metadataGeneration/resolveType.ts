@@ -147,7 +147,7 @@ function getModelTypeProperties(node: UsableDeclaration) {
   if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
     /**
      * TOOD
-     * 
+     *
      * Flesh this out so that we can properly support Type Alii instead of just assuming
      * string literal enums
     */
@@ -221,7 +221,7 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
   * TODO: Workaround for what seems like a bug in the compiler
   * Warrants more investigation and possibly a PR against typescript
   */
-  // 
+  //
   if (node.kind === ts.SyntaxKind.Parameter) {
     // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'
     symbol.flags = 0;
