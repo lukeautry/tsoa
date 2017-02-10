@@ -2,6 +2,12 @@
 export const hapiTemplate = `
 /* tslint:disable:forin */
 import * as hapi from 'hapi';
+{{#if useSecirity}}
+import { set } from 'lodash';
+{{/if}}
+{{#if authenticationModule}}
+import { hapiAuthentication } from '{{authenticationModule}}';
+{{/if}}
 
 export function RegisterRoutes(server: hapi.Server) {
     {{#each controllers}}
@@ -9,30 +15,58 @@ export function RegisterRoutes(server: hapi.Server) {
         server.route({
             method: '{{method}}',
             path: '{{../../basePath}}/{{../path}}{{path}}',
-            handler: (request: any, reply) => {
-                const params = {
-                    {{#each parameters}}
-                    '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
-                    {{/each}}
-                };
+            config: { 
+                {{#if security}} 
+                pre: [
+                    { 
+                      method: authenticateMiddleware('{{security.name}}'
+                              {{#if security.scopes.length}} 
+                              , [
+                                  {{#each security.scopes}} 
+                                    '{{this}}'{{#if @last}} {{else}}, {{/if}}
+                                  {{/each}}
+                              ]
+                              {{/if}}
+                    )}
+                ],
+                {{/if}} 
+                handler: (request: any, reply) => {
+                    const params = {
+                        {{#each parameters}}
+                        '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
+                        {{/each}}
+                    };
 
-                let validatedParams: any[] = [];
-                try {
-                    validatedParams = getValidatedParams(params, request, '{{bodyParamName}}');
-                } catch (err) {
-                    return reply(err).code(err.status || 500);
+                    let validatedParams: any[] = [];
+                    try {
+                        validatedParams = getValidatedParams(params, request, '{{bodyParamName}}');
+                    } catch (err) {
+                        return reply(err).code(err.status || 500);
+                    }
+
+                    {{#if ../../iocModule}}
+                    const controller = iocContainer.get<{{../name}}>({{../name}});
+                    {{else}}
+                    const controller = new {{../name}}();
+                    {{/if}}
+                    return promiseHandler(controller.{{name}}.apply(controller, validatedParams), request, reply);
                 }
-
-                {{#if ../../iocModule}}
-                const controller = iocContainer.get<{{../name}}>({{../name}});
-                {{else}}
-                const controller = new {{../name}}();
-                {{/if}}
-                return promiseHandler(controller.{{name}}.apply(controller, validatedParams), request, reply);
             }
         });
     {{/each}}
     {{/each}}
+
+    {{#if useSecirity}}
+    function authenticateMiddleware(name: string, scopes: string[] = []) {
+      return (request: hapi.Request, reply: hapi.IReply) => {
+            hapiAuthentication(request, name, scopes).then((user: any) => {
+                set(request, 'user', user);
+                reply.continue();
+            })
+            .catch((error: any) => reply(error).code(error.status || 401));
+      }
+    }
+    {{/if}}
 
     function promiseHandler(promise: any, request: hapi.Request, reply: hapi.IReply) {
       return promise
