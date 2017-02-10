@@ -207,6 +207,83 @@ export class FooService {
 }
 ```
 
+
+
+### authentication 
+
+```json
+{
+  "swagger": {
+    "securityDefinitions": {
+        "api_key": {
+            "type": "apiKey",
+            "name": "access_token",
+            "in": "query"
+        },
+        "tsoa_auth": {
+            "type": "oauth2",
+            "authorizationUrl": "http://swagger.io/api/oauth/dialog",
+            "flow": "implicit",
+            "scopes": {
+                "write:pets": "modify things",
+                "read:pets": "read things"
+            }
+        }
+    },
+    ...
+  },
+  "routes": {
+    "authenticationModule": "./authentication",
+    ...
+  }
+}
+```
+
+`./authentication.ts`
+```ts
+import * as express from 'express';
+export function expressAuthentication(request: express.Request, securityName: string, scopes?: string[]): Promise<any> {
+    let token;
+    if (request.query && request.query.access_token) {
+        token = request.query.access_token;
+    }
+
+    if (token === 'abc123456') {
+        return Promise.resolve({
+            id: 1,
+            name: 'Ironman'
+        });
+    } else {
+        return Promise.reject({});
+    }
+};
+
+import * as hapi from 'hapi';
+export function hapiAuthentication(request: hapi.Request, securityName: string, scopes?: string[]): Promise<any> {
+    ...
+}
+
+import { Request } from 'koa';
+export function koaAuthentication(request: Request, securityName: string, scopes?: string[]): Promise<any> {
+    ...
+}
+```
+`./contollers/securityController.ts`
+```ts
+import { Get, Route, Security, Request } from 'tsoa';
+
+@Route('secure')
+export class SecureController {
+    @DefaultResponse<ErrorResponseModel>('Unexpected error')
+    @Security('api_key')
+    @Get("UserInfo")
+    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
+        return Promise.resolve(request.user);
+    }
+}
+```
+
+
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
