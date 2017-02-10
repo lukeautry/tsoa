@@ -209,7 +209,7 @@ export class FooService {
 
 
 
-### authentication 
+### Authentication 
 
 ```json
 {
