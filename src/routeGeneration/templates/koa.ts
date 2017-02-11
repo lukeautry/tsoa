@@ -1,11 +1,29 @@
 export const koaTemplate = `
 /* tslint:disable:forin */
 import * as KoaRouter from 'koa-router';
+{{#if useSecurity}}
+import { set } from 'lodash';
+{{/if}}
+{{#if authenticationModule}}
+import { koaAuthentication } from '{{authenticationModule}}';
+{{/if}}
 
 export function RegisterRoutes(router: KoaRouter) {
     {{#each controllers}}
     {{#each actions}}
-        router.{{method}}('{{../../basePath}}/{{../path}}{{path}}', async (context, next) => {
+        router.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
+            {{#if security}} 
+            authenticateMiddleware('{{security.name}}'
+              {{#if security.scopes.length}} 
+              , [
+                {{#each security.scopes}} 
+                    '{{this}}'{{#if @last}} {{else}}, {{/if}}
+                {{/each}}
+              ]
+              {{/if}}
+            ), 
+            {{/if}} 
+            async (context, next) => {
             const params = {
                 {{#each parameters}}
                 '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
@@ -31,6 +49,22 @@ export function RegisterRoutes(router: KoaRouter) {
         });
     {{/each}}
     {{/each}}
+  
+  {{#if useSecurity}}
+  function authenticateMiddleware(name: string, scopes: string[] = []) {
+      return async (context: any, next: any) => {
+          koaAuthentication(context.request, name, scopes).then((user: any) => {
+              set(context.request, 'user', user);
+              next();
+          })
+          .catch((error: any) => {
+              context.status = error.status || 401;
+              context.body = error;
+              next();
+        });
+     }
+  }
+  {{/if}}
 
   function promiseHandler(promise: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
       return promise

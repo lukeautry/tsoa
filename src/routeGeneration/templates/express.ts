@@ -1,9 +1,28 @@
 export const expressTemplate = `
+{{#if useSecurity}}
+import { set } from 'lodash';
+{{/if}}
+{{#if authenticationModule}}
+import { expressAuthentication } from '{{authenticationModule}}';
+{{/if}}
+
 /* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
-        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', function (req: any, res: any, next: any) {
+        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
+            {{#if security}} 
+            authenticateMiddleware('{{security.name}}'
+                {{#if security.scopes.length}} 
+                , [
+                    {{#each security.scopes}} 
+                        '{{this}}'{{#if @last}} {{else}}, {{/if}}
+                    {{/each}}
+                ]
+              {{/if}}
+            ), 
+            {{/if}} 
+            function (req: any, res: any, next: any) {
             const params = {
                 {{#each parameters}}
                 '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
@@ -33,6 +52,21 @@ export function RegisterRoutes(app: any) {
         });
     {{/each}}
     {{/each}}
+
+    {{#if useSecurity}}
+    function authenticateMiddleware(name: string, scopes: string[] = []) {
+        return (request: any, response: any, next: any) => {
+            expressAuthentication(request, name, scopes).then((user: any) => {
+                set(request, 'user', user);
+                next();
+            })
+            .catch((error: any) => {
+                response.status(401);
+                next(error)
+            });
+        }
+    }
+    {{/if}}
 
     function promiseHandler(promise: any, response: any, next: any) {
         return promise

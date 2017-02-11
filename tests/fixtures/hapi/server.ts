@@ -5,6 +5,8 @@ import '../controllers/patchController';
 import '../controllers/getController';
 import '../controllers/deleteController';
 import '../controllers/jwtEnabledController';
+import '../controllers/securityController';
+
 import { RegisterRoutes } from './routes';
 
 export const server = new hapi.Server();

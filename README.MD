@@ -41,7 +41,7 @@ export class UsersController {
 
     @Post()
     public async createUser(request: UserCreationRequest): Promise<User> {
-        return await new UserService().create(request);
+        return await new UserService().create(reqest);
     }
 }
 ```
@@ -206,6 +206,92 @@ export class FooService {
     )
 }
 ```
+
+### Specify error response types for Swagger
+
+```
+@Response('400', 'Bad request')
+@DefaultResponse<ErrorResponse>('Unexpected error')
+@Get('Response')
+public async getResponse(): Promise<TestModel> {
+    return new ModelService().getModel();
+}
+```
+
+### Authentication 
+
+```json
+{
+  "swagger": {
+    "securityDefinitions": {
+        "api_key": {
+            "type": "apiKey",
+            "name": "access_token",
+            "in": "query"
+        },
+        "tsoa_auth": {
+            "type": "oauth2",
+            "authorizationUrl": "http://swagger.io/api/oauth/dialog",
+            "flow": "implicit",
+            "scopes": {
+                "write:pets": "modify things",
+                "read:pets": "read things"
+            }
+        }
+    },
+    ...
+  },
+  "routes": {
+    "authenticationModule": "./authentication",
+    ...
+  }
+}
+```
+
+`./authentication.ts`
+```ts
+import * as express from 'express';
+export function expressAuthentication(request: express.Request, securityName: string, scopes?: string[]): Promise<any> {
+    let token;
+    if (request.query && request.query.access_token) {
+        token = request.query.access_token;
+    }
+
+    if (token === 'abc123456') {
+        return Promise.resolve({
+            id: 1,
+            name: 'Ironman'
+        });
+    } else {
+        return Promise.reject({});
+    }
+};
+
+import * as hapi from 'hapi';
+export function hapiAuthentication(request: hapi.Request, securityName: string, scopes?: string[]): Promise<any> {
+    ...
+}
+
+import { Request } from 'koa';
+export function koaAuthentication(request: Request, securityName: string, scopes?: string[]): Promise<any> {
+    ...
+}
+```
+`./contollers/securityController.ts`
+```ts
+import { Get, Route, Security, DefaultResponse } from 'tsoa';
+
+@Route('secure')
+export class SecureController {
+    @DefaultResponse<ErrorResponseModel>('Unexpected error')
+    @Security('api_key')
+    @Get("UserInfo")
+    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
+        return Promise.resolve(request.user);
+    }
+}
+```
+
 
 ### Use awesome Swagger tools
 

@@ -28,22 +28,25 @@ const models: any = {
   },
 };
 
+
 /* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
-  app.get('/v1/ManagedTest', function(req: any, res: any, next: any) {
-    const params = {
-    };
+  app.get('/v1/ManagedTest',
+    function(req: any, res: any, next: any) {
+      const params = {
+      };
 
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, req, '');
-    } catch (err) {
-      return next(err);
-    }
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, req, '');
+      } catch (err) {
+        return next(err);
+      }
 
-    const controller = iocContainer.get<ManagedController>(ManagedController);
-    promiseHandler(controller.getModel.apply(controller, validatedParams), res, next);
-  });
+      const controller = iocContainer.get<ManagedController>(ManagedController);
+      promiseHandler(controller.getModel.apply(controller, validatedParams), res, next);
+    });
+
 
   function promiseHandler(promise: any, response: any, next: any) {
     return promise
