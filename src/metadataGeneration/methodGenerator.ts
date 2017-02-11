@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { Method, MetadataGenerator } from './metadataGenerator';
+import { Method, MetadataGenerator, ResponseType } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 
@@ -28,8 +28,10 @@ export class MethodGenerator {
       name: identifier.text,
       parameters: this.getParameters(),
       path: this.path,
+      responses: this.getResponses(),
+      security: this.getMethodSecurity(),
       tags: this.getMethodTags(),
-      type: ResolveType(this.node.type)
+      type: ResolveType(this.node.type),
     };
   }
 
@@ -68,6 +70,52 @@ export class MethodGenerator {
       .map(d => d.expression as ts.CallExpression)
       .map(e => e.expression as ts.Identifier)
       .filter(isMatching);
+  }
+
+  private getResponses() {
+    const responses = new Array<ResponseType>();
+
+    const defaultResponse = this.getDefaultResponse();
+    if (defaultResponse) {
+      responses.push(defaultResponse);
+    }
+
+    const decorators = this.getDecorators(identifier => identifier.text === 'Response');
+    if (!decorators || !decorators.length) { return responses; }
+
+    responses.concat(
+      decorators.map(decorator => {
+        const expression = decorator.parent as ts.CallExpression;
+        return {
+          description: (expression.arguments[1] as any).text,
+          name: (expression.arguments[0] as any).text,
+          schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
+        };
+      })
+    );
+    return responses;
+  }
+
+  private getDefaultResponse() {
+    const decorators = this.getDecorators(identifier => identifier.text === 'DefaultResponse');
+    if (!decorators || !decorators.length) { return undefined; }
+    if (decorators.length > 1) { throw new Error('Only one DefaultResponse decorator allowed per controller method.'); }
+
+    const decorator = decorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    let description = '';
+    if (expression.arguments.length > 0 &&
+      expression.arguments[0] &&
+      (expression.arguments[0] as any).text) {
+      description = (expression.arguments[0] as any).text;
+    }
+
+    return {
+      description,
+      name: 'default',
+      schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
+    };
   }
 
   private getValidMethods() {
@@ -111,6 +159,20 @@ export class MethodGenerator {
     const expression = decorator.parent as ts.CallExpression;
 
     return expression.arguments.map((a: any) => a.text);
+  }
+
+  private getMethodSecurity() {
+    const securityDecorators = this.getDecorators(identifier => identifier.text === 'Security');
+    if (!securityDecorators || !securityDecorators.length) { return undefined; }
+    if (securityDecorators.length > 1) { throw new Error('Only one Security decorator allowed per controller method.'); }
+
+    const decorator = securityDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return {
+      name: (expression.arguments[0] as any).text,
+      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
+    };
   }
 
   private getInitializerValue(initializer: any) {

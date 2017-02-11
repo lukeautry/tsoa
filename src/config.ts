@@ -66,6 +66,24 @@ export interface SwaggerConfig {
    * @default 'immediate'
    */
   specMerging?: 'immediate' | 'recursive';
+
+  /**
+   * Security Definitions Object
+   * A declaration of the security schemes available to be used in the
+   * specification. This does not enforce the security schemes on the operations
+   * and only serves to provide the relevant details for each scheme.
+   */
+  securityDefinitions?: {
+    [name: string]: {
+      type: string;
+      name?: string;
+      authorizationUrl?: string;
+      tokenUrl?: string;
+      flow?: string;
+      in?: string;
+      scopes?: { [scopeName: string]: string; }
+    }
+  };
 }
 
 export interface RoutesConfig {
@@ -93,4 +111,9 @@ export interface RoutesConfig {
    * IOC module; e.g. './inversify/ioc' where IOC container named `iocContainer` is defined (https://github.com/inversify/InversifyJS)
    */
   iocModule?: string;
+
+  /**
+   * Authentication Module for express, hapi and koa
+   */
+  authenticationModule?: string;
 }

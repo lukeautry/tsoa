@@ -1,6 +1,6 @@
 import 'mocha';
 import { server } from '../fixtures/hapi/server';
-import { TestModel, TestClassModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel, Model } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -153,6 +153,20 @@ describe('Hapi Server', () => {
     return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
       expect(JSON.parse(err.text).message).to.equal('error thrown');
     }, 400);
+  });
+
+  it('[Security] can handle get request with access_token user id == 1', () => {
+    return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
+      const model = res.body as Model;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('[Security] can handle get request with access_token user id == 2', () => {
+    return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
+      const model = res.body as Model;
+      expect(model.id).to.equal(2);
+    });
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {

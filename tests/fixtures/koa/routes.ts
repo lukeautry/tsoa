@@ -6,6 +6,7 @@ import { PatchTestController } from './../controllers/patchController';
 import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { JwtGetTestController } from './../controllers/jwtEnabledController';
+import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
   'TestSubModel': {
@@ -41,586 +42,792 @@ const models: any = {
   'Result': {
     'value': { typeName: 'object', required: true },
   },
+  'ErrorResponse': {
+    'code': { typeName: 'string', required: true },
+    'msg': { typeName: 'string', required: true },
+  },
   'BooleanResponseModel': {
     'success': { typeName: 'boolean', required: true },
+  },
+  'ErrorResponseModel': {
+    'status': { typeName: 'number', required: true },
+    'message': { typeName: 'string', required: true },
+  },
+  'UserResponseModel': {
+    'id': { typeName: 'number', required: true },
+    'name': { typeName: 'string', required: true },
   },
 };
 
 /* tslint:disable:forin */
 import * as KoaRouter from 'koa-router';
+import { set } from 'lodash';
+import { koaAuthentication } from './authentication';
 
 export function RegisterRoutes(router: KoaRouter) {
-  router.put('/v1/PutTest', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestModel', required: true },
-    };
+  router.put('/v1/PutTest',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestModel', required: true },
+      };
 
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PutTestController();
+      promiseHandler(controller.putModel.apply(controller, validatedParams), context, next);
+    });
+  router.put('/v1/PutTest/Location',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PutTestController();
+      promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), context, next);
+    });
+  router.put('/v1/PutTest/Multi',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PutTestController();
+      promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), context, next);
+    });
+  router.put('/v1/PutTest/WithId/:id',
+    async (context, next) => {
+      const params = {
+        'id': { typeName: 'number', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PutTestController();
+      promiseHandler(controller.putWithId.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestModel', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postModel.apply(controller, validatedParams), context, next);
+    });
+  router.patch('/v1/PostTest',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestModel', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.updateModel.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest/WithClassModel',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestClassModel', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postClassModel.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest/Location',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest/Multi',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest/WithId/:id',
+    async (context, next) => {
+      const params = {
+        'id': { typeName: 'number', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postWithId.apply(controller, validatedParams), context, next);
+    });
+  router.post('/v1/PostTest/WithBodyAndQueryParams',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestModel', required: true },
+        'query': { typeName: 'string', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PostTestController();
+      promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), context, next);
+    });
+  router.patch('/v1/PatchTest',
+    async (context, next) => {
+      const params = {
+        'model': { typeName: 'TestModel', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, 'model');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PatchTestController();
+      promiseHandler(controller.patchModel.apply(controller, validatedParams), context, next);
+    });
+  router.patch('/v1/PatchTest/Location',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PatchTestController();
+      promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), context, next);
+    });
+  router.patch('/v1/PatchTest/Multi',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PatchTestController();
+      promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), context, next);
+    });
+  router.patch('/v1/PatchTest/WithId/:id',
+    async (context, next) => {
+      const params = {
+        'id': { typeName: 'number', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new PatchTestController();
+      promiseHandler(controller.patchWithId.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getModel.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/Current',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/ClassModel',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getClassModel.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/Multi',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+    async (context, next) => {
+      const params = {
+        'numberPathParam': { typeName: 'number', required: true },
+        'stringPathParam': { typeName: 'string', required: true },
+        'booleanPathParam': { typeName: 'boolean', required: true },
+        'booleanParam': { typeName: 'boolean', required: true },
+        'stringParam': { typeName: 'string', required: true },
+        'numberParam': { typeName: 'number', required: true },
+        'optionalStringParam': { typeName: 'string', required: false },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/ResponseWithUnionTypeProperty',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/UnionTypeResponse',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/InjectedRequest',
+    async (context, next) => {
+      const params = {
+        'request': { typeName: 'object', required: true, injected: 'request' },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/InjectedValue',
+    async (context, next) => {
+      const params = {
+        'someValue': { typeName: 'object', required: true, injected: 'inject' },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/DateParam',
+    async (context, next) => {
+      const params = {
+        'date': { typeName: 'datetime', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getByDataParam.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/ThrowsError',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getThrowsError.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/GeneratesTags',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/HandleBufferType',
+    async (context, next) => {
+      const params = {
+        'buffer': { typeName: 'buffer', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getBuffer.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/DefaultResponse',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getDefaultResponse.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/Response',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getResponse.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/ApiSecurity',
+    authenticateMiddleware('api_key'
+    ),
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getApiSecurity.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/GetTest/OauthSecurity',
+    authenticateMiddleware('tsoa_auth'
+      , [
+        'read:pets'
+      ]
+    ),
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new GetTestController();
+      promiseHandler(controller.getOauthSecurity.apply(controller, validatedParams), context, next);
+    });
+  router.delete('/v1/DeleteTest',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new DeleteTestController();
+      promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), context, next);
+    });
+  router.delete('/v1/DeleteTest/Current',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new DeleteTestController();
+      promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), context, next);
+    });
+  router.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+    async (context, next) => {
+      const params = {
+        'numberPathParam': { typeName: 'number', required: true },
+        'stringPathParam': { typeName: 'string', required: true },
+        'booleanPathParam': { typeName: 'boolean', required: true },
+        'booleanParam': { typeName: 'boolean', required: true },
+        'stringParam': { typeName: 'string', required: true },
+        'numberParam': { typeName: 'number', required: true },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new DeleteTestController();
+      promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/JwtGetTest',
+    async (context, next) => {
+      const params = {
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new JwtGetTestController();
+      promiseHandler(controller.GetWithJwt.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/SecurityTest',
+    authenticateMiddleware('api_key'
+    ),
+    async (context, next) => {
+      const params = {
+        'request': { typeName: 'object', required: true, injected: 'request' },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new SecurityTestController();
+      promiseHandler(controller.GetWithApi.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/SecurityTest/Koa',
+    authenticateMiddleware('api_key'
+    ),
+    async (context, next) => {
+      const params = {
+        'ctx': { typeName: 'object', required: true, injected: 'request' },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new SecurityTestController();
+      promiseHandler(controller.GetWithApiForKoa.apply(controller, validatedParams), context, next);
+    });
+  router.get('/v1/SecurityTest/Oauth',
+    authenticateMiddleware('tsoa_auth'
+      , [
+        'write:pets',
+        'read:pets'
+      ]
+    ),
+    async (context, next) => {
+      const params = {
+        'request': { typeName: 'object', required: true, injected: 'request' },
+      };
+
+      let validatedParams: any[] = [];
+      try {
+        validatedParams = getValidatedParams(params, context, '');
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new SecurityTestController();
+      promiseHandler(controller.GetWithSecurity.apply(controller, validatedParams), context, next);
+    });
+
+  function authenticateMiddleware(name: string, scopes: string[] = []) {
+    return async (context: any, next: any) => {
+      koaAuthentication(context.request, name, scopes).then((user: any) => {
+        set(context.request, 'user', user);
+        next();
+      })
+        .catch((error: any) => {
+          context.status = error.status || 401;
+          context.body = error;
+          next();
+        });
     }
-
-    const controller = new PutTestController();
-    promiseHandler(controller.putModel.apply(controller, validatedParams), context, next);
-  });
-  router.put('/v1/PutTest/Location', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PutTestController();
-    promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), context, next);
-  });
-  router.put('/v1/PutTest/Multi', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PutTestController();
-    promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), context, next);
-  });
-  router.put('/v1/PutTest/WithId/:id', async (context, next) => {
-    const params = {
-      'id': { typeName: 'number', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PutTestController();
-    promiseHandler(controller.putWithId.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestModel', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postModel.apply(controller, validatedParams), context, next);
-  });
-  router.patch('/v1/PostTest', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestModel', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.updateModel.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest/WithClassModel', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestClassModel', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postClassModel.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest/Location', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest/Multi', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest/WithId/:id', async (context, next) => {
-    const params = {
-      'id': { typeName: 'number', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postWithId.apply(controller, validatedParams), context, next);
-  });
-  router.post('/v1/PostTest/WithBodyAndQueryParams', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestModel', required: true },
-      'query': { typeName: 'string', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PostTestController();
-    promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), context, next);
-  });
-  router.patch('/v1/PatchTest', async (context, next) => {
-    const params = {
-      'model': { typeName: 'TestModel', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, 'model');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PatchTestController();
-    promiseHandler(controller.patchModel.apply(controller, validatedParams), context, next);
-  });
-  router.patch('/v1/PatchTest/Location', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PatchTestController();
-    promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), context, next);
-  });
-  router.patch('/v1/PatchTest/Multi', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PatchTestController();
-    promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), context, next);
-  });
-  router.patch('/v1/PatchTest/WithId/:id', async (context, next) => {
-    const params = {
-      'id': { typeName: 'number', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new PatchTestController();
-    promiseHandler(controller.patchWithId.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getModel.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/Current', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/ClassModel', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getClassModel.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/Multi', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam', async (context, next) => {
-    const params = {
-      'numberPathParam': { typeName: 'number', required: true },
-      'stringPathParam': { typeName: 'string', required: true },
-      'booleanPathParam': { typeName: 'boolean', required: true },
-      'booleanParam': { typeName: 'boolean', required: true },
-      'stringParam': { typeName: 'string', required: true },
-      'numberParam': { typeName: 'number', required: true },
-      'optionalStringParam': { typeName: 'string', required: false },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/ResponseWithUnionTypeProperty', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/UnionTypeResponse', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/InjectedRequest', async (context, next) => {
-    const params = {
-      'request': { typeName: 'object', required: true, injected: 'request' },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/InjectedValue', async (context, next) => {
-    const params = {
-      'someValue': { typeName: 'object', required: true, injected: 'inject' },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/DateParam', async (context, next) => {
-    const params = {
-      'date': { typeName: 'datetime', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getByDataParam.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/ThrowsError', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getThrowsError.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/GeneratesTags', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/GetTest/HandleBufferType', async (context, next) => {
-    const params = {
-      'buffer': { typeName: 'buffer', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new GetTestController();
-    promiseHandler(controller.getBuffer.apply(controller, validatedParams), context, next);
-  });
-  router.delete('/v1/DeleteTest', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new DeleteTestController();
-    promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), context, next);
-  });
-  router.delete('/v1/DeleteTest/Current', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new DeleteTestController();
-    promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), context, next);
-  });
-  router.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam', async (context, next) => {
-    const params = {
-      'numberPathParam': { typeName: 'number', required: true },
-      'stringPathParam': { typeName: 'string', required: true },
-      'booleanPathParam': { typeName: 'boolean', required: true },
-      'booleanParam': { typeName: 'boolean', required: true },
-      'stringParam': { typeName: 'string', required: true },
-      'numberParam': { typeName: 'number', required: true },
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new DeleteTestController();
-    promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
-  });
-  router.get('/v1/JwtGetTest', async (context, next) => {
-    const params = {
-    };
-
-    let validatedParams: any[] = [];
-    try {
-      validatedParams = getValidatedParams(params, context, '');
-    } catch (error) {
-      context.status = error.status || 500;
-      context.body = error;
-      next();
-      return;
-    }
-
-    const controller = new JwtGetTestController();
-    promiseHandler(controller.GetWithJwt.apply(controller, validatedParams), context, next);
-  });
+  }
 
   function promiseHandler(promise: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
     return promise

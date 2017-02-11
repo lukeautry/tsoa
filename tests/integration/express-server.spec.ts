@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/express/server';
-import { TestModel, TestClassModel, BooleanResponseModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel, BooleanResponseModel, UserResponseModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
@@ -93,6 +93,20 @@ describe('Express Server', () => {
     return verifyGetRequest(basePath + '/JwtGetTest', (err, res) => {
       const model = res.body as BooleanResponseModel;
       expect(model.success).to.equal(true);
+    });
+  });
+
+   it('[Security] can handle get request with access_token user id == 1', () => {
+    return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
+      const model = res.body as UserResponseModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('[Security] can handle get request with access_token user id == 2', () => {
+    return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
+      const model = res.body as UserResponseModel;
+      expect(model.id).to.equal(2);
     });
   });
 

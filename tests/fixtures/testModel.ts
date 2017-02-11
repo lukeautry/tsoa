@@ -34,6 +34,16 @@ export interface BooleanResponseModel {
   success: boolean;
 }
 
+export interface UserResponseModel {
+  id: number;
+  name: string;
+}
+
+export interface ErrorResponseModel {
+  status: number;
+  message: string;
+}
+
 export interface Model {
   id: number;
 }

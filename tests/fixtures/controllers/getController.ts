@@ -3,6 +3,8 @@ import { Inject, Request } from '../../../src/decorators/inject';
 import { Get } from '../../../src/decorators/methods';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
+import { Security } from '../../../src/decorators/security';
+import { Response, DefaultResponse } from '../../../src/decorators/response';
 import { TestModel, TestSubModel, TestClassModel } from '../testModel';
 import { Tags } from '../../../src/decorators/tags';
 
@@ -129,6 +131,36 @@ export class GetTestController {
   public async getBuffer(buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
   }
+
+  @DefaultResponse<ErrorResponse>()
+  @Get('DefaultResponse')
+  public async getDefaultResponse(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Response('400', 'Bad request')
+  @DefaultResponse<ErrorResponse>('Unexpected error')
+  @Get('Response')
+  public async getResponse(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Security('api_key')
+  @Get('ApiSecurity')
+  public async getApiSecurity(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Security('tsoa_auth', ['read:pets'])
+  @Get('OauthSecurity')
+  public async getOauthSecurity(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+}
+
+export interface ErrorResponse {
+  code: string;
+  msg: string;
 }
 
 export interface CustomError extends Error {
