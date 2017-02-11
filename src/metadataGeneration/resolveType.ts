@@ -44,40 +44,45 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
 }
 
 function generateReferenceType(typeName: string, cacheReferenceType = true): ReferenceType {
-  const existingType = localReferenceTypeCache[typeName];
-  if (existingType) { return existingType; }
+  try {
+    const existingType = localReferenceTypeCache[typeName];
+    if (existingType) { return existingType; }
 
-  if (inProgressTypes[typeName]) {
-    return createCircularDependencyResolver(typeName);
-  }
-
-  inProgressTypes[typeName] = true;
-
-  const modelTypeDeclaration = getModelTypeDeclaration(typeName);
-  const properties = getModelTypeProperties(modelTypeDeclaration);
-
-  const referenceType: ReferenceType = {
-    description: getModelDescription(modelTypeDeclaration),
-    name: typeName,
-    properties: properties
-  };
-  if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-    const innerType = modelTypeDeclaration.type;
-    if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
-      const unionTypes = (innerType as any).types;
-      referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
+    if (inProgressTypes[typeName]) {
+      return createCircularDependencyResolver(typeName);
     }
+
+    inProgressTypes[typeName] = true;
+
+    const modelTypeDeclaration = getModelTypeDeclaration(typeName);
+    const properties = getModelTypeProperties(modelTypeDeclaration);
+
+    const referenceType: ReferenceType = {
+      description: getModelDescription(modelTypeDeclaration),
+      name: typeName,
+      properties: properties
+    };
+    if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+      const innerType = modelTypeDeclaration.type;
+      if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
+        const unionTypes = (innerType as any).types;
+        referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
+      }
+    }
+
+    const extendedProperties = getInheritedProperties(modelTypeDeclaration);
+    referenceType.properties = referenceType.properties.concat(extendedProperties);
+
+    if (cacheReferenceType) {
+      MetadataGenerator.current.AddReferenceType(referenceType);
+    }
+
+    localReferenceTypeCache[typeName] = referenceType;
+    return referenceType;
+  } catch (err) {
+    console.error(`There was a problem resolving type of '${typeName}'.`);
+    throw err;
   }
-
-  const extendedProperties = getInheritedProperties(modelTypeDeclaration);
-  referenceType.properties = referenceType.properties.concat(extendedProperties);
-
-  if (cacheReferenceType) {
-    MetadataGenerator.current.AddReferenceType(referenceType);
-  }
-
-  localReferenceTypeCache[typeName] = referenceType;
-  return referenceType;
 }
 
 function createCircularDependencyResolver(typeName: string) {

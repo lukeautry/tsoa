@@ -38,7 +38,11 @@ export class ParameterGenerator {
       try {
         return this.getQueryParameter(this.parameter);
       } catch (err) {
-        return this.getBodyParameter(this.parameter);
+        if (err instanceof InvalidParameterException) {
+          return this.getBodyParameter(this.parameter);
+        }
+
+        throw err;
       }
     }
 
@@ -63,7 +67,7 @@ export class ParameterGenerator {
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {
-      throw new Error(`Parameter '${identifier.text}' can't be passed as a query parameter.`);
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a query parameter.`);
     }
 
     return {
@@ -80,7 +84,7 @@ export class ParameterGenerator {
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {
-      throw new Error(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
     }
 
     return {
@@ -137,3 +141,5 @@ export class ParameterGenerator {
     return ['inject', 'request'];
   }
 }
+
+class InvalidParameterException extends Error { }
