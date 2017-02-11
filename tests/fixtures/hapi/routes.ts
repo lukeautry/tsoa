@@ -722,8 +722,8 @@ export function RegisterRoutes(server: hapi.Server) {
             , [
               'read:pets'
             ]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const params = {

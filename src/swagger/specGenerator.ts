@@ -32,10 +32,9 @@ export class SpecGenerator {
       swagger: '2.0'
     };
 
-
-    let securityDefinitions = {};
-
-    if (this.config.securityDefinitions) { securityDefinitions = this.config.securityDefinitions; }
+    const securityDefinitions = this.config.securityDefinitions
+      ? this.config.securityDefinitions
+      : {};
 
     // Check if we have jwt enabled api
     if (this.metadata.Controllers.some((controller) => controller.jwtUserProperty !== '')) {
@@ -115,7 +114,7 @@ export class SpecGenerator {
 
     if (method.tags.length) { pathMethod.tags = method.tags; }
 
-    const security: any[] = [];
+    const security = new Array<any>();
     if (jwtUserProperty !== '') {
       security.push({
         'Bearer': []

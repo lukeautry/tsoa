@@ -73,12 +73,12 @@ export class MethodGenerator {
   }
 
   private getResponses() {
-    const responses: ResponseType[] = [];
-    const defaultResponse = this.getDefaultResponse() || undefined;
+    const responses = new Array<ResponseType>();
+
+    const defaultResponse = this.getDefaultResponse();
     if (defaultResponse) {
       responses.push(defaultResponse);
     }
-
 
     const decorators = this.getDecorators(identifier => identifier.text === 'Response');
     if (!decorators || !decorators.length) { return responses; }

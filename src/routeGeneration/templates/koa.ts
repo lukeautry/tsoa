@@ -1,7 +1,7 @@
 export const koaTemplate = `
 /* tslint:disable:forin */
 import * as KoaRouter from 'koa-router';
-{{#if useSecirity}}
+{{#if useSecurity}}
 import { set } from 'lodash';
 {{/if}}
 {{#if authenticationModule}}
@@ -50,7 +50,7 @@ export function RegisterRoutes(router: KoaRouter) {
     {{/each}}
     {{/each}}
   
-  {{#if useSecirity}}
+  {{#if useSecurity}}
   function authenticateMiddleware(name: string, scopes: string[] = []) {
       return async (context: any, next: any) => {
           koaAuthentication(context.request, name, scopes).then((user: any) => {

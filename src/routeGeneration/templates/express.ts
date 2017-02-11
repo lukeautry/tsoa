@@ -1,5 +1,5 @@
 export const expressTemplate = `
-{{#if useSecirity}}
+{{#if useSecurity}}
 import { set } from 'lodash';
 {{/if}}
 {{#if authenticationModule}}
@@ -53,7 +53,7 @@ export function RegisterRoutes(app: any) {
     {{/each}}
     {{/each}}
 
-    {{#if useSecirity}}
+    {{#if useSecurity}}
     function authenticateMiddleware(name: string, scopes: string[] = []) {
         return (request: any, response: any, next: any) => {
             expressAuthentication(request, name, scopes).then((user: any) => {

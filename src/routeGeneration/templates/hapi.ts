@@ -2,7 +2,7 @@
 export const hapiTemplate = `
 /* tslint:disable:forin */
 import * as hapi from 'hapi';
-{{#if useSecirity}}
+{{#if useSecurity}}
 import { set } from 'lodash';
 {{/if}}
 {{#if authenticationModule}}
@@ -56,7 +56,7 @@ export function RegisterRoutes(server: hapi.Server) {
     {{/each}}
     {{/each}}
 
-    {{#if useSecirity}}
+    {{#if useSecurity}}
     function authenticateMiddleware(name: string, scopes: string[] = []) {
       return (request: hapi.Request, reply: hapi.IReply) => {
             hapiAuthentication(request, name, scopes).then((user: any) => {

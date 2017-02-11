@@ -80,7 +80,6 @@ export class RouteGenerator {
             };
         `.concat(middlewareTemplate));
 
-
     return routesTemplate({
       authenticationModule: this.options.authenticationModule,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
@@ -105,7 +104,7 @@ export class RouteGenerator {
       }),
       iocModule: this.options.iocModule,
       models: this.getModels(),
-      useSecirity: this.metadata.Controllers.some(
+      useSecurity: this.metadata.Controllers.some(
         controller => controller.methods.some(methods => methods.security !== undefined)
       )
     });

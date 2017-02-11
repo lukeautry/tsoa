@@ -207,7 +207,16 @@ export class FooService {
 }
 ```
 
+### Specify error response types for Swagger
 
+```
+@Response('400', 'Bad request')
+@DefaultResponse<ErrorResponse>('Unexpected error')
+@Get('Response')
+public async getResponse(): Promise<TestModel> {
+    return new ModelService().getModel();
+}
+```
 
 ### Authentication 
 
