@@ -1,7 +1,7 @@
 import { expressTemplate } from './templates/express';
 import { hapiTemplate } from './templates/hapi';
 import { koaTemplate } from './templates/koa';
-import { InjectType, Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
@@ -62,6 +62,7 @@ export class RouteGenerator {
 
     const routesTemplate = handlebars.compile(`/* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
+            import { Controller } from '${canImportByAlias ? 'tsoa' : '../../../src/interfaces/controller'}';
             {{#if iocModule}}
             import { iocContainer } from '{{iocModule}}';
             {{/if}}
@@ -86,12 +87,10 @@ export class RouteGenerator {
       controllers: this.metadata.Controllers.map(controller => {
         return {
           actions: controller.methods.map(method => {
-            const bodyParameter = method.parameters.find(parameter => parameter.in === 'body');
             return {
-              bodyParamName: bodyParameter ? bodyParameter.name : undefined,
               method: method.method.toLowerCase(),
               name: method.name,
-              parameters: method.parameters.map(parameter => this.getTemplateProperty(parameter)),
+              parameters: method.parameters.map(parameter => this.getTemplateParameter(parameter)),
               path: pathTransformer(method.path),
               security: method.security
             };
@@ -139,16 +138,12 @@ export class RouteGenerator {
     return `./${path.relative(path.join(appRoot, this.options.routesDir), controllerLocation).replace(/\\/g, '/')}`;
   }
 
-  private getTemplateProperty(source: Parameter | Property) {
+  private getTemplateProperty(source: Property): TemplateProperty {
     const templateProperty: TemplateProperty = {
       name: source.name,
       required: source.required,
       typeName: this.getStringRepresentationOfType(source.type)
     };
-    const parameter = source as Parameter;
-    if (parameter.injected) {
-      templateProperty.injected = parameter.injected;
-    }
 
     const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
@@ -156,6 +151,23 @@ export class RouteGenerator {
     }
 
     return templateProperty;
+  }
+
+  private getTemplateParameter(parameter: Parameter): TemplateParameter {
+    const templateParameter: TemplateParameter = {
+      argumentName: parameter.argumentName,
+      in: parameter.in,
+      name: parameter.name,
+      required: parameter.required,
+      typeName: this.getStringRepresentationOfType(parameter.type)
+    };
+
+    const arrayType = parameter.type as ArrayType;
+    if (arrayType.elementType) {
+      templateParameter.arrayType = this.getStringRepresentationOfType(arrayType.elementType);
+    }
+
+    return templateParameter;
   }
 }
 
@@ -169,5 +181,15 @@ interface TemplateProperty {
   typeName: string;
   required: boolean;
   arrayType?: string;
-  injected?: InjectType;
+  request?: boolean;
+}
+
+interface TemplateParameter {
+  name: String;
+  argumentName: string;
+  in: string;
+  typeName: string;
+  required: boolean;
+  arrayType?: string;
+  request?: boolean;
 }
