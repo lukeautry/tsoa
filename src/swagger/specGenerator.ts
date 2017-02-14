@@ -110,7 +110,7 @@ export class SpecGenerator {
   private buildPathMethod(method: Method, pathObject: any, jwtUserProperty: string) {
     const pathMethod: any = pathObject[method.method] = this.buildOperation(method);
     pathMethod.description = method.description;
-    pathMethod.parameters = method.parameters.filter(p => !p.injected).map(p => this.buildParameter(p));
+    pathMethod.parameters = method.parameters.filter(p => p.in !== 'request').map(p => this.buildParameter(p));
 
     if (method.tags.length) { pathMethod.tags = method.tags; }
 
@@ -168,7 +168,6 @@ export class SpecGenerator {
   }
 
   private buildOperation(method: Method) {
-    const swaggerType = this.getSwaggerType(method.type);
     const responses: any = {};
 
     method.responses.forEach((res: ResponseType) => {
@@ -178,16 +177,10 @@ export class SpecGenerator {
       if (res.schema) {
         responses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
-    });
-
-    if (swaggerType.type !== 'void') {
-      responses['200'] = { description: '', schema: swaggerType };
-      if (method.example) {
-        responses['200']['examples'] = { 'application/json': method.example };
+      if (res.examples) {
+        responses[res.name]['examples'] = { 'application/json': res.examples };
       }
-    } else {
-      responses['204'] = { description: 'No content' };
-    }
+    });
 
     return {
       operationId: method.name,
