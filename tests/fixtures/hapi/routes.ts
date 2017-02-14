@@ -1,11 +1,12 @@
 /* tslint:disable */
 import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
 import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
-import { JwtGetTestController } from './../controllers/jwtEnabledController';
+import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
@@ -42,20 +43,19 @@ const models: any = {
   'Result': {
     'value': { typeName: 'object', required: true },
   },
-  'ErrorResponse': {
-    'code': { typeName: 'string', required: true },
-    'msg': { typeName: 'string', required: true },
-  },
-  'BooleanResponseModel': {
-    'success': { typeName: 'boolean', required: true },
-  },
-  'ErrorResponseModel': {
-    'status': { typeName: 'number', required: true },
-    'message': { typeName: 'string', required: true },
+  'ParameterTestModel': {
+    'firstname': { typeName: 'string', required: true },
+    'lastname': { typeName: 'string', required: true },
+    'age': { typeName: 'number', required: true },
+    'human': { typeName: 'boolean', required: true },
   },
   'UserResponseModel': {
     'id': { typeName: 'number', required: true },
     'name': { typeName: 'string', required: true },
+  },
+  'ErrorResponseModel': {
+    'status': { typeName: 'number', required: true },
+    'message': { typeName: 'string', required: true },
   },
 };
 
@@ -70,19 +70,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PutTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestModel', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PutTestController();
-        return promiseHandler(controller.putModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.putModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -91,18 +97,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PutTest/Location',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PutTestController();
-        return promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -111,18 +123,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PutTest/Multi',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PutTestController();
-        return promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -131,19 +149,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PutTest/WithId/{id}',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'id': { typeName: 'number', required: true },
+        const args = {
+          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PutTestController();
-        return promiseHandler(controller.putWithId.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.putWithId.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -152,19 +176,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestModel', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -173,19 +203,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestModel', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.updateModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.updateModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -194,19 +230,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest/WithClassModel',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestClassModel', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestClassModel', required: true, in: 'body', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postClassModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postClassModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -215,18 +257,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest/Location',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -235,18 +283,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest/Multi',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -255,19 +309,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest/WithId/{id}',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'id': { typeName: 'number', required: true },
+        const args = {
+          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postWithId.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postWithId.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -276,20 +336,26 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PostTest/WithBodyAndQueryParams',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestModel', required: true },
-          'query': { typeName: 'string', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+          'query': { name: 'query', typeName: 'string', required: true, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PostTestController();
-        return promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -298,19 +364,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PatchTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'model': { typeName: 'TestModel', required: true },
+        const args = {
+          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, 'model');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PatchTestController();
-        return promiseHandler(controller.patchModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.patchModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -319,18 +391,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PatchTest/Location',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PatchTestController();
-        return promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -339,18 +417,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PatchTest/Multi',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PatchTestController();
-        return promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -359,19 +443,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/PatchTest/WithId/{id}',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'id': { typeName: 'number', required: true },
+        const args = {
+          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new PatchTestController();
-        return promiseHandler(controller.patchWithId.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.patchWithId.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -380,18 +470,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -400,18 +496,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/Current',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getCurrentModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -420,18 +522,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/ClassModel',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getClassModel.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getClassModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -440,18 +548,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/Multi',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getMultipleModels.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -460,25 +574,31 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'numberPathParam': { typeName: 'number', required: true },
-          'stringPathParam': { typeName: 'string', required: true },
-          'booleanPathParam': { typeName: 'boolean', required: true },
-          'booleanParam': { typeName: 'boolean', required: true },
-          'stringParam': { typeName: 'string', required: true },
-          'numberParam': { typeName: 'number', required: true },
-          'optionalStringParam': { typeName: 'string', required: false },
+        const args = {
+          'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
+          'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
+          'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
+          'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
+          'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
+          'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
+          'optionalStringParam': { name: 'optionalStringParam', typeName: 'string', required: false, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getModelByParams.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getModelByParams.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -487,18 +607,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/ResponseWithUnionTypeProperty',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -507,60 +633,51 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/UnionTypeResponse',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
   server.route({
     method: 'get',
-    path: '/v1/GetTest/InjectedRequest',
+    path: '/v1/GetTest/Request',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'request': { typeName: 'object', required: true, injected: 'request' },
+        const args = {
+          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/GetTest/InjectedValue',
-    config: {
-      handler: (request: any, reply) => {
-        const params = {
-          'someValue': { typeName: 'object', required: true, injected: 'inject' },
-        };
 
-        let validatedParams: any[] = [];
-        try {
-          validatedParams = getValidatedParams(params, request, '');
-        } catch (err) {
-          return reply(err).code(err.status || 500);
+        const promise = controller.getRequest.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
         }
-
-        const controller = new GetTestController();
-        return promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), request, reply);
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -569,19 +686,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/DateParam',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'date': { typeName: 'datetime', required: true },
+        const args = {
+          'date': { name: 'date', typeName: 'datetime', required: true, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getByDataParam.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getByDataParam.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -590,18 +713,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/ThrowsError',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getThrowsError.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getThrowsError.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -610,18 +739,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/GeneratesTags',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -630,114 +765,25 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/GetTest/HandleBufferType',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'buffer': { typeName: 'buffer', required: true },
+        const args = {
+          'buffer': { name: 'buffer', typeName: 'buffer', required: true, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new GetTestController();
-        return promiseHandler(controller.getBuffer.apply(controller, validatedParams), request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/GetTest/DefaultResponse',
-    config: {
-      handler: (request: any, reply) => {
-        const params = {
-        };
 
-        let validatedParams: any[] = [];
-        try {
-          validatedParams = getValidatedParams(params, request, '');
-        } catch (err) {
-          return reply(err).code(err.status || 500);
+        const promise = controller.getBuffer.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
         }
-
-        const controller = new GetTestController();
-        return promiseHandler(controller.getDefaultResponse.apply(controller, validatedParams), request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/GetTest/Response',
-    config: {
-      handler: (request: any, reply) => {
-        const params = {
-        };
-
-        let validatedParams: any[] = [];
-        try {
-          validatedParams = getValidatedParams(params, request, '');
-        } catch (err) {
-          return reply(err).code(err.status || 500);
-        }
-
-        const controller = new GetTestController();
-        return promiseHandler(controller.getResponse.apply(controller, validatedParams), request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/GetTest/ApiSecurity',
-    config: {
-      pre: [
-        {
-          method: authenticateMiddleware('api_key'
-          )
-        }
-      ],
-      handler: (request: any, reply) => {
-        const params = {
-        };
-
-        let validatedParams: any[] = [];
-        try {
-          validatedParams = getValidatedParams(params, request, '');
-        } catch (err) {
-          return reply(err).code(err.status || 500);
-        }
-
-        const controller = new GetTestController();
-        return promiseHandler(controller.getApiSecurity.apply(controller, validatedParams), request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/GetTest/OauthSecurity',
-    config: {
-      pre: [
-        {
-          method: authenticateMiddleware('tsoa_auth'
-            , [
-              'read:pets'
-            ]
-          )
-        }
-      ],
-      handler: (request: any, reply) => {
-        const params = {
-        };
-
-        let validatedParams: any[] = [];
-        try {
-          validatedParams = getValidatedParams(params, request, '');
-        } catch (err) {
-          return reply(err).code(err.status || 500);
-        }
-
-        const controller = new GetTestController();
-        return promiseHandler(controller.getOauthSecurity.apply(controller, validatedParams), request, reply);
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -746,18 +792,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/DeleteTest',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new DeleteTestController();
-        return promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -766,18 +818,24 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/DeleteTest/Current',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new DeleteTestController();
-        return promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.deleteCurrent.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -786,44 +844,174 @@ export function RegisterRoutes(server: hapi.Server) {
     path: '/v1/DeleteTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
       handler: (request: any, reply) => {
-        const params = {
-          'numberPathParam': { typeName: 'number', required: true },
-          'stringPathParam': { typeName: 'string', required: true },
-          'booleanPathParam': { typeName: 'boolean', required: true },
-          'booleanParam': { typeName: 'boolean', required: true },
-          'stringParam': { typeName: 'string', required: true },
-          'numberParam': { typeName: 'number', required: true },
+        const args = {
+          'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
+          'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
+          'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
+          'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
+          'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
+          'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new DeleteTestController();
-        return promiseHandler(controller.getModelByParams.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.getModelByParams.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
   server.route({
     method: 'get',
-    path: '/v1/JwtGetTest',
+    path: '/v1/ParameterTest/Query',
     config: {
       handler: (request: any, reply) => {
-        const params = {
+        const args = {
+          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'query', },
+          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'query', },
+          'age': { name: 'age', typeName: 'number', required: true, in: 'query', },
+          'human': { name: 'human', typeName: 'boolean', required: true, in: 'query', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
-        const controller = new JwtGetTestController();
-        return promiseHandler(controller.GetWithJwt.apply(controller, validatedParams), request, reply);
+        const controller = new ParameterController();
+
+        const promise = controller.getQuery.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/ParameterTest/Path/{firstname}/{last_name}/{age}/{human}',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'path', },
+          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'path', },
+          'age': { name: 'age', typeName: 'number', required: true, in: 'path', },
+          'human': { name: 'human', typeName: 'boolean', required: true, in: 'path', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.getPath.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/ParameterTest/Header',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'header', },
+          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'header', },
+          'age': { name: 'age', typeName: 'number', required: true, in: 'header', },
+          'human': { name: 'human', typeName: 'boolean', required: true, in: 'header', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.getHeader.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/ParameterTest/Request',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.getRequest.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/ParameterTest/Body',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'body': { name: 'body', typeName: 'ParameterTestModel', required: true, in: 'body', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.getBody.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -838,19 +1026,25 @@ export function RegisterRoutes(server: hapi.Server) {
         }
       ],
       handler: (request: any, reply) => {
-        const params = {
-          'request': { typeName: 'object', required: true, injected: 'request' },
+        const args = {
+          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new SecurityTestController();
-        return promiseHandler(controller.GetWithApi.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.GetWithApi.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -865,19 +1059,25 @@ export function RegisterRoutes(server: hapi.Server) {
         }
       ],
       handler: (request: any, reply) => {
-        const params = {
-          'ctx': { typeName: 'object', required: true, injected: 'request' },
+        const args = {
+          'ctx': { name: 'ctx', typeName: 'object', required: true, in: 'request', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new SecurityTestController();
-        return promiseHandler(controller.GetWithApiForKoa.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -896,19 +1096,25 @@ export function RegisterRoutes(server: hapi.Server) {
         }
       ],
       handler: (request: any, reply) => {
-        const params = {
-          'request': { typeName: 'object', required: true, injected: 'request' },
+        const args = {
+          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
         };
 
-        let validatedParams: any[] = [];
+        let validatedArgs: any[] = [];
         try {
-          validatedParams = getValidatedParams(params, request, '');
+          validatedArgs = getValidatedArgs(args, request);
         } catch (err) {
           return reply(err).code(err.status || 500);
         }
 
         const controller = new SecurityTestController();
-        return promiseHandler(controller.GetWithSecurity.apply(controller, validatedParams), request, reply);
+
+        const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
       }
     }
   });
@@ -923,40 +1129,32 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   }
 
-  function promiseHandler(promise: any, request: hapi.Request, reply: hapi.IReply) {
+  function promiseHandler(promise: any, statusCode: any, request: hapi.Request, reply: hapi.IReply) {
     return promise
       .then((data: any) => {
         if (data) {
-          return reply(data);
+          return reply(data).code(statusCode || 200);
+        } else {
+          return (reply as any)().code(statusCode || 204);
         }
-
-        return (reply as any)().code(204);
       })
       .catch((error: any) => reply(error).code(error.status || 500));
   }
 
-  function getRequestParams(request: hapi.Request, bodyParamName?: string) {
-    const merged: any = {};
-    if (bodyParamName) {
-      merged[bodyParamName] = request.payload;
-    }
-
-    for (let attrname in request.params) { merged[attrname] = request.params[attrname]; }
-    for (let attrname in request.query) { merged[attrname] = request.query[attrname]; }
-    return merged;
-  }
-
-  function getValidatedParams(params: any, request: hapi.Request, bodyParamName?: string): any[] {
-    const requestParams = getRequestParams(request, bodyParamName);
-
-    return Object.keys(params).map(key => {
-      switch (params[key].injected) {
-        case 'inject':
-          return undefined;
+  function getValidatedArgs(args: any, request: hapi.Request): any[] {
+    return Object.keys(args).map(key => {
+      const name = args[key].name;
+      switch (args[key].in) {
         case 'request':
           return request;
-        default:
-          return ValidateParam(params[key], requestParams[key], models, key);
+        case 'query':
+          return ValidateParam(args[key], request.query[name], models, key)
+        case 'path':
+          return ValidateParam(args[key], request.params[name], models, key)
+        case 'header':
+          return ValidateParam(args[key], request.headers[name], models, key);
+        case 'body':
+          return ValidateParam(args[key], request.payload, models, key);
       }
     });
   }
