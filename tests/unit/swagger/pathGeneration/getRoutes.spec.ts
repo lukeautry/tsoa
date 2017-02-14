@@ -116,24 +116,6 @@ describe('GET route generation', () => {
     expect(successResponse.schema.type).to.equal('object');
   });
 
-  it('should not generate a parameter for a parameter decorated with @Request', () => {
-    const actionRoute = `${baseRoute}/InjectedRequest`;
-    const get = getValidatedGetOperation(actionRoute);
-    expect(get.parameters).not.to.be.undefined;
-    if (get.parameters) {
-      expect(get.parameters.length).to.equal(0);
-    }
-  });
-
-  it('should not generate a parameter for a parameter decorated with @Reject', () => {
-    const actionRoute = `${baseRoute}/InjectedValue`;
-    const get = getValidatedGetOperation(actionRoute);
-    expect(get.parameters).not.to.be.undefined;
-    if (get.parameters) {
-      expect(get.parameters.length).to.equal(0);
-    }
-  });
-
   it('should reject complex types as arguments', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
@@ -145,7 +127,7 @@ describe('GET route generation', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) { throw new Error('No description.'); }
 
-    expect(get.description).to.equal('This is a description of the getModel method\nthis is some more text on another line');
+    expect(get.description).to.equal('This is a description of the getModel method\r\nthis is some more text on another line');
   });
 
   it('should generate optional parameters from default value', () => {
