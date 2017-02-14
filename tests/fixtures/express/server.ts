@@ -6,18 +6,16 @@ import '../controllers/postController';
 import '../controllers/patchController';
 import '../controllers/getController';
 import '../controllers/deleteController';
-import '../controllers/jwtEnabledController';
+
+import '../controllers/parameterController';
 import '../controllers/securityController';
 
-import { jwt, Options } from './express-jwt-mock';
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
-app.use('/v1/JwtGetTest', jwt(<Options>{ userProperty: 'user_jwt_data' }));
-// set a context value in express request object to test request injection
 app.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
   next();
