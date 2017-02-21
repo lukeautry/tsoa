@@ -64,6 +64,11 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     };
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       const innerType = modelTypeDeclaration.type;
+      // manage enum as if they were numbers
+      if (innerType.kind === ts.SyntaxKind.EnumDeclaration) {
+        referenceType.name = 'number';
+        return referenceType;
+      }
       if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
         const unionTypes = (innerType as any).types;
         referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
@@ -109,6 +114,7 @@ function getModelTypeDeclaration(typeName: string) {
       case ts.SyntaxKind.InterfaceDeclaration:
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.TypeAliasDeclaration:
+      case ts.SyntaxKind.EnumDeclaration:
         return false;
       default: return true;
     }
