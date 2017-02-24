@@ -89,13 +89,13 @@ export function RegisterRoutes(app: any) {
             case 'request':
                 return request;
             case 'query':
-                return ValidateParam(args[key], request.query[name], models, key)
+                return ValidateParam(args[key], request.query[name], models, name)
             case 'path':
-                return ValidateParam(args[key], request.params[name], models, key)
+                return ValidateParam(args[key], request.params[name], models, name)
             case 'header':
-                return ValidateParam(args[key], request.header(name), models, key);
+                return ValidateParam(args[key], request.header(name), models, name);
             case 'body':
-                return ValidateParam(args[key], request.body, models, key);
+                return ValidateParam(args[key], request.body, models, name);
             }
         });
     }

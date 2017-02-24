@@ -99,13 +99,13 @@ export function RegisterRoutes(router: KoaRouter) {
             case 'request':
                 return context;
             case 'query':
-                return ValidateParam(args[key], context.request.query[name], models, key)
+                return ValidateParam(args[key], context.request.query[name], models, name)
             case 'path':
-                return ValidateParam(args[key], context.params[name], models, key)
+                return ValidateParam(args[key], context.params[name], models, name)
             case 'header':
-                return ValidateParam(args[key], context.request.headers[name], models, key);
+                return ValidateParam(args[key], context.request.headers[name], models, name);
             case 'body':
-                return ValidateParam(args[key], context.request.body, models, key);
+                return ValidateParam(args[key], context.request.body, models, name);
             }
         });
     }
