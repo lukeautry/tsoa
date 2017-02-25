@@ -99,7 +99,7 @@ export class RouteGenerator {
           path: controller.path
         };
       }),
-      iocModule: this.options.iocModule,
+      iocModule: this.options.iocModule !== undefined ? this.getRelativeImportPath(this.options.iocModule) : undefined,
       models: this.getModels(),
       useSecurity: this.metadata.Controllers.some(
         controller => controller.methods.some(methods => methods.security !== undefined)
