@@ -127,7 +127,7 @@ describe('GET route generation', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) { throw new Error('No description.'); }
 
-    expect(get.description).to.equal('This is a description of the getModel method\r\nthis is some more text on another line');
+    expect(get.description).to.contain('This is a description of the getModel method');
   });
 
   it('should generate optional parameters from default value', () => {
