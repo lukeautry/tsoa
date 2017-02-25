@@ -36,8 +36,7 @@ export function RegisterRoutes(router: KoaRouter) {
             } catch (error) {
               context.status = error.status || 500;
               context.body = error;
-              next();
-              return;
+              return next();
             }
 
             {{#if ../../iocModule}}
@@ -52,7 +51,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 statusCode = (controller as Controller).getStatus();
             }
 
-            promiseHandler(promise, statusCode, context, next);
+            return promiseHandler(promise, statusCode, context, next);
         });
     {{/each}}
     {{/each}}

@@ -77,8 +77,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PutTestController();
@@ -89,7 +88,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/Location',
     async (context, next) => {
@@ -102,8 +101,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PutTestController();
@@ -114,7 +112,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/Multi',
     async (context, next) => {
@@ -127,8 +125,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PutTestController();
@@ -139,7 +136,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/WithId/:id',
     async (context, next) => {
@@ -153,8 +150,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PutTestController();
@@ -165,7 +161,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest',
     async (context, next) => {
@@ -179,8 +175,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -191,7 +186,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PostTest',
     async (context, next) => {
@@ -205,8 +200,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -217,7 +211,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithClassModel',
     async (context, next) => {
@@ -231,8 +225,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -243,7 +236,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/Location',
     async (context, next) => {
@@ -256,8 +249,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -268,7 +260,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/Multi',
     async (context, next) => {
@@ -281,8 +273,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -293,7 +284,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithId/:id',
     async (context, next) => {
@@ -307,8 +298,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -319,7 +309,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithBodyAndQueryParams',
     async (context, next) => {
@@ -334,8 +324,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PostTestController();
@@ -346,7 +335,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest',
     async (context, next) => {
@@ -360,8 +349,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PatchTestController();
@@ -372,7 +360,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/Location',
     async (context, next) => {
@@ -385,8 +373,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PatchTestController();
@@ -397,7 +384,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/Multi',
     async (context, next) => {
@@ -410,8 +397,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PatchTestController();
@@ -422,7 +408,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/WithId/:id',
     async (context, next) => {
@@ -436,8 +422,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new PatchTestController();
@@ -448,7 +433,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest',
     async (context, next) => {
@@ -461,8 +446,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -473,7 +457,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/Current',
     async (context, next) => {
@@ -486,8 +470,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -498,7 +481,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ClassModel',
     async (context, next) => {
@@ -511,8 +494,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -523,7 +505,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/Multi',
     async (context, next) => {
@@ -536,8 +518,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -548,7 +529,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
@@ -568,8 +549,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -580,7 +560,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ResponseWithUnionTypeProperty',
     async (context, next) => {
@@ -593,8 +573,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -605,7 +584,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/UnionTypeResponse',
     async (context, next) => {
@@ -618,8 +597,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -630,7 +608,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/Request',
     async (context, next) => {
@@ -644,8 +622,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -656,7 +633,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/DateParam',
     async (context, next) => {
@@ -670,8 +647,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -682,7 +658,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ThrowsError',
     async (context, next) => {
@@ -695,8 +671,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -707,7 +682,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/GeneratesTags',
     async (context, next) => {
@@ -720,8 +695,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -732,7 +706,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/HandleBufferType',
     async (context, next) => {
@@ -746,8 +720,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new GetTestController();
@@ -758,7 +731,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest',
     async (context, next) => {
@@ -771,8 +744,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new DeleteTestController();
@@ -783,7 +755,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest/Current',
     async (context, next) => {
@@ -796,8 +768,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new DeleteTestController();
@@ -808,7 +779,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
@@ -827,8 +798,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new DeleteTestController();
@@ -839,7 +809,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/ParameterTest/Query',
     async (context, next) => {
@@ -856,8 +826,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new ParameterController();
@@ -868,7 +837,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:human',
     async (context, next) => {
@@ -885,8 +854,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new ParameterController();
@@ -897,7 +865,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/ParameterTest/Header',
     async (context, next) => {
@@ -914,8 +882,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new ParameterController();
@@ -926,7 +893,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/ParameterTest/Request',
     async (context, next) => {
@@ -940,8 +907,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new ParameterController();
@@ -952,7 +918,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/ParameterTest/Body',
     async (context, next) => {
@@ -966,8 +932,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new ParameterController();
@@ -978,7 +943,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest',
     authenticateMiddleware('api_key'
@@ -994,8 +959,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new SecurityTestController();
@@ -1006,7 +970,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest/Koa',
     authenticateMiddleware('api_key'
@@ -1022,8 +986,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new SecurityTestController();
@@ -1034,7 +997,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest/Oauth',
     authenticateMiddleware('tsoa_auth'
@@ -1054,8 +1017,7 @@ export function RegisterRoutes(router: KoaRouter) {
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
-        next();
-        return;
+        return next();
       }
 
       const controller = new SecurityTestController();
@@ -1066,7 +1028,7 @@ export function RegisterRoutes(router: KoaRouter) {
         statusCode = (controller as Controller).getStatus();
       }
 
-      promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, statusCode, context, next);
     });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
