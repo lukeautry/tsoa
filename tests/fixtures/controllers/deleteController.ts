@@ -1,5 +1,6 @@
 import { Route } from '../../../src/decorators/route';
 import { Delete } from '../../../src/decorators/methods';
+import { Query } from '../../../src/decorators/parameter';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
@@ -20,9 +21,9 @@ export class DeleteTestController {
     numberPathParam: number,
     stringPathParam: string,
     booleanPathParam: boolean,
-    booleanParam: boolean,
-    stringParam: string,
-    numberParam: number): Promise<void> {
+    @Query() booleanParam: boolean,
+    @Query() stringParam: string,
+    @Query() numberParam: number): Promise<void> {
     return;
   }
 }

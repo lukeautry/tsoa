@@ -24,15 +24,15 @@ export function RegisterRoutes(router: KoaRouter) {
             ), 
             {{/if}} 
             async (context, next) => {
-            const params = {
+            const args = {
                 {{#each parameters}}
-                '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
+                '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
                 {{/each}}
             };
 
-            let validatedParams: any[] = [];
+            let validatedArgs: any[] = [];
             try {
-              validatedParams = getValidatedParams(params, context, '{{bodyParamName}}');
+              validatedArgs = getValidatedArgs(args, context);
             } catch (error) {
               context.status = error.status || 500;
               context.body = error;
@@ -45,7 +45,14 @@ export function RegisterRoutes(router: KoaRouter) {
             {{else}}
             const controller = new {{../name}}();
             {{/if}}
-            promiseHandler(controller.{{name}}.apply(controller, validatedParams), context, next);
+
+            const promise = controller.{{name}}.apply(controller, validatedArgs);
+            let statusCode = undefined;
+            if (controller instanceof Controller) {
+                statusCode = (controller as Controller).getStatus();
+            }
+
+            promiseHandler(promise, statusCode, context, next);
         });
     {{/each}}
     {{/each}}
@@ -66,13 +73,14 @@ export function RegisterRoutes(router: KoaRouter) {
   }
   {{/if}}
 
-  function promiseHandler(promise: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
+  function promiseHandler(promise: any, statusCode: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
       return promise
         .then((data: any) => {
           if (data) {
             context.body = data;
+            context.status = (statusCode || 200)
           } else {
-            context.status = 204;
+            context.status = (statusCode || 204)
           }
 
           next();
@@ -84,27 +92,20 @@ export function RegisterRoutes(router: KoaRouter) {
         });
     }
 
-    function getRequestParams(context: KoaRouter.IRouterContext, bodyParamName?: string) {
-        const merged: any = {};
-        if (bodyParamName) {
-            merged[bodyParamName] = context.request.body;
-        }
-
-        for (let attrname in context.params) { merged[attrname] = context.params[attrname]; }
-        for (let attrname in context.request.query) { merged[attrname] = context.request.query[attrname]; }
-        return merged;
-    }
-
-    function getValidatedParams(params: any, context: KoaRouter.IRouterContext, bodyParamName?: string): any[] {
-        const requestParams = getRequestParams(context, bodyParamName);
-
-        return Object.keys(params).map(key => {
-            if (params[key].injected === 'inject') {
-              return undefined;
-            } else if (params[key].injected === 'request') {
-              return context;
-            } else {
-              return ValidateParam(params[key], requestParams[key], models, key);
+    function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+        return Object.keys(args).map(key => {
+            const name = args[key].name;
+            switch (args[key].in) {
+            case 'request':
+                return context;
+            case 'query':
+                return ValidateParam(args[key], context.request.query[name], models, name)
+            case 'path':
+                return ValidateParam(args[key], context.params[name], models, name)
+            case 'header':
+                return ValidateParam(args[key], context.request.headers[name], models, name);
+            case 'body':
+                return ValidateParam(args[key], context.request.body, models, name);
             }
         });
     }

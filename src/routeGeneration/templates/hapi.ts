@@ -31,15 +31,15 @@ export function RegisterRoutes(server: hapi.Server) {
                 ],
                 {{/if}} 
                 handler: (request: any, reply) => {
-                    const params = {
+                    const args = {
                         {{#each parameters}}
-                        '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
+                        '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
                         {{/each}}
                     };
 
-                    let validatedParams: any[] = [];
+                    let validatedArgs: any[] = [];
                     try {
-                        validatedParams = getValidatedParams(params, request, '{{bodyParamName}}');
+                        validatedArgs = getValidatedArgs(args, request);
                     } catch (err) {
                         return reply(err).code(err.status || 500);
                     }
@@ -49,7 +49,13 @@ export function RegisterRoutes(server: hapi.Server) {
                     {{else}}
                     const controller = new {{../name}}();
                     {{/if}}
-                    return promiseHandler(controller.{{name}}.apply(controller, validatedParams), request, reply);
+
+                    const promise = controller.{{name}}.apply(controller, validatedArgs);
+                    let statusCode = undefined;
+                    if (controller instanceof Controller) {
+                        statusCode = (controller as Controller).getStatus();
+                    }
+                    return promiseHandler(promise, statusCode, request, reply);
                 }
             }
         });
@@ -68,41 +74,33 @@ export function RegisterRoutes(server: hapi.Server) {
     }
     {{/if}}
 
-    function promiseHandler(promise: any, request: hapi.Request, reply: hapi.IReply) {
+    function promiseHandler(promise: any, statusCode: any, request: hapi.Request, reply: hapi.IReply) {
       return promise
         .then((data: any) => {
           if (data) {
-            return reply(data);
+            return reply(data).code(statusCode || 200);
+          } else {
+            return (reply as any)().code(statusCode || 204);
           }
-
-          return (reply as any)().code(204);
         })
         .catch((error: any) => reply(error).code(error.status || 500));
     }
 
-    function getRequestParams(request: hapi.Request, bodyParamName?: string) {
-      const merged: any = {};
-      if (bodyParamName) {
-        merged[bodyParamName] = request.payload;
-      }
-
-      for (let attrname in request.params) { merged[attrname] = request.params[attrname]; }
-      for (let attrname in request.query) { merged[attrname] = request.query[attrname]; }
-      return merged;
-    }
-
-    function getValidatedParams(params: any, request: hapi.Request, bodyParamName?: string): any[] {
-      const requestParams = getRequestParams(request, bodyParamName);
-
-      return Object.keys(params).map(key => {
-        switch (params[key].injected) {
-          case 'inject':
-            return undefined;
-          case 'request':
-            return request;
-          default:
-            return ValidateParam(params[key], requestParams[key], models, key);
-        }
-      });
+    function getValidatedArgs(args: any, request: hapi.Request): any[] {
+        return Object.keys(args).map(key => {
+            const name = args[key].name;
+            switch (args[key].in) {
+            case 'request':
+                return request;
+            case 'query':
+                return ValidateParam(args[key], request.query[name], models, name)
+            case 'path':
+                return ValidateParam(args[key], request.params[name], models, name)
+            case 'header':
+                return ValidateParam(args[key], request.headers[name], models, name);
+            case 'body':
+                return ValidateParam(args[key], request.payload, models, name);
+            }
+        });
     }
 }`;

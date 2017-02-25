@@ -1,6 +1,6 @@
 import 'mocha';
 import { server } from '../fixtures/koa/server';
-import { TestModel, TestClassModel, Model } from '../fixtures/testModel';
+import { TestModel, TestClassModel, Model, ParameterTestModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -43,29 +43,6 @@ describe('Koa Server', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       expect(JSON.parse(err.text).message).to.equal('numberParam is a required parameter.');
     }, 400);
-  });
-
-  it('parses path parameters', () => {
-    const numberValue = 600;
-    const boolValue = false;
-    const stringValue = 'the-string';
-
-    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
-      const model = res.body as TestModel;
-      expect(model.numberValue).to.equal(numberValue);
-      expect(model.boolValue).to.equal(boolValue);
-      expect(model.stringValue).to.equal(stringValue);
-    });
-  });
-
-  it('parses query parameters', () => {
-    const numberValue = 600;
-    const stringValue = 'the-string';
-
-    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
-      const model = res.body as TestModel;
-      expect(model.optionalString).to.equal(stringValue);
-    });
   });
 
   it('parsed body parameters', () => {
@@ -155,19 +132,90 @@ describe('Koa Server', () => {
     }, 400);
   });
 
-  it('[Security] can handle get request with access_token user id == 1', () => {
-    return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=abc123456', (err, res) => {
-      const model = res.body as Model;
-      expect(model.id).to.equal(1);
+
+  describe('Security', () => {
+    it('can handle get request with access_token user id == 1', () => {
+      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=abc123456', (err, res) => {
+        const model = res.body as Model;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    it('can handle get request with access_token user id == 2', () => {
+      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=xyz123456', (err, res) => {
+        const model = res.body as Model;
+        expect(model.id).to.equal(2);
+      });
     });
   });
 
-  it('[Security] can handle get request with access_token user id == 2', () => {
-    return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=xyz123456', (err, res) => {
-      const model = res.body as Model;
-      expect(model.id).to.equal(2);
+  describe('Parameter data', () => {
+    it('parses query parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&human=true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses path parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses header parameters', () => {
+      return verifyRequest((err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      }, (request) => {
+        return request
+          .get(basePath + '/ParameterTest/Header')
+          .set({
+            'age': 45,
+            'firstname': 'Tony',
+            'human': true,
+            'last_name': 'Stark',
+          });
+      }, 200);
+    });
+
+    it('parses request parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&human=true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses body parameters', () => {
+      const data: ParameterTestModel = {
+        age: 45,
+        firstname: 'Tony',
+        human: true,
+        lastname: 'Stark'
+      };
+      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
     });
   });
+
 
   it('shutdown server', () => server.close());
 

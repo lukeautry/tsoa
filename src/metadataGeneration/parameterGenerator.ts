@@ -1,4 +1,4 @@
-import { InjectType, MetadataGenerator, Parameter, Type } from './metadataGenerator';
+import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import * as ts from 'typescript';
 
@@ -10,50 +10,47 @@ export class ParameterGenerator {
   ) { }
 
   public Generate(): Parameter {
-    const parameterIdentifier = this.parameter.name as ts.Identifier;
-    const injectDecorators = this.getDecorators(identifier => {
-      return this.getValidInjectors().some(m => m.toLowerCase() === identifier.text.toLowerCase());
-    });
+    const decoratorName = this.getDecoratorName();
 
-    if (injectDecorators && injectDecorators.length > 1) {
-      throw new Error(`Only one inject decorator allowed per parameter. Found: ${injectDecorators.map(d => d.text).join(', ')}`);
-    }
-
-    if (injectDecorators && injectDecorators.length === 1) {
-      return {
-        description: this.getParameterDescription(this.parameter),
-        in: 'inject',
-        injected: <InjectType>injectDecorators[0].text.toLowerCase(),
-        name: parameterIdentifier.text,
-        required: !this.parameter.questionToken,
-        type: 'object'
-      };
-    }
-
-    if (this.path.includes(`{${parameterIdentifier.text}}`)) {
-      return this.getPathParameter(this.parameter);
-    }
-
-    if (this.supportsBodyParameters(this.method)) {
-      try {
+    switch (decoratorName) {
+      case 'Request':
+        return this.getRequestParameter(this.parameter);
+      case 'Body':
+        return this.getBodyParameter(this.parameter);
+      case 'Header':
+        return this.getHeaderParameter(this.parameter);
+      case 'Query':
         return this.getQueryParameter(this.parameter);
-      } catch (err) {
-        if (err instanceof InvalidParameterException) {
-          return this.getBodyParameter(this.parameter);
-        }
-
-        throw err;
-      }
+      case 'Path':
+        return this.getPathParameter(this.parameter);
+      default:
+        return this.getPathParameter(this.parameter);
     }
-
-    return this.getQueryParameter(this.parameter);
   }
 
-  private getBodyParameter(parameter: ts.ParameterDeclaration) {
-    const type = this.getValidatedType(parameter);
+  private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
     const identifier = parameter.name as ts.Identifier;
 
     return {
+      argumentName: identifier.text,
+      description: this.getParameterDescription(parameter),
+      in: 'request',
+      name: identifier.text,
+      required: !parameter.questionToken,
+      type: 'object'
+    };
+  }
+
+  private getBodyParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const type = this.getValidatedType(parameter);
+    const identifier = parameter.name as ts.Identifier;
+
+    if (!this.supportsBodyParameters(this.method)) {
+      throw new Error(`Body can't support ${this.method} method`);
+    }
+
+    return {
+      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: identifier.text,
@@ -62,7 +59,25 @@ export class ParameterGenerator {
     };
   }
 
-  private getQueryParameter(parameter: ts.ParameterDeclaration) {
+  private getHeaderParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const type = this.getValidatedType(parameter);
+    const identifier = parameter.name as ts.Identifier;
+
+    if (!this.isPathableType(type)) {
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a header parameter.`);
+    }
+
+    return {
+      argumentName: identifier.text,
+      description: this.getParameterDescription(parameter),
+      in: 'header',
+      name: this.getDecoratorValue(parameter, 'Header') || identifier.text,
+      required: !parameter.questionToken,
+      type: type
+    };
+  }
+
+  private getQueryParameter(parameter: ts.ParameterDeclaration): Parameter {
     const type = this.getValidatedType(parameter);
     const identifier = parameter.name as ts.Identifier;
 
@@ -71,15 +86,16 @@ export class ParameterGenerator {
     }
 
     return {
+      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'query',
-      name: identifier.text,
+      name: this.getDecoratorValue(parameter, 'Query') || identifier.text,
       required: !parameter.questionToken,
       type: type
     };
   }
 
-  private getPathParameter(parameter: ts.ParameterDeclaration) {
+  private getPathParameter(parameter: ts.ParameterDeclaration): Parameter {
     const type = this.getValidatedType(parameter);
     const identifier = parameter.name as ts.Identifier;
 
@@ -87,14 +103,18 @@ export class ParameterGenerator {
       throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
     }
 
+    const name = this.getDecoratorValue(parameter, 'Path') || identifier.text;
+
+    if (!this.path.includes(`{${name}}`)) {
+      // return this.getQueryParameter(parameter);
+      throw new Error(`Parameter '${name}' can't macth in path: '${this.path}'`);
+    }
+
     return {
+      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'path',
-      name: identifier.text,
-      // TODISCUSS: Path parameters should always be required...right?
-      // Apparently express doesn't think so, but I think being able to
-      // have combinations of required and optional path params makes behavior
-      // pretty confusing to clients
+      name: name,
       required: true,
       type: type
     };
@@ -109,8 +129,13 @@ export class ParameterGenerator {
     return '';
   }
 
+
   private supportsBodyParameters(method: string) {
     return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
+  }
+
+  private supportParameterDecorator() {
+    return ['Header', 'Query', 'Parem', 'Body', 'Request'];
   }
 
   private isPathableType(parameterType: Type) {
@@ -137,8 +162,27 @@ export class ParameterGenerator {
       .filter(isMatching);
   }
 
-  private getValidInjectors() {
-    return ['inject', 'request'];
+  private getDecoratorName() {
+    const decorators = this.getDecorators(identifier =>
+      this.supportParameterDecorator().some(d => d === identifier.text)
+    );
+
+    if (decorators && decorators.length > 0 && decorators[0].text) {
+      return decorators[0].text;
+    }
+    return;
+  }
+
+  private getDecoratorValue(parameter: ts.ParameterDeclaration, decoratorName: string) {
+    const decorators = this.getDecorators(identifier =>
+      identifier.text === decoratorName
+    );
+    if (!decorators || decorators.length === 0) { return; }
+
+    const expression = decorators[0].parent as ts.CallExpression;
+    if (!expression.arguments || expression.arguments.length === 0) { return; }
+
+    return (expression.arguments[0] as any).text;
   }
 }
 

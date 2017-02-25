@@ -1,15 +1,14 @@
 import { Example } from '../../../src/decorators/example';
-import { Inject, Request } from '../../../src/decorators/inject';
+import { Request, Query } from '../../../src/decorators/parameter';
 import { Get } from '../../../src/decorators/methods';
+import { Controller } from '../../../src/interfaces/controller';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
-import { Security } from '../../../src/decorators/security';
-import { Response, DefaultResponse } from '../../../src/decorators/response';
 import { TestModel, TestSubModel, TestClassModel } from '../testModel';
 import { Tags } from '../../../src/decorators/tags';
 
 @Route('GetTest')
-export class GetTestController {
+export class GetTestController extends Controller {
   /**
   * This is a description of the getModel method
   * this is some more text on another line
@@ -64,10 +63,10 @@ export class GetTestController {
     numberPathParam: number,
     stringPathParam: string,
     booleanPathParam: boolean,
-    booleanParam: boolean,
-    stringParam: string,
-    numberParam: number,
-    optionalStringParam?: string): Promise<TestModel> {
+    @Query() booleanParam: boolean,
+    @Query() stringParam: string,
+    @Query() numberParam: number,
+    @Query() optionalStringParam?: string): Promise<TestModel> {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
     model.numberValue = numberPathParam;
@@ -89,24 +88,16 @@ export class GetTestController {
     return '';
   }
 
-  @Get('InjectedRequest')
-  public async getInjectedRequest( @Request() request: Object): Promise<TestModel> {
+  @Get('Request')
+  public async getRequest(@Request() request: Object): Promise<TestModel> {
     let model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (<any>request).stringValue;
     return model;
   }
 
-  @Get('InjectedValue')
-  public async getInjectedValue( @Inject() someValue: string): Promise<TestModel> {
-    let model = new ModelService().getModel();
-    // set the stringValue to the injected value to test successful injection
-    model.stringValue = someValue;
-    return model;
-  }
-
   @Get('DateParam')
-  public async getByDataParam(date: Date): Promise<TestModel> {
+  public async getByDataParam(@Query() date: Date): Promise<TestModel> {
     const model = new ModelService().getModel();
     model.dateValue = date;
 
@@ -128,33 +119,8 @@ export class GetTestController {
   }
 
   @Get('HandleBufferType')
-  public async getBuffer(buffer: Buffer): Promise<Buffer> {
+  public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
-  }
-
-  @DefaultResponse<ErrorResponse>()
-  @Get('DefaultResponse')
-  public async getDefaultResponse(): Promise<TestModel> {
-    return new ModelService().getModel();
-  }
-
-  @Response('400', 'Bad request')
-  @DefaultResponse<ErrorResponse>('Unexpected error')
-  @Get('Response')
-  public async getResponse(): Promise<TestModel> {
-    return new ModelService().getModel();
-  }
-
-  @Security('api_key')
-  @Get('ApiSecurity')
-  public async getApiSecurity(): Promise<TestModel> {
-    return new ModelService().getModel();
-  }
-
-  @Security('tsoa_auth', ['read:pets'])
-  @Get('OauthSecurity')
-  public async getOauthSecurity(): Promise<TestModel> {
-    return new ModelService().getModel();
   }
 }
 
