@@ -46,6 +46,6 @@
         "entryFile": "./tests/fixtures/hapi/server.ts",
         "routesDir": "./tests/fixtures/hapi",
         "middleware": "hapi",
-        "authenticationModule": "./authentication"
+        "authenticationModule": "./tests/fixtures/hapi/authentication.ts"
     }
 }
