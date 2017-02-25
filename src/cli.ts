@@ -5,6 +5,7 @@ import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { SpecGenerator } from './swagger/specGenerator';
 import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
+import * as fs from 'fs';
 
 const workingDir: string = process.cwd();
 
@@ -54,6 +55,15 @@ const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
 const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
   if (!config.routesDir) { throw new Error('Missing routesDir: Configuration must contain a routes file output directory.'); }
+
+  if (config.authenticationModule && !fs.existsSync(config.authenticationModule)) {
+    throw new Error(`No authenticationModule file found at '${config.authenticationModule}'`);
+  }
+
+  if (config.iocModule && !fs.existsSync(config.iocModule)) {
+    throw new Error(`No iocModule file found at '${config.iocModule}'`);
+  }
+
   config.basePath = config.basePath || '/';
   config.middleware = config.middleware || 'express';
 
