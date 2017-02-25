@@ -6,11 +6,11 @@ import { SpecGenerator } from './swagger/specGenerator';
 import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 
-const appRoot: string = require('app-root-path').path;
+const workingDir: string = process.cwd();
 
 const getPackageJsonValue = (key: string): string => {
   try {
-    const packageJson = require(`${appRoot}/package.json`);
+    const packageJson = require(`${workingDir}/package.json`);
     return packageJson[key] || '';
   } catch (err) {
     return '';
@@ -25,7 +25,7 @@ const licenseDefault = getPackageJsonValue('license');
 const getConfig = (configPath = 'tsoa.json'): Config => {
   let config: Config;
   try {
-    config = require(`${appRoot}/${configPath}`);
+    config = require(`${workingDir}/${configPath}`);
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
