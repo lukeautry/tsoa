@@ -108,12 +108,12 @@ export interface RoutesConfig {
   middleware?: 'express' | 'hapi' | 'koa';
 
   /**
-   * IOC module; e.g. './inversify/ioc' where IOC container named `iocContainer` is defined (https://github.com/inversify/InversifyJS)
+   * Relative path for IOC module; e.g. './inversify/ioc' where IOC container named `iocContainer` is defined (https://github.com/inversify/InversifyJS)
    */
   iocModule?: string;
 
   /**
-   * Authentication Module for express, hapi and koa
+   * Relative path for Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
 }

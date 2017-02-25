@@ -46,6 +46,6 @@
         "entryFile": "./tests/fixtures/express/server.ts",
         "routesDir": "./tests/fixtures/express",
         "middleware": "express",
-        "authenticationModule": "./authentication"
+        "authenticationModule": "./tests/fixtures/express/authentication.ts"
     }
 }

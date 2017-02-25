@@ -8,8 +8,6 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 
-const appRoot: string = require('app-root-path').path;
-
 export class RouteGenerator {
   constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
 
@@ -82,7 +80,7 @@ export class RouteGenerator {
         `.concat(middlewareTemplate));
 
     return routesTemplate({
-      authenticationModule: this.options.authenticationModule,
+      authenticationModule: this.options.authenticationModule !== undefined ? this.getRelativeImportPath(this.options.authenticationModule) : undefined,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
       controllers: this.metadata.Controllers.map(controller => {
         return {
@@ -101,7 +99,7 @@ export class RouteGenerator {
           path: controller.path
         };
       }),
-      iocModule: this.options.iocModule,
+      iocModule: this.options.iocModule !== undefined ? this.getRelativeImportPath(this.options.iocModule) : undefined,
       models: this.getModels(),
       useSecurity: this.metadata.Controllers.some(
         controller => controller.methods.some(methods => methods.security !== undefined)
@@ -135,7 +133,7 @@ export class RouteGenerator {
 
   private getRelativeImportPath(controllerLocation: string) {
     controllerLocation = controllerLocation.replace('.ts', '');
-    return `./${path.relative(path.join(appRoot, this.options.routesDir), controllerLocation).replace(/\\/g, '/')}`;
+    return `./${path.relative(this.options.routesDir, controllerLocation).replace(/\\/g, '/')}`;
   }
 
   private getTemplateProperty(source: Property): TemplateProperty {

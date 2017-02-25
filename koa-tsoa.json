@@ -46,6 +46,6 @@
         "entryFile": "./tests/fixtures/koa/server.ts",
         "routesDir": "./tests/fixtures/koa",
         "middleware": "koa",
-        "authenticationModule": "./authentication"
+        "authenticationModule": "./tests/fixtures/koa/authentication.ts"
     }
 }
