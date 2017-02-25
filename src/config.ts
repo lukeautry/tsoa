@@ -113,7 +113,7 @@ export interface RoutesConfig {
   iocModule?: string;
 
   /**
-   * Authentication Module for express, hapi and koa
+   * Relative path for Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
 }
