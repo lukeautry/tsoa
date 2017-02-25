@@ -7,7 +7,7 @@ export function ValidateParam(typeData: any, value: any, generatedModels: any, n
 
   if (value === undefined || value === null) {
     if (typeData.required) {
-      throw new InvalidRequestException(name + ' is a required parameter.');
+      throw new InvalidRequestException(`'${name}' is a required ${typeData.in} parameter.`);
     } else {
       return undefined;
     }

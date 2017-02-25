@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/express/server';
-import { TestModel, TestClassModel, BooleanResponseModel, UserResponseModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel, UserResponseModel, ParameterTestModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
@@ -41,24 +41,16 @@ describe('Express Server', () => {
   });
 
   it('injects express request in parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/InjectedRequest`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/Request`, (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
       expect(model.stringValue).to.equal('fancyStringForContext');
     });
   });
 
-  it('injects undefined as custom value in parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/InjectedValue`, (err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-      expect(model.stringValue).to.be.undefined;
-    });
-  });
-
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
-      expect(err.text).to.equal('numberParam is a required parameter.');
+      expect(err.text).to.equal(`'numberParam' is a required query parameter.`);
     }, 400);
   });
 
@@ -87,27 +79,6 @@ describe('Express Server', () => {
 
   it('parses buffer parameter', () => {
     return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => { return; });
-  });
-
-  it('[JWTEnabled] can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/JwtGetTest', (err, res) => {
-      const model = res.body as BooleanResponseModel;
-      expect(model.success).to.equal(true);
-    });
-  });
-
-   it('[Security] can handle get request with access_token user id == 1', () => {
-    return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
-      const model = res.body as UserResponseModel;
-      expect(model.id).to.equal(1);
-    });
-  });
-
-  it('[Security] can handle get request with access_token user id == 2', () => {
-    return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
-      const model = res.body as UserResponseModel;
-      expect(model.id).to.equal(2);
-    });
   });
 
   it('parsed body parameters', () => {
@@ -195,6 +166,89 @@ describe('Express Server', () => {
     return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
       expect(err.text).to.equal('error thrown');
     }, 400);
+  });
+
+  describe('Security', () => {
+    it('can handle get request with access_token user id == 1', () => {
+      return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
+        const model = res.body as UserResponseModel;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    it('can handle get request with access_token user id == 2', () => {
+      return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
+        const model = res.body as UserResponseModel;
+        expect(model.id).to.equal(2);
+      });
+    });
+  });
+
+  describe('Parameter data', () => {
+    it('parses query parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&human=true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses path parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses header parameters', () => {
+      return verifyRequest((err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      }, (request) => {
+        return request
+          .get(basePath + '/ParameterTest/Header')
+          .set({
+            'age': 45,
+            'firstname': 'Tony',
+            'human': true,
+            'last_name': 'Stark',
+          });
+      }, 200);
+    });
+
+    it('parses request parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&human=true', (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses body parameters', () => {
+      const data: ParameterTestModel = {
+        age: 45,
+        firstname: 'Tony',
+        human: true,
+        lastname: 'Stark'
+      };
+      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {

@@ -72,7 +72,7 @@ yargs
   .demand(1)
 
   .command('swagger', 'Generate swagger spec', {
-    configuration
+    configuration: configuration as any
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -86,7 +86,7 @@ yargs
   })
 
   .command('routes', 'Generate routes', {
-    configuration
+    configuration: configuration as any
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);

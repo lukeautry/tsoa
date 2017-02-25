@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { Method, MetadataGenerator, ResponseType } from './metadataGenerator';
+import { Method, MetadataGenerator, ResponseType, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 
@@ -20,24 +20,32 @@ export class MethodGenerator {
     if (!this.node.type) { throw new Error('Controller methods must have a return type.'); }
 
     const identifier = this.node.name as ts.Identifier;
+    const type = ResolveType(this.node.type);
+    let responses = [this.getSuccessResponse(type)];
+    responses = responses.concat(this.getResponses());
 
     return {
       description: this.getMethodDescription(),
-      example: this.getMethodExample(),
       method: this.method,
       name: identifier.text,
       parameters: this.getParameters(),
       path: this.path,
-      responses: this.getResponses(),
+      responses,
       security: this.getMethodSecurity(),
       tags: this.getMethodTags(),
-      type: ResolveType(this.node.type),
+      type
     };
   }
 
   private getParameters() {
     return this.node.parameters.map(p => {
-      return new ParameterGenerator(p, this.method, this.path).Generate();
+      try {
+        return new ParameterGenerator(p, this.method, this.path).Generate();
+      } catch (e) {
+        const methodId = this.node.name as ts.Identifier;
+        const parameterId = p.name as ts.Identifier;
+        throw new Error(`Error generate parameter method: ${methodId.text} argument: ${parameterId.text} ${e}`);
+      }
     });
   }
 
@@ -72,50 +80,82 @@ export class MethodGenerator {
       .filter(isMatching);
   }
 
-  private getResponses() {
-    const responses = new Array<ResponseType>();
-
-    const defaultResponse = this.getDefaultResponse();
-    if (defaultResponse) {
-      responses.push(defaultResponse);
-    }
-
+  private getResponses(): ResponseType[] {
     const decorators = this.getDecorators(identifier => identifier.text === 'Response');
-    if (!decorators || !decorators.length) { return responses; }
+    if (!decorators || !decorators.length) { return []; }
 
-    responses.concat(
-      decorators.map(decorator => {
-        const expression = decorator.parent as ts.CallExpression;
-        return {
-          description: (expression.arguments[1] as any).text,
-          name: (expression.arguments[0] as any).text,
-          schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
-        };
-      })
-    );
-    return responses;
+    return decorators.map(decorator => {
+      const expression = decorator.parent as ts.CallExpression;
+
+      let description = '';
+      let name = '200';
+      let examples = undefined;
+      if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
+        name = (expression.arguments[0] as any).text;
+      }
+      if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
+        description = (expression.arguments[1] as any).text;
+      }
+      if (expression.arguments.length > 2 && (expression.arguments[2] as any).text) {
+        const argument = expression.arguments[2] as any;
+        examples = this.getExamplesValue(argument);
+      }
+
+      return {
+        description: description,
+        examples: examples,
+        name: name,
+        schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
+      };
+    });
   }
 
-  private getDefaultResponse() {
-    const decorators = this.getDecorators(identifier => identifier.text === 'DefaultResponse');
-    if (!decorators || !decorators.length) { return undefined; }
-    if (decorators.length > 1) { throw new Error('Only one DefaultResponse decorator allowed per controller method.'); }
+  private getSuccessResponse(type: Type): ResponseType {
+    const decorators = this.getDecorators(identifier => identifier.text === 'SuccessResponse');
+    if (!decorators || !decorators.length) {
+      return {
+        description: type === 'void' ? 'No content' : 'Ok',
+        examples: this.getSuccessExamples(),
+        name: type === 'void' ? '204' : '200',
+        schema: type
+      };
+    }
+    if (decorators.length > 1) { throw new Error('Only one SuccessResponse decorator allowed per controller method.'); }
 
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
     let description = '';
-    if (expression.arguments.length > 0 &&
-      expression.arguments[0] &&
-      (expression.arguments[0] as any).text) {
-      description = (expression.arguments[0] as any).text;
+    let name = '200';
+    let examples = undefined;
+
+    if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
+      name = (expression.arguments[0] as any).text;
+    }
+    if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
+      description = (expression.arguments[1] as any).text;
     }
 
     return {
       description,
-      name: 'default',
-      schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
+      examples,
+      name,
+      schema: type
     };
+  }
+
+  private getSuccessExamples() {
+    const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
+    if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
+    if (exampleDecorators.length > 1) {
+      throw new Error('Only one Example decorator allowed per controller method.');
+    }
+
+    const decorator = exampleDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+    const argument = expression.arguments[0] as any;
+
+    return this.getExamplesValue(argument);
   }
 
   private getValidMethods() {
@@ -131,22 +171,11 @@ export class MethodGenerator {
     return '';
   }
 
-  private getMethodExample() {
-    const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
-    if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
-    if (exampleDecorators.length > 1) {
-      throw new Error('Only one Example decorator allowed per controller method.');
-    }
-
+  private getExamplesValue(argument: any) {
     const example: any = {};
-    const decorator = exampleDecorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-    const argument = expression.arguments[0] as any;
-
     argument.properties.forEach((p: any) => {
       example[p.name.text] = this.getInitializerValue(p.initializer);
     });
-
     return example;
   }
 

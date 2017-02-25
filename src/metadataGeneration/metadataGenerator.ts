@@ -74,7 +74,6 @@ export interface Controller {
 
 export interface Method {
   description: string;
-  example: any;
   method: string;
   name: string;
   parameters: Parameter[];
@@ -85,15 +84,13 @@ export interface Method {
   security?: Security;
 }
 
-export type InjectType = 'request' | 'inject';
-
 export interface Parameter {
+  argumentName: string;
   description: string;
   in: string;
   name: string;
   required: boolean;
   type: Type;
-  injected?: InjectType;
 }
 
 export interface Security {
@@ -116,6 +113,7 @@ export interface ResponseType {
     description: string;
     name: string;
     schema?: Type;
+    examples?: any;
 }
 
 export interface Property {

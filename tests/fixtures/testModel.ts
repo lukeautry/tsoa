@@ -39,6 +39,13 @@ export interface UserResponseModel {
   name: string;
 }
 
+export interface ParameterTestModel {
+  firstname: string;
+  lastname: string;
+  age: number;
+  human: boolean;
+}
+
 export interface ErrorResponseModel {
   status: number;
   message: string;

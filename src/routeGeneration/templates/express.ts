@@ -22,16 +22,16 @@ export function RegisterRoutes(app: any) {
               {{/if}}
             ), 
             {{/if}} 
-            function (req: any, res: any, next: any) {
-            const params = {
+            function (request: any, response: any, next: any) {
+            const args = {
                 {{#each parameters}}
-                '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} {{#if injected}}, injected: '{{injected}}' {{/if}} },
+                '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
                 {{/each}}
             };
 
-            let validatedParams: any[] = [];
+            let validatedArgs: any[] = [];
             try {
-                validatedParams = getValidatedParams(params, req, '{{bodyParamName}}');
+                validatedArgs = getValidatedArgs(args, request);
             } catch (err) {
                 return next(err);
             }
@@ -41,14 +41,14 @@ export function RegisterRoutes(app: any) {
             {{else}}
             const controller = new {{../name}}();
             {{/if}}
-            {{#if ../jwtUserProperty}}
-            if (req.{{../jwtUserProperty}}) {
-                if (req.{{../jwtUserProperty}}.iss) controller.iss = req.{{../jwtUserProperty}}.iss;
-                if (req.{{../jwtUserProperty}}.sub) controller.sub = req.{{../jwtUserProperty}}.sub;
-                if (req.{{../jwtUserProperty}}.aud) controller.aud = req.{{../jwtUserProperty}}.aud;
+
+
+            const promise = controller.{{name}}.apply(controller, validatedArgs);
+            let statusCode = undefined;
+            if (controller instanceof Controller) {
+                statusCode = (controller as Controller).getStatus();
             }
-            {{/if}}
-            promiseHandler(controller.{{name}}.apply(controller, validatedParams), res, next);
+            promiseHandler(promise, statusCode, response, next);
         });
     {{/each}}
     {{/each}}
@@ -68,40 +68,34 @@ export function RegisterRoutes(app: any) {
     }
     {{/if}}
 
-    function promiseHandler(promise: any, response: any, next: any) {
+    function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
         return promise
             .then((data: any) => {
                 if (data) {
                     response.json(data);
+                    response.status(statusCode || 200);
                 } else {
-                    response.status(204);
+                    response.status(statusCode || 204);
                     response.end();
                 }
             })
             .catch((error: any) => next(error));
     }
 
-    function getRequestParams(request: any, bodyParamName?: string) {
-        const merged: any = {};
-        if (bodyParamName) {
-            merged[bodyParamName] = request.body;
-        }
-
-        for (let attrname in request.params) { merged[attrname] = request.params[attrname]; }
-        for (let attrname in request.query) { merged[attrname] = request.query[attrname]; }
-        return merged;
-    }
-
-    function getValidatedParams(params: any, request: any, bodyParamName?: string): any[] {
-        const requestParams = getRequestParams(request, bodyParamName);
-
-        return Object.keys(params).map(key => {
-            if (params[key].injected === 'inject') {
-              return undefined;
-            } else if (params[key].injected === 'request') {
-              return request;
-            } else {
-              return ValidateParam(params[key], requestParams[key], models, key);
+    function getValidatedArgs(args: any, request: any): any[] {
+        return Object.keys(args).map(key => {
+            const name = args[key].name;
+            switch (args[key].in) {
+            case 'request':
+                return request;
+            case 'query':
+                return ValidateParam(args[key], request.query[name], models, name)
+            case 'path':
+                return ValidateParam(args[key], request.params[name], models, name)
+            case 'header':
+                return ValidateParam(args[key], request.header(name), models, name);
+            case 'body':
+                return ValidateParam(args[key], request.body, models, name);
             }
         });
     }

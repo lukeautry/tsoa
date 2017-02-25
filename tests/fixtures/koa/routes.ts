@@ -1,11 +1,12 @@
 /* tslint:disable */
 import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
 import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
-import { JwtGetTestController } from './../controllers/jwtEnabledController';
+import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
@@ -42,20 +43,19 @@ const models: any = {
   'Result': {
     'value': { typeName: 'object', required: true },
   },
-  'ErrorResponse': {
-    'code': { typeName: 'string', required: true },
-    'msg': { typeName: 'string', required: true },
-  },
-  'BooleanResponseModel': {
-    'success': { typeName: 'boolean', required: true },
-  },
-  'ErrorResponseModel': {
-    'status': { typeName: 'number', required: true },
-    'message': { typeName: 'string', required: true },
+  'ParameterTestModel': {
+    'firstname': { typeName: 'string', required: true },
+    'lastname': { typeName: 'string', required: true },
+    'age': { typeName: 'number', required: true },
+    'human': { typeName: 'boolean', required: true },
   },
   'UserResponseModel': {
     'id': { typeName: 'number', required: true },
     'name': { typeName: 'string', required: true },
+  },
+  'ErrorResponseModel': {
+    'status': { typeName: 'number', required: true },
+    'message': { typeName: 'string', required: true },
   },
 };
 
@@ -67,13 +67,13 @@ import { koaAuthentication } from './authentication';
 export function RegisterRoutes(router: KoaRouter) {
   router.put('/v1/PutTest',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestModel', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -82,16 +82,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PutTestController();
-      promiseHandler(controller.putModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.putModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/Location',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -100,16 +107,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PutTestController();
-      promiseHandler(controller.putModelAtLocation.apply(controller, validatedParams), context, next);
+
+      const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/Multi',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -118,17 +132,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PutTestController();
-      promiseHandler(controller.putWithMultiReturn.apply(controller, validatedParams), context, next);
+
+      const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.put('/v1/PutTest/WithId/:id',
     async (context, next) => {
-      const params = {
-        'id': { typeName: 'number', required: true },
+      const args = {
+        'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -137,17 +158,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PutTestController();
-      promiseHandler(controller.putWithId.apply(controller, validatedParams), context, next);
+
+      const promise = controller.putWithId.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestModel', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -156,17 +184,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PostTest',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestModel', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -175,17 +210,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.updateModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.updateModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithClassModel',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestClassModel', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestClassModel', required: true, in: 'body', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -194,16 +236,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postClassModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postClassModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/Location',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -212,16 +261,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postModelAtLocation.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/Multi',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -230,17 +286,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postWithMultiReturn.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithId/:id',
     async (context, next) => {
-      const params = {
-        'id': { typeName: 'number', required: true },
+      const args = {
+        'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -249,18 +312,25 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postWithId.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postWithId.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.post('/v1/PostTest/WithBodyAndQueryParams',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestModel', required: true },
-        'query': { typeName: 'string', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+        'query': { name: 'query', typeName: 'string', required: true, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -269,17 +339,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PostTestController();
-      promiseHandler(controller.postWithBodyAndQueryParams.apply(controller, validatedParams), context, next);
+
+      const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest',
     async (context, next) => {
-      const params = {
-        'model': { typeName: 'TestModel', required: true },
+      const args = {
+        'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, 'model');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -288,16 +365,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PatchTestController();
-      promiseHandler(controller.patchModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.patchModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/Location',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -306,16 +390,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PatchTestController();
-      promiseHandler(controller.patchModelAtLocation.apply(controller, validatedParams), context, next);
+
+      const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/Multi',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -324,17 +415,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PatchTestController();
-      promiseHandler(controller.patchWithMultiReturn.apply(controller, validatedParams), context, next);
+
+      const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.patch('/v1/PatchTest/WithId/:id',
     async (context, next) => {
-      const params = {
-        'id': { typeName: 'number', required: true },
+      const args = {
+        'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -343,16 +441,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new PatchTestController();
-      promiseHandler(controller.patchWithId.apply(controller, validatedParams), context, next);
+
+      const promise = controller.patchWithId.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -361,16 +466,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/Current',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -379,16 +491,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getCurrentModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getCurrentModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ClassModel',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -397,16 +516,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getClassModel.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getClassModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/Multi',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -415,23 +541,30 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getMultipleModels.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getMultipleModels.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
-      const params = {
-        'numberPathParam': { typeName: 'number', required: true },
-        'stringPathParam': { typeName: 'string', required: true },
-        'booleanPathParam': { typeName: 'boolean', required: true },
-        'booleanParam': { typeName: 'boolean', required: true },
-        'stringParam': { typeName: 'string', required: true },
-        'numberParam': { typeName: 'number', required: true },
-        'optionalStringParam': { typeName: 'string', required: false },
+      const args = {
+        'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
+        'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
+        'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
+        'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
+        'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
+        'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
+        'optionalStringParam': { name: 'optionalStringParam', typeName: 'string', required: false, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -440,16 +573,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getModelByParams.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ResponseWithUnionTypeProperty',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -458,16 +598,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getResponseWithUnionTypeProperty.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/UnionTypeResponse',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -476,17 +623,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getUnionTypeResponse.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
-  router.get('/v1/GetTest/InjectedRequest',
+  router.get('/v1/GetTest/Request',
     async (context, next) => {
-      const params = {
-        'request': { typeName: 'object', required: true, injected: 'request' },
+      const args = {
+        'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -495,36 +649,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getInjectedRequest.apply(controller, validatedParams), context, next);
-    });
-  router.get('/v1/GetTest/InjectedValue',
-    async (context, next) => {
-      const params = {
-        'someValue': { typeName: 'object', required: true, injected: 'inject' },
-      };
 
-      let validatedParams: any[] = [];
-      try {
-        validatedParams = getValidatedParams(params, context, '');
-      } catch (error) {
-        context.status = error.status || 500;
-        context.body = error;
-        next();
-        return;
+      const promise = controller.getRequest.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
       }
 
-      const controller = new GetTestController();
-      promiseHandler(controller.getInjectedValue.apply(controller, validatedParams), context, next);
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/DateParam',
     async (context, next) => {
-      const params = {
-        'date': { typeName: 'datetime', required: true },
+      const args = {
+        'date': { name: 'date', typeName: 'datetime', required: true, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -533,16 +675,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getByDataParam.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getByDataParam.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/ThrowsError',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -551,16 +700,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getThrowsError.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getThrowsError.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/GeneratesTags',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -569,17 +725,24 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getGeneratesTags.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/GetTest/HandleBufferType',
     async (context, next) => {
-      const params = {
-        'buffer': { typeName: 'buffer', required: true },
+      const args = {
+        'buffer': { name: 'buffer', typeName: 'buffer', required: true, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -588,95 +751,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new GetTestController();
-      promiseHandler(controller.getBuffer.apply(controller, validatedParams), context, next);
-    });
-  router.get('/v1/GetTest/DefaultResponse',
-    async (context, next) => {
-      const params = {
-      };
 
-      let validatedParams: any[] = [];
-      try {
-        validatedParams = getValidatedParams(params, context, '');
-      } catch (error) {
-        context.status = error.status || 500;
-        context.body = error;
-        next();
-        return;
+      const promise = controller.getBuffer.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
       }
 
-      const controller = new GetTestController();
-      promiseHandler(controller.getDefaultResponse.apply(controller, validatedParams), context, next);
-    });
-  router.get('/v1/GetTest/Response',
-    async (context, next) => {
-      const params = {
-      };
-
-      let validatedParams: any[] = [];
-      try {
-        validatedParams = getValidatedParams(params, context, '');
-      } catch (error) {
-        context.status = error.status || 500;
-        context.body = error;
-        next();
-        return;
-      }
-
-      const controller = new GetTestController();
-      promiseHandler(controller.getResponse.apply(controller, validatedParams), context, next);
-    });
-  router.get('/v1/GetTest/ApiSecurity',
-    authenticateMiddleware('api_key'
-    ),
-    async (context, next) => {
-      const params = {
-      };
-
-      let validatedParams: any[] = [];
-      try {
-        validatedParams = getValidatedParams(params, context, '');
-      } catch (error) {
-        context.status = error.status || 500;
-        context.body = error;
-        next();
-        return;
-      }
-
-      const controller = new GetTestController();
-      promiseHandler(controller.getApiSecurity.apply(controller, validatedParams), context, next);
-    });
-  router.get('/v1/GetTest/OauthSecurity',
-    authenticateMiddleware('tsoa_auth'
-      , [
-        'read:pets'
-      ]
-    ),
-    async (context, next) => {
-      const params = {
-      };
-
-      let validatedParams: any[] = [];
-      try {
-        validatedParams = getValidatedParams(params, context, '');
-      } catch (error) {
-        context.status = error.status || 500;
-        context.body = error;
-        next();
-        return;
-      }
-
-      const controller = new GetTestController();
-      promiseHandler(controller.getOauthSecurity.apply(controller, validatedParams), context, next);
+      promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -685,16 +776,23 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new DeleteTestController();
-      promiseHandler(controller.deleteWithReturnValue.apply(controller, validatedParams), context, next);
+
+      const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest/Current',
     async (context, next) => {
-      const params = {
+      const args = {
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -703,22 +801,29 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new DeleteTestController();
-      promiseHandler(controller.deleteCurrent.apply(controller, validatedParams), context, next);
+
+      const promise = controller.deleteCurrent.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
-      const params = {
-        'numberPathParam': { typeName: 'number', required: true },
-        'stringPathParam': { typeName: 'string', required: true },
-        'booleanPathParam': { typeName: 'boolean', required: true },
-        'booleanParam': { typeName: 'boolean', required: true },
-        'stringParam': { typeName: 'string', required: true },
-        'numberParam': { typeName: 'number', required: true },
+      const args = {
+        'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
+        'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
+        'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
+        'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
+        'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
+        'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -727,16 +832,27 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new DeleteTestController();
-      promiseHandler(controller.getModelByParams.apply(controller, validatedParams), context, next);
+
+      const promise = controller.getModelByParams.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
-  router.get('/v1/JwtGetTest',
+  router.get('/v1/ParameterTest/Query',
     async (context, next) => {
-      const params = {
+      const args = {
+        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'query', },
+        'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'query', },
+        'age': { name: 'age', typeName: 'number', required: true, in: 'query', },
+        'human': { name: 'human', typeName: 'boolean', required: true, in: 'query', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -744,20 +860,137 @@ export function RegisterRoutes(router: KoaRouter) {
         return;
       }
 
-      const controller = new JwtGetTestController();
-      promiseHandler(controller.GetWithJwt.apply(controller, validatedParams), context, next);
+      const controller = new ParameterController();
+
+      const promise = controller.getQuery.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:human',
+    async (context, next) => {
+      const args = {
+        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'path', },
+        'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'path', },
+        'age': { name: 'age', typeName: 'number', required: true, in: 'path', },
+        'human': { name: 'human', typeName: 'boolean', required: true, in: 'path', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.getPath.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/ParameterTest/Header',
+    async (context, next) => {
+      const args = {
+        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'header', },
+        'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'header', },
+        'age': { name: 'age', typeName: 'number', required: true, in: 'header', },
+        'human': { name: 'human', typeName: 'boolean', required: true, in: 'header', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.getHeader.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/ParameterTest/Request',
+    async (context, next) => {
+      const args = {
+        'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.getRequest.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/ParameterTest/Body',
+    async (context, next) => {
+      const args = {
+        'body': { name: 'body', typeName: 'ParameterTestModel', required: true, in: 'body', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        next();
+        return;
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.getBody.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest',
     authenticateMiddleware('api_key'
     ),
     async (context, next) => {
-      const params = {
-        'request': { typeName: 'object', required: true, injected: 'request' },
+      const args = {
+        'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -766,19 +999,26 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new SecurityTestController();
-      promiseHandler(controller.GetWithApi.apply(controller, validatedParams), context, next);
+
+      const promise = controller.GetWithApi.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest/Koa',
     authenticateMiddleware('api_key'
     ),
     async (context, next) => {
-      const params = {
-        'ctx': { typeName: 'object', required: true, injected: 'request' },
+      const args = {
+        'ctx': { name: 'ctx', typeName: 'object', required: true, in: 'request', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -787,7 +1027,14 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new SecurityTestController();
-      promiseHandler(controller.GetWithApiForKoa.apply(controller, validatedParams), context, next);
+
+      const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
   router.get('/v1/SecurityTest/Oauth',
     authenticateMiddleware('tsoa_auth'
@@ -797,13 +1044,13 @@ export function RegisterRoutes(router: KoaRouter) {
       ]
     ),
     async (context, next) => {
-      const params = {
-        'request': { typeName: 'object', required: true, injected: 'request' },
+      const args = {
+        'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
       };
 
-      let validatedParams: any[] = [];
+      let validatedArgs: any[] = [];
       try {
-        validatedParams = getValidatedParams(params, context, '');
+        validatedArgs = getValidatedArgs(args, context);
       } catch (error) {
         context.status = error.status || 500;
         context.body = error;
@@ -812,7 +1059,14 @@ export function RegisterRoutes(router: KoaRouter) {
       }
 
       const controller = new SecurityTestController();
-      promiseHandler(controller.GetWithSecurity.apply(controller, validatedParams), context, next);
+
+      const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      promiseHandler(promise, statusCode, context, next);
     });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
@@ -829,13 +1083,14 @@ export function RegisterRoutes(router: KoaRouter) {
     }
   }
 
-  function promiseHandler(promise: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
+  function promiseHandler(promise: any, statusCode: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
     return promise
       .then((data: any) => {
         if (data) {
           context.body = data;
+          context.status = (statusCode || 200)
         } else {
-          context.status = 204;
+          context.status = (statusCode || 204)
         }
 
         next();
@@ -847,27 +1102,20 @@ export function RegisterRoutes(router: KoaRouter) {
       });
   }
 
-  function getRequestParams(context: KoaRouter.IRouterContext, bodyParamName?: string) {
-    const merged: any = {};
-    if (bodyParamName) {
-      merged[bodyParamName] = context.request.body;
-    }
-
-    for (let attrname in context.params) { merged[attrname] = context.params[attrname]; }
-    for (let attrname in context.request.query) { merged[attrname] = context.request.query[attrname]; }
-    return merged;
-  }
-
-  function getValidatedParams(params: any, context: KoaRouter.IRouterContext, bodyParamName?: string): any[] {
-    const requestParams = getRequestParams(context, bodyParamName);
-
-    return Object.keys(params).map(key => {
-      if (params[key].injected === 'inject') {
-        return undefined;
-      } else if (params[key].injected === 'request') {
-        return context;
-      } else {
-        return ValidateParam(params[key], requestParams[key], models, key);
+  function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+    return Object.keys(args).map(key => {
+      const name = args[key].name;
+      switch (args[key].in) {
+        case 'request':
+          return context;
+        case 'query':
+          return ValidateParam(args[key], context.request.query[name], models, name)
+        case 'path':
+          return ValidateParam(args[key], context.params[name], models, name)
+        case 'header':
+          return ValidateParam(args[key], context.request.headers[name], models, name);
+        case 'body':
+          return ValidateParam(args[key], context.request.body, models, name);
       }
     });
   }

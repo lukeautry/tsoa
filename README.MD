@@ -28,20 +28,28 @@
 ```typescript
 // controllers/usersController.ts
 
-import {Get, Route} from 'tsoa';
+import {Get, Post, Route, Body, Query, Header, Path, SuccessResponse, Controller } from 'tsoa';
 import {UserService} from '../services/userService';
 import {User, UserCreationRequest} from '../models/user';
 
 @Route('Users')
-export class UsersController {
+export class UsersController extends Controller {
     @Get('{id}')
-    public async getUser(id: number): Promise<User> {
+    public async getUser(id: number, @Query() name: string): Promise<User> {
         return await new UserService().get(id);
     }
 
+    @SuccessResponse('201', 'Created') // Custom success response
     @Post()
-    public async createUser(request: UserCreationRequest): Promise<User> {
-        return await new UserService().create(request);
+    public async createUser(@Body() requestBody: UserCreationRequest): Promise<void> {
+        new UserService().create(request);
+        this.setStatus(201); // set return status 201
+        return Promise.resolve();
+    }
+
+    @Get('{id}')
+    public async getPrivateUser(@Path('id') ID: number, @Header('Authorization') authorization: string): Promise<User> {
+        return new UserService().get(id);
     }
 }
 ```
@@ -279,11 +287,11 @@ export function koaAuthentication(request: Request, securityName: string, scopes
 ```
 `./contollers/securityController.ts`
 ```ts
-import { Get, Route, Security, DefaultResponse } from 'tsoa';
+import { Get, Route, Security, Response } from 'tsoa';
 
 @Route('secure')
 export class SecureController {
-    @DefaultResponse<ErrorResponseModel>('Unexpected error')
+    @Response<ErrorResponseModel>('Unexpected error')
     @Security('api_key')
     @Get("UserInfo")
     public async userInfo(@Request() request: any): Promise<UserResponseModel> {
