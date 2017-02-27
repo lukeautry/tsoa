@@ -69,7 +69,6 @@ export interface Controller {
   methods: Method[];
   name: string;
   path: string;
-  jwtUserProperty: string;
 }
 
 export interface Method {

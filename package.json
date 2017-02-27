@@ -31,7 +31,6 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "app-root-path": "^2.0.1",
     "express": "^4.14.1",
     "handlebars": "^4.0.6",
     "merge": "^1.2.0",

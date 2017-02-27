@@ -8,8 +8,6 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 
-const appRoot: string = require('app-root-path').path;
-
 export class RouteGenerator {
   constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
 
@@ -81,8 +79,11 @@ export class RouteGenerator {
             };
         `.concat(middlewareTemplate));
 
+    const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
+    const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
+
     return routesTemplate({
-      authenticationModule: this.options.authenticationModule,
+      authenticationModule,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
       controllers: this.metadata.Controllers.map(controller => {
         return {
@@ -95,13 +96,12 @@ export class RouteGenerator {
               security: method.security
             };
           }),
-          jwtUserProperty: controller.jwtUserProperty,
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
           path: controller.path
         };
       }),
-      iocModule: this.options.iocModule,
+      iocModule,
       models: this.getModels(),
       useSecurity: this.metadata.Controllers.some(
         controller => controller.methods.some(methods => methods.security !== undefined)
@@ -133,9 +133,9 @@ export class RouteGenerator {
     return (type as ReferenceType).name;
   }
 
-  private getRelativeImportPath(controllerLocation: string) {
-    controllerLocation = controllerLocation.replace('.ts', '');
-    return `./${path.relative(path.join(appRoot, this.options.routesDir), controllerLocation).replace(/\\/g, '/')}`;
+  private getRelativeImportPath(fileLocation: string) {
+    fileLocation = fileLocation.replace('.ts', '');
+    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 
   private getTemplateProperty(source: Property): TemplateProperty {

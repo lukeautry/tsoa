@@ -4,11 +4,9 @@ import { MethodGenerator } from './methodGenerator';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
-  private readonly jwtUserProperty: string | undefined;
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.pathValue = this.getControllerRouteValue(node);
-    this.jwtUserProperty = this.getControllerJWTValue(node);
   }
 
   public IsValid() {
@@ -22,7 +20,6 @@ export class ControllerGenerator {
     const sourceFile = this.node.parent.getSourceFile();
 
     return {
-      jwtUserProperty: this.jwtUserProperty || '',
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
@@ -36,10 +33,6 @@ export class ControllerGenerator {
       .map((m: ts.MethodDeclaration) => new MethodGenerator(m))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
-  }
-
-  private getControllerJWTValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'JWT', 'user');
   }
 
   private getControllerRouteValue(node: ts.ClassDeclaration) {

@@ -32,15 +32,9 @@ export class SpecGenerator {
       swagger: '2.0'
     };
 
-    const securityDefinitions = this.config.securityDefinitions
+    spec.securityDefinitions = this.config.securityDefinitions
       ? this.config.securityDefinitions
       : {};
-
-    // Check if we have jwt enabled api
-    if (this.metadata.Controllers.some((controller) => controller.jwtUserProperty !== '')) {
-      Object.assign(securityDefinitions, this.buildJwtSecurityDefinition());
-    }
-    spec.securityDefinitions = securityDefinitions;
 
     if (this.config.description) { spec.info.description = this.config.description; }
     if (this.config.license) { spec.info.license = { name: this.config.license }; }
@@ -82,17 +76,6 @@ export class SpecGenerator {
     return definitions;
   }
 
-  private buildJwtSecurityDefinition() {
-    return {
-      'Bearer': <Swagger.ApiKeySecurity>{
-        description: 'JWT token with bearer word in front of it',
-        in: 'header',
-        name: 'Authorization',
-        type: 'apiKey'
-      }
-    };
-  }
-
   private buildPaths() {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
@@ -100,14 +83,14 @@ export class SpecGenerator {
       controller.methods.forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
-        this.buildPathMethod(method, paths[path], controller.jwtUserProperty);
+        this.buildPathMethod(method, paths[path]);
       });
     });
 
     return paths;
   }
 
-  private buildPathMethod(method: Method, pathObject: any, jwtUserProperty: string) {
+  private buildPathMethod(method: Method, pathObject: any) {
     const pathMethod: any = pathObject[method.method] = this.buildOperation(method);
     pathMethod.description = method.description;
     pathMethod.parameters = method.parameters.filter(p => p.in !== 'request').map(p => this.buildParameter(p));
@@ -115,11 +98,6 @@ export class SpecGenerator {
     if (method.tags.length) { pathMethod.tags = method.tags; }
 
     const security = new Array<any>();
-    if (jwtUserProperty !== '') {
-      security.push({
-        'Bearer': []
-      });
-    }
 
     if (method.security) {
       const methodSecurity: any = {};
