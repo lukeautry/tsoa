@@ -83,15 +83,15 @@ export class SpecGenerator {
       controller.methods.forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
-        this.buildPathMethod(method, paths[path]);
+        this.buildPathMethod(controller.name, method, paths[path]);
       });
     });
 
     return paths;
   }
 
-  private buildPathMethod(method: Method, pathObject: any) {
-    const pathMethod: any = pathObject[method.method] = this.buildOperation(method);
+  private buildPathMethod(controllerName: string, method: Method, pathObject: any) {
+    const pathMethod: any = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
     pathMethod.parameters = method.parameters.filter(p => p.in !== 'request').map(p => this.buildParameter(p));
 
@@ -145,14 +145,14 @@ export class SpecGenerator {
     return swaggerProperties;
   }
 
-  private buildOperation(method: Method) {
+  private buildOperation(controllerName: string, method: Method) {
     const responses: any = {};
 
     method.responses.forEach((res: ResponseType) => {
       responses[res.name] = {
         description: res.description
       };
-      if (res.schema) {
+      if (res.schema && this.getSwaggerType(res.schema).type !== 'void') {
         responses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
       if (res.examples) {
@@ -161,7 +161,7 @@ export class SpecGenerator {
     });
 
     return {
-      operationId: method.name,
+      operationId: `${controllerName}-${method.name}`,
       produces: ['application/json'],
       responses: responses
     };
