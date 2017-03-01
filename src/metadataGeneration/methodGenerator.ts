@@ -25,6 +25,7 @@ export class MethodGenerator {
     responses = responses.concat(this.getResponses());
 
     return {
+      deprecated: this.getDeprecated(),
       description: this.getMethodDescription(),
       method: this.method,
       name: identifier.text,
@@ -202,6 +203,24 @@ export class MethodGenerator {
       name: (expression.arguments[0] as any).text,
       scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
     };
+  }
+
+
+  private getDeprecated(): boolean {
+    const jsDocTags = this.getJSDocTags(jsDoctag => jsDoctag.tagName.text === 'deprecated');
+    if (!jsDocTags || !jsDocTags.length) { return false; }
+
+    return jsDocTags.some(jsDocTag => jsDocTag !== undefined);
+  }
+
+  private getJSDocTags(isMatching: (jsDocTag: ts.JSDocTag) => boolean) {
+    const jsDocs = (this.node as any).jsDoc as ts.JSDoc[];
+    if (!jsDocs || !jsDocs.length) { return; }
+
+    const tags = jsDocs[0].tags;
+    if (!tags) { return; };
+
+    return tags.filter(isMatching);
   }
 
   private getInitializerValue(initializer: any) {

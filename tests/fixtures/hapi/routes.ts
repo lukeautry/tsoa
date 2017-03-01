@@ -6,6 +6,7 @@ import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
 import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
+import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
@@ -43,6 +44,10 @@ const models: any = {
   'Result': {
     'value': { typeName: 'object', required: true },
   },
+  'ErrorResponseModel': {
+    'status': { typeName: 'number', required: true },
+    'message': { typeName: 'string', required: true },
+  },
   'ParameterTestModel': {
     'firstname': { typeName: 'string', required: true },
     'lastname': { typeName: 'string', required: true },
@@ -52,10 +57,6 @@ const models: any = {
   'UserResponseModel': {
     'id': { typeName: 'number', required: true },
     'name': { typeName: 'string', required: true },
-  },
-  'ErrorResponseModel': {
-    'status': { typeName: 'number', required: true },
-    'message': { typeName: 'string', required: true },
   },
 };
 
@@ -873,6 +874,334 @@ export function RegisterRoutes(server: hapi.Server) {
   });
   server.route({
     method: 'get',
+    path: '/v1/MethodTest/Get',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.getMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/MethodTest/Post',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.postMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'patch',
+    path: '/v1/MethodTest/Patch',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.patchMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'put',
+    path: '/v1/MethodTest/Put',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.putMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'delete',
+    path: '/v1/MethodTest/Delete',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.deleteMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/Description',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.description.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/Tags',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.tags.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/MultiResponse',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.multiResponse.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/SuccessResponse',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.successResponse.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/ApiSecurity',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware('api_key'
+          )        
+}
+      ],
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.apiSecurity.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/OauthSecurity',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware('tsoa_auth'
+            , [
+              'write:pets',
+              'read:pets'
+            ]
+          )
+        }
+      ],
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.oauthSecurity.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/DeprecatedMethod',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/ParameterTest/Query',
     config: {
       handler: (request: any, reply) => {
@@ -1016,6 +1345,36 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   });
   server.route({
+    method: 'post',
+    path: '/v1/ParameterTest/BodyProps',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'body-props', },
+          'lastname': { name: 'lastname', typeName: 'string', required: true, in: 'body-props', },
+          'human': { name: 'human', typeName: 'boolean', required: true, in: 'body-props', },
+          'age': { name: 'age', typeName: 'number', required: true, in: 'body-props', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.getBodyProps.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'get',
     path: '/v1/SecurityTest',
     config: {
@@ -1055,8 +1414,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1155,6 +1514,8 @@ export function RegisterRoutes(server: hapi.Server) {
           return ValidateParam(args[key], request.headers[name], models, name);
         case 'body':
           return ValidateParam(args[key], request.payload, models, name);
+        case 'body-props':
+          return ValidateParam(args[key], request.payload[name], models, name);
       }
     });
   }

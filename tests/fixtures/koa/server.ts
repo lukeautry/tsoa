@@ -6,6 +6,7 @@ import '../controllers/patchController';
 import '../controllers/getController';
 import '../controllers/deleteController';
 
+import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
 import { RegisterRoutes } from './routes';

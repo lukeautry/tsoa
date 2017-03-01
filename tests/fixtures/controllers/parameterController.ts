@@ -101,4 +101,28 @@ export class ParameterController {
             lastname: body.lastname
         });
     }
+
+
+    /**
+     *
+     *
+     * @param {string} firstname firstname description
+     * @param {string} lastname lastname description
+     * @param {boolean} human human description
+     * @param {number} age age description
+     * @returns {Promise<ParameterTestModel>}
+     */
+    @Post('BodyProps')
+    public async getBodyProps(
+        @Body('firstname') firstname: string,
+        @Body('lastname') lastname: string,
+        @Body('human') human: boolean,
+        @Body('age') age: number): Promise<ParameterTestModel> {
+        return Promise.resolve<ParameterTestModel>({
+            age: age,
+            firstname: firstname,
+            human: human,
+            lastname: lastname
+        });
+    }
 }

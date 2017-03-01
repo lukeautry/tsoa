@@ -214,6 +214,22 @@ describe('Koa Server', () => {
         expect(model.human).to.equal(true);
       });
     });
+
+    it('parses body props parameters', () => {
+      const data: ParameterTestModel = {
+        age: 45,
+        firstname: 'Tony',
+        human: true,
+        lastname: 'Stark'
+      };
+      return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.human).to.equal(true);
+      });
+    });
   });
 
 

@@ -52,8 +52,8 @@ export class ParameterGenerator {
     return {
       argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
-      in: 'body',
-      name: identifier.text,
+      in: this.getDecoratorValue(parameter, 'Body') ? 'body-props' : 'body',
+      name: this.getDecoratorValue(parameter, 'Body') || identifier.text,
       required: !parameter.questionToken,
       type: type
     };
@@ -106,7 +106,6 @@ export class ParameterGenerator {
     const name = this.getDecoratorValue(parameter, 'Path') || identifier.text;
 
     if (!this.path.includes(`{${name}}`)) {
-      // return this.getQueryParameter(parameter);
       throw new Error(`Parameter '${name}' can't macth in path: '${this.path}'`);
     }
 

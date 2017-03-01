@@ -93,25 +93,57 @@ export class SpecGenerator {
   private buildPathMethod(controllerName: string, method: Method, pathObject: any) {
     const pathMethod: any = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
-    pathMethod.parameters = method.parameters.filter(p => p.in !== 'request').map(p => this.buildParameter(p));
 
+    if (method.deprecated) { pathMethod.deprecated = method.deprecated; }
     if (method.tags.length) { pathMethod.tags = method.tags; }
-
-    const security = new Array<any>();
-
     if (method.security) {
-      const methodSecurity: any = {};
-      methodSecurity[method.security.name] = method.security.scopes ? method.security.scopes : [];
-      security.push(methodSecurity);
+      const security: any = {};
+      security[method.security.name] = method.security.scopes ? method.security.scopes : [];
+      pathMethod.security = [security];
     }
-    if (security.length > 0) { pathMethod.security = security; }
+
+    pathMethod.parameters = method.parameters.filter(
+      p => !(p.in === 'request' || p.in === 'body-props')
+    ).map(p => this.buildParameter(p));
+    const bodyPropParameter = this.buildBodyPropParamter(method);
+    if (bodyPropParameter) {
+        pathMethod.parameters.push(bodyPropParameter);
+     }
 
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
   }
 
-  private buildParameter(parameter: Parameter) {
+  private buildBodyPropParamter(method: Method) {
+    const bodyProperties: any = {};
+    const bodyRequired: string[] = [];
+    method.parameters
+      .filter(p => p.in === 'body-props')
+      .forEach(p => {
+        bodyProperties[p.name] = this.getSwaggerType(p.type);
+        bodyProperties[p.name].description = p.description;
+
+        if (p.required) { bodyRequired.push(p.name); }
+      });
+
+    if (Object.keys(bodyProperties).length) {
+      return {
+        in: 'body',
+        name: 'body-props-object',
+        schema: {
+          properties: bodyProperties,
+          required: bodyRequired,
+          title: 'body-props-object',
+          type: 'object'
+        }
+      };
+    } else {
+      return;
+    }
+  }
+
+  private buildParameter(parameter: Parameter): Swagger.Parameter {
     const swaggerParameter: any = {
       description: parameter.description,
       in: parameter.in,

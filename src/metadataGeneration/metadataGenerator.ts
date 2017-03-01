@@ -72,6 +72,7 @@ export interface Controller {
 }
 
 export interface Method {
+  deprecated?: boolean;
   description: string;
   method: string;
   name: string;

@@ -6,6 +6,7 @@ import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
 import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
+import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
@@ -43,6 +44,10 @@ const models: any = {
   'Result': {
     'value': { typeName: 'object', required: true },
   },
+  'ErrorResponseModel': {
+    'status': { typeName: 'number', required: true },
+    'message': { typeName: 'string', required: true },
+  },
   'ParameterTestModel': {
     'firstname': { typeName: 'string', required: true },
     'lastname': { typeName: 'string', required: true },
@@ -52,10 +57,6 @@ const models: any = {
   'UserResponseModel': {
     'id': { typeName: 'number', required: true },
     'name': { typeName: 'string', required: true },
-  },
-  'ErrorResponseModel': {
-    'status': { typeName: 'number', required: true },
-    'message': { typeName: 'string', required: true },
   },
 };
 
@@ -811,6 +812,302 @@ export function RegisterRoutes(router: KoaRouter) {
 
       return promiseHandler(promise, statusCode, context, next);
     });
+  router.get('/v1/MethodTest/Get',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.getMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/MethodTest/Post',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.postMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.patch('/v1/MethodTest/Patch',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.patchMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.put('/v1/MethodTest/Put',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.putMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.delete('/v1/MethodTest/Delete',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.deleteMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/Description',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.description.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/Tags',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.tags.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/MultiResponse',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.multiResponse.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/SuccessResponse',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.successResponse.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/ApiSecurity',
+    authenticateMiddleware('api_key'
+    ),
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.apiSecurity.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/OauthSecurity',
+    authenticateMiddleware('tsoa_auth'
+      , [
+        'write:pets',
+        'read:pets'
+      ]
+    ),
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.oauthSecurity.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/MethodTest/DeprecatedMethod',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
   router.get('/v1/ParameterTest/Query',
     async (context, next) => {
       const args = {
@@ -938,6 +1235,34 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new ParameterController();
 
       const promise = controller.getBody.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/ParameterTest/BodyProps',
+    async (context, next) => {
+      const args = {
+        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'body-props', },
+        'lastname': { name: 'lastname', typeName: 'string', required: true, in: 'body-props', },
+        'human': { name: 'human', typeName: 'boolean', required: true, in: 'body-props', },
+        'age': { name: 'age', typeName: 'number', required: true, in: 'body-props', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.getBodyProps.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -1078,6 +1403,8 @@ export function RegisterRoutes(router: KoaRouter) {
           return ValidateParam(args[key], context.request.headers[name], models, name);
         case 'body':
           return ValidateParam(args[key], context.request.body, models, name);
+        case 'body-props':
+          return ValidateParam(args[key], context.request.body[name], models, name);
       }
     });
   }

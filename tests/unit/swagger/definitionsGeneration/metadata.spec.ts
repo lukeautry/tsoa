@@ -21,7 +21,7 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse',
-      'apiSecurity', 'oauthSecurity'];
+      'apiSecurity', 'oauthSecurity', 'deprecatedMethod'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
@@ -163,6 +163,24 @@ describe('Metadata generation', () => {
       expect(method.security.name).to.equal('tsoa_auth');
       expect(method.security.scopes).to.deep.equal(['write:pets', 'read:pets']);
     });
+
+    it('should generate deprecated method true', () => {
+      const method = controller.methods.find(m => m.name === 'deprecatedMethod');
+      if (!method) {
+        throw new Error('Method deprecatedMethod not defined!');
+      }
+
+      expect(method.deprecated).to.equal(true);
+    });
+
+    it('should generate deprecated method false', () => {
+      const method = controller.methods.find(m => m.name === 'oauthSecurity');
+      if (!method) {
+        throw new Error('Method oauthSecurity not defined!');
+      }
+
+      expect(method.deprecated).to.equal(false);
+    });
   });
 
   describe('ParameterGenerator', () => {
@@ -303,13 +321,12 @@ describe('Metadata generation', () => {
       }
 
       expect(method.parameters.length).to.equal(1);
-      const queryParamater = method.parameters[0];
-      expect(queryParamater.description).to.equal('Request description');
-      expect(queryParamater.in).to.equal('request');
-      expect(queryParamater.name).to.equal('request');
-      expect(queryParamater.argumentName).to.equal('request');
-      expect(queryParamater.required).to.be.true;
-      expect(queryParamater.type).to.equal('object');
+      expect(parameter.description).to.equal('Request description');
+      expect(parameter.in).to.equal('request');
+      expect(parameter.name).to.equal('request');
+      expect(parameter.argumentName).to.equal('request');
+      expect(parameter.required).to.be.true;
+      expect(parameter.type).to.equal('object');
     });
 
     it('should generate an body parameter', () => {
@@ -323,12 +340,29 @@ describe('Metadata generation', () => {
       }
 
       expect(method.parameters.length).to.equal(1);
-      const queryParamater = method.parameters[0];
-      expect(queryParamater.description).to.equal('Body description');
-      expect(queryParamater.in).to.equal('body');
-      expect(queryParamater.name).to.equal('body');
-      expect(queryParamater.argumentName).to.equal('body');
-      expect(queryParamater.required).to.be.true;
+      expect(parameter.description).to.equal('Body description');
+      expect(parameter.in).to.equal('body');
+      expect(parameter.name).to.equal('body');
+      expect(parameter.argumentName).to.equal('body');
+      expect(parameter.required).to.be.true;
+    });
+
+    it('should generate an body props parameter', () => {
+      const method = controller.methods.find(m => m.name === 'getBodyProps');
+      if (!method) {
+        throw new Error('Method getBodyProps not defined!');
+      }
+      const parameter = method.parameters.find(param => param.argumentName === 'firstname');
+      if (!parameter) {
+        throw new Error('Parameter firstname not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(4);
+      expect(parameter.description).to.equal('firstname description');
+      expect(parameter.in).to.equal('body-props');
+      expect(parameter.name).to.equal('firstname');
+      expect(parameter.argumentName).to.equal('firstname');
+      expect(parameter.required).to.be.true;
     });
   });
 });

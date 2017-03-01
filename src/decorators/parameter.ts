@@ -1,4 +1,8 @@
-export function Body(): any {
+/**
+ *
+ * @param {string} [propertiesName] - properties name in body object
+ */
+export function Body(propertiesName?: string): any {
   return () => { return; };
 };
 

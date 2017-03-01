@@ -76,4 +76,12 @@ export class MethodController extends Controller {
     public async oauthSecurity(): Promise<TestModel> {
         return new ModelService().getModel();
     }
+
+    /**
+     * @deprecated
+     */
+    @Get('DeprecatedMethod')
+    public async deprecatedMethod(): Promise<TestModel> {
+        return new ModelService().getModel();
+    }
 }
