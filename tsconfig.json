@@ -4,7 +4,11 @@
         "sourceMap": true,
         "noImplicitAny": true,
         "module": "commonjs",
-        "target": "es6",
+        "target": "es5",
+        "lib": [
+            "es6",
+            "dom"
+        ],
         "experimentalDecorators": true,
         "declaration": true,
         "noUnusedLocals": true,
