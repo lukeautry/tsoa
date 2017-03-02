@@ -43,7 +43,7 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
   return generateReferenceType(typeReference.typeName.text);
 }
 
-function generateReferenceType(typeName: string, cacheReferenceType = true): ReferenceType {
+function generateReferenceType(typeName: string, cacheReferenceType = true): ReferenceType | string {
   try {
     const existingType = localReferenceTypeCache[typeName];
     if (existingType) { return existingType; }
@@ -64,6 +64,10 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
     };
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       const innerType = modelTypeDeclaration.type;
+      // manage enum as if they were numbers
+      if (innerType.kind === ts.SyntaxKind.EnumDeclaration) {
+        return 'number';
+      }
       if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
         const unionTypes = (innerType as any).types;
         referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
@@ -109,6 +113,7 @@ function getModelTypeDeclaration(typeName: string) {
       case ts.SyntaxKind.InterfaceDeclaration:
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.TypeAliasDeclaration:
+      case ts.SyntaxKind.EnumDeclaration:
         return false;
       default: return true;
     }
@@ -207,8 +212,10 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
 
     clause.types.forEach(t => {
       const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text, false).properties
-        .forEach(property => properties.push(property));
+      const rType = generateReferenceType(baseIdentifier.text, false);
+      if (typeof rType !== 'string') {
+        (rType as ReferenceType).properties.forEach(property => properties.push(property));
+      }
     });
   });
 
