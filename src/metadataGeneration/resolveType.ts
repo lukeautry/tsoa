@@ -40,10 +40,12 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     return ResolveType(typeReference);
   }
 
-  return generateReferenceType(typeReference.typeName.text);
+  const referenceType = generateReferenceType(typeReference.typeName.text);
+  MetadataGenerator.current.AddReferenceType(referenceType);
+  return referenceType;
 }
 
-function generateReferenceType(typeName: string, cacheReferenceType = true): ReferenceType {
+function generateReferenceType(typeName: string): ReferenceType {
   try {
     const existingType = localReferenceTypeCache[typeName];
     if (existingType) { return existingType; }
@@ -72,10 +74,6 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
 
     const extendedProperties = getInheritedProperties(modelTypeDeclaration);
     referenceType.properties = referenceType.properties.concat(extendedProperties);
-
-    if (cacheReferenceType) {
-      MetadataGenerator.current.AddReferenceType(referenceType);
-    }
 
     localReferenceTypeCache[typeName] = referenceType;
     return referenceType;
@@ -207,7 +205,7 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
 
     clause.types.forEach(t => {
       const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text, false).properties
+      generateReferenceType(baseIdentifier.text).properties
         .forEach(property => properties.push(property));
     });
   });

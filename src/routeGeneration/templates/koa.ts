@@ -105,7 +105,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 return ValidateParam(args[key], context.request.headers[name], models, name);
             case 'body':
                 return ValidateParam(args[key], context.request.body, models, name);
-            case 'body-props':
+            case 'body-prop':
                 return ValidateParam(args[key], context.request.body[name], models, name);
             }
         });

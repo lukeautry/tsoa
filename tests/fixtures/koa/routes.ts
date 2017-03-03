@@ -11,13 +11,6 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
-  'TestSubModel': {
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
-  },
-  'StrLiteral': {
-  },
   'TestModel': {
     'numberValue': { typeName: 'number', required: true },
     'numberArray': { typeName: 'array', required: true, arrayType: 'number' },
@@ -32,6 +25,13 @@ const models: any = {
     'dateValue': { typeName: 'datetime', required: false },
     'optionalString': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
+  },
+  'TestSubModel': {
+    'email': { typeName: 'string', required: true },
+    'circular': { typeName: 'TestModel', required: false },
+    'id': { typeName: 'number', required: true },
+  },
+  'StrLiteral': {
   },
   'TestClassModel': {
     'publicStringProperty': { typeName: 'string', required: true },
@@ -1245,10 +1245,10 @@ export function RegisterRoutes(router: KoaRouter) {
   router.post('/v1/ParameterTest/BodyProps',
     async (context, next) => {
       const args = {
-        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'body-props', },
-        'lastname': { name: 'lastname', typeName: 'string', required: true, in: 'body-props', },
-        'human': { name: 'human', typeName: 'boolean', required: true, in: 'body-props', },
-        'age': { name: 'age', typeName: 'number', required: true, in: 'body-props', },
+        'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'body-prop', },
+        'lastname': { name: 'lastname', typeName: 'string', required: true, in: 'body-prop', },
+        'human': { name: 'human', typeName: 'boolean', required: true, in: 'body-prop', },
+        'age': { name: 'age', typeName: 'number', required: true, in: 'body-prop', },
       };
 
       let validatedArgs: any[] = [];
@@ -1403,7 +1403,7 @@ export function RegisterRoutes(router: KoaRouter) {
           return ValidateParam(args[key], context.request.headers[name], models, name);
         case 'body':
           return ValidateParam(args[key], context.request.body, models, name);
-        case 'body-props':
+        case 'body-prop':
           return ValidateParam(args[key], context.request.body[name], models, name);
       }
     });

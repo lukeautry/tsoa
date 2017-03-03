@@ -359,7 +359,7 @@ describe('Metadata generation', () => {
 
       expect(method.parameters.length).to.equal(4);
       expect(parameter.description).to.equal('firstname description');
-      expect(parameter.in).to.equal('body-props');
+      expect(parameter.in).to.equal('body-prop');
       expect(parameter.name).to.equal('firstname');
       expect(parameter.argumentName).to.equal('firstname');
       expect(parameter.required).to.be.true;

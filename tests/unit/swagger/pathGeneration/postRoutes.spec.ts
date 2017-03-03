@@ -48,7 +48,7 @@ describe('POST route generation', () => {
     chai.expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
       new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
-    }).to.throw('Only one body parameter allowed per controller method.');
+    }).to.throw('Only one body parameter allowed in \'InvalidPostTestController.postWithMultipleBodyParams\' method.');
   });
 
   it('should be able to parse body and query parameters together', () => {

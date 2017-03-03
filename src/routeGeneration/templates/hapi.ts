@@ -100,7 +100,7 @@ export function RegisterRoutes(server: hapi.Server) {
                 return ValidateParam(args[key], request.headers[name], models, name);
             case 'body':
                 return ValidateParam(args[key], request.payload, models, name);
-             case 'body-props':
+             case 'body-prop':
                 return ValidateParam(args[key], request.payload[name], models, name);
             }
         });
