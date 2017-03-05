@@ -83,3 +83,12 @@ export class TestClassModel extends TestClassBaseModel {
     super();
   }
 }
+
+export interface GenericModel<T> {
+  result: T;
+}
+
+export interface GenericRequest<T> {
+  name: string;
+  value: T;
+}

@@ -41,8 +41,24 @@ const models: any = {
     'optionalPublicConstructorVar': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
+  'GenericRequest<TestModel>': {
+    'name': { typeName: 'string', required: true },
+    'value': { typeName: 'TestModel', required: true },
+  },
   'Result': {
     'value': { typeName: 'object', required: true },
+  },
+  'GenericModel<TestModel>': {
+    'result': { typeName: 'TestModel', required: true },
+  },
+  'GenericModel<TestModel[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'TestModel' },
+  },
+  'GenericModel<string>': {
+    'result': { typeName: 'string', required: true },
+  },
+  'GenericModel<string[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'string' },
   },
   'ErrorResponseModel': {
     'status': { typeName: 'number', required: true },
@@ -352,6 +368,33 @@ export function RegisterRoutes(server: hapi.Server) {
         const controller = new PostTestController();
 
         const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/PostTest/GenericBody',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          'genericReq': { name: 'genericReq', typeName: 'GenericRequest<TestModel>', required: true, in: 'body', },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new PostTestController();
+
+        const promise = controller.getGenericRequest.apply(controller, validatedArgs);
         let statusCode = undefined;
         if (controller instanceof Controller) {
           statusCode = (controller as Controller).getStatus();
@@ -789,6 +832,110 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   });
   server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericModel',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericModelArray',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericPrimitive',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericPrimitiveArray',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'delete',
     path: '/v1/DeleteTest',
     config: {
@@ -1113,8 +1260,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1149,8 +1296,8 @@ export function RegisterRoutes(server: hapi.Server) {
               'write:pets',
               'read:pets'
             ]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1381,8 +1528,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1414,8 +1561,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {

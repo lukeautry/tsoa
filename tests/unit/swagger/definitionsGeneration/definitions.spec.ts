@@ -1,5 +1,6 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+import {Swagger} from '../../../../src/swagger/swagger';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import * as chai from 'chai';
@@ -165,6 +166,55 @@ describe('Definition generation', () => {
 
       expect(property).to.exist;
       expect(property.description).to.equal('This is a description for publicConstructorVar');
+    });
+  });
+
+  describe('Generic-based generation', () => {
+    it('should generate different definitions for a generic model', () => {
+      const definition = getValidatedDefinition('GenericModel<TestModel>').properties;
+
+      if (!definition) { throw new Error(`There were no properties on model.`); }
+
+      const property = definition['result'];
+
+      expect(property).to.exist;
+      expect(property['$ref']).to.equal('#/definitions/TestModel');
+    });
+    it('should generate different definitions for a generic model array', () => {
+      const definition = getValidatedDefinition('GenericModel<TestModel[]>').properties;
+
+      if (!definition) { throw new Error(`There were no properties on model.`); }
+
+      const property = definition['result'];
+
+      expect(property).to.exist;
+      expect(property.type).to.equal('array');
+
+      if (!property.items) { throw new Error(`There were no items on the property model.`); }
+      expect((property.items as Swagger.Schema)['$ref']).to.equal('#/definitions/TestModel');
+    });
+    it('should generate different definitions for a generic primitive', () => {
+      const definition = getValidatedDefinition('GenericModel<string>').properties;
+
+      if (!definition) { throw new Error(`There were no properties on model.`); }
+
+      const property = definition['result'];
+
+      expect(property).to.exist;
+      expect(property.type).to.equal('string');
+    });
+    it('should generate different definitions for a generic primitive array', () => {
+      const definition = getValidatedDefinition('GenericModel<string[]>').properties;
+
+      if (!definition) { throw new Error(`There were no properties on model.`); }
+
+      const property = definition['result'];
+
+      expect(property).to.exist;
+      expect(property.type).to.equal('array');
+
+      if (!property.items) { throw new Error(`There were no items on the property model.`); }
+      expect((property.items as Swagger.Schema)['type']).to.equal('string');
     });
   });
 });

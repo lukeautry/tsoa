@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { MetadataGenerator, Type, ReferenceType, Property } from './metadataGenerator';
+import * as _ from 'lodash';
 
 const syntaxKindMap: { [kind: number]: string } = {};
 syntaxKindMap[ts.SyntaxKind.NumberKeyword] = 'number';
@@ -40,26 +41,35 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     return ResolveType(typeReference);
   }
 
+  if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
+    let typeT: ts.TypeNode[] = typeReference.typeArguments as ts.TypeNode[];
+    return generateReferenceType(typeReference.typeName.text, typeT);
+  }
+
   return generateReferenceType(typeReference.typeName.text);
 }
 
-function generateReferenceType(typeName: string, cacheReferenceType = true): ReferenceType {
+function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[], cacheReferenceType = true): ReferenceType {
   try {
-    const existingType = localReferenceTypeCache[typeName];
+
+    const typeNameWithGenerics = getTypeName(typeName, genericTypes);
+    const existingType = localReferenceTypeCache[typeNameWithGenerics];
     if (existingType) { return existingType; }
 
-    if (inProgressTypes[typeName]) {
-      return createCircularDependencyResolver(typeName);
+    if (inProgressTypes[typeNameWithGenerics]) {
+      return createCircularDependencyResolver(typeNameWithGenerics);
     }
 
-    inProgressTypes[typeName] = true;
+    inProgressTypes[typeNameWithGenerics] = true;
 
     const modelTypeDeclaration = getModelTypeDeclaration(typeName);
-    const properties = getModelTypeProperties(modelTypeDeclaration);
+
+
+    const properties = getModelTypeProperties(modelTypeDeclaration, genericTypes);
 
     const referenceType: ReferenceType = {
       description: getModelDescription(modelTypeDeclaration),
-      name: typeName,
+      name: typeNameWithGenerics,
       properties: properties
     };
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
@@ -77,12 +87,53 @@ function generateReferenceType(typeName: string, cacheReferenceType = true): Ref
       MetadataGenerator.current.AddReferenceType(referenceType);
     }
 
-    localReferenceTypeCache[typeName] = referenceType;
+    localReferenceTypeCache[typeNameWithGenerics] = referenceType;
     return referenceType;
   } catch (err) {
-    console.error(`There was a problem resolving type of '${typeName}'.`);
+    console.error(`There was a problem resolving type of '${getTypeName(typeName, genericTypes)}'.`);
     throw err;
   }
+}
+
+function getTypeName(typeName: string, genericTypes?: ts.TypeNode[]): string {
+  if (!genericTypes || !genericTypes.length) {
+    return typeName;
+  }
+  let names = genericTypes.map((t) => {
+    return getAnyTypeName(t);
+  });
+
+  return typeName + '<' + names.join(', ') + '>';
+}
+
+function getAnyTypeName(typeNode: ts.TypeNode): string {
+  const primitiveType = syntaxKindMap[typeNode.kind];
+  if (primitiveType) {
+    return primitiveType;
+  }
+
+  if (typeNode.kind === ts.SyntaxKind.ArrayType) {
+    const arrayType = typeNode as ts.ArrayTypeNode;
+    return getAnyTypeName(arrayType.elementType) + '[]';
+  }
+
+  if (typeNode.kind === ts.SyntaxKind.UnionType) {
+    return 'object';
+  }
+
+  if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
+    throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
+  }
+
+  const typeReference = typeNode as ts.TypeReferenceNode;
+  try {
+    return (typeReference.typeName as ts.Identifier).text;
+  } catch (e) {
+    // idk what would hit this? probably needs more testing
+    console.error(e);
+    return typeNode.toString();
+  }
+
 }
 
 function createCircularDependencyResolver(typeName: string) {
@@ -129,22 +180,52 @@ function getModelTypeDeclaration(typeName: string) {
   return modelTypes[0];
 }
 
-function getModelTypeProperties(node: UsableDeclaration) {
+function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeNode[]) {
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
     return interfaceDeclaration.members
       .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
       .map((property: any) => {
+
         const propertyDeclaration = property as ts.PropertyDeclaration;
         const identifier = propertyDeclaration.name as ts.Identifier;
 
         if (!propertyDeclaration.type) { throw new Error('No valid type found for property declaration.'); }
 
+        // Declare a variable that can be overridden if needed
+        let aType = propertyDeclaration.type;
+
+        // aType.kind will always be a TypeReference when the property of Interface<T> is of type T
+        if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
+
+          // The type definitions are conviently located on the object which allow us to map -> to the genericTypes
+          let typeParams = _.map(node.typeParameters, (typeParam: ts.TypeParameterDeclaration) => {
+            return typeParam.name.text;
+          });
+
+          // I am not sure in what cases
+          const typeIdentifier = (aType as ts.TypeReferenceNode).typeName;
+          let typeIdentifierName: string;
+
+          // typeIdentifier can either be a Identifier or a QualifiedName
+          if ((typeIdentifier as ts.Identifier).text) {
+            typeIdentifierName = (typeIdentifier as ts.Identifier).text;
+          } else {
+            typeIdentifierName = (typeIdentifier as ts.QualifiedName).right.text;
+          }
+
+          // I could not produce a situation where this did not find it so its possible this check is irrelevant
+          const indexOfType = _.indexOf<string>(typeParams, typeIdentifierName);
+          if (indexOfType >= 0) {
+            aType = genericTypes[indexOfType] as ts.TypeNode;
+          }
+        }
+
         return {
           description: getNodeDescription(propertyDeclaration),
           name: identifier.text,
           required: !property.questionToken,
-          type: ResolveType(propertyDeclaration.type)
+          type: ResolveType(aType)
         };
       });
   }
@@ -207,7 +288,7 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
 
     clause.types.forEach(t => {
       const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text, false).properties
+      generateReferenceType(baseIdentifier.text, undefined, false).properties
         .forEach(property => properties.push(property));
     });
   });

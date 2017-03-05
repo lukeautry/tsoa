@@ -41,8 +41,24 @@ const models: any = {
     'optionalPublicConstructorVar': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
+  'GenericRequest<TestModel>': {
+    'name': { typeName: 'string', required: true },
+    'value': { typeName: 'TestModel', required: true },
+  },
   'Result': {
     'value': { typeName: 'object', required: true },
+  },
+  'GenericModel<TestModel>': {
+    'result': { typeName: 'TestModel', required: true },
+  },
+  'GenericModel<TestModel[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'TestModel' },
+  },
+  'GenericModel<string>': {
+    'result': { typeName: 'string', required: true },
+  },
+  'GenericModel<string[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'string' },
   },
   'ErrorResponseModel': {
     'status': { typeName: 'number', required: true },
@@ -331,6 +347,31 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new PostTestController();
 
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/PostTest/GenericBody',
+    async (context, next) => {
+      const args = {
+        'genericReq': { name: 'genericReq', typeName: 'GenericRequest<TestModel>', required: true, in: 'body', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new PostTestController();
+
+      const promise = controller.getGenericRequest.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -727,6 +768,102 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new GetTestController();
 
       const promise = controller.getBuffer.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/GetTest/GenericModel',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new GetTestController();
+
+      const promise = controller.getGenericModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/GetTest/GenericModelArray',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new GetTestController();
+
+      const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/GetTest/GenericPrimitive',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new GetTestController();
+
+      const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/GetTest/GenericPrimitiveArray',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new GetTestController();
+
+      const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();

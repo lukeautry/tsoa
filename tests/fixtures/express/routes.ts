@@ -41,8 +41,24 @@ const models: any = {
     'optionalPublicConstructorVar': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
+  'GenericRequest<TestModel>': {
+    'name': { typeName: 'string', required: true },
+    'value': { typeName: 'TestModel', required: true },
+  },
   'Result': {
     'value': { typeName: 'object', required: true },
+  },
+  'GenericModel<TestModel>': {
+    'result': { typeName: 'TestModel', required: true },
+  },
+  'GenericModel<TestModel[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'TestModel' },
+  },
+  'GenericModel<string>': {
+    'result': { typeName: 'string', required: true },
+  },
+  'GenericModel<string[]>': {
+    'result': { typeName: 'array', required: true, arrayType: 'string' },
   },
   'ErrorResponseModel': {
     'status': { typeName: 'number', required: true },
@@ -309,6 +325,29 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/GenericBody',
+    function(request: any, response: any, next: any) {
+      const args = {
+        'genericReq': { name: 'genericReq', typeName: 'GenericRequest<TestModel>', required: true, in: 'body', },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.getGenericRequest.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -673,6 +712,94 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getBuffer.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/GetTest/GenericModel',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new GetTestController();
+
+
+      const promise = controller.getGenericModel.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/GetTest/GenericModelArray',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new GetTestController();
+
+
+      const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/GetTest/GenericPrimitive',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new GetTestController();
+
+
+      const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/GetTest/GenericPrimitiveArray',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new GetTestController();
+
+
+      const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();

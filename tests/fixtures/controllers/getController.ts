@@ -4,7 +4,7 @@ import { Get } from '../../../src/decorators/methods';
 import { Controller } from '../../../src/interfaces/controller';
 import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
-import { TestModel, TestSubModel, TestClassModel } from '../testModel';
+import { GenericModel, TestModel, TestSubModel, TestClassModel } from '../testModel';
 import { Tags } from '../../../src/decorators/tags';
 
 @Route('GetTest')
@@ -121,6 +121,36 @@ export class GetTestController extends Controller {
   @Get('HandleBufferType')
   public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
+  }
+
+  @Get('GenericModel')
+  public async getGenericModel(): Promise<GenericModel<TestModel>> {
+    return {
+      result: new ModelService().getModel()
+    };
+  }
+
+  @Get('GenericModelArray')
+  public async getGenericModelArray(): Promise<GenericModel<TestModel[]>> {
+    return {
+      result: [
+        new ModelService().getModel()
+      ]
+    };
+  }
+
+  @Get('GenericPrimitive')
+  public async getGenericPrimitive(): Promise<GenericModel<string>> {
+    return {
+      result: new ModelService().getModel().stringValue
+    };
+  }
+
+  @Get('GenericPrimitiveArray')
+  public async getGenericPrimitiveArray(): Promise<GenericModel<string[]>> {
+    return {
+      result: new ModelService().getModel().stringArray
+    };
   }
 }
 

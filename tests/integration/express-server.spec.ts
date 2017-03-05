@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/express/server';
-import { TestModel, TestClassModel, UserResponseModel, ParameterTestModel } from '../fixtures/testModel';
+import { GenericModel, GenericRequest, TestModel, TestClassModel, UserResponseModel, ParameterTestModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
@@ -263,6 +263,46 @@ describe('Express Server', () => {
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
         expect(model.human).to.equal(true);
+      });
+    });
+
+    it('can get request with generic type', () => {
+      return verifyGetRequest(basePath + '/GetTest/GenericModel', (err, res) => {
+        const model = res.body as GenericModel<TestModel>;
+        expect(model.result.id).to.equal(1);
+      });
+    });
+
+    it('can get request with generic array', () => {
+      return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (err, res) => {
+        const model = res.body as GenericModel<TestModel[]>;
+        expect(model.result[0].id).to.equal(1);
+      });
+    });
+
+    it('can get request with generic primative type', () => {
+      return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (err, res) => {
+        const model = res.body as GenericModel<string>;
+        expect(model.result).to.equal('a string');
+      });
+    });
+
+    it('can get request with generic primative array', () => {
+      return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (err, res) => {
+        const model = res.body as GenericModel<string[]>;
+        expect(model.result[0]).to.equal('string one');
+      });
+    });
+
+    it('can post request with a generic body', () => {
+
+      const data: GenericRequest<TestModel> = {
+        name: 'something',
+        value: getFakeModel()
+      };
+      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
       });
     });
   });
