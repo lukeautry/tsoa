@@ -51,7 +51,7 @@ export class ControllerGenerator {
 
     if (!matchedAttributes.length) { return undefined; }
     if (matchedAttributes.length > 1) {
-      throw new Error('A controller can only have a single "`decoratorName`" decorator.');
+      throw new Error(`A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
     }
 
     const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;

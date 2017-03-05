@@ -1,5 +1,5 @@
 import { Example } from './decorators/example';
-import { Request, Query, Path, Body, Header } from './decorators/parameter';
+import { Request, Query, Path, Body, BodyProp, Header } from './decorators/parameter';
 import { Post, Get, Patch, Delete, Put } from './decorators/methods';
 import { Tags } from './decorators/tags';
 import { Route } from './decorators/route';
@@ -19,6 +19,7 @@ export {
   Query,
   Path,
   Body,
+  BodyProp,
   Header,
   Response,
   SuccessResponse,

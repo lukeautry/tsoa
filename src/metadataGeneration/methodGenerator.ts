@@ -39,15 +39,33 @@ export class MethodGenerator {
   }
 
   private getParameters() {
-    return this.node.parameters.map(p => {
+    const parameters = this.node.parameters.map(p => {
       try {
         return new ParameterGenerator(p, this.method, this.path).Generate();
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
+        const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
         const parameterId = p.name as ts.Identifier;
-        throw new Error(`Error generate parameter method: ${methodId.text} argument: ${parameterId.text} ${e}`);
+        throw new Error(`Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
       }
     });
+
+    const bodyParameters = parameters.filter(p => p.in === 'body');
+    const bodyProps = parameters.filter(p => p.in === 'body-prop');
+
+    if (bodyParameters.length > 1) {
+      throw new Error(`Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
+    }
+    if (bodyParameters.length > 0 && bodyProps.length > 0) {
+      throw new Error(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
+    }
+    return parameters;
+  }
+
+  private getCurrentLocation() {
+    const methodId = this.node.name as ts.Identifier;
+    const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
+    return `${controllerId.text}.${methodId.text}`;
   }
 
   private processMethodDecorators() {
@@ -57,7 +75,7 @@ export class MethodGenerator {
 
     if (!pathDecorators || !pathDecorators.length) { return; }
     if (pathDecorators.length > 1) {
-      throw new Error(`Only one path decorator allowed per method. Found: ${pathDecorators.map(d => d.text).join(', ')}`);
+      throw new Error(`Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
     }
 
     const decorator = pathDecorators[0];
@@ -106,7 +124,9 @@ export class MethodGenerator {
         description: description,
         examples: examples,
         name: name,
-        schema: (expression.typeArguments && expression.typeArguments.length > 0) ? ResolveType(expression.typeArguments[0]) : undefined
+        schema: (expression.typeArguments && expression.typeArguments.length > 0)
+                ? ResolveType(expression.typeArguments[0])
+                : undefined
       };
     });
   }
@@ -121,7 +141,9 @@ export class MethodGenerator {
         schema: type
       };
     }
-    if (decorators.length > 1) { throw new Error('Only one SuccessResponse decorator allowed per controller method.'); }
+    if (decorators.length > 1) {
+      throw new Error(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
 
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
@@ -149,7 +171,7 @@ export class MethodGenerator {
     const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
     if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
     if (exampleDecorators.length > 1) {
-      throw new Error('Only one Example decorator allowed per controller method.');
+      throw new Error(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = exampleDecorators[0];
@@ -183,7 +205,9 @@ export class MethodGenerator {
   private getMethodTags() {
     const tagsDecorators = this.getDecorators(identifier => identifier.text === 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) { return []; }
-    if (tagsDecorators.length > 1) { throw new Error('Only one Tags decorator allowed per controller method.'); }
+    if (tagsDecorators.length > 1) {
+      throw new Error(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
 
     const decorator = tagsDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
@@ -194,7 +218,9 @@ export class MethodGenerator {
   private getMethodSecurity() {
     const securityDecorators = this.getDecorators(identifier => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) { return undefined; }
-    if (securityDecorators.length > 1) { throw new Error('Only one Security decorator allowed per controller method.'); }
+    if (securityDecorators.length > 1) {
+      throw new Error(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
 
     const decorator = securityDecorators[0];
     const expression = decorator.parent as ts.CallExpression;

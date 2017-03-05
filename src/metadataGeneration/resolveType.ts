@@ -41,15 +41,20 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     return ResolveType(typeReference);
   }
 
+  let referenceType: ReferenceType;
+
   if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
     let typeT: ts.TypeNode[] = typeReference.typeArguments as ts.TypeNode[];
-    return generateReferenceType(typeReference.typeName.text, typeT);
+    referenceType = generateReferenceType(typeReference.typeName.text, typeT);
+  } else {
+    referenceType = generateReferenceType(typeReference.typeName.text);
   }
 
-  return generateReferenceType(typeReference.typeName.text);
+  MetadataGenerator.current.AddReferenceType(referenceType);
+  return referenceType;
 }
 
-function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[], cacheReferenceType = true): ReferenceType {
+function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[]): ReferenceType {
   try {
 
     const typeNameWithGenerics = getTypeName(typeName, genericTypes);
@@ -83,11 +88,8 @@ function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[], c
     const extendedProperties = getInheritedProperties(modelTypeDeclaration);
     referenceType.properties = referenceType.properties.concat(extendedProperties);
 
-    if (cacheReferenceType) {
-      MetadataGenerator.current.AddReferenceType(referenceType);
-    }
-
     localReferenceTypeCache[typeNameWithGenerics] = referenceType;
+
     return referenceType;
   } catch (err) {
     console.error(`There was a problem resolving type of '${getTypeName(typeName, genericTypes)}'.`);
@@ -288,7 +290,7 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
 
     clause.types.forEach(t => {
       const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text, undefined, false).properties
+      generateReferenceType(baseIdentifier.text).properties
         .forEach(property => properties.push(property));
     });
   });
