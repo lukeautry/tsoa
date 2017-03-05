@@ -33,12 +33,13 @@
   "dependencies": {
     "express": "^4.14.1",
     "handlebars": "^4.0.6",
+    "lodash": "^4.17.4",
     "merge": "^1.2.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.17.1",
     "tslint": "^4.4.2",
     "typescript": "^2.2.1",
-    "typescript-formatter": "^4.1.2",
+    "typescript-formatter": "^5.1.0",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
