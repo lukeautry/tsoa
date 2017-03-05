@@ -158,7 +158,7 @@ The convention is that you have to name your inversify `Container` `iocContainer
   }
 }
 ```
-Note that the path is relative to the `routesDir` and does not contain the extension.
+Note that as of 1.1.1 the path is now relative to the your current working directory like the other paths.
 
 Here is some example code how to setup the container and your controller.
 
