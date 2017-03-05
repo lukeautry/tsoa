@@ -17,6 +17,8 @@ export class ParameterGenerator {
         return this.getRequestParameter(this.parameter);
       case 'Body':
         return this.getBodyParameter(this.parameter);
+      case 'BodyProp':
+        return this.getBodyPropParameter(this.parameter);
       case 'Header':
         return this.getHeaderParameter(this.parameter);
       case 'Query':
@@ -26,6 +28,12 @@ export class ParameterGenerator {
       default:
         return this.getPathParameter(this.parameter);
     }
+  }
+
+  private getCurrentLocation() {
+    const methodId = (this.parameter.parent as ts.MethodDeclaration).name as ts.Identifier;
+    const controllerId = ((this.parameter.parent as ts.MethodDeclaration).parent as ts.ClassDeclaration).name as ts.Identifier;
+    return `${controllerId.text}.${methodId.text}`;
   }
 
   private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -41,6 +49,24 @@ export class ParameterGenerator {
     };
   }
 
+  private getBodyPropParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const type = this.getValidatedType(parameter);
+    const identifier = parameter.name as ts.Identifier;
+
+    if (!this.supportsBodyParameters(this.method)) {
+      throw new Error(`Body can't support '${this.getCurrentLocation()}' method.`);
+    }
+
+    return {
+      argumentName: identifier.text,
+      description: this.getParameterDescription(parameter),
+      in: 'body-prop',
+      name: this.getDecoratorValue(parameter, 'BodyProp') || identifier.text,
+      required: !parameter.questionToken,
+      type: type
+    };
+  }
+
   private getBodyParameter(parameter: ts.ParameterDeclaration): Parameter {
     const type = this.getValidatedType(parameter);
     const identifier = parameter.name as ts.Identifier;
@@ -52,8 +78,8 @@ export class ParameterGenerator {
     return {
       argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
-      in: this.getDecoratorValue(parameter, 'Body') ? 'body-props' : 'body',
-      name: this.getDecoratorValue(parameter, 'Body') || identifier.text,
+      in: 'body',
+      name: identifier.text,
       required: !parameter.questionToken,
       type: type
     };
@@ -64,7 +90,7 @@ export class ParameterGenerator {
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a header parameter.`);
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
     }
 
     return {
@@ -82,7 +108,7 @@ export class ParameterGenerator {
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a query parameter.`);
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
     }
 
     return {
@@ -100,7 +126,7 @@ export class ParameterGenerator {
     const identifier = parameter.name as ts.Identifier;
 
     if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a path parameter.`);
+      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
 
     const name = this.getDecoratorValue(parameter, 'Path') || identifier.text;
@@ -134,7 +160,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator() {
-    return ['Header', 'Query', 'Parem', 'Body', 'Request'];
+    return ['Header', 'Query', 'Parem', 'Body', 'BodyProp', 'Request'];
   }
 
   private isPathableType(parameterType: Type) {
@@ -147,7 +173,9 @@ export class ParameterGenerator {
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {
-    if (!parameter.type) { throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned.`); }
+    if (!parameter.type) {
+      throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+    }
     return ResolveType(parameter.type);
   }
 

@@ -5,13 +5,6 @@ import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 
 const models: any = {
-  'TestSubModel': {
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
-  },
-  'StrLiteral': {
-  },
   'TestModel': {
     'numberValue': { typeName: 'number', required: true },
     'numberArray': { typeName: 'array', required: true, arrayType: 'number' },
@@ -26,6 +19,13 @@ const models: any = {
     'dateValue': { typeName: 'datetime', required: false },
     'optionalString': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
+  },
+  'TestSubModel': {
+    'email': { typeName: 'string', required: true },
+    'circular': { typeName: 'TestModel', required: false },
+    'id': { typeName: 'number', required: true },
+  },
+  'StrLiteral': {
   },
 };
 
@@ -84,7 +84,7 @@ export function RegisterRoutes(app: any) {
           return ValidateParam(args[key], request.header(name), models, name);
         case 'body':
           return ValidateParam(args[key], request.body, models, name);
-        case 'body-props':
+        case 'body-prop':
           return ValidateParam(args[key], request.body[name], models, name);
       }
     });

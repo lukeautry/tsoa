@@ -102,45 +102,50 @@ export class SpecGenerator {
       pathMethod.security = [security];
     }
 
-    pathMethod.parameters = method.parameters.filter(
-      p => !(p.in === 'request' || p.in === 'body-props')
-    ).map(p => this.buildParameter(p));
-    const bodyPropParameter = this.buildBodyPropParamter(method);
+    pathMethod.parameters = method.parameters
+      .filter(p => {
+        return !(p.in === 'request' || p.in === 'body-prop');
+      })
+      .map(p => this.buildParameter(p));
+
+    const bodyPropParameter = this.buildBodyPropParameter(method);
     if (bodyPropParameter) {
-        pathMethod.parameters.push(bodyPropParameter);
-     }
+      pathMethod.parameters.push(bodyPropParameter);
+    }
 
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
   }
 
-  private buildBodyPropParamter(method: Method) {
-    const bodyProperties: any = {};
-    const bodyRequired: string[] = [];
-    method.parameters
-      .filter(p => p.in === 'body-props')
-      .forEach(p => {
-        bodyProperties[p.name] = this.getSwaggerType(p.type);
-        bodyProperties[p.name].description = p.description;
+  private buildBodyPropParameter(method: Method) {
+    const properties: any = {};
+    const required: string[] = [];
 
-        if (p.required) { bodyRequired.push(p.name); }
+    method.parameters
+      .filter(p => p.in === 'body-prop')
+      .forEach(p => {
+        properties[p.name] = this.getSwaggerType(p.type);
+        properties[p.name].description = p.description;
+
+        if (p.required) { required.push(p.name); }
       });
 
-    if (Object.keys(bodyProperties).length) {
-      return {
-        in: 'body',
-        name: 'body-props-object',
-        schema: {
-          properties: bodyProperties,
-          required: bodyRequired,
-          title: 'body-props-object',
-          type: 'object'
-        }
-      };
-    } else {
-      return;
+    if (!Object.keys(properties).length) { return; };
+
+    const parameter: any = {
+      in: 'body',
+      name: 'body-inline-paramater',
+      schema: {
+        properties: properties,
+        title: 'inline-schema',
+        type: 'object'
+      }
+    };
+    if (required.length) {
+      parameter.schema.required = required;
     }
+    return parameter;
   }
 
   private buildParameter(parameter: Parameter): Swagger.Parameter {

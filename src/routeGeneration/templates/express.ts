@@ -96,7 +96,7 @@ export function RegisterRoutes(app: any) {
                 return ValidateParam(args[key], request.header(name), models, name);
             case 'body':
                 return ValidateParam(args[key], request.body, models, name);
-            case 'body-props':
+            case 'body-prop':
                 return ValidateParam(args[key], request.body[name], models, name);
             }
         });

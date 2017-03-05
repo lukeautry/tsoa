@@ -1,4 +1,4 @@
-import { Request, Query, Path, Header, Body } from '../../../src/decorators/parameter';
+import { Request, Query, Path, Header, Body, BodyProp } from '../../../src/decorators/parameter';
 import { Get, Post } from '../../../src/decorators/methods';
 import { Route } from '../../../src/decorators/route';
 import { ParameterTestModel } from '../testModel';
@@ -114,10 +114,10 @@ export class ParameterController {
      */
     @Post('BodyProps')
     public async getBodyProps(
-        @Body('firstname') firstname: string,
-        @Body('lastname') lastname: string,
-        @Body('human') human: boolean,
-        @Body('age') age: number): Promise<ParameterTestModel> {
+        @BodyProp('firstname') firstname: string,
+        @BodyProp('lastname') lastname: string,
+        @BodyProp('human') human: boolean,
+        @BodyProp('age') age: number): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({
             age: age,
             firstname: firstname,
