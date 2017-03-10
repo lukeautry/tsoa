@@ -1,5 +1,6 @@
 import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
+import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import * as ts from 'typescript';
 
 export class ParameterGenerator {
@@ -10,7 +11,7 @@ export class ParameterGenerator {
   ) { }
 
   public Generate(): Parameter {
-    const decoratorName = this.getDecoratorName();
+    const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
       case 'Request':
@@ -37,111 +38,108 @@ export class ParameterGenerator {
   }
 
   private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
-    const identifier = parameter.name as ts.Identifier;
-
+    const parameterName = (parameter.name as ts.Identifier).text;
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'request',
-      name: identifier.text,
+      name: parameterName,
       required: !parameter.questionToken,
-      type: 'object'
+      type: { typeName: 'object' },
+      parameterName
     };
   }
 
   private getBodyPropParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
-    const identifier = parameter.name as ts.Identifier;
 
     if (!this.supportsBodyParameters(this.method)) {
       throw new Error(`Body can't support '${this.getCurrentLocation()}' method.`);
     }
 
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
-      name: this.getDecoratorValue(parameter, 'BodyProp') || identifier.text,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
       required: !parameter.questionToken,
-      type: type
+      type: type,
+      parameterName
     };
   }
 
   private getBodyParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
-    const identifier = parameter.name as ts.Identifier;
 
     if (!this.supportsBodyParameters(this.method)) {
       throw new Error(`Body can't support ${this.method} method`);
     }
 
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'body',
-      name: identifier.text,
+      name: parameterName,
       required: !parameter.questionToken,
-      type: type
+      type,
+      parameterName
     };
   }
 
   private getHeaderParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
-    const identifier = parameter.name as ts.Identifier;
 
-    if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
+    if (!this.supportPathDataType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
     }
 
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'header',
-      name: this.getDecoratorValue(parameter, 'Header') || identifier.text,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
       required: !parameter.questionToken,
-      type: type
+      type,
+      parameterName
     };
   }
 
   private getQueryParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
-    const identifier = parameter.name as ts.Identifier;
 
-    if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
+    if (!this.supportPathDataType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
     }
 
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'query',
-      name: this.getDecoratorValue(parameter, 'Query') || identifier.text,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       required: !parameter.questionToken,
-      type: type
+      type,
+      parameterName
     };
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
-    const identifier = parameter.name as ts.Identifier;
+    const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
 
-    if (!this.isPathableType(type)) {
-      throw new InvalidParameterException(`Parameter '${identifier.text}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
+    if (!this.supportPathDataType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
-
-    const name = this.getDecoratorValue(parameter, 'Path') || identifier.text;
-
-    if (!this.path.includes(`{${name}}`)) {
-      throw new Error(`Parameter '${name}' can't macth in path: '${this.path}'`);
+    if (!this.path.includes(`{${pathName}}`)) {
+      throw new Error(`Parameter '${parameterName}' can't macth in path: '${this.path}'`);
     }
 
     return {
-      argumentName: identifier.text,
       description: this.getParameterDescription(parameter),
       in: 'path',
-      name: name,
+      name: pathName,
       required: true,
-      type: type
+      type,
+      parameterName
     };
   }
 
@@ -159,17 +157,12 @@ export class ParameterGenerator {
     return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
   }
 
-  private supportParameterDecorator() {
-    return ['Header', 'Query', 'Parem', 'Body', 'BodyProp', 'Request'];
+  private supportParameterDecorator(decoratorName: string) {
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
-  private isPathableType(parameterType: Type) {
-    if (!(typeof parameterType === 'string' || parameterType instanceof String)) {
-      return false;
-    }
-
-    const type = parameterType as string;
-    return !!['string', 'boolean', 'number', 'datetime', 'buffer'].find(t => t === type);
+  private supportPathDataType(parameterType: Type) {
+    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum'].find(t => t === parameterType.typeName);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {
@@ -177,39 +170,6 @@ export class ParameterGenerator {
       throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
     }
     return ResolveType(parameter.type);
-  }
-
-  private getDecorators(isMatching: (identifier: ts.Identifier) => boolean) {
-    const decorators = this.parameter.decorators;
-    if (!decorators || !decorators.length) { return; }
-
-    return decorators
-      .map(d => d.expression as ts.CallExpression)
-      .map(e => e.expression as ts.Identifier)
-      .filter(isMatching);
-  }
-
-  private getDecoratorName() {
-    const decorators = this.getDecorators(identifier =>
-      this.supportParameterDecorator().some(d => d === identifier.text)
-    );
-
-    if (decorators && decorators.length > 0 && decorators[0].text) {
-      return decorators[0].text;
-    }
-    return;
-  }
-
-  private getDecoratorValue(parameter: ts.ParameterDeclaration, decoratorName: string) {
-    const decorators = this.getDecorators(identifier =>
-      identifier.text === decoratorName
-    );
-    if (!decorators || decorators.length === 0) { return; }
-
-    const expression = decorators[0].parent as ts.CallExpression;
-    if (!expression.arguments || expression.arguments.length === 0) { return; }
-
-    return (expression.arguments[0] as any).text;
   }
 }
 

@@ -1,7 +1,7 @@
 import { expressTemplate } from './templates/express';
 import { hapiTemplate } from './templates/hapi';
 import { koaTemplate } from './templates/koa';
-import { Metadata, Type, ArrayType, ReferenceType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { Metadata, ArrayType, EnumerateType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
@@ -59,6 +59,9 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
+    handlebars.registerHelper('json', function (context: any) {
+      return JSON.stringify(context);
+    });
     const routesTemplate = handlebars.compile(`/* tslint:disable */
             import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
             import { Controller } from '${canImportByAlias ? 'tsoa' : '../../../src/interfaces/controller'}';
@@ -71,9 +74,9 @@ export class RouteGenerator {
 
             const models: any = {
                 {{#each models}}
-                '{{name}}': {
+                "{{name}}": {
                     {{#each properties}}
-                        '{{name}}': { typeName: '{{typeName}}', required: {{required}} {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
+                        "{{@key}}": {{{json this}}},
                     {{/each}}
                 },
                 {{/each}}
@@ -89,10 +92,15 @@ export class RouteGenerator {
       controllers: this.metadata.Controllers.map(controller => {
         return {
           actions: controller.methods.map(method => {
+            const parameters: { [name: string]: PropertySchema } = {};
+            method.parameters.forEach(parameter => {
+              parameters[parameter.parameterName] = this.getParameterSchema(parameter);
+            });
+
             return {
               method: method.method.toLowerCase(),
               name: method.name,
-              parameters: method.parameters.map(parameter => this.getTemplateParameter(parameter)),
+              parameters,
               path: pathTransformer(method.path),
               security: method.security
             };
@@ -114,24 +122,16 @@ export class RouteGenerator {
     return Object.keys(this.metadata.ReferenceTypes).map(key => {
       const referenceType = this.metadata.ReferenceTypes[key];
 
+      const properties: { [name: string]: PropertySchema } = {};
+      referenceType.properties.map(property => {
+        properties[property.name] = this.getPropertySchema(property);
+      });
+
       return {
         name: key,
-        properties: referenceType.properties.map(property => this.getTemplateProperty(property))
+        properties
       };
     });
-  }
-
-  private getStringRepresentationOfType(type: Type): string {
-    if (typeof type === 'string' || type instanceof String) {
-      return type as string;
-    }
-
-    const arrayType = type as ArrayType;
-    if (arrayType.elementType) {
-      return 'array';
-    }
-
-    return (type as ReferenceType).name;
   }
 
   private getRelativeImportPath(fileLocation: string) {
@@ -139,58 +139,85 @@ export class RouteGenerator {
     return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 
-  private getTemplateProperty(source: Property): TemplateProperty {
-    const templateProperty: TemplateProperty = {
-      name: source.name,
+  private getPropertySchema(source: Property): PropertySchema {
+    const templateProperty: PropertySchema = {
       required: source.required,
-      typeName: this.getStringRepresentationOfType(source.type)
+      typeName: source.type.typeName
     };
 
     const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
-      templateProperty.arrayType = this.getStringRepresentationOfType(arrayType.elementType);
+      const arraySchema: ArraySchema = {
+        typeName: arrayType.elementType.typeName
+      };
+      const arrayEnumType = arrayType.elementType as EnumerateType;
+      if (arrayEnumType.enumMembers) {
+        arraySchema.enumMembers = arrayEnumType.enumMembers;
+      }
+      templateProperty.array = arraySchema;
+    }
+
+    const enumType = source.type as EnumerateType;
+    if (enumType.enumMembers) {
+      templateProperty.enumMembers = enumType.enumMembers;
     }
 
     return templateProperty;
   }
 
-  private getTemplateParameter(parameter: Parameter): TemplateParameter {
-    const templateParameter: TemplateParameter = {
-      argumentName: parameter.argumentName,
+  private getParameterSchema(parameter: Parameter): ParameterSchema {
+    const parameterSchema: ParameterSchema = {
       in: parameter.in,
       name: parameter.name,
       required: parameter.required,
-      typeName: this.getStringRepresentationOfType(parameter.type)
+      typeName: parameter.type.typeName
     };
 
     const arrayType = parameter.type as ArrayType;
     if (arrayType.elementType) {
-      templateParameter.arrayType = this.getStringRepresentationOfType(arrayType.elementType);
+      const tempArrayType: ArraySchema = {
+        typeName: arrayType.elementType.typeName
+      };
+      const arrayEnumType = arrayType.elementType as EnumerateType;
+      if (arrayEnumType.enumMembers) {
+        tempArrayType.enumMembers = arrayEnumType.enumMembers;
+      }
+      parameterSchema.array = tempArrayType;
     }
 
-    return templateParameter;
+    const enumType = parameter.type as EnumerateType;
+    if (enumType.enumMembers) {
+      parameterSchema.enumMembers = enumType.enumMembers;
+    }
+
+    return parameterSchema;
   }
 }
 
 interface TemplateModel {
   name: string;
-  properties: TemplateProperty[];
+  properties: { [name: string]: PropertySchema };
 }
 
-interface TemplateProperty {
-  name: String;
+interface PropertySchema {
   typeName: string;
   required: boolean;
-  arrayType?: string;
+  array?: ArraySchema;
   request?: boolean;
+  enumMembers?: string[];
 }
 
-interface TemplateParameter {
-  name: String;
-  argumentName: string;
+export interface ArraySchema {
+  typeName: string;
+  enumMembers?: string[];
+}
+
+export interface ParameterSchema {
+  name: string;
   in: string;
   typeName: string;
   required: boolean;
-  arrayType?: string;
+  array?: ArraySchema;
   request?: boolean;
+  enumMembers?: string[];
 }

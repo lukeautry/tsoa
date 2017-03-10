@@ -11,52 +11,56 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
-  'TestModel': {
-    'numberValue': { typeName: 'number', required: true },
-    'numberArray': { typeName: 'array', required: true, arrayType: 'number' },
-    'stringValue': { typeName: 'string', required: true },
-    'stringArray': { typeName: 'array', required: true, arrayType: 'string' },
-    'boolValue': { typeName: 'boolean', required: true },
-    'boolArray': { typeName: 'array', required: true, arrayType: 'boolean' },
-    'modelValue': { typeName: 'TestSubModel', required: true },
-    'modelsArray': { typeName: 'array', required: true, arrayType: 'TestSubModel' },
-    'strLiteralVal': { typeName: 'StrLiteral', required: true },
-    'strLiteralArr': { typeName: 'array', required: true, arrayType: 'StrLiteral' },
-    'dateValue': { typeName: 'datetime', required: false },
-    'optionalString': { typeName: 'string', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestModel": {
+    "numberValue": { "required": true, "typeName": "double" },
+    "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
+    "stringValue": { "required": true, "typeName": "string" },
+    "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    "boolValue": { "required": true, "typeName": "boolean" },
+    "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
+    "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+    "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+    "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+    "modelValue": { "required": true, "typeName": "TestSubModel" },
+    "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
+    "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
+    "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
+    "dateValue": { "required": false, "typeName": "datetime" },
+    "optionalString": { "required": false, "typeName": "string" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'TestSubModel': {
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestSubModel": {
+    "email": { "required": true, "typeName": "string" },
+    "circular": { "required": false, "typeName": "TestModel" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'StrLiteral': {
+  "TestClassModel": {
+    "publicStringProperty": { "required": true, "typeName": "string" },
+    "optionalPublicStringProperty": { "required": false, "typeName": "string" },
+    "stringProperty": { "required": true, "typeName": "string" },
+    "publicConstructorVar": { "required": true, "typeName": "string" },
+    "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'TestClassModel': {
-    'publicStringProperty': { typeName: 'string', required: true },
-    'optionalPublicStringProperty': { typeName: 'string', required: false },
-    'stringProperty': { typeName: 'string', required: true },
-    'publicConstructorVar': { typeName: 'string', required: true },
-    'optionalPublicConstructorVar': { typeName: 'string', required: false },
-    'id': { typeName: 'number', required: true },
+  "Result": {
+    "value": { "required": true, "typeName": "object" },
   },
-  'Result': {
-    'value': { typeName: 'object', required: true },
+  "ErrorResponseModel": {
+    "status": { "required": true, "typeName": "double" },
+    "message": { "required": true, "typeName": "string" },
   },
-  'ErrorResponseModel': {
-    'status': { typeName: 'number', required: true },
-    'message': { typeName: 'string', required: true },
+  "ParameterTestModel": {
+    "firstname": { "required": true, "typeName": "string" },
+    "lastname": { "required": true, "typeName": "string" },
+    "age": { "required": true, "typeName": "integer" },
+    "weight": { "required": true, "typeName": "float" },
+    "human": { "required": true, "typeName": "boolean" },
+    "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
   },
-  'ParameterTestModel': {
-    'firstname': { typeName: 'string', required: true },
-    'lastname': { typeName: 'string', required: true },
-    'age': { typeName: 'number', required: true },
-    'human': { typeName: 'boolean', required: true },
-  },
-  'UserResponseModel': {
-    'id': { typeName: 'number', required: true },
-    'name': { typeName: 'string', required: true },
+  "UserResponseModel": {
+    "id": { "required": true, "typeName": "double" },
+    "name": { "required": true, "typeName": "string" },
   },
 };
 
@@ -72,7 +76,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -151,7 +155,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
+          id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
         let validatedArgs: any[] = [];
@@ -178,7 +182,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -205,7 +209,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -232,7 +236,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestClassModel', required: true, in: 'body', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestClassModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -311,7 +315,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
+          id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
         let validatedArgs: any[] = [];
@@ -338,8 +342,8 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
-          'query': { name: 'query', typeName: 'string', required: true, in: 'query', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+          query: { "in": "query", "name": "query", "required": true, "typeName": "string" },
         };
 
         let validatedArgs: any[] = [];
@@ -366,7 +370,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'model': { name: 'model', typeName: 'TestModel', required: true, in: 'body', },
+          model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -445,7 +449,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'id': { name: 'id', typeName: 'number', required: true, in: 'path', },
+          id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
         let validatedArgs: any[] = [];
@@ -576,13 +580,13 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
-          'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
-          'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
-          'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
-          'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
-          'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
-          'optionalStringParam': { name: 'optionalStringParam', typeName: 'string', required: false, in: 'query', },
+          numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
+          stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
+          booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
+          booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
+          stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
+          numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
+          optionalStringParam: { "in": "query", "name": "optionalStringParam", "required": false, "typeName": "string" },
         };
 
         let validatedArgs: any[] = [];
@@ -661,7 +665,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];
@@ -688,7 +692,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'date': { name: 'date', typeName: 'datetime', required: true, in: 'query', },
+          date: { "in": "query", "name": "date", "required": true, "typeName": "datetime" },
         };
 
         let validatedArgs: any[] = [];
@@ -767,7 +771,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'buffer': { name: 'buffer', typeName: 'buffer', required: true, in: 'query', },
+          buffer: { "in": "query", "name": "buffer", "required": true, "typeName": "buffer" },
         };
 
         let validatedArgs: any[] = [];
@@ -846,12 +850,12 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'numberPathParam': { name: 'numberPathParam', typeName: 'number', required: true, in: 'path', },
-          'stringPathParam': { name: 'stringPathParam', typeName: 'string', required: true, in: 'path', },
-          'booleanPathParam': { name: 'booleanPathParam', typeName: 'boolean', required: true, in: 'path', },
-          'booleanParam': { name: 'booleanParam', typeName: 'boolean', required: true, in: 'query', },
-          'stringParam': { name: 'stringParam', typeName: 'string', required: true, in: 'query', },
-          'numberParam': { name: 'numberParam', typeName: 'number', required: true, in: 'query', },
+          numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
+          stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
+          booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
+          booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
+          stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
+          numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
         };
 
         let validatedArgs: any[] = [];
@@ -1113,8 +1117,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1145,10 +1149,7 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('tsoa_auth'
-            , [
-              'write:pets',
-              'read:pets'
-            ]
+            , ["write:pets", "read:pets"]
           )
         }
       ],
@@ -1202,14 +1203,42 @@ export function RegisterRoutes(server: hapi.Server) {
   });
   server.route({
     method: 'get',
+    path: '/v1/MethodTest/SummaryMethod',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.summaryMethod.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/ParameterTest/Query',
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'query', },
-          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'query', },
-          'age': { name: 'age', typeName: 'number', required: true, in: 'query', },
-          'human': { name: 'human', typeName: 'boolean', required: true, in: 'query', },
+          firstname: { "in": "query", "name": "firstname", "required": true, "typeName": "string" },
+          lastname: { "in": "query", "name": "last_name", "required": true, "typeName": "string" },
+          age: { "in": "query", "name": "age", "required": true, "typeName": "integer" },
+          weight: { "in": "query", "name": "weight", "required": true, "typeName": "float" },
+          human: { "in": "query", "name": "human", "required": true, "typeName": "boolean" },
+          gender: { "in": "query", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
         };
 
         let validatedArgs: any[] = [];
@@ -1232,14 +1261,16 @@ export function RegisterRoutes(server: hapi.Server) {
   });
   server.route({
     method: 'get',
-    path: '/v1/ParameterTest/Path/{firstname}/{last_name}/{age}/{human}',
+    path: '/v1/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}',
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'path', },
-          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'path', },
-          'age': { name: 'age', typeName: 'number', required: true, in: 'path', },
-          'human': { name: 'human', typeName: 'boolean', required: true, in: 'path', },
+          firstname: { "in": "path", "name": "firstname", "required": true, "typeName": "string" },
+          lastname: { "in": "path", "name": "last_name", "required": true, "typeName": "string" },
+          age: { "in": "path", "name": "age", "required": true, "typeName": "integer" },
+          weight: { "in": "path", "name": "weight", "required": true, "typeName": "float" },
+          human: { "in": "path", "name": "human", "required": true, "typeName": "boolean" },
+          gender: { "in": "path", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
         };
 
         let validatedArgs: any[] = [];
@@ -1266,10 +1297,12 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'header', },
-          'lastname': { name: 'last_name', typeName: 'string', required: true, in: 'header', },
-          'age': { name: 'age', typeName: 'number', required: true, in: 'header', },
-          'human': { name: 'human', typeName: 'boolean', required: true, in: 'header', },
+          firstname: { "in": "header", "name": "firstname", "required": true, "typeName": "string" },
+          lastname: { "in": "header", "name": "last_name", "required": true, "typeName": "string" },
+          age: { "in": "header", "name": "age", "required": true, "typeName": "integer" },
+          weight: { "in": "header", "name": "weight", "required": true, "typeName": "float" },
+          human: { "in": "header", "name": "human", "required": true, "typeName": "boolean" },
+          gender: { "in": "header", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
         };
 
         let validatedArgs: any[] = [];
@@ -1296,7 +1329,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];
@@ -1323,7 +1356,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'body': { name: 'body', typeName: 'ParameterTestModel', required: true, in: 'body', },
+          body: { "in": "body", "name": "body", "required": true, "typeName": "ParameterTestModel" },
         };
 
         let validatedArgs: any[] = [];
@@ -1350,10 +1383,12 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'firstname': { name: 'firstname', typeName: 'string', required: true, in: 'body-prop', },
-          'lastname': { name: 'lastname', typeName: 'string', required: true, in: 'body-prop', },
-          'human': { name: 'human', typeName: 'boolean', required: true, in: 'body-prop', },
-          'age': { name: 'age', typeName: 'number', required: true, in: 'body-prop', },
+          firstname: { "in": "body-prop", "name": "firstname", "required": true, "typeName": "string" },
+          lastname: { "in": "body-prop", "name": "lastname", "required": true, "typeName": "string" },
+          age: { "in": "body-prop", "name": "age", "required": true, "typeName": "integer" },
+          weight: { "in": "body-prop", "name": "weight", "required": true, "typeName": "float" },
+          human: { "in": "body-prop", "name": "human", "required": true, "typeName": "boolean" },
+          gender: { "in": "body-prop", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
         };
 
         let validatedArgs: any[] = [];
@@ -1381,12 +1416,12 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
-          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];
@@ -1419,7 +1454,7 @@ export function RegisterRoutes(server: hapi.Server) {
       ],
       handler: (request: any, reply) => {
         const args = {
-          'ctx': { name: 'ctx', typeName: 'object', required: true, in: 'request', },
+          ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];
@@ -1447,16 +1482,13 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('tsoa_auth'
-            , [
-              'write:pets',
-              'read:pets'
-            ]
+            , ["write:pets", "read:pets"]
           )
         }
       ],
       handler: (request: any, reply) => {
         const args = {
-          'request': { name: 'request', typeName: 'object', required: true, in: 'request', },
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];

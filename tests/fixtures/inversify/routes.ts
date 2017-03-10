@@ -5,27 +5,29 @@ import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 
 const models: any = {
-  'TestModel': {
-    'numberValue': { typeName: 'number', required: true },
-    'numberArray': { typeName: 'array', required: true, arrayType: 'number' },
-    'stringValue': { typeName: 'string', required: true },
-    'stringArray': { typeName: 'array', required: true, arrayType: 'string' },
-    'boolValue': { typeName: 'boolean', required: true },
-    'boolArray': { typeName: 'array', required: true, arrayType: 'boolean' },
-    'modelValue': { typeName: 'TestSubModel', required: true },
-    'modelsArray': { typeName: 'array', required: true, arrayType: 'TestSubModel' },
-    'strLiteralVal': { typeName: 'StrLiteral', required: true },
-    'strLiteralArr': { typeName: 'array', required: true, arrayType: 'StrLiteral' },
-    'dateValue': { typeName: 'datetime', required: false },
-    'optionalString': { typeName: 'string', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestModel": {
+    "numberValue": { "required": true, "typeName": "double" },
+    "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
+    "stringValue": { "required": true, "typeName": "string" },
+    "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    "boolValue": { "required": true, "typeName": "boolean" },
+    "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
+    "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+    "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+    "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+    "modelValue": { "required": true, "typeName": "TestSubModel" },
+    "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
+    "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
+    "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
+    "dateValue": { "required": false, "typeName": "datetime" },
+    "optionalString": { "required": false, "typeName": "string" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'TestSubModel': {
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
-  },
-  'StrLiteral': {
+  "TestSubModel": {
+    "email": { "required": true, "typeName": "string" },
+    "circular": { "required": false, "typeName": "TestModel" },
+    "id": { "required": true, "typeName": "double" },
   },
 };
 

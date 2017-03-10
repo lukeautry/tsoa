@@ -84,4 +84,12 @@ export class MethodController extends Controller {
     public async deprecatedMethod(): Promise<TestModel> {
         return new ModelService().getModel();
     }
+
+    /**
+     * @summary simple summary
+     */
+    @Get('SummaryMethod')
+    public async summaryMethod(): Promise<TestModel> {
+        return new ModelService().getModel();
+    }
 }

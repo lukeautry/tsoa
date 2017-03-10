@@ -1,7 +1,9 @@
 import * as ts from 'typescript';
-import { Method, MetadataGenerator, ResponseType, Type } from './metadataGenerator';
+import { Method, ResponseType, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
+import { getJSDocDescription, getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getDecorators } from './../utils/decoratorUtils';
 
 export class MethodGenerator {
   private method: string;
@@ -21,24 +23,25 @@ export class MethodGenerator {
 
     const identifier = this.node.name as ts.Identifier;
     const type = ResolveType(this.node.type);
-    let responses = [this.getSuccessResponse(type)];
-    responses = responses.concat(this.getResponses());
+    const responses = this.getMethodResponses();
+    responses.push(this.getMethodSuccessResponse(type));
 
     return {
-      deprecated: this.getDeprecated(),
-      description: this.getMethodDescription(),
+      deprecated: isExistJSDocTag(this.node, 'deprecated'),
+      description: getJSDocDescription(this.node),
       method: this.method,
       name: identifier.text,
-      parameters: this.getParameters(),
+      parameters: this.buildParameters(),
       path: this.path,
       responses,
       security: this.getMethodSecurity(),
+      summary: getJSDocTag(this.node, 'summary'),
       tags: this.getMethodTags(),
       type
     };
   }
 
-  private getParameters() {
+  private buildParameters() {
     const parameters = this.node.parameters.map(p => {
       try {
         return new ParameterGenerator(p, this.method, this.path).Generate();
@@ -69,9 +72,7 @@ export class MethodGenerator {
   }
 
   private processMethodDecorators() {
-    const pathDecorators = this.getDecorators(identifier => {
-      return this.getValidMethods().some(m => m.toLowerCase() === identifier.text.toLowerCase());
-    });
+    const pathDecorators = getDecorators(this.node, identifier => this.supportsPathMethod(identifier.text));
 
     if (!pathDecorators || !pathDecorators.length) { return; }
     if (pathDecorators.length > 1) {
@@ -89,18 +90,8 @@ export class MethodGenerator {
     this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
   }
 
-  private getDecorators(isMatching: (identifier: ts.Identifier) => boolean) {
-    const decorators = this.node.decorators;
-    if (!decorators || !decorators.length) { return; }
-
-    return decorators
-      .map(d => d.expression as ts.CallExpression)
-      .map(e => e.expression as ts.Identifier)
-      .filter(isMatching);
-  }
-
-  private getResponses(): ResponseType[] {
-    const decorators = this.getDecorators(identifier => identifier.text === 'Response');
+  private getMethodResponses(): ResponseType[] {
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
     if (!decorators || !decorators.length) { return []; }
 
     return decorators.map(decorator => {
@@ -125,19 +116,19 @@ export class MethodGenerator {
         examples: examples,
         name: name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
-                ? ResolveType(expression.typeArguments[0])
-                : undefined
+          ? ResolveType(expression.typeArguments[0])
+          : undefined
       };
     });
   }
 
-  private getSuccessResponse(type: Type): ResponseType {
-    const decorators = this.getDecorators(identifier => identifier.text === 'SuccessResponse');
+  private getMethodSuccessResponse(type: Type): ResponseType {
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
-        description: type === 'void' ? 'No content' : 'Ok',
-        examples: this.getSuccessExamples(),
-        name: type === 'void' ? '204' : '200',
+        description: type.typeName === 'void' ? 'No content' : 'Ok',
+        examples: this.getMethodSuccessExamples(),
+        name: type.typeName === 'void' ? '204' : '200',
         schema: type
       };
     }
@@ -167,8 +158,8 @@ export class MethodGenerator {
     };
   }
 
-  private getSuccessExamples() {
-    const exampleDecorators = this.getDecorators(identifier => identifier.text === 'Example');
+  private getMethodSuccessExamples() {
+    const exampleDecorators = getDecorators(this.node, identifier => identifier.text === 'Example');
     if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
     if (exampleDecorators.length > 1) {
       throw new Error(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -181,17 +172,8 @@ export class MethodGenerator {
     return this.getExamplesValue(argument);
   }
 
-  private getValidMethods() {
-    return ['get', 'post', 'patch', 'delete', 'put'];
-  }
-
-  private getMethodDescription() {
-    let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(this.node.name);
-
-    let comments = symbol.getDocumentationComment();
-    if (comments.length) { return ts.displayPartsToString(comments); }
-
-    return '';
+  private supportsPathMethod(method: string) {
+    return ['get', 'post', 'patch', 'delete', 'put'].some(m => m === method.toLowerCase());
   }
 
   private getExamplesValue(argument: any) {
@@ -203,7 +185,7 @@ export class MethodGenerator {
   }
 
   private getMethodTags() {
-    const tagsDecorators = this.getDecorators(identifier => identifier.text === 'Tags');
+    const tagsDecorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) { return []; }
     if (tagsDecorators.length > 1) {
       throw new Error(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -216,7 +198,7 @@ export class MethodGenerator {
   }
 
   private getMethodSecurity() {
-    const securityDecorators = this.getDecorators(identifier => identifier.text === 'Security');
+    const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) { return undefined; }
     if (securityDecorators.length > 1) {
       throw new Error(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -229,24 +211,6 @@ export class MethodGenerator {
       name: (expression.arguments[0] as any).text,
       scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
     };
-  }
-
-
-  private getDeprecated(): boolean {
-    const jsDocTags = this.getJSDocTags(jsDoctag => jsDoctag.tagName.text === 'deprecated');
-    if (!jsDocTags || !jsDocTags.length) { return false; }
-
-    return jsDocTags.some(jsDocTag => jsDocTag !== undefined);
-  }
-
-  private getJSDocTags(isMatching: (jsDocTag: ts.JSDocTag) => boolean) {
-    const jsDocs = (this.node as any).jsDoc as ts.JSDoc[];
-    if (!jsDocs || !jsDocs.length) { return; }
-
-    const tags = jsDocs[0].tags;
-    if (!tags) { return; };
-
-    return tags.filter(isMatching);
   }
 
   private getInitializerValue(initializer: any) {

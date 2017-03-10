@@ -36,7 +36,7 @@ describe('PATCH route generation', () => {
     const actionRoute = `${baseRoute}/WithId/{id}`;
     const parameters = getValidatedParameters(actionRoute);
 
-    VerifyPathableParameter(parameters, 'id', 'integer', 'path');
+    VerifyPathableParameter(parameters, 'id', 'number', 'path', 'double');
   });
 
   it('should generate a parameter for body parameters', () => {

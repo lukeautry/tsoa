@@ -74,7 +74,7 @@ describe('GET route generation', () => {
     const parameters = getValidatedParameters(actionRoute);
 
     VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
-    VerifyPathableParameter(parameters, 'numberPathParam', 'integer', 'path');
+    VerifyPathableParameter(parameters, 'numberPathParam', 'number', 'path', 'double');
     VerifyPathableParameter(parameters, 'stringPathParam', 'string', 'path');
   });
 
@@ -83,7 +83,7 @@ describe('GET route generation', () => {
     const parameters = getValidatedParameters(actionRoute);
 
     VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
-    VerifyPathableParameter(parameters, 'numberParam', 'integer', 'query');
+    VerifyPathableParameter(parameters, 'numberParam', 'number', 'query', 'double');
     VerifyPathableParameter(parameters, 'stringParam', 'string', 'query');
   });
 

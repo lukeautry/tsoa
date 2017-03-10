@@ -15,18 +15,14 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if security}} 
             authenticateMiddleware('{{security.name}}'
               {{#if security.scopes.length}} 
-              , [
-                {{#each security.scopes}} 
-                    '{{this}}'{{#if @last}} {{else}}, {{/if}}
-                {{/each}}
-              ]
+              , {{{json security.scopes}}}
               {{/if}}
             ), 
             {{/if}} 
             async (context, next) => {
             const args = {
                 {{#each parameters}}
-                '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
+                    {{@key}}: {{{json this}}},
                 {{/each}}
             };
 

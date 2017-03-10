@@ -39,7 +39,7 @@ export class MetadataGenerator {
   }
 
   public AddReferenceType(referenceType: ReferenceType) {
-    this.referenceTypes[referenceType.name] = referenceType;
+    this.referenceTypes[referenceType.typeName] = referenceType;
   }
 
   public GetReferenceType(typeName: string) {
@@ -82,10 +82,11 @@ export interface Method {
   tags: string[];
   responses: ResponseType[];
   security?: Security;
+  summary?: string;
 }
 
 export interface Parameter {
-  argumentName: string;
+  parameterName: string;
   description: string;
   in: string;
   name: string;
@@ -98,22 +99,28 @@ export interface Security {
   scopes?: string[];
 }
 
-export type Type = PrimitiveType | ReferenceType | ArrayType;
+export interface Type {
+  typeName: string;
+};
 
-export type PrimitiveType = string;
+export interface EnumerateType extends Type {
+  enumMembers: string[];
+}
 
-export interface ReferenceType {
+export interface ReferenceType extends Type {
   description: string;
-  name: string;
   properties: Property[];
-  enum?: string[];
+}
+
+export interface ArrayType extends Type {
+  elementType: Type;
 }
 
 export interface ResponseType {
-    description: string;
-    name: string;
-    schema?: Type;
-    examples?: any;
+  description: string;
+  name: string;
+  schema?: Type;
+  examples?: any;
 }
 
 export interface Property {
@@ -121,8 +128,4 @@ export interface Property {
   name: string;
   type: Type;
   required: boolean;
-}
-
-export interface ArrayType {
-  elementType: Type;
 }

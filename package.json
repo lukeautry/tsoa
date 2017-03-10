@@ -40,6 +40,7 @@
     "tslint": "^4.4.2",
     "typescript": "^2.2.1",
     "typescript-formatter": "^5.1.0",
+    "validator": "^7.0.0",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
@@ -61,6 +62,7 @@
     "@types/serve-static": "^1.7.31",
     "@types/superagent": "^2.0.36",
     "@types/supertest": "^2.0.0",
+    "@types/validator": "^6.2.0",
     "@types/yargs": "^6.6.0",
     "body-parser": "^1.16.1",
     "chai": "^3.5.0",

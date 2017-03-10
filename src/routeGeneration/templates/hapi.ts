@@ -21,11 +21,7 @@ export function RegisterRoutes(server: hapi.Server) {
                     { 
                       method: authenticateMiddleware('{{security.name}}'
                               {{#if security.scopes.length}} 
-                              , [
-                                  {{#each security.scopes}} 
-                                    '{{this}}'{{#if @last}} {{else}}, {{/if}}
-                                  {{/each}}
-                              ]
+                              , {{{json security.scopes}}}
                               {{/if}}
                     )}
                 ],
@@ -33,7 +29,7 @@ export function RegisterRoutes(server: hapi.Server) {
                 handler: (request: any, reply) => {
                     const args = {
                         {{#each parameters}}
-                        '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
+                            {{@key}}: {{{json this}}},
                         {{/each}}
                     };
 

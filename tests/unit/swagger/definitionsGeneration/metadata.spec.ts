@@ -21,7 +21,7 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse',
-      'apiSecurity', 'oauthSecurity', 'deprecatedMethod'];
+      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
@@ -108,21 +108,21 @@ describe('Metadata generation', () => {
 
       expect(method.responses.length).to.equal(4);
 
-      const successResponse = method.responses[0];
-      expect(successResponse.name).to.equal('200');
-      expect(successResponse.description).to.equal('Ok');
-
-      const badResponse = method.responses[1];
+      const badResponse = method.responses[0];
       expect(badResponse.name).to.equal('400');
       expect(badResponse.description).to.equal('Bad Request');
 
-      const unauthResponse = method.responses[2];
+      const unauthResponse = method.responses[1];
       expect(unauthResponse.name).to.equal('401');
       expect(unauthResponse.description).to.equal('Unauthorized');
 
-      const defaultResponse = method.responses[3];
+      const defaultResponse = method.responses[2];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
+
+      const successResponse = method.responses[3];
+      expect(successResponse.name).to.equal('200');
+      expect(successResponse.description).to.equal('Ok');
     });
 
     it('should generate success response', () => {
@@ -181,6 +181,15 @@ describe('Metadata generation', () => {
 
       expect(method.deprecated).to.equal(false);
     });
+
+    it('should generate summary method', () => {
+      const method = controller.methods.find(m => m.name === 'summaryMethod');
+      if (!method) {
+        throw new Error('Method summaryMethod not defined!');
+      }
+
+      expect(method.summary).to.equal('simple summary');
+    });
   });
 
   describe('ParameterGenerator', () => {
@@ -193,39 +202,55 @@ describe('Metadata generation', () => {
         throw new Error('Method getQuery not defined!');
       }
 
-      expect(method.parameters.length).to.equal(4);
+      expect(method.parameters.length).to.equal(6);
 
       const firstnameParam = method.parameters[0];
       expect(firstnameParam.in).to.equal('query');
       expect(firstnameParam.name).to.equal('firstname');
-      expect(firstnameParam.argumentName).to.equal('firstname');
+      expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type).to.equal('string');
+      expect(firstnameParam.type.typeName).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('query');
       expect(lastnameParam.name).to.equal('last_name');
-      expect(lastnameParam.argumentName).to.equal('lastname');
+      expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type).to.equal('string');
+      expect(lastnameParam.type.typeName).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('query');
       expect(ageParam.name).to.equal('age');
-      expect(ageParam.argumentName).to.equal('age');
+      expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type).to.equal('number');
+      expect(ageParam.type.typeName).to.equal('integer');
 
-      const humanParam = method.parameters[3];
+      const weightParam = method.parameters[3];
+      expect(weightParam.in).to.equal('query');
+      expect(weightParam.name).to.equal('weight');
+      expect(weightParam.parameterName).to.equal('weight');
+      expect(weightParam.description).to.equal('Weight description');
+      expect(weightParam.required).to.be.true;
+      expect(weightParam.type.typeName).to.equal('float');
+
+      const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('query');
       expect(humanParam.name).to.equal('human');
-      expect(humanParam.argumentName).to.equal('human');
+      expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type).to.equal('boolean');
+      expect(humanParam.type.typeName).to.equal('boolean');
+
+      const genderParam = method.parameters[5];
+      expect(genderParam.in).to.equal('query');
+      expect(genderParam.name).to.equal('gender');
+      expect(genderParam.parameterName).to.equal('gender');
+      expect(genderParam.description).to.equal('Gender description');
+      expect(genderParam.required).to.be.true;
+      expect(genderParam.type.typeName).to.equal('enum');
     });
 
     it('should generate an path parameter', () => {
@@ -234,39 +259,55 @@ describe('Metadata generation', () => {
         throw new Error('Method getPath not defined!');
       }
 
-      expect(method.parameters.length).to.equal(4);
+      expect(method.parameters.length).to.equal(6);
 
       const firstnameParam = method.parameters[0];
       expect(firstnameParam.in).to.equal('path');
       expect(firstnameParam.name).to.equal('firstname');
-      expect(firstnameParam.argumentName).to.equal('firstname');
+      expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type).to.equal('string');
+      expect(firstnameParam.type.typeName).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('path');
       expect(lastnameParam.name).to.equal('last_name');
-      expect(lastnameParam.argumentName).to.equal('lastname');
+      expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type).to.equal('string');
+      expect(lastnameParam.type.typeName).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('path');
       expect(ageParam.name).to.equal('age');
-      expect(ageParam.argumentName).to.equal('age');
+      expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type).to.equal('number');
+      expect(ageParam.type.typeName).to.equal('integer');
 
-      const humanParam = method.parameters[3];
+      const weightParam = method.parameters[3];
+      expect(weightParam.in).to.equal('path');
+      expect(weightParam.name).to.equal('weight');
+      expect(weightParam.parameterName).to.equal('weight');
+      expect(weightParam.description).to.equal('Weight description');
+      expect(weightParam.required).to.be.true;
+      expect(weightParam.type.typeName).to.equal('float');
+
+      const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('path');
       expect(humanParam.name).to.equal('human');
-      expect(humanParam.argumentName).to.equal('human');
+      expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type).to.equal('boolean');
+      expect(humanParam.type.typeName).to.equal('boolean');
+
+      const genderParam = method.parameters[5];
+      expect(genderParam.in).to.equal('path');
+      expect(genderParam.name).to.equal('gender');
+      expect(genderParam.parameterName).to.equal('gender');
+      expect(genderParam.description).to.equal('Gender description');
+      expect(genderParam.required).to.be.true;
+      expect(genderParam.type.typeName).to.equal('enum');
     });
 
     it('should generate an header parameter', () => {
@@ -275,39 +316,55 @@ describe('Metadata generation', () => {
         throw new Error('Method getHeader not defined!');
       }
 
-      expect(method.parameters.length).to.equal(4);
+      expect(method.parameters.length).to.equal(6);
 
       const firstnameParam = method.parameters[0];
       expect(firstnameParam.in).to.equal('header');
       expect(firstnameParam.name).to.equal('firstname');
-      expect(firstnameParam.argumentName).to.equal('firstname');
+      expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type).to.equal('string');
+      expect(firstnameParam.type.typeName).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('header');
       expect(lastnameParam.name).to.equal('last_name');
-      expect(lastnameParam.argumentName).to.equal('lastname');
+      expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type).to.equal('string');
+      expect(lastnameParam.type.typeName).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('header');
       expect(ageParam.name).to.equal('age');
-      expect(ageParam.argumentName).to.equal('age');
+      expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type).to.equal('number');
+      expect(ageParam.type.typeName).to.equal('integer');
 
-      const humanParam = method.parameters[3];
+      const weightParam = method.parameters[3];
+      expect(weightParam.in).to.equal('header');
+      expect(weightParam.name).to.equal('weight');
+      expect(weightParam.parameterName).to.equal('weight');
+      expect(weightParam.description).to.equal('Weight description');
+      expect(weightParam.required).to.be.true;
+      expect(weightParam.type.typeName).to.equal('float');
+
+      const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('header');
       expect(humanParam.name).to.equal('human');
-      expect(humanParam.argumentName).to.equal('human');
+      expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type).to.equal('boolean');
+      expect(humanParam.type.typeName).to.equal('boolean');
+
+      const genderParam = method.parameters[5];
+      expect(genderParam.in).to.equal('header');
+      expect(genderParam.name).to.equal('gender');
+      expect(genderParam.parameterName).to.equal('gender');
+      expect(genderParam.description).to.equal('Gender description');
+      expect(genderParam.required).to.be.true;
+      expect(genderParam.type.typeName).to.equal('enum');
     });
 
     it('should generate an request parameter', () => {
@@ -315,7 +372,7 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method getRequest not defined!');
       }
-      const parameter = method.parameters.find(param => param.argumentName === 'request');
+      const parameter = method.parameters.find(param => param.parameterName === 'request');
       if (!parameter) {
         throw new Error('Parameter request not defined!');
       }
@@ -324,9 +381,9 @@ describe('Metadata generation', () => {
       expect(parameter.description).to.equal('Request description');
       expect(parameter.in).to.equal('request');
       expect(parameter.name).to.equal('request');
-      expect(parameter.argumentName).to.equal('request');
+      expect(parameter.parameterName).to.equal('request');
       expect(parameter.required).to.be.true;
-      expect(parameter.type).to.equal('object');
+      expect(parameter.type.typeName).to.equal('object');
     });
 
     it('should generate an body parameter', () => {
@@ -334,7 +391,7 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method getBody not defined!');
       }
-      const parameter = method.parameters.find(param => param.argumentName === 'body');
+      const parameter = method.parameters.find(param => param.parameterName === 'body');
       if (!parameter) {
         throw new Error('Parameter body not defined!');
       }
@@ -343,7 +400,7 @@ describe('Metadata generation', () => {
       expect(parameter.description).to.equal('Body description');
       expect(parameter.in).to.equal('body');
       expect(parameter.name).to.equal('body');
-      expect(parameter.argumentName).to.equal('body');
+      expect(parameter.parameterName).to.equal('body');
       expect(parameter.required).to.be.true;
     });
 
@@ -352,16 +409,16 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method getBodyProps not defined!');
       }
-      const parameter = method.parameters.find(param => param.argumentName === 'firstname');
+      const parameter = method.parameters.find(param => param.parameterName === 'firstname');
       if (!parameter) {
         throw new Error('Parameter firstname not defined!');
       }
 
-      expect(method.parameters.length).to.equal(4);
+      expect(method.parameters.length).to.equal(6);
       expect(parameter.description).to.equal('firstname description');
       expect(parameter.in).to.equal('body-prop');
       expect(parameter.name).to.equal('firstname');
-      expect(parameter.argumentName).to.equal('firstname');
+      expect(parameter.parameterName).to.equal('firstname');
       expect(parameter.required).to.be.true;
     });
   });

@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
-import { MetadataGenerator, Type, ReferenceType, Property } from './metadataGenerator';
+import { MetadataGenerator, Type, EnumerateType, ReferenceType, ArrayType, Property } from './metadataGenerator';
+import { getDecoratorName } from './../utils/decoratorUtils';
 
 const syntaxKindMap: { [kind: number]: string } = {};
 syntaxKindMap[ts.SyntaxKind.NumberKeyword] = 'number';
@@ -12,40 +13,148 @@ const inProgressTypes: { [typeName: string]: boolean } = {};
 
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
 export function ResolveType(typeNode: ts.TypeNode): Type {
-  const primitiveType = syntaxKindMap[typeNode.kind];
+  const primitiveType = getPrimitiveType(typeNode);
   if (primitiveType) {
     return primitiveType;
   }
 
   if (typeNode.kind === ts.SyntaxKind.ArrayType) {
     const arrayType = typeNode as ts.ArrayTypeNode;
-    return {
-      elementType: ResolveType(arrayType.elementType)
+    return <ArrayType>{
+      elementType: ResolveType(arrayType.elementType),
+      typeName: 'array'
     };
   }
 
   if (typeNode.kind === ts.SyntaxKind.UnionType) {
-    return 'object';
+    return { typeName: 'object' };
   }
 
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
     throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
   let typeReference: any = typeNode;
-  if (typeReference.typeName.text === 'Date') { return 'datetime'; }
-  if (typeReference.typeName.text === 'Buffer') { return 'buffer'; }
+  if (typeReference.typeName.text === 'Date') { return getDateType(typeNode); }
+  if (typeReference.typeName.text === 'Buffer') { return { typeName: 'buffer' }; }
 
   if (typeReference.typeName.text === 'Promise') {
     typeReference = typeReference.typeArguments[0];
     return ResolveType(typeReference);
   }
 
-  const referenceType = generateReferenceType(typeReference.typeName.text);
+  const enumType = getEnumerateType(typeNode);
+  if (enumType) {
+    return enumType;
+  }
+
+  const literalType = getLiteralType(typeNode);
+  if (literalType) {
+    return literalType;
+  }
+
+  const referenceType = getReferenceType(typeReference.typeName.text);
   MetadataGenerator.current.AddReferenceType(referenceType);
   return referenceType;
 }
 
-function generateReferenceType(typeName: string): ReferenceType {
+function getPrimitiveType(typeNode: ts.TypeNode): Type | undefined {
+  const primitiveType = syntaxKindMap[typeNode.kind];
+  if (!primitiveType) { return; }
+
+  if (primitiveType === 'number') {
+    const parentNode = typeNode.parent as ts.Node;
+    if (!parentNode) {
+      return { typeName: 'double' };
+    }
+
+    const decoratorName = getDecoratorName(parentNode, identifier => {
+      return ['IsInt', 'IsLong', 'IsFloat', 'isDouble'].some(m => m === identifier.text);
+    });
+
+    switch (decoratorName) {
+      case 'IsInt':
+        return { typeName: 'integer' };
+      case 'IsLong':
+        return { typeName: 'long' };
+      case 'IsFloat':
+        return { typeName: 'float' };
+      case 'IsDouble':
+        return { typeName: 'double' };
+      default:
+        return { typeName: 'double' };
+    }
+  }
+  return { typeName: primitiveType };
+}
+
+function getDateType(typeNode: ts.TypeNode): Type {
+  const parentNode = typeNode.parent as ts.Node;
+  if (!parentNode) {
+    return { typeName: 'datetime' };
+  }
+  const decoratorName = getDecoratorName(parentNode, identifier => {
+    return ['IsDate', 'IsDateTime'].some(m => m === identifier.text);
+  });
+  switch (decoratorName) {
+    case 'IsDate':
+      return { typeName: 'date' };
+    case 'IsDateTime':
+      return { typeName: 'datetime' };
+    default:
+      return { typeName: 'datetime' };
+  }
+}
+
+function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
+  const enumName = (typeNode as any).typeName.text;
+  const enumTypes = MetadataGenerator.current.nodes
+    .filter(node => node.kind === ts.SyntaxKind.EnumDeclaration)
+    .filter(node => (node as any).name.text === enumName);
+
+  if (!enumTypes.length) { return; }
+  if (enumTypes.length > 1) { throw new Error(`Multiple matching enum found for enum ${enumName}; please make enum names unique.`); }
+
+  const enumDeclaration = enumTypes[0] as ts.EnumDeclaration;
+
+  function getEnumValue(member: any) {
+    const initializer = member.initializer;
+    if (initializer) {
+      if (initializer.expression) {
+        return initializer.expression.text;
+      }
+      return initializer.text;
+    }
+    return;
+  }
+  return <EnumerateType>{
+    enumMembers: enumDeclaration.members.map((member: any, index) => {
+      return getEnumValue(member) || index;
+    }),
+    typeName: 'enum',
+  };
+}
+
+function getLiteralType(typeNode: ts.TypeNode): EnumerateType | undefined {
+  const literalName = (typeNode as any).typeName.text;
+  const literalTypes = MetadataGenerator.current.nodes
+    .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
+    .filter(node => {
+      const innerType = (node as any).type;
+      return innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types;
+    })
+    .filter(node => (node as any).name.text === literalName);
+
+  if (!literalTypes.length) { return; }
+  if (literalTypes.length > 1) { throw new Error(`Multiple matching enum found for enum ${literalName}; please make enum names unique.`); }
+
+  const unionTypes = (literalTypes[0] as any).type.types;
+  return <EnumerateType>{
+    enumMembers: unionTypes.map((unionNode: any) => unionNode.literal.text as string),
+    typeName: 'enum',
+  };
+}
+
+function getReferenceType(typeName: string): ReferenceType {
   try {
     const existingType = localReferenceTypeCache[typeName];
     if (existingType) { return existingType; }
@@ -61,16 +170,9 @@ function generateReferenceType(typeName: string): ReferenceType {
 
     const referenceType: ReferenceType = {
       description: getModelDescription(modelTypeDeclaration),
-      name: typeName,
-      properties: properties
+      properties: properties,
+      typeName: typeName
     };
-    if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      const innerType = modelTypeDeclaration.type;
-      if (innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types) {
-        const unionTypes = (innerType as any).types;
-        referenceType.enum = unionTypes.map((unionNode: any) => unionNode.literal.text as string);
-      }
-    }
 
     const extendedProperties = getInheritedProperties(modelTypeDeclaration);
     referenceType.properties = referenceType.properties.concat(extendedProperties);
@@ -83,19 +185,19 @@ function generateReferenceType(typeName: string): ReferenceType {
   }
 }
 
-function createCircularDependencyResolver(typeName: string) {
+function createCircularDependencyResolver(typeName: string): ReferenceType {
   const referenceType = {
     description: '',
-    name: typeName,
-    properties: new Array<Property>()
+    properties: new Array<Property>(),
+    typeName: typeName,
   };
 
   MetadataGenerator.current.OnFinish(referenceTypes => {
     const realReferenceType = referenceTypes[typeName];
     if (!realReferenceType) { return; }
     referenceType.description = realReferenceType.description;
-    referenceType.name = realReferenceType.name;
     referenceType.properties = realReferenceType.properties;
+    referenceType.typeName = realReferenceType.typeName;
   });
 
   return referenceType;
@@ -118,11 +220,13 @@ function getModelTypeDeclaration(typeName: string) {
       }
 
       const modelTypeDeclaration = node as UsableDeclaration;
-      return (modelTypeDeclaration.name as ts.Identifier).text.toLowerCase() === typeName.toLowerCase();
+      return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
     }) as Array<UsableDeclaration>;
 
   if (!modelTypes.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
-  if (modelTypes.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
+  if (modelTypes.length > 1) {
+    throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`);
+  }
 
   return modelTypes[0];
 }
@@ -205,7 +309,7 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
 
     clause.types.forEach(t => {
       const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text).properties
+      getReferenceType(baseIdentifier.text).properties
         .forEach(property => properties.push(property));
     });
   });

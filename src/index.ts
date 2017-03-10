@@ -8,6 +8,7 @@ import { Controller } from './interfaces/controller';
 import { Response, SuccessResponse } from './decorators/response';
 import { ValidateParam } from './routeGeneration/templateHelpers';
 
+export * from './decorators/validations';
 export {
   Delete,
   Example,
