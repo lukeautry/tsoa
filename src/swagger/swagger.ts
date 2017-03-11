@@ -49,16 +49,19 @@ export namespace Swagger {
 
   export interface QueryParameter extends BaseParameter, BaseSchema {
     type: string;
+    format?: string;
     allowEmptyValue?: boolean;
   }
 
   export interface PathParameter extends BaseParameter {
     type: string;
+    format?: string;
     required: boolean;
   }
 
   export interface HeaderParameter extends BaseParameter {
     type: string;
+    format?: string;
   }
 
   export interface FormDataParameter extends BaseParameter, BaseSchema {
@@ -125,7 +128,7 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: [string | boolean | number | Object];
+    enum?: [string];
     type?: string;
     items?: Schema | [Schema];
   }

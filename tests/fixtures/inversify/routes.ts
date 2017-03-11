@@ -5,51 +5,53 @@ import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 
 const models: any = {
-  'TestModel': {
-    'numberValue': { typeName: 'number', required: true },
-    'numberArray': { typeName: 'array', required: true, arrayType: 'number' },
-    'stringValue': { typeName: 'string', required: true },
-    'stringArray': { typeName: 'array', required: true, arrayType: 'string' },
-    'boolValue': { typeName: 'boolean', required: true },
-    'boolArray': { typeName: 'array', required: true, arrayType: 'boolean' },
-    'modelValue': { typeName: 'TestSubModel', required: true },
-    'modelsArray': { typeName: 'array', required: true, arrayType: 'TestSubModel' },
-    'strLiteralVal': { typeName: 'StrLiteral', required: true },
-    'strLiteralArr': { typeName: 'array', required: true, arrayType: 'StrLiteral' },
-    'dateValue': { typeName: 'datetime', required: false },
-    'optionalString': { typeName: 'string', required: false },
-    'modelsObjectIndirect': { typeName: 'TestSubModelContainer', required: false },
-    'modelsObjectIndirectNS': { typeName: 'TestSubModelContainerNamespace.TestSubModelContainer', required: false },
-    'modelsObjectIndirectNS2': { typeName: 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', required: false },
-    'modelsObjectIndirectNS_Alias': { typeName: 'TestSubModelContainerNamespace_TestSubModelContainer', required: false },
-    'modelsObjectIndirectNS2_Alias': { typeName: 'TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestModel": {
+    "numberValue": { "required": true, "typeName": "double" },
+    "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
+    "stringValue": { "required": true, "typeName": "string" },
+    "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    "boolValue": { "required": true, "typeName": "boolean" },
+    "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
+    "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+    "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+    "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+    "modelValue": { "required": true, "typeName": "TestSubModel" },
+    "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
+    "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
+    "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
+    "dateValue": { "required": false, "typeName": "datetime" },
+    "optionalString": { "required": false, "typeName": "string" },
+    "modelsObjectIndirect": { "required": false, "typeName": "TestSubModelContainer" },
+    "modelsObjectIndirectNS": { "required": false, "typeName": "TestSubModelContainerNamespace.TestSubModelContainer" },
+    "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
+    "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
+    "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'TestSubModel': {
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestSubModel": {
+    "email": { "required": true, "typeName": "string" },
+    "circular": { "required": false, "typeName": "TestModel" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'StrLiteral': {
+  "TestSubModel2": {
+    "testSubModel2": { "required": true, "typeName": "boolean" },
+    "email": { "required": true, "typeName": "string" },
+    "circular": { "required": false, "typeName": "TestModel" },
+    "id": { "required": true, "typeName": "double" },
   },
-  'TestSubModel2': {
-    'testSubModel2': { typeName: 'boolean', required: true },
-    'email': { typeName: 'string', required: true },
-    'circular': { typeName: 'TestModel', required: false },
-    'id': { typeName: 'number', required: true },
+  "TestSubModelContainer": {
+    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
   },
-  'TestSubModelContainer': {
-    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  "TestSubModelContainerNamespace.TestSubModelContainer": {
+    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
   },
-  'TestSubModelContainerNamespace.TestSubModelContainer': {
-    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
+    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
   },
-  'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2': {
-    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  "TestSubModelContainerNamespace_TestSubModelContainer": {
   },
-  'TestSubModelContainerNamespace_TestSubModelContainer': {
-  },
-  'TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2': {
+  "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
   },
 };
 

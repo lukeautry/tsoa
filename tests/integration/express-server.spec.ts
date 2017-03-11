@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/express/server';
-import { TestModel, TestClassModel, UserResponseModel, ParameterTestModel } from '../fixtures/testModel';
+import { TestModel, TestClassModel, UserResponseModel, ParameterTestModel, Gender } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
@@ -186,22 +186,26 @@ describe('Express Server', () => {
 
   describe('Parameter data', () => {
     it('parses query parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&human=true', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE', (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
     it('parses path parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/true', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -211,26 +215,31 @@ describe('Express Server', () => {
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       }, (request) => {
         return request
           .get(basePath + '/ParameterTest/Header')
           .set({
             'age': 45,
             'firstname': 'Tony',
+            'gender': Gender.MALE,
             'human': true,
             'last_name': 'Stark',
+            'weight': 82.1
           });
       }, 200);
     });
 
     it('parses request parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&human=true', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -238,15 +247,19 @@ describe('Express Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
+        gender: Gender.MALE,
         human: true,
-        lastname: 'Stark'
+        lastname: 'Stark',
+        weight: 82.1
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -254,15 +267,19 @@ describe('Express Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
+        gender: Gender.MALE,
         human: true,
-        lastname: 'Stark'
+        lastname: 'Stark',
+        weight: 82.1
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
         expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
   });

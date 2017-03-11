@@ -1,47 +1,81 @@
 import * as moment from 'moment';
+import * as validator from 'validator';
 
 let models: any = null;
 
-export function ValidateParam(typeData: any, value: any, generatedModels: any, name = '') {
+export function ValidateParam(schema: any, value: any, generatedModels: any, name = '') {
   models = generatedModels;
 
   if (value === undefined || value === null) {
-    if (typeData.required) {
-      throw new InvalidRequestException(`'${name}' is a required ${typeData.in} parameter.`);
+    if (schema.required) {
+      throw new InvalidRequestException(`'${name}' is a required ${schema.in} parameter.`);
     } else {
       return undefined;
     }
   }
 
-  switch (typeData.typeName) {
+  switch (schema.typeName) {
     case 'string':
       return validateString(value, name);
     case 'boolean':
-      return validateBool(value, <any>name);
-    case 'number':
-      return validateNumber(value, <any>name);
+      return validateBool(value, name);
+    case 'integer':
+    case 'long':
+      return validateInt(value, name);
+    case 'float':
+    case 'double':
+      return validateFloat(value, name);
+    case 'enum':
+      return validateEnum(value, name, schema.enumMembers);
     case 'array':
-      return validateArray(value, typeData.arrayType, <any>name);
-    case 'datetime':
+      return validateArray(value, name, schema.array);
+    case 'date':
       return validateDate(value, name);
+    case 'datetime':
+      return validateDateTime(value, name);
     case 'buffer':
       return validateBuffer(value, name);
     default:
-      return validateModel(value, typeData.typeName);
+      return validateModel(value, schema.typeName);
   }
 }
 
-function validateNumber(numberValue: string, name: string): number {
-  const parsedNumber = parseInt(numberValue, 10);
-  if (isNaN(parsedNumber)) {
-    throw new InvalidRequestException(name + ' should be a valid number.');
+function validateInt(numberValue: string, name: string): number {
+  if (!validator.isInt(numberValue + '')) {
+    throw new InvalidRequestException(name + ' should be a valid integer.');
+  }
+  return validator.toInt(numberValue + '', 10);
+}
+
+function validateFloat(numberValue: string, name: string): number {
+  if (!validator.isFloat(numberValue + '')) {
+    throw new InvalidRequestException(name + ' should be a valid float.');
   }
 
-  return parsedNumber;
+  return validator.toFloat(numberValue + '');
+}
+
+function validateEnum(enumValue: string, name: string, members?: string[]): any {
+  if (!members) {
+    throw new InvalidRequestException(name + ' no member.');
+  }
+  const existValue = members.filter(m => m === enumValue);
+  if (!existValue || !enumValue.length) {
+    throw new InvalidRequestException(name + ' ' + members.join(','));
+  }
+  return existValue[0];
 }
 
 function validateDate(dateValue: string, name: string): Date {
-  const validatedDate = moment(dateValue, moment.ISO_8601, true);
+  const regEx = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateValue.match(regEx)) {
+    throw new InvalidRequestException(name + ' should be a valid date, i.e. YYYY-MM-DD');
+  }
+  return new Date(dateValue);
+}
+
+function validateDateTime(datetimeValue: string, name: string): Date {
+  const validatedDate = moment(datetimeValue, moment.ISO_8601, true);
   if (!validatedDate.isValid()) {
     throw new InvalidRequestException(name + ' should be a valid ISO 8601 date, i.e. YYYY-MM-DDTHH:mm:ss');
   }
@@ -57,7 +91,7 @@ function validateString(stringValue: string, name: string) {
   return stringValue.toString();
 }
 
-function validateBool(boolValue: any, name: string): boolean {
+function validateBool(boolValue: any, typeName: string): boolean {
   if (boolValue === true || boolValue === false) { return boolValue; }
   if (boolValue.toLowerCase() === 'true') { return true; }
   if (boolValue.toLowerCase() === 'false') { return false; }
@@ -78,11 +112,13 @@ function validateModel(modelValue: any, typeName: string): any {
   return modelValue;
 }
 
-function validateArray(array: any[], arrayType: string, arrayName: string): any[] {
-  return array.map(element => ValidateParam({
-    required: true,
-    typeName: arrayType,
-  }, element, models, undefined));
+function validateArray(arrayValue: any[], name: string, schema?: any): any[] {
+  if (!schema) {
+    throw new InvalidRequestException(name + ' array invalid.');
+  }
+  return arrayValue.map(value => {
+    return ValidateParam(schema, value, models, undefined);
+  });
 }
 
 function validateBuffer(value: string, name: string) {

@@ -14,18 +14,13 @@ export function RegisterRoutes(app: any) {
             {{#if security}} 
             authenticateMiddleware('{{security.name}}'
                 {{#if security.scopes.length}} 
-                , [
-                    {{#each security.scopes}} 
-                        '{{this}}'{{#if @last}} {{else}}, {{/if}}
-                    {{/each}}
-                ]
-              {{/if}}
-            ), 
+                ,{{{json security.scopes}}}
+                {{/if}}), 
             {{/if}} 
             function (request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
-                '{{argumentName}}': { name: '{{name}}', typeName: '{{typeName}}', required: {{required}}, in: '{{in}}', {{#if arrayType}}, arrayType: '{{arrayType}}' {{/if}} },
+                    {{@key}}: {{{json this}}},
                 {{/each}}
             };
 

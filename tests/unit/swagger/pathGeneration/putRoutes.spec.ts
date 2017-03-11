@@ -34,7 +34,7 @@ describe('PUT route generation', () => {
 
   it('should generate a parameter for path parameters', () => {
     const parameters = getValidatedParameters(`${baseRoute}/WithId/{id}`);
-    VerifyPathableParameter(parameters, 'id', 'integer', 'path');
+    VerifyPathableParameter(parameters, 'id', 'number', 'path', 'double');
   });
 
   it('should generate a parameter for body parameters', () => {

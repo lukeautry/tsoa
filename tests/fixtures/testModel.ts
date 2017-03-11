@@ -1,3 +1,4 @@
+import { IsInt, IsFloat } from './../../src/decorators/validations';
 /**
  * This is a description of a model
  */
@@ -11,10 +12,12 @@ export interface TestModel extends Model {
   stringArray: string[];
   boolValue: boolean;
   boolArray: boolean[];
+  enumValue?: EnumNumberValue;
+  enumArray?: EnumNumberValue[];
+  enumStringValue?: EnumStringValue;
+  enumStringArray?: EnumStringValue[];
   modelValue: TestSubModel;
   modelsArray: TestSubModel[];
-  // strLiteralVal: string ; // StrLiteral;
-  // strLiteralArr: string[] ; // StrLiteral[];
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
   dateValue?: Date;
@@ -25,6 +28,14 @@ export interface TestModel extends Model {
   modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
   modelsObjectIndirectNS_Alias?: TestSubModelContainerNamespace_TestSubModelContainer;
   modelsObjectIndirectNS2_Alias?: TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2;
+}
+
+export enum EnumNumberValue {
+  VALUE_1, VALUE_2
+}
+
+export enum EnumStringValue {
+  VALUE_1 = <any>'VALUE_1', VALUE_2 = <any>'VALUE_2'
 }
 
 // shortened from StringLiteral to make the tslint enforced
@@ -70,11 +81,17 @@ export interface UserResponseModel {
   name: string;
 }
 
-export interface ParameterTestModel {
-  firstname: string;
-  lastname: string;
-  age: number;
-  human: boolean;
+export class ParameterTestModel {
+  public firstname: string;
+  public lastname: string;
+  @IsInt() public age: number;
+  @IsFloat() public weight: number;
+  public human: boolean;
+  public gender: Gender;
+}
+
+export enum Gender {
+  MALE = <any>'MALE', FEMALE = <any>'FEMALE'
 }
 
 export interface ErrorResponseModel {

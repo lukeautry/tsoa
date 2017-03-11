@@ -3,9 +3,12 @@ import * as chai from 'chai';
 
 const expect = chai.expect;
 
-export function VerifyPathableParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string) {
+export function VerifyPathableParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
+  if (formatType) {
+    expect(parameter.format).to.equal(formatType);
+  }
 }
 
 export function VerifyBodyParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string) {

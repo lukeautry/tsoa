@@ -1,5 +1,5 @@
 import { SwaggerConfig } from './../config';
-import { Metadata, Type, ArrayType, ReferenceType, PrimitiveType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, EnumerateType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/metadataGenerator';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
@@ -59,18 +59,12 @@ export class SpecGenerator {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
-      definitions[referenceType.name] = {
+      definitions[referenceType.typeName] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
         required: referenceType.properties.filter(p => p.required).map(p => p.name),
         type: 'object'
       };
-      if (referenceType.enum) {
-        definitions[referenceType.name].type = 'string';
-        delete definitions[referenceType.name].properties;
-        delete definitions[referenceType.name].required;
-        definitions[referenceType.name].enum = referenceType.enum as [string];
-      }
     });
 
     return definitions;
@@ -135,7 +129,7 @@ export class SpecGenerator {
 
     const parameter: any = {
       in: 'body',
-      name: 'body-inline-paramater',
+      name: 'body',
       schema: {
         properties: properties,
         title: 'inline-schema',
@@ -205,8 +199,9 @@ export class SpecGenerator {
   }
 
   private getSwaggerType(type: Type) {
-    if (typeof type === 'string' || type instanceof String) {
-      return this.getSwaggerTypeForPrimitiveType(type as PrimitiveType);
+    const swaggerType = this.getSwaggerTypeForPrimitiveType(type);
+    if (swaggerType) {
+      return swaggerType;
     }
 
     const arrayType = type as ArrayType;
@@ -214,30 +209,44 @@ export class SpecGenerator {
       return this.getSwaggerTypeForArrayType(arrayType);
     }
 
-    return this.getSwaggerTypeForReferenceType(type as ReferenceType);
+    const enumType = type as EnumerateType;
+    if (enumType.enumMembers) {
+      return this.getSwaggerTypeForEnumType(enumType);
+    }
+
+    const refType = this.getSwaggerTypeForReferenceType(type as ReferenceType);
+    return refType;
   }
 
-  private getSwaggerTypeForPrimitiveType(primitiveTypeName: PrimitiveType) {
+  private getSwaggerTypeForPrimitiveType(type: Type) {
     const typeMap: { [name: string]: Swagger.Schema } = {
+      binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
       buffer: { type: 'string', format: 'base64' },
-      datetime: { format: 'date-time', type: 'string' },
-      number: { format: 'int64', type: 'integer' },
+      byte: { type: 'string', format: 'byte' },
+      date: { type: 'string', format: 'date' },
+      datetime: { type: 'string', format: 'date-time' },
+      double: { type: 'number', format: 'double' },
+      float: { type: 'number', format: 'float' },
+      integer: { type: 'integer', format: 'int32' },
+      long: { type: 'integer', format: 'int64' },
       object: { type: 'object' },
       string: { type: 'string' },
       void: { type: 'void' }
     };
 
-    return typeMap[primitiveTypeName];
+    return typeMap[type.typeName];
   }
 
   private getSwaggerTypeForArrayType(arrayType: ArrayType): Swagger.Schema {
-    const elementType = arrayType.elementType;
+    return { type: 'array', items: this.getSwaggerType(arrayType.elementType) };
+  }
 
-    return { items: this.getSwaggerType(elementType), type: 'array' };
+  private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
+    return { type: 'string', enum: enumType.enumMembers.map( member => member as string ) as [string] };
   }
 
   private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {
-    return { $ref: `#/definitions/${referenceType.name}` };
+    return { $ref: `#/definitions/${referenceType.typeName}` };
   }
 }

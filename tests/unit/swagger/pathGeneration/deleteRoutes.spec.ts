@@ -24,7 +24,7 @@ describe('DELETE route generation', () => {
     const parameters = getVerifiedParameters(actionRoute);
 
     VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
-    VerifyPathableParameter(parameters, 'numberPathParam', 'integer', 'path');
+    VerifyPathableParameter(parameters, 'numberPathParam', 'number', 'path', 'double');
     VerifyPathableParameter(parameters, 'stringPathParam', 'string', 'path');
   });
 
@@ -33,7 +33,7 @@ describe('DELETE route generation', () => {
     const parameters = getVerifiedParameters(actionRoute);
 
     VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
-    VerifyPathableParameter(parameters, 'numberParam', 'integer', 'query');
+    VerifyPathableParameter(parameters, 'numberParam', 'number', 'query', 'double');
     VerifyPathableParameter(parameters, 'stringParam', 'string', 'query');
   });
 
