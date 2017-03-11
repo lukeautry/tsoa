@@ -105,7 +105,7 @@ function getTypeName(typeName: string, genericTypes?: ts.TypeNode[]): string {
     return getAnyTypeName(t);
   });
 
-  return typeName + '<' + names.join(', ') + '>';
+  return typeName + names.join('');
 }
 
 function getAnyTypeName(typeNode: ts.TypeNode): string {

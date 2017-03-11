@@ -171,7 +171,7 @@ describe('Definition generation', () => {
 
   describe('Generic-based generation', () => {
     it('should generate different definitions for a generic model', () => {
-      const definition = getValidatedDefinition('GenericModel<TestModel>').properties;
+      const definition = getValidatedDefinition('GenericModelTestModel').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
@@ -181,7 +181,7 @@ describe('Definition generation', () => {
       expect(property['$ref']).to.equal('#/definitions/TestModel');
     });
     it('should generate different definitions for a generic model array', () => {
-      const definition = getValidatedDefinition('GenericModel<TestModel[]>').properties;
+      const definition = getValidatedDefinition('GenericModelTestModel[]').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
@@ -194,7 +194,7 @@ describe('Definition generation', () => {
       expect((property.items as Swagger.Schema)['$ref']).to.equal('#/definitions/TestModel');
     });
     it('should generate different definitions for a generic primitive', () => {
-      const definition = getValidatedDefinition('GenericModel<string>').properties;
+      const definition = getValidatedDefinition('GenericModelstring').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
@@ -204,7 +204,7 @@ describe('Definition generation', () => {
       expect(property.type).to.equal('string');
     });
     it('should generate different definitions for a generic primitive array', () => {
-      const definition = getValidatedDefinition('GenericModel<string[]>').properties;
+      const definition = getValidatedDefinition('GenericModelstring[]').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 

@@ -41,23 +41,23 @@ const models: any = {
     'optionalPublicConstructorVar': { typeName: 'string', required: false },
     'id': { typeName: 'number', required: true },
   },
-  'GenericRequest<TestModel>': {
+  'GenericRequestTestModel': {
     'name': { typeName: 'string', required: true },
     'value': { typeName: 'TestModel', required: true },
   },
   'Result': {
     'value': { typeName: 'object', required: true },
   },
-  'GenericModel<TestModel>': {
+  'GenericModelTestModel': {
     'result': { typeName: 'TestModel', required: true },
   },
-  'GenericModel<TestModel[]>': {
+  'GenericModelTestModel[]': {
     'result': { typeName: 'array', required: true, arrayType: 'TestModel' },
   },
-  'GenericModel<string>': {
+  'GenericModelstring': {
     'result': { typeName: 'string', required: true },
   },
-  'GenericModel<string[]>': {
+  'GenericModelstring[]': {
     'result': { typeName: 'array', required: true, arrayType: 'string' },
   },
   'ErrorResponseModel': {
@@ -382,7 +382,7 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          'genericReq': { name: 'genericReq', typeName: 'GenericRequest<TestModel>', required: true, in: 'body', },
+          'genericReq': { name: 'genericReq', typeName: 'GenericRequestTestModel', required: true, in: 'body', },
         };
 
         let validatedArgs: any[] = [];
