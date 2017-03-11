@@ -19,15 +19,46 @@ export interface TestModel extends Model {
   strLiteralArr: StrLiteral[];
   dateValue?: Date;
   optionalString?: string;
+  // modelsObjectDirect?: {[key: string]: TestSubModel;};
+  modelsObjectIndirect?: TestSubModelContainer;
+  modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
+  modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
+  modelsObjectIndirectNS_Alias?: TestSubModelContainerNamespace_TestSubModelContainer;
+  modelsObjectIndirectNS2_Alias?: TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2;
 }
 
 // shortened from StringLiteral to make the tslint enforced
 // alphabetical sorting cleaner
 export type StrLiteral = 'Foo' | 'Bar';
 
+export interface TestSubModelContainer {
+  // [key: string]: TestSubModel2;
+  simpleValue: TestSubModel2;
+}
+
+export namespace TestSubModelContainerNamespace {
+  export interface TestSubModelContainer {
+    // [key: string]: TestSubModel2;
+    simpleValue: TestSubModel2;
+  }
+
+  export namespace InnerNamespace {
+    export interface TestSubModelContainer2 {
+      // [key: string]: TestSubModel2;
+      simpleValue: TestSubModel2;
+    }
+  }
+}
+export type TestSubModelContainerNamespace_TestSubModelContainer = TestSubModelContainerNamespace.TestSubModelContainer;
+export type TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2 = TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
+
 export interface TestSubModel extends Model {
   email: string;
   circular?: TestModel;
+}
+
+export interface TestSubModel2 extends TestSubModel {
+  testSubModel2: boolean;
 }
 
 export interface BooleanResponseModel {
