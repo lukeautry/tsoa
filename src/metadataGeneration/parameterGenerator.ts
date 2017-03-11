@@ -152,7 +152,6 @@ export class ParameterGenerator {
     return '';
   }
 
-
   private supportsBodyParameters(method: string) {
     return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
   }

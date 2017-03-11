@@ -1,5 +1,3 @@
-
-
 export function SuccessResponse(name: string | number, description?: string): any {
   return () => { return; };
 };

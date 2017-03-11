@@ -1,5 +1,3 @@
-
-
 export function hapiAuthentication(request: any, name: string, scopes?: string[]): Promise<any> {
     let token;
     if (request.query && request.query.access_token) {

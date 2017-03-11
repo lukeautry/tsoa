@@ -377,7 +377,7 @@ function getModelDescription(modelTypeDeclaration: UsableDeclaration) {
 }
 
 function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
-  let symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
+  const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
 
   /**
   * TODO: Workaround for what seems like a bug in the compiler
@@ -389,7 +389,7 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
     symbol.flags = 0;
   }
 
-  let comments = symbol.getDocumentationComment();
+  const comments = symbol.getDocumentationComment();
   if (comments.length) { return ts.displayPartsToString(comments); }
 
   return '';

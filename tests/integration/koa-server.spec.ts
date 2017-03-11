@@ -132,7 +132,6 @@ describe('Koa Server', () => {
     }, 400);
   });
 
-
   describe('Security', () => {
     it('can handle get request with access_token user id == 1', () => {
       return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=abc123456', (err, res) => {
@@ -249,7 +248,6 @@ describe('Koa Server', () => {
       });
     });
   });
-
 
   it('shutdown server', () => server.close());
 

@@ -30,7 +30,7 @@
     "no-arg": true,
     "no-bitwise": false,
     "no-conditional-assignment": true,
-    "no-consecutive-blank-lines": "true",
+    "no-consecutive-blank-lines": true,
     "no-console": [
       true,
       "log",
@@ -49,6 +49,7 @@
     "no-invalid-this": true,
     "no-reference": false,
     "no-require-imports": false,
+    "no-inferrable-types": true,
     "no-shadowed-variable": true,
     "quotemark": [
       true,
@@ -73,6 +74,8 @@
     "radix": true,
     "semicolon": [true, "always"],
     "switch-default": true,
+    "prefer-const": true,
+    "no-string-throw": true,
     "triple-equals": [
       true,
       "allow-undefined-check"

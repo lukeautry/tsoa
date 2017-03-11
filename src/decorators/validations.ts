@@ -51,4 +51,3 @@ export function IsString(options?: StringOption): any {
 export function IsArray(options?: ArrayOption): any {
   return () => { return; };
 }
-

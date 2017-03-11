@@ -7,7 +7,6 @@ import { Security } from '../../../src/decorators/security';
 import { ModelService } from '../services/modelService';
 import { TestModel, ErrorResponseModel } from '../testModel';
 
-
 @Route('MethodTest')
 export class MethodController extends Controller {
 

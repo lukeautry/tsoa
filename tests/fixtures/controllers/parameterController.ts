@@ -4,7 +4,6 @@ import { Get, Post } from '../../../src/decorators/methods';
 import { Route } from '../../../src/decorators/route';
 import { ParameterTestModel, Gender } from '../testModel';
 
-
 @Route('ParameterTest')
 export class ParameterController {
     /**
@@ -128,10 +127,7 @@ export class ParameterController {
         });
     }
 
-
     /**
-     *
-     *
      * @param {string} firstname firstname description
      * @param {string} lastname lastname description
      * @param {number} age age description

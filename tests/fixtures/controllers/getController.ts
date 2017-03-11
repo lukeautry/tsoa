@@ -90,7 +90,7 @@ export class GetTestController extends Controller {
 
   @Get('Request')
   public async getRequest(@Request() request: Object): Promise<TestModel> {
-    let model = new ModelService().getModel();
+    const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (<any>request).stringValue;
     return model;

@@ -141,7 +141,7 @@ export class MethodGenerator {
 
     let description = '';
     let name = '200';
-    let examples = undefined;
+    const examples = undefined;
 
     if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
       name = (expression.arguments[0] as any).text;
