@@ -12,95 +12,145 @@ import { SecurityTestController } from './../controllers/securityController';
 
 const models: any = {
   "TestModel": {
-    "numberValue": { "required": true, "typeName": "double" },
-    "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
-    "stringValue": { "required": true, "typeName": "string" },
-    "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
-    "boolValue": { "required": true, "typeName": "boolean" },
-    "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-    "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-    "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
-    "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
-    "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
-    "modelValue": { "required": true, "typeName": "TestSubModel" },
-    "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
-    "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
-    "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
-    "dateValue": { "required": false, "typeName": "datetime" },
-    "optionalString": { "required": false, "typeName": "string" },
-    "modelsObjectIndirect": { "required": false, "typeName": "TestSubModelContainer" },
-    "modelsObjectIndirectNS": { "required": false, "typeName": "TestSubModelContainerNamespace.TestSubModelContainer" },
-    "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
-    "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
-    "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
-    "id": { "required": true, "typeName": "double" },
+    properties: {
+      "numberValue": { "required": true, "typeName": "double" },
+      "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
+      "stringValue": { "required": true, "typeName": "string" },
+      "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+      "boolValue": { "required": true, "typeName": "boolean" },
+      "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+      "modelValue": { "required": true, "typeName": "TestSubModel" },
+      "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
+      "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
+      "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
+      "dateValue": { "required": false, "typeName": "datetime" },
+      "optionalString": { "required": false, "typeName": "string" },
+      "modelsObjectIndirect": { "required": false, "typeName": "TestSubModelContainer" },
+      "modelsObjectIndirectNS": { "required": false, "typeName": "TestSubModelContainerNamespace.TestSubModelContainer" },
+      "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
+      "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
+      "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+      "id": { "required": true, "typeName": "double" },
+    },
   },
   "TestSubModel": {
-    "email": { "required": true, "typeName": "string" },
-    "circular": { "required": false, "typeName": "TestModel" },
-    "id": { "required": true, "typeName": "double" },
+    properties: {
+      "email": { "required": true, "typeName": "string" },
+      "circular": { "required": false, "typeName": "TestModel" },
+      "id": { "required": true, "typeName": "double" },
+    },
   },
   "TestSubModel2": {
-    "testSubModel2": { "required": true, "typeName": "boolean" },
-    "email": { "required": true, "typeName": "string" },
-    "circular": { "required": false, "typeName": "TestModel" },
-    "id": { "required": true, "typeName": "double" },
+    properties: {
+      "testSubModel2": { "required": true, "typeName": "boolean" },
+      "email": { "required": true, "typeName": "string" },
+      "circular": { "required": false, "typeName": "TestModel" },
+      "id": { "required": true, "typeName": "double" },
+    },
   },
   "TestSubModelContainer": {
-    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
+    properties: {
+    },
+    additionalProperties: [
+      { typeName: 'TestSubModel2' },
+    ],
+  },
+  "TestSubModelNamespace.TestSubModelNS": {
+    properties: {
+      "testSubModelNS": { "required": true, "typeName": "boolean" },
+      "email": { "required": true, "typeName": "string" },
+      "circular": { "required": false, "typeName": "TestModel" },
+      "id": { "required": true, "typeName": "double" },
+    },
   },
   "TestSubModelContainerNamespace.TestSubModelContainer": {
-    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
+    properties: {
+    },
+    additionalProperties: [
+      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
+    ],
   },
   "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
-    "simpleValue": { "required": true, "typeName": "TestSubModel2" },
+    properties: {
+    },
+    additionalProperties: [
+      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
+    ],
   },
   "TestSubModelContainerNamespace_TestSubModelContainer": {
+    properties: {
+    },
   },
   "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
+    properties: {
+    },
   },
   "TestClassModel": {
-    "publicStringProperty": { "required": true, "typeName": "string" },
-    "optionalPublicStringProperty": { "required": false, "typeName": "string" },
-    "stringProperty": { "required": true, "typeName": "string" },
-    "publicConstructorVar": { "required": true, "typeName": "string" },
-    "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
-    "id": { "required": true, "typeName": "double" },
+    properties: {
+      "publicStringProperty": { "required": true, "typeName": "string" },
+      "optionalPublicStringProperty": { "required": false, "typeName": "string" },
+      "stringProperty": { "required": true, "typeName": "string" },
+      "publicConstructorVar": { "required": true, "typeName": "string" },
+      "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
+      "id": { "required": true, "typeName": "double" },
+    },
   },
   "GenericRequestTestModel": {
-    "name": { "required": true, "typeName": "string" },
-    "value": { "required": true, "typeName": "TestModel" },
+    properties: {
+      "name": { "required": true, "typeName": "string" },
+      "value": { "required": true, "typeName": "TestModel" },
+    },
   },
   "Result": {
-    "value": { "required": true, "typeName": "object" },
+    properties: {
+      "value": { "required": true, "typeName": "object" },
+    },
   },
   "GenericModelTestModel": {
-    "result": { "required": true, "typeName": "TestModel" },
+    properties: {
+      "result": { "required": true, "typeName": "TestModel" },
+    },
   },
   "GenericModelTestModel[]": {
-    "result": { "required": true, "typeName": "array", "array": { "typeName": "TestModel" } },
+    properties: {
+      "result": { "required": true, "typeName": "array", "array": { "typeName": "TestModel" } },
+    },
   },
   "GenericModelstring": {
-    "result": { "required": true, "typeName": "string" },
+    properties: {
+      "result": { "required": true, "typeName": "string" },
+    },
   },
   "GenericModelstring[]": {
-    "result": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    properties: {
+      "result": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    },
   },
   "ErrorResponseModel": {
-    "status": { "required": true, "typeName": "double" },
-    "message": { "required": true, "typeName": "string" },
+    properties: {
+      "status": { "required": true, "typeName": "double" },
+      "message": { "required": true, "typeName": "string" },
+    },
   },
   "ParameterTestModel": {
-    "firstname": { "required": true, "typeName": "string" },
-    "lastname": { "required": true, "typeName": "string" },
-    "age": { "required": true, "typeName": "integer" },
-    "weight": { "required": true, "typeName": "float" },
-    "human": { "required": true, "typeName": "boolean" },
-    "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+    properties: {
+      "firstname": { "required": true, "typeName": "string" },
+      "lastname": { "required": true, "typeName": "string" },
+      "age": { "required": true, "typeName": "integer" },
+      "weight": { "required": true, "typeName": "float" },
+      "human": { "required": true, "typeName": "boolean" },
+      "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+    },
   },
   "UserResponseModel": {
-    "id": { "required": true, "typeName": "double" },
-    "name": { "required": true, "typeName": "string" },
+    properties: {
+      "id": { "required": true, "typeName": "double" },
+      "name": { "required": true, "typeName": "string" },
+    },
   },
 };
 
@@ -1288,8 +1338,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1321,8 +1371,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1587,8 +1637,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1620,8 +1670,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1654,8 +1704,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {

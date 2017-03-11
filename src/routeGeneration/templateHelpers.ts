@@ -103,10 +103,30 @@ function validateModel(modelValue: any, typeName: string): any {
   const modelDefinition = models[typeName];
 
   if (modelDefinition) {
-    Object.keys(modelDefinition).forEach((key: string) => {
-      const property = modelDefinition[key];
-      modelValue[key] = ValidateParam(property, modelValue[key], models, key);
-    });
+    if (modelDefinition.properties) {
+      Object.keys(modelDefinition.properties).forEach((key: string) => {
+        const property = modelDefinition.properties[key];
+        modelValue[key] = ValidateParam(property, modelValue[key], models, key);
+      });
+    }
+    if (modelDefinition.additionalProperties) {
+      Object.keys(modelValue).forEach((key: string) => {
+        let validatedValue = null;
+        for (const additionalProperty of modelDefinition.additionalProperties) {
+          try {
+            validatedValue = ValidateParam(additionalProperty, modelValue[key], models, key);
+            break;
+          } catch (err) {
+            continue;
+          }
+        }
+        if (validatedValue) {
+          modelValue[key] = validatedValue;
+        } else {
+          throw new Error(`No matching model found in additionalProperties to validate ${key}`);
+        }
+      });
+    }
   }
 
   return modelValue;

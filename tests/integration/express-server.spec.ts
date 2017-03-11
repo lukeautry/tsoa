@@ -369,6 +369,13 @@ describe('Express Server', () => {
       id: 1,
       modelValue: { email: 'test@test.com', id: 2 },
       modelsArray: [{ email: 'test@test.com', id: 1 }],
+      modelsObjectIndirect: {
+        key: {
+          email: 'test@test.com',
+          id: 1,
+          testSubModel2: false
+        }
+      },
       numberArray: [1, 2],
       numberValue: 5,
       optionalString: 'test1234',
