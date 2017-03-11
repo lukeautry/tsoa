@@ -67,8 +67,24 @@ const models: any = {
     "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
     "id": { "required": true, "typeName": "double" },
   },
+  "GenericRequestTestModel": {
+    "name": { "required": true, "typeName": "string" },
+    "value": { "required": true, "typeName": "TestModel" },
+  },
   "Result": {
     "value": { "required": true, "typeName": "object" },
+  },
+  "GenericModelTestModel": {
+    "result": { "required": true, "typeName": "TestModel" },
+  },
+  "GenericModelTestModel[]": {
+    "result": { "required": true, "typeName": "array", "array": { "typeName": "TestModel" } },
+  },
+  "GenericModelstring": {
+    "result": { "required": true, "typeName": "string" },
+  },
+  "GenericModelstring[]": {
+    "result": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
   },
   "ErrorResponseModel": {
     "status": { "required": true, "typeName": "double" },
@@ -380,6 +396,33 @@ export function RegisterRoutes(server: hapi.Server) {
         const controller = new PostTestController();
 
         const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/PostTest/GenericBody',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          genericReq: { "in": "body", "name": "genericReq", "required": true, "typeName": "GenericRequestTestModel" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new PostTestController();
+
+        const promise = controller.getGenericRequest.apply(controller, validatedArgs);
         let statusCode = undefined;
         if (controller instanceof Controller) {
           statusCode = (controller as Controller).getStatus();
@@ -817,6 +860,110 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   });
   server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericModel',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericModel.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericModelArray',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericPrimitive',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/GetTest/GenericPrimitiveArray',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new GetTestController();
+
+        const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'delete',
     path: '/v1/DeleteTest',
     config: {
@@ -1174,8 +1321,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1507,8 +1654,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {

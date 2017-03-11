@@ -81,7 +81,7 @@ export class RouteGenerator {
                 },
                 {{/each}}
             };
-        `.concat(middlewareTemplate));
+        `.concat(middlewareTemplate), { noEscape: true });
 
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;

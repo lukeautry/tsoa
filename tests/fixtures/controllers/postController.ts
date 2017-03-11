@@ -1,7 +1,7 @@
 import { Route } from '../../../src/decorators/route';
 import { Body, Query } from '../../../src/decorators/parameter';
 import { Post, Patch } from '../../../src/decorators/methods';
-import { TestModel, TestClassModel } from '../testModel';
+import { GenericRequest, TestModel, TestClassModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
 @Route('PostTest')
@@ -47,5 +47,10 @@ export class PostTestController {
   @Post('WithBodyAndQueryParams')
   public async postWithBodyAndQueryParams(@Body() model: TestModel, @Query() query: string): Promise<TestModel> {
     return new ModelService().getModel();
+  }
+
+  @Post('GenericBody')
+  public async getGenericRequest(@Body() genericReq: GenericRequest<TestModel>): Promise<TestModel> {
+    return genericReq.value;
   }
 }
