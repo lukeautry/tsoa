@@ -24,6 +24,11 @@ const models: any = {
     'strLiteralArr': { typeName: 'array', required: true, arrayType: 'StrLiteral' },
     'dateValue': { typeName: 'datetime', required: false },
     'optionalString': { typeName: 'string', required: false },
+    'modelsObjectIndirect': { typeName: 'TestSubModelContainer', required: false },
+    'modelsObjectIndirectNS': { typeName: 'TestSubModelContainerNamespace.TestSubModelContainer', required: false },
+    'modelsObjectIndirectNS2': { typeName: 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', required: false },
+    'modelsObjectIndirectNS_Alias': { typeName: 'TestSubModelContainerNamespace_TestSubModelContainer', required: false },
+    'modelsObjectIndirectNS2_Alias': { typeName: 'TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', required: false },
     'id': { typeName: 'number', required: true },
   },
   'TestSubModel': {
@@ -32,6 +37,25 @@ const models: any = {
     'id': { typeName: 'number', required: true },
   },
   'StrLiteral': {
+  },
+  'TestSubModel2': {
+    'testSubModel2': { typeName: 'boolean', required: true },
+    'email': { typeName: 'string', required: true },
+    'circular': { typeName: 'TestModel', required: false },
+    'id': { typeName: 'number', required: true },
+  },
+  'TestSubModelContainer': {
+    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  },
+  'TestSubModelContainerNamespace.TestSubModelContainer': {
+    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  },
+  'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2': {
+    'simpleValue': { typeName: 'TestSubModel2', required: true },
+  },
+  'TestSubModelContainerNamespace_TestSubModelContainer': {
+  },
+  'TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2': {
   },
   'TestClassModel': {
     'publicStringProperty': { typeName: 'string', required: true },

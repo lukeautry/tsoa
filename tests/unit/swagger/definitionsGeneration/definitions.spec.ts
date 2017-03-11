@@ -26,7 +26,7 @@ describe('Definition generation', () => {
 
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
-      const expectedModels = ['TestModel', 'TestSubModel', 'Result'];
+      const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2'];
       expectedModels.forEach(modelName => {
         getValidatedDefinition(modelName);
       });

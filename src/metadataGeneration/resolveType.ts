@@ -33,31 +33,35 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     throw new Error(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
   let typeReference: any = typeNode;
-  if (typeReference.typeName.text === 'Date') { return 'datetime'; }
-  if (typeReference.typeName.text === 'Buffer') { return 'buffer'; }
+  if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
+    if (typeReference.typeName.text === 'Date') { return 'datetime'; }
+    if (typeReference.typeName.text === 'Buffer') { return 'buffer'; }
 
-  if (typeReference.typeName.text === 'Promise') {
-    typeReference = typeReference.typeArguments[0];
-    return ResolveType(typeReference);
+    if (typeReference.typeName.text === 'Promise') {
+      typeReference = typeReference.typeArguments[0];
+      return ResolveType(typeReference);
+    }
   }
 
   let referenceType: ReferenceType;
 
   if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
     let typeT: ts.TypeNode[] = typeReference.typeArguments as ts.TypeNode[];
-    referenceType = generateReferenceType(typeReference.typeName.text, typeT);
+    referenceType = generateReferenceType(typeReference.typeName, typeT);
   } else {
-    referenceType = generateReferenceType(typeReference.typeName.text);
+    referenceType = generateReferenceType(typeReference.typeName);
   }
 
   MetadataGenerator.current.AddReferenceType(referenceType);
   return referenceType;
 }
 
-function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[]): ReferenceType {
+function generateReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): ReferenceType {
+  const typeName = resolveFqTypeName(type);
+  const typeNameWithGenerics = getTypeName(typeName, genericTypes);
+
   try {
 
-    const typeNameWithGenerics = getTypeName(typeName, genericTypes);
     const existingType = localReferenceTypeCache[typeNameWithGenerics];
     if (existingType) { return existingType; }
 
@@ -67,8 +71,7 @@ function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[]): 
 
     inProgressTypes[typeNameWithGenerics] = true;
 
-    const modelTypeDeclaration = getModelTypeDeclaration(typeName);
-
+    const modelTypeDeclaration = getModelTypeDeclaration(type);
 
     const properties = getModelTypeProperties(modelTypeDeclaration, genericTypes);
 
@@ -95,6 +98,15 @@ function generateReferenceType(typeName: string, genericTypes?: ts.TypeNode[]): 
     console.error(`There was a problem resolving type of '${getTypeName(typeName, genericTypes)}'.`);
     throw err;
   }
+}
+
+function resolveFqTypeName(type: ts.EntityName): string {
+  if (type.kind === ts.SyntaxKind.Identifier) {
+    return (type as ts.Identifier).text;
+  }
+
+  const qualifiedType = type as ts.QualifiedName;
+  return resolveFqTypeName(qualifiedType.left) + '.' + (qualifiedType.right as ts.Identifier).text;
 }
 
 function getTypeName(typeName: string, genericTypes?: ts.TypeNode[]): string {
@@ -156,19 +168,61 @@ function createCircularDependencyResolver(typeName: string) {
   return referenceType;
 }
 
-function getModelTypeDeclaration(typeName: string) {
-  const nodeIsNotUsable = (node: ts.Node) => {
-    switch (node.kind) {
-      case ts.SyntaxKind.InterfaceDeclaration:
-      case ts.SyntaxKind.ClassDeclaration:
-      case ts.SyntaxKind.TypeAliasDeclaration:
-        return false;
-      default: return true;
+function nodeIsUsable(node: ts.Node) {
+  switch (node.kind) {
+    case ts.SyntaxKind.InterfaceDeclaration:
+    case ts.SyntaxKind.ClassDeclaration:
+    case ts.SyntaxKind.TypeAliasDeclaration:
+      return true;
+    default: return false;
+  }
+}
+
+function resolveLeftmostIdentifier(type: ts.EntityName): ts.Identifier {
+  while (type.kind !== ts.SyntaxKind.Identifier) {
+    type = (type as ts.QualifiedName).left;
+  }
+  return type as ts.Identifier;
+}
+
+function resolveModelTypeScope(leftmost: ts.EntityName, statements: any[]): any[] {
+  while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
+    const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier
+      ? (leftmost as ts.Identifier).text
+      : (leftmost as ts.QualifiedName).right.text;
+    const moduleDeclarations = statements
+      .filter(node => {
+        if (node.kind !== ts.SyntaxKind.ModuleDeclaration || !MetadataGenerator.current.IsExportedNode(node)) {
+          return false;
+        }
+
+        const moduleDeclaration = node as ts.ModuleDeclaration;
+        return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
+      }) as Array<ts.ModuleDeclaration>;
+
+      if (!moduleDeclarations.length) { throw new Error(`No matching module declarations found for ${leftmostName}`); }
+      if (moduleDeclarations.length > 1) { throw new Error(`Multiple matching module declarations found for ${leftmostName}; please make module declarations unique`); }
+
+      const moduleBlock = moduleDeclarations[0].body as ts.ModuleBlock;
+      if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) { throw new Error(`Module declaration found for ${leftmostName} has no body`); }
+
+      statements = moduleBlock.statements;
+      leftmost = leftmost.parent as ts.EntityName;
     }
-  };
-  const modelTypes = MetadataGenerator.current.nodes
+
+    return statements;
+}
+
+function getModelTypeDeclaration(type: ts.EntityName) {
+  const leftmostIdentifier = resolveLeftmostIdentifier(type);
+  const statements: any[] = resolveModelTypeScope(leftmostIdentifier, MetadataGenerator.current.nodes);
+
+  const typeName = type.kind === ts.SyntaxKind.Identifier
+    ? (type as ts.Identifier).text
+    : (type as ts.QualifiedName).right.text;
+  const modelTypes = statements
     .filter(node => {
-      if (nodeIsNotUsable(node) || !MetadataGenerator.current.IsExportedNode(node)) {
+      if (!nodeIsUsable(node) || !MetadataGenerator.current.IsExportedNode(node)) {
         return false;
       }
 
@@ -177,7 +231,10 @@ function getModelTypeDeclaration(typeName: string) {
     }) as Array<UsableDeclaration>;
 
   if (!modelTypes.length) { throw new Error(`No matching model found for referenced type ${typeName}`); }
-  if (modelTypes.length > 1) { throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique.`); }
+  if (modelTypes.length > 1) {
+    let conflicts = modelTypes.map(modelType => modelType.getSourceFile().fileName).join('"; "');
+    throw new Error(`Multiple matching models found for referenced type ${typeName}; please make model names unique. Conflicts found: "${conflicts}"`);
+  }
 
   return modelTypes[0];
 }
@@ -289,8 +346,8 @@ function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Proper
     if (!clause.types) { return; }
 
     clause.types.forEach(t => {
-      const baseIdentifier = t.expression as ts.Identifier;
-      generateReferenceType(baseIdentifier.text).properties
+      const baseEntityName = t.expression as ts.EntityName;
+      generateReferenceType(baseEntityName).properties
         .forEach(property => properties.push(property));
     });
   });

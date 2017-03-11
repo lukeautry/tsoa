@@ -24,7 +24,7 @@ export class RouteGenerator {
         tslint: true,
         verify: true,
         vscode: true
-      })
+      } as any)
         .then(result => {
           fs.writeFile(fileName, result.dest, (err) => {
             if (err) {
