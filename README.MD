@@ -94,6 +94,24 @@ tsoa routes
 
 See [CLI documentation](#command-line-interface)
 
+### Override route template
+Route templates are generated from predefined handlebar templates. You can override and define your own template to use
+by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
+```
+{
+  "swagger": {
+    ...
+  },
+  "routes": {
+    "entryFile": "...",
+    "routesDir": "...",
+    "middleware": "express",
+    "minddlewareTemplate": "custom-template.ts"
+    ...
+  }
+}
+```
+
 ### Consume generated routes
 
 ```typescript

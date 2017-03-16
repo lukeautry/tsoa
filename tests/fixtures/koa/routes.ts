@@ -1,4 +1,5 @@
 /* tslint:disable */
+import * as KoaRouter from 'koa-router';
 import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
@@ -9,6 +10,8 @@ import { DeleteTestController } from './../controllers/deleteController';
 import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
+import { set } from 'lodash';
+import { koaAuthentication } from './authentication';
 
 const models: any = {
   "TestModel": {
@@ -103,11 +106,6 @@ const models: any = {
     "name": { "required": true, "typeName": "string" },
   },
 };
-
-/* tslint:disable:forin */
-import * as KoaRouter from 'koa-router';
-import { set } from 'lodash';
-import { koaAuthentication } from './authentication';
 
 export function RegisterRoutes(router: KoaRouter) {
   router.put('/v1/PutTest',
