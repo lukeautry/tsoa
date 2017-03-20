@@ -55,7 +55,6 @@ const models: any = {
   },
 };
 
-/* tslint:disable:forin */
 export function RegisterRoutes(app: any) {
   app.get('/v1/ManagedTest',
     function(request: any, response: any, next: any) {

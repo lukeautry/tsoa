@@ -1,12 +1,34 @@
-export const koaTemplate = `
-/* tslint:disable:forin */
+/* tslint:disable */
 import * as KoaRouter from 'koa-router';
+{{#if canImportByAlias}}
+  import { ValidateParam } from 'tsoa';
+  import { Controller } from 'tsoa';
+{{else}}
+  import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+  import { Controller } from '../../../src/interfaces/controller';
+{{/if}}
+{{#if iocModule}}
+import { iocContainer } from '{{iocModule}}';
+{{/if}}
+{{#each controllers}}
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
 {{#if useSecurity}}
 import { set } from 'lodash';
 {{/if}}
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
+
+const models: any = {
+  {{#each models}}
+  "{{name}}": {
+    {{#each properties}}
+      "{{@key}}": {{{json this}}},
+    {{/each}}
+  },
+  {{/each}}
+};
 
 export function RegisterRoutes(router: KoaRouter) {
     {{#each controllers}}
@@ -106,4 +128,4 @@ export function RegisterRoutes(router: KoaRouter) {
             }
         });
     }
-}`;
+}

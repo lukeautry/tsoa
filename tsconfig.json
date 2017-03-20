@@ -20,6 +20,9 @@
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true
     },
+    "exclude": [
+        "src/routeGeneration/templates/**/*"
+    ],
     "include": [
         "src/**/*.ts"
     ]
