@@ -144,10 +144,11 @@ export class SpecGenerator {
 
   private buildParameter(parameter: Parameter): Swagger.Parameter {
     const swaggerParameter: any = {
+      default: parameter.default,
       description: parameter.description,
       in: parameter.in,
       name: parameter.name,
-      required: parameter.required
+      required: parameter.required,
     };
 
     const parameterType = this.getSwaggerType(parameter.type);
@@ -243,7 +244,7 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enumMembers.map( member => member as string ) as [string] };
+    return { type: 'string', enum: enumType.enumMembers.map( member => member.toString() ) as [string] };
   }
 
   private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {

@@ -1,4 +1,5 @@
 import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
+import { parseExpression } from './expressionParser';
 import { ResolveType } from './resolveType';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import * as ts from 'typescript';
@@ -37,13 +38,25 @@ export class ParameterGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
+  private getDefault(initializer: ts.Expression|undefined) {
+    try {
+      if (initializer) {
+        return parseExpression(initializer);
+      }
+    } catch (e) {
+      // Ignore errors (default value cannot be parsed) Maybe I should add a log
+    }
+    return;
+  }
+
   private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     return {
+      default: this.getDefault(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'request',
       name: parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: { typeName: 'object' },
       parameterName
     };
@@ -58,10 +71,11 @@ export class ParameterGenerator {
     }
 
     return {
+      default: this.getDefault(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: type,
       parameterName
     };
@@ -79,7 +93,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName
     };
@@ -94,10 +108,11 @@ export class ParameterGenerator {
     }
 
     return {
+      default: this.getDefault(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName
     };
@@ -112,10 +127,11 @@ export class ParameterGenerator {
     }
 
     return {
+      default: this.getDefault(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken  && !parameter.initializer,
       type,
       parameterName
     };

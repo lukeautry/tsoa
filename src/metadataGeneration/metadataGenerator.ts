@@ -91,6 +91,7 @@ export interface Parameter {
   in: string;
   name: string;
   required: boolean;
+  default?: string | boolean | number | Object;
   type: Type;
 }
 
