@@ -349,6 +349,11 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
 
         // Declare a variable that can be overridden if needed
         let aType = propertyDeclaration.type;
+        let isGenericArray = false;
+        if (aType.kind === ts.SyntaxKind.ArrayType) {
+          isGenericArray = true;
+          aType = (aType as ts.ArrayTypeNode).elementType;
+        }
 
         // aType.kind will always be a TypeReference when the property of Interface<T> is of type T
         if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
@@ -376,11 +381,16 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
           }
         }
 
+        const type = !isGenericArray ? ResolveType(aType) : <ArrayType>{
+          elementType: ResolveType(aType),
+          typeName: 'array'
+        };
+
         return {
           description: getNodeDescription(propertyDeclaration),
           name: identifier.text,
           required: !property.questionToken,
-          type: ResolveType(aType)
+          type: type
         };
       });
   }
