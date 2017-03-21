@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { Method, ResponseType, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
+import { parseExpression } from './expressionParser';
 import { getJSDocDescription, getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getDecorators } from './../utils/decoratorUtils';
 
@@ -214,28 +215,10 @@ export class MethodGenerator {
   }
 
   private getInitializerValue(initializer: any) {
-    switch (initializer.kind as ts.SyntaxKind) {
-      case ts.SyntaxKind.ArrayLiteralExpression:
-        return initializer.elements.map((e: any) => this.getInitializerValue(e));
-      case ts.SyntaxKind.StringLiteral:
-        return initializer.text;
-      case ts.SyntaxKind.TrueKeyword:
-        return true;
-      case ts.SyntaxKind.FalseKeyword:
-        return false;
-      case ts.SyntaxKind.NumberKeyword:
-      case ts.SyntaxKind.FirstLiteralToken:
-        return parseInt(initializer.text, 10);
-      case ts.SyntaxKind.ObjectLiteralExpression:
-        const nestedObject: any = {};
-
-        initializer.properties.forEach((p: any) => {
-          nestedObject[p.name.text] = this.getInitializerValue(p.initializer);
-        });
-
-        return nestedObject;
-      default:
-        return undefined;
+    try {
+      return parseExpression(initializer);
+    } catch (e) {
+      return undefined;
     }
   }
 }

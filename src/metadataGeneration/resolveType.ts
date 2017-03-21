@@ -313,7 +313,7 @@ function resolveModelTypeScope(leftmost: ts.EntityName, statements: any[]): any[
   return statements;
 }
 
-function getModelTypeDeclaration(type: ts.EntityName) {
+export function getModelTypeDeclaration(type: ts.EntityName) {
   const leftmostIdentifier = resolveLeftmostIdentifier(type);
   const statements: any[] = resolveModelTypeScope(leftmostIdentifier, MetadataGenerator.current.nodes);
 
