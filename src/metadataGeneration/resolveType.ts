@@ -139,6 +139,10 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
   }
   return <EnumerateType>{
     enumMembers: enumDeclaration.members.map((member: any, index) => {
+      const value = MetadataGenerator.current.typeChecker.getConstantValue(member);
+      if (value != null) {
+        return value;
+      }
       return getEnumValue(member) || index;
     }),
     typeName: 'enum',
