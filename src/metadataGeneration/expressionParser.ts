@@ -31,6 +31,7 @@ function parseUnaryPrefix(expression: ts.PrefixUnaryExpression): any {
 }
 
 function parsePropertyAccessExpression(ex: ts.PropertyAccessExpression): any {
+
   const type = MetadataGenerator.current.nodes.find(node => {
     if (node.kind === ts.SyntaxKind.ClassDeclaration || ts.SyntaxKind.EnumDeclaration) {
       const classNode = node as any;
@@ -45,11 +46,14 @@ function parsePropertyAccessExpression(ex: ts.PropertyAccessExpression): any {
       }
       return false;
     }) as any;
+    const value = MetadataGenerator.current.typeChecker.getConstantValue(found);
+    if (value !== undefined && value !== null) {
+      return value;
+    }
     if (found && found.initializer) {
       return parseExpression(found.initializer);
     }
   }
-
   throw new Error('Expression parsing error: not implemented');
 }
 function parseNewExpression(expression: ts.NewExpression): any {
