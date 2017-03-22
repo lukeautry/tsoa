@@ -145,6 +145,9 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
       }
       return getEnumValue(member) || index;
     }),
+    enumNames: enumDeclaration.members.map((member: any, index) => {
+      return member.name.text || index;
+    }),
     typeName: 'enum',
   };
 }

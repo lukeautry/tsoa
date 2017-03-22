@@ -2,6 +2,7 @@ import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
 import { parseExpression } from './expressionParser';
 import { ResolveType } from './resolveType';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import * as _ from 'lodash';
 import * as ts from 'typescript';
 
 export class ParameterGenerator {
@@ -38,7 +39,7 @@ export class ParameterGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
-  private getDefault(initializer: ts.Expression|undefined) {
+  private getDefaultValue(initializer: ts.Expression|undefined) {
     try {
       if (initializer) {
         return parseExpression(initializer);
@@ -52,7 +53,7 @@ export class ParameterGenerator {
   private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     return {
-      default: this.getDefault(parameter.initializer),
+      default: this.getDefaultValue(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'request',
       name: parameterName,
@@ -71,7 +72,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: this.getDefault(parameter.initializer),
+      default: this.getDefaultValue(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
@@ -108,7 +109,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: this.getDefault(parameter.initializer),
+      default: this.getDefaultValue(parameter.initializer),
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
@@ -127,8 +128,9 @@ export class ParameterGenerator {
     }
 
     return {
-      default: this.getDefault(parameter.initializer),
+      default: this.getDefaultValue(parameter.initializer),
       description: this.getParameterDescription(parameter),
+      enum: this.getEnumValues(parameter),
       in: 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       required: !parameter.questionToken  && !parameter.initializer,
@@ -165,6 +167,13 @@ export class ParameterGenerator {
     const comments = symbol.getDocumentationComment();
     if (comments.length) { return ts.displayPartsToString(comments); }
 
+    if (node.type) {
+      const t = ResolveType(node.type) as any;
+      if (t.enumMembers && t.enumNames && t.enumMembers.length === t.enumNames.length) {
+        return "|name|value|\n|-|-|\n" + _.zip(t.enumMembers, t.enumNames).map(([value, name]) => `|${name}|${value}|`).join("\n");
+      }
+    }
+
     return '';
   }
 
@@ -185,6 +194,14 @@ export class ParameterGenerator {
       throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
     }
     return ResolveType(parameter.type);
+  }
+
+  private getEnumValues(parameter: ts.ParameterDeclaration) {
+    if (!parameter.type) {
+      throw new Error(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+    }
+    const t = ResolveType(parameter.type) as any;
+    return t.enumMembers;
   }
 }
 

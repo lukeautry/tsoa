@@ -92,6 +92,7 @@ export interface Parameter {
   name: string;
   required: boolean;
   default?: string | boolean | number | Object;
+  enum?: number[] | string[],
   type: Type;
 }
 
@@ -105,7 +106,8 @@ export interface Type {
 };
 
 export interface EnumerateType extends Type {
-  enumMembers: string[];
+  enumMembers: number[] | string[];
+  enumNames?: string[];
 }
 
 export interface ReferenceType extends Type {

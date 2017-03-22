@@ -31,7 +31,6 @@ function parseUnaryPrefix(expression: ts.PrefixUnaryExpression): any {
 }
 
 function parsePropertyAccessExpression(ex: ts.PropertyAccessExpression): any {
-
   const type = MetadataGenerator.current.nodes.find(node => {
     if (node.kind === ts.SyntaxKind.ClassDeclaration || ts.SyntaxKind.EnumDeclaration) {
       const classNode = node as any;
@@ -56,6 +55,7 @@ function parsePropertyAccessExpression(ex: ts.PropertyAccessExpression): any {
   }
   throw new Error('Expression parsing error: not implemented');
 }
+
 function parseNewExpression(expression: ts.NewExpression): any {
   const ex = expression as any;
   if (ex.expression) {

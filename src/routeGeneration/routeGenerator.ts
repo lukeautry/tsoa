@@ -204,12 +204,12 @@ interface PropertySchema {
   required: boolean;
   array?: ArraySchema;
   request?: boolean;
-  enumMembers?: string[];
+  enumMembers?: string[] | number[];
 }
 
 export interface ArraySchema {
   typeName: string;
-  enumMembers?: string[];
+  enumMembers?: string[] | number[];
 }
 
 export interface ParameterSchema {
@@ -219,5 +219,5 @@ export interface ParameterSchema {
   required: boolean;
   array?: ArraySchema;
   request?: boolean;
-  enumMembers?: string[];
+  enumMembers?: string[] | number[];
 }

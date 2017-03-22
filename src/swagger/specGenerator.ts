@@ -146,6 +146,7 @@ export class SpecGenerator {
     const swaggerParameter: any = {
       default: parameter.default,
       description: parameter.description,
+      enum: parameter.enum,
       in: parameter.in,
       name: parameter.name,
       required: parameter.required,
@@ -244,7 +245,10 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enumMembers.map( member => member.toString() ) as [string] };
+    if (enumType.enumMembers.length > 0 && typeof enumType.enumMembers[0] === 'number') {
+      return { type: 'number', enum: enumType.enumMembers as number[] };
+    }
+    return { type: 'string', enum: enumType.enumMembers as string[] };
   }
 
   private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {
