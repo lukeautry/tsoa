@@ -10,13 +10,13 @@ import { expressAuthentication } from '{{authenticationModule}}';
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
-        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
-            {{#if security}} 
+        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}',
+            {{#if security}}
             authenticateMiddleware('{{security.name}}'
-                {{#if security.scopes.length}} 
+                {{#if security.scopes.length}}
                 ,{{{json security.scopes}}}
-                {{/if}}), 
-            {{/if}} 
+                {{/if}}),
+            {{/if}}
             function (request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
@@ -39,7 +39,7 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode = undefined;
+            let statusCode: number|undefined = undefined;
             if (controller instanceof Controller) {
                 statusCode = (controller as Controller).getStatus();
             }
