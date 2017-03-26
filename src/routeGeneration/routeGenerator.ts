@@ -75,9 +75,20 @@ export class RouteGenerator {
             const models: any = {
                 {{#each models}}
                 "{{name}}": {
-                    {{#each properties}}
-                        "{{@key}}": {{{json this}}},
-                    {{/each}}
+                    {{#if properties}}
+                    properties: {
+                        {{#each properties}}
+                            "{{@key}}": {{{json this}}},
+                        {{/each}}
+                    },
+                    {{/if}}
+                    {{#if additionalProperties}}
+                    additionalProperties: [
+                        {{#each additionalProperties}}
+                        {typeName: '{{typeName}}'},
+                        {{/each}}
+                    ],
+                    {{/if}}
                 },
                 {{/each}}
             };
@@ -127,10 +138,14 @@ export class RouteGenerator {
         properties[property.name] = this.getPropertySchema(property);
       });
 
-      return {
+      const templateModel: TemplateModel = {
         name: key,
         properties
       };
+      if (referenceType.additionalProperties && referenceType.additionalProperties.length) {
+        templateModel.additionalProperties = referenceType.additionalProperties.map(property => this.getTemplateAdditionalProperty(property));
+      }
+      return templateModel;
     });
   }
 
@@ -165,6 +180,14 @@ export class RouteGenerator {
     return templateProperty;
   }
 
+  private getTemplateAdditionalProperty(source: Property): TemplateAdditionalProperty {
+    const templateAdditionalProperty: TemplateAdditionalProperty = {
+      typeName: source.type.typeName
+    };
+
+     return templateAdditionalProperty;
+  }
+
   private getParameterSchema(parameter: Parameter): ParameterSchema {
     const parameterSchema: ParameterSchema = {
       in: parameter.in,
@@ -197,6 +220,7 @@ export class RouteGenerator {
 interface TemplateModel {
   name: string;
   properties: { [name: string]: PropertySchema };
+  additionalProperties?: TemplateAdditionalProperty[];
 }
 
 interface PropertySchema {
@@ -205,6 +229,10 @@ interface PropertySchema {
   array?: ArraySchema;
   request?: boolean;
   enumMembers?: string[];
+}
+
+interface TemplateAdditionalProperty {
+  typeName: string;
 }
 
 export interface ArraySchema {
