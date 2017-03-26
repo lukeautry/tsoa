@@ -1,12 +1,10 @@
-import { expressTemplate } from './templates/express';
-import { hapiTemplate } from './templates/hapi';
-import { koaTemplate } from './templates/koa';
 import { Metadata, ArrayType, EnumerateType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
+import * as handlebarsHelpers from 'handlebars-helpers';
 
 export class RouteGenerator {
   constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
@@ -38,68 +36,42 @@ export class RouteGenerator {
     });
   }
 
-  public GenerateExpressRoutes() {
-    return this.GenerateRoutes(expressTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
-  }
-
-  public GenerateHapiRoutes() {
-    return this.GenerateRoutes(hapiTemplate, path => path);
-  }
-
-  public GenerateKoaRoutes() {
-    return this.GenerateRoutes(koaTemplate, path => path.replace(/{/g, ':').replace(/}/g, ''));
+  public GenerateCustomRoutes(template: string, pathTransformer: (path: string) => string) {
+    let file: string;
+    fs.readFile(path.join(template), (err, data) => {
+      if (err) {
+        throw err;
+      }
+      file = data.toString();
+      return this.GenerateRoutes(file, pathTransformer);
+    });
   }
 
   private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
-    let canImportByAlias: boolean;
-    try {
-      require('tsoa');
-      canImportByAlias = true;
-    } catch (err) {
-      canImportByAlias = false;
-    }
-
     handlebars.registerHelper('json', function (context: any) {
       return JSON.stringify(context);
     });
-    const routesTemplate = handlebars.compile(`/* tslint:disable */
-            import {ValidateParam} from '${canImportByAlias ? 'tsoa' : '../../../src/routeGeneration/templateHelpers'}';
-            import { Controller } from '${canImportByAlias ? 'tsoa' : '../../../src/interfaces/controller'}';
-            {{#if iocModule}}
-            import { iocContainer } from '{{iocModule}}';
-            {{/if}}
-            {{#each controllers}}
-            import { {{name}} } from '{{modulePath}}';
-            {{/each}}
 
-            const models: any = {
-                {{#each models}}
-                "{{name}}": {
-                    {{#if properties}}
-                    properties: {
-                        {{#each properties}}
-                            "{{@key}}": {{{json this}}},
-                        {{/each}}
-                    },
-                    {{/if}}
-                    {{#if additionalProperties}}
-                    additionalProperties: [
-                        {{#each additionalProperties}}
-                        {typeName: '{{typeName}}'},
-                        {{/each}}
-                    ],
-                    {{/if}}
-                },
-                {{/each}}
-            };
-        `.concat(middlewareTemplate), { noEscape: true });
+    handlebarsHelpers.comparison({
+      handlebars: handlebars
+    });
 
+    const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
+
+    // If we're working locally then tsoa won't exist as an importable module.
+    // So, when in testing mode we reference the module by path instead.
+    const env = process.env.NODE_ENV;
+    let canImportByAlias = true;
+    if (env === 'test') {
+      canImportByAlias = false;
+    }
 
     return routesTemplate({
       authenticationModule,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
+      canImportByAlias: canImportByAlias,
       controllers: this.metadata.Controllers.map(controller => {
         return {
           actions: controller.methods.map(method => {
@@ -121,6 +93,7 @@ export class RouteGenerator {
           path: controller.path
         };
       }),
+      environment: process.env,
       iocModule,
       models: this.getModels(),
       useSecurity: this.metadata.Controllers.some(
@@ -185,7 +158,7 @@ export class RouteGenerator {
       typeName: source.type.typeName
     };
 
-     return templateAdditionalProperty;
+    return templateAdditionalProperty;
   }
 
   private getParameterSchema(parameter: Parameter): ParameterSchema {

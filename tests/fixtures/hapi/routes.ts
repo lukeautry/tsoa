@@ -1,4 +1,6 @@
+// TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
+import * as hapi from 'hapi';
 import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
@@ -9,6 +11,8 @@ import { DeleteTestController } from './../controllers/deleteController';
 import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
+import { set } from 'lodash';
+import { hapiAuthentication } from './authentication';
 
 const models: any = {
   "TestModel": {
@@ -153,11 +157,6 @@ const models: any = {
     },
   },
 };
-
-/* tslint:disable:forin */
-import * as hapi from 'hapi';
-import { set } from 'lodash';
-import { hapiAuthentication } from './authentication';
 
 export function RegisterRoutes(server: hapi.Server) {
   server.route({
@@ -1371,8 +1370,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1637,8 +1636,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {

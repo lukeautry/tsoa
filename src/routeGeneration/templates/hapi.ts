@@ -1,13 +1,46 @@
 // TODO: Replace this with HAPI middleware stuff
-export const hapiTemplate = `
-/* tslint:disable:forin */
+/* tslint:disable */
 import * as hapi from 'hapi';
+{{#if canImportByAlias}}
+  import { ValidateParam } from 'tsoa';
+  import { Controller } from 'tsoa';
+{{else}}
+  import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+  import { Controller } from '../../../src/interfaces/controller';
+{{/if}}
+{{#if iocModule}}
+import { iocContainer } from '{{iocModule}}';
+{{/if}}
+{{#each controllers}}
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
 {{#if useSecurity}}
 import { set } from 'lodash';
 {{/if}}
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
+
+const models: any = {
+  {{#each models}}
+  "{{name}}": {
+      {{#if properties}}
+      properties: {
+          {{#each properties}}
+              "{{@key}}": {{{json this}}},
+          {{/each}}
+      },
+      {{/if}}
+      {{#if additionalProperties}}
+      additionalProperties: [
+          {{#each additionalProperties}}
+          {typeName: '{{typeName}}'},
+          {{/each}}
+      ],
+      {{/if}}
+  },
+  {{/each}}
+};
 
 export function RegisterRoutes(server: hapi.Server) {
     {{#each controllers}}
@@ -101,4 +134,4 @@ export function RegisterRoutes(server: hapi.Server) {
             }
         });
     }
-}`;
+}
