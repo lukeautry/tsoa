@@ -110,6 +110,7 @@ export interface EnumerateType extends Type {
 export interface ReferenceType extends Type {
   description: string;
   properties: Property[];
+  additionalProperties?: Property[];
 }
 
 export interface ArrayType extends Type {

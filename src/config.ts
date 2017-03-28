@@ -103,9 +103,14 @@ export interface RoutesConfig {
   basePath?: string;
 
   /**
-  * Middleware provider
+  * Middleware provider.
   */
   middleware?: 'express' | 'hapi' | 'koa';
+
+  /**
+   * Override the Middleware template
+  */
+  middlewareTemplate?: string;
 
   /**
    * IOC module; e.g. './inversify/ioc' where IOC container named `iocContainer` is defined (https://github.com/inversify/InversifyJS)

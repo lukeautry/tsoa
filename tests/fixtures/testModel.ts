@@ -22,7 +22,7 @@ export interface TestModel extends Model {
   strLiteralArr: StrLiteral[];
   dateValue?: Date;
   optionalString?: string;
-  // modelsObjectDirect?: {[key: string]: TestSubModel;};
+  // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
   modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
@@ -43,20 +43,17 @@ export enum EnumStringValue {
 export type StrLiteral = 'Foo' | 'Bar';
 
 export interface TestSubModelContainer {
-  // [key: string]: TestSubModel2;
-  simpleValue: TestSubModel2;
+  [key: string]: TestSubModel2;
 }
 
 export namespace TestSubModelContainerNamespace {
   export interface TestSubModelContainer {
-    // [key: string]: TestSubModel2;
-    simpleValue: TestSubModel2;
+    [key: string]: TestSubModelNamespace.TestSubModelNS;
   }
 
   export namespace InnerNamespace {
     export interface TestSubModelContainer2 {
-      // [key: string]: TestSubModel2;
-      simpleValue: TestSubModel2;
+      [key: string]: TestSubModelNamespace.TestSubModelNS;
     }
   }
 }
@@ -70,6 +67,12 @@ export interface TestSubModel extends Model {
 
 export interface TestSubModel2 extends TestSubModel {
   testSubModel2: boolean;
+}
+
+export namespace TestSubModelNamespace {
+  export interface TestSubModelNS extends TestSubModel {
+    testSubModelNS: boolean;
+  }
 }
 
 export interface BooleanResponseModel {
