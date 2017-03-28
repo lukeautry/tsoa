@@ -32,6 +32,13 @@ describe('Inversify Express Server', () => {
           id: 100,
         },
         modelsArray: new Array<TestSubModel>(),
+        modelsObjectIndirect: {
+          key: {
+            email: 'test@test.com',
+            id: 1,
+            testSubModel2: false
+          }
+        },
         numberArray: [1, 2, 3],
         numberValue: 1,
         optionalString: 'optional string',
