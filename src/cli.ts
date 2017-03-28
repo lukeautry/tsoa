@@ -123,7 +123,7 @@ yargs
     try {
       const config = getConfig(args.configuration);
       if (args.basePath) {
-        config.swagger.basePath = args.basePath;
+        config.routes.basePath = args.basePath;
       }
 
       const routesConfig = validateRoutesConfig(config.routes);
