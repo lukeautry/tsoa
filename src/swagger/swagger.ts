@@ -136,7 +136,7 @@ export namespace Swagger {
   export interface Schema extends BaseSchema {
     $ref?: string;
     allOf?: [Schema];
-    additionalProperties?: boolean;
+    additionalProperties?: boolean | { [ref: string]: string };
     properties?: { [propertyName: string]: Schema };
     discriminator?: string;
     readOnly?: boolean;

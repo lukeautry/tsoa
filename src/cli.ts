@@ -6,6 +6,7 @@ import { SpecGenerator } from './swagger/specGenerator';
 import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 import * as fs from 'fs';
+import * as path from 'path';
 
 const workingDir: string = process.cwd();
 
@@ -105,19 +106,31 @@ yargs
       const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
+      let pathTransformer;
+      let template;
+      pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
+
       switch (routesConfig.middleware) {
         case 'express':
-          routeGenerator.GenerateExpressRoutes();
+          template = path.join(__dirname, 'routeGeneration/templates/express.ts');
           break;
         case 'hapi':
-          routeGenerator.GenerateHapiRoutes();
+          template = path.join(__dirname, 'routeGeneration/templates/hapi.ts');
+          pathTransformer = (path: string) => path;
           break;
         case 'koa':
-          routeGenerator.GenerateKoaRoutes();
+          template = path.join(__dirname, 'routeGeneration/templates/koa.ts');
           break;
         default:
-          routeGenerator.GenerateExpressRoutes();
+          template = path.join(__dirname, 'routeGeneration/templates/express.ts');
       }
+
+      if (routesConfig.middlewareTemplate) {
+        template = routesConfig.middlewareTemplate;
+      }
+
+      routeGenerator.GenerateCustomRoutes(template, pathTransformer);
+
     } catch (err) {
       console.error(err);
     }

@@ -65,6 +65,9 @@ export class SpecGenerator {
         required: referenceType.properties.filter(p => p.required).map(p => p.name),
         type: 'object'
       };
+      if (referenceType.additionalProperties) {
+        definitions[referenceType.typeName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+      }
     });
 
     return definitions;
@@ -176,6 +179,19 @@ export class SpecGenerator {
     });
 
     return swaggerProperties;
+  }
+
+  private buildAdditionalProperties(properties: Property[]) {
+    const swaggerAdditionalProperties: { [ref: string]: string } = {};
+
+    properties.forEach(property => {
+      const swaggerType = this.getSwaggerType(property.type);
+      if (swaggerType.$ref) {
+        swaggerAdditionalProperties['$ref'] = swaggerType.$ref;
+      }
+    });
+
+    return swaggerAdditionalProperties;
   }
 
   private buildOperation(controllerName: string, method: Method) {

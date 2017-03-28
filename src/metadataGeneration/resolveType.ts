@@ -190,12 +190,16 @@ function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): Re
     const modelTypeDeclaration = getModelTypeDeclaration(type);
 
     const properties = getModelTypeProperties(modelTypeDeclaration, genericTypes);
+    const additionalProperties = getModelTypeAdditionalProperties(modelTypeDeclaration);
 
     const referenceType: ReferenceType = {
       description: getModelDescription(modelTypeDeclaration),
       properties: properties,
       typeName: typeNameWithGenerics,
     };
+    if (additionalProperties && additionalProperties.length) {
+      referenceType.additionalProperties = additionalProperties;
+    }
 
     const extendedProperties = getInheritedProperties(modelTypeDeclaration);
     referenceType.properties = referenceType.properties.concat(extendedProperties);
@@ -347,9 +351,9 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
     return interfaceDeclaration.members
       .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
-      .map((property: any) => {
+      .map((member: any) => {
 
-        const propertyDeclaration = property as ts.PropertyDeclaration;
+        const propertyDeclaration = member as ts.PropertyDeclaration;
         const identifier = propertyDeclaration.name as ts.Identifier;
 
         if (!propertyDeclaration.type) { throw new Error('No valid type found for property declaration.'); }
@@ -396,7 +400,7 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
         return {
           description: getNodeDescription(propertyDeclaration),
           name: identifier.text,
-          required: !property.questionToken,
+          required: !propertyDeclaration.questionToken,
           type: type
         };
       });
@@ -439,6 +443,29 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
         type: ResolveType(declaration.type)
       };
     });
+}
+
+function getModelTypeAdditionalProperties(node: UsableDeclaration) {
+  if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+    const interfaceDeclaration = node as ts.InterfaceDeclaration;
+    return interfaceDeclaration.members
+      .filter(member => member.kind === ts.SyntaxKind.IndexSignature)
+      .map((member: any) => {
+        const indexSignatureDeclaration = member as ts.IndexSignatureDeclaration;
+
+        const indexType = ResolveType(<ts.TypeNode>indexSignatureDeclaration.parameters[0].type);
+        if (indexType.typeName !== 'string') { throw new Error('Only string indexers are supported'); }
+
+        return {
+          description: '',
+          name: '',
+          required: true,
+          type: ResolveType(<ts.TypeNode>indexSignatureDeclaration.type)
+        };
+      });
+  }
+
+  return undefined;
 }
 
 function hasPublicModifier(node: ts.Node) {
