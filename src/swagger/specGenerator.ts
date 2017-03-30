@@ -105,7 +105,7 @@ export class SpecGenerator {
       })
       .map(p => this.buildParameter(p));
 
-    const bodyPropParameter = this.buildBodyPropParameter(method);
+    const bodyPropParameter = this.buildBodyPropParameter(controllerName, method);
     if (bodyPropParameter) {
       pathMethod.parameters.push(bodyPropParameter);
     }
@@ -115,7 +115,7 @@ export class SpecGenerator {
     }
   }
 
-  private buildBodyPropParameter(method: Method) {
+  private buildBodyPropParameter(controllerName: string, method: Method) {
     const properties: any = {};
     const required: string[] = [];
 
@@ -135,7 +135,7 @@ export class SpecGenerator {
       name: 'body',
       schema: {
         properties: properties,
-        title: 'inline-schema',
+        title: `${this.getOperationId(controllerName, method.name)}Body`,
         type: 'object'
       }
     };
@@ -208,10 +208,15 @@ export class SpecGenerator {
     });
 
     return {
-      operationId: `${controllerName}-${method.name}`,
+      operationId: this.getOperationId(controllerName, method.name),
       produces: ['application/json'],
       responses: responses
     };
+  }
+
+  private getOperationId(controllerName: string, methodName: string) {
+    const controllerNameWithoutSuffix = controllerName.replace(new RegExp('Controller$'), '');
+    return `${controllerNameWithoutSuffix}${methodName.charAt(0).toUpperCase() + methodName.substr(1)}`;
   }
 
   private getSwaggerType(type: Type) {
