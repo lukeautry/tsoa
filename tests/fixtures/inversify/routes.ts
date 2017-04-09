@@ -100,6 +100,7 @@ export function RegisterRoutes(app: any) {
 
       const controller = iocContainer.get<ManagedController>(ManagedController);
 
+
       const promise = controller.getModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -107,6 +108,7 @@ export function RegisterRoutes(app: any) {
       }
       promiseHandler(promise, statusCode, response, next);
     });
+
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
     return promise
