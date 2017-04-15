@@ -343,7 +343,9 @@ For information on the configuration object (tsoa.json), check out the following
 Usage: tsoa swagger [options]
 
 Options:
-   --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
+   --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory  [string]
+   --host  API host                                                                             [string]
+   --basePath  Base API path                                                                    [string]
 ```
 
 ### Route generation
@@ -352,7 +354,8 @@ Options:
 Usage: tsoa routes [options]
 
 Options:
-  --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory [string]
+  --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory   [string]
+  --basePath  Base API path                                                                     [string]
 ```
 
 ## Examples

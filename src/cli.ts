@@ -71,9 +71,21 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   return config;
 };
 
-const configuration = {
+const configurationArgs = {
   alias: 'c',
   describe: 'tsoa configuration file; default is tsoa.json in the working directory',
+  required: false,
+  type: 'string'
+};
+
+const hostArgs = {
+  describe: 'API host',
+  required: false,
+  type: 'string'
+};
+
+const basePathArgs = {
+  describe: 'Base API path',
   required: false,
   type: 'string'
 };
@@ -83,12 +95,20 @@ yargs
   .demand(1)
 
   .command('swagger', 'Generate swagger spec', {
-    configuration: configuration as any
+    basePath: basePathArgs as any,
+    configuration: configurationArgs as any,
+    host: hostArgs as any
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
-      const swaggerConfig = validateSwaggerConfig(config.swagger);
+      if (args.basePath) {
+        config.swagger.basePath = args.basePath;
+      }
+      if (args.host) {
+        config.swagger.host = args.host;
+      }
 
+      const swaggerConfig = validateSwaggerConfig(config.swagger);
       const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
     } catch (err) {
@@ -97,12 +117,16 @@ yargs
   })
 
   .command('routes', 'Generate routes', {
-    configuration: configuration as any
+    basePath: basePathArgs as any,
+    configuration: configurationArgs as any
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
-      const routesConfig = validateRoutesConfig(config.routes);
+      if (args.basePath) {
+        config.routes.basePath = args.basePath;
+      }
 
+      const routesConfig = validateRoutesConfig(config.routes);
       const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
@@ -141,5 +165,7 @@ yargs
   .argv;
 
 interface CommandLineArgs extends yargs.Argv {
+  basePath: string;
   configuration: string;
+  host: string;
 }
