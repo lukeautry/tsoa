@@ -3,7 +3,7 @@ import { Method, ResponseType, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 import { getJSDocDescription, getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
-import { getDecorators } from './../utils/decoratorUtils';
+import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
 
 export class MethodGenerator {
   private method: string;
@@ -179,7 +179,7 @@ export class MethodGenerator {
   private getExamplesValue(argument: any) {
     const example: any = {};
     argument.properties.forEach((p: any) => {
-      example[p.name.text] = this.getInitializerValue(p.initializer);
+      example[p.name.text] = getInitializerValue(p.initializer);
     });
     return example;
   }
@@ -211,31 +211,5 @@ export class MethodGenerator {
       name: (expression.arguments[0] as any).text,
       scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
     };
-  }
-
-  private getInitializerValue(initializer: any) {
-    switch (initializer.kind as ts.SyntaxKind) {
-      case ts.SyntaxKind.ArrayLiteralExpression:
-        return initializer.elements.map((e: any) => this.getInitializerValue(e));
-      case ts.SyntaxKind.StringLiteral:
-        return initializer.text;
-      case ts.SyntaxKind.TrueKeyword:
-        return true;
-      case ts.SyntaxKind.FalseKeyword:
-        return false;
-      case ts.SyntaxKind.NumberKeyword:
-      case ts.SyntaxKind.FirstLiteralToken:
-        return parseInt(initializer.text, 10);
-      case ts.SyntaxKind.ObjectLiteralExpression:
-        const nestedObject: any = {};
-
-        initializer.properties.forEach((p: any) => {
-          nestedObject[p.name.text] = this.getInitializerValue(p.initializer);
-        });
-
-        return nestedObject;
-      default:
-        return undefined;
-    }
   }
 }
