@@ -1,4 +1,4 @@
-import { IsInt, IsFloat } from './../../src/decorators/validations';
+import { IsInt, IsFloat, IsString } from './../../src/decorators/validations';
 /**
  * This is a description of a model
  */
@@ -87,7 +87,7 @@ export interface UserResponseModel {
 export class ParameterTestModel {
   public firstname: string;
   public lastname: string;
-  @IsInt() public age: number;
+  @IsInt({min: 1, max: 10}) public age: number;
   @IsFloat() public weight: number;
   public human: boolean;
   public gender: Gender;
@@ -117,7 +117,9 @@ export class TestClassModel extends TestClassBaseModel {
   /**
   * This is a description of a public string property
   */
+  @IsString({minLength: 3, maxLength: 20, pattern: '[a-zA-Z]'})
   public publicStringProperty: string;
+  @IsString({minLength: 0, maxLength: 10})
   public optionalPublicStringProperty?: string;
   /* tslint:disable-next-line */
   stringProperty: string;
