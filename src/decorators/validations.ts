@@ -11,7 +11,7 @@ export interface NumberOption {
 export interface StringOption {
   minLength?: number;
   maxLength?: number;
-  pattern?: number;
+  pattern?: string;
 }
 
 export interface ArrayOption {
