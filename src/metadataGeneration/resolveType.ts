@@ -138,7 +138,7 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
     return;
   }
   return <EnumerateType>{
-    enumMembers: enumDeclaration.members.map((member: any, index) => {
+    enumMembers: enumDeclaration.members.map((member: any, index: number) => {
       return getEnumValue(member) || index;
     }),
     typeName: 'enum',

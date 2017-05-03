@@ -42,16 +42,19 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
+    const acceptedDecorators = ['Request',/*'Body',*/'BodyProp', 'Header', 'Query','Path'];
     const parameters = this.node.parameters.map(p => {
       try {
-        return new ParameterGenerator(p, this.method, this.path).Generate();
+        return new ParameterGenerator(p, this.method, this.path);
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
         const parameterId = p.name as ts.Identifier;
         throw new Error(`Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
       }
-    });
+    }).filter(
+        paramDecorator => acceptedDecorators.indexOf(paramDecorator.name) >= 0
+    ).map( decoratorGenerator => decoratorGenerator.Generate() );
 
     const bodyParameters = parameters.filter(p => p.in === 'body');
     const bodyProps = parameters.filter(p => p.in === 'body-prop');

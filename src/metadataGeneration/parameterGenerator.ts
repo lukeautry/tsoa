@@ -4,16 +4,17 @@ import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUti
 import * as ts from 'typescript';
 
 export class ParameterGenerator {
+  name: string;
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
     private readonly path: string
-  ) { }
+  ) {
+    this.name = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text)) || '';
+  }
 
   public Generate(): Parameter {
-    const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
-
-    switch (decoratorName) {
+    switch (this.name) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
       case 'Body':
@@ -27,6 +28,7 @@ export class ParameterGenerator {
       case 'Path':
         return this.getPathParameter(this.parameter);
       default:
+        // dangerous action
         return this.getPathParameter(this.parameter);
     }
   }

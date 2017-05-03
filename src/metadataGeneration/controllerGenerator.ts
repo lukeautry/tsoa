@@ -36,17 +36,21 @@ export class ControllerGenerator {
   }
 
   private getControllerRouteValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'Route', '');
+    return this.getControllerDecoratorValue(node, ['Route', 'Controller', 'JsonController'], '');
   }
 
-  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string, defaultValue: string) {
+  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string | string[], defaultValue: string) {
     if (!node.decorators) { return undefined; }
 
     const matchedAttributes = node.decorators
       .map(d => d.expression as ts.CallExpression)
       .filter(expression => {
         const subExpression = expression.expression as ts.Identifier;
-        return subExpression.text === decoratorName;
+        let result = subExpression.text === decoratorName;
+        if ( decoratorName instanceof Array ) {
+          result = !!decoratorName.find( decoratorName => decoratorName === subExpression.text );
+        }
+        return result;
       });
 
     if (!matchedAttributes.length) { return undefined; }
