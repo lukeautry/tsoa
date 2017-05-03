@@ -78,7 +78,7 @@ export class SpecGenerator {
 
     this.metadata.Controllers.forEach(controller => {
       controller.methods.forEach(method => {
-        const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
+        const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`.replace(/\/\//g,'/');
         paths[path] = paths[path] || {};
         this.buildPathMethod(controller.name, method, paths[path]);
       });
