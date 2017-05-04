@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { Method, ResponseType, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
-import { getJSDocDescription, getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getDecorators } from './../utils/decoratorUtils';
 import { CustomParameterDecorator, DecoratorsSchema } from './acceptedDecoratorsSchema';
 
@@ -31,7 +31,7 @@ export class MethodGenerator {
 
     const result = {
       deprecated: isExistJSDocTag(this.node, 'deprecated'),
-      description: getJSDocDescription(this.node),
+      description: getJSDocTag(this.node, 'description'),
       method: this.method,
       name: identifier.text,
       parameters: this.buildParameters( this.decoratorsSchema.parameterDecorators ),
@@ -42,14 +42,13 @@ export class MethodGenerator {
       tags: this.getMethodTags(),
       type
     };
-    console.log('METHOD ', result.method);
     return result;
   }
 
   private buildParameters( acceptedParameterDecorators: CustomParameterDecorator[] ) {
     const parameters = this.node.parameters.map(p => {
       try {
-        return new ParameterGenerator(p, this.method, this.path);
+        return new ParameterGenerator(p, this.method, this.path, this.decoratorsSchema);
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
@@ -99,7 +98,7 @@ export class MethodGenerator {
   }
 
   private getMethodResponses(): ResponseType[] {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
+    const decorators = getDecorators(this.node, identifier => this.isAcceptMethodDecorator('Response', identifier.text) );
     if (!decorators || !decorators.length) { return []; }
 
     return decorators.map(decorator => {
@@ -131,7 +130,7 @@ export class MethodGenerator {
   }
 
   private getMethodSuccessResponse(type: Type): ResponseType {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
+    const decorators = getDecorators(this.node, identifier => this.isAcceptMethodDecorator('SuccessResponse', identifier.text));
     if (!decorators || !decorators.length) {
       return {
         description: type.typeName === 'void' ? 'No content' : 'Ok',
@@ -181,7 +180,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return /*['get', 'post', 'patch', 'delete', 'put']*/this.decoratorsSchema.methodDecorators.map( d => d.name ).some(m => m === method.toLowerCase());
+    return this.decoratorsSchema.methodDecorators.map( d => d.name ).some(m => m === method.toLowerCase());
   }
 
   private getExamplesValue(argument: any) {
@@ -193,7 +192,7 @@ export class MethodGenerator {
   }
 
   private getMethodTags() {
-    const tagsDecorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
+    const tagsDecorators = getDecorators(this.node, identifier => this.isAcceptMethodDecorator('Tags', identifier.text));
     if (!tagsDecorators || !tagsDecorators.length) { return []; }
     if (tagsDecorators.length > 1) {
       throw new Error(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -206,7 +205,7 @@ export class MethodGenerator {
   }
 
   private getMethodSecurity() {
-    const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
+    const securityDecorators = getDecorators(this.node, identifier => this.isAcceptMethodDecorator('Security', identifier.text));
     if (!securityDecorators || !securityDecorators.length) { return undefined; }
     if (securityDecorators.length > 1) {
       throw new Error(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -245,5 +244,11 @@ export class MethodGenerator {
       default:
         return undefined;
     }
+  }
+  private isAcceptMethodDecorator( key: string, decoratorName: string ) {
+    return this.decoratorsSchema.methodDecorators
+          .filter( d => d.tsoaDecorator === key)
+          .map( d => d.name )
+          .some( d => d === decoratorName );
   }
 }

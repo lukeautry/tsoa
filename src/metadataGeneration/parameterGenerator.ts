@@ -2,19 +2,27 @@ import { MetadataGenerator, Parameter, Type } from './metadataGenerator';
 import { ResolveType } from './resolveType';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import * as ts from 'typescript';
+import { DecoratorsSchema } from './acceptedDecoratorsSchema';
 
 export class ParameterGenerator {
   name: string;
+  toaDecorator: string;
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
-    private readonly path: string
+    private readonly path: string,
+    private readonly decoratorsSchema: DecoratorsSchema
   ) {
     this.name = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text)) || '';
+    let toaDecorator = this.decoratorsSchema.parameterDecorators.find( d => d.name === this.name );
+    this.toaDecorator = '';
+    if ( !!toaDecorator ) {
+      this.toaDecorator = toaDecorator.name;
+    }
   }
 
   public Generate(): Parameter {
-    switch (this.name) {
+    switch (this.toaDecorator) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
       case 'Body':
@@ -159,7 +167,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
+    return this.decoratorsSchema.parameterDecorators.map( d => d.name.toLocaleLowerCase() ).some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Type) {

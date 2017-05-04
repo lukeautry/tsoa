@@ -10,9 +10,9 @@ export function getJSDocDescription(node: ts.Node) {
 export function getJSDocTag(node: ts.Node, tagName: string) {
   const tags = getJSDocTags(node, tagName);
   if (!tags || !tags.length) {
-    return;
+    return '';
   }
-  return tags[0].comment;
+  return tags[0].comment || '';
 }
 
 export function isExistJSDocTag(node: ts.Node, tagName: string) {
