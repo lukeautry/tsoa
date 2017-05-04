@@ -97,7 +97,7 @@ yargs
   .command('swagger', 'Generate swagger spec', {
     basePath: basePathArgs as any,
     configuration: configurationArgs as any,
-    host: hostArgs as any
+    host: hostArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -107,9 +107,10 @@ yargs
       if (args.host) {
         config.swagger.host = args.host;
       }
-
+      let metadataGeneratorDecoratorSchema = config.decoratorsSchema;
       const swaggerConfig = validateSwaggerConfig(config.swagger);
-      const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
+
+      const metadata = new MetadataGenerator(swaggerConfig.entryFile, metadataGeneratorDecoratorSchema).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
     } catch (err) {
       console.error(err);
@@ -118,7 +119,7 @@ yargs
 
   .command('routes', 'Generate routes', {
     basePath: basePathArgs as any,
-    configuration: configurationArgs as any
+    configuration: configurationArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -127,12 +128,12 @@ yargs
       }
 
       const routesConfig = validateRoutesConfig(config.routes);
-      const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
+      let metadataGeneratorDecoratorSchema = config.decoratorsSchema;
+      const metadata = new MetadataGenerator(routesConfig.entryFile, metadataGeneratorDecoratorSchema).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
-      let pathTransformer;
-      let template;
-      pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
+      let pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
+      let template: string;
 
       switch (routesConfig.middleware) {
         case 'express':

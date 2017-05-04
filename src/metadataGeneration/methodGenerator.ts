@@ -4,13 +4,16 @@ import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 import { getJSDocDescription, getJSDocTag, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getDecorators } from './../utils/decoratorUtils';
+import { CustomParameterDecorator, DecoratorsSchema } from './acceptedDecoratorsSchema';
 
 export class MethodGenerator {
   private method: string;
   private path: string;
+  private decorators: any;
 
-  constructor(private readonly node: ts.MethodDeclaration) {
+  constructor(private readonly node: ts.MethodDeclaration, private readonly decoratorsSchema: DecoratorsSchema/* = ['Request',/!*'Body',*!/'BodyProp', 'Header', 'Query','Path']*/) {
     this.processMethodDecorators();
+    this.decorators = getDecorators(this.node, identifier => this.supportsPathMethod(identifier.text));
   }
 
   public IsValid() {
@@ -26,12 +29,12 @@ export class MethodGenerator {
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 
-    return {
+    const result = {
       deprecated: isExistJSDocTag(this.node, 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
       name: identifier.text,
-      parameters: this.buildParameters(),
+      parameters: this.buildParameters( this.decoratorsSchema.parameterDecorators ),
       path: this.path,
       responses,
       security: this.getMethodSecurity(),
@@ -39,10 +42,11 @@ export class MethodGenerator {
       tags: this.getMethodTags(),
       type
     };
+    console.log('METHOD ', result.method);
+    return result;
   }
 
-  private buildParameters() {
-    const acceptedDecorators = ['Request',/*'Body',*/'BodyProp', 'Header', 'Query','Path'];
+  private buildParameters( acceptedParameterDecorators: CustomParameterDecorator[] ) {
     const parameters = this.node.parameters.map(p => {
       try {
         return new ParameterGenerator(p, this.method, this.path);
@@ -53,7 +57,7 @@ export class MethodGenerator {
         throw new Error(`Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
       }
     }).filter(
-        paramDecorator => acceptedDecorators.indexOf(paramDecorator.name) >= 0
+        paramDecorator => !!acceptedParameterDecorators.find( d => d.name === paramDecorator.name )
     ).map( decoratorGenerator => decoratorGenerator.Generate() );
 
     const bodyParameters = parameters.filter(p => p.in === 'body');
@@ -87,6 +91,7 @@ export class MethodGenerator {
     const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
     this.method = decorator.text.toLowerCase();
+
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
@@ -176,7 +181,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['get', 'post', 'patch', 'delete', 'put'].some(m => m === method.toLowerCase());
+    return /*['get', 'post', 'patch', 'delete', 'put']*/this.decoratorsSchema.methodDecorators.map( d => d.name ).some(m => m === method.toLowerCase());
   }
 
   private getExamplesValue(argument: any) {

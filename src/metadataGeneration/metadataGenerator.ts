@@ -1,5 +1,7 @@
 import * as ts from 'typescript';
 import { ControllerGenerator } from './controllerGenerator';
+import { DecoratorsSchema } from './acceptedDecoratorsSchema';
+import { DEFAULT_DECORATORS_SCHEMA } from './defaultDecoratorsSchema';
 
 export class MetadataGenerator {
   public static current: MetadataGenerator;
@@ -11,7 +13,8 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string) {
+  constructor(entryFile: string, private acceptedDecoratorsSchema: DecoratorsSchema = DEFAULT_DECORATORS_SCHEMA) {
+
     this.program = ts.createProgram([entryFile], {});
     this.typeChecker = this.program.getTypeChecker();
     MetadataGenerator.current = this;
@@ -53,7 +56,7 @@ export class MetadataGenerator {
   private buildControllers() {
     return this.nodes
       .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
-      .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration))
+      .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this.acceptedDecoratorsSchema))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }

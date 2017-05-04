@@ -1,11 +1,12 @@
 import * as ts from 'typescript';
 import { Controller } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
+import { DecoratorsSchema } from './acceptedDecoratorsSchema';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
 
-  constructor(private readonly node: ts.ClassDeclaration) {
+  constructor(private readonly node: ts.ClassDeclaration, private readonly decoratorsSchema: DecoratorsSchema/* = ['Route', 'Controller', 'JsonController']*/) {
     this.pathValue = this.getControllerRouteValue(node);
   }
 
@@ -28,15 +29,17 @@ export class ControllerGenerator {
   }
 
   private buildMethods() {
+    if (!this.node.name) { throw new Error('Controller node doesn\'t have a valid name.'); }
+
     return this.node.members
       .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.decoratorsSchema))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
 
   private getControllerRouteValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, ['Route', 'Controller', 'JsonController'], '');
+    return this.getControllerDecoratorValue(node, this.decoratorsSchema.controllersDecorators.map( d => d.name ), '');
   }
 
   private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string | string[], defaultValue: string) {

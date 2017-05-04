@@ -1,3 +1,4 @@
+import { DecoratorsSchema } from './metadataGeneration/acceptedDecoratorsSchema';
 export interface Config {
   /**
   * Swagger generation configuration object
@@ -8,6 +9,8 @@ export interface Config {
   * Route generation configuration object
   */
   routes: RoutesConfig;
+
+  decoratorsSchema: DecoratorsSchema;
 }
 
 export interface SwaggerConfig {
