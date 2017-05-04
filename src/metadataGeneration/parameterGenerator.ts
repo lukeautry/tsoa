@@ -139,7 +139,7 @@ export class ParameterGenerator {
     if (!this.supportPathDataType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
-    if (!this.path.includes(`{${pathName}}`)) {
+    if (!this.path.includes(`${pathName}`)) {
       throw new Error(`Parameter '${parameterName}' can't macth in path: '${this.path}'`);
     }
 

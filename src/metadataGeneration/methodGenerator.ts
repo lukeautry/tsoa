@@ -35,7 +35,7 @@ export class MethodGenerator {
       method: this.method,
       name: identifier.text,
       parameters: this.buildParameters( this.decoratorsSchema.parameterDecorators ),
-      path: this.path,
+      path: this.path.replace(/:(\w+)(\/|$)/g, "{$1}$2"), // replace :param to {param}
       responses,
       security: this.getMethodSecurity(),
       summary: getJSDocTag(this.node, 'summary'),
