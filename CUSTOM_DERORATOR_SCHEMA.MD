@@ -1,4 +1,22 @@
 entry points
+```typescript
+
+/**
+ * @summary Write summary to swagger tag
+ * @description Write description to swagger tag
+ * 
+ */
+@CustomConrollerDirective/* <-- directive name */(Arguments/* <-- custom arguments */)
+// example
+@Conroller('/greeting')
+export class GreetingConroller {
+    @CustomMethodDirective/* <-- directive name */(Arguments/* <-- custom arguments */)
+    greeting(): swaggerType /* <-- type should be defined*/ {
+        ...
+        return result;
+    }
+}
+```
 1. Controller class 
     1. add a new tag
         1. Name <- class name
