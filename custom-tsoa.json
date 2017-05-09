@@ -47,6 +47,7 @@
         "routesDir": "./tests/fixtures/custom",
         "middleware": "express",
         "middlewareTemplate": "custom-tsoa-template.ts",
-        "authenticationModule": "./tests/fixtures/custom/authentication.ts"
+        "authenticationModule": "./tests/fixtures/custom/authentication.ts",
+        "uploadDirectory": "./uploads2"
     }
 }

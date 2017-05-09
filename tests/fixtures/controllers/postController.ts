@@ -1,8 +1,9 @@
 import { Route } from '../../../src/decorators/route';
-import { Body, Query } from '../../../src/decorators/parameter';
+import { Body, BodyProp, Query, UploadedFile, UploadedFiles } from '../../../src/decorators/parameter';
 import { Post, Patch } from '../../../src/decorators/methods';
 import { GenericRequest, TestModel, TestClassModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { File } from '../../../src/interfaces/file';
 
 @Route('PostTest')
 export class PostTestController {
@@ -52,5 +53,16 @@ export class PostTestController {
   @Post('GenericBody')
   public async getGenericRequest(@Body() genericReq: GenericRequest<TestModel>): Promise<TestModel> {
     return genericReq.value;
+  }
+
+  @Post('File')
+  public async postWithFile(@UploadedFile('someFile') aFile: File): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Post('ManyFilesAndFormFields')
+  public async postWithFiles(@UploadedFiles('someFiles') files: File[],
+                             @BodyProp('a') a: string, @BodyProp('c') c: string): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 }

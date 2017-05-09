@@ -121,4 +121,9 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * Directory to store file uploads
+   */
+  uploadDirectory?: string;
 }

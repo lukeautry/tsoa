@@ -20,6 +20,12 @@ import { set } from 'lodash';
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
+{{#if useFileUploads}}
+import * as fs from 'fs';
+import * as crypto from 'crypto';
+import * as path from 'path';
+import * as mkdirp from 'mkdirp';
+{{/if}}
 
 const models: any = {
   {{#each models}}
@@ -42,49 +48,83 @@ const models: any = {
   {{/each}}
 };
 
+interface Args {
+  [key: string]: {
+    in: string,
+    name: string,
+    required: boolean,
+    typeName: string,
+    enumMembers?: any[]
+  }
+}
+
 export function RegisterRoutes(server: hapi.Server) {
     {{#each controllers}}
     {{#each actions}}
         server.route({
             method: '{{method}}',
             path: '{{../../basePath}}/{{../path}}{{path}}',
-            config: { 
-                {{#if security}} 
+            config: {
+                {{#if uploadFile}}
+                payload: {
+                  output: 'stream',
+                  parse: true,
+                  allow: 'multipart/form-data'
+                },
+                {{else if uploadFiles}}
+                payload: {
+                  output: 'stream',
+                    parse: true,
+                    allow: 'multipart/form-data'
+                },
+                {{/if}}
+
                 pre: [
-                    { 
+                {{#if security}}
+                    {
                       method: authenticateMiddleware('{{security.name}}'
                               {{#if security.scopes.length}} 
                               , {{{json security.scopes}}}
                               {{/if}}
-                    )}
+                    )},
+                {{/if}}
+                {{#if uploadFile}}
+                    {
+                      method: fileUploadMiddleware('{{uploadFileName}}', false)
+                    }
+                {{/if}}
+                {{#if uploadFiles}}
+                    {
+                      method: fileUploadMiddleware('{{uploadFilesName}}', true)
+                    }
+                {{/if}}
                 ],
-                {{/if}} 
-                handler: (request: any, reply) => {
-                    const args = {
-                        {{#each parameters}}
-                            {{@key}}: {{{json this}}},
-                        {{/each}}
-                    };
+                handler: (request: any, reply: hapi.IReply) => {
+                  const args: Args = {
+                    {{#each parameters}}
+                    {{@key}}: {{{json this}}},
+                    {{/each}}
+                  };
 
-                    let validatedArgs: any[] = [];
-                    try {
-                        validatedArgs = getValidatedArgs(args, request);
-                    } catch (err) {
-                        return reply(err).code(err.status || 500);
-                    }
+                  let validatedArgs: any[] = [];
+                  try {
+                    validatedArgs = getValidatedArgs(args, request);
+                  } catch (err) {
+                    return reply(err).code(err.status || 500);
+                  }
 
-                    {{#if ../../iocModule}}
-                    const controller = iocContainer.get<{{../name}}>({{../name}});
-                    {{else}}
-                    const controller = new {{../name}}();
-                    {{/if}}
+                  {{#if ../../iocModule}}
+                  const controller = iocContainer.get<{{../name}}>({{../name}});
+                  {{else}}
+                  const controller = new {{../name}}();
+                  {{/if}}
 
-                    const promise = controller.{{name}}.apply(controller, validatedArgs);
-                    let statusCode = undefined;
-                    if (controller instanceof Controller) {
-                        statusCode = (controller as Controller).getStatus();
-                    }
-                    return promiseHandler(promise, statusCode, request, reply);
+                  const promise = controller.{{name}}.apply(controller, validatedArgs);
+                  let statusCode = undefined;
+                  if (controller instanceof Controller) {
+                    statusCode = (controller as Controller).getStatus();
+                  }
+                  return promiseHandler(promise, statusCode, request, reply);
                 }
             }
         });
@@ -100,6 +140,72 @@ export function RegisterRoutes(server: hapi.Server) {
             })
             .catch((error: any) => reply(error).code(error.status || 401));
       }
+    }
+    {{/if}}
+
+    {{#if useFileUploads}}
+    function fileUploadMiddleware(fieldname: string, multiple: boolean = false) {
+      return (request: hapi.Request, reply: hapi.IReply) => {
+        if (!request.payload[fieldname]) {
+          return reply(`${fieldname} is a required file(s).`).code(400);
+        }
+
+        const calculateFileInfo = (reqFile: any) => new Promise((resolve, reject) => {
+          const originalname = reqFile.hapi.filename;
+          const headers = reqFile.hapi.headers;
+          const contentTransferEncoding = headers['content-transfer-encoding'];
+          const encoding = contentTransferEncoding &&
+            contentTransferEncoding[0] &&
+            contentTransferEncoding[0].toLowerCase() || '7bit';
+          const mimetype = headers['content-type'] || 'text/plain';
+          const destination = '{{uploadDirectory}}';
+          const filename = crypto.pseudoRandomBytes(16).toString('hex');
+          const filePath = path.join(destination, filename);
+          return mkdirp(destination, err => {
+            if (err) {
+              return reject(err);
+            }
+            const file = fs.createWriteStream(filePath);
+
+            reqFile.pipe(file);
+
+            return reqFile.on('end', (err?: Error) => {
+              if (err) {
+                return reject(err);
+              }
+              return fs.stat(filePath, (err, stats) => {
+                return resolve({
+                  fieldname,
+                  originalname,
+                  encoding,
+                  mimetype,
+                  destination,
+                  filename,
+                  path: filePath,
+                  size: stats.size,
+                });
+              });
+            });
+          });
+        });
+
+        if (!multiple) {
+          return calculateFileInfo(request.payload[fieldname])
+            .then(fileMetadata => {
+              request.payload[fieldname] = fileMetadata;
+              return reply.continue();
+            })
+            .catch(err => reply(err.toString()).code(500));
+        } else {
+          const promises = request.payload[fieldname].map((reqFile: any) => calculateFileInfo(reqFile));
+          return Promise.all(promises)
+            .then(filesMetadata => {
+              request.payload[fieldname] = filesMetadata;
+              return reply.continue();
+            })
+            .catch(err => reply(err.toString()).code(500));
+        }
+      };
     }
     {{/if}}
 
@@ -122,14 +228,16 @@ export function RegisterRoutes(server: hapi.Server) {
             case 'request':
                 return request;
             case 'query':
-                return ValidateParam(args[key], request.query[name], models, name)
+                return ValidateParam(args[key], request.query[name], models, name);
             case 'path':
-                return ValidateParam(args[key], request.params[name], models, name)
+                return ValidateParam(args[key], request.params[name], models, name);
             case 'header':
                 return ValidateParam(args[key], request.headers[name], models, name);
             case 'body':
                 return ValidateParam(args[key], request.payload, models, name);
-             case 'body-prop':
+            case 'body-prop':
+                return ValidateParam(args[key], request.payload[name], models, name);
+            case 'formData':
                 return ValidateParam(args[key], request.payload[name], models, name);
             }
         });

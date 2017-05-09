@@ -13,6 +13,10 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { set } from 'lodash';
 import { hapiAuthentication } from './authentication';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
+import * as path from 'path';
+import * as mkdirp from 'mkdirp';
 
 const models: any = {
   "TestModel": {
@@ -158,13 +162,26 @@ const models: any = {
   },
 };
 
+interface Args {
+  [key: string]: {
+    in: string,
+    name: string,
+    required: boolean,
+    typeName: string,
+    enumMembers?: any[]
+  }
+}
+
 export function RegisterRoutes(server: hapi.Server) {
   server.route({
     method: 'put',
     path: '/v1/PutTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
@@ -190,8 +207,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'put',
     path: '/v1/PutTest/Location',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -216,8 +236,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'put',
     path: '/v1/PutTest/Multi',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -242,8 +265,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'put',
     path: '/v1/PutTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
@@ -269,8 +295,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
@@ -296,8 +325,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'patch',
     path: '/v1/PostTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
@@ -323,8 +355,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/WithClassModel',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestClassModel" },
         };
 
@@ -350,8 +385,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/Location',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -376,8 +414,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/Multi',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -402,8 +443,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
@@ -429,8 +473,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/WithBodyAndQueryParams',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
           query: { "in": "query", "name": "query", "required": true, "typeName": "string" },
         };
@@ -457,8 +504,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/PostTest/GenericBody',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           genericReq: { "in": "body", "name": "genericReq", "required": true, "typeName": "GenericRequestTestModel" },
         };
 
@@ -481,11 +531,92 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   });
   server.route({
+    method: 'post',
+    path: '/v1/PostTest/File',
+    config: {
+      payload: {
+        output: 'stream',
+        parse: true,
+        allow: 'multipart/form-data'
+      },
+
+      pre: [
+        {
+          method: fileUploadMiddleware('someFile', false)
+        }
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
+          aFile: { "in": "formData", "name": "someFile", "required": true, "typeName": "file" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new PostTestController();
+
+        const promise = controller.postWithFile.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/PostTest/ManyFilesAndFormFields',
+    config: {
+      payload: {
+        output: 'stream',
+        parse: true,
+        allow: 'multipart/form-data'
+      },
+
+      pre: [
+        {
+          method: fileUploadMiddleware('someFiles', true)
+        }
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
+          files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
+          a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
+          c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new PostTestController();
+
+        const promise = controller.postWithFiles.apply(controller, validatedArgs);
+        let statusCode = undefined;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'patch',
     path: '/v1/PatchTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
         };
 
@@ -511,8 +642,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'patch',
     path: '/v1/PatchTest/Location',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -537,8 +671,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'patch',
     path: '/v1/PatchTest/Multi',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -563,8 +700,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'patch',
     path: '/v1/PatchTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
         };
 
@@ -590,8 +730,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -616,8 +759,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/Current',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -642,8 +788,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/ClassModel',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -668,8 +817,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/Multi',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -694,8 +846,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
           stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
           booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
@@ -727,8 +882,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/ResponseWithUnionTypeProperty',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -753,8 +911,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/UnionTypeResponse',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -779,8 +940,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/Request',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
@@ -806,8 +970,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/DateParam',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           date: { "in": "query", "name": "date", "required": true, "typeName": "datetime" },
         };
 
@@ -833,8 +1000,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/ThrowsError',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -859,8 +1029,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/GeneratesTags',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -885,8 +1058,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/HandleBufferType',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           buffer: { "in": "query", "name": "buffer", "required": true, "typeName": "buffer" },
         };
 
@@ -912,8 +1088,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/GenericModel',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -938,8 +1117,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/GenericModelArray',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -964,8 +1146,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/GenericPrimitive',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -990,8 +1175,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/GetTest/GenericPrimitiveArray',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1016,8 +1204,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'delete',
     path: '/v1/DeleteTest',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1042,8 +1233,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'delete',
     path: '/v1/DeleteTest/Current',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1068,8 +1262,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'delete',
     path: '/v1/DeleteTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
           stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
           booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
@@ -1100,8 +1297,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/Get',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1126,8 +1326,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/MethodTest/Post',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1152,8 +1355,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'patch',
     path: '/v1/MethodTest/Patch',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1178,8 +1384,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'put',
     path: '/v1/MethodTest/Put',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1204,8 +1413,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'delete',
     path: '/v1/MethodTest/Delete',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1230,8 +1442,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/Description',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1256,8 +1471,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/Tags',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1282,8 +1500,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/MultiResponse',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1308,8 +1529,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/SuccessResponse',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1334,14 +1558,15 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/ApiSecurity',
     config: {
+
       pre: [
         {
           method: authenticateMiddleware('api_key'
           )
-        }
+        },
       ],
-      handler: (request: any, reply) => {
-        const args = {
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1366,15 +1591,16 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/OauthSecurity',
     config: {
+
       pre: [
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
           )
-        }
+        },
       ],
-      handler: (request: any, reply) => {
-        const args = {
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1399,8 +1625,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/DeprecatedMethod',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1425,8 +1654,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/MethodTest/SummaryMethod',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
         };
 
         let validatedArgs: any[] = [];
@@ -1451,8 +1683,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/ParameterTest/Query',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           firstname: { "in": "query", "name": "firstname", "required": true, "typeName": "string" },
           lastname: { "in": "query", "name": "last_name", "required": true, "typeName": "string" },
           age: { "in": "query", "name": "age", "required": true, "typeName": "integer" },
@@ -1483,8 +1718,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           firstname: { "in": "path", "name": "firstname", "required": true, "typeName": "string" },
           lastname: { "in": "path", "name": "last_name", "required": true, "typeName": "string" },
           age: { "in": "path", "name": "age", "required": true, "typeName": "integer" },
@@ -1515,8 +1753,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/ParameterTest/Header',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           firstname: { "in": "header", "name": "firstname", "required": true, "typeName": "string" },
           lastname: { "in": "header", "name": "last_name", "required": true, "typeName": "string" },
           age: { "in": "header", "name": "age", "required": true, "typeName": "integer" },
@@ -1547,8 +1788,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/ParameterTest/Request',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
@@ -1574,8 +1818,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/ParameterTest/Body',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           body: { "in": "body", "name": "body", "required": true, "typeName": "ParameterTestModel" },
         };
 
@@ -1601,8 +1848,11 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'post',
     path: '/v1/ParameterTest/BodyProps',
     config: {
-      handler: (request: any, reply) => {
-        const args = {
+
+      pre: [
+      ],
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           firstname: { "in": "body-prop", "name": "firstname", "required": true, "typeName": "string" },
           lastname: { "in": "body-prop", "name": "lastname", "required": true, "typeName": "string" },
           age: { "in": "body-prop", "name": "age", "required": true, "typeName": "integer" },
@@ -1633,14 +1883,15 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/SecurityTest',
     config: {
+
       pre: [
         {
           method: authenticateMiddleware('api_key'
           )
-        }
+        },
       ],
-      handler: (request: any, reply) => {
-        const args = {
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
@@ -1666,14 +1917,15 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/SecurityTest/Koa',
     config: {
+
       pre: [
         {
           method: authenticateMiddleware('api_key'
           )
-        }
+        },
       ],
-      handler: (request: any, reply) => {
-        const args = {
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
         };
 
@@ -1699,15 +1951,16 @@ export function RegisterRoutes(server: hapi.Server) {
     method: 'get',
     path: '/v1/SecurityTest/Oauth',
     config: {
+
       pre: [
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
           )
-        }
+        },
       ],
-      handler: (request: any, reply) => {
-        const args = {
+      handler: (request: any, reply: hapi.IReply) => {
+        const args: Args = {
           request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
@@ -1740,6 +1993,70 @@ export function RegisterRoutes(server: hapi.Server) {
     }
   }
 
+  function fileUploadMiddleware(fieldname: string, multiple: boolean = false) {
+    return (request: hapi.Request, reply: hapi.IReply) => {
+      if (!request.payload[fieldname]) {
+        return reply(`${fieldname} is a required file(s).`).code(400);
+      }
+
+      const calculateFileInfo = (reqFile: any) => new Promise((resolve, reject) => {
+        const originalname = reqFile.hapi.filename;
+        const headers = reqFile.hapi.headers;
+        const contentTransferEncoding = headers['content-transfer-encoding'];
+        const encoding = contentTransferEncoding &&
+          contentTransferEncoding[0] &&
+          contentTransferEncoding[0].toLowerCase() || '7bit';
+        const mimetype = headers['content-type'] || 'text/plain';
+        const destination = './upload2';
+        const filename = crypto.pseudoRandomBytes(16).toString('hex');
+        const filePath = path.join(destination, filename);
+        return mkdirp(destination, err => {
+          if (err) {
+            return reject(err);
+          }
+          const file = fs.createWriteStream(filePath);
+
+          reqFile.pipe(file);
+
+          return reqFile.on('end', (err?: Error) => {
+            if (err) {
+              return reject(err);
+            }
+            return fs.stat(filePath, (err, stats) => {
+              return resolve({
+                fieldname,
+                originalname,
+                encoding,
+                mimetype,
+                destination,
+                filename,
+                path: filePath,
+                size: stats.size,
+              });
+            });
+          });
+        });
+      });
+
+      if (!multiple) {
+        return calculateFileInfo(request.payload[fieldname])
+          .then(fileMetadata => {
+            request.payload[fieldname] = fileMetadata;
+            return reply.continue();
+          })
+          .catch(err => reply(err.toString()).code(500));
+      } else {
+        const promises = request.payload[fieldname].map((reqFile: any) => calculateFileInfo(reqFile));
+        return Promise.all(promises)
+          .then(filesMetadata => {
+            request.payload[fieldname] = filesMetadata;
+            return reply.continue();
+          })
+          .catch(err => reply(err.toString()).code(500));
+      }
+    };
+  }
+
   function promiseHandler(promise: any, statusCode: any, request: hapi.Request, reply: hapi.IReply) {
     return promise
       .then((data: any) => {
@@ -1759,14 +2076,16 @@ export function RegisterRoutes(server: hapi.Server) {
         case 'request':
           return request;
         case 'query':
-          return ValidateParam(args[key], request.query[name], models, name)
+          return ValidateParam(args[key], request.query[name], models, name);
         case 'path':
-          return ValidateParam(args[key], request.params[name], models, name)
+          return ValidateParam(args[key], request.params[name], models, name);
         case 'header':
           return ValidateParam(args[key], request.headers[name], models, name);
         case 'body':
           return ValidateParam(args[key], request.payload, models, name);
         case 'body-prop':
+          return ValidateParam(args[key], request.payload[name], models, name);
+        case 'formData':
           return ValidateParam(args[key], request.payload[name], models, name);
       }
     });

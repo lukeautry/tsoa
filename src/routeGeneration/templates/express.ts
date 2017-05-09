@@ -18,6 +18,12 @@ import { set } from 'lodash';
 {{#if authenticationModule}}
 import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
+{{#if useFileUploads}}
+import * as multer from 'multer';
+
+const upload = multer({dest: '{{uploadDirectory}}'});
+{{/if}}
+
 
 const models: any = {
   {{#each models}}
@@ -50,6 +56,12 @@ export function RegisterRoutes(app: any) {
                 ,{{{json security.scopes}}}
                 {{/if}}), 
             {{/if}} 
+            {{#if uploadFile}}
+            upload.single('{{uploadFileName}}'),
+            {{/if}}
+            {{#if uploadFiles}}
+            upload.array('{{uploadFilesName}}'),
+            {{/if}}
             function (request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
@@ -117,15 +129,23 @@ export function RegisterRoutes(app: any) {
             case 'request':
                 return request;
             case 'query':
-                return ValidateParam(args[key], request.query[name], models, name)
+                return ValidateParam(args[key], request.query[name], models, name);
             case 'path':
-                return ValidateParam(args[key], request.params[name], models, name)
+                return ValidateParam(args[key], request.params[name], models, name);
             case 'header':
                 return ValidateParam(args[key], request.header(name), models, name);
             case 'body':
                 return ValidateParam(args[key], request.body, models, name);
             case 'body-prop':
                 return ValidateParam(args[key], request.body[name], models, name);
+            case 'formData':
+                if (args[key].typeName === 'file') {
+                  return ValidateParam(args[key], request.file, models, name);
+                } else if (args[key].typeName === 'file[]') {
+                  return ValidateParam(args[key], request.files, models, name);
+                } else {
+                  return ValidateParam(args[key], request.body[name], models, name);
+                }
             }
         });
     }

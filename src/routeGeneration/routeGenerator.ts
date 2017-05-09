@@ -80,12 +80,19 @@ export class RouteGenerator {
               parameters[parameter.parameterName] = this.getParameterSchema(parameter);
             });
 
+            const uploadFileParameter = method.parameters.find(parameter => parameter.type.typeName === 'file');
+            const uploadFilesParameter = method.parameters.find(parameter => parameter.type.typeName === 'file[]');
+
             return {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters,
               path: pathTransformer(method.path),
-              security: method.security
+              security: method.security,
+              uploadFile: !!uploadFileParameter,
+              uploadFileName: uploadFileParameter && uploadFileParameter.name,
+              uploadFiles: !!uploadFilesParameter,
+              uploadFilesName: uploadFilesParameter && uploadFilesParameter.name,
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
@@ -96,6 +103,14 @@ export class RouteGenerator {
       environment: process.env,
       iocModule,
       models: this.getModels(),
+      uploadDirectory: this.options.uploadDirectory || './uploads',
+      useFileUploads: this.metadata.Controllers.some(
+        controller => controller.methods.some(
+          method => !!method.parameters.find(
+            parameter => parameter.type.typeName === 'file' || parameter.type.typeName === 'file[]'
+          )
+        )
+      ),
       useSecurity: this.metadata.Controllers.some(
         controller => controller.methods.some(methods => methods.security !== undefined)
       )

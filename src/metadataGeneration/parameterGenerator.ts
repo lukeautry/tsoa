@@ -26,6 +26,10 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'UploadedFile':
+        return this.getUploadedFileParameter(this.parameter);
+      case 'UploadedFiles':
+        return this.getUploadedFilesParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -143,6 +147,42 @@ export class ParameterGenerator {
     };
   }
 
+  private getUploadedFileParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = {typeName: 'file'};
+
+    if (!this.supportPathDataType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as an uploaded file parameter in '${this.getCurrentLocation()}'.`);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'UploadedFile') || parameterName,
+      required: true,
+      type,
+      parameterName
+    };
+  }
+
+  private getUploadedFilesParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = {typeName: 'file[]'};
+
+    if (!this.supportPathDataType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as an uploaded files parameter in '${this.getCurrentLocation()}'.`);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'UploadedFiles') || parameterName,
+      required: true,
+      type,
+      parameterName
+    };
+  }
+
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
 
@@ -157,11 +197,11 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request', 'uploadedfile', 'uploadedfiles'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Type) {
-    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum'].find(t => t === parameterType.typeName);
+    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'file', 'file[]'].find(t => t === parameterType.typeName);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {

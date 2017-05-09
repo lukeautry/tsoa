@@ -12,6 +12,8 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { set } from 'lodash';
 import { koaAuthentication } from './authentication';
+const multer = require('koa-multer');
+const upload = multer({ dest: './uploads' });
 
 const models: any = {
   "TestModel": {
@@ -448,6 +450,60 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new PostTestController();
 
       const promise = controller.getGenericRequest.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/PostTest/File',
+    upload.single('someFile'),
+    async (context, next) => {
+      const args = {
+        aFile: { "in": "formData", "name": "someFile", "required": true, "typeName": "file" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new PostTestController();
+
+      const promise = controller.postWithFile.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/PostTest/ManyFilesAndFormFields',
+    upload.array('someFiles'),
+    async (context, next) => {
+      const args = {
+        files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
+        a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
+        c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new PostTestController();
+
+      const promise = controller.postWithFiles.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -1628,22 +1684,31 @@ export function RegisterRoutes(router: KoaRouter) {
       });
   }
 
-  function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+  function getValidatedArgs(args: any, context: any): any[] {
     return Object.keys(args).map(key => {
       const name = args[key].name;
       switch (args[key].in) {
         case 'request':
           return context;
         case 'query':
-          return ValidateParam(args[key], context.request.query[name], models, name)
+          return ValidateParam(args[key], context.request.query[name], models, name);
         case 'path':
-          return ValidateParam(args[key], context.params[name], models, name)
+          return ValidateParam(args[key], context.params[name], models, name);
         case 'header':
           return ValidateParam(args[key], context.request.headers[name], models, name);
         case 'body':
           return ValidateParam(args[key], context.request.body, models, name);
         case 'body-prop':
-          return ValidateParam(args[key], context.request.body[name], models, name);
+          // When https://github.com/koa-modules/multer/pull/15 gets merged in, the conditional can be removed
+          return ValidateParam(args[key], context.request.body[name] || context.req.body[name], models, name);
+        case 'formData':
+          if (args[key].typeName === 'file') {
+            return ValidateParam(args[key], context.req.file, models, name);
+          } else if (args[key].typeName === 'file[]') {
+            return ValidateParam(args[key], context.req.files, models, name);
+          } else {
+            return ValidateParam(args[key], context.body[name], models, name);
+          }
       }
     });
   }

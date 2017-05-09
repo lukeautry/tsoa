@@ -310,6 +310,27 @@ describe('Hapi Server', () => {
         expect(model.id).to.equal(1);
       });
     });
+
+    it('can post a file', () => {
+      const formData = {someFile: '@./package.json'};
+      return verifyFileUploadRequest(basePath + '/PostTest/File', formData, (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    it('can post multiple files with other form fields', () => {
+      const formData = {
+        a: 'b',
+        c: 'd',
+        someFiles: ['@./package.json', '@./tslint.json']
+      };
+
+      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      });
+    });
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
@@ -318,6 +339,18 @@ describe('Hapi Server', () => {
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
+  }
+
+  function verifyFileUploadRequest(path: string, formData: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+    return verifyRequest(
+      verifyResponse,
+      request => Object.keys(formData).reduce((req, key) => {
+        const values = [].concat(formData[key]);
+        values.forEach((v: any) => v.startsWith('@') ? req.attach(key, v.slice(1)) : req.field(key, v));
+        return req;
+      }, request.post(path)),
+      expectedStatus
+    );
   }
 
   function verifyRequest(

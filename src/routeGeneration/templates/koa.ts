@@ -19,6 +19,10 @@ import { set } from 'lodash';
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
+{{#if useFileUploads}}
+const multer = require('koa-multer');
+const upload = multer({dest: '{{uploadDirectory}}'});
+{{/if}}
 
 const models: any = {
   {{#each models}}
@@ -51,7 +55,13 @@ export function RegisterRoutes(router: KoaRouter) {
               , {{{json security.scopes}}}
               {{/if}}
             ), 
-            {{/if}} 
+            {{/if}}
+            {{#if uploadFile}}
+            upload.single('{{uploadFileName}}'),
+            {{/if}}
+            {{#if uploadFiles}}
+            upload.array('{{uploadFilesName}}'),
+            {{/if}}
             async (context, next) => {
             const args = {
                 {{#each parameters}}
@@ -120,22 +130,31 @@ export function RegisterRoutes(router: KoaRouter) {
         });
     }
 
-    function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+    function getValidatedArgs(args: any, context: any): any[] {
         return Object.keys(args).map(key => {
             const name = args[key].name;
             switch (args[key].in) {
             case 'request':
                 return context;
             case 'query':
-                return ValidateParam(args[key], context.request.query[name], models, name)
+                return ValidateParam(args[key], context.request.query[name], models, name);
             case 'path':
-                return ValidateParam(args[key], context.params[name], models, name)
+                return ValidateParam(args[key], context.params[name], models, name);
             case 'header':
                 return ValidateParam(args[key], context.request.headers[name], models, name);
             case 'body':
                 return ValidateParam(args[key], context.request.body, models, name);
-            case 'body-prop':
-                return ValidateParam(args[key], context.request.body[name], models, name);
+              case 'body-prop':
+                // When https://github.com/koa-modules/multer/pull/15 gets merged in, the conditional can be removed
+                return ValidateParam(args[key], context.request.body[name] || context.req.body[name], models, name);
+            case 'formData':
+              if (args[key].typeName === 'file') {
+                return ValidateParam(args[key], context.req.file, models, name);
+              } else if (args[key].typeName === 'file[]') {
+                return ValidateParam(args[key], context.req.files, models, name);
+              } else {
+                return ValidateParam(args[key], context.body[name], models, name);
+              }
             }
         });
     }

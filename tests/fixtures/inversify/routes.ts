@@ -100,7 +100,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = iocContainer.get<ManagedController>(ManagedController);
 
-
       const promise = controller.getModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -108,7 +107,6 @@ export function RegisterRoutes(app: any) {
       }
       promiseHandler(promise, statusCode, response, next);
     });
-
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
     return promise
@@ -131,15 +129,23 @@ export function RegisterRoutes(app: any) {
         case 'request':
           return request;
         case 'query':
-          return ValidateParam(args[key], request.query[name], models, name)
+          return ValidateParam(args[key], request.query[name], models, name);
         case 'path':
-          return ValidateParam(args[key], request.params[name], models, name)
+          return ValidateParam(args[key], request.params[name], models, name);
         case 'header':
           return ValidateParam(args[key], request.header(name), models, name);
         case 'body':
           return ValidateParam(args[key], request.body, models, name);
         case 'body-prop':
           return ValidateParam(args[key], request.body[name], models, name);
+        case 'formData':
+          if (args[key].typeName === 'file') {
+            return ValidateParam(args[key], request.file, models, name);
+          } else if (args[key].typeName === 'file[]') {
+            return ValidateParam(args[key], request.files, models, name);
+          } else {
+            return ValidateParam(args[key], request.body[name], models, name);
+          }
       }
     });
   }

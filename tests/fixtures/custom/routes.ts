@@ -172,7 +172,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -194,7 +193,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -215,7 +213,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PutTestController();
-
 
       const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -239,7 +236,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putWithId.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -261,7 +257,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PostTestController();
-
 
       const promise = controller.postModel.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -285,7 +280,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.updateModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -308,7 +302,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postClassModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -329,7 +322,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PostTestController();
-
 
       const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -352,7 +344,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -374,7 +365,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PostTestController();
-
 
       const promise = controller.postWithId.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -399,7 +389,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -422,8 +411,53 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.getGenericRequest.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/File',
+    function(request: any, response: any, next: any) {
+      const args = {
+        aFile: { "in": "formData", "name": "someFile", "required": true, "typeName": "file" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+      const promise = controller.postWithFile.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/ManyFilesAndFormFields',
+    function(request: any, response: any, next: any) {
+      const args = {
+        files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
+        a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
+        c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+      const promise = controller.postWithFiles.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -444,7 +478,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PatchTestController();
-
 
       const promise = controller.patchModel.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -467,7 +500,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -488,7 +520,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new PatchTestController();
-
 
       const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -512,7 +543,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchWithId.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -533,7 +563,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getModel.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -556,7 +585,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getCurrentModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -578,7 +606,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getClassModel.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -599,7 +626,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getMultipleModels.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -629,7 +655,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -651,7 +676,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -672,7 +696,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -696,7 +719,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getRequest.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -719,7 +741,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getByDataParam.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -741,7 +762,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getThrowsError.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -762,7 +782,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -786,7 +805,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getBuffer.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -807,7 +825,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getGenericModel.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -830,7 +847,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -851,7 +867,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new GetTestController();
-
 
       const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -874,7 +889,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -896,7 +910,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new DeleteTestController();
 
-
       const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -917,7 +930,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new DeleteTestController();
-
 
       const promise = controller.deleteCurrent.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -946,7 +958,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new DeleteTestController();
 
-
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -967,7 +978,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.getMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -990,7 +1000,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.postMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1011,7 +1020,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.patchMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1034,7 +1042,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.putMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1055,7 +1062,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.deleteMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1078,7 +1084,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.description.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1099,7 +1104,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.tags.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1122,7 +1126,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.multiResponse.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1143,7 +1146,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.successResponse.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1167,7 +1169,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.apiSecurity.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1193,7 +1194,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.oauthSecurity.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1215,7 +1215,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1236,7 +1235,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new MethodController();
-
 
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1265,7 +1263,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getQuery.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1292,7 +1289,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new ParameterController();
-
 
       const promise = controller.getPath.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1321,7 +1317,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getHeader.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1344,7 +1339,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getRequest.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1366,7 +1360,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new ParameterController();
-
 
       const promise = controller.getBody.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1395,7 +1388,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1419,7 +1411,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new SecurityTestController();
-
 
       const promise = controller.GetWithApi.apply(controller, validatedArgs);
       let statusCode = undefined;
@@ -1445,7 +1436,6 @@ export function RegisterRoutes(app: any) {
 
       const controller = new SecurityTestController();
 
-
       const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
@@ -1470,7 +1460,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller = new SecurityTestController();
-
 
       const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
       let statusCode = undefined;

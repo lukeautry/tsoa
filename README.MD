@@ -156,6 +156,55 @@ Note that the parameter `request` does not appear in your swagger definition fil
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call. 
 
+### File Uploads
+
+To add file upload support to your route
+```typescript
+import {File, UploadedFile, UploadedFiles} from 'tsoa';
+
+@Route('SomeRoute')
+export class SomeController {
+    /**
+     * For single file uploads 
+     * curl \
+     *    -X POST \
+     *    -F "aFile=@/home/user1/Desktop/test.jpg" \
+     *    localhost/SomeRoute/Files
+     */
+    @Post('Files')
+    public async upload(@UploadedFile('aFile') file: File) {
+      // Do something with file..
+    }
+    // 
+    /**
+     * If posting multiple files e.g. 
+     * curl \
+     *    -X POST \
+     *    -F "aFile=@/home/user1/Desktop/test.jpg" \
+     *    -F "aFile=@/home/user1/Desktop/test2.jpg" \
+     *    localhost/SomeRoute/ManyFiles
+     */
+    @Post('Files')
+    public async upload(@UploadedFile('aFile') file: File[]) {
+      // Do something with files..
+    }
+}
+```
+
+To configure where uploads are stored, in your tsoa config:
+```json
+{
+  "swagger": ...,
+  "routes": {
+      "basePath": ...,
+      "entryFile": ...,
+      "routesDir": ...,
+      "middleware": ...,
+      "uploadDirectory": "/home/user/someUploadDirectory"
+  }
+}
+```
+
 ### Dependency injection / IOC
 
 By default all the controllers are created by the auto-generated routes template using an empty default constructor.
