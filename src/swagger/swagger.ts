@@ -41,6 +41,16 @@ export namespace Swagger {
     in: string;
     required?: boolean;
     description?: string;
+    maximum?: number;
+    exclusiveMaximum?: number;
+    minimum?: number;
+    exclusiveMinimum?: number;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
+    maxItems?: number;
+    minItems?: number;
+    uniqueItems?: boolean;
   }
 
   export interface BodyParameter extends BaseParameter {

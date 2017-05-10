@@ -167,6 +167,36 @@ describe('Definition generation', () => {
       expect(property).to.exist;
       expect(property.description).to.equal('This is a description for publicConstructorVar');
     });
+
+    it('should generate a property minLength', () => {
+      const propertyName = 'publicStringProperty';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+      expect(property.minLength).to.equal(3);
+    });
+
+    it('should generate a property maxLength', () => {
+      const propertyName = 'publicStringProperty';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+      expect(property.maxLength).to.equal(20);
+    });
+
+    it('should generate a property pattern', () => {
+      const propertyName = 'publicStringProperty';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+      expect(property.pattern).to.equal('[a-zA-Z]');
+    });
   });
 
   describe('Generic-based generation', () => {

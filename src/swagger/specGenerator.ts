@@ -59,10 +59,11 @@ export class SpecGenerator {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
+      const required = referenceType.properties.filter(p => p.required).map(p => p.name);
       definitions[referenceType.typeName] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
-        required: referenceType.properties.filter(p => p.required).map(p => p.name),
+        required: required && required.length > 0 ? required : undefined,
         type: 'object'
       };
       if (referenceType.additionalProperties) {
@@ -162,6 +163,15 @@ export class SpecGenerator {
 
     if (parameterType.format) { swaggerParameter.format = parameterType.format; }
 
+    swaggerParameter.minimum = parameter.minimum;
+    swaggerParameter.maximum = parameter.maximum;
+    swaggerParameter.minLength = parameter.minLength;
+    swaggerParameter.maxLength = parameter.maxLength;
+    swaggerParameter.pattern = parameter.pattern;
+    swaggerParameter.minItems = parameter.minItems;
+    swaggerParameter.maxItems = parameter.maxItems;
+    swaggerParameter.uniqueItems = parameter.uniqueItems;
+
     return swaggerParameter;
   }
 
@@ -172,6 +182,14 @@ export class SpecGenerator {
       const swaggerType = this.getSwaggerType(property.type);
       if (!swaggerType.$ref) {
         swaggerType.description = property.description;
+        swaggerType.minimum = property.minimum;
+        swaggerType.maximum = property.maximum;
+        swaggerType.minLength = property.minLength;
+        swaggerType.maxLength = property.maxLength;
+        swaggerType.pattern = property.pattern;
+        swaggerType.minItems = property.minItems;
+        swaggerType.maxItems = property.maxItems;
+        swaggerType.uniqueItems = property.uniqueItems;
       }
       swaggerProperties[property.name] = swaggerType;
     });

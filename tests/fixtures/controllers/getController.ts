@@ -6,6 +6,7 @@ import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
 import { GenericModel, TestModel, TestSubModel, TestClassModel } from '../testModel';
 import { Tags } from '../../../src/decorators/tags';
+import { IsString, IsDouble } from '../../../src/decorators/validations';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -60,11 +61,11 @@ export class GetTestController extends Controller {
   */
   @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
   public async getModelByParams(
-    numberPathParam: number,
-    stringPathParam: string,
+    @IsDouble({min: 2, max: 10}) numberPathParam: number,
+    @IsString({minLength: 1, maxLength: 5}) stringPathParam: string,
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
-    @Query() stringParam: string,
+    @IsString({minLength: 3, maxLength: 7}) @Query() stringParam: string,
     @Query() numberParam: number,
     @Query() optionalStringParam?: string): Promise<TestModel> {
     const model = new ModelService().getModel();

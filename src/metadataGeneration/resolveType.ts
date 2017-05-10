@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { MetadataGenerator, Type, EnumerateType, ReferenceType, ArrayType, Property } from './metadataGenerator';
-import { getDecoratorName } from './../utils/decoratorUtils';
+import { getDecoratorName, getDecoratorOptionValue } from './../utils/decoratorUtils';
 import * as _ from 'lodash';
 
 const syntaxKindMap: { [kind: number]: string } = {};
@@ -419,11 +419,24 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
 
       if (!declaration.type) { throw new Error('No valid type found for property declaration.'); }
 
+      const options = getDecoratorOptionValue(declaration, identify => {
+        return ['IsString', 'IsInt', 'IsLong', 'IsDouble', 'IsFloat', 'IsDate', 'IsDateTime', 'IsArray'].some(m => m === identify.text);
+      });
+
       return {
         description: getNodeDescription(declaration),
         name: identifier.text,
         required: !declaration.questionToken,
-        type: ResolveType(declaration.type)
+        type: ResolveType(declaration.type),
+        // tslint:disable-next-line:object-literal-sort-keys
+        maxLength: options && options.maxLength ? options.maxLength : undefined,
+        minLength: options && options.minLength ? options.minLength : undefined,
+        pattern: options && options.pattern ? options.pattern : undefined,
+        maximum: options && options.max ? options.max : undefined,
+        minimum: options && options.min ? options.min : undefined,
+        maxItems: options && options.maxItems ? options.maxItems : undefined,
+        minItems: options && options.minItems ? options.minItems : undefined,
+        uniqueItens: options && options.uniqueItens ? options.uniqueItens : undefined,
       };
     });
 }

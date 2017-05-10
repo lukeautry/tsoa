@@ -3,7 +3,7 @@ import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { VerifyPathableParameter } from '../../utilities/verifyParameter';
+import { VerifyPathableParameter, VerifyPathableNumberParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import * as chai from 'chai';
 
 const expect = chai.expect;
@@ -85,6 +85,24 @@ describe('GET route generation', () => {
     VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
     VerifyPathableParameter(parameters, 'numberParam', 'number', 'query', 'double');
     VerifyPathableParameter(parameters, 'stringParam', 'string', 'query');
+  });
+
+  it('should generate a parameter for path parameters with decorator', () => {
+    const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
+    const parameters = getValidatedParameters(actionRoute);
+
+    VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
+    VerifyPathableNumberParameter(parameters, 'numberPathParam', 'number', 'path', 'double', 2, 10);
+    VerifyPathableStringParameter(parameters, 'stringPathParam', 'string', 'path', 1, 5);
+  });
+
+  it('should generate a parameter for query parameters with decorator', () => {
+    const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
+    const parameters = getValidatedParameters(actionRoute);
+
+    VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
+    VerifyPathableParameter(parameters, 'numberParam', 'number', 'query', 'double');
+    VerifyPathableStringParameter(parameters, 'stringParam', 'string', 'query', 3, 7);
   });
 
   it('should set a valid response type for collection responses', () => {
