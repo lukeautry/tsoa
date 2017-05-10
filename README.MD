@@ -21,6 +21,91 @@
 - Minimize boilerplate
 - Models are best represented by interfaces (pure data structures), but can also be represented by classes
 
+## About this fork
+This fork extend default decorators, and fix some project problems
+
+tsoa config for [router-controllers project](https://github.com/pleerock/routing-controllers)
+tsoa.json
+```json
+{
+  "swagger": {
+  },
+  "routes": {
+    "basePath": "/api",
+    "entryFile": "./src/app.ts",
+    "routesDir": "./src/",
+    "middleware": "koa",
+    "middlewareTemplate": ""
+  },
+  "decoratorsSchema": {
+    "controllersDecorators": [
+      {
+        "name": "Route",
+        "tsoaDecorator": "Route"
+      },
+      {
+        "name": "Controller",
+        "tsoaDecorator": "Route"
+      },
+      {
+        "name": "JsonController",
+        "tsoaDecorator": "Route"
+      }
+    ],
+    "methodDecorators": [
+      {
+        "name": "get",
+        "tsoaDecorator": "get"
+      },
+      {
+        "name": "post",
+        "tsoaDecorator": "post"
+      },
+      {
+        "name": "patch",
+        "tsoaDecorator": "patch"
+      },
+      {
+        "name": "delete",
+        "tsoaDecorator": "delete"
+      },
+      {
+        "name": "put",
+        "tsoaDecorator": "put"
+      }
+    ],
+    "parameterDecorators": [
+      {
+        "name": "Request",
+        "tsoaDecorator": "Request"
+      },
+      {
+        "name": "Body",
+        "tsoaDecorator": "Body"
+      },
+      {
+        "name": "BodyProp",
+        "tsoaDecorator": "BodyProp"
+      },
+      {
+        "name": "Header",
+        "tsoaDecorator": "Header"
+      },
+      {
+        "name": "Query",
+        "tsoaDecorator": "Query"
+      },
+      {
+        "name": "Param",
+        "tsoaDecorator": "Path"
+      }
+    ]
+  }
+
+}
+```
+
+
 ## How it works
 
 ### Create Controllers
