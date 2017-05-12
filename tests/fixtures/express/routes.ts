@@ -449,8 +449,8 @@ export function RegisterRoutes(app: any) {
     function(request: any, response: any, next: any) {
       const args = {
         files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
-        a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
-        c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+        a: { "in": "formData", "name": "a", "required": true, "typeName": "string" },
+        c: { "in": "formData", "name": "c", "required": true, "typeName": "string" },
       };
 
       let validatedArgs: any[] = [];

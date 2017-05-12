@@ -586,8 +586,8 @@ export function RegisterRoutes(server: hapi.Server) {
       handler: (request: any, reply: hapi.IReply) => {
         const args: Args = {
           files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
-          a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
-          c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+          a: { "in": "formData", "name": "a", "required": true, "typeName": "string" },
+          c: { "in": "formData", "name": "c", "required": true, "typeName": "string" },
         };
 
         let validatedArgs: any[] = [];
@@ -2007,7 +2007,7 @@ export function RegisterRoutes(server: hapi.Server) {
           contentTransferEncoding[0] &&
           contentTransferEncoding[0].toLowerCase() || '7bit';
         const mimetype = headers['content-type'] || 'text/plain';
-        const destination = './upload2';
+        const destination = './uploads';
         const filename = crypto.pseudoRandomBytes(16).toString('hex');
         const filePath = path.join(destination, filename);
         return mkdirp(destination, err => {

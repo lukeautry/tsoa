@@ -488,8 +488,8 @@ export function RegisterRoutes(router: KoaRouter) {
     async (context, next) => {
       const args = {
         files: { "in": "formData", "name": "someFiles", "required": true, "typeName": "file[]" },
-        a: { "in": "body-prop", "name": "a", "required": true, "typeName": "string" },
-        c: { "in": "body-prop", "name": "c", "required": true, "typeName": "string" },
+        a: { "in": "formData", "name": "a", "required": true, "typeName": "string" },
+        c: { "in": "formData", "name": "c", "required": true, "typeName": "string" },
       };
 
       let validatedArgs: any[] = [];
@@ -1699,15 +1699,15 @@ export function RegisterRoutes(router: KoaRouter) {
         case 'body':
           return ValidateParam(args[key], context.request.body, models, name);
         case 'body-prop':
-          // When https://github.com/koa-modules/multer/pull/15 gets merged in, the conditional can be removed
-          return ValidateParam(args[key], context.request.body[name] || context.req.body[name], models, name);
+          return ValidateParam(args[key], context.request.body[name], models, name);
         case 'formData':
           if (args[key].typeName === 'file') {
             return ValidateParam(args[key], context.req.file, models, name);
           } else if (args[key].typeName === 'file[]') {
             return ValidateParam(args[key], context.req.files, models, name);
           } else {
-            return ValidateParam(args[key], context.body[name], models, name);
+            // When https://github.com/koa-modules/multer/pull/15 gets merged in, the conditional can be removed
+            return ValidateParam(args[key], context.request.body[name] || context.req.body[name], models, name);
           }
       }
     });

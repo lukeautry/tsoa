@@ -207,11 +207,19 @@ export class SpecGenerator {
       }
     });
 
-    return {
+    const operation: any = {
       operationId: this.getOperationId(controllerName, method.name),
       produces: ['application/json'],
       responses: responses
     };
+
+    const hasFormData = method.parameters.some(p => p.in === 'formData');
+
+    if (hasFormData) {
+      operation.consumes = ['multipart/form-data'];
+    }
+
+    return operation;
   }
 
   private getOperationId(controllerName: string, methodName: string) {

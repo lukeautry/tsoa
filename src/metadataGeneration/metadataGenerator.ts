@@ -101,7 +101,7 @@ export interface Security {
 
 export interface Type {
   typeName: string;
-};
+}
 
 export interface EnumerateType extends Type {
   enumMembers: string[];

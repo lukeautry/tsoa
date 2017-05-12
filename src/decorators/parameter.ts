@@ -66,3 +66,12 @@ export function UploadedFile(name?: string): any {
 export function UploadedFiles(name?: string): any {
   return () => { return; };
 };
+
+/**
+ * Inject uploaded files
+ *
+ * @param {string} [name] The name of the uploaded files parameter
+ */
+export function FormField(name?: string): any {
+  return () => { return; };
+};

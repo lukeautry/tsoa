@@ -160,7 +160,7 @@ In this case you should write your own custom template where you inject the need
 
 To add file upload support to your route
 ```typescript
-import {File, UploadedFile, UploadedFiles} from 'tsoa';
+import {File, UploadedFile, UploadedFiles, FormField } from 'tsoa';
 
 @Route('SomeRoute')
 export class SomeController {
@@ -175,7 +175,7 @@ export class SomeController {
     public async upload(@UploadedFile('aFile') file: File) {
       // Do something with file..
     }
-    // 
+    
     /**
      * If posting multiple files e.g. 
      * curl \
@@ -187,6 +187,18 @@ export class SomeController {
     @Post('Files')
     public async upload(@UploadedFile('aFile') file: File[]) {
       // Do something with files..
+    }
+    
+    /**
+         * For file uploads with form data 
+         * curl \
+         *    -X POST \
+         *    -F "aFile=@/home/user1/Desktop/test.jpg;description=w00t" \
+         *    localhost/SomeRoute/Files
+         */
+    @Post('Files')
+    public async upload(@UploadedFile('aFile') file: File, @FormField('description') desc: string) {
+      // Do something with file and desc..
     }
 }
 ```

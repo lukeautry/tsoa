@@ -3,6 +3,11 @@ import { ResolveType } from './resolveType';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import * as ts from 'typescript';
 
+const METHODS_SUPPORTING_BODY = ['post', 'put', 'patch'];
+const PARAMETER_DECORATORS = ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'uploadedfile', 'uploadedfiles', 'formfield'];
+const SUPPORTED_PARAMETER_TYPES = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer',
+  'boolean', 'enum', 'file', 'file[]'];
+
 export class ParameterGenerator {
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
@@ -30,6 +35,8 @@ export class ParameterGenerator {
         return this.getUploadedFileParameter(this.parameter);
       case 'UploadedFiles':
         return this.getUploadedFilesParameter(this.parameter);
+      case 'FormField':
+        return this.getFormFieldParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -93,7 +100,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
-    if (!this.supportPathDataType(type)) {
+    if (!this.supportParameterType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
     }
 
@@ -111,7 +118,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
-    if (!this.supportPathDataType(type)) {
+    if (!this.supportParameterType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
     }
 
@@ -130,11 +137,11 @@ export class ParameterGenerator {
     const type = this.getValidatedType(parameter);
     const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
 
-    if (!this.supportPathDataType(type)) {
+    if (!this.supportParameterType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
     if (!this.path.includes(`{${pathName}}`)) {
-      throw new Error(`Parameter '${parameterName}' can't macth in path: '${this.path}'`);
+      throw new Error(`Parameter '${parameterName}' can't match in path: '${this.path}'`);
     }
 
     return {
@@ -151,7 +158,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = {typeName: 'file'};
 
-    if (!this.supportPathDataType(type)) {
+    if (!this.supportParameterType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as an uploaded file parameter in '${this.getCurrentLocation()}'.`);
     }
 
@@ -169,7 +176,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = {typeName: 'file[]'};
 
-    if (!this.supportPathDataType(type)) {
+    if (!this.supportParameterType(type)) {
       throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as an uploaded files parameter in '${this.getCurrentLocation()}'.`);
     }
 
@@ -177,6 +184,24 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'formData',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'UploadedFiles') || parameterName,
+      required: true,
+      type,
+      parameterName
+    };
+  }
+
+  private getFormFieldParameter(parameter: ts.ParameterDeclaration): Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = {typeName: 'string'};
+
+    if (!this.supportParameterType(type)) {
+      throw new InvalidParameterException(`Parameter '${parameterName}:${type}' can't be passed as form field parameter in '${this.getCurrentLocation()}'.`);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'FormField') || parameterName,
       required: true,
       type,
       parameterName
@@ -193,15 +218,15 @@ export class ParameterGenerator {
   }
 
   private supportsBodyParameters(method: string) {
-    return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
+    return METHODS_SUPPORTING_BODY.some(m => m === method.toLowerCase());
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request', 'uploadedfile', 'uploadedfiles'].some(d => d === decoratorName.toLocaleLowerCase());
+    return PARAMETER_DECORATORS.some(d => d === decoratorName.toLocaleLowerCase());
   }
 
-  private supportPathDataType(parameterType: Type) {
-    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'file', 'file[]'].find(t => t === parameterType.typeName);
+  private supportParameterType(parameterType: Type) {
+    return SUPPORTED_PARAMETER_TYPES.find(t => t === parameterType.typeName);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {
