@@ -6,7 +6,7 @@ import { DecoratorsSchema } from './acceptedDecoratorsSchema';
 
 export class ParameterGenerator {
   name: string;
-  toaDecorator: string;
+  tsoaDecorator: string;
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
@@ -15,14 +15,15 @@ export class ParameterGenerator {
   ) {
     this.name = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text)) || '';
     let toaDecorator = this.decoratorsSchema.parameterDecorators.find( d => d.name === this.name );
-    this.toaDecorator = '';
+    this.tsoaDecorator = '';
     if ( !!toaDecorator ) {
-      this.toaDecorator = toaDecorator.name;
+
+      this.tsoaDecorator = toaDecorator.tsoaDecorator;
     }
   }
 
   public Generate(): Parameter {
-    switch (this.toaDecorator) {
+    switch (this.tsoaDecorator) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
       case 'Body':
@@ -37,7 +38,7 @@ export class ParameterGenerator {
         return this.getPathParameter(this.parameter);
       default:
         // dangerous action
-        return this.getPathParameter(this.parameter);
+        return this.getQueryParameter(this.parameter);
     }
   }
 
