@@ -115,8 +115,8 @@ export class RouteGenerator {
         name: key,
         properties
       };
-      if (referenceType.additionalProperties && referenceType.additionalProperties.length) {
-        templateModel.additionalProperties = referenceType.additionalProperties.map(property => this.getTemplateAdditionalProperty(property));
+      if (referenceType.additionalProperties) {
+        templateModel.additionalProperties = this.getTemplateAdditionalProperty(referenceType.additionalProperties);
       }
       return templateModel;
     });
@@ -158,6 +158,23 @@ export class RouteGenerator {
       typeName: source.type.typeName
     };
 
+    const arrayType = source.type as ArrayType;
+    if (arrayType.elementType) {
+      const arraySchema: ArraySchema = {
+        typeName: arrayType.elementType.typeName
+      };
+      const arrayEnumType = arrayType.elementType as EnumerateType;
+      if (arrayEnumType.enumMembers) {
+        arraySchema.enumMembers = arrayEnumType.enumMembers;
+      }
+      templateAdditionalProperty.array = arraySchema;
+    }
+
+    const enumType = source.type as EnumerateType;
+    if (enumType.enumMembers) {
+      templateAdditionalProperty.enumMembers = enumType.enumMembers;
+    }
+
     return templateAdditionalProperty;
   }
 
@@ -193,7 +210,7 @@ export class RouteGenerator {
 interface TemplateModel {
   name: string;
   properties: { [name: string]: PropertySchema };
-  additionalProperties?: TemplateAdditionalProperty[];
+  additionalProperties?: TemplateAdditionalProperty;
 }
 
 interface PropertySchema {
@@ -206,6 +223,8 @@ interface PropertySchema {
 
 interface TemplateAdditionalProperty {
   typeName: string;
+  array?: ArraySchema;
+  enumMembers?: string[];
 }
 
 export interface ArraySchema {

@@ -28,6 +28,9 @@ export interface TestModel extends Model {
   modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
   modelsObjectIndirectNS_Alias?: TestSubModelContainerNamespace_TestSubModelContainer;
   modelsObjectIndirectNS2_Alias?: TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2;
+
+  modelsArrayIndirect?: TestSubArrayModelContainer;
+  modelsEnumIndirect?: TestSubEnumModelContainer;
 }
 
 export enum EnumNumberValue {
@@ -44,6 +47,14 @@ export type StrLiteral = 'Foo' | 'Bar';
 
 export interface TestSubModelContainer {
   [key: string]: TestSubModel2;
+}
+
+export interface TestSubArrayModelContainer {
+  [key: string]: TestSubModel2[];
+}
+
+export interface TestSubEnumModelContainer {
+  [key: string]: EnumStringValue;
 }
 
 export namespace TestSubModelContainerNamespace {

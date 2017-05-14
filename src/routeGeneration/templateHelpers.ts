@@ -111,15 +111,7 @@ function validateModel(modelValue: any, typeName: string): any {
     }
     if (modelDefinition.additionalProperties) {
       Object.keys(modelValue).forEach((key: string) => {
-        let validatedValue = null;
-        for (const additionalProperty of modelDefinition.additionalProperties) {
-          try {
-            validatedValue = ValidateParam(additionalProperty, modelValue[key], models, key);
-            break;
-          } catch (err) {
-            continue;
-          }
-        }
+        const validatedValue = ValidateParam(modelDefinition.additionalProperties, modelValue[key], models, key);
         if (validatedValue) {
           modelValue[key] = validatedValue;
         } else {
