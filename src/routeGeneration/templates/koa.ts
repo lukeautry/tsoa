@@ -31,11 +31,7 @@ const models: any = {
       },
       {{/if}}
       {{#if additionalProperties}}
-      additionalProperties: [
-          {{#each additionalProperties}}
-          {typeName: '{{typeName}}'},
-          {{/each}}
-      ],
+      additionalProperties: {{{json additionalProperties}}},
       {{/if}}
   },
   {{/each}}

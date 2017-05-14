@@ -197,17 +197,8 @@ export class SpecGenerator {
     return swaggerProperties;
   }
 
-  private buildAdditionalProperties(properties: Property[]) {
-    const swaggerAdditionalProperties: { [ref: string]: string } = {};
-
-    properties.forEach(property => {
-      const swaggerType = this.getSwaggerType(property.type);
-      if (swaggerType.$ref) {
-        swaggerAdditionalProperties['$ref'] = swaggerType.$ref;
-      }
-    });
-
-    return swaggerAdditionalProperties;
+  private buildAdditionalProperties(property: Property) {
+    return this.getSwaggerType(property.type);
   }
 
   private buildOperation(controllerName: string, method: Method) {

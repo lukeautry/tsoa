@@ -190,7 +190,7 @@ function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): Re
       properties: properties,
       typeName: typeNameWithGenerics,
     };
-    if (additionalProperties && additionalProperties.length) {
+    if (additionalProperties) {
       referenceType.additionalProperties = additionalProperties;
     }
 
@@ -444,21 +444,23 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
 function getModelTypeAdditionalProperties(node: UsableDeclaration) {
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
-    return interfaceDeclaration.members
-      .filter(member => member.kind === ts.SyntaxKind.IndexSignature)
-      .map((member: any) => {
-        const indexSignatureDeclaration = member as ts.IndexSignatureDeclaration;
+    const indexMember = interfaceDeclaration.members.find((member) => member.kind === ts.SyntaxKind.IndexSignature);
+    if (!indexMember) {
+      return undefined;
+    }
 
-        const indexType = ResolveType(<ts.TypeNode>indexSignatureDeclaration.parameters[0].type);
-        if (indexType.typeName !== 'string') { throw new Error('Only string indexers are supported'); }
+    const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
+    const indexType = ResolveType(<ts.TypeNode>indexSignatureDeclaration.parameters[0].type);
+    if (indexType.typeName !== 'string') {
+      throw new Error('Only string indexers are supported');
+    }
 
-        return {
-          description: '',
-          name: '',
-          required: true,
-          type: ResolveType(<ts.TypeNode>indexSignatureDeclaration.type)
-        };
-      });
+    return {
+      description: '',
+      name: '',
+      required: true,
+      type: ResolveType(<ts.TypeNode>indexSignatureDeclaration.type)
+    };
   }
 
   return undefined;

@@ -36,6 +36,8 @@ const models: any = {
       "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
       "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+      "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
+      "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -57,9 +59,7 @@ const models: any = {
   "TestSubModelContainer": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModel2' },
-    ],
+    additionalProperties: { "typeName": "TestSubModel2" },
   },
   "TestSubModelNamespace.TestSubModelNS": {
     properties: {
@@ -72,24 +72,30 @@ const models: any = {
   "TestSubModelContainerNamespace.TestSubModelContainer": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
-    ],
+    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
-    ],
+    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace_TestSubModelContainer": {
     properties: {
-    },
+    }, 
   },
   "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
     properties: {
     },
+  },
+  "TestSubArrayModelContainer": {
+    properties: {
+    },
+    additionalProperties: { "typeName": "array", "array": { "typeName": "TestSubModel2" } },
+  },
+  "TestSubEnumModelContainer": {
+    properties: {
+    },
+    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
   "TestClassModel": {
     properties: {
