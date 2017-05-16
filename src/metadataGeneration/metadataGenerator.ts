@@ -11,8 +11,8 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string) {
-    this.program = ts.createProgram([entryFile], {});
+  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions) {
+    this.program = ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
     MetadataGenerator.current = this;
   }
