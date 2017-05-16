@@ -7,8 +7,10 @@ import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as PrettyError from 'pretty-error';
 
 const workingDir: string = process.cwd();
+const pe = new PrettyError();
 
 const getPackageJsonValue = (key: string): string => {
   try {
@@ -111,8 +113,11 @@ yargs
       const swaggerConfig = validateSwaggerConfig(config.swagger);
       const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
+
+      // tslint:disable-next-line:no-console
+      console.info('Generate swagger successful.');
     } catch (err) {
-      console.error(err);
+      console.error('Generate swagger error.\n', pe.render(err));
     }
   })
 
@@ -154,9 +159,10 @@ yargs
       }
 
       routeGenerator.GenerateCustomRoutes(template, pathTransformer);
-
+      // tslint:disable-next-line:no-console
+      console.info('Generate routes successful.');
     } catch (err) {
-      console.error(err);
+      console.error('Generate routes error.\n', pe.render(err));
     }
   })
 
