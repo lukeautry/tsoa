@@ -195,7 +195,7 @@ describe('Definition generation', () => {
       if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
 
       expect(property).to.exist;
-      expect(property.pattern).to.equal('[a-zA-Z]');
+      expect(property.pattern).to.equal('a-zA-Z');
     });
   });
 

@@ -1,6 +1,6 @@
 /* tslint:disable */
 import * as KoaRouter from 'koa-router';
-import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
@@ -100,8 +100,8 @@ const models: any = {
   },
   "TestClassModel": {
     properties: {
-      "publicStringProperty": { "required": true, "typeName": "string" },
-      "optionalPublicStringProperty": { "required": false, "typeName": "string" },
+      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "a-zA-Z" } } },
+      "optionalPublicStringProperty": { "required": false, "typeName": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
       "stringProperty": { "required": true, "typeName": "string" },
       "publicConstructorVar": { "required": true, "typeName": "string" },
       "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
@@ -149,7 +149,7 @@ const models: any = {
     properties: {
       "firstname": { "required": true, "typeName": "string" },
       "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer" },
+      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
       "weight": { "required": true, "typeName": "float" },
       "human": { "required": true, "typeName": "boolean" },
       "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
@@ -658,11 +658,11 @@ export function RegisterRoutes(router: KoaRouter) {
   router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
       const args = {
-        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
-        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
+        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
+        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
         booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
         booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
-        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
         numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
         optionalStringParam: { "in": "query", "name": "optionalStringParam", "required": false, "typeName": "string" },
       };
@@ -1635,22 +1635,28 @@ export function RegisterRoutes(router: KoaRouter) {
   }
 
   function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
-    return Object.keys(args).map(key => {
+    const errorFields: FieldErrors = {};
+    const values = Object.keys(args).map(key => {
       const name = args[key].name;
       switch (args[key].in) {
         case 'request':
           return context;
         case 'query':
-          return ValidateParam(args[key], context.request.query[name], models, name)
+          return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
         case 'path':
-          return ValidateParam(args[key], context.params[name], models, name)
+          return ValidateParam(args[key], context.params[name], models, name, errorFields)
         case 'header':
-          return ValidateParam(args[key], context.request.headers[name], models, name);
+          return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
         case 'body':
-          return ValidateParam(args[key], context.request.body, models, name);
+          return ValidateParam(args[key], context.request.body, models, name, errorFields);
         case 'body-prop':
-          return ValidateParam(args[key], context.request.body[name], models, name);
+          return ValidateParam(args[key], context.request.body[name], models, name, errorFields);
       }
     });
+    if (Object.keys(errorFields).length > 0) {
+      throw new ValidateError(errorFields, '');
+    }
+    return values;
   }
 }
+

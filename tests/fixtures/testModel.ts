@@ -1,4 +1,5 @@
-import { IsInt, IsFloat, IsString } from './../../src/decorators/validations';
+import { MinLength, MaxLength, Pattern, Minimum, Maximum } from './../../src/decorators/validations';
+import { IsInt, IsFloat } from './../../src/decorators/data-types';
 /**
  * This is a description of a model
  */
@@ -98,8 +99,12 @@ export interface UserResponseModel {
 export class ParameterTestModel {
   public firstname: string;
   public lastname: string;
-  @IsInt({min: 1, max: 10}) public age: number;
-  @IsFloat() public weight: number;
+  @IsInt()
+  @Minimum(1)
+  @Maximum(100)
+  public age: number;
+  @IsFloat()
+  public weight: number;
   public human: boolean;
   public gender: Gender;
 }
@@ -128,9 +133,12 @@ export class TestClassModel extends TestClassBaseModel {
   /**
   * This is a description of a public string property
   */
-  @IsString({minLength: 3, maxLength: 20, pattern: '[a-zA-Z]'})
+  @MinLength(3)
+  @MaxLength(20)
+  @Pattern('a-zA-Z')
   public publicStringProperty: string;
-  @IsString({minLength: 0, maxLength: 10})
+  @MinLength(0)
+  @MaxLength(10)
   public optionalPublicStringProperty?: string;
   /* tslint:disable-next-line */
   stringProperty: string;

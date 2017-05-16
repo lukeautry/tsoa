@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
-import { Controller } from './metadataGenerator';
+import { Controller } from './types';
 import { MethodGenerator } from './methodGenerator';
+import { GenerateMetadataError } from './exceptions';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
@@ -14,8 +15,8 @@ export class ControllerGenerator {
   }
 
   public Generate(): Controller {
-    if (!this.node.parent) { throw new Error('Controller node doesn\'t have a valid parent source file.'); }
-    if (!this.node.name) { throw new Error('Controller node doesn\'t have a valid name.'); }
+    if (!this.node.parent) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid parent source file.'); }
+    if (!this.node.name) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid name.'); }
 
     const sourceFile = this.node.parent.getSourceFile();
 
@@ -51,7 +52,7 @@ export class ControllerGenerator {
 
     if (!matchedAttributes.length) { return undefined; }
     if (matchedAttributes.length > 1) {
-      throw new Error(`A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
+      throw new GenerateMetadataError(this.node, `A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
     }
 
     const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;

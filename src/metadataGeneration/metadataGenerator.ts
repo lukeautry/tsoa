@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { ReferenceType, Metadata } from './types';
 import { ControllerGenerator } from './controllerGenerator';
 
 export class MetadataGenerator {
@@ -57,96 +58,4 @@ export class MetadataGenerator {
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
-}
-
-export interface Metadata {
-  Controllers: Controller[];
-  ReferenceTypes: { [typeName: string]: ReferenceType };
-}
-
-export interface Controller {
-  location: string;
-  methods: Method[];
-  name: string;
-  path: string;
-}
-
-export interface Method {
-  deprecated?: boolean;
-  description: string;
-  method: string;
-  name: string;
-  parameters: Parameter[];
-  path: string;
-  type: Type;
-  tags: string[];
-  responses: ResponseType[];
-  security?: Security;
-  summary?: string;
-}
-
-export interface Parameter {
-  parameterName: string;
-  description: string;
-  in: string;
-  name: string;
-  required: boolean;
-  type: Type;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  minimum?: number;
-  maximum?: number;
-  minItems?: number;
-  maxItems?: number;
-  uniqueItems?: boolean;
-  minDate?: Date;
-  maxDate?: Date;
-}
-
-export interface Security {
-  name: string;
-  scopes?: string[];
-}
-
-export interface Type {
-  typeName: string;
-};
-
-export interface EnumerateType extends Type {
-  enumMembers: string[];
-}
-
-export interface ReferenceType extends Type {
-  description: string;
-  properties: Property[];
-  additionalProperties?: Property;
-}
-
-export interface ArrayType extends Type {
-  elementType: Type;
-}
-
-export interface ResponseType {
-  description: string;
-  name: string;
-  schema?: Type;
-  examples?: any;
-}
-
-export interface Property {
-  description: string;
-  name: string;
-  type: Type;
-  required: boolean;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  minimum?: number;
-  maximum?: number;
-  minItems?: number;
-  maxItems?: number;
-  uniqueItems?: boolean;
-  minDate?: Date;
-  maxDate?: Date;
 }

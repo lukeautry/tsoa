@@ -1,5 +1,5 @@
 import { SwaggerConfig } from './../config';
-import { Metadata, Type, ArrayType, ReferenceType, EnumerateType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/metadataGenerator';
+import { Metadata, Type, ArrayType, ReferenceType, EnumerateType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/types';
 import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
@@ -163,15 +163,9 @@ export class SpecGenerator {
 
     if (parameterType.format) { swaggerParameter.format = parameterType.format; }
 
-    swaggerParameter.minimum = parameter.minimum;
-    swaggerParameter.maximum = parameter.maximum;
-    swaggerParameter.minLength = parameter.minLength;
-    swaggerParameter.maxLength = parameter.maxLength;
-    swaggerParameter.pattern = parameter.pattern;
-    swaggerParameter.minItems = parameter.minItems;
-    swaggerParameter.maxItems = parameter.maxItems;
-    swaggerParameter.uniqueItems = parameter.uniqueItems;
-
+    Object.keys(parameter.validators).forEach(key => {
+      swaggerParameter[key] = parameter.validators[key].value;
+    });
     return swaggerParameter;
   }
 
@@ -182,14 +176,10 @@ export class SpecGenerator {
       const swaggerType = this.getSwaggerType(property.type);
       if (!swaggerType.$ref) {
         swaggerType.description = property.description;
-        swaggerType.minimum = property.minimum;
-        swaggerType.maximum = property.maximum;
-        swaggerType.minLength = property.minLength;
-        swaggerType.maxLength = property.maxLength;
-        swaggerType.pattern = property.pattern;
-        swaggerType.minItems = property.minItems;
-        swaggerType.maxItems = property.maxItems;
-        swaggerType.uniqueItems = property.uniqueItems;
+
+        Object.keys(property.validators).forEach(key => {
+          (swaggerType as any)[key] = property.validators[key].value;
+        });
       }
       swaggerProperties[property.name] = swaggerType;
     });
@@ -197,29 +187,29 @@ export class SpecGenerator {
     return swaggerProperties;
   }
 
-  private buildAdditionalProperties(property: Property) {
-    return this.getSwaggerType(property.type);
+  private buildAdditionalProperties(type: Type) {
+    return this.getSwaggerType(type);
   }
 
   private buildOperation(controllerName: string, method: Method) {
-    const responses: any = {};
+    const swaggerResponses: any = {};
 
     method.responses.forEach((res: ResponseType) => {
-      responses[res.name] = {
+      swaggerResponses[res.name] = {
         description: res.description
       };
       if (res.schema && this.getSwaggerType(res.schema).type !== 'void') {
-        responses[res.name]['schema'] = this.getSwaggerType(res.schema);
+        swaggerResponses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
       if (res.examples) {
-        responses[res.name]['examples'] = { 'application/json': res.examples };
+        swaggerResponses[res.name]['examples'] = { 'application/json': res.examples };
       }
     });
 
     return {
       operationId: this.getOperationId(controllerName, method.name),
       produces: ['application/json'],
-      responses: responses
+      responses: swaggerResponses
     };
   }
 

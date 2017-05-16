@@ -92,8 +92,8 @@ describe('GET route generation', () => {
     const parameters = getValidatedParameters(actionRoute);
 
     VerifyPathableParameter(parameters, 'booleanPathParam', 'boolean', 'path');
-    VerifyPathableNumberParameter(parameters, 'numberPathParam', 'number', 'path', 'double', 2, 10);
-    VerifyPathableStringParameter(parameters, 'stringPathParam', 'string', 'path', 1, 5);
+    VerifyPathableNumberParameter(parameters, 'numberPathParam', 'number', 'path', 'double', 1, 10);
+    VerifyPathableStringParameter(parameters, 'stringPathParam', 'string', 'path', 1, 10);
   });
 
   it('should generate a parameter for query parameters with decorator', () => {
@@ -102,7 +102,7 @@ describe('GET route generation', () => {
 
     VerifyPathableParameter(parameters, 'booleanParam', 'boolean', 'query');
     VerifyPathableParameter(parameters, 'numberParam', 'number', 'query', 'double');
-    VerifyPathableStringParameter(parameters, 'stringParam', 'string', 'query', 3, 7);
+    VerifyPathableStringParameter(parameters, 'stringParam', 'string', 'query', 3, 10);
   });
 
   it('should set a valid response type for collection responses', () => {

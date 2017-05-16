@@ -1,5 +1,5 @@
 import { Request, Query, Path, Header, Body, BodyProp } from '../../../src/decorators/parameter';
-import { IsInt, IsFloat } from '../../../src/decorators/validations';
+import { IsInt, IsFloat } from '../../../src/decorators/data-types';
 import { Get, Post } from '../../../src/decorators/methods';
 import { Route } from '../../../src/decorators/route';
 import { ParameterTestModel, Gender } from '../testModel';

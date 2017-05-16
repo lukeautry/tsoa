@@ -1,5 +1,5 @@
 /* tslint:disable */
-import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
@@ -130,23 +130,31 @@ export function RegisterRoutes(app: any) {
       .catch((error: any) => next(error));
   }
 
+
   function getValidatedArgs(args: any, request: any): any[] {
-    return Object.keys(args).map(key => {
+    const fieldErrors: FieldErrors = {};
+    const values = Object.keys(args).map((key) => {
       const name = args[key].name;
       switch (args[key].in) {
         case 'request':
           return request;
         case 'query':
-          return ValidateParam(args[key], request.query[name], models, name)
+          return ValidateParam(args[key], request.query[name], models, name, fieldErrors);
         case 'path':
-          return ValidateParam(args[key], request.params[name], models, name)
+          return ValidateParam(args[key], request.params[name], models, name, fieldErrors);
         case 'header':
-          return ValidateParam(args[key], request.header(name), models, name);
+          return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name);
+          return ValidateParam(args[key], request.body, models, name, fieldErrors);
         case 'body-prop':
-          return ValidateParam(args[key], request.body[name], models, name);
+          return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
       }
     });
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new ValidateError(fieldErrors, '');
+    }
+    return values;
   }
 }
+
+

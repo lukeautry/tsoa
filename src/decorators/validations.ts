@@ -1,53 +1,47 @@
-export interface DateOption {
-  minDate?: Date;
-  maxDate?: Date;
-}
-
-export interface NumberOption {
-  min?: number;
-  max?: number;
-}
-
-export interface StringOption {
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-}
-
-export interface ArrayOption {
-  maxItems?: number;
-  minItems?: number;
-  uniqueItems?: boolean;
-}
-
-export function IsInt(options?: NumberOption): any {
+export function UniqueItems(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsLong(options?: NumberOption): any {
+export function MinItems(min: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsFloat(options?: NumberOption): any {
+export function MaxItems(max: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDouble(options?: NumberOption): any {
+export function Minimum(min: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDate(options?: DateOption): any {
+export function Maximum(max: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDateTime(options?: DateOption): any {
+export function MinLength(min: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsString(options?: StringOption): any {
+export function MaxLength(max: number, errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsArray(options?: ArrayOption): any {
+export function Pattern(pattern: string, errorMsg?: string): any {
+  return () => { return; };
+}
+
+/**
+ * date ISO 8601 format.
+ * ex. 2017-05-14, 2017-05-14 05:18Z, 2017-05-14T05:18Z
+ */
+export function MinDate(date: string, errorMsg?: string): any {
+  return () => { return; };
+}
+
+/**
+ * date ISO 8601 format.
+ * ex. 2017-05-14, 2017-05-14 05:18Z, 2017-05-14T05:18Z
+ */
+export function MaxDate(date: string, errorMsg?: string): any {
   return () => { return; };
 }

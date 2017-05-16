@@ -41,7 +41,8 @@ describe('Koa Server', () => {
 
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
-      expect(JSON.parse(err.text).message).to.equal(`'numberParam' is a required query parameter.`);
+      const body = JSON.parse(err.text);
+      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required query parameter.`);
     }, 400);
   });
 
@@ -122,7 +123,9 @@ describe('Koa Server', () => {
     data.dateValue = 1 as any;
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
-      expect(JSON.parse(err.text).message).to.equal('dateValue should be a valid ISO 8601 date, i.e. YYYY-MM-DDTHH:mm:ss');
+      const body = JSON.parse(err.text);
+      expect(body.fields.dateValue.message).to.equal('Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+      expect(body.fields.dateValue.value).to.equal(1);
     }, 400);
   });
 
