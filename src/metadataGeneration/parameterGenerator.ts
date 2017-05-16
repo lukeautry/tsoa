@@ -3,7 +3,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { Parameter, Type } from './types';
 import { ResolveType } from './resolveType';
 import { GenerateMetadataError } from './exceptions';
-import { getDecoratorName, getDecoratorTextValue, getDecoratorOptionValue } from './../utils/decoratorUtils';
+import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import { getValidators } from './../utils/validatorUtils';
 
 export class ParameterGenerator {
@@ -42,7 +42,7 @@ export class ParameterGenerator {
 
   private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'request',
       name: parameterName,
@@ -50,7 +50,7 @@ export class ParameterGenerator {
       type: { typeName: 'object' },
       parameterName,
       validators: getValidators(this.parameter),
-    });
+    };
   }
 
   private getBodyPropParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -61,7 +61,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Body can't support '${this.getCurrentLocation()}' method.`);
     }
 
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
@@ -69,7 +69,7 @@ export class ParameterGenerator {
       type: type,
       parameterName,
       validators: getValidators(this.parameter),
-    });
+    };
   }
 
   private getBodyParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -80,7 +80,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Body can't support ${this.method} method`);
     }
 
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
@@ -88,7 +88,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getValidators(this.parameter),
-    });
+    };
   }
 
   private getHeaderParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -99,7 +99,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
     }
 
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
@@ -107,7 +107,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getValidators(this.parameter),
-    });
+    } as Parameter;
   }
 
   private getQueryParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -118,7 +118,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
     }
 
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
@@ -126,7 +126,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getValidators(this.parameter),
-    });
+    } as Parameter;
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Parameter {
@@ -141,7 +141,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't macth in path: '${this.path}'`);
     }
 
-    return this.getDetailParameter({
+    return {
       description: this.getParameterDescription(parameter),
       in: 'path',
       name: pathName,
@@ -149,28 +149,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getValidators(this.parameter),
-    });
-  }
-
-  private getDetailParameter(parameter: Parameter): Parameter {
-    const options = getDecoratorOptionValue(this.parameter, identifier => {
-      return ['IsString', 'IsInt', 'IsLong', 'IsDouble', 'IsFloat', 'IsDate', 'IsDateTime', 'IsArray'].some(m => m === identifier.text);
-    });
-
-    return <Parameter>{
-      ...parameter,
-      maxLength: options && options.maxLength ? options.maxLength : undefined,
-      minLength: options && options.minLength ? options.minLength : undefined,
-      pattern: options && options.pattern ? options.pattern : undefined,
-      // tslint:disable-next-line:object-literal-sort-keys
-      maximum: options && options.max ? options.max : undefined,
-      minimum: options && options.min ? options.min : undefined,
-      maxDate: options && options.maxDate ? options.maxDate : undefined,
-      minDate: options && options.minDate ? options.minDate : undefined,
-      maxItems: options && options.maxItems ? options.maxItems : undefined,
-      minItems: options && options.minItems ? options.minItems : undefined,
-      uniqueItens: options && options.uniqueItens ? options.uniqueItens : undefined,
-    };
+    } as Parameter;
   }
 
   private getParameterDescription(node: ts.ParameterDeclaration) {

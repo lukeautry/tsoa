@@ -163,8 +163,10 @@ export class SpecGenerator {
 
     if (parameterType.format) { swaggerParameter.format = parameterType.format; }
 
-    Object.keys(parameter.validators).forEach(key => {
-      swaggerParameter[key] = parameter.validators[key].value;
+    Object.keys(parameter.validators).forEach((key: string) => {
+      if (!key.startsWith('is')) {
+        swaggerParameter[key] = parameter.validators[key].value;
+      }
     });
     return swaggerParameter;
   }

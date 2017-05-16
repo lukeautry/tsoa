@@ -17,7 +17,7 @@ export function getValidators(property: ts.Node): Validators {
             case 'UniqueItems':
                 previous[swaggerName] = {
                     errorMsg: getValidatorValue(expression.arguments, 0),
-                    value: true
+                    value: undefined,
                 };
                 break;
             case 'Minimum':
@@ -53,7 +53,15 @@ export function getValidators(property: ts.Node): Validators {
                     value: getValidatorValue(expression.arguments, 0),
                 };
                 break;
-            default: break;
+            default:
+                const errorMsg = getValidatorValue(expression.arguments, 0);
+                if (errorMsg) {
+                    previous[swaggerName] = {
+                        errorMsg,
+                        value: undefined,
+                    };
+                }
+                break;
         }
         return previous;
     }, {} as Validators);
@@ -65,5 +73,8 @@ function getValidatorValue(nodes: ts.NodeArray<ts.Expression>, index: number) {
 }
 
 function supportValidatorDecorator() {
-    return ['UniqueItems', 'MinItems', 'MaxItems', 'Minimum', 'Maximum', 'MinLength', 'MaxLength', 'Pattern', 'MinDate', 'MaxDate'];
+    return ['UniqueItems', 'MinItems', 'MaxItems', 'Minimum', 'Maximum',
+        'MinLength', 'MaxLength', 'Pattern', 'MinDate', 'MaxDate',
+        'IsInt', 'IsLong', 'IsFloat', 'IsDouble', 'IsDate', 'IsDateTime',
+        'IsString', 'IsArray', 'IsBoolean'];
 }

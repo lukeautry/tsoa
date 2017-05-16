@@ -75,15 +75,15 @@ export class RouteGenerator {
       controllers: this.metadata.Controllers.map(controller => {
         return {
           actions: controller.methods.map(method => {
-            const parameters: { [name: string]: PropertySchema } = {};
+            const parameterObjs: { [name: string]: ParameterSchema } = {};
             method.parameters.forEach(parameter => {
-              parameters[parameter.parameterName] = this.getParameterSchema(parameter);
+              parameterObjs[parameter.parameterName] = this.getParameterSchema(parameter);
             });
 
             return {
               method: method.method.toLowerCase(),
               name: method.name,
-              parameters,
+              parameters: parameterObjs,
               path: pathTransformer(method.path),
               security: method.security
             };
@@ -186,7 +186,7 @@ export class RouteGenerator {
     const parameterSchema: ParameterSchema = {
       in: source.in,
       name: source.name,
-      required: source.required,
+      required: source.required ? true : undefined,
       typeName: source.type.typeName
     };
 
@@ -245,7 +245,7 @@ interface ParameterSchema {
   name: string;
   in: string;
   typeName: string;
-  required: boolean;
+  required?: boolean;
   array?: ArraySchema;
   request?: boolean;
   enumMembers?: string[];

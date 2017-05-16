@@ -8,8 +8,17 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
 
   if (value === undefined || value === null) {
     if (schema.required) {
+      let message = `'${name}' is a required ${schema.in} parameter.`;
+      if (schema.validators) {
+        Object.keys(schema.validators).forEach((key: string) => {
+          if (key.startsWith('is')) {
+            message = schema.validators[key].errorMsg;
+          }
+        });
+      }
       fieldErrors[parent + name] = {
-        message: `'${name}' is a required ${schema.in} parameter.`
+        message,
+        value
       };
       return;
     } else {
@@ -45,8 +54,12 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
 
 function validateInt(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
   if (!validator.isInt(numberValue + '')) {
+    let message = 'Invalid float number.';
+    if (validators && (validators.isInt || validators.isLong) && (validators.isInt.errorMsg || validators.isLong.errorMsg)) {
+      message = validators.isInt.errorMsg || validators.isLong.errorMsg;
+    }
     fieldErrors[parent + name] = {
-      message: `Invalid integer number.`,
+      message,
       value: numberValue
     };
     return;
@@ -77,8 +90,12 @@ function validateInt(name: string, numberValue: string, fieldErrors: FieldErrors
 
 function validateFloat(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
   if (!validator.isFloat(numberValue + '')) {
+    let message = 'Invalid float number.';
+    if (validators && (validators.isFloat || validators.isDouble) && (validators.isFloat.errorMsg || validators.isDouble.errorMsg)) {
+      message = validators.isFloat.errorMsg || validators.isDouble.errorMsg;
+    }
     fieldErrors[parent + name] = {
-      message: 'Invalid float number.',
+      message,
       value: numberValue
     };
     return;
@@ -129,8 +146,9 @@ function validateEnum(name: string, enumValue: string, fieldErrors: FieldErrors,
 function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
   const validatedDate = moment(dateValue, 'YYYY-MM-DD', true);
   if (!validatedDate.isValid()) {
+    const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `Invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
     fieldErrors[parent + name] = {
-      message: `Invalid ISO 8601 date format, i.e. YYYY-MM-DD`,
+      message,
       value: dateValue
     };
     return;
@@ -164,9 +182,10 @@ function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors,
 function validateDateTime(name: string, datetimeValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
   const validatedDate = moment(datetimeValue, moment.ISO_8601, true);
   if (!validatedDate.isValid()) {
+    const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
     fieldErrors[parent + name] = {
-       message: `Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`,
-       value: datetimeValue
+      message,
+      value: datetimeValue
     };
     return;
   }
@@ -198,8 +217,9 @@ function validateDateTime(name: string, datetimeValue: string, fieldErrors: Fiel
 
 function validateString(name: string, stringValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
   if (typeof stringValue !== 'string') {
+    const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `Invalid string value.`;
     fieldErrors[parent + name] = {
-      message: `Invalid string value.`,
+      message,
       value: stringValue
     };
     return;
@@ -237,13 +257,14 @@ function validateString(name: string, stringValue: string, fieldErrors: FieldErr
   return value;
 }
 
-function validateBool(name: string, boolValue: any, fieldErrors: FieldErrors, parent = '') {
+function validateBool(name: string, boolValue: any, fieldErrors: FieldErrors, validators?: any, parent = '') {
   if (boolValue === true || boolValue === false) { return boolValue; }
   if (boolValue.toLowerCase() === 'true') { return true; }
   if (boolValue.toLowerCase() === 'false') { return false; }
 
+  const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `Invalid boolean value.`;
   fieldErrors[parent + name] = {
-    message: `Invalid boolean value`,
+    message,
     value: boolValue
   };
   return;
@@ -279,8 +300,9 @@ function validateModel(typeName: string, modelValue: any, fieldErrors: FieldErro
 
 function validateArray(name: string, arrayValue: any[], fieldErrors: FieldErrors, schema?: any, validators?: any, parent = '') {
   if (!schema) {
+    const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `Invalid array.`;
     fieldErrors[parent + name] = {
-      message: `Invalid array.`,
+      message,
       value: arrayValue
     };
     return;

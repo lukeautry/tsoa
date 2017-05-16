@@ -1,23 +1,35 @@
-export function IsInt(): any {
+export function IsInt(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsLong(): any {
+export function IsLong(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsFloat(): any {
+export function IsFloat(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDouble(): any {
+export function IsDouble(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDate(): any {
+export function IsDate(errorMsg?: string): any {
   return () => { return; };
 }
 
-export function IsDateTime(): any {
+export function IsDateTime(errorMsg?: string): any {
+  return () => { return; };
+}
+
+export function IsString(errorMsg?: string): any {
+  return () => { return; };
+}
+
+export function IsArray(errorMsg?: string): any {
+  return () => { return; };
+}
+
+export function IsBoolean(errorMsg?: string): any {
   return () => { return; };
 }

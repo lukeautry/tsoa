@@ -29,7 +29,7 @@ export interface Parameter {
   description: string;
   in: string;
   name: string;
-  required: boolean;
+  required?: boolean;
   type: Type;
   validators: Validators;
 }

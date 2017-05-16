@@ -621,9 +621,9 @@ export function RegisterRoutes(app: any) {
         stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
         booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
         booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
-        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string", "validators": { "isString": { "errorMsg": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
         numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
-        optionalStringParam: { "in": "query", "name": "optionalStringParam", "required": false, "typeName": "string" },
+        optionalStringParam: { "in": "query", "name": "optionalStringParam", "typeName": "string" },
       };
 
       let validatedArgs: any[] = [];

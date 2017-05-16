@@ -46,6 +46,13 @@ describe('Koa Server', () => {
     }, 400);
   });
 
+  it('returns error and custom error message', () => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&numberParam=1234`, (err: any, res: any) => {
+      const body = JSON.parse(err.text);
+      expect(body.fields.stringParam.message).to.equal(`Custom error message`);
+    }, 400);
+  });
+
   it('parsed body parameters', () => {
     const data = getFakeModel();
 

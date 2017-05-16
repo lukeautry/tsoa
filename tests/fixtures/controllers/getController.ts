@@ -6,7 +6,7 @@ import { ModelService } from '../services/modelService';
 import { Route } from '../../../src/decorators/route';
 import { GenericModel, TestModel, TestSubModel, TestClassModel } from '../testModel';
 import { Tags } from '../../../src/decorators/tags';
-import { IsDouble } from '../../../src/decorators/data-types';
+import { IsDouble, IsString } from '../../../src/decorators/data-types';
 import { Minimum, Maximum, MinLength, MaxLength } from '../../../src/decorators/validations';
 
 @Route('GetTest')
@@ -66,7 +66,7 @@ export class GetTestController extends Controller {
     @MinLength(1) @MaxLength(10) stringPathParam: string,
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
-    @MinLength(3) @MaxLength(10) @Query() stringParam: string,
+    @IsString('Custom error message')@MinLength(3) @MaxLength(10) @Query() stringParam: string,
     @Query() numberParam: number,
     @Query() optionalStringParam?: string): Promise<TestModel> {
     const model = new ModelService().getModel();
