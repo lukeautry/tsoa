@@ -1,13 +1,13 @@
-import { Route } from '../../../src/decorators/route';
-import { Body } from '../../../src/decorators/parameter';
-import { Put } from '../../../src/decorators/methods';
+import {
+  Route, Body, Put
+} from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
 @Route('PutTest')
 export class PutTestController {
   @Put()
-  public async putModel(@Body() model: TestModel): Promise<TestModel> {
+  public async putModel( @Body() model: TestModel): Promise<TestModel> {
     return new ModelService().getModel();
   }
 

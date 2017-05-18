@@ -1,6 +1,6 @@
 import 'mocha';
 import { server } from '../fixtures/hapi/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, Gender } from '../fixtures/testModel';
+import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, Gender, ValidateModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -163,6 +163,253 @@ describe('Hapi Server', () => {
     return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
       expect(JSON.parse(err.text).message).to.equal('error thrown');
     }, 400);
+  });
+
+  describe('Validate', () => {
+
+    it('should valid minDate and maxDate validation of date type', () => {
+      const minDate = '2019-01-01';
+      const maxDate = '2015-01-01';
+      return verifyGetRequest(basePath + `/Validate/parameter/date?minDateValue=${minDate}&maxDateValue=${maxDate}`, (err, res) => {
+        const { body } = res;
+        expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
+        expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
+      }, 200);
+    });
+
+    it('should invalid minDate and maxDate validation of date type', () => {
+      const date = '2017-01-01';
+      return verifyGetRequest(basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.minDateValue.message).to.equal('minDate 2018-01-01');
+        expect(body.fields.minDateValue.value).to.equal(date);
+        expect(body.fields.maxDateValue.message).to.equal('maxDate 2016-01-01');
+        expect(body.fields.maxDateValue.value).to.equal(date);
+      }, 400);
+    });
+
+    it('should valid minDate and maxDate validation of datetime type', () => {
+      const minDate = '2019-01-01T00:00:00';
+      const maxDate = '2015-01-01T00:00:00';
+      return verifyGetRequest(basePath + `/Validate/parameter/datetime?minDateValue=${minDate}&maxDateValue=${maxDate}`, (err, res) => {
+        const { body } = res;
+        expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
+        expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
+      }, 200);
+    });
+
+    it('should invalid minDate and maxDate validation of datetime type', () => {
+      const date = '2017-01-01T00:00:00';
+      return verifyGetRequest(basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.minDateValue.message).to.equal('minDate 2018-01-01T00:00:00');
+        expect(body.fields.minDateValue.value).to.equal(date);
+        expect(body.fields.maxDateValue.message).to.equal('maxDate 2016-01-01T00:00:00');
+        expect(body.fields.maxDateValue.value).to.equal(date);
+      }, 400);
+    });
+
+    it('should valid max and min validation of long type', () => {
+      return verifyGetRequest(basePath + `/Validate/parameter/long?minValue=6&maxValue=2`, (err, res) => {
+        const { body } = res;
+        expect(body.minValue).to.equal(6);
+        expect(body.maxValue).to.equal(2);
+      }, 200);
+    });
+
+    it('should invalid max and min validation of long type', () => {
+      const value = 4;
+      return verifyGetRequest(basePath + `/Validate/parameter/long?minValue=${value}&maxValue=${value}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.minValue.message).to.equal('min 5');
+        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.maxValue.message).to.equal('max 3');
+        expect(body.fields.maxValue.value).to.equal(value);
+      }, 400);
+    });
+
+    it('should valid max and min validation of double type', () => {
+      return verifyGetRequest(basePath + `/Validate/parameter/double?minValue=5.6&maxValue=3.4`, (err, res) => {
+        const { body } = res;
+        expect(body.minValue).to.equal(5.6);
+        expect(body.maxValue).to.equal(3.4);
+      }, 200);
+    });
+
+    it('should invalid max and min validation of double type', () => {
+      const value = 4.5;
+      return verifyGetRequest(basePath + `/Validate/parameter/double?minValue=${value}&maxValue=${value}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.minValue.message).to.equal('min 5.5');
+        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.maxValue.message).to.equal('max 3.5');
+        expect(body.fields.maxValue.value).to.equal(value);
+      }, 400);
+    });
+
+    it('should valid validation of boolean type', () => {
+      return verifyGetRequest(basePath + `/Validate/parameter/boolean?boolValue=true`, (err, res) => {
+        const { body } = res;
+        expect(body.boolValue).to.equal(true);
+      }, 200);
+    });
+
+    it('should invalid validation of boolean type', () => {
+      const value = 'true0001';
+      return verifyGetRequest(basePath + `/Validate/parameter/boolean?boolValue=${value}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.boolValue.message).to.equal('Invalid boolean value.');
+        expect(body.fields.boolValue.value).to.equal(value);
+      }, 400);
+    });
+
+    it('should valid minLength, maxLength and pattern validation of string type', () => {
+      return verifyGetRequest(basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf`, (err, res) => {
+        const { body } = res;
+
+        expect(body.minLength).to.equal('abcdef');
+        expect(body.maxLength).to.equal('ab');
+        expect(body.patternValue).to.equal('aBcDf');
+      }, 200);
+    });
+
+    it('should invalid minLength, maxLength and pattern validation of string type', () => {
+      const value = '1234';
+      return verifyGetRequest(basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}`, (err, res) => {
+        const body = JSON.parse(err.text);
+
+        expect(body.fields.minLength.message).to.equal('minLength 5');
+        expect(body.fields.minLength.value).to.equal(value);
+        expect(body.fields.maxLength.message).to.equal('maxLength 3');
+        expect(body.fields.maxLength.value).to.equal(value);
+        expect(body.fields.patternValue.message).to.equal('Not match in \'^[a-zA-Z]+$\'.');
+        expect(body.fields.patternValue.value).to.equal(value);
+      }, 400);
+    });
+
+    it('should valid model validate', () => {
+      const bodyModel = new ValidateModel();
+      bodyModel.floatValue = 1.20;
+      bodyModel.doubleValue = 1.20;
+      bodyModel.intValue = 120;
+      bodyModel.longValue = 120;
+      bodyModel.booleanValue = true;
+      bodyModel.arrayValue = [0, 2];
+      bodyModel.dateValue = new Date('2017-01-01');
+      bodyModel.datetimeValue = new Date('2017-01-01T00:00:00');
+
+      bodyModel.numberMax10 = 10;
+      bodyModel.numberMin5 = 5;
+      bodyModel.stringMax10Lenght = 'abcdef';
+      bodyModel.stringMin5Lenght = 'abcdef';
+      bodyModel.stringPatternAZaz = 'aBcD';
+
+      bodyModel.arrayMax5Item = [0, 1, 2, 3];
+      bodyModel.arrayMin2Item = [0, 1];
+      bodyModel.arrayUniqueItem = [0, 1, 2, 3];
+
+      return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
+        const { body } = res;
+
+        expect(body.floatValue).to.equal(bodyModel.floatValue);
+        expect(body.doubleValue).to.equal(bodyModel.doubleValue);
+        expect(body.intValue).to.equal(bodyModel.intValue);
+        expect(body.longValue).to.equal(bodyModel.longValue);
+        expect(body.booleanValue).to.equal(bodyModel.booleanValue);
+        expect(body.arrayValue).to.deep.equal(bodyModel.arrayValue);
+
+        expect(new Date(body.dateValue)).to.deep.equal(new Date(bodyModel.dateValue));
+        expect(new Date(body.datetimeValue)).to.deep.equal(new Date(bodyModel.datetimeValue));
+
+        expect(body.numberMax10).to.equal(bodyModel.numberMax10);
+        expect(body.numberMin5).to.equal(bodyModel.numberMin5);
+        expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
+        expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
+        expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+
+        expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
+        expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
+        expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
+      }, 200);
+    });
+
+    it('should invalid model validate', () => {
+      const bodyModel = new ValidateModel();
+      bodyModel.floatValue = '120a' as any;
+      bodyModel.doubleValue = '120a' as any;
+      bodyModel.intValue = 1.20;
+      bodyModel.longValue = 1.20;
+      bodyModel.booleanValue = 'abc' as any;
+      bodyModel.arrayValue = 'abc' as any;
+      bodyModel.dateValue = 'abc' as any;
+      bodyModel.datetimeValue = 'abc' as any;
+
+      bodyModel.numberMax10 = 20;
+      bodyModel.numberMin5 = 0;
+      bodyModel.stringMax10Lenght = 'abcdefghijk';
+      bodyModel.stringMin5Lenght = 'abcd';
+      bodyModel.stringPatternAZaz = 'ab01234';
+
+      bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
+      bodyModel.arrayMin2Item = [0];
+      bodyModel.arrayUniqueItem = [0, 0, 1, 1];
+
+      return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
+        const body = JSON.parse(err.text);
+
+        expect(body.fields.floatValue.message).to.equal('Invalid float number.');
+        expect(body.fields.floatValue.value).to.equal(bodyModel.floatValue);
+        expect(body.fields.doubleValue.message).to.equal('Invalid float number.');
+        expect(body.fields.doubleValue.value).to.equal(bodyModel.doubleValue);
+        expect(body.fields.intValue.message).to.equal('Invalid integer number.');
+        expect(body.fields.intValue.value).to.equal(bodyModel.intValue);
+        expect(body.fields.longValue.message).to.equal('Custom Required long number.');
+        expect(body.fields.longValue.value).to.equal(bodyModel.longValue);
+        expect(body.fields.booleanValue.message).to.equal('Invalid boolean value.');
+        expect(body.fields.booleanValue.value).to.equal(bodyModel.booleanValue);
+        expect(body.fields.arrayValue.message).to.equal('Invalid array.');
+        expect(body.fields.arrayValue.value).to.equal(bodyModel.arrayValue);
+
+        expect(body.fields.dateValue.message).to.equal('Invalid ISO 8601 date format, i.e. YYYY-MM-DD');
+        expect(body.fields.dateValue.value).to.equal(bodyModel.dateValue);
+        expect(body.fields.datetimeValue.message).to.equal('Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+        expect(body.fields.datetimeValue.value).to.equal(bodyModel.datetimeValue);
+
+        expect(body.fields.numberMax10.message).to.equal('max 10');
+        expect(body.fields.numberMax10.value).to.equal(bodyModel.numberMax10);
+        expect(body.fields.numberMin5.message).to.equal('min 5');
+        expect(body.fields.numberMin5.value).to.equal(bodyModel.numberMin5);
+        expect(body.fields.stringMax10Lenght.message).to.equal('maxLength 10');
+        expect(body.fields.stringMax10Lenght.value).to.equal(bodyModel.stringMax10Lenght);
+        expect(body.fields.stringMin5Lenght.message).to.equal('minLength 5');
+        expect(body.fields.stringMin5Lenght.value).to.equal(bodyModel.stringMin5Lenght);
+        expect(body.fields.stringPatternAZaz.message).to.equal('Not match in \'^[a-zA-Z]+$\'.');
+        expect(body.fields.stringPatternAZaz.value).to.equal(bodyModel.stringPatternAZaz);
+
+        expect(body.fields.arrayMax5Item.message).to.equal('maxItems 5');
+        expect(body.fields.arrayMax5Item.value).to.deep.equal(bodyModel.arrayMax5Item);
+        expect(body.fields.arrayMin2Item.message).to.equal('minItems 2');
+        expect(body.fields.arrayMin2Item.value).to.deep.equal(bodyModel.arrayMin2Item);
+        expect(body.fields.arrayUniqueItem.message).to.equal('Required unique array.');
+        expect(body.fields.arrayUniqueItem.value).to.deep.equal(bodyModel.arrayUniqueItem);
+      }, 400);
+    });
+
+    it('should custom required error message', () => {
+      return verifyGetRequest(basePath + `/Validate/parameter/customRequiredErrorMsg`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.longValue.message).to.equal('Required long number.');
+      }, 400);
+    });
+
+    it('should custom invalid datatype error message', () => {
+      const value = '112ab';
+      return verifyGetRequest(basePath + `/Validate/parameter/customInvalidErrorMsg?longValue=${value}`, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.longValue.message).to.equal('Invalid long number.');
+      }, 400);
+    });
+
   });
 
   describe('Security', () => {

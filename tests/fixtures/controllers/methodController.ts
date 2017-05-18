@@ -1,9 +1,16 @@
-import { Get, Post, Patch, Put, Delete } from '../../../src/decorators/methods';
-import { Route } from '../../../src/decorators/route';
-import { Response, SuccessResponse } from '../../../src/decorators/response';
-import { Controller } from '../../../src/interfaces/controller';
-import { Tags } from '../../../src/decorators/tags';
-import { Security } from '../../../src/decorators/security';
+import {
+    Get,
+    Post,
+    Patch,
+    Put,
+    Delete,
+    Route,
+    Response,
+    SuccessResponse,
+    Controller,
+    Tags,
+    Security
+} from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestModel, ErrorResponseModel } from '../testModel';
 

@@ -99,7 +99,7 @@ const models: any = {
   },
   "TestClassModel": {
     properties: {
-      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "a-zA-Z" } } },
+      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "required": false, "typeName": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
       "stringProperty": { "required": true, "typeName": "string" },
       "publicConstructorVar": { "required": true, "typeName": "string" },

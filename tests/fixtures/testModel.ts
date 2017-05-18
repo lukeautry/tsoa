@@ -1,5 +1,5 @@
-import { MinLength, MaxLength, Pattern, Minimum, Maximum } from './../../src/decorators/validations';
-import { IsInt, IsFloat } from './../../src/decorators/data-types';
+import { MinLength, MaxLength, MinItems, MaxItems, Pattern, Minimum, Maximum, UniqueItems } from './../../src/decorators/validations';
+import { IsInt, IsFloat, IsDouble, IsLong, IsArray, IsDate, IsDateTime, IsBoolean } from './../../src/decorators/data-types';
 /**
  * This is a description of a model
  */
@@ -109,6 +109,47 @@ export class ParameterTestModel {
   public gender: Gender;
 }
 
+export class ValidateCustomErrorModel {
+
+}
+
+export class ValidateModel {
+  @IsFloat()
+  public floatValue: number;
+  @IsDouble()
+  public doubleValue: number;
+  @IsInt()
+  public intValue: number;
+  @IsLong('Custom Required long number.')
+  public longValue: number;
+  @IsBoolean()
+  public booleanValue: boolean;
+  @IsArray()
+  public arrayValue: number[];
+  @IsDate()
+  public dateValue: Date;
+  @IsDateTime()
+  public datetimeValue: Date;
+
+  @Maximum(10)
+  public numberMax10: number;
+  @Minimum(5)
+  public numberMin5: number;
+  @MaxLength(10)
+  public stringMax10Lenght: string;
+  @MinLength(5)
+  public stringMin5Lenght: string;
+  @Pattern('^[a-zA-Z]+$')
+  public stringPatternAZaz: string;
+
+  @MaxItems(5)
+  public arrayMax5Item: number[];
+  @MinItems(2)
+  public arrayMin2Item: number[];
+  @UniqueItems()
+  public arrayUniqueItem: number[];
+}
+
 export enum Gender {
   MALE = <any>'MALE', FEMALE = <any>'FEMALE'
 }
@@ -135,7 +176,7 @@ export class TestClassModel extends TestClassBaseModel {
   */
   @MinLength(3)
   @MaxLength(20)
-  @Pattern('a-zA-Z')
+  @Pattern('^[a-zA-Z]+$')
   public publicStringProperty: string;
   @MinLength(0)
   @MaxLength(10)

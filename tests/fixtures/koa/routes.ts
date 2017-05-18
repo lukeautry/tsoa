@@ -10,6 +10,7 @@ import { DeleteTestController } from './../controllers/deleteController';
 import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
+import { ValidateController } from './../controllers/validateController';
 import { set } from 'lodash';
 import { koaAuthentication } from './authentication';
 
@@ -100,7 +101,7 @@ const models: any = {
   },
   "TestClassModel": {
     properties: {
-      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "a-zA-Z" } } },
+      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "required": false, "typeName": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
       "stringProperty": { "required": true, "typeName": "string" },
       "publicConstructorVar": { "required": true, "typeName": "string" },
@@ -159,6 +160,50 @@ const models: any = {
     properties: {
       "id": { "required": true, "typeName": "double" },
       "name": { "required": true, "typeName": "string" },
+    },
+  },
+  "ValidateDateResponse": {
+    properties: {
+      "minDateValue": { "required": true, "typeName": "datetime" },
+      "maxDateValue": { "required": true, "typeName": "datetime" },
+    },
+  },
+  "ValidateNumberResponse": {
+    properties: {
+      "minValue": { "required": true, "typeName": "double" },
+      "maxValue": { "required": true, "typeName": "double" },
+    },
+  },
+  "ValidateBooleanResponse": {
+    properties: {
+      "boolValue": { "required": true, "typeName": "boolean" },
+    },
+  },
+  "ValidateStringResponse": {
+    properties: {
+      "minLength": { "required": true, "typeName": "string" },
+      "maxLength": { "required": true, "typeName": "string" },
+      "patternValue": { "required": true, "typeName": "string" },
+    },
+  },
+  "ValidateModel": {
+    properties: {
+      "floatValue": { "required": true, "typeName": "float" },
+      "doubleValue": { "required": true, "typeName": "double" },
+      "intValue": { "required": true, "typeName": "integer" },
+      "longValue": { "required": true, "typeName": "long", "validators": { "isLong": { "errorMsg": "Custom Required long number." } } },
+      "booleanValue": { "required": true, "typeName": "boolean" },
+      "arrayValue": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
+      "dateValue": { "required": true, "typeName": "date" },
+      "datetimeValue": { "required": true, "typeName": "datetime" },
+      "numberMax10": { "required": true, "typeName": "double", "validators": { "maximum": { "value": 10 } } },
+      "numberMin5": { "required": true, "typeName": "double", "validators": { "minimum": { "value": 5 } } },
+      "stringMax10Lenght": { "required": true, "typeName": "string", "validators": { "maxLength": { "value": 10 } } },
+      "stringMin5Lenght": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 5 } } },
+      "stringPatternAZaz": { "required": true, "typeName": "string", "validators": { "pattern": { "value": "^[a-zA-Z]+$" } } },
+      "arrayMax5Item": { "required": true, "typeName": "array", "validators": { "maxItems": { "value": 5 } }, "array": { "typeName": "double" } },
+      "arrayMin2Item": { "required": true, "typeName": "array", "validators": { "minItems": { "value": 2 } }, "array": { "typeName": "double" } },
+      "arrayUniqueItem": { "required": true, "typeName": "array", "validators": { "uniqueItems": {} }, "array": { "typeName": "double" } },
     },
   },
 };
@@ -1593,6 +1638,237 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new SecurityTestController();
 
       const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/date',
+    async (context, next) => {
+      const args = {
+        minDateValue: { "in": "query", "name": "minDateValue", "required": true, "typeName": "datetime", "validators": { "minDate": { "value": "2018-01-01" } } },
+        maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "typeName": "datetime", "validators": { "maxDate": { "value": "2016-01-01" } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.dateValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/datetime',
+    async (context, next) => {
+      const args = {
+        minDateValue: { "in": "query", "name": "minDateValue", "required": true, "typeName": "datetime", "validators": { "minDate": { "value": "2018-01-01T00:00:00" } } },
+        maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "typeName": "datetime", "validators": { "maxDate": { "value": "2016-01-01T00:00:00" } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.dateTimeValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/long',
+    async (context, next) => {
+      const args = {
+        minValue: { "in": "query", "name": "minValue", "required": true, "typeName": "long", "validators": { "minimum": { "value": 5 } } },
+        maxValue: { "in": "query", "name": "maxValue", "required": true, "typeName": "long", "validators": { "maximum": { "value": 3 } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.longValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/double',
+    async (context, next) => {
+      const args = {
+        minValue: { "in": "query", "name": "minValue", "typeName": "double", "validators": { "minimum": { "value": 5.5 } } },
+        maxValue: { "in": "query", "name": "maxValue", "typeName": "double", "validators": { "maximum": { "value": 3.5 } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.doubleValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/boolean',
+    async (context, next) => {
+      const args = {
+        boolValue: { "in": "query", "name": "boolValue", "required": true, "typeName": "boolean" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.booleanValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/string',
+    async (context, next) => {
+      const args = {
+        minLength: { "in": "query", "name": "minLength", "required": true, "typeName": "string", "validators": { "minLength": { "value": 5 } } },
+        maxLength: { "in": "query", "name": "maxLength", "required": true, "typeName": "string", "validators": { "maxLength": { "value": 3 } } },
+        patternValue: { "in": "query", "name": "patternValue", "required": true, "typeName": "string", "validators": { "pattern": { "value": "^[a-zA-Z]+$" } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.stringValidate.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/customRequiredErrorMsg',
+    async (context, next) => {
+      const args = {
+        longValue: { "in": "query", "name": "longValue", "required": true, "typeName": "long", "validators": { "isLong": { "errorMsg": "Required long number." } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.customRequiredErrorMsg.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Validate/parameter/customInvalidErrorMsg',
+    async (context, next) => {
+      const args = {
+        longValue: { "in": "query", "name": "longValue", "required": true, "typeName": "long", "validators": { "isLong": { "errorMsg": "Invalid long number." } } },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.customInvalidErrorMsg.apply(controller, validatedArgs);
+      let statusCode = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.post('/v1/Validate/body',
+    async (context, next) => {
+      const args = {
+        body: { "in": "body", "name": "body", "required": true, "typeName": "ValidateModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ValidateController();
+
+      const promise = controller.bodyValidate.apply(controller, validatedArgs);
       let statusCode = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
