@@ -1,5 +1,5 @@
 /* tslint:disable */
-import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
@@ -28,6 +28,8 @@ const models: any = {
       "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
       "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+      "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
+      "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -49,9 +51,7 @@ const models: any = {
   "TestSubModelContainer": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModel2' },
-    ],
+    additionalProperties: { "typeName": "TestSubModel2" },
   },
   "TestSubModelNamespace.TestSubModelNS": {
     properties: {
@@ -64,16 +64,12 @@ const models: any = {
   "TestSubModelContainerNamespace.TestSubModelContainer": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
-    ],
+    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
     properties: {
     },
-    additionalProperties: [
-      { typeName: 'TestSubModelNamespace.TestSubModelNS' },
-    ],
+    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace_TestSubModelContainer": {
     properties: {
@@ -82,6 +78,16 @@ const models: any = {
   "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
     properties: {
     },
+  },
+  "TestSubArrayModelContainer": {
+    properties: {
+    },
+    additionalProperties: { "typeName": "array", "array": { "typeName": "TestSubModel2" } },
+  },
+  "TestSubEnumModelContainer": {
+    properties: {
+    },
+    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
 };
 
@@ -102,7 +108,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode = undefined;
+      let statusCode: any;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
       }
@@ -124,23 +130,31 @@ export function RegisterRoutes(app: any) {
       .catch((error: any) => next(error));
   }
 
+
   function getValidatedArgs(args: any, request: any): any[] {
-    return Object.keys(args).map(key => {
+    const fieldErrors: FieldErrors = {};
+    const values = Object.keys(args).map((key) => {
       const name = args[key].name;
       switch (args[key].in) {
         case 'request':
           return request;
         case 'query':
-          return ValidateParam(args[key], request.query[name], models, name)
+          return ValidateParam(args[key], request.query[name], models, name, fieldErrors);
         case 'path':
-          return ValidateParam(args[key], request.params[name], models, name)
+          return ValidateParam(args[key], request.params[name], models, name, fieldErrors);
         case 'header':
-          return ValidateParam(args[key], request.header(name), models, name);
+          return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name);
+          return ValidateParam(args[key], request.body, models, name, fieldErrors);
         case 'body-prop':
-          return ValidateParam(args[key], request.body[name], models, name);
+          return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
       }
     });
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new ValidateError(fieldErrors, '');
+    }
+    return values;
   }
 }
+
+

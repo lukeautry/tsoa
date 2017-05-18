@@ -1,7 +1,14 @@
-import { Request, Query, Path, Header, Body, BodyProp } from '../../../src/decorators/parameter';
-import { IsInt, IsFloat } from '../../../src/decorators/validations';
-import { Get, Post } from '../../../src/decorators/methods';
-import { Route } from '../../../src/decorators/route';
+import {
+    Request,
+    Query,
+    Path,
+    Header,
+    Body,
+    BodyProp,
+    Get,
+    Post,
+    Route
+} from '../../../src';
 import { ParameterTestModel, Gender } from '../testModel';
 
 @Route('ParameterTest')
@@ -15,13 +22,16 @@ export class ParameterController {
      * @param {number} weight Weight description
      * @param {boolean} human Human description
      * @param {Gender} gender Gender description
+     *
+     * @isInt age
+     * @isFloat weight
      */
     @Get('Query')
     public async getQuery(
         @Query() firstname: string,
         @Query('last_name') lastname: string,
-        @Query() @IsInt() age: number,
-        @Query() @IsFloat() weight: number,
+        @Query() age: number,
+        @Query() weight: number,
         @Query() human: boolean,
         @Query() gender: Gender
         ): Promise<ParameterTestModel> {
@@ -44,13 +54,16 @@ export class ParameterController {
      * @param {number} weight Weight description
      * @param {boolean} human Human description
      * @param {Gender} gender Gender description
+     *
+     * @isInt age
+     * @isFloat weight
      */
     @Get('Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}')
     public async getPath(
         firstname: string,
         @Path('last_name') lastname: string,
-        @Path() @IsInt() age: number,
-        @Path() @IsFloat() weight: number,
+        @Path() age: number,
+        @Path() weight: number,
         @Path() human: boolean,
         @Path() gender: Gender
         ): Promise<ParameterTestModel> {
@@ -73,13 +86,16 @@ export class ParameterController {
      * @param {number} weight Weight description
      * @param {boolean} human Human description
      * @param {Gender} gender Gender description
+     *
+     * @isInt age
+     * @isFloat weight
      */
     @Get('Header')
     public async getHeader(
         @Header() firstname: string,
         @Header('last_name') lastname: string,
-        @Header() @IsInt() age: number,
-        @Header() @IsFloat() weight: number,
+        @Header() age: number,
+        @Header() weight: number,
         @Header() human: boolean,
         @Header() gender: Gender
         ): Promise<ParameterTestModel> {
@@ -134,13 +150,16 @@ export class ParameterController {
      * @param {number} weight weight description
      * @param {boolean} human human description
      * @param {Gender} gender Gender description
+     *
+     * @isInt age
+     * @isFloat weight
      */
     @Post('BodyProps')
     public async getBodyProps(
         @BodyProp('firstname') firstname: string,
         @BodyProp('lastname') lastname: string,
-        @BodyProp('age') @IsInt() age: number,
-        @BodyProp('weight') @IsFloat() weight: number,
+        @BodyProp('age') age: number,
+        @BodyProp('weight') weight: number,
         @BodyProp('human') human: boolean,
         @BodyProp('gender') gender: Gender): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({

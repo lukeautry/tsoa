@@ -2,12 +2,16 @@
     "compilerOptions": {
         "outDir": "dist",
         "sourceMap": true,
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "module": "commonjs",
         "target": "es5",
         "lib": [
             "es6",
             "dom"
+        ],
+        "typeRoots": [
+            "node_modules/@types",
+            "./typings"
         ],
         "experimentalDecorators": true,
         "declaration": true,

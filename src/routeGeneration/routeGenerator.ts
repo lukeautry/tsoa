@@ -1,4 +1,4 @@
-import { Metadata, ArrayType, EnumerateType, Parameter, Property } from '../metadataGeneration/metadataGenerator';
+import { Metadata, ArrayType, EnumerateType, Parameter, Property, Validators, Type } from '../metadataGeneration/types';
 import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
@@ -75,15 +75,15 @@ export class RouteGenerator {
       controllers: this.metadata.Controllers.map(controller => {
         return {
           actions: controller.methods.map(method => {
-            const parameters: { [name: string]: PropertySchema } = {};
+            const parameterObjs: { [name: string]: ParameterSchema } = {};
             method.parameters.forEach(parameter => {
-              parameters[parameter.parameterName] = this.getParameterSchema(parameter);
+              parameterObjs[parameter.parameterName] = this.getParameterSchema(parameter);
             });
 
             return {
               method: method.method.toLowerCase(),
               name: method.name,
-              parameters,
+              parameters: parameterObjs,
               path: pathTransformer(method.path),
               security: method.security
             };
@@ -102,7 +102,7 @@ export class RouteGenerator {
     });
   }
 
-  private getModels(): TemplateModel[] {
+  private getModels(): ModelSchema[] {
     return Object.keys(this.metadata.ReferenceTypes).map(key => {
       const referenceType = this.metadata.ReferenceTypes[key];
 
@@ -111,12 +111,12 @@ export class RouteGenerator {
         properties[property.name] = this.getPropertySchema(property);
       });
 
-      const templateModel: TemplateModel = {
+      const templateModel: ModelSchema = {
         name: key,
         properties
       };
-      if (referenceType.additionalProperties && referenceType.additionalProperties.length) {
-        templateModel.additionalProperties = referenceType.additionalProperties.map(property => this.getTemplateAdditionalProperty(property));
+      if (referenceType.additionalProperties) {
+        templateModel.additionalProperties = this.getTemplateAdditionalProperty(referenceType.additionalProperties);
       }
       return templateModel;
     });
@@ -128,10 +128,14 @@ export class RouteGenerator {
   }
 
   private getPropertySchema(source: Property): PropertySchema {
-    const templateProperty: PropertySchema = {
+    const propertySchema: PropertySchema = {
       required: source.required,
       typeName: source.type.typeName
     };
+
+    if (Object.keys(source.validators).length > 0) {
+      propertySchema.validators = source.validators;
+    }
 
     const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
@@ -142,34 +146,55 @@ export class RouteGenerator {
       if (arrayEnumType.enumMembers) {
         arraySchema.enumMembers = arrayEnumType.enumMembers;
       }
-      templateProperty.array = arraySchema;
+      propertySchema.array = arraySchema;
     }
 
     const enumType = source.type as EnumerateType;
     if (enumType.enumMembers) {
-      templateProperty.enumMembers = enumType.enumMembers;
+      propertySchema.enumMembers = enumType.enumMembers;
     }
 
-    return templateProperty;
+    return propertySchema;
   }
 
-  private getTemplateAdditionalProperty(source: Property): TemplateAdditionalProperty {
-    const templateAdditionalProperty: TemplateAdditionalProperty = {
-      typeName: source.type.typeName
+  private getTemplateAdditionalProperty(type: Type): AdditionalPropertiesSchema {
+    const templateAdditionalProperty: AdditionalPropertiesSchema = {
+      typeName: type.typeName
     };
+
+    const arrayType = type as ArrayType;
+    if (arrayType.elementType) {
+      const arraySchema: ArraySchema = {
+        typeName: arrayType.elementType.typeName
+      };
+      const arrayEnumType = arrayType.elementType as EnumerateType;
+      if (arrayEnumType.enumMembers) {
+        arraySchema.enumMembers = arrayEnumType.enumMembers;
+      }
+      templateAdditionalProperty.array = arraySchema;
+    }
+
+    const enumType = type as EnumerateType;
+    if (enumType.enumMembers) {
+      templateAdditionalProperty.enumMembers = enumType.enumMembers;
+    }
 
     return templateAdditionalProperty;
   }
 
-  private getParameterSchema(parameter: Parameter): ParameterSchema {
+  private getParameterSchema(source: Parameter): ParameterSchema {
     const parameterSchema: ParameterSchema = {
-      in: parameter.in,
-      name: parameter.name,
-      required: parameter.required,
-      typeName: parameter.type.typeName
+      in: source.in,
+      name: source.name,
+      required: source.required ? true : undefined,
+      typeName: source.type.typeName
     };
 
-    const arrayType = parameter.type as ArrayType;
+    if (Object.keys(source.validators).length > 0) {
+      parameterSchema.validators = source.validators;
+    }
+
+    const arrayType = source.type as ArrayType;
     if (arrayType.elementType) {
       const tempArrayType: ArraySchema = {
         typeName: arrayType.elementType.typeName
@@ -181,7 +206,7 @@ export class RouteGenerator {
       parameterSchema.array = tempArrayType;
     }
 
-    const enumType = parameter.type as EnumerateType;
+    const enumType = source.type as EnumerateType;
     if (enumType.enumMembers) {
       parameterSchema.enumMembers = enumType.enumMembers;
     }
@@ -190,35 +215,39 @@ export class RouteGenerator {
   }
 }
 
-interface TemplateModel {
+interface ModelSchema {
   name: string;
   properties: { [name: string]: PropertySchema };
-  additionalProperties?: TemplateAdditionalProperty[];
+  additionalProperties?: AdditionalPropertiesSchema;
 }
 
 interface PropertySchema {
   typeName: string;
   required: boolean;
-  array?: ArraySchema;
   request?: boolean;
+  array?: ArraySchema;
   enumMembers?: string[];
+  validators?: Validators;
 }
 
-interface TemplateAdditionalProperty {
-  typeName: string;
-}
-
-export interface ArraySchema {
+interface ArraySchema {
   typeName: string;
   enumMembers?: string[];
 }
 
-export interface ParameterSchema {
+interface AdditionalPropertiesSchema {
+  typeName: string;
+  array?: ArraySchema;
+  enumMembers?: string[];
+}
+
+interface ParameterSchema {
   name: string;
   in: string;
   typeName: string;
-  required: boolean;
+  required?: boolean;
   array?: ArraySchema;
   request?: boolean;
   enumMembers?: string[];
+  validators?: Validators;
 }
