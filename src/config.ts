@@ -10,6 +10,14 @@ export interface Config {
   * Route generation configuration object
   */
   routes: RoutesConfig;
+
+  /**
+   * Typescript CompilerOptions to be used during generation
+   *
+   * @type {ts.CompilerOptions}
+   * @memberof RoutesConfig
+   */
+  compilerOptions?: ts.CompilerOptions;
 }
 
 export interface SwaggerConfig {
@@ -123,12 +131,4 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
-
-  /**
-   * Typescript CompilerOptions to be used during generation
-   *
-   * @type {ts.CompilerOptions}
-   * @memberof RoutesConfig
-   */
-  compilerOptions?: ts.CompilerOptions;
 }

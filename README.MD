@@ -345,13 +345,13 @@ If you have a project that utilized this functionality, you can configure the in
   },
   "routes": {
     ...
-    "compilerOptions": {
+  },
+   "compilerOptions": {
         "baseUrl": "./path/to/base/url",
         "paths": {
             "exampleLib": "./path/to/example/lib"
         }
     }
-  }
 }
 ```
 

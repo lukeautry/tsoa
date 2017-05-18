@@ -7,6 +7,7 @@ import { RouteGenerator } from './routeGeneration/routeGenerator';
 import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 const workingDir: string = process.cwd();
 
@@ -41,6 +42,10 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
   return config;
 };
 
+const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOptions => {
+  return config || {};
+};
+
 const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
   if (!config.outputDirectory) { throw new Error('Missing outputDirectory: onfiguration most contain output directory'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
@@ -66,7 +71,6 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   }
 
   config.basePath = config.basePath || '/';
-  config.compilerOptions = config.compilerOptions || {};
   config.middleware = config.middleware || 'express';
 
   return config;
@@ -109,8 +113,9 @@ yargs
         config.swagger.host = args.host;
       }
 
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const swaggerConfig = validateSwaggerConfig(config.swagger);
-      const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
+      const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
     } catch (err) {
       console.error(err);
@@ -127,8 +132,9 @@ yargs
         config.routes.basePath = args.basePath;
       }
 
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const routesConfig = validateRoutesConfig(config.routes);
-      const metadata = new MetadataGenerator(routesConfig.entryFile, routesConfig.compilerOptions).Generate();
+      const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
       let pathTransformer;
