@@ -1,12 +1,27 @@
-import { Example } from '../../../src/decorators/example';
-import { Request, Query } from '../../../src/decorators/parameter';
-import { Get } from '../../../src/decorators/methods';
-import { Controller } from '../../../src/interfaces/controller';
-import { ModelService } from '../services/modelService';
-import { Route } from '../../../src/decorators/route';
-import { GenericModel, TestModel, TestSubModel, TestClassModel } from '../testModel';
-import { Tags } from '../../../src/decorators/tags';
-import { IsString, IsDouble } from '../../../src/decorators/validations';
+import {
+  Example,
+  Request,
+  Query,
+  Get,
+  Controller,
+  Route,
+  Tags,
+  IsDouble,
+  IsString,
+  Minimum,
+  Maximum,
+  MinLength,
+  MaxLength
+} from '../../../src';
+import {
+  GenericModel,
+  TestModel,
+  TestSubModel,
+  TestClassModel,
+} from './../testModel';
+import {
+  ModelService
+} from './../services/modelService';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -61,11 +76,11 @@ export class GetTestController extends Controller {
   */
   @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
   public async getModelByParams(
-    @IsDouble({min: 2, max: 10}) numberPathParam: number,
-    @IsString({minLength: 1, maxLength: 5}) stringPathParam: string,
+    @IsDouble() @Minimum(1) @Maximum(10) numberPathParam: number,
+    @MinLength(1) @MaxLength(10) stringPathParam: string,
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
-    @IsString({minLength: 3, maxLength: 7}) @Query() stringParam: string,
+    @IsString('Custom error message') @MinLength(3) @MaxLength(10) @Query() stringParam: string,
     @Query() numberParam: number,
     @Query() optionalStringParam?: string): Promise<TestModel> {
     const model = new ModelService().getModel();
@@ -90,7 +105,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('Request')
-  public async getRequest(@Request() request: Object): Promise<TestModel> {
+  public async getRequest( @Request() request: Object): Promise<TestModel> {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (<any>request).stringValue;
@@ -98,7 +113,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('DateParam')
-  public async getByDataParam(@Query() date: Date): Promise<TestModel> {
+  public async getByDataParam( @Query() date: Date): Promise<TestModel> {
     const model = new ModelService().getModel();
     model.dateValue = date;
 
@@ -120,7 +135,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('HandleBufferType')
-  public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
+  public async getBuffer( @Query() buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
   }
 

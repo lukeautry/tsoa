@@ -1,4 +1,5 @@
-import { IsInt, IsFloat, IsString } from './../../src/decorators/validations';
+import { MinLength, MaxLength, MinItems, MaxItems, Pattern, Minimum, Maximum, UniqueItems } from './../../src/decorators/validations';
+import { IsInt, IsFloat, IsDouble, IsLong, IsArray, IsDate, IsDateTime, IsBoolean } from './../../src/decorators/data-types';
 /**
  * This is a description of a model
  */
@@ -28,6 +29,9 @@ export interface TestModel extends Model {
   modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
   modelsObjectIndirectNS_Alias?: TestSubModelContainerNamespace_TestSubModelContainer;
   modelsObjectIndirectNS2_Alias?: TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2;
+
+  modelsArrayIndirect?: TestSubArrayModelContainer;
+  modelsEnumIndirect?: TestSubEnumModelContainer;
 }
 
 export enum EnumNumberValue {
@@ -44,6 +48,14 @@ export type StrLiteral = 'Foo' | 'Bar';
 
 export interface TestSubModelContainer {
   [key: string]: TestSubModel2;
+}
+
+export interface TestSubArrayModelContainer {
+  [key: string]: TestSubModel2[];
+}
+
+export interface TestSubEnumModelContainer {
+  [key: string]: EnumStringValue;
 }
 
 export namespace TestSubModelContainerNamespace {
@@ -87,10 +99,55 @@ export interface UserResponseModel {
 export class ParameterTestModel {
   public firstname: string;
   public lastname: string;
-  @IsInt({min: 1, max: 10}) public age: number;
-  @IsFloat() public weight: number;
+  @IsInt()
+  @Minimum(1)
+  @Maximum(100)
+  public age: number;
+  @IsFloat()
+  public weight: number;
   public human: boolean;
   public gender: Gender;
+}
+
+export class ValidateCustomErrorModel {
+
+}
+
+export class ValidateModel {
+  @IsFloat()
+  public floatValue: number;
+  @IsDouble()
+  public doubleValue: number;
+  @IsInt()
+  public intValue: number;
+  @IsLong('Custom Required long number.')
+  public longValue: number;
+  @IsBoolean()
+  public booleanValue: boolean;
+  @IsArray()
+  public arrayValue: number[];
+  @IsDate()
+  public dateValue: Date;
+  @IsDateTime()
+  public datetimeValue: Date;
+
+  @Maximum(10)
+  public numberMax10: number;
+  @Minimum(5)
+  public numberMin5: number;
+  @MaxLength(10)
+  public stringMax10Lenght: string;
+  @MinLength(5)
+  public stringMin5Lenght: string;
+  @Pattern('^[a-zA-Z]+$')
+  public stringPatternAZaz: string;
+
+  @MaxItems(5)
+  public arrayMax5Item: number[];
+  @MinItems(2)
+  public arrayMin2Item: number[];
+  @UniqueItems()
+  public arrayUniqueItem: number[];
 }
 
 export enum Gender {
@@ -117,9 +174,12 @@ export class TestClassModel extends TestClassBaseModel {
   /**
   * This is a description of a public string property
   */
-  @IsString({minLength: 3, maxLength: 20, pattern: '[a-zA-Z]'})
+  @MinLength(3)
+  @MaxLength(20)
+  @Pattern('^[a-zA-Z]+$')
   public publicStringProperty: string;
-  @IsString({minLength: 0, maxLength: 10})
+  @MinLength(0)
+  @MaxLength(10)
   public optionalPublicStringProperty?: string;
   /* tslint:disable-next-line */
   stringProperty: string;

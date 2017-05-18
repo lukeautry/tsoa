@@ -1,7 +1,16 @@
-import { Request, Query, Path, Header, Body, BodyProp } from '../../../src/decorators/parameter';
-import { IsInt, IsFloat } from '../../../src/decorators/validations';
-import { Get, Post } from '../../../src/decorators/methods';
-import { Route } from '../../../src/decorators/route';
+import {
+    Request,
+    Query,
+    Path,
+    Header,
+    Body,
+    BodyProp,
+    IsInt,
+    IsFloat,
+    Get,
+    Post,
+    Route
+} from '../../../src';
 import { ParameterTestModel, Gender } from '../testModel';
 
 @Route('ParameterTest')

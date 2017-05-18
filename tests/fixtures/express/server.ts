@@ -10,6 +10,7 @@ import '../controllers/deleteController';
 import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
+import '../controllers/validateController';
 
 import { RegisterRoutes } from './routes';
 
@@ -25,7 +26,14 @@ RegisterRoutes(app);
 
 // It's important that this come after the main routes are registered
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  res.status(err.status || 500).send(err.message || 'An error occurred during the request.');
+  const status = err.status || 500;
+  const body: any = {
+    fields: err.fields || undefined,
+    message: err.message || 'An error occurred during the request.',
+    name: err.name,
+    status
+  };
+  res.status(status).json(body);
 });
 
 app.listen(3000);

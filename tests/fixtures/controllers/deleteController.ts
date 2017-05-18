@@ -1,6 +1,6 @@
-import { Route } from '../../../src/decorators/route';
-import { Delete } from '../../../src/decorators/methods';
-import { Query } from '../../../src/decorators/parameter';
+import {
+  Route, Delete, Query
+} from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
