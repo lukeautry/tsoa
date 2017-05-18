@@ -8,6 +8,7 @@ import '../controllers/deleteController';
 import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
+import '../controllers/validateController';
 
 import { RegisterRoutes } from './routes';
 

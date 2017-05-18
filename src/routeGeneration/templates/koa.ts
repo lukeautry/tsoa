@@ -1,10 +1,10 @@
 /* tslint:disable */
 import * as KoaRouter from 'koa-router';
 {{#if canImportByAlias}}
-  import { ValidateParam } from 'tsoa';
+  import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
   import { Controller } from 'tsoa';
 {{else}}
-  import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+  import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
   import { Controller } from '../../../src/interfaces/controller';
 {{/if}}
 {{#if iocModule}}
@@ -31,11 +31,7 @@ const models: any = {
       },
       {{/if}}
       {{#if additionalProperties}}
-      additionalProperties: [
-          {{#each additionalProperties}}
-          {typeName: '{{typeName}}'},
-          {{/each}}
-      ],
+      additionalProperties: {{{json additionalProperties}}},
       {{/if}}
   },
   {{/each}}
@@ -75,7 +71,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{/if}}
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode = undefined;
+            let statusCode: number | undefined = undefined;
             if (controller instanceof Controller) {
                 statusCode = (controller as Controller).getStatus();
             }
@@ -121,22 +117,28 @@ export function RegisterRoutes(router: KoaRouter) {
     }
 
     function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
-        return Object.keys(args).map(key => {
+        const errorFields: FieldErrors = {};
+        const values = Object.keys(args).map(key => {
             const name = args[key].name;
             switch (args[key].in) {
             case 'request':
                 return context;
             case 'query':
-                return ValidateParam(args[key], context.request.query[name], models, name)
+                return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
             case 'path':
-                return ValidateParam(args[key], context.params[name], models, name)
+                return ValidateParam(args[key], context.params[name], models, name, errorFields)
             case 'header':
-                return ValidateParam(args[key], context.request.headers[name], models, name);
+                return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
             case 'body':
-                return ValidateParam(args[key], context.request.body, models, name);
+                return ValidateParam(args[key], context.request.body, models, name, errorFields);
             case 'body-prop':
-                return ValidateParam(args[key], context.request.body[name], models, name);
+                return ValidateParam(args[key], context.request.body[name], models, name, errorFields);
             }
         });
+        if (Object.keys(errorFields).length > 0) {
+            throw new ValidateError(errorFields, '');
+        }
+        return values;
     }
 }
+

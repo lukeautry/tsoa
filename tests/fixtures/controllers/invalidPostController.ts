@@ -1,6 +1,6 @@
-import { Route } from '../../../src/decorators/route';
-import { Body } from '../../../src/decorators/parameter';
-import { Post } from '../../../src/decorators/methods';
+import {
+  Route, Body, Post
+} from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
 
@@ -9,8 +9,8 @@ export class InvalidPostTestController {
 
   @Post('WithMultipleBody')
   public async postWithMultipleBodyParams(
-      @Body() firstParam: TestModel,
-      @Body()secondParam: TestModel): Promise<TestModel> {
+    @Body() firstParam: TestModel,
+    @Body() secondParam: TestModel): Promise<TestModel> {
     return new ModelService().getModel();
   }
 }

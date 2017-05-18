@@ -46,7 +46,7 @@
         "entryFile": "./tests/fixtures/custom/server.ts",
         "routesDir": "./tests/fixtures/custom",
         "middleware": "express",
-        "middlewareTemplate": "custom-tsoa-template.ts",
+        "middlewareTemplate": "./tests/fixtures/custom/custom-tsoa-template.ts",
         "authenticationModule": "./tests/fixtures/custom/authentication.ts"
     }
 }
