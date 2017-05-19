@@ -1,6 +1,6 @@
 import 'mocha';
 import { app } from '../fixtures/express/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, UserResponseModel, ParameterTestModel, Gender, ValidateModel  } from '../fixtures/testModel';
+import { GenericModel, GenericRequest, TestModel, TestClassModel, UserResponseModel, ParameterTestModel, Gender, ValidateModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
@@ -177,6 +177,34 @@ describe('Express Server', () => {
       const body = JSON.parse(err.text);
       expect(body.message).to.equal('error thrown');
     }, 400);
+  });
+
+  describe('Controller', () => {
+
+    it('should normal status code', () => {
+      return verifyGetRequest(basePath + `/Controller/normalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(200);
+      }, 200);
+    });
+
+    it('should custom notmal status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customNomalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(201);
+      }, 201);
+    });
+
+    it('should no content status code', () => {
+      return verifyGetRequest(basePath + `/Controller/noContentStatusCode`, (err, res) => {
+        expect(res.status).to.equal(204);
+      }, 204);
+    });
+
+    it('should custom no content status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customNoContentStatusCode`, (err, res) => {
+        expect(res.status).to.equal(201);
+      }, 201);
+    });
+
   });
 
   describe('Validate', () => {

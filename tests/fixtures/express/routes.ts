@@ -10,6 +10,7 @@ import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
+import { TestController } from './../controllers/testController';
 import { set } from 'lodash';
 import { expressAuthentication } from './authentication';
 
@@ -1743,6 +1744,94 @@ export function RegisterRoutes(app: any) {
       }
       promiseHandler(promise, statusCode, response, next);
     });
+  app.get('/v1/Controller/normalStatusCode',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new TestController();
+
+
+      const promise = controller.normalStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/Controller/customNomalStatusCode',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new TestController();
+
+
+      const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/Controller/noContentStatusCode',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new TestController();
+
+
+      const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.get('/v1/Controller/customNoContentStatusCode',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new TestController();
+
+
+      const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, response: any, next: any) => {
@@ -1761,11 +1850,9 @@ export function RegisterRoutes(app: any) {
     return promise
       .then((data: any) => {
         if (data) {
-          response.json(data);
-          response.status(statusCode || 200);
+          response.status(statusCode || 200).json(data);;
         } else {
-          response.status(statusCode || 204);
-          response.end();
+          response.status(statusCode || 204).end();
         }
       })
       .catch((error: any) => next(error));

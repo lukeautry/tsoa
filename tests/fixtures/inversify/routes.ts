@@ -120,11 +120,9 @@ export function RegisterRoutes(app: any) {
     return promise
       .then((data: any) => {
         if (data) {
-          response.json(data);
-          response.status(statusCode || 200);
+          response.status(statusCode || 200).json(data);;
         } else {
-          response.status(statusCode || 204);
-          response.end();
+          response.status(statusCode || 204).end();
         }
       })
       .catch((error: any) => next(error));

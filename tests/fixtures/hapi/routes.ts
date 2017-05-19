@@ -12,6 +12,7 @@ import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
+import { TestController } from './../controllers/testController';
 import { set } from 'lodash';
 import { hapiAuthentication } from './authentication';
 
@@ -1388,8 +1389,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1421,8 +1422,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1720,8 +1721,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -2021,6 +2022,110 @@ export function RegisterRoutes(server: hapi.Server) {
         const controller = new ValidateController();
 
         const promise = controller.bodyValidate.apply(controller, validatedArgs);
+        let statusCode: any;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/Controller/normalStatusCode',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new TestController();
+
+        const promise = controller.normalStatusCode.apply(controller, validatedArgs);
+        let statusCode: any;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/Controller/customNomalStatusCode',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new TestController();
+
+        const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
+        let statusCode: any;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/Controller/noContentStatusCode',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new TestController();
+
+        const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
+        let statusCode: any;
+        if (controller instanceof Controller) {
+          statusCode = (controller as Controller).getStatus();
+        }
+        return promiseHandler(promise, statusCode, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/Controller/customNoContentStatusCode',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new TestController();
+
+        const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
         let statusCode: any;
         if (controller instanceof Controller) {
           statusCode = (controller as Controller).getStatus();
