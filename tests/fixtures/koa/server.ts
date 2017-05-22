@@ -9,6 +9,9 @@ import '../controllers/deleteController';
 import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
+import '../controllers/validateController';
+import '../controllers/testController';
+
 import { RegisterRoutes } from './routes';
 import * as bodyParser from 'koa-bodyparser';
 
@@ -24,6 +27,7 @@ app.use(async (context, next) => {
   try {
     await next();
   } catch (err) {
+    console.error(err);
     context.status = err.status || 500;
     context.body = err.message || 'An error occurred during the request.';
   }

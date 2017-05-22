@@ -21,6 +21,10 @@ export class ModelService {
     };
   }
 
+  public getModelPromise(): Promise<TestModel> {
+    return Promise.resolve(this.getModel());
+  }
+
   public getClassModel(): TestClassModel {
     const testClassModel = new TestClassModel('constructor var', 'private constructor var');
     testClassModel.id = 1;

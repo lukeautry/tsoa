@@ -2,10 +2,10 @@
 /* tslint:disable */
 import * as hapi from 'hapi';
 {{#if canImportByAlias}}
-  import { ValidateParam } from 'tsoa';
+  import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
   import { Controller } from 'tsoa';
 {{else}}
-  import { ValidateParam } from '../../../src/routeGeneration/templateHelpers';
+  import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
   import { Controller } from '../../../src/interfaces/controller';
 {{/if}}
 {{#if iocModule}}
@@ -38,25 +38,11 @@ const models: any = {
       },
       {{/if}}
       {{#if additionalProperties}}
-      additionalProperties: [
-          {{#each additionalProperties}}
-          {typeName: '{{typeName}}'},
-          {{/each}}
-      ],
+      additionalProperties: {{{json additionalProperties}}},
       {{/if}}
   },
   {{/each}}
 };
-
-interface Args {
-  [key: string]: {
-    in: string,
-    name: string,
-    required: boolean,
-    typeName: string,
-    enumMembers?: any[]
-  }
-}
 
 export function RegisterRoutes(server: hapi.Server) {
     {{#each controllers}}
@@ -100,7 +86,7 @@ export function RegisterRoutes(server: hapi.Server) {
                 {{/if}}
                 ],
                 handler: (request: any, reply: hapi.IReply) => {
-                  const args: Args = {
+                  const args = {
                     {{#each parameters}}
                     {{@key}}: {{{json this}}},
                     {{/each}}
@@ -119,12 +105,12 @@ export function RegisterRoutes(server: hapi.Server) {
                   const controller = new {{../name}}();
                   {{/if}}
 
-                  const promise = controller.{{name}}.apply(controller, validatedArgs);
-                  let statusCode = undefined;
-                  if (controller instanceof Controller) {
-                    statusCode = (controller as Controller).getStatus();
-                  }
-                  return promiseHandler(promise, statusCode, request, reply);
+                    const promise = controller.{{name}}.apply(controller, validatedArgs);
+                    let statusCode: any;
+                    if (controller instanceof Controller) {
+                        statusCode = (controller as Controller).getStatus();
+                    }
+                    return promiseHandler(promise, statusCode, request, reply);
                 }
             }
         });
@@ -222,24 +208,30 @@ export function RegisterRoutes(server: hapi.Server) {
     }
 
     function getValidatedArgs(args: any, request: hapi.Request): any[] {
-        return Object.keys(args).map(key => {
+        const errorFields: FieldErrors = {};
+        const values = Object.keys(args).map(key => {
             const name = args[key].name;
             switch (args[key].in) {
             case 'request':
                 return request;
             case 'query':
-                return ValidateParam(args[key], request.query[name], models, name);
+                return ValidateParam(args[key], request.query[name], models, name, errorFields);
             case 'path':
-                return ValidateParam(args[key], request.params[name], models, name);
+                return ValidateParam(args[key], request.params[name], models, name, errorFields);
             case 'header':
-                return ValidateParam(args[key], request.headers[name], models, name);
+                return ValidateParam(args[key], request.headers[name], models, name, errorFields);
             case 'body':
-                return ValidateParam(args[key], request.payload, models, name);
+                return ValidateParam(args[key], request.payload, models, name, errorFields);
             case 'body-prop':
-                return ValidateParam(args[key], request.payload[name], models, name);
+                return ValidateParam(args[key], request.payload[name], models, name, errorFields);
             case 'formData':
-                return ValidateParam(args[key], request.payload[name], models, name);
+                return ValidateParam(args[key], request.payload[name], models, name, errorFields);
             }
         });
+        if (Object.keys(errorFields).length > 0) {
+            throw new ValidateError(errorFields, '');
+        }
+        return values;
     }
 }
+

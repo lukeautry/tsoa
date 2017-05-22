@@ -1,6 +1,6 @@
 
 export class Controller {
-    private statusCode?: number  = undefined;
+    public statusCode?: number  = undefined;
 
     public getStatus() {
         return this.statusCode;

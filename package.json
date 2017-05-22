@@ -1,7 +1,7 @@
 {
   "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
@@ -44,6 +44,7 @@
     "mkdirp": "^0.5.1",
     "moment": "^2.17.1",
     "multer": "^1.3.0",
+    "pretty-error": "^2.1.0",
     "tslint": "^4.4.2",
     "typescript": "^2.2.1",
     "typescript-formatter": "^5.1.0",
