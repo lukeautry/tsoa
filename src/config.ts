@@ -1,3 +1,5 @@
+import * as ts from 'typescript';
+
 export interface Config {
   /**
   * Swagger generation configuration object
@@ -121,4 +123,12 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * Typescript CompilerOptions to be used during generation
+   *
+   * @type {ts.CompilerOptions}
+   * @memberof RoutesConfig
+   */
+  compilerOptions?: ts.CompilerOptions;
 }

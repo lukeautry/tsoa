@@ -68,6 +68,7 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   }
 
   config.basePath = config.basePath || '/';
+  config.compilerOptions = config.compilerOptions || {};
   config.middleware = config.middleware || 'express';
 
   return config;
@@ -132,7 +133,7 @@ yargs
       }
 
       const routesConfig = validateRoutesConfig(config.routes);
-      const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
+      const metadata = new MetadataGenerator(routesConfig.entryFile, routesConfig.compilerOptions).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
       let pathTransformer;
