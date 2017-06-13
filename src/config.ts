@@ -1,3 +1,5 @@
+import * as ts from 'typescript';
+
 export interface Config {
   /**
   * Swagger generation configuration object
@@ -8,6 +10,14 @@ export interface Config {
   * Route generation configuration object
   */
   routes: RoutesConfig;
+
+  /**
+   * Typescript CompilerOptions to be used during generation
+   *
+   * @type {ts.CompilerOptions}
+   * @memberof RoutesConfig
+   */
+  compilerOptions?: ts.CompilerOptions;
 }
 
 export interface SwaggerConfig {

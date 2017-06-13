@@ -8,6 +8,7 @@ import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
+import * as ts from 'typescript';
 
 const workingDir: string = process.cwd();
 const pe = new PrettyError();
@@ -41,6 +42,10 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
   }
 
   return config;
+};
+
+const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOptions => {
+  return config || {};
 };
 
 const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
@@ -110,8 +115,9 @@ yargs
         config.swagger.host = args.host;
       }
 
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const swaggerConfig = validateSwaggerConfig(config.swagger);
-      const metadata = new MetadataGenerator(swaggerConfig.entryFile).Generate();
+      const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
 
       // tslint:disable-next-line:no-console
@@ -131,8 +137,9 @@ yargs
         config.routes.basePath = args.basePath;
       }
 
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const routesConfig = validateRoutesConfig(config.routes);
-      const metadata = new MetadataGenerator(routesConfig.entryFile).Generate();
+      const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions).Generate();
       const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
       let pathTransformer;
