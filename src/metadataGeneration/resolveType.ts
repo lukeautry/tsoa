@@ -141,6 +141,10 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
   const enumDeclaration = enumTypes[0] as ts.EnumDeclaration;
 
   function getEnumValue(member: any) {
+    const constantValue = MetadataGenerator.current.typeChecker.getConstantValue(member);
+    if (constantValue != null) {
+      return constantValue;
+    }
     const initializer = member.initializer;
     if (initializer) {
       if (initializer.expression) {
