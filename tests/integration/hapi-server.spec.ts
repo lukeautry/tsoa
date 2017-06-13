@@ -1,6 +1,6 @@
 import 'mocha';
 import { server } from '../fixtures/hapi/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, Gender, ValidateModel } from '../fixtures/testModel';
+import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, ValidateModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -465,7 +465,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       });
     });
 
@@ -477,7 +477,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       });
     });
 
@@ -489,14 +489,14 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       }, (request) => {
         return request
           .get(basePath + '/ParameterTest/Header')
           .set({
             'age': 45,
             'firstname': 'Tony',
-            'gender': Gender.MALE,
+            'gender': 'MALE',
             'human': true,
             'last_name': 'Stark',
             'weight': 82.1
@@ -512,7 +512,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       });
     });
 
@@ -520,7 +520,7 @@ describe('Hapi Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: Gender.MALE,
+        gender: 'MALE',
         human: true,
         lastname: 'Stark',
         weight: 82.1
@@ -532,7 +532,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       });
     });
 
@@ -540,7 +540,7 @@ describe('Hapi Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: Gender.MALE,
+        gender: 'MALE',
         human: true,
         lastname: 'Stark',
         weight: 82.1
@@ -552,7 +552,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.gender).to.equal('MALE');
       });
     });
 

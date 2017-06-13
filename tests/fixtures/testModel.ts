@@ -184,9 +184,7 @@ export class ValidateModel {
   public arrayUniqueItem: number[];
 }
 
-export enum Gender {
-  MALE = <any>'MALE', FEMALE = <any>'FEMALE'
-}
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface ErrorResponseModel {
   status: number;
