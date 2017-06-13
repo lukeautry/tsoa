@@ -1755,8 +1755,8 @@ export function RegisterRoutes(server: hapi.Server) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
