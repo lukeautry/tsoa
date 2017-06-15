@@ -1,4 +1,4 @@
-import { TestModel, TestSubModel, TestClassModel } from '../testModel';
+import { TestModel, TestModelWithConstructorParams, TestSubModel, TestClassModel } from '../testModel';
 
 export class ModelService {
   public getModel(): TestModel {
@@ -32,4 +32,9 @@ export class ModelService {
 
     return testClassModel;
   }
+
+  public getModelWithConstructorParams(): TestModelWithConstructorParams {
+    return new TestModelWithConstructorParams('propertyOne');
+  }
+
 }

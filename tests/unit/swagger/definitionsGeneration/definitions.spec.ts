@@ -1,6 +1,6 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import {Swagger} from '../../../../src/swagger/swagger';
+import { Swagger } from '../../../../src/swagger/swagger';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import * as chai from 'chai';
@@ -26,7 +26,16 @@ describe('Definition generation', () => {
 
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
-      const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS'];
+      const expectedModels = [
+        'TestModel',
+        'TestSubModel',
+        'Result',
+        'TestSubModelContainer',
+        'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2',
+        'TestSubModel2',
+        'TestSubModelNamespace.TestSubModelNS'
+      ];
+
       expectedModels.forEach(modelName => {
         getValidatedDefinition(modelName);
       });
@@ -197,6 +206,49 @@ describe('Definition generation', () => {
       expect(property).to.exist;
       expect(property.pattern).to.equal('^[a-zA-Z]+$');
     });
+  });
+
+  describe('Class-based with constructor params', () => {
+    const modelName = 'TestModelWithConstructorParams';
+    const definition = getValidatedDefinition(modelName);
+    if (!definition.properties) { throw new Error('Definition has no properties.'); }
+
+    const properties = definition.properties;
+
+    it('should generate a definition for referenced model', () => {
+      getValidatedDefinition(modelName);
+    });
+
+    it('should generate a property "propOne"', () => {
+      const propertyName = 'propOne';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+    });
+
+    it('should generate a property "propTwo"', () => {
+      const propertyName = 'propTwo';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property).to.exist;
+    });
+
+    it('should not generate duplicate required properties', () => {
+      const propertyName = 'propOne';
+
+      if (!definition || !definition.required) {
+        throw new Error('Invalid definition!');
+      }
+
+      const count = definition.required.filter((prop: string) => prop === propertyName).length;
+
+      expect(count).to.equal(1);
+    });
+
   });
 
   describe('Generic-based generation', () => {
