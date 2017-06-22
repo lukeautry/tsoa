@@ -232,6 +232,15 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
+export class TestModelWithConstructorParams {
+  public propOne: string;
+  public propTwo: string;
+
+  constructor(propOne: string) {
+    this.propOne = propOne;
+  }
+}
+
 export interface GenericModel<T> {
   result: T;
 }

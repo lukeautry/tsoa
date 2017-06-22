@@ -12,6 +12,7 @@ import {
   TestModel,
   TestSubModel,
   TestClassModel,
+  TestModelWithConstructorParams
 } from './../testModel';
 import {
   ModelService
@@ -62,6 +63,11 @@ export class GetTestController extends Controller {
       new ModelService().getModel(),
       new ModelService().getModel()
     ];
+  }
+
+  @Get('WithConstructorParams')
+  public async getModelWithConstructorParams(): Promise<TestModelWithConstructorParams> {
+    return new ModelService().getModelWithConstructorParams();
   }
 
   /**
