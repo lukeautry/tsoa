@@ -514,6 +514,7 @@ function getModelDescription(modelTypeDeclaration: UsableDeclaration) {
 
 function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
   const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
+  if (symbol == undefined) { return ''; }
 
   /**
   * TODO: Workaround for what seems like a bug in the compiler
