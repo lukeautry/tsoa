@@ -88,8 +88,8 @@ export class ValidateController {
    */
   @Get('parameter/float')
   public doubleValidate(
-    @Query() minValue?: number,
-    @Query() maxValue?: number): Promise<ValidateNumberResponse> {
+    @Query() minValue: number,
+    @Query() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       minValue,
       maxValue,

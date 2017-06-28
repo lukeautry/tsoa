@@ -12,7 +12,7 @@ export interface Controller {
 
 export interface Method {
   deprecated?: boolean;
-  description: string;
+  description?: string;
   method: string;
   name: string;
   parameters: Parameter[];
@@ -26,7 +26,7 @@ export interface Method {
 
 export interface Parameter {
   parameterName: string;
-  description: string;
+  description?: string;
   in: string;
   name: string;
   required?: boolean;
@@ -52,7 +52,7 @@ export interface EnumerateType extends Type {
 }
 
 export interface ReferenceType extends Type {
-  description: string;
+  description?: string;
   properties: Property[];
   additionalProperties?: Type;
 }
@@ -62,14 +62,14 @@ export interface ArrayType extends Type {
 }
 
 export interface ResponseType {
-  description: string;
+  description?: string;
   name: string;
   schema?: Type;
   examples?: any;
 }
 
 export interface Property {
-  description: string;
+  description?: string;
   name: string;
   type: Type;
   required: boolean;

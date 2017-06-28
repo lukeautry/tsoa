@@ -98,7 +98,7 @@ export class MethodGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      let description = '';
+      let description = undefined;
       let name = '200';
       let examples = undefined;
       if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
@@ -119,7 +119,7 @@ export class MethodGenerator {
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
           ? ResolveType(expression.typeArguments[0])
           : undefined
-      };
+      } as ResponseType;
     });
   }
 
@@ -140,7 +140,7 @@ export class MethodGenerator {
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
-    let description = '';
+    let description = undefined;
     let name = '200';
     const examples = undefined;
 

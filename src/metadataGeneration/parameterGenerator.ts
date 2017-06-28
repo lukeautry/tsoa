@@ -154,11 +154,12 @@ export class ParameterGenerator {
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+    if (!symbol) { return undefined; }
 
     const comments = symbol.getDocumentationComment();
     if (comments.length) { return ts.displayPartsToString(comments); }
 
-    return '';
+    return undefined;
   }
 
   private supportBodyMethod(method: string) {
