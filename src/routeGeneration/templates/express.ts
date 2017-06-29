@@ -12,13 +12,9 @@ import { iocContainer } from '{{iocModule}}';
 {{#each controllers}}
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
-{{#if useSecurity}}
-import { set } from 'lodash';
-{{/if}}
 {{#if authenticationModule}}
 import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
-
 const models: any = {
   {{#each models}}
   "{{name}}": {
@@ -81,7 +77,7 @@ export function RegisterRoutes(app: any) {
     function authenticateMiddleware(name: string, scopes: string[] = []) {
         return (request: any, response: any, next: any) => {
             expressAuthentication(request, name, scopes).then((user: any) => {
-                set(request, 'user', user);
+                request['user'] = user;
                 next();
             })
             .catch((error: any) => {
@@ -93,7 +89,7 @@ export function RegisterRoutes(app: any) {
     {{/if}}
 
     function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
-        return promise
+        return Promise.resolve(promise)
             .then((data: any) => {
                 if (data) {
                     response.status(statusCode || 200).json(data);;
@@ -130,5 +126,3 @@ export function RegisterRoutes(app: any) {
         return values;
     }
 }
-
-

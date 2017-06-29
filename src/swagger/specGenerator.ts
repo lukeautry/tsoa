@@ -60,12 +60,14 @@ export class SpecGenerator {
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
       const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+
       definitions[referenceType.typeName] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
-        required: required && required.length > 0 ? required : undefined,
+        required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
         type: 'object'
       };
+
       if (referenceType.additionalProperties) {
         definitions[referenceType.typeName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
       }
@@ -89,11 +91,16 @@ export class SpecGenerator {
   }
 
   private buildPathMethod(controllerName: string, method: Method, pathObject: any) {
-    const pathMethod: any = pathObject[method.method] = this.buildOperation(controllerName, method);
+    const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
+    pathMethod.summary = method.summary;
 
-    if (method.deprecated) { pathMethod.deprecated = method.deprecated; }
-    if (method.tags.length) { pathMethod.tags = method.tags; }
+    if (method.deprecated) {
+      pathMethod.deprecated = method.deprecated;
+    }
+    if (method.tags.length) {
+      pathMethod.tags = method.tags;
+    }
     if (method.security) {
       const security: any = {};
       security[method.security.name] = method.security.scopes ? method.security.scopes : [];
@@ -110,7 +117,6 @@ export class SpecGenerator {
     if (bodyPropParameter) {
       pathMethod.parameters.push(bodyPropParameter);
     }
-
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
@@ -193,7 +199,7 @@ export class SpecGenerator {
     return this.getSwaggerType(type);
   }
 
-  private buildOperation(controllerName: string, method: Method) {
+  private buildOperation(controllerName: string, method: Method): Swagger.Operation {
     const swaggerResponses: any = {};
 
     method.responses.forEach((res: ResponseType) => {
@@ -265,7 +271,7 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enumMembers.map( member => member as string ) as [string] };
+    return { type: 'string', enum: enumType.enumMembers.map(member => member as string)};
   }
 
   private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {

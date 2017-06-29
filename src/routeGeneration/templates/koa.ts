@@ -1,5 +1,4 @@
 /* tslint:disable */
-import * as KoaRouter from 'koa-router';
 {{#if canImportByAlias}}
   import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
   import { Controller } from 'tsoa';
@@ -13,9 +12,6 @@ import { iocContainer } from '{{iocModule}}';
 {{#each controllers}}
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
-{{#if useSecurity}}
-import { set } from 'lodash';
-{{/if}}
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
@@ -37,7 +33,7 @@ const models: any = {
   {{/each}}
 };
 
-export function RegisterRoutes(router: KoaRouter) {
+export function RegisterRoutes(router: any) {
     {{#each controllers}}
     {{#each actions}}
         router.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
@@ -85,7 +81,7 @@ export function RegisterRoutes(router: KoaRouter) {
   function authenticateMiddleware(name: string, scopes: string[] = []) {
       return async (context: any, next: any) => {
           koaAuthentication(context.request, name, scopes).then((user: any) => {
-              set(context.request, 'user', user);
+              context.request['user'] = user;
               next();
           })
           .catch((error: any) => {
@@ -97,8 +93,8 @@ export function RegisterRoutes(router: KoaRouter) {
   }
   {{/if}}
 
-  function promiseHandler(promise: any, statusCode: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
-      return promise
+  function promiseHandler(promise: any, statusCode: any, context: any, next: () => Promise<any>) {
+      return Promise.resolve(promise)
         .then((data: any) => {
           if (data) {
             context.body = data;
@@ -116,13 +112,13 @@ export function RegisterRoutes(router: KoaRouter) {
         });
     }
 
-    function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+    function getValidatedArgs(args: any, context: any): any[] {
         const errorFields: FieldErrors = {};
         const values = Object.keys(args).map(key => {
             const name = args[key].name;
             switch (args[key].in) {
             case 'request':
-                return context;
+                return context.request;
             case 'query':
                 return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
             case 'path':
@@ -141,4 +137,3 @@ export function RegisterRoutes(router: KoaRouter) {
         return values;
     }
 }
-

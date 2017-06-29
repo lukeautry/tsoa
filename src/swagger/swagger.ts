@@ -95,7 +95,7 @@ export namespace Swagger {
     options?: Operation;
     head?: Operation;
     patch?: Operation;
-    parameters?: [Parameter];
+    parameters?: Parameter[];
   }
 
   export interface Operation {
@@ -104,17 +104,17 @@ export namespace Swagger {
     description?: string;
     externalDocs?: ExternalDocs;
     operationId?: string;
-    produces?: [string];
-    consumes?: [string];
-    parameters?: [Parameter];
-    schemes?: [string];
+    produces?: string[];
+    consumes?: string[];
+    parameters?: Parameter[];
+    schemes?: string[];
     deprecated?: boolean;
-    security?: [Secuirty];
-    tags?: [string];
+    security?: Secuirty[];
+    tags?: string[];
   }
 
   export interface Response {
-    description: string;
+    description?: string;
     schema?: Schema;
     headers?: { [headerName: string]: Header };
     examples?: { [exampleName: string]: Example };
@@ -138,14 +138,14 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: [string];
+    enum?: string[];
     type?: string;
     items?: Schema | [Schema];
   }
 
   export interface Schema extends BaseSchema {
     $ref?: string;
-    allOf?: [Schema];
+    allOf?: Schema[];
     additionalProperties?: boolean | Schema;
     properties?: { [propertyName: string]: Schema };
     discriminator?: string;
@@ -186,18 +186,18 @@ export namespace Swagger {
 
   export interface OAuth2PasswordSecurity extends BaseOAuthSecuirty {
     tokenUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
   export interface OAuth2ApplicationSecurity extends BaseOAuthSecuirty {
     tokenUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
   export interface OAuth2AccessCodeSecurity extends BaseOAuthSecuirty {
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
   export interface OAuthScope {
@@ -218,15 +218,15 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
     host?: string;
     basePath?: string;
-    schemes?: [string];
-    consumes?: [string];
-    produces?: [string];
+    schemes?: string[];
+    consumes?: string[];
+    produces?: string[];
     paths: { [pathName: string]: Path };
     definitions?: { [definitionsName: string]: Schema };
     parameters?: { [parameterName: string]: BodyParameter | QueryParameter };
     responses?: { [responseName: string]: Response };
-    security?: [Secuirty];
+    security?: Secuirty[];
     securityDefinitions?: { [securityDefinitionName: string]: Secuirty };
-    tags?: [Tag];
+    tags?: Tag[];
   }
 }
