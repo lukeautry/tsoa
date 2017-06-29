@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { Swagger } from './swagger/swagger';
 
 export interface Config {
   /**
@@ -84,15 +85,7 @@ export interface SwaggerConfig {
    * and only serves to provide the relevant details for each scheme.
    */
   securityDefinitions?: {
-    [name: string]: {
-      type: string;
-      name?: string;
-      authorizationUrl?: string;
-      tokenUrl?: string;
-      flow?: string;
-      in?: string;
-      scopes?: { [scopeName: string]: string; }
-    }
+    [name: string]: Swagger.Secuirty
   };
 }
 

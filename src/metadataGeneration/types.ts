@@ -27,7 +27,7 @@ export interface Method {
 export interface Parameter {
   parameterName: string;
   description?: string;
-  in: string;
+  in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
   name: string;
   required?: boolean;
   type: Type;
@@ -62,7 +62,7 @@ export interface ArrayType extends Type {
 }
 
 export interface ResponseType {
-  description?: string;
+  description: string;
   name: string;
   schema?: Type;
   examples?: any;

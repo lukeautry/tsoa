@@ -26,7 +26,9 @@ export class SpecGenerator {
       basePath: this.config.basePath,
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
-      info: {},
+      info: {
+        title: '',
+      },
       paths: this.buildPaths(),
       produces: ['application/json'],
       swagger: '2.0'
@@ -189,7 +191,7 @@ export class SpecGenerator {
           (swaggerType as any)[key] = property.validators[key].value;
         });
       }
-      swaggerProperties[property.name] = swaggerType;
+      swaggerProperties[property.name] = swaggerType as Swagger.Schema;
     });
 
     return swaggerProperties;
@@ -206,7 +208,7 @@ export class SpecGenerator {
       swaggerResponses[res.name] = {
         description: res.description
       };
-      if (res.schema && this.getSwaggerType(res.schema).type !== 'void') {
+      if (res.schema && res.schema.typeName !== 'void') {
         swaggerResponses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
       if (res.examples) {
@@ -246,11 +248,11 @@ export class SpecGenerator {
     return refType;
   }
 
-  private getSwaggerTypeForPrimitiveType(type: Type) {
+  private getSwaggerTypeForPrimitiveType(type: Type): Swagger.Schema | undefined {
     const typeMap: { [name: string]: Swagger.Schema } = {
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
-      buffer: { type: 'string', format: 'base64' },
+      buffer: { type: 'string', format: 'byte' },
       byte: { type: 'string', format: 'byte' },
       date: { type: 'string', format: 'date' },
       datetime: { type: 'string', format: 'date-time' },
@@ -260,21 +262,20 @@ export class SpecGenerator {
       long: { type: 'integer', format: 'int64' },
       object: { type: 'object' },
       string: { type: 'string' },
-      void: { type: 'void' }
     };
 
     return typeMap[type.typeName];
   }
 
-  private getSwaggerTypeForArrayType(arrayType: ArrayType): Swagger.Schema {
+  private getSwaggerTypeForArrayType(arrayType: ArrayType): Swagger.BaseSchema {
     return { type: 'array', items: this.getSwaggerType(arrayType.elementType) };
   }
 
-  private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enumMembers.map(member => member as string)};
+  private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.BaseSchema {
+    return { type: 'string', enum: enumType.enumMembers.map(member => member as string) };
   }
 
-  private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {
+  private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.BaseSchema {
     return { $ref: `#/definitions/${referenceType.typeName}` };
   }
 }
