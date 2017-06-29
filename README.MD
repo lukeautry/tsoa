@@ -106,7 +106,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
     "entryFile": "...",
     "routesDir": "...",
     "middleware": "express",
-    "minddlewareTemplate": "custom-template.ts"
+    "middlewareTemplate": "custom-template.ts"
     ...
   }
 }

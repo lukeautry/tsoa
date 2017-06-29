@@ -30,8 +30,25 @@ export interface TestModel extends Model {
 
   modelsArrayIndirect?: TestSubArrayModelContainer;
   modelsEnumIndirect?: TestSubEnumModelContainer;
+  typeAliasCase1?: TypeAliasModelCase1;
+  TypeAliasCase2?: TypeAliasModelCase2;
 }
 
+export interface TypeAliasModel1 {
+  value1: string;
+}
+
+export interface TypeAliasModel2 {
+  value2: string;
+}
+
+export class TypeAliasModel3 {
+  public value3: string;
+}
+
+export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
+
+export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
 export enum EnumNumberValue {
   VALUE_1, VALUE_2
 }

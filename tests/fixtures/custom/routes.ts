@@ -9,7 +9,6 @@ import { DeleteTestController } from './../controllers/deleteController';
 import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
-import { set } from 'lodash';
 import { expressAuthentication } from './authentication';
 
 const models: any = {
@@ -23,8 +22,8 @@ const models: any = {
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
       "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
       "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
-      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
-      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
       "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
       "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
@@ -38,6 +37,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -95,7 +96,20 @@ const models: any = {
   "TestSubEnumModelContainer": {
     properties: {
     },
-    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    additionalProperties: { "typeName": "enum", "enumMembers": [0, 1] },
+  },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
   },
   "TestClassModel": {
     properties: {
@@ -148,7 +162,7 @@ const models: any = {
     properties: {
       "firstname": { "required": true, "typeName": "string" },
       "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "* " }, "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
       "weight": { "required": true, "typeName": "float" },
       "human": { "required": true, "typeName": "boolean" },
       "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
@@ -1439,7 +1453,7 @@ export function RegisterRoutes(app: any) {
     ),
     function(request: any, response: any, next: any) {
       const args = {
-        ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1489,7 +1503,7 @@ export function RegisterRoutes(app: any) {
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, response: any, next: any) => {
       expressAuthentication(request, name, scopes).then((user: any) => {
-        set(request, 'user', user);
+        request['user'] = user;
         next();
       })
         .catch((error: any) => {
@@ -1500,7 +1514,7 @@ export function RegisterRoutes(app: any) {
   }
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
-    return promise
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           response.json(data);
@@ -1539,4 +1553,3 @@ export function RegisterRoutes(app: any) {
     return values;
   }
 }
-

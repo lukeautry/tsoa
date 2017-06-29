@@ -3,7 +3,6 @@ import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGen
 import { Controller } from '../../../src/interfaces/controller';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
-
 const models: any = {
   "TestModel": {
     properties: {
@@ -15,8 +14,8 @@ const models: any = {
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
       "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
       "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
-      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
-      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
+      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
+      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
       "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
       "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
@@ -30,6 +29,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -87,7 +88,20 @@ const models: any = {
   "TestSubEnumModelContainer": {
     properties: {
     },
-    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    additionalProperties: { "typeName": "enum", "enumMembers": [0, 1] },
+  },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
   },
 };
 
@@ -117,7 +131,7 @@ export function RegisterRoutes(app: any) {
 
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
-    return promise
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           response.status(statusCode || 200).json(data);;
@@ -154,5 +168,3 @@ export function RegisterRoutes(app: any) {
     return values;
   }
 }
-
-

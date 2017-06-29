@@ -2,9 +2,9 @@ import * as ts from 'typescript';
 
 export function getJSDocDescription(node: ts.Node) {
   const jsDocs = (node as any).jsDoc as ts.JSDoc[];
-  if (!jsDocs || !jsDocs.length) { return ''; }
+  if (!jsDocs || !jsDocs.length) { return undefined; }
 
-  return jsDocs[0].comment || '';
+  return jsDocs[0].comment || undefined;
 }
 
 export function getJSDocComment(node: ts.Node, tagName: string) {
