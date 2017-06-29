@@ -138,7 +138,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
     if (!this.path.includes(`{${pathName}}`)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't macth in path: '${this.path}'`);
+      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't match in path: '${this.path}'`);
     }
 
     return {
