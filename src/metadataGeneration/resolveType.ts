@@ -144,10 +144,6 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
   const enumDeclaration = enumTypes[0] as ts.EnumDeclaration;
 
   function getEnumValue(member: any) {
-    const constantValue = MetadataGenerator.current.typeChecker.getConstantValue(member);
-    if (constantValue !== null) {
-      return constantValue;
-    }
     const initializer = member.initializer;
     if (initializer) {
       if (initializer.expression) {
@@ -157,12 +153,12 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
     }
     return;
   }
-  return <EnumerateType>{
+  return {
     enumMembers: enumDeclaration.members.map((member: any, index) => {
-      return getEnumValue(member) || index;
+      return getEnumValue(member) || String(index);
     }),
     typeName: 'enum',
-  };
+  } as EnumerateType;
 }
 
 function getLiteralType(typeNode: ts.TypeNode): EnumerateType | undefined {

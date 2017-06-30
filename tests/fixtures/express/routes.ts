@@ -21,10 +21,12 @@ const models: any = {
       "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
       "boolValue": { "required": true, "typeName": "boolean" },
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
-      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
+      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
+      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
+      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
       "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
       "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
@@ -97,7 +99,7 @@ const models: any = {
   "TestSubEnumModelContainer": {
     properties: {
     },
-    additionalProperties: { "typeName": "enum", "enumMembers": [0, 1] },
+    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
   "TypeAliasModelCase1": {
     properties: {
@@ -1886,9 +1888,9 @@ export function RegisterRoutes(app: any) {
         case 'header':
           return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name, fieldErrors);
+          return ValidateParam(args[key], request.body, models, name, fieldErrors, name + '.');
         case 'body-prop':
-          return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
+          return ValidateParam(args[key], request.body[name], models, name, fieldErrors, 'body.');
       }
     });
     if (Object.keys(fieldErrors).length > 0) {

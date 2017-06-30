@@ -169,13 +169,17 @@ export class SpecGenerator {
       swaggerParameter.type = parameterType.type;
     }
 
-    if (parameterType.format) { swaggerParameter.format = parameterType.format; }
+    if (parameterType.format) {
+      swaggerParameter.format = parameterType.format;
+    }
 
-    Object.keys(parameter.validators).forEach((key: string) => {
-      if (!key.startsWith('is')) {
+    Object.keys(parameter.validators)
+      .filter(key => {
+        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+      })
+      .forEach((key: string) => {
         swaggerParameter[key] = parameter.validators[key].value;
-      }
-    });
+      });
     return swaggerParameter;
   }
 
@@ -187,9 +191,13 @@ export class SpecGenerator {
       if (!swaggerType.$ref) {
         swaggerType.description = property.description;
 
-        Object.keys(property.validators).forEach(key => {
-          (swaggerType as any)[key] = property.validators[key].value;
-        });
+        Object.keys(property.validators)
+          .filter(key => {
+            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+          })
+          .forEach(key => {
+            swaggerType[key] = property.validators[key].value;
+          });
       }
       swaggerProperties[property.name] = swaggerType as Swagger.Schema;
     });

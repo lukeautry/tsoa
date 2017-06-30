@@ -11,8 +11,10 @@ export interface TestModel extends Model {
   stringArray: string[];
   boolValue: boolean;
   boolArray: boolean[];
-  enumValue?: EnumNumberValue;
-  enumArray?: EnumNumberValue[];
+  enumValue?: EnumIndexValue;
+  enumArray?: EnumIndexValue[];
+  enumNumberValue?: EnumNumberValue;
+  enumNumberArray?: EnumNumberValue[];
   enumStringValue?: EnumStringValue;
   enumStringArray?: EnumStringValue[];
   modelValue: TestSubModel;
@@ -49,8 +51,13 @@ export class TypeAliasModel3 {
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
-export enum EnumNumberValue {
+
+export enum EnumIndexValue {
   VALUE_1, VALUE_2
+}
+
+export enum EnumNumberValue {
+  VALUE_1 = 2, VALUE_2 = 5
 }
 
 export enum EnumStringValue {

@@ -126,9 +126,9 @@ export function RegisterRoutes(router: any) {
             case 'header':
                 return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
             case 'body':
-                return ValidateParam(args[key], context.request.body, models, name, errorFields);
+                return ValidateParam(args[key], context.request.body, models, name, errorFields, name + '.');
             case 'body-prop':
-                return ValidateParam(args[key], context.request.body[name], models, name, errorFields);
+                return ValidateParam(args[key], context.request.body[name], models, name, errorFields, 'body.');
             }
         });
         if (Object.keys(errorFields).length > 0) {

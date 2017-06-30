@@ -51,7 +51,7 @@ describe('Express Server', () => {
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       const body = JSON.parse(err.text);
-      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required query parameter.`);
+      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required query parameter`);
     }, 400);
   });
 
@@ -120,7 +120,7 @@ describe('Express Server', () => {
 
   it('should parse valid date', () => {
     const data = getFakeModel();
-    data.dateValue = '2016-01-01T00:00:00Z' as any;
+    data.dateValue = '2016-01-01T00:00:00' as any;
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
@@ -128,7 +128,7 @@ describe('Express Server', () => {
   });
 
   it('should parse valid date as query param', () => {
-    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
+    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00', (err: any, res: any) => {
       expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
@@ -167,8 +167,8 @@ describe('Express Server', () => {
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       const body = JSON.parse(err.text);
-      expect(body.fields.dateValue.message).to.equal('Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-      expect(body.fields.dateValue.value).to.equal(1);
+      expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+      expect(body.fields['model.dateValue'].value).to.equal(1);
     }, 400);
   });
 
@@ -223,9 +223,9 @@ describe('Express Server', () => {
       const date = '2017-01-01';
       return verifyGetRequest(basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`, (err, res) => {
         const body = JSON.parse(err.text);
-        expect(body.fields.minDateValue.message).to.equal('minDate 2018-01-01');
+        expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01'`);
         expect(body.fields.minDateValue.value).to.equal(date);
-        expect(body.fields.maxDateValue.message).to.equal('maxDate 2016-01-01');
+        expect(body.fields.maxDateValue.message).to.equal(`maxDate '2016-01-01'`);
         expect(body.fields.maxDateValue.value).to.equal(date);
       }, 400);
     });
@@ -244,9 +244,9 @@ describe('Express Server', () => {
       const date = '2017-01-01T00:00:00';
       return verifyGetRequest(basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`, (err, res) => {
         const body = JSON.parse(err.text);
-        expect(body.fields.minDateValue.message).to.equal('minDate 2018-01-01T00:00:00');
+        expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01T00:00:00'`);
         expect(body.fields.minDateValue.value).to.equal(date);
-        expect(body.fields.maxDateValue.message).to.equal('maxDate 2016-01-01T00:00:00');
+        expect(body.fields.maxDateValue.message).to.equal(`maxDate '2016-01-01T00:00:00'`);
         expect(body.fields.maxDateValue.value).to.equal(date);
       }, 400);
     });
@@ -300,7 +300,7 @@ describe('Express Server', () => {
       const value = 'true0001';
       return verifyGetRequest(basePath + `/Validate/parameter/boolean?boolValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
-        expect(body.fields.boolValue.message).to.equal('Invalid boolean value.');
+        expect(body.fields.boolValue.message).to.equal('invalid boolean value');
         expect(body.fields.boolValue.value).to.equal(value);
       }, 400);
     });
@@ -324,7 +324,7 @@ describe('Express Server', () => {
         expect(body.fields.minLength.value).to.equal(value);
         expect(body.fields.maxLength.message).to.equal('maxLength 3');
         expect(body.fields.maxLength.value).to.equal(value);
-        expect(body.fields.patternValue.message).to.equal('Not match in \'^[a-zA-Z]+$\'.');
+        expect(body.fields.patternValue.message).to.equal('Not match in \'^[a-zA-Z]+$\'');
         expect(body.fields.patternValue.value).to.equal(value);
       }, 400);
     });
@@ -399,41 +399,41 @@ describe('Express Server', () => {
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const body = JSON.parse(err.text);
 
-        expect(body.fields.floatValue.message).to.equal('Invalid float error message.');
-        expect(body.fields.floatValue.value).to.equal(bodyModel.floatValue);
-        expect(body.fields.doubleValue.message).to.equal('Invalid double error message.');
-        expect(body.fields.doubleValue.value).to.equal(bodyModel.doubleValue);
-        expect(body.fields.intValue.message).to.equal('Invalid integer number.');
-        expect(body.fields.intValue.value).to.equal(bodyModel.intValue);
-        expect(body.fields.longValue.message).to.equal('Custom Required long number.');
-        expect(body.fields.longValue.value).to.equal(bodyModel.longValue);
-        expect(body.fields.booleanValue.message).to.equal('Invalid boolean value.');
-        expect(body.fields.booleanValue.value).to.equal(bodyModel.booleanValue);
-        expect(body.fields.arrayValue.message).to.equal('Invalid array.');
-        expect(body.fields.arrayValue.value).to.equal(bodyModel.arrayValue);
+        expect(body.fields['body.floatValue'].message).to.equal('Invalid float error message.');
+        expect(body.fields['body.floatValue'].value).to.equal(bodyModel.floatValue);
+        expect(body.fields['body.doubleValue'].message).to.equal('Invalid double error message.');
+        expect(body.fields['body.doubleValue'].value).to.equal(bodyModel.doubleValue);
+        expect(body.fields['body.intValue'].message).to.equal('invalid integer number');
+        expect(body.fields['body.intValue'].value).to.equal(bodyModel.intValue);
+        expect(body.fields['body.longValue'].message).to.equal('Custom Required long number.');
+        expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
+        expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
+        expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
+        expect(body.fields['body.arrayValue'].message).to.equal('invalid array');
+        expect(body.fields['body.arrayValue'].value).to.equal(bodyModel.arrayValue);
 
-        expect(body.fields.dateValue.message).to.equal('Invalid ISO 8601 date format, i.e. YYYY-MM-DD');
-        expect(body.fields.dateValue.value).to.equal(bodyModel.dateValue);
-        expect(body.fields.datetimeValue.message).to.equal('Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-        expect(body.fields.datetimeValue.value).to.equal(bodyModel.datetimeValue);
+        expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
+        expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);
+        expect(body.fields['body.datetimeValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+        expect(body.fields['body.datetimeValue'].value).to.equal(bodyModel.datetimeValue);
 
-        expect(body.fields.numberMax10.message).to.equal('max 10');
-        expect(body.fields.numberMax10.value).to.equal(bodyModel.numberMax10);
-        expect(body.fields.numberMin5.message).to.equal('min 5');
-        expect(body.fields.numberMin5.value).to.equal(bodyModel.numberMin5);
-        expect(body.fields.stringMax10Lenght.message).to.equal('maxLength 10');
-        expect(body.fields.stringMax10Lenght.value).to.equal(bodyModel.stringMax10Lenght);
-        expect(body.fields.stringMin5Lenght.message).to.equal('minLength 5');
-        expect(body.fields.stringMin5Lenght.value).to.equal(bodyModel.stringMin5Lenght);
-        expect(body.fields.stringPatternAZaz.message).to.equal('Not match in \'^[a-zA-Z]+$\'.');
-        expect(body.fields.stringPatternAZaz.value).to.equal(bodyModel.stringPatternAZaz);
+        expect(body.fields['body.numberMax10'].message).to.equal('max 10');
+        expect(body.fields['body.numberMax10'].value).to.equal(bodyModel.numberMax10);
+        expect(body.fields['body.numberMin5'].message).to.equal('min 5');
+        expect(body.fields['body.numberMin5'].value).to.equal(bodyModel.numberMin5);
+        expect(body.fields['body.stringMax10Lenght'].message).to.equal('maxLength 10');
+        expect(body.fields['body.stringMax10Lenght'].value).to.equal(bodyModel.stringMax10Lenght);
+        expect(body.fields['body.stringMin5Lenght'].message).to.equal('minLength 5');
+        expect(body.fields['body.stringMin5Lenght'].value).to.equal(bodyModel.stringMin5Lenght);
+        expect(body.fields['body.stringPatternAZaz'].message).to.equal('Not match in \'^[a-zA-Z]+$\'');
+        expect(body.fields['body.stringPatternAZaz'].value).to.equal(bodyModel.stringPatternAZaz);
 
-        expect(body.fields.arrayMax5Item.message).to.equal('maxItems 5');
-        expect(body.fields.arrayMax5Item.value).to.deep.equal(bodyModel.arrayMax5Item);
-        expect(body.fields.arrayMin2Item.message).to.equal('minItems 2');
-        expect(body.fields.arrayMin2Item.value).to.deep.equal(bodyModel.arrayMin2Item);
-        expect(body.fields.arrayUniqueItem.message).to.equal('Required unique array.');
-        expect(body.fields.arrayUniqueItem.value).to.deep.equal(bodyModel.arrayUniqueItem);
+        expect(body.fields['body.arrayMax5Item'].message).to.equal('maxItems 5');
+        expect(body.fields['body.arrayMax5Item'].value).to.deep.equal(bodyModel.arrayMax5Item);
+        expect(body.fields['body.arrayMin2Item'].message).to.equal('minItems 2');
+        expect(body.fields['body.arrayMin2Item'].value).to.deep.equal(bodyModel.arrayMin2Item);
+        expect(body.fields['body.arrayUniqueItem'].message).to.equal('required unique array');
+        expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
       }, 400);
     });
 
@@ -446,7 +446,7 @@ describe('Express Server', () => {
 
     it('should custom invalid datatype error message', () => {
       const value = '112ab';
-      return verifyGetRequest(basePath + `/Validate/parameter/customInvalidErrorMsg?longValue=${value}`, (err, res) => {
+      return verifyGetRequest(basePath + `/Validate/parameter/custominvalidErrorMsg?longValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.longValue.message).to.equal('Invalid long number.');
       }, 400);
