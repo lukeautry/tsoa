@@ -91,7 +91,7 @@ export function RegisterRoutes(server: hapi.Server) {
     function authenticateMiddleware(name: string, scopes: string[] = []) {
       return (request: hapi.Request, reply: hapi.IReply) => {
             return hapiAuthentication(request, name, scopes).then((user: any) => {
-                set(request, 'user', user);
+                request['user'] = user;
                 reply.continue();
             })
             .catch((error: any) => reply(error).code(error.status || 401));
