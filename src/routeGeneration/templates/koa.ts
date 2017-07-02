@@ -85,7 +85,7 @@ export function RegisterRoutes(router: KoaRouter) {
   function authenticateMiddleware(name: string, scopes: string[] = []) {
       return async (context: any, next: any) => {
           return koaAuthentication(context.request, name, scopes).then((user: any) => {
-              set(context.request, 'user', user);
+              context.request['user'] = user;
               next();
           })
           .catch((error: any) => {
