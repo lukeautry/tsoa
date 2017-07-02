@@ -81,7 +81,7 @@ export function RegisterRoutes(app: any) {
     function authenticateMiddleware(name: string, scopes: string[] = []) {
         return (request: any, response: any, next: any) => {
             return expressAuthentication(request, name, scopes).then((user: any) => {
-                set(request, 'user', user);
+                request['user'] = user;
                 next();
             })
             .catch((error: any) => {
