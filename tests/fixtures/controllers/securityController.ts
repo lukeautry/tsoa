@@ -20,7 +20,7 @@ export class SecurityTestController {
     return Promise.resolve(ctx.request.user);
   }
 
-  @Response<ErrorResponseModel>('404', 'Not Fount')
+  @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Get('Oauth')
   public async GetWithSecurity( @Request() request: any): Promise<UserResponseModel> {
