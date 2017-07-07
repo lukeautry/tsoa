@@ -2152,7 +2152,7 @@ export function RegisterRoutes(server: any) {
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, reply: any) => {
-      hapiAuthentication(request, name, scopes).then((user: any) => {
+      return hapiAuthentication(request, name, scopes).then((user: any) => {
         request['user'] = user;
         reply.continue();
       })

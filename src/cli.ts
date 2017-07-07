@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 /* tslint:disable:no-console */
-import { Config, SwaggerConfig, RoutesConfig } from './config';
-import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
-import { SpecGenerator } from './swagger/specGenerator';
-import { RouteGenerator } from './routeGeneration/routeGenerator';
-import * as yargs from 'yargs';
+
+import * as PrettyError from 'pretty-error';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as PrettyError from 'pretty-error';
 import * as ts from 'typescript';
+import * as yargs from 'yargs';
+
+import { Config, RoutesConfig, SwaggerConfig } from './config';
+
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
+import { RouteGenerator } from './routeGeneration/routeGenerator';
+import { SpecGenerator } from './swagger/specGenerator';
+import { defaultDecoratorPlugin } from './plugins/defaultDecoratorPlugin';
+import { requireTsoaPlugin } from './utils/resolver';
 
 const workingDir: string = process.cwd();
 const pe = new PrettyError();
@@ -97,6 +102,12 @@ const basePathArgs = {
   type: 'string'
 };
 
+const decoratorPluginArgs = {
+  describe: 'Module name for decorator plugins',
+  required: false,
+  type: 'string'
+};
+
 yargs
   .usage('Usage: $0 <command> [options]')
   .demand(1)
@@ -104,7 +115,8 @@ yargs
   .command('swagger', 'Generate swagger spec', {
     basePath: basePathArgs as any,
     configuration: configurationArgs as any,
-    host: hostArgs as any
+    decoratorPlugin: decoratorPluginArgs as any,
+    host: hostArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -114,10 +126,20 @@ yargs
       if (args.host) {
         config.swagger.host = args.host;
       }
+      let decoratorPlugin = defaultDecoratorPlugin;
+      if (args.decoratorPlugin) {
+        decoratorPlugin = requireTsoaPlugin(args.decoratorPlugin);
+        if (!decoratorPlugin) {
+          console.error('cannot load plugin: ' + args.decoratorPlugin);
+          return;
+        }
+        // tslint:disable-next-line:no-console
+        console.info('use decorator plugin: ' + args.decoratorPlugin);
+      }
 
       const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const swaggerConfig = validateSwaggerConfig(config.swagger);
-      const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
+      const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, decoratorPlugin).Generate();
       new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
 
       // tslint:disable-next-line:no-console
@@ -180,5 +202,6 @@ yargs
 interface CommandLineArgs extends yargs.Argv {
   basePath: string;
   configuration: string;
+  decoratorPlugin: string;
   host: string;
 }

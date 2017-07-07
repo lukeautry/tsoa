@@ -1,8 +1,10 @@
-import { SwaggerConfig } from './../config';
-import { Metadata, Type, ArrayType, ReferenceType, EnumerateType, Property, Method, Parameter, ResponseType } from '../metadataGeneration/types';
-import { Swagger } from './swagger';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
+
+import { ArrayType, EnumerateType, Metadata, Method, Parameter, Property, ReferenceType, ResponseType, Type } from '../metadataGeneration/types';
+
+import { Swagger } from './swagger';
+import { SwaggerConfig } from './../config';
 
 export class SpecGenerator {
   constructor(private readonly metadata: Metadata, private readonly config: SwaggerConfig) { }
@@ -226,7 +228,7 @@ export class SpecGenerator {
 
     return {
       operationId: this.getOperationId(controllerName, method.name),
-      produces: ['application/json'],
+      produces: method.produces,
       responses: swaggerResponses
     };
   }

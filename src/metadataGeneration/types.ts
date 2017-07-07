@@ -22,6 +22,7 @@ export interface Method {
   responses: ResponseType[];
   security?: Security;
   summary?: string;
+  produces?: string[];
 }
 
 export interface Parameter {
@@ -62,6 +63,7 @@ export interface ArrayType extends Type {
 }
 
 export interface ResponseType {
+  code: number;
   description: string;
   name: string;
   schema?: Type;

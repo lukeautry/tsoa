@@ -1,6 +1,10 @@
 import * as ts from 'typescript';
-import { ReferenceType, Metadata } from './types';
+
+import { Metadata, ReferenceType } from './types';
+
 import { ControllerGenerator } from './controllerGenerator';
+import { DecoratorPlugin } from '../plugins/DecoratorPlugin';
+import { defaultDecoratorPlugin } from '../plugins/defaultDecoratorPlugin';
 
 export class MetadataGenerator {
   public static current: MetadataGenerator;
@@ -12,7 +16,7 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions) {
+  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions, public decoratorPlugin: DecoratorPlugin = defaultDecoratorPlugin) {
     this.program = ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
     MetadataGenerator.current = this;

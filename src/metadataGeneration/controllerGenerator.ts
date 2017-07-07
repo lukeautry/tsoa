@@ -1,7 +1,9 @@
 import * as ts from 'typescript';
+
 import { Controller } from './types';
-import { MethodGenerator } from './methodGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { MetadataGenerator } from './metadataGenerator';
+import { MethodGenerator } from './methodGenerator';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
@@ -37,17 +39,17 @@ export class ControllerGenerator {
   }
 
   private getControllerRouteValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'Route', '');
+    return this.getControllerDecoratorValue(node);
   }
 
-  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string, defaultValue: string) {
+  private getControllerDecoratorValue(node: ts.ClassDeclaration) {
     if (!node.decorators) { return undefined; }
 
     const matchedAttributes = node.decorators
       .map(d => d.expression as ts.CallExpression)
       .filter(expression => {
         const subExpression = expression.expression as ts.Identifier;
-        return subExpression.text === decoratorName;
+        return MetadataGenerator.current.decoratorPlugin.routeIdentifiers.indexOf(subExpression.text) >= 0;
       });
 
     if (!matchedAttributes.length) { return undefined; }
@@ -55,8 +57,7 @@ export class ControllerGenerator {
       throw new GenerateMetadataError(this.node, `A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
     }
 
-    const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;
-    return value ? value.text : defaultValue;
+    return MetadataGenerator.current.decoratorPlugin.getRoutePrefix(matchedAttributes[0]);
   }
 
 }

@@ -1,9 +1,12 @@
 import * as ts from 'typescript';
-import { MetadataGenerator } from './metadataGenerator';
+
 import { Parameter, Type } from './types';
-import { ResolveType } from './resolveType';
+
 import { GenerateMetadataError } from './exceptions';
-import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import { MetadataGenerator } from './metadataGenerator';
+import { ResolveType } from './resolveType';
+import { getDecoratorTextValue } from './../utils/decoratorUtils';
+import { getDecorators } from '../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 
 export class ParameterGenerator {
@@ -13,24 +16,31 @@ export class ParameterGenerator {
     private readonly path: string
   ) { }
 
-  public Generate(): Parameter {
-    const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
+  public Generate(): Parameter|null {
+    const decorators = getDecorators(this.parameter, identifier => MetadataGenerator.current.decoratorPlugin.parameterIdentifiers.some(id => id.name === identifier.text));
+    if (!decorators.length && !MetadataGenerator.current.decoratorPlugin.defaultParameterIdentifier) {
+      return null;
+    }
+    const decorator = decorators[0];
+    const paramIdentifier = decorator
+      ? MetadataGenerator.current.decoratorPlugin.parameterIdentifiers.find(id => id.name === decorator.text)!
+      : MetadataGenerator.current.decoratorPlugin.defaultParameterIdentifier!;
 
-    switch (decoratorName) {
-      case 'Request':
+    switch (paramIdentifier.type) {
+      case 'request':
         return this.getRequestParameter(this.parameter);
-      case 'Body':
+      case 'body':
         return this.getBodyParameter(this.parameter);
-      case 'BodyProp':
+      case 'body-prop':
         return this.getBodyPropParameter(this.parameter);
-      case 'Header':
+      case 'header':
         return this.getHeaderParameter(this.parameter);
-      case 'Query':
+      case 'query':
         return this.getQueryParameter(this.parameter);
-      case 'Path':
+      case 'path':
         return this.getPathParameter(this.parameter);
       default:
-        return this.getPathParameter(this.parameter);
+        throw new GenerateMetadataError(this.parameter, `Type '${paramIdentifier.type}' is not supported in '${this.getCurrentLocation()}' method.`);
     }
   }
 
@@ -164,10 +174,6 @@ export class ParameterGenerator {
 
   private supportBodyMethod(method: string) {
     return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
-  }
-
-  private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Type) {

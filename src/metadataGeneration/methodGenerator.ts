@@ -1,10 +1,14 @@
 import * as ts from 'typescript';
+
 import { Method, ResponseType, Type } from './types';
-import { ResolveType } from './resolveType';
-import { ParameterGenerator } from './parameterGenerator';
-import { getJSDocDescription, isExistJSDocTag, getJSDocComment } from './../utils/jsDocUtils';
-import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
+import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
+
 import { GenerateMetadataError } from './exceptions';
+import { MetadataGenerator } from './metadataGenerator';
+import { ParameterGenerator } from './parameterGenerator';
+import { ResolveType } from './resolveType';
+import { getDecorators } from './../utils/decoratorUtils';
+import { getPhase } from '../utils/statusCodes';
 
 export class MethodGenerator {
   private method: string;
@@ -24,8 +28,7 @@ export class MethodGenerator {
 
     const identifier = this.node.name as ts.Identifier;
     const type = ResolveType(this.node.type);
-    const responses = this.getMethodResponses();
-    responses.push(this.getMethodSuccessResponse(type));
+    const responses = this.getMethodResponses(type);
 
     return {
       deprecated: isExistJSDocTag(this.node, tag => tag.tagName.text === 'deprecated'),
@@ -34,6 +37,7 @@ export class MethodGenerator {
       name: identifier.text,
       parameters: this.buildParameters(),
       path: this.path,
+      produces: this.getProduces(),
       responses,
       security: this.getMethodSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
@@ -45,14 +49,14 @@ export class MethodGenerator {
   private buildParameters() {
     const parameters = this.node.parameters.map(p => {
       try {
-        return new ParameterGenerator(p, this.method, this.path).Generate();
+        return new ParameterGenerator(p, this.method, this.path).Generate()!;
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
         const parameterId = p.name as ts.Identifier;
         throw new GenerateMetadataError(this.node, `Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
       }
-    });
+    }).filter(p => p);
 
     const bodyParameters = parameters.filter(p => p.in === 'body');
     const bodyProps = parameters.filter(p => p.in === 'body-prop');
@@ -73,7 +77,7 @@ export class MethodGenerator {
   }
 
   private processMethodDecorators() {
-    const pathDecorators = getDecorators(this.node, identifier => this.supportsPathMethod(identifier.text));
+    const pathDecorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.methodActionIdentifiers.indexOf(identifier.text) >= 0);
 
     if (!pathDecorators || !pathDecorators.length) { return; }
     if (pathDecorators.length > 1) {
@@ -82,85 +86,47 @@ export class MethodGenerator {
 
     const decorator = pathDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
-    const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
-    this.method = decorator.text.toLowerCase();
+    const methodAction = MetadataGenerator.current.decoratorPlugin.getMethodAction(expression);
+
+    this.method = methodAction.method;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
-    this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
+    this.path = methodAction.path;
   }
 
-  private getMethodResponses(): ResponseType[] {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
-    if (!decorators || !decorators.length) { return []; }
+  private getMethodResponses(type: Type): ResponseType[] {
+    const decorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.responseIdentifiers.indexOf(identifier.text) >= 0);
 
-    return decorators.map(decorator => {
+    const responses = decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
-
-      let description = '';
-      let name = '200';
-      let examples = undefined;
-      if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
-        name = (expression.arguments[0] as any).text;
-      }
-      if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
-        description = (expression.arguments[1] as any).text;
-      }
-      if (expression.arguments.length > 2 && (expression.arguments[2] as any).text) {
-        const argument = expression.arguments[2] as any;
-        examples = this.getExamplesValue(argument);
-      }
-
-      return {
-        description,
-        examples: examples,
-        name: name,
-        schema: (expression.typeArguments && expression.typeArguments.length > 0)
-          ? ResolveType(expression.typeArguments[0])
-          : undefined
-      } as ResponseType;
+      return MetadataGenerator.current.decoratorPlugin.getMethodResponse(expression, type);
     });
-  }
 
-  private getMethodSuccessResponse(type: Type): ResponseType {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
-    if (!decorators || !decorators.length) {
-      return {
-        description: type.typeName === 'void' ? 'No content' : 'Ok',
-        examples: this.getMethodSuccessExamples(),
-        name: type.typeName === 'void' ? '204' : '200',
+    const successResponses = responses.filter(res => res.code < 400);
+    if (!successResponses.length) {
+      const code = type.typeName === 'void' ? 204 : 200;
+      const successResponse = {
+        code,
+        description: getPhase(code),
+        name: code.toString(),
         schema: type
       };
+      successResponses.push(successResponse);
+      responses.push(successResponse);
     }
-    if (decorators.length > 1) {
+
+    if (successResponses.length > 1) {
       throw new GenerateMetadataError(this.node, `Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
     }
+    successResponses[0].examples = this.getMethodSuccessExamples() || successResponses[0].examples;
 
-    const decorator = decorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-
-    let description = '';
-    let name = '200';
-    const examples = undefined;
-
-    if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
-      name = (expression.arguments[0] as any).text;
-    }
-    if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
-      description = (expression.arguments[1] as any).text;
-    }
-
-    return {
-      description,
-      examples,
-      name,
-      schema: type
-    };
+    return responses;
   }
 
   private getMethodSuccessExamples() {
-    const exampleDecorators = getDecorators(this.node, identifier => identifier.text === 'Example');
+    const exampleDecorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.exampleIdentifiers.indexOf(identifier.text) >= 0);
     if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
     if (exampleDecorators.length > 1) {
       throw new GenerateMetadataError(this.node, `Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -168,25 +134,12 @@ export class MethodGenerator {
 
     const decorator = exampleDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
-    const argument = expression.arguments[0] as any;
 
-    return this.getExamplesValue(argument);
-  }
-
-  private supportsPathMethod(method: string) {
-    return ['get', 'post', 'patch', 'delete', 'put'].some(m => m === method.toLowerCase());
-  }
-
-  private getExamplesValue(argument: any) {
-    const example: any = {};
-    argument.properties.forEach((p: any) => {
-      example[p.name.text] = getInitializerValue(p.initializer);
-    });
-    return example;
+    return MetadataGenerator.current.decoratorPlugin.getExample(expression);
   }
 
   private getMethodTags() {
-    const tagsDecorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
+    const tagsDecorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.tagIdentifiers.indexOf(identifier.text) >= 0);
     if (!tagsDecorators || !tagsDecorators.length) { return []; }
     if (tagsDecorators.length > 1) {
       throw new GenerateMetadataError(this.node, `Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -195,11 +148,11 @@ export class MethodGenerator {
     const decorator = tagsDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
-    return expression.arguments.map((a: any) => a.text);
+    return MetadataGenerator.current.decoratorPlugin.getMethodTags(expression);
   }
 
   private getMethodSecurity() {
-    const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
+    const securityDecorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.securityIdentifiers.indexOf(identifier.text) >= 0);
     if (!securityDecorators || !securityDecorators.length) { return undefined; }
     if (securityDecorators.length > 1) {
       throw new GenerateMetadataError(this.node, `Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -208,9 +161,15 @@ export class MethodGenerator {
     const decorator = securityDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
-    return {
-      name: (expression.arguments[0] as any).text,
-      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
-    };
+    return MetadataGenerator.current.decoratorPlugin.getMethodSecurities(expression);
+  }
+
+  private getProduces() {
+    const decorators = getDecorators(this.node, identifier => MetadataGenerator.current.decoratorPlugin.produceIdentifiers.indexOf(identifier.text) >= 0);
+    const produces = decorators.map(decorator => MetadataGenerator.current.decoratorPlugin.getProduce(decorator.parent as ts.CallExpression));
+    if (!produces.length) {
+      produces.push('application/json');
+    }
+    return produces;
   }
 }

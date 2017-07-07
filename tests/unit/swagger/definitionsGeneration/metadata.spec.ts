@@ -1,6 +1,8 @@
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+
 import * as chai from 'chai';
+
+import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 
 const expect = chai.expect;
 
@@ -122,7 +124,7 @@ describe('Metadata generation', () => {
 
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');
-      expect(successResponse.description).to.equal('Ok');
+      expect(successResponse.description).to.equal('OK');
     });
 
     it('should generate success response', () => {
