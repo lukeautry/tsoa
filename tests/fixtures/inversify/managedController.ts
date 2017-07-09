@@ -9,7 +9,7 @@ import { ManagedService } from './managedService';
 export class ManagedController {
 
   constructor(
-    @inject(ManagedService) private managedService: ManagedService
+    @inject(ManagedService) private managedService: ManagedService,
   ) { }
 
   @Get()

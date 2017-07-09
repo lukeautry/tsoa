@@ -2,7 +2,7 @@ const map = require('lodash/map');
 const indexOf = require('lodash/indexOf');
 import * as ts from 'typescript';
 import { MetadataGenerator } from './metadataGenerator';
-import { Type, EnumerateType, ReferenceType, ArrayType, Property } from './types';
+import { Tsoa } from './tsoa';
 import { getJSDocTagNames } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
@@ -13,14 +13,14 @@ syntaxKindMap[ts.SyntaxKind.StringKeyword] = 'string';
 syntaxKindMap[ts.SyntaxKind.BooleanKeyword] = 'boolean';
 syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 
-const localReferenceTypeCache: { [typeName: string]: ReferenceType } = {};
+const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
 type UsableDeclaration = ts.InterfaceDeclaration
   | ts.ClassDeclaration
   | ts.TypeAliasDeclaration;
 
-export function ResolveType(typeNode: ts.TypeNode): Type {
+export function ResolveType(typeNode: ts.TypeNode): Tsoa.Type {
   const primitiveType = getPrimitiveType(typeNode);
   if (primitiveType) {
     return primitiveType;
@@ -28,14 +28,14 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
 
   if (typeNode.kind === ts.SyntaxKind.ArrayType) {
     const arrayType = typeNode as ts.ArrayTypeNode;
-    return <ArrayType>{
+    return {
       elementType: ResolveType(arrayType.elementType),
-      typeName: 'array'
-    };
+      typeName: 'array',
+    } as Tsoa.ArrayType;
   }
 
   if (typeNode.kind === ts.SyntaxKind.UnionType) {
-    return { typeName: 'object' };
+    return { typeName: 'object' } as Tsoa.Type;
   }
 
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
@@ -43,8 +43,12 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
   }
   let typeReference: any = typeNode;
   if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
-    if (typeReference.typeName.text === 'Date') { return getDateType(typeNode); }
-    if (typeReference.typeName.text === 'Buffer') { return { typeName: 'buffer' }; }
+    if (typeReference.typeName.text === 'Date') {
+      return getDateType(typeNode);
+    }
+    if (typeReference.typeName.text === 'Buffer') {
+      return { typeName: 'buffer' } as Tsoa.Type;
+    }
 
     if (typeReference.typeName.text === 'Promise') {
       typeReference = typeReference.typeArguments[0];
@@ -62,7 +66,7 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
     return literalType;
   }
 
-  let referenceType: ReferenceType;
+  let referenceType: Tsoa.ReferenceType;
 
   if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
     const typeT: ts.TypeNode[] = typeReference.typeArguments as ts.TypeNode[];
@@ -75,7 +79,7 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
   return referenceType;
 }
 
-function getPrimitiveType(typeNode: ts.TypeNode): Type | undefined {
+function getPrimitiveType(typeNode: ts.TypeNode): Tsoa.Type | undefined {
   const primitiveType = syntaxKindMap[typeNode.kind];
   if (!primitiveType) { return; }
 
@@ -105,10 +109,10 @@ function getPrimitiveType(typeNode: ts.TypeNode): Type | undefined {
         return { typeName: 'double' };
     }
   }
-  return { typeName: primitiveType };
+  return { typeName: primitiveType } as Tsoa.Type;
 }
 
-function getDateType(typeNode: ts.TypeNode): Type {
+function getDateType(typeNode: ts.TypeNode): Tsoa.Type {
   const parentNode = typeNode.parent as ts.Node;
   if (!parentNode) {
     return { typeName: 'datetime' };
@@ -130,7 +134,7 @@ function getDateType(typeNode: ts.TypeNode): Type {
   }
 }
 
-function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
+function getEnumerateType(typeNode: ts.TypeNode): Tsoa.EnumerateType | undefined {
   const enumName = (typeNode as any).typeName.text;
   const enumTypes = MetadataGenerator.current.nodes
     .filter(node => node.kind === ts.SyntaxKind.EnumDeclaration)
@@ -154,14 +158,14 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
     return;
   }
   return {
-    enumMembers: enumDeclaration.members.map((member: any, index) => {
+    members: enumDeclaration.members.map((member: any, index) => {
       return getEnumValue(member) || String(index);
     }),
     typeName: 'enum',
-  } as EnumerateType;
+  } as Tsoa.EnumerateType;
 }
 
-function getLiteralType(typeNode: ts.TypeNode): EnumerateType | undefined {
+function getLiteralType(typeNode: ts.TypeNode): Tsoa.EnumerateType | undefined {
   const literalName = (typeNode as any).typeName.text;
   const literalTypes = MetadataGenerator.current.nodes
     .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
@@ -177,13 +181,13 @@ function getLiteralType(typeNode: ts.TypeNode): EnumerateType | undefined {
   }
 
   const unionTypes = (literalTypes[0] as any).type.types;
-  return <EnumerateType>{
-    enumMembers: unionTypes.map((unionNode: any) => unionNode.literal.text as string),
+  return {
+    members: unionTypes.map((unionNode: any) => unionNode.literal.text as string),
     typeName: 'enum',
-  };
+  } as Tsoa.EnumerateType;
 }
 
-function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): ReferenceType {
+function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): Tsoa.ReferenceType {
   const typeName = resolveFqTypeName(type);
   const typeNameWithGenerics = getTypeName(typeName, genericTypes);
 
@@ -203,11 +207,12 @@ function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): Re
     const properties = getModelTypeProperties(modelTypeDeclaration, genericTypes);
     const additionalProperties = getModelTypeAdditionalProperties(modelTypeDeclaration);
 
-    const referenceType: ReferenceType = {
+    const referenceType = {
       description: getModelDescription(modelTypeDeclaration),
       properties: properties,
       typeName: typeNameWithGenerics,
-    };
+    } as Tsoa.ReferenceType;
+
     if (additionalProperties) {
       referenceType.additionalProperties = additionalProperties;
     }
@@ -270,9 +275,8 @@ function getAnyTypeName(typeNode: ts.TypeNode): string {
 
 function createCircularDependencyResolver(typeName: string) {
   const referenceType = {
-    properties: new Array<Property>(),
-    typeName: typeName,
-  } as any;
+    typeName,
+  } as Tsoa.ReferenceType;
 
   MetadataGenerator.current.OnFinish(referenceTypes => {
     const realReferenceType = referenceTypes[typeName];
@@ -364,7 +368,7 @@ function getModelTypeDeclaration(type: ts.EntityName) {
   return modelTypes[0];
 }
 
-function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeNode[]): Property[] {
+function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeNode[]): Tsoa.Property[] {
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
     return interfaceDeclaration.members
@@ -412,13 +416,13 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
           required: !propertyDeclaration.questionToken,
           type: ResolveType(aType),
           validators: getPropertyValidators(propertyDeclaration),
-        } as Property;
+        } as Tsoa.Property;
       });
   }
 
   if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
     const aliasDeclaration = node as ts.TypeAliasDeclaration;
-    const properties: Property[] = [];
+    const properties: Tsoa.Property[] = [];
 
     if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
       const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
@@ -470,7 +474,7 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
         required: !declaration.questionToken,
         type: ResolveType(declaration.type),
         validators: getPropertyValidators(declaration as ts.PropertyDeclaration),
-      } as Property;
+      } as Tsoa.Property;
     });
 }
 
@@ -483,12 +487,12 @@ function getModelTypeAdditionalProperties(node: UsableDeclaration) {
     }
 
     const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-    const indexType = ResolveType(<ts.TypeNode>indexSignatureDeclaration.parameters[0].type);
+    const indexType = ResolveType(indexSignatureDeclaration.parameters[0].type as ts.TypeNode);
     if (indexType.typeName !== 'string') {
       throw new GenerateMetadataError(node, `Only string indexers are supported.`);
     }
 
-    return ResolveType(<ts.TypeNode>indexSignatureDeclaration.type);
+    return ResolveType(indexSignatureDeclaration.type as ts.TypeNode);
   }
 
   return undefined;
@@ -500,8 +504,8 @@ function hasPublicModifier(node: ts.Node) {
   });
 }
 
-function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Property[] {
-  const properties = new Array<Property>();
+function getInheritedProperties(modelTypeDeclaration: UsableDeclaration): Tsoa.Property[] {
+  const properties = [] as Tsoa.Property[];
   if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
     return [];
   }
@@ -529,7 +533,7 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
   const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
   if (!symbol) {
     return undefined;
-  };
+  }
 
   /**
   * TODO: Workaround for what seems like a bug in the compiler

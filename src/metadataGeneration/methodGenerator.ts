@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { Method, ResponseType, Type } from './types';
+import { Tsoa } from './tsoa';
 import { ResolveType } from './resolveType';
 import { ParameterGenerator } from './parameterGenerator';
 import { getJSDocDescription, isExistJSDocTag, getJSDocComment } from './../utils/jsDocUtils';
@@ -7,7 +7,7 @@ import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 
 export class MethodGenerator {
-  private method: string;
+  private method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
   private path: string;
 
   constructor(private readonly node: ts.MethodDeclaration) {
@@ -18,7 +18,7 @@ export class MethodGenerator {
     return !!this.method;
   }
 
-  public Generate(): Method {
+  public Generate(): Tsoa.Method {
     if (!this.IsValid()) { throw new GenerateMetadataError(this.node, 'This isn\'t a valid a controller method.'); }
     if (!this.node.type) { throw new GenerateMetadataError(this.node, 'Controller methods must have a return type.'); }
 
@@ -38,7 +38,7 @@ export class MethodGenerator {
       security: this.getMethodSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getMethodTags(),
-      type
+      type,
     };
   }
 
@@ -84,14 +84,14 @@ export class MethodGenerator {
     const expression = decorator.parent as ts.CallExpression;
     const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
-    this.method = decorator.text.toLowerCase();
+    this.method = decorator.text.toLowerCase() as any;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
     this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
   }
 
-  private getMethodResponses(): ResponseType[] {
+  private getMethodResponses(): Tsoa.Response[] {
     const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
     if (!decorators || !decorators.length) { return []; }
 
@@ -118,19 +118,19 @@ export class MethodGenerator {
         name: name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
           ? ResolveType(expression.typeArguments[0])
-          : undefined
-      } as ResponseType;
+          : undefined,
+      } as Tsoa.Response;
     });
   }
 
-  private getMethodSuccessResponse(type: Type): ResponseType {
+  private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
     const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
         description: type.typeName === 'void' ? 'No content' : 'Ok',
         examples: this.getMethodSuccessExamples(),
         name: type.typeName === 'void' ? '204' : '200',
-        schema: type
+        schema: type,
       };
     }
     if (decorators.length > 1) {
@@ -155,7 +155,7 @@ export class MethodGenerator {
       description,
       examples,
       name,
-      schema: type
+      schema: type,
     };
   }
 
@@ -210,7 +210,7 @@ export class MethodGenerator {
 
     return {
       name: (expression.arguments[0] as any).text,
-      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
+      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
     };
   }
 }

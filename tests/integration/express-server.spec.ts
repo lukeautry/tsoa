@@ -513,7 +513,7 @@ describe('Express Server', () => {
             'gender': 'MALE',
             'human': true,
             'last_name': 'Stark',
-            'weight': 82.1
+            'weight': 82.1,
           });
       }, 200);
     });
@@ -536,7 +536,7 @@ describe('Express Server', () => {
         gender: 'MALE',
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -556,7 +556,7 @@ describe('Express Server', () => {
         gender: 'MALE',
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -601,7 +601,7 @@ describe('Express Server', () => {
 
       const data: GenericRequest<TestModel> = {
         name: 'something',
-        value: getFakeModel()
+        value: getFakeModel(),
       };
       return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
         const model = res.body as TestModel;
@@ -621,7 +621,7 @@ describe('Express Server', () => {
   function verifyRequest(
     verifyResponse: (err: any, res: request.Response) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(app))
@@ -637,7 +637,7 @@ describe('Express Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }
@@ -659,8 +659,8 @@ describe('Express Server', () => {
         key: {
           email: 'test@test.com',
           id: 1,
-          testSubModel2: false
-        }
+          testSubModel2: false,
+        },
       },
       numberArray: [1, 2],
       numberValue: 5,
@@ -668,7 +668,7 @@ describe('Express Server', () => {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
-      stringValue: 'test1234'
+      stringValue: 'test1234',
     };
   }
 

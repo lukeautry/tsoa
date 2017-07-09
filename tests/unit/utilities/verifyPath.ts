@@ -9,7 +9,7 @@ export function VerifyPath(
   route: string,
   getOperation: ((path: Swagger.Path) => Swagger.Operation | undefined),
   isCollection?: boolean,
-  isNoContent?: boolean
+  isNoContent?: boolean,
 ) {
   const path = spec.paths[route];
   expect(path, `Path object for ${route} route wasn\'t generated.`).to.exist;

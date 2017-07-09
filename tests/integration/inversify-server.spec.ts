@@ -36,8 +36,8 @@ describe('Inversify Express Server', () => {
           key: {
             email: 'test@test.com',
             id: 1,
-            testSubModel2: false
-          }
+            testSubModel2: false,
+          },
         },
         numberArray: [1, 2, 3],
         numberValue: 1,
@@ -45,7 +45,7 @@ describe('Inversify Express Server', () => {
         strLiteralArr: ['Foo', 'Bar'],
         strLiteralVal: 'Foo',
         stringArray: ['string one', 'string two'],
-        stringValue: 'a string'
+        stringValue: 'a string',
       };
     };
     return verifyGetRequest(basePath + '/ManagedTest', (err, res) => {
@@ -64,7 +64,7 @@ describe('Inversify Express Server', () => {
   function verifyRequest(
     verifyResponse: (err: any, res: request.Response) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(app))
@@ -80,7 +80,7 @@ describe('Inversify Express Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }

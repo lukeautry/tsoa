@@ -9,7 +9,7 @@ import {
     SuccessResponse,
     Controller,
     Tags,
-    Security
+    Security,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestModel, ErrorResponseModel } from '../testModel';

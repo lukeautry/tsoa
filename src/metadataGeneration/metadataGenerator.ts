@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { ReferenceType, Metadata } from './types';
+import { Tsoa } from './tsoa';
 import { ControllerGenerator } from './controllerGenerator';
 
 export class MetadataGenerator {
@@ -7,8 +7,8 @@ export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
-  private referenceTypes: { [typeName: string]: ReferenceType } = {};
-  private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: ReferenceType }) => void>();
+  private referenceTypes: { [typeName: string]: Tsoa.ReferenceType } = {};
+  private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: Tsoa.ReferenceType }) => void>();
 
   public IsExportedNode(node: ts.Node) { return true; }
 
@@ -18,7 +18,7 @@ export class MetadataGenerator {
     MetadataGenerator.current = this;
   }
 
-  public Generate(): Metadata {
+  public Generate(): Tsoa.Metadata {
     this.program.getSourceFiles().forEach(sf => {
       ts.forEachChild(sf, node => {
         this.nodes.push(node);
@@ -31,7 +31,7 @@ export class MetadataGenerator {
 
     return {
       Controllers: controllers,
-      ReferenceTypes: this.referenceTypes
+      ReferenceTypes: this.referenceTypes,
     };
   }
 
@@ -39,7 +39,7 @@ export class MetadataGenerator {
     return this.typeChecker;
   }
 
-  public AddReferenceType(referenceType: ReferenceType) {
+  public AddReferenceType(referenceType: Tsoa.ReferenceType) {
     this.referenceTypes[referenceType.typeName] = referenceType;
   }
 
@@ -47,7 +47,7 @@ export class MetadataGenerator {
     return this.referenceTypes[typeName];
   }
 
-  public OnFinish(callback: (referenceTypes: { [typeName: string]: ReferenceType }) => void) {
+  public OnFinish(callback: (referenceTypes: { [typeName: string]: Tsoa.ReferenceType }) => void) {
     this.circularDependencyResolvers.push(callback);
   }
 

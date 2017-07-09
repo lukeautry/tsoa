@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { MetadataGenerator } from './metadataGenerator';
-import { Parameter, Type } from './types';
+import { Tsoa } from './tsoa';
 import { ResolveType } from './resolveType';
 import { GenerateMetadataError } from './exceptions';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
@@ -10,10 +10,10 @@ export class ParameterGenerator {
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
-    private readonly path: string
+    private readonly path: string,
   ) { }
 
-  public Generate(): Parameter {
+  public Generate(): Tsoa.Parameter {
     const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
@@ -40,7 +40,7 @@ export class ParameterGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
-  private getRequestParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     return {
       description: this.getParameterDescription(parameter),
@@ -53,7 +53,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getBodyPropParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getBodyPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
@@ -72,7 +72,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getBodyParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getBodyParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
@@ -91,7 +91,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getHeaderParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getHeaderParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
@@ -110,12 +110,20 @@ export class ParameterGenerator {
     };
   }
 
-  private getQueryParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
-    if (!this.supportPathDataType(type)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
+    if (type.typeName === 'array') {
+      const arrayType = type as Tsoa.ArrayType;
+
+      if (!this.supportPathDataType(arrayType.elementType)) {
+        throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed array as a query parameter in '${this.getCurrentLocation()}'.`);
+      }
+    } else {
+      if (!this.supportPathDataType(type)) {
+        throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
+      }
     }
 
     return {
@@ -129,7 +137,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getPathParameter(parameter: ts.ParameterDeclaration): Parameter {
+  private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
     const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
@@ -170,7 +178,7 @@ export class ParameterGenerator {
     return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
-  private supportPathDataType(parameterType: Type) {
+  private supportPathDataType(parameterType: Tsoa.Type) {
     return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum'].find(t => t === parameterType.typeName);
   }
 

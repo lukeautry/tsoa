@@ -53,15 +53,15 @@ export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
 
 export enum EnumIndexValue {
-  VALUE_1, VALUE_2
+  VALUE_1, VALUE_2,
 }
 
 export enum EnumNumberValue {
-  VALUE_1 = 2, VALUE_2 = 5
+  VALUE_1 = 2, VALUE_2 = 5,
 }
 
 export enum EnumStringValue {
-  VALUE_1 = <any>'VALUE_1', VALUE_2 = <any>'VALUE_2'
+  VALUE_1 = 'VALUE_1' as any, VALUE_2 = 'VALUE_2' as any,
 }
 
 // shortened from StringLiteral to make the tslint enforced
@@ -250,7 +250,7 @@ export class TestClassModel extends TestClassBaseModel {
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,
-    public optionalPublicConstructorVar?: string
+    public optionalPublicConstructorVar?: string,
   ) {
     super();
   }

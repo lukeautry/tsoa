@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as ts from 'typescript';
+import * as mkdirp from 'mkdirp';
 
 const workingDir: string = process.cwd();
 const pe = new PrettyError();
@@ -82,19 +83,19 @@ const configurationArgs = {
   alias: 'c',
   describe: 'tsoa configuration file; default is tsoa.json in the working directory',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
 const hostArgs = {
   describe: 'API host',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
 const basePathArgs = {
   describe: 'Base API path',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
 yargs
@@ -104,7 +105,7 @@ yargs
   .command('swagger', 'Generate swagger spec', {
     basePath: basePathArgs as any,
     configuration: configurationArgs as any,
-    host: hostArgs as any
+    host: hostArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -118,7 +119,19 @@ yargs
       const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const swaggerConfig = validateSwaggerConfig(config.swagger);
       const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
-      new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
+      const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
+
+      mkdirp(swaggerConfig.outputDirectory, (dirErr: any) => {
+        if (dirErr) {
+          throw dirErr;
+        }
+
+        fs.writeFile(`${swaggerConfig.outputDirectory}/swagger.json`, JSON.stringify(spec, null, '\t'), (err: any) => {
+          if (err) {
+            throw new Error(err.toString());
+          }
+        });
+      });
 
       // tslint:disable-next-line:no-console
       console.info('Generate swagger successful.');
@@ -129,7 +142,7 @@ yargs
 
   .command('routes', 'Generate routes', {
     basePath: basePathArgs as any,
-    configuration: configurationArgs as any
+    configuration: configurationArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);

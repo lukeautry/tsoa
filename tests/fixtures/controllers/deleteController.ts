@@ -1,5 +1,5 @@
 import {
-  Route, Delete, Query
+  Route, Delete, Query,
 } from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';

@@ -18,7 +18,7 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
       }
       fieldErrors[parent + name] = {
         message,
-        value
+        value,
       };
       return;
     } else {
@@ -65,7 +65,7 @@ export function validateInt(name: string, numberValue: string, fieldErrors: Fiel
     }
     fieldErrors[parent + name] = {
       message,
-      value: numberValue
+      value: numberValue,
     };
     return;
   }
@@ -106,7 +106,7 @@ export function validateFloat(name: string, numberValue: string, fieldErrors: Fi
     }
     fieldErrors[parent + name] = {
       message,
-      value: numberValue
+      value: numberValue,
     };
     return;
   }
@@ -138,7 +138,7 @@ export function validateEnum(name: string, enumValue: string | number, fieldErro
   if (!members || members.length === 0) {
     fieldErrors[parent + name] = {
       message: `no member`,
-      value: enumValue
+      value: enumValue,
     };
     return;
   }
@@ -148,7 +148,7 @@ export function validateEnum(name: string, enumValue: string | number, fieldErro
   if (!value) {
     fieldErrors[parent + name] = {
       message: `should be one of the following; ['${members.join(`', '`)}']`,
-      value: enumValue
+      value: enumValue,
     };
     return;
   }
@@ -161,7 +161,7 @@ export function validateDate(name: string, dateValue: string, fieldErrors: Field
     const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
     fieldErrors[parent + name] = {
       message,
-      value: dateValue
+      value: dateValue,
     };
     return;
   }
@@ -197,7 +197,7 @@ export function validateDateTime(name: string, datetimeValue: string, fieldError
     const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
     fieldErrors[parent + name] = {
       message,
-      value: datetimeValue
+      value: datetimeValue,
     };
     return;
   }
@@ -232,7 +232,7 @@ export function validateString(name: string, stringValue: string, fieldErrors: F
     const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `invalid string value`;
     fieldErrors[parent + name] = {
       message,
-      value: stringValue
+      value: stringValue,
     };
     return;
   }
@@ -277,7 +277,7 @@ export function validateBool(name: string, boolValue: any, fieldErrors: FieldErr
   const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid boolean value`;
   fieldErrors[parent + name] = {
     message,
-    value: boolValue
+    value: boolValue,
   };
   return;
 }
@@ -287,7 +287,7 @@ export function validateArray(name: string, arrayValue: any[], fieldErrors: Fiel
     const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
     fieldErrors[parent + name] = {
       message,
-      value: arrayValue
+      value: arrayValue,
     };
     return;
   }
@@ -295,12 +295,12 @@ export function validateArray(name: string, arrayValue: any[], fieldErrors: Fiel
   const value: any[] = arrayValue.map((v, index) => {
     return ValidateParam(schema, v, models, `$${index}`, fieldErrors, name + '.');
   });
-  if (!validators) { return value; };
+  if (!validators) { return value; }
   if (validators.minItems && validators.minItems.value) {
     if (validators.minItems.value > value.length) {
       fieldErrors[parent + name] = {
         message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
-        value
+        value,
       };
       return;
     }
@@ -309,7 +309,7 @@ export function validateArray(name: string, arrayValue: any[], fieldErrors: Fiel
     if (validators.maxItems.value < value.length) {
       fieldErrors[parent + name] = {
         message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
-        value
+        value,
       };
       return;
     }
@@ -322,7 +322,7 @@ export function validateArray(name: string, arrayValue: any[], fieldErrors: Fiel
     if (unique) {
       fieldErrors[parent + name] = {
         message: validators.uniqueItems.errorMsg || `required unique array`,
-        value
+        value,
       };
       return;
     }
@@ -352,7 +352,7 @@ function validateModel(typeName: string, modelValue: any, fieldErrors: FieldErro
         } else {
           fieldErrors[parent + typeName + '.' + key] = {
             message: `No matching model found in additionalProperties to validate ${key}`,
-            value: key
+            value: key,
           };
         }
       });

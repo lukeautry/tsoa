@@ -17,7 +17,7 @@ export class ModelService {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['string one', 'string two'],
-      stringValue: 'a string'
+      stringValue: 'a string',
     };
   }
 

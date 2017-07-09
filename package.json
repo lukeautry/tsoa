@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "start": "tsc -w",
-    "build": "npm run clean && tsc && npm run copy-templates",
+    "build": "npm run clean && tsc && npm run copy-templates && npm run copy-types",
+    "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint --exclude=./node_modules/** ./src/**/*.ts ./tests/**/*.ts",

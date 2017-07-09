@@ -1,5 +1,5 @@
 import {
-    Route, Get, Controller
+    Route, Get, Controller,
 } from '../../../src';
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';

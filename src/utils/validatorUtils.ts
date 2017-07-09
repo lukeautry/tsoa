@@ -1,15 +1,15 @@
 import * as ts from 'typescript';
 import * as moment from 'moment';
-import { Validators } from './../metadataGeneration/types';
+import { Tsoa } from './../metadataGeneration/tsoa';
 import { getJSDocTags } from './jsDocUtils';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 
-export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Validators {
-    if (!parameter.parent) { return {}; };
+export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Tsoa.Validators {
+    if (!parameter.parent) { return {}; }
 
     const tags = getJSDocTags(parameter.parent, tag => {
         return getParameterTagSupport().some(value => {
-            if (!tag.comment) { return false; };
+            if (!tag.comment) { return false; }
             return value === tag.tagName.text && tag.comment.startsWith(parameterName);
         });
     });
@@ -76,7 +76,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
-                    value
+                    value,
                 };
                 break;
             default:
@@ -92,10 +92,10 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
                 break;
         }
         return validateObj;
-    }, {} as Validators);
+    }, {} as Tsoa.Validators);
 }
 
-export function getPropertyValidators(property: ts.PropertyDeclaration): Validators {
+export function getPropertyValidators(property: ts.PropertyDeclaration): Tsoa.Validators {
     const tags = getJSDocTags(property, (tag) => {
         return getParameterTagSupport().some(value => value === tag.tagName.text);
     });
@@ -159,7 +159,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
-                    value
+                    value,
                 };
                 break;
             default:
@@ -175,8 +175,8 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
                 break;
         }
         return validateObj;
-    }, {} as Validators);
-};
+    }, {} as Tsoa.Validators);
+}
 
 function getParameterTagSupport() {
     return [
