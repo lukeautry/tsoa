@@ -3,7 +3,7 @@ import {
   Request,
   Query,
   Get,
-  Controller,
+  TsoaResponse,
   Route,
   Tags,
 } from '../../../src';
@@ -18,7 +18,7 @@ import {
 } from './../services/modelService';
 
 @Route('GetTest')
-export class GetTestController extends Controller {
+export class GetTestController {
   /**
   * This is a description of the getModel method
   * this is some more text on another line
@@ -41,27 +41,29 @@ export class GetTestController extends Controller {
     stringArray: ['string one', 'string two'],
     stringValue: 'a string'
   })
-  public async getModel(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getModel(): Promise<TsoaResponse<TestModel>> {
+    return {body: new ModelService().getModel()};
   }
 
   @Get('Current')
-  public async getCurrentModel(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getCurrentModel(): Promise<TsoaResponse<TestModel>> {
+    return {body: new ModelService().getModel()};
   }
 
   @Get('ClassModel')
-  public async getClassModel(): Promise<TestClassModel> {
-    return new ModelService().getClassModel();
+  public async getClassModel(): Promise<TsoaResponse<TestClassModel>> {
+    return {body: new ModelService().getClassModel()};
   }
 
   @Get('Multi')
-  public async getMultipleModels(): Promise<TestModel[]> {
-    return [
-      new ModelService().getModel(),
-      new ModelService().getModel(),
-      new ModelService().getModel()
-    ];
+  public async getMultipleModels(): Promise<TsoaResponse<TestModel[]>> {
+    return {
+      body: [
+        new ModelService().getModel(),
+        new ModelService().getModel(),
+        new ModelService().getModel()
+      ]
+    };
   }
 
   /**
@@ -86,46 +88,48 @@ export class GetTestController extends Controller {
     @Query() booleanParam: boolean,
     @Query() stringParam: string,
     @Query() numberParam: number,
-    @Query() optionalStringParam?: string): Promise<TestModel> {
+    @Query() optionalStringParam?: string): Promise<TsoaResponse<TestModel>> {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
     model.numberValue = numberPathParam;
     model.boolValue = booleanPathParam;
     model.stringValue = stringPathParam;
 
-    return model;
+    return {body: model};
   }
 
   @Get('ResponseWithUnionTypeProperty')
-  public async getResponseWithUnionTypeProperty(): Promise<Result> {
+  public async getResponseWithUnionTypeProperty(): Promise<TsoaResponse<Result>> {
     return {
-      value: 'success'
+      body: {
+        value: 'success'
+      },
     };
   }
 
   @Get('UnionTypeResponse')
-  public async getUnionTypeResponse(): Promise<string | boolean> {
-    return '';
+  public async getUnionTypeResponse(): Promise<TsoaResponse<string | boolean>> {
+    return {body: ''};
   }
 
   @Get('Request')
-  public async getRequest( @Request() request: Object): Promise<TestModel> {
+  public async getRequest( @Request() request: Object): Promise<TsoaResponse<TestModel>> {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (<any>request).stringValue;
-    return model;
+    return {body: model};
   }
 
   @Get('DateParam')
-  public async getByDataParam( @Query() date: Date): Promise<TestModel> {
+  public async getByDataParam( @Query() date: Date): Promise<TsoaResponse<TestModel>> {
     const model = new ModelService().getModel();
     model.dateValue = date;
 
-    return model;
+    return {body: model};
   }
 
   @Get('ThrowsError')
-  public async getThrowsError(): Promise<TestModel> {
+  public async getThrowsError(): Promise<TsoaResponse<TestModel>> {
     throw {
       message: 'error thrown',
       status: 400
@@ -134,42 +138,50 @@ export class GetTestController extends Controller {
 
   @Get('GeneratesTags')
   @Tags('test', 'test-two')
-  public async getGeneratesTags(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getGeneratesTags(): Promise<TsoaResponse<TestModel>> {
+    return {body: new ModelService().getModel()};
   }
 
   @Get('HandleBufferType')
-  public async getBuffer( @Query() buffer: Buffer): Promise<Buffer> {
-    return new Buffer('testbuffer');
+  public async getBuffer( @Query() buffer: Buffer): Promise<TsoaResponse<Buffer>> {
+    return {body: new Buffer('testbuffer')};
   }
 
   @Get('GenericModel')
-  public async getGenericModel(): Promise<GenericModel<TestModel>> {
+  public async getGenericModel(): Promise<TsoaResponse<GenericModel<TestModel>>> {
     return {
-      result: new ModelService().getModel()
+      body: {
+        result: new ModelService().getModel()
+      },
     };
   }
 
   @Get('GenericModelArray')
-  public async getGenericModelArray(): Promise<GenericModel<TestModel[]>> {
+  public async getGenericModelArray(): Promise<TsoaResponse<GenericModel<TestModel[]>>> {
     return {
-      result: [
-        new ModelService().getModel()
-      ]
+      body: {
+        result: [
+          new ModelService().getModel()
+        ]
+      },
     };
   }
 
   @Get('GenericPrimitive')
-  public async getGenericPrimitive(): Promise<GenericModel<string>> {
+  public async getGenericPrimitive(): Promise<TsoaResponse<GenericModel<string>>> {
     return {
-      result: new ModelService().getModel().stringValue
+      body: {
+        result: new ModelService().getModel().stringValue
+      },
     };
   }
 
   @Get('GenericPrimitiveArray')
-  public async getGenericPrimitiveArray(): Promise<GenericModel<string[]>> {
+  public async getGenericPrimitiveArray(): Promise<TsoaResponse<GenericModel<string[]>>> {
     return {
-      result: new ModelService().getModel().stringArray
+      body: {
+        result: new ModelService().getModel().stringArray
+     }
     };
   }
 }

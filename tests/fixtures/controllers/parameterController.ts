@@ -7,7 +7,8 @@ import {
     BodyProp,
     Get,
     Post,
-    Route
+    Route,
+    TsoaResponse
 } from '../../../src';
 import { ParameterTestModel, Gender } from '../testModel';
 
@@ -34,14 +35,16 @@ export class ParameterController {
         @Query() weight: number,
         @Query() human: boolean,
         @Query() gender: Gender
-        ): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
-            age,
-            weight,
-            human,
-            gender
+        ): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                firstname,
+                lastname,
+                age,
+                weight,
+                human,
+                gender
+            },
         });
     }
 
@@ -66,14 +69,16 @@ export class ParameterController {
         @Path() weight: number,
         @Path() human: boolean,
         @Path() gender: Gender
-        ): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
-            age,
-            weight,
-            human,
-            gender
+        ): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                firstname,
+                lastname,
+                age,
+                weight,
+                human,
+                gender
+            }
         });
     }
 
@@ -98,14 +103,16 @@ export class ParameterController {
         @Header() weight: number,
         @Header() human: boolean,
         @Header() gender: Gender
-        ): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
-            age,
-            weight,
-            human,
-            gender
+        ): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                firstname,
+                lastname,
+                age,
+                weight,
+                human,
+                gender
+            },
         });
     }
 
@@ -115,14 +122,16 @@ export class ParameterController {
      * @param {object} request Request description
      */
     @Get('Request')
-    public async getRequest( @Request() request: any): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            age: Number(request.query.age),
-            firstname: request.query.firstname,
-            gender: request.query.gender === 'MALE' ? 'MALE' : 'FEMALE',
-            human: Boolean(request.query.age),
-            lastname: request.query.lastname,
-            weight: Number(request.query.weight),
+    public async getRequest( @Request() request: any): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                age: Number(request.query.age),
+                firstname: request.query.firstname,
+                gender: request.query.gender === 'MALE' ? 'MALE' : 'FEMALE',
+                human: Boolean(request.query.age),
+                lastname: request.query.lastname,
+                weight: Number(request.query.weight),
+            },
         });
     }
 
@@ -132,14 +141,16 @@ export class ParameterController {
      * @param {object} body Body description
      */
     @Post('Body')
-    public async getBody( @Body() body: ParameterTestModel): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            age: body.age,
-            firstname: body.firstname,
-            gender: body.gender,
-            human: body.human,
-            lastname: body.lastname,
-            weight: body.weight
+    public async getBody( @Body() body: ParameterTestModel): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                age: body.age,
+                firstname: body.firstname,
+                gender: body.gender,
+                human: body.human,
+                lastname: body.lastname,
+                weight: body.weight
+            },
         });
     }
 
@@ -161,14 +172,16 @@ export class ParameterController {
         @BodyProp('age') age: number,
         @BodyProp('weight') weight: number,
         @BodyProp('human') human: boolean,
-        @BodyProp('gender') gender: Gender): Promise<ParameterTestModel> {
-        return Promise.resolve<ParameterTestModel>({
-            age: age,
-            firstname: firstname,
-            human: human,
-            lastname: lastname,
-            weight,
-            gender
+        @BodyProp('gender') gender: Gender): Promise<TsoaResponse<ParameterTestModel>> {
+        return Promise.resolve<TsoaResponse<ParameterTestModel>>({
+            body: {
+                age: age,
+                firstname: firstname,
+                human: human,
+                lastname: lastname,
+                weight,
+                gender
+            },
         });
     }
 }

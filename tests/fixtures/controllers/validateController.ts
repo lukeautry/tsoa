@@ -1,5 +1,5 @@
 import {
-  Route, Get, Post, Query, Body,
+  Route, Get, Post, Query, Body, TsoaResponse
 } from './../../../src';
 import {
   ValidateModel
@@ -37,10 +37,12 @@ export class ValidateController {
   @Get('parameter/date')
   public dateValidate(
     @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+    @Query() maxDateValue: Date): Promise<TsoaResponse<ValidateDateResponse>> {
     return Promise.resolve({
-      minDateValue,
-      maxDateValue,
+      body: {
+        minDateValue,
+        maxDateValue,
+      }
     });
   }
   /**
@@ -55,10 +57,12 @@ export class ValidateController {
   @Get('parameter/datetime')
   public dateTimeValidate(
     @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+    @Query() maxDateValue: Date): Promise<TsoaResponse<ValidateDateResponse>> {
     return Promise.resolve({
-      minDateValue,
-      maxDateValue,
+      body: {
+        minDateValue,
+        maxDateValue,
+      }
     });
   }
   /**
@@ -72,10 +76,12 @@ export class ValidateController {
   @Get('parameter/integer')
   public longValidate(
     @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+    @Query() maxValue: number): Promise<TsoaResponse<ValidateNumberResponse>> {
     return Promise.resolve({
-      minValue,
-      maxValue,
+      body: {
+        minValue,
+        maxValue,
+      },
     });
   }
   /**
@@ -89,10 +95,12 @@ export class ValidateController {
   @Get('parameter/float')
   public doubleValidate(
     @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+    @Query() maxValue: number): Promise<TsoaResponse<ValidateNumberResponse>> {
     return Promise.resolve({
-      minValue,
-      maxValue,
+      body: {
+        minValue,
+        maxValue,
+      },
     });
   }
   /**
@@ -101,9 +109,11 @@ export class ValidateController {
    */
   @Get('parameter/boolean')
   public booleanValidate(
-    @Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
+    @Query() boolValue: boolean): Promise<TsoaResponse<ValidateBooleanResponse>> {
     return Promise.resolve({
-      boolValue
+      body: {
+        boolValue
+      },
     });
   }
   /**
@@ -118,11 +128,13 @@ export class ValidateController {
   public stringValidate(
     @Query() minLength: string,
     @Query() maxLength: string,
-    @Query() patternValue: string): Promise<ValidateStringResponse> {
+    @Query() patternValue: string): Promise<TsoaResponse<ValidateStringResponse>> {
     return Promise.resolve({
-      minLength,
-      maxLength,
-      patternValue,
+      body: {
+        minLength,
+        maxLength,
+        patternValue,
+      },
     });
   }
   /**
@@ -131,8 +143,8 @@ export class ValidateController {
    */
   @Get('parameter/customRequiredErrorMsg')
   public customRequiredErrorMsg(
-    @Query() longValue: number): Promise<void> {
-    return Promise.resolve();
+    @Query() longValue: number): Promise<TsoaResponse<void>> {
+    return Promise.resolve({});
   }
   /**
    * @param {number} longValue
@@ -140,12 +152,12 @@ export class ValidateController {
    */
   @Get('parameter/customInvalidErrorMsg')
   public customInvalidErrorMsg(
-    @Query() longValue: number): Promise<void> {
-    return Promise.resolve();
+    @Query() longValue: number): Promise<TsoaResponse<void>> {
+    return Promise.resolve({});
   }
 
   @Post('body')
-  public bodyValidate( @Body() body: ValidateModel): Promise<ValidateModel> {
-    return Promise.resolve(body);
+  public bodyValidate( @Body() body: ValidateModel): Promise<TsoaResponse<ValidateModel>> {
+    return Promise.resolve({body: body});
   }
 }

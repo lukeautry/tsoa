@@ -3,7 +3,7 @@ import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
-import * as tsfmt from 'typescript-formatter';
+// import * as tsfmt from 'typescript-formatter';
 import * as handlebarsHelpers from 'handlebars-helpers';
 
 export class RouteGenerator {
@@ -13,26 +13,33 @@ export class RouteGenerator {
     const fileName = `${this.options.routesDir}/routes.ts`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
-    return new Promise<void>((resolve, reject) => {
-      tsfmt.processString(fileName, content, {
-        editorconfig: true,
-        replace: true,
-        tsconfig: true,
-        tsfmt: true,
-        tslint: true,
-        verify: true,
-        vscode: true
-      } as any)
-        .then(result => {
-          fs.writeFile(fileName, result.dest, (err) => {
+    return new Promise<any>((resolve, reject) => {
+      fs.writeFile(fileName, content, (err) => {
             if (err) {
               reject(err);
             } else {
               resolve();
             }
           });
-        }
-        );
+      // tsfmt.processString(fileName, content, {
+      //   editorconfig: true,
+      //   replace: true,
+      //   tsconfig: true,
+      //   tsfmt: true,
+      //   tslint: true,
+      //   verify: true,
+      //   vscode: true
+      // } as any)
+      //   .then(result => {
+      //     fs.writeFile(fileName, result.dest, (err) => {
+      //       if (err) {
+      //         reject(err);
+      //       } else {
+      //         resolve();
+      //       }
+      //     });
+      //   }
+      //   ).catch(err => console.log(err));
     });
   }
 
