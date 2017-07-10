@@ -1,6 +1,6 @@
 /* tslint:disable */
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { TsoaResponse } from '../../../src/interfaces/response';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
@@ -243,12 +243,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PutTestController();
 
       const promise = controller.putModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.put('/v1/PutTest/Location',
     async (context, next) => {
@@ -267,12 +263,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PutTestController();
 
       const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.put('/v1/PutTest/Multi',
     async (context, next) => {
@@ -291,12 +283,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PutTestController();
 
       const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.put('/v1/PutTest/WithId/:id',
     async (context, next) => {
@@ -316,12 +304,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PutTestController();
 
       const promise = controller.putWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest',
     async (context, next) => {
@@ -341,12 +325,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/PostTest',
     async (context, next) => {
@@ -366,12 +346,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.updateModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/WithClassModel',
     async (context, next) => {
@@ -391,12 +367,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postClassModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/Location',
     async (context, next) => {
@@ -415,12 +387,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/Multi',
     async (context, next) => {
@@ -439,12 +407,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/WithId/:id',
     async (context, next) => {
@@ -464,12 +428,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/WithBodyAndQueryParams',
     async (context, next) => {
@@ -490,12 +450,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/PostTest/GenericBody',
     async (context, next) => {
@@ -515,12 +471,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PostTestController();
 
       const promise = controller.getGenericRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/PatchTest',
     async (context, next) => {
@@ -540,12 +492,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PatchTestController();
 
       const promise = controller.patchModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/PatchTest/Location',
     async (context, next) => {
@@ -564,12 +512,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PatchTestController();
 
       const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/PatchTest/Multi',
     async (context, next) => {
@@ -588,12 +532,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PatchTestController();
 
       const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/PatchTest/WithId/:id',
     async (context, next) => {
@@ -613,12 +553,8 @@ export function RegisterRoutes(router: any) {
       const controller = new PatchTestController();
 
       const promise = controller.patchWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest',
     async (context, next) => {
@@ -637,12 +573,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/Current',
     async (context, next) => {
@@ -661,12 +593,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getCurrentModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/ClassModel',
     async (context, next) => {
@@ -685,12 +613,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getClassModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/Multi',
     async (context, next) => {
@@ -709,12 +633,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getMultipleModels.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
@@ -740,12 +660,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/ResponseWithUnionTypeProperty',
     async (context, next) => {
@@ -764,12 +680,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/UnionTypeResponse',
     async (context, next) => {
@@ -788,12 +700,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/Request',
     async (context, next) => {
@@ -813,12 +721,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/DateParam',
     async (context, next) => {
@@ -838,12 +742,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getByDataParam.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/ThrowsError',
     async (context, next) => {
@@ -862,12 +762,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getThrowsError.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/GeneratesTags',
     async (context, next) => {
@@ -886,12 +782,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/HandleBufferType',
     async (context, next) => {
@@ -911,12 +803,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getBuffer.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/GenericModel',
     async (context, next) => {
@@ -935,12 +823,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getGenericModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/GenericModelArray',
     async (context, next) => {
@@ -959,12 +843,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/GenericPrimitive',
     async (context, next) => {
@@ -983,12 +863,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/GetTest/GenericPrimitiveArray',
     async (context, next) => {
@@ -1007,12 +883,8 @@ export function RegisterRoutes(router: any) {
       const controller = new GetTestController();
 
       const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.delete('/v1/DeleteTest',
     async (context, next) => {
@@ -1031,12 +903,8 @@ export function RegisterRoutes(router: any) {
       const controller = new DeleteTestController();
 
       const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.delete('/v1/DeleteTest/Current',
     async (context, next) => {
@@ -1055,12 +923,8 @@ export function RegisterRoutes(router: any) {
       const controller = new DeleteTestController();
 
       const promise = controller.deleteCurrent.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     async (context, next) => {
@@ -1085,12 +949,8 @@ export function RegisterRoutes(router: any) {
       const controller = new DeleteTestController();
 
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/Get',
     async (context, next) => {
@@ -1109,12 +969,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.getMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/MethodTest/Post',
     async (context, next) => {
@@ -1133,12 +989,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.postMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.patch('/v1/MethodTest/Patch',
     async (context, next) => {
@@ -1157,12 +1009,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.patchMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.put('/v1/MethodTest/Put',
     async (context, next) => {
@@ -1181,12 +1029,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.putMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.delete('/v1/MethodTest/Delete',
     async (context, next) => {
@@ -1205,12 +1049,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.deleteMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/Description',
     async (context, next) => {
@@ -1229,12 +1069,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.description.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/Tags',
     async (context, next) => {
@@ -1253,12 +1089,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.tags.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/MultiResponse',
     async (context, next) => {
@@ -1277,12 +1109,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.multiResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/SuccessResponse',
     async (context, next) => {
@@ -1301,12 +1129,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.successResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/ApiSecurity',
     authenticateMiddleware('api_key'
@@ -1327,12 +1151,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.apiSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/OauthSecurity',
     authenticateMiddleware('tsoa_auth'
@@ -1354,12 +1174,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.oauthSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/DeprecatedMethod',
     async (context, next) => {
@@ -1378,12 +1194,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/MethodTest/SummaryMethod',
     async (context, next) => {
@@ -1402,12 +1214,8 @@ export function RegisterRoutes(router: any) {
       const controller = new MethodController();
 
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/ParameterTest/Query',
     async (context, next) => {
@@ -1432,12 +1240,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getQuery.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:weight/:human/:gender',
     async (context, next) => {
@@ -1462,12 +1266,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getPath.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/ParameterTest/Header',
     async (context, next) => {
@@ -1492,12 +1292,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getHeader.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/ParameterTest/Request',
     async (context, next) => {
@@ -1517,12 +1313,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/ParameterTest/Body',
     async (context, next) => {
@@ -1542,12 +1334,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getBody.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/ParameterTest/BodyProps',
     async (context, next) => {
@@ -1572,12 +1360,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/SecurityTest',
     authenticateMiddleware('api_key'
@@ -1599,12 +1383,8 @@ export function RegisterRoutes(router: any) {
       const controller = new SecurityTestController();
 
       const promise = controller.GetWithApi.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/SecurityTest/Koa',
     authenticateMiddleware('api_key'
@@ -1626,12 +1406,8 @@ export function RegisterRoutes(router: any) {
       const controller = new SecurityTestController();
 
       const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/SecurityTest/Oauth',
     authenticateMiddleware('tsoa_auth'
@@ -1654,12 +1430,8 @@ export function RegisterRoutes(router: any) {
       const controller = new SecurityTestController();
 
       const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/date',
     async (context, next) => {
@@ -1680,12 +1452,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.dateValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/datetime',
     async (context, next) => {
@@ -1706,12 +1474,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.dateTimeValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/integer',
     async (context, next) => {
@@ -1732,12 +1496,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.longValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/float',
     async (context, next) => {
@@ -1758,12 +1518,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.doubleValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/boolean',
     async (context, next) => {
@@ -1783,12 +1539,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.booleanValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/string',
     async (context, next) => {
@@ -1810,12 +1562,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.stringValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/customRequiredErrorMsg',
     async (context, next) => {
@@ -1835,12 +1583,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.customRequiredErrorMsg.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Validate/parameter/customInvalidErrorMsg',
     async (context, next) => {
@@ -1860,12 +1604,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.customInvalidErrorMsg.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.post('/v1/Validate/body',
     async (context, next) => {
@@ -1885,12 +1625,8 @@ export function RegisterRoutes(router: any) {
       const controller = new ValidateController();
 
       const promise = controller.bodyValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Controller/normalStatusCode',
     async (context, next) => {
@@ -1909,12 +1645,8 @@ export function RegisterRoutes(router: any) {
       const controller = new TestController();
 
       const promise = controller.normalStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Controller/customNomalStatusCode',
     async (context, next) => {
@@ -1933,12 +1665,8 @@ export function RegisterRoutes(router: any) {
       const controller = new TestController();
 
       const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Controller/noContentStatusCode',
     async (context, next) => {
@@ -1957,12 +1685,8 @@ export function RegisterRoutes(router: any) {
       const controller = new TestController();
 
       const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
   router.get('/v1/Controller/customNoContentStatusCode',
     async (context, next) => {
@@ -1981,17 +1705,13 @@ export function RegisterRoutes(router: any) {
       const controller = new TestController();
 
       const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
 
-      return promiseHandler(promise, statusCode, context, next);
+      return promiseHandler(promise, context, next);
     });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return async (context: any, next: any) => {
-      koaAuthentication(context.request, name, scopes).then((user: any) => {
+      return koaAuthentication(context.request, name, scopes).then((user: any) => {
         context.request['user'] = user;
         next();
       })
@@ -2003,14 +1723,14 @@ export function RegisterRoutes(router: any) {
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, context: any, next: () => Promise<any>) {
+  function promiseHandler(promise: any, context: any, next: () => Promise<any>) {
     return Promise.resolve(promise)
-      .then((data: any) => {
-        if (data) {
-          context.body = data;
-          context.status = (statusCode || 200)
+      .then((res: TsoaResponse<any>) => {
+        if (res.body) {
+          context.body = res.body;
+          context.status = (res.status || 200)
         } else {
-          context.status = (statusCode || 204)
+          context.status = (res.status || 204)
         }
 
         next();

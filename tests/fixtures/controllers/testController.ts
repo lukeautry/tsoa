@@ -1,41 +1,40 @@
 import {
-    Route, Get, Controller
+    Route, Get, TsoaResponse
 } from '../../../src';
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';
 
 @Route('Controller')
-export class TestController extends Controller {
+export class TestController {
 
     @Get('normalStatusCode')
-    public async normalStatusCode(): Promise<TestModel> {
-        return Promise.resolve(new ModelService().getModel());
+    public async normalStatusCode(): Promise<TsoaResponse<TestModel>> {
+        return Promise.resolve({body: new ModelService().getModel()});
     }
 
     @Get('customNomalStatusCode')
-    public async customNomalStatusCode(): Promise<TestModel> {
-        const that = this;
+    public async customNomalStatusCode(): Promise<TsoaResponse<TestModel>> {
         const service = new ModelService();
-        const promise = service.getModelPromise();
+        const promise = service.getModelPromise()
+            .then(m => {
+                return {body: m, status: 201};
+            })
 
-        return new Promise<TestModel>(resolve => {
-            that.statusCode = 201;
+        return new Promise<TsoaResponse<TestModel>>(resolve => {
             resolve(promise);
         });
     }
 
     @Get('noContentStatusCode')
-    public async noContentStatusCode(): Promise<void> {
-        return Promise.resolve();
+    public async noContentStatusCode(): Promise<TsoaResponse<void>> {
+        return Promise.resolve({});
     }
 
     @Get('customNoContentStatusCode')
-    public async customNoContentStatusCode(): Promise<void> {
-        const that = this;
-        const promise = Promise.resolve();
+    public async customNoContentStatusCode(): Promise<TsoaResponse<void>> {
+        const promise = Promise.resolve({status: 201});
 
-        return new Promise<void>(resolve => {
-            that.statusCode = 201;
+        return new Promise<TsoaResponse<void>>(resolve => {
             resolve(promise);
         });
     }

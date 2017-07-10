@@ -1,5 +1,5 @@
 import {
-  Route, Body, Post
+  Route, Body, Post, TsoaResponse
 } from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
@@ -10,7 +10,7 @@ export class InvalidPostTestController {
   @Post('WithMultipleBody')
   public async postWithMultipleBodyParams(
     @Body() firstParam: TestModel,
-    @Body() secondParam: TestModel): Promise<TestModel> {
-    return new ModelService().getModel();
+    @Body() secondParam: TestModel): Promise<TsoaResponse<TestModel>> {
+    return {body: new ModelService().getModel()};
   }
 }

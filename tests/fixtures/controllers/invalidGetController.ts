@@ -1,5 +1,5 @@
 import {
-  Route, Query, Get
+  Route, Query, Get, TsoaResponse
 } from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
@@ -7,7 +7,7 @@ import { ModelService } from '../services/modelService';
 @Route('GetTest')
 export class InvalidGetTestController {
   @Get('Complex')
-  public async getModelWithComplex( @Query() myModel: TestModel): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getModelWithComplex( @Query() myModel: TestModel): Promise<TsoaResponse<TestModel>> {
+    return {body: new ModelService().getModel()};
   }
 }

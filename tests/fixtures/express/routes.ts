@@ -1,6 +1,6 @@
 /* tslint:disable */
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { TsoaResponse } from '../../../src/interfaces/response';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
@@ -239,13 +239,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.put('/v1/PutTest/Location',
     function(request: any, response: any, next: any) {
@@ -261,13 +256,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.put('/v1/PutTest/Multi',
     function(request: any, response: any, next: any) {
@@ -283,13 +273,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.put('/v1/PutTest/WithId/:id',
     function(request: any, response: any, next: any) {
@@ -306,13 +291,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PutTestController();
 
-
       const promise = controller.putWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest',
     function(request: any, response: any, next: any) {
@@ -329,13 +309,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/PostTest',
     function(request: any, response: any, next: any) {
@@ -352,13 +327,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.updateModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/WithClassModel',
     function(request: any, response: any, next: any) {
@@ -375,13 +345,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postClassModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/Location',
     function(request: any, response: any, next: any) {
@@ -397,13 +362,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/Multi',
     function(request: any, response: any, next: any) {
@@ -419,13 +379,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/WithId/:id',
     function(request: any, response: any, next: any) {
@@ -442,13 +397,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/WithBodyAndQueryParams',
     function(request: any, response: any, next: any) {
@@ -466,13 +416,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/PostTest/GenericBody',
     function(request: any, response: any, next: any) {
@@ -489,13 +434,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PostTestController();
 
-
       const promise = controller.getGenericRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/PatchTest',
     function(request: any, response: any, next: any) {
@@ -512,13 +452,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/PatchTest/Location',
     function(request: any, response: any, next: any) {
@@ -534,13 +469,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/PatchTest/Multi',
     function(request: any, response: any, next: any) {
@@ -556,13 +486,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/PatchTest/WithId/:id',
     function(request: any, response: any, next: any) {
@@ -579,13 +504,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new PatchTestController();
 
-
       const promise = controller.patchWithId.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest',
     function(request: any, response: any, next: any) {
@@ -601,13 +521,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/Current',
     function(request: any, response: any, next: any) {
@@ -623,13 +538,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getCurrentModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/ClassModel',
     function(request: any, response: any, next: any) {
@@ -645,13 +555,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getClassModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/Multi',
     function(request: any, response: any, next: any) {
@@ -667,13 +572,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getMultipleModels.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
@@ -696,13 +596,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/ResponseWithUnionTypeProperty',
     function(request: any, response: any, next: any) {
@@ -718,13 +613,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/UnionTypeResponse',
     function(request: any, response: any, next: any) {
@@ -740,13 +630,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/Request',
     function(request: any, response: any, next: any) {
@@ -763,13 +648,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/DateParam',
     function(request: any, response: any, next: any) {
@@ -786,13 +666,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getByDataParam.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/ThrowsError',
     function(request: any, response: any, next: any) {
@@ -808,13 +683,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getThrowsError.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/GeneratesTags',
     function(request: any, response: any, next: any) {
@@ -830,13 +700,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/HandleBufferType',
     function(request: any, response: any, next: any) {
@@ -853,13 +718,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getBuffer.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/GenericModel',
     function(request: any, response: any, next: any) {
@@ -875,13 +735,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/GenericModelArray',
     function(request: any, response: any, next: any) {
@@ -897,13 +752,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/GenericPrimitive',
     function(request: any, response: any, next: any) {
@@ -919,13 +769,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/GetTest/GenericPrimitiveArray',
     function(request: any, response: any, next: any) {
@@ -941,13 +786,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new GetTestController();
 
-
       const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.delete('/v1/DeleteTest',
     function(request: any, response: any, next: any) {
@@ -963,13 +803,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new DeleteTestController();
 
-
       const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.delete('/v1/DeleteTest/Current',
     function(request: any, response: any, next: any) {
@@ -985,13 +820,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new DeleteTestController();
 
-
       const promise = controller.deleteCurrent.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
@@ -1013,13 +843,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new DeleteTestController();
 
-
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/Get',
     function(request: any, response: any, next: any) {
@@ -1035,13 +860,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.getMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/MethodTest/Post',
     function(request: any, response: any, next: any) {
@@ -1057,13 +877,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.postMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.patch('/v1/MethodTest/Patch',
     function(request: any, response: any, next: any) {
@@ -1079,13 +894,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.patchMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.put('/v1/MethodTest/Put',
     function(request: any, response: any, next: any) {
@@ -1101,13 +911,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.putMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.delete('/v1/MethodTest/Delete',
     function(request: any, response: any, next: any) {
@@ -1123,13 +928,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.deleteMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/Description',
     function(request: any, response: any, next: any) {
@@ -1145,13 +945,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.description.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/Tags',
     function(request: any, response: any, next: any) {
@@ -1167,13 +962,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.tags.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/MultiResponse',
     function(request: any, response: any, next: any) {
@@ -1189,13 +979,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.multiResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/SuccessResponse',
     function(request: any, response: any, next: any) {
@@ -1211,13 +996,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.successResponse.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/ApiSecurity',
     authenticateMiddleware('api_key'
@@ -1235,13 +1015,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.apiSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/OauthSecurity',
     authenticateMiddleware('tsoa_auth'
@@ -1260,13 +1035,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.oauthSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/DeprecatedMethod',
     function(request: any, response: any, next: any) {
@@ -1282,13 +1052,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/MethodTest/SummaryMethod',
     function(request: any, response: any, next: any) {
@@ -1304,13 +1069,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new MethodController();
 
-
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/ParameterTest/Query',
     function(request: any, response: any, next: any) {
@@ -1332,13 +1092,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getQuery.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:weight/:human/:gender',
     function(request: any, response: any, next: any) {
@@ -1360,13 +1115,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getPath.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/ParameterTest/Header',
     function(request: any, response: any, next: any) {
@@ -1388,13 +1138,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getHeader.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/ParameterTest/Request',
     function(request: any, response: any, next: any) {
@@ -1411,13 +1156,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/ParameterTest/Body',
     function(request: any, response: any, next: any) {
@@ -1434,13 +1174,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getBody.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/ParameterTest/BodyProps',
     function(request: any, response: any, next: any) {
@@ -1462,13 +1197,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ParameterController();
 
-
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/SecurityTest',
     authenticateMiddleware('api_key'
@@ -1487,13 +1217,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new SecurityTestController();
 
-
       const promise = controller.GetWithApi.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/SecurityTest/Koa',
     authenticateMiddleware('api_key'
@@ -1512,13 +1237,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new SecurityTestController();
 
-
       const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/SecurityTest/Oauth',
     authenticateMiddleware('tsoa_auth'
@@ -1538,13 +1258,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new SecurityTestController();
 
-
       const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/date',
     function(request: any, response: any, next: any) {
@@ -1562,13 +1277,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.dateValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/datetime',
     function(request: any, response: any, next: any) {
@@ -1586,13 +1296,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.dateTimeValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/integer',
     function(request: any, response: any, next: any) {
@@ -1610,13 +1315,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.longValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/float',
     function(request: any, response: any, next: any) {
@@ -1634,13 +1334,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.doubleValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/boolean',
     function(request: any, response: any, next: any) {
@@ -1657,13 +1352,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.booleanValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/string',
     function(request: any, response: any, next: any) {
@@ -1682,13 +1372,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.stringValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/customRequiredErrorMsg',
     function(request: any, response: any, next: any) {
@@ -1705,13 +1390,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.customRequiredErrorMsg.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Validate/parameter/customInvalidErrorMsg',
     function(request: any, response: any, next: any) {
@@ -1728,13 +1408,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.customInvalidErrorMsg.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.post('/v1/Validate/body',
     function(request: any, response: any, next: any) {
@@ -1751,13 +1426,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new ValidateController();
 
-
       const promise = controller.bodyValidate.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Controller/normalStatusCode',
     function(request: any, response: any, next: any) {
@@ -1773,13 +1443,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new TestController();
 
-
       const promise = controller.normalStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Controller/customNomalStatusCode',
     function(request: any, response: any, next: any) {
@@ -1795,13 +1460,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new TestController();
 
-
       const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Controller/noContentStatusCode',
     function(request: any, response: any, next: any) {
@@ -1817,13 +1477,8 @@ export function RegisterRoutes(app: any) {
 
       const controller = new TestController();
 
-
       const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
   app.get('/v1/Controller/customNoContentStatusCode',
     function(request: any, response: any, next: any) {
@@ -1839,18 +1494,13 @@ export function RegisterRoutes(app: any) {
 
       const controller = new TestController();
 
-
       const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, response: any, next: any) => {
-      expressAuthentication(request, name, scopes).then((user: any) => {
+      return expressAuthentication(request, name, scopes).then((user: any) => {
         request['user'] = user;
         next();
       })
@@ -1861,18 +1511,17 @@ export function RegisterRoutes(app: any) {
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
+  function promiseHandler(promise: any, response: any, next: any) {
     return Promise.resolve(promise)
-      .then((data: any) => {
-        if (data) {
-          response.status(statusCode || 200).json(data);;
+      .then((res: TsoaResponse<any>) => {
+        if (res.body) {
+          response.status(res.status || 200).json(res.body);;
         } else {
-          response.status(statusCode || 204).end();
+          response.status(res.status || 204).end();
         }
       })
       .catch((error: any) => next(error));
   }
-
 
   function getValidatedArgs(args: any, request: any): any[] {
     const fieldErrors: FieldErrors = {};

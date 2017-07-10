@@ -1,7 +1,7 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { TsoaResponse } from '../../../src/interfaces/response';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
@@ -245,11 +245,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PutTestController();
 
         const promise = controller.putModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -271,11 +267,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PutTestController();
 
         const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -297,11 +289,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PutTestController();
 
         const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -324,11 +312,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PutTestController();
 
         const promise = controller.putWithId.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -351,11 +335,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -378,11 +358,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.updateModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -405,11 +381,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postClassModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -431,11 +403,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -457,11 +425,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -484,11 +448,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postWithId.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -512,11 +472,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -539,11 +495,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PostTestController();
 
         const promise = controller.getGenericRequest.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -566,11 +518,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PatchTestController();
 
         const promise = controller.patchModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -592,11 +540,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PatchTestController();
 
         const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -618,11 +562,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PatchTestController();
 
         const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -645,11 +585,7 @@ export function RegisterRoutes(server: any) {
         const controller = new PatchTestController();
 
         const promise = controller.patchWithId.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -671,11 +607,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -697,11 +629,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getCurrentModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -723,11 +651,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getClassModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -749,11 +673,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getMultipleModels.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -782,11 +702,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getModelByParams.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -808,11 +724,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -834,11 +746,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -861,11 +769,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getRequest.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -888,11 +792,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getByDataParam.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -914,11 +814,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getThrowsError.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -940,11 +836,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -967,11 +859,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getBuffer.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -993,11 +881,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getGenericModel.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1019,11 +903,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1045,11 +925,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1071,11 +947,7 @@ export function RegisterRoutes(server: any) {
         const controller = new GetTestController();
 
         const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1097,11 +969,7 @@ export function RegisterRoutes(server: any) {
         const controller = new DeleteTestController();
 
         const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1123,11 +991,7 @@ export function RegisterRoutes(server: any) {
         const controller = new DeleteTestController();
 
         const promise = controller.deleteCurrent.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1155,11 +1019,7 @@ export function RegisterRoutes(server: any) {
         const controller = new DeleteTestController();
 
         const promise = controller.getModelByParams.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1181,11 +1041,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.getMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1207,11 +1063,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.postMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1233,11 +1085,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.patchMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1259,11 +1107,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.putMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1285,11 +1129,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.deleteMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1311,11 +1151,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.description.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1337,11 +1173,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.tags.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1363,11 +1195,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.multiResponse.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1389,11 +1217,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.successResponse.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1404,8 +1228,8 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1421,11 +1245,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.apiSecurity.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1454,11 +1274,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.oauthSecurity.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1480,11 +1296,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1506,11 +1318,7 @@ export function RegisterRoutes(server: any) {
         const controller = new MethodController();
 
         const promise = controller.summaryMethod.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1538,11 +1346,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getQuery.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1570,11 +1374,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getPath.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1602,11 +1402,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getHeader.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1629,11 +1425,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getRequest.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1656,11 +1448,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getBody.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1688,11 +1476,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ParameterController();
 
         const promise = controller.getBodyProps.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1703,73 +1487,6 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
-      ],
-      handler: (request: any, reply) => {
-        const args = {
-          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
-        };
-
-        let validatedArgs: any[] = [];
-        try {
-          validatedArgs = getValidatedArgs(args, request);
-        } catch (err) {
-          return reply(err).code(err.status || 500);
-        }
-
-        const controller = new SecurityTestController();
-
-        const promise = controller.GetWithApi.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/SecurityTest/Koa',
-    config: {
-      pre: [
-        {
-          method: authenticateMiddleware('api_key'
-          )        
-}
-      ],
-      handler: (request: any, reply) => {
-        const args = {
-          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
-        };
-
-        let validatedArgs: any[] = [];
-        try {
-          validatedArgs = getValidatedArgs(args, request);
-        } catch (err) {
-          return reply(err).code(err.status || 500);
-        }
-
-        const controller = new SecurityTestController();
-
-        const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
-      }
-    }
-  });
-  server.route({
-    method: 'get',
-    path: '/v1/SecurityTest/Oauth',
-    config: {
-      pre: [
-        {
-          method: authenticateMiddleware('tsoa_auth'
-            , ["write:pets", "read:pets"]
           )
         }
       ],
@@ -1787,12 +1504,67 @@ export function RegisterRoutes(server: any) {
 
         const controller = new SecurityTestController();
 
-        const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
+        const promise = controller.GetWithApi.apply(controller, validatedArgs);
+        return promiseHandler(promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/SecurityTest/Koa',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware('api_key'
+          )
         }
-        return promiseHandler(promise, statusCode, request, reply);
+      ],
+      handler: (request: any, reply) => {
+        const args = {
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new SecurityTestController();
+
+        const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
+        return promiseHandler(promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/SecurityTest/Oauth',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware('tsoa_auth'
+            , ["write:pets", "read:pets"]
+          )        
+}
+      ],
+      handler: (request: any, reply) => {
+        const args = {
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new SecurityTestController();
+
+        const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1816,11 +1588,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.dateValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1844,11 +1612,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.dateTimeValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1872,11 +1636,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.longValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1900,11 +1660,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.doubleValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1927,11 +1683,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.booleanValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1956,11 +1708,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.stringValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -1983,11 +1731,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.customRequiredErrorMsg.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2010,11 +1754,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.customInvalidErrorMsg.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2037,11 +1777,7 @@ export function RegisterRoutes(server: any) {
         const controller = new ValidateController();
 
         const promise = controller.bodyValidate.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2063,11 +1799,7 @@ export function RegisterRoutes(server: any) {
         const controller = new TestController();
 
         const promise = controller.normalStatusCode.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2089,11 +1821,7 @@ export function RegisterRoutes(server: any) {
         const controller = new TestController();
 
         const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2115,11 +1843,7 @@ export function RegisterRoutes(server: any) {
         const controller = new TestController();
 
         const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
@@ -2141,18 +1865,14 @@ export function RegisterRoutes(server: any) {
         const controller = new TestController();
 
         const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
-        let statusCode: any;
-        if (controller instanceof Controller) {
-          statusCode = (controller as Controller).getStatus();
-        }
-        return promiseHandler(promise, statusCode, request, reply);
+        return promiseHandler(promise, request, reply);
       }
     }
   });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, reply: any) => {
-      hapiAuthentication(request, name, scopes).then((user: any) => {
+      return hapiAuthentication(request, name, scopes).then((user: any) => {
         request['user'] = user;
         reply.continue();
       })
@@ -2160,13 +1880,13 @@ export function RegisterRoutes(server: any) {
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, request: any, reply: any) {
+  function promiseHandler(promise: any, request: any, reply: any) {
     return Promise.resolve(promise)
-      .then((data: any) => {
-        if (data) {
-          return reply(data).code(statusCode || 200);
+      .then((res: TsoaResponse<any>) => {
+        if (res.body) {
+          return reply(res.body).code(res.status || 200);
         } else {
-          return (reply as any)().code(statusCode || 204);
+          return (reply as any)().code(res.status || 204);
         }
       })
       .catch((error: any) => reply(error).code(error.status || 500));
