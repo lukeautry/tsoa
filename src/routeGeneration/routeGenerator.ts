@@ -13,7 +13,7 @@ export class RouteGenerator {
     const fileName = `${this.options.routesDir}/routes.ts`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
-    return new Promise<any>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       tsfmt.processString(fileName, content, {
         editorconfig: true,
         replace: true,
