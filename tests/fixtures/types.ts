@@ -5,4 +5,4 @@ interface User {
     code: number;
 }
 
-let userResponse: Promise<TsoaResponse<User>>;
+const userResponse: Promise<TsoaResponse<User>> = null;
