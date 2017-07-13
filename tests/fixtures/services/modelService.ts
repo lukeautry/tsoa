@@ -1,4 +1,4 @@
-import { TestModel, TestSubModel, TestClassModel } from '../testModel';
+import { TestClassModel, TestModel, TestSubModel } from '../testModel';
 
 export class ModelService {
   public getModel(): TestModel {
@@ -17,7 +17,7 @@ export class ModelService {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['string one', 'string two'],
-      stringValue: 'a string'
+      stringValue: 'a string',
     };
   }
 

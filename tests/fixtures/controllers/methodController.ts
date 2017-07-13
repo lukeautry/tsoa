@@ -1,18 +1,18 @@
 import {
-    Get,
-    Post,
-    Patch,
-    Put,
-    Delete,
-    Route,
-    Response,
-    SuccessResponse,
     Controller,
+    Delete,
+    Get,
+    Patch,
+    Post,
+    Put,
+    Response,
+    Route,
+    Security,
+    SuccessResponse,
     Tags,
-    Security
 } from '../../../src';
 import { ModelService } from '../services/modelService';
-import { TestModel, ErrorResponseModel } from '../testModel';
+import { ErrorResponseModel, TestModel } from '../testModel';
 
 @Route('MethodTest')
 export class MethodController extends Controller {

@@ -1,5 +1,5 @@
-import { Swagger } from '../../../src/swagger/swagger';
 import * as chai from 'chai';
+import { Swagger } from '../../../src/swagger/swagger';
 
 const expect = chai.expect;
 

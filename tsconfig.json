@@ -25,6 +25,7 @@
         "noFallthroughCasesInSwitch": true
     },
     "exclude": [
+        "node_modules",
         "src/routeGeneration/templates/**/*"
     ],
     "include": [

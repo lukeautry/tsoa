@@ -1,9 +1,9 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
-import { VerifyPath } from '../../utilities/verifyPath';
-import { VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { VerifyPathableParameter } from '../../utilities/verifyParameter';
+import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('DELETE route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/deleteController.ts').Generate();

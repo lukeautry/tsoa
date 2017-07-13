@@ -7,12 +7,12 @@ export function hapiAuthentication(request: any, name: string, scopes?: string[]
     if (token === 'abc123456') {
         return Promise.resolve({
             id: 1,
-            name: 'Ironman'
+            name: 'Ironman',
         });
     } else if (token === 'xyz123456') {
         return Promise.resolve({
             id: 2,
-            name: 'Thor'
+            name: 'Thor',
         });
     } else {
         return Promise.reject({});

@@ -1,21 +1,21 @@
 import {
-  Example,
-  Request,
-  Query,
-  Get,
   Controller,
+  Example,
+  Get,
+  Query,
+  Request,
   Route,
   Tags,
 } from '../../../src';
 import {
+  ModelService,
+} from './../services/modelService';
+import {
   GenericModel,
+  TestClassModel,
   TestModel,
   TestSubModel,
-  TestClassModel,
 } from './../testModel';
-import {
-  ModelService
-} from './../services/modelService';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -39,7 +39,7 @@ export class GetTestController extends Controller {
     strLiteralArr: ['Foo', 'Bar'],
     strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
-    stringValue: 'a string'
+    stringValue: 'a string',
   })
   public async getModel(): Promise<TestModel> {
     return new ModelService().getModel();
@@ -60,7 +60,7 @@ export class GetTestController extends Controller {
     return [
       new ModelService().getModel(),
       new ModelService().getModel(),
-      new ModelService().getModel()
+      new ModelService().getModel(),
     ];
   }
 
@@ -99,7 +99,7 @@ export class GetTestController extends Controller {
   @Get('ResponseWithUnionTypeProperty')
   public async getResponseWithUnionTypeProperty(): Promise<Result> {
     return {
-      value: 'success'
+      value: 'success',
     };
   }
 
@@ -112,7 +112,7 @@ export class GetTestController extends Controller {
   public async getRequest( @Request() request: Object): Promise<TestModel> {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
-    model.stringValue = (<any>request).stringValue;
+    model.stringValue = (request as any).stringValue;
     return model;
   }
 
@@ -128,7 +128,7 @@ export class GetTestController extends Controller {
   public async getThrowsError(): Promise<TestModel> {
     throw {
       message: 'error thrown',
-      status: 400
+      status: 400,
     };
   }
 
@@ -146,7 +146,7 @@ export class GetTestController extends Controller {
   @Get('GenericModel')
   public async getGenericModel(): Promise<GenericModel<TestModel>> {
     return {
-      result: new ModelService().getModel()
+      result: new ModelService().getModel(),
     };
   }
 
@@ -154,22 +154,22 @@ export class GetTestController extends Controller {
   public async getGenericModelArray(): Promise<GenericModel<TestModel[]>> {
     return {
       result: [
-        new ModelService().getModel()
-      ]
+        new ModelService().getModel(),
+      ],
     };
   }
 
   @Get('GenericPrimitive')
   public async getGenericPrimitive(): Promise<GenericModel<string>> {
     return {
-      result: new ModelService().getModel().stringValue
+      result: new ModelService().getModel().stringValue,
     };
   }
 
   @Get('GenericPrimitiveArray')
   public async getGenericPrimitiveArray(): Promise<GenericModel<string[]>> {
     return {
-      result: new ModelService().getModel().stringArray
+      result: new ModelService().getModel().stringArray,
     };
   }
 }
