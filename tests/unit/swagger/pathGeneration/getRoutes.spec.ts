@@ -1,10 +1,10 @@
+import * as chai from 'chai';
 import 'mocha';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { VerifyPathableParameter, VerifyPathableNumberParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
-import * as chai from 'chai';
 
 const expect = chai.expect;
 

@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
-import { Controller } from './types';
-import { MethodGenerator } from './methodGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { MethodGenerator } from './methodGenerator';
+import { Tsoa } from './tsoa';
 
 export class ControllerGenerator {
   private readonly pathValue: string | undefined;
@@ -14,7 +14,7 @@ export class ControllerGenerator {
     return !!this.pathValue || this.pathValue === '';
   }
 
-  public Generate(): Controller {
+  public Generate(): Tsoa.Controller {
     if (!this.node.parent) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid parent source file.'); }
     if (!this.node.name) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid name.'); }
 
@@ -24,7 +24,7 @@ export class ControllerGenerator {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.pathValue || ''
+      path: this.pathValue || '',
     };
   }
 

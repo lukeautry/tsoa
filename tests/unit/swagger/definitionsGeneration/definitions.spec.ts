@@ -1,9 +1,9 @@
+import * as chai from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import {Swagger} from '../../../../src/swagger/swagger';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import {Swagger} from '../../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
-import * as chai from 'chai';
 
 const expect = chai.expect;
 

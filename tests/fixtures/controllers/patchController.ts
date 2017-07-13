@@ -1,8 +1,8 @@
 import {
-  Route, Patch, Body
+  Body, Patch, Route,
 } from '../../../src';
-import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { TestModel } from '../testModel';
 
 @Route('PatchTest')
 export class PatchTestController {
@@ -19,7 +19,7 @@ export class PatchTestController {
   @Patch('Multi')
   public async patchWithMultiReturn(): Promise<TestModel[]> {
     return [
-      new ModelService().getModel()
+      new ModelService().getModel(),
     ];
   }
 

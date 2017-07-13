@@ -1,8 +1,8 @@
-import 'mocha';
-import { server } from '../fixtures/hapi/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, ValidateModel } from '../fixtures/testModel';
 import * as chai from 'chai';
+import 'mocha';
 import * as request from 'supertest';
+import { server } from '../fixtures/hapi/server';
+import { GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateModel } from '../fixtures/testModel';
 
 const expect = chai.expect;
 const basePath = '/v1';
@@ -499,7 +499,7 @@ describe('Hapi Server', () => {
             'gender': 'MALE',
             'human': true,
             'last_name': 'Stark',
-            'weight': 82.1
+            'weight': 82.1,
           });
       }, 200);
     });
@@ -523,7 +523,7 @@ describe('Hapi Server', () => {
         gender: 'MALE',
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -543,7 +543,7 @@ describe('Hapi Server', () => {
         gender: 'MALE',
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -588,7 +588,7 @@ describe('Hapi Server', () => {
 
       const data: GenericRequest<TestModel> = {
         name: 'something',
-        value: getFakeModel()
+        value: getFakeModel(),
       };
       return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
         const model = res.body as TestModel;
@@ -608,7 +608,7 @@ describe('Hapi Server', () => {
   function verifyRequest(
     verifyResponse: (err: any, res: any) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(server.listener))
@@ -624,7 +624,7 @@ describe('Hapi Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }
@@ -646,8 +646,8 @@ describe('Hapi Server', () => {
         key: {
           email: 'test@test.com',
           id: 1,
-          testSubModel2: false
-        }
+          testSubModel2: false,
+        },
       },
       numberArray: [1, 2],
       numberValue: 5,
@@ -655,7 +655,7 @@ describe('Hapi Server', () => {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
-      stringValue: 'test1234'
+      stringValue: 'test1234',
     };
   }
 

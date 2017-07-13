@@ -1,8 +1,8 @@
 import {
-  Route, Query, Get
+  Get, Query, Route,
 } from '../../../src';
-import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { TestModel } from '../testModel';
 
 @Route('GetTest')
 export class InvalidGetTestController {

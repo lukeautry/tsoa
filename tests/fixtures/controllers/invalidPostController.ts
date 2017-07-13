@@ -1,8 +1,8 @@
 import {
-  Route, Body, Post
+  Body, Post, Route,
 } from '../../../src';
-import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { TestModel } from '../testModel';
 
 @Route('PostTest')
 export class InvalidPostTestController {

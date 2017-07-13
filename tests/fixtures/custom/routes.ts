@@ -1,11 +1,11 @@
 /* tslint:disable */
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
-import { PutTestController } from './../controllers/putController';
-import { PostTestController } from './../controllers/postController';
-import { PatchTestController } from './../controllers/patchController';
-import { GetTestController } from './../controllers/getController';
 import { DeleteTestController } from './../controllers/deleteController';
+import { GetTestController } from './../controllers/getController';
+import { PatchTestController } from './../controllers/patchController';
+import { PostTestController } from './../controllers/postController';
+import { PutTestController } from './../controllers/putController';
 import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
@@ -123,12 +123,6 @@ const models: any = {
       "id": { "required": true, "typeName": "double" },
     },
   },
-  "GenericRequestTestModel": {
-    properties: {
-      "name": { "required": true, "typeName": "string" },
-      "value": { "required": true, "typeName": "TestModel" },
-    },
-  },
   "Result": {
     properties: {
       "value": { "required": true, "typeName": "object" },
@@ -152,6 +146,12 @@ const models: any = {
   "GenericModelstring[]": {
     properties: {
       "result": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    },
+  },
+  "GenericRequestTestModel": {
+    properties: {
+      "name": { "required": true, "typeName": "string" },
+      "value": { "required": true, "typeName": "TestModel" },
     },
   },
   "ErrorResponseModel": {
@@ -179,10 +179,9 @@ const models: any = {
 };
 
 export function RegisterRoutes(app: any) {
-  app.put('/v1/PutTest',
+  app.delete('/v1/DeleteTest',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -192,17 +191,17 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new PutTestController();
+      const controller = new DeleteTestController();
 
 
-      const promise = controller.putModel.apply(controller, validatedArgs);
+      const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
       }
       promiseHandler(promise, statusCode, response, next);
     });
-  app.put('/v1/PutTest/Location',
+  app.delete('/v1/DeleteTest/Current',
     function(request: any, response: any, next: any) {
       const args = {
       };
@@ -214,19 +213,25 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new PutTestController();
+      const controller = new DeleteTestController();
 
 
-      const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
+      const promise = controller.deleteCurrent.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
       }
       promiseHandler(promise, statusCode, response, next);
     });
-  app.put('/v1/PutTest/Multi',
+  app.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
       const args = {
+        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
+        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
+        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
+        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
+        numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -236,306 +241,10 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new PutTestController();
+      const controller = new DeleteTestController();
 
 
-      const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.put('/v1/PutTest/WithId/:id',
-    function(request: any, response: any, next: any) {
-      const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PutTestController();
-
-
-      const promise = controller.putWithId.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest',
-    function(request: any, response: any, next: any) {
-      const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.patch('/v1/PostTest',
-    function(request: any, response: any, next: any) {
-      const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.updateModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/WithClassModel',
-    function(request: any, response: any, next: any) {
-      const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestClassModel" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postClassModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/Location',
-    function(request: any, response: any, next: any) {
-      const args = {
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/Multi',
-    function(request: any, response: any, next: any) {
-      const args = {
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/WithId/:id',
-    function(request: any, response: any, next: any) {
-      const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postWithId.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/WithBodyAndQueryParams',
-    function(request: any, response: any, next: any) {
-      const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
-        query: { "in": "query", "name": "query", "required": true, "typeName": "string" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.post('/v1/PostTest/GenericBody',
-    function(request: any, response: any, next: any) {
-      const args = {
-        genericReq: { "in": "body", "name": "genericReq", "required": true, "typeName": "GenericRequestTestModel" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PostTestController();
-
-
-      const promise = controller.getGenericRequest.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.patch('/v1/PatchTest',
-    function(request: any, response: any, next: any) {
-      const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PatchTestController();
-
-
-      const promise = controller.patchModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.patch('/v1/PatchTest/Location',
-    function(request: any, response: any, next: any) {
-      const args = {
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PatchTestController();
-
-
-      const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.patch('/v1/PatchTest/Multi',
-    function(request: any, response: any, next: any) {
-      const args = {
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PatchTestController();
-
-
-      const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
-    });
-  app.patch('/v1/PatchTest/WithId/:id',
-    function(request: any, response: any, next: any) {
-      const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
-      };
-
-      let validatedArgs: any[] = [];
-      try {
-        validatedArgs = getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller = new PatchTestController();
-
-
-      const promise = controller.patchWithId.apply(controller, validatedArgs);
+      const promise = controller.getModelByParams.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
@@ -904,9 +613,10 @@ export function RegisterRoutes(app: any) {
       }
       promiseHandler(promise, statusCode, response, next);
     });
-  app.delete('/v1/DeleteTest',
+  app.patch('/v1/PatchTest',
     function(request: any, response: any, next: any) {
       const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -916,17 +626,17 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new DeleteTestController();
+      const controller = new PatchTestController();
 
 
-      const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
+      const promise = controller.patchModel.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
       }
       promiseHandler(promise, statusCode, response, next);
     });
-  app.delete('/v1/DeleteTest/Current',
+  app.patch('/v1/PatchTest/Location',
     function(request: any, response: any, next: any) {
       const args = {
       };
@@ -938,25 +648,19 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new DeleteTestController();
+      const controller = new PatchTestController();
 
 
-      const promise = controller.deleteCurrent.apply(controller, validatedArgs);
+      const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();
       }
       promiseHandler(promise, statusCode, response, next);
     });
-  app.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+  app.patch('/v1/PatchTest/Multi',
     function(request: any, response: any, next: any) {
       const args = {
-        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
-        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
-        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
-        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
-        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
-        numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -966,10 +670,306 @@ export function RegisterRoutes(app: any) {
         return next(err);
       }
 
-      const controller = new DeleteTestController();
+      const controller = new PatchTestController();
 
 
-      const promise = controller.getModelByParams.apply(controller, validatedArgs);
+      const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.patch('/v1/PatchTest/WithId/:id',
+    function(request: any, response: any, next: any) {
+      const args = {
+        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PatchTestController();
+
+
+      const promise = controller.patchWithId.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest',
+    function(request: any, response: any, next: any) {
+      const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postModel.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.patch('/v1/PostTest',
+    function(request: any, response: any, next: any) {
+      const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.updateModel.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/WithClassModel',
+    function(request: any, response: any, next: any) {
+      const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestClassModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postClassModel.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/Location',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/Multi',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/WithId/:id',
+    function(request: any, response: any, next: any) {
+      const args = {
+        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postWithId.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/WithBodyAndQueryParams',
+    function(request: any, response: any, next: any) {
+      const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+        query: { "in": "query", "name": "query", "required": true, "typeName": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.post('/v1/PostTest/GenericBody',
+    function(request: any, response: any, next: any) {
+      const args = {
+        genericReq: { "in": "body", "name": "genericReq", "required": true, "typeName": "GenericRequestTestModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PostTestController();
+
+
+      const promise = controller.getGenericRequest.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.put('/v1/PutTest',
+    function(request: any, response: any, next: any) {
+      const args = {
+        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PutTestController();
+
+
+      const promise = controller.putModel.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.put('/v1/PutTest/Location',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PutTestController();
+
+
+      const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.put('/v1/PutTest/Multi',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PutTestController();
+
+
+      const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
+      let statusCode: number | undefined = undefined;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+      promiseHandler(promise, statusCode, response, next);
+    });
+  app.put('/v1/PutTest/WithId/:id',
+    function(request: any, response: any, next: any) {
+      const args = {
+        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new PutTestController();
+
+
+      const promise = controller.putWithId.apply(controller, validatedArgs);
       let statusCode: number | undefined = undefined;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();

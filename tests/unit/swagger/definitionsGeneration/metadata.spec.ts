@@ -1,6 +1,6 @@
+import * as chai from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import * as chai from 'chai';
 
 const expect = chai.expect;
 

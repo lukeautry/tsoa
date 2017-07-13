@@ -1,13 +1,13 @@
-import { Metadata, ArrayType, EnumerateType, Parameter, Property, Validators, Type } from '../metadataGeneration/types';
-import { RoutesConfig } from './../config';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
+import * as handlebarsHelpers from 'handlebars-helpers';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
-import * as handlebarsHelpers from 'handlebars-helpers';
+import { Tsoa } from '../metadataGeneration/tsoa';
+import { RoutesConfig } from './../config';
 
 export class RouteGenerator {
-  constructor(private readonly metadata: Metadata, private readonly options: RoutesConfig) { }
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig) { }
 
   public GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
@@ -21,7 +21,7 @@ export class RouteGenerator {
         tsfmt: true,
         tslint: true,
         verify: true,
-        vscode: true
+        vscode: true,
       } as any)
         .then(result => {
           fs.writeFile(fileName, result.dest, (err) => {
@@ -31,8 +31,8 @@ export class RouteGenerator {
               resolve();
             }
           });
-        }
-        );
+        },
+      );
     });
   }
 
@@ -53,7 +53,7 @@ export class RouteGenerator {
     });
 
     handlebarsHelpers.comparison({
-      handlebars: handlebars
+      handlebars: handlebars,
     });
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
@@ -68,37 +68,39 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
+    const controllers = this.metadata.Controllers.map(controller => {
+      return {
+        actions: controller.methods.map(method => {
+          const parameterObjs: { [name: string]: ParameterSchema } = {};
+          method.parameters.forEach(parameter => {
+            parameterObjs[parameter.parameterName] = this.getParameterSchema(parameter);
+          });
+
+          return {
+            method: method.method.toLowerCase(),
+            name: method.name,
+            parameters: parameterObjs,
+            path: pathTransformer(method.path),
+            security: method.security,
+          };
+        }),
+        modulePath: this.getRelativeImportPath(controller.location),
+        name: controller.name,
+        path: controller.path,
+      };
+    });
+
     return routesTemplate({
       authenticationModule,
       basePath: this.options.basePath === '/' ? '' : this.options.basePath,
       canImportByAlias: canImportByAlias,
-      controllers: this.metadata.Controllers.map(controller => {
-        return {
-          actions: controller.methods.map(method => {
-            const parameterObjs: { [name: string]: ParameterSchema } = {};
-            method.parameters.forEach(parameter => {
-              parameterObjs[parameter.parameterName] = this.getParameterSchema(parameter);
-            });
-
-            return {
-              method: method.method.toLowerCase(),
-              name: method.name,
-              parameters: parameterObjs,
-              path: pathTransformer(method.path),
-              security: method.security
-            };
-          }),
-          modulePath: this.getRelativeImportPath(controller.location),
-          name: controller.name,
-          path: controller.path
-        };
-      }),
+      controllers,
       environment: process.env,
       iocModule,
       models: this.getModels(),
       useSecurity: this.metadata.Controllers.some(
-        controller => controller.methods.some(methods => methods.security !== undefined)
-      )
+        controller => controller.methods.some(methods => methods.security !== undefined),
+      ),
     });
   }
 
@@ -113,7 +115,7 @@ export class RouteGenerator {
 
       const templateModel: ModelSchema = {
         name: key,
-        properties
+        properties,
       };
       if (referenceType.additionalProperties) {
         templateModel.additionalProperties = this.getTemplateAdditionalProperty(referenceType.additionalProperties);
@@ -127,93 +129,95 @@ export class RouteGenerator {
     return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 
-  private getPropertySchema(source: Property): PropertySchema {
+  private getPropertySchema(source: Tsoa.Property): PropertySchema {
     const propertySchema: PropertySchema = {
       required: source.required,
-      typeName: source.type.typeName
+      typeName: source.type.typeName,
     };
 
     if (Object.keys(source.validators).length > 0) {
       propertySchema.validators = source.validators;
     }
 
-    const arrayType = source.type as ArrayType;
+    const arrayType = source.type as Tsoa.ArrayType;
     if (arrayType.elementType) {
       const arraySchema: ArraySchema = {
-        typeName: arrayType.elementType.typeName
+        typeName: arrayType.elementType.typeName,
       };
-      const arrayEnumType = arrayType.elementType as EnumerateType;
-      if (arrayEnumType.enumMembers) {
-        arraySchema.enumMembers = arrayEnumType.enumMembers;
+      const arrayEnumType = arrayType.elementType as Tsoa.EnumerateType;
+      if (arrayEnumType.members) {
+        arraySchema.enumMembers = arrayEnumType.members;
       }
       propertySchema.array = arraySchema;
     }
 
-    const enumType = source.type as EnumerateType;
-    if (enumType.enumMembers) {
-      propertySchema.enumMembers = enumType.enumMembers;
+    const enumType = source.type as Tsoa.EnumerateType;
+    if (enumType.members) {
+      propertySchema.enumMembers = enumType.members;
     }
 
     return propertySchema;
   }
 
-  private getTemplateAdditionalProperty(type: Type): AdditionalPropertiesSchema {
-    const templateAdditionalProperty: AdditionalPropertiesSchema = {
-      typeName: type.typeName
-    };
+  private getTemplateAdditionalProperty(type: Tsoa.Type): AdditionalPropertiesSchema {
+    const templateAdditionalProperty = {
+      typeName: type.typeName,
+    } as AdditionalPropertiesSchema;
 
-    const arrayType = type as ArrayType;
+    const arrayType = type as Tsoa.ArrayType;
     if (arrayType.elementType) {
       const arraySchema: ArraySchema = {
-        typeName: arrayType.elementType.typeName
+        typeName: arrayType.elementType.typeName,
       };
-      const arrayEnumType = arrayType.elementType as EnumerateType;
-      if (arrayEnumType.enumMembers) {
-        arraySchema.enumMembers = arrayEnumType.enumMembers;
+      const arrayEnumType = arrayType.elementType as Tsoa.EnumerateType;
+      if (arrayEnumType.members) {
+        arraySchema.enumMembers = arrayEnumType.members;
       }
       templateAdditionalProperty.array = arraySchema;
     }
 
-    const enumType = type as EnumerateType;
-    if (enumType.enumMembers) {
-      templateAdditionalProperty.enumMembers = enumType.enumMembers;
+    const enumType = type as Tsoa.EnumerateType;
+    if (enumType.members) {
+      templateAdditionalProperty.enumMembers = enumType.members;
     }
 
     return templateAdditionalProperty;
   }
 
-  private getParameterSchema(source: Parameter): ParameterSchema {
-    const parameterSchema: ParameterSchema = {
+  private getParameterSchema(source: Tsoa.Parameter): ParameterSchema {
+    const parameterSchema = {
       in: source.in,
       name: source.name,
       required: source.required ? true : undefined,
-      typeName: source.type.typeName
-    };
+      typeName: source.type.typeName,
+    } as ParameterSchema;
 
     if (Object.keys(source.validators).length > 0) {
       parameterSchema.validators = source.validators;
     }
 
-    const arrayType = source.type as ArrayType;
+    const arrayType = source.type as Tsoa.ArrayType;
     if (arrayType.elementType) {
       const tempArrayType: ArraySchema = {
-        typeName: arrayType.elementType.typeName
+        typeName: arrayType.elementType.typeName,
       };
-      const arrayEnumType = arrayType.elementType as EnumerateType;
-      if (arrayEnumType.enumMembers) {
-        tempArrayType.enumMembers = arrayEnumType.enumMembers;
+      const arrayEnumType = arrayType.elementType as Tsoa.EnumerateType;
+      if (arrayEnumType.members) {
+        tempArrayType.enumMembers = arrayEnumType.members;
       }
       parameterSchema.array = tempArrayType;
     }
 
-    const enumType = source.type as EnumerateType;
-    if (enumType.enumMembers) {
-      parameterSchema.enumMembers = enumType.enumMembers;
+    const enumType = source.type as Tsoa.EnumerateType;
+    if (enumType.members) {
+      parameterSchema.enumMembers = enumType.members;
     }
 
     return parameterSchema;
   }
 }
+
+type ValidatorsSchema = Tsoa.Validators;
 
 interface ModelSchema {
   name: string;
@@ -227,7 +231,7 @@ interface PropertySchema {
   request?: boolean;
   array?: ArraySchema;
   enumMembers?: string[];
-  validators?: Validators;
+  validators?: ValidatorsSchema;
 }
 
 interface ArraySchema {
@@ -249,5 +253,5 @@ interface ParameterSchema {
   array?: ArraySchema;
   request?: boolean;
   enumMembers?: string[];
-  validators?: Validators;
+  validators?: ValidatorsSchema;
 }
