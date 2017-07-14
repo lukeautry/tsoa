@@ -64,11 +64,13 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode: any;
-            if (controller instanceof Controller) {
-                statusCode = (controller as Controller).getStatus();
-            }
-            promiseHandler(promise, statusCode, response, next);
+                promise.then(() => {
+                let statusCode: any;
+                if (controller instanceof Controller) {
+                    statusCode = (controller as Controller).getStatus();
+                }
+                promiseHandler(promise, statusCode, response, next);
+            });
         });
     {{/each}}
     {{/each}}
