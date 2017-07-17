@@ -47,7 +47,7 @@ export class ControllerGenerator {
       .map(d => d.expression as ts.CallExpression)
       .filter(expression => {
         const subExpression = expression.expression as ts.Identifier;
-        return subExpression.text === decoratorName;
+        return (subExpression && subExpression.text) === decoratorName; // <-- fix
       });
 
     if (!matchedAttributes.length) { return undefined; }
