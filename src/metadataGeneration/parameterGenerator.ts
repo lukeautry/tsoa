@@ -46,7 +46,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'request',
       name: parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: { typeName: 'object' },
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -65,7 +65,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -84,7 +84,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -103,7 +103,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -122,7 +122,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -175,9 +175,11 @@ export class ParameterGenerator {
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {
-    if (!parameter.type) {
-      throw new GenerateMetadataError(parameter, `Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+    let typeNode = parameter.type;
+    if (!typeNode) {
+      const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
+      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type);
     }
-    return ResolveType(parameter.type);
+    return ResolveType(typeNode);
   }
 }

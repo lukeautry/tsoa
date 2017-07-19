@@ -1991,7 +1991,7 @@ export function RegisterRoutes(router: any) {
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return async (context: any, next: any) => {
-      koaAuthentication(context.request, name, scopes).then((user: any) => {
+      return koaAuthentication(context.request, name, scopes).then((user: any) => {
         context.request['user'] = user;
         next();
       })

@@ -86,7 +86,7 @@ export class GetTestController extends Controller {
     @Query() booleanParam: boolean,
     @Query() stringParam: string,
     @Query() numberParam: number,
-    @Query() optionalStringParam?: string): Promise<TestModel> {
+    @Query() optionalStringParam = '') {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
     model.numberValue = numberPathParam;

@@ -5,6 +5,7 @@ import { ParameterGenerator } from './parameterGenerator';
 import { getJSDocDescription, isExistJSDocTag, getJSDocComment } from './../utils/jsDocUtils';
 import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
+import { MetadataGenerator } from './metadataGenerator';
 
 export class MethodGenerator {
   private method: string;
@@ -20,10 +21,17 @@ export class MethodGenerator {
 
   public Generate(): Method {
     if (!this.IsValid()) { throw new GenerateMetadataError(this.node, 'This isn\'t a valid a controller method.'); }
-    if (!this.node.type) { throw new GenerateMetadataError(this.node, 'Controller methods must have a return type.'); }
 
     const identifier = this.node.name as ts.Identifier;
-    const type = ResolveType(this.node.type);
+
+    let nodeType = this.node.type;
+    if (!nodeType) {
+      const typeChecker = MetadataGenerator.current.typeChecker;
+      const signature = typeChecker.getSignatureFromDeclaration(this.node);
+      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+      nodeType = typeChecker.typeToTypeNode(implicitType);
+    }
+    const type = ResolveType(nodeType);
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 
