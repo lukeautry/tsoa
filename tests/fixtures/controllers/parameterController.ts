@@ -119,7 +119,7 @@ export class ParameterController {
         return Promise.resolve<ParameterTestModel>({
             age: Number(request.query.age),
             firstname: request.query.firstname,
-            gender: request.query.gender === 'MALE' ? 'MALE' : 'FEMALE',
+            gender: request.query.gender === 'MALE' ? Gender.MALE : Gender.FEMALE,
             human: Boolean(request.query.age),
             lastname: request.query.lastname,
             weight: Number(request.query.weight),

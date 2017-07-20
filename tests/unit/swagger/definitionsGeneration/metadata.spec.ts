@@ -9,15 +9,15 @@ describe('Metadata generation', () => {
 
   describe('ControllerGenerator', () => {
     it('should generate one controller', () => {
-      expect(metadata.Controllers.length).to.equal(1);
-      expect(metadata.Controllers[0].name).to.equal('GetTestController');
-      expect(metadata.Controllers[0].path).to.equal('GetTest');
+      expect(metadata.controllers.length).to.equal(1);
+      expect(metadata.controllers[0].name).to.equal('GetTestController');
+      expect(metadata.controllers[0].path).to.equal('GetTest');
     });
   });
 
   describe('MethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
-    const controller = parameterMetadata.Controllers[0];
+    const controller = parameterMetadata.controllers[0];
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse',
@@ -194,7 +194,7 @@ describe('Metadata generation', () => {
 
   describe('ParameterGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/parameterController.ts').Generate();
-    const controller = parameterMetadata.Controllers[0];
+    const controller = parameterMetadata.controllers[0];
 
     it('should generate an query parameter', () => {
       const method = controller.methods.find(m => m.name === 'getQuery');
@@ -210,7 +210,7 @@ describe('Metadata generation', () => {
       expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type.typeName).to.equal('string');
+      expect(firstnameParam.type.dataType).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('query');
@@ -218,7 +218,7 @@ describe('Metadata generation', () => {
       expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type.typeName).to.equal('string');
+      expect(lastnameParam.type.dataType).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('query');
@@ -226,7 +226,7 @@ describe('Metadata generation', () => {
       expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type.typeName).to.equal('integer');
+      expect(ageParam.type.dataType).to.equal('integer');
 
       const weightParam = method.parameters[3];
       expect(weightParam.in).to.equal('query');
@@ -234,7 +234,7 @@ describe('Metadata generation', () => {
       expect(weightParam.parameterName).to.equal('weight');
       expect(weightParam.description).to.equal('Weight description');
       expect(weightParam.required).to.be.true;
-      expect(weightParam.type.typeName).to.equal('float');
+      expect(weightParam.type.dataType).to.equal('float');
 
       const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('query');
@@ -242,7 +242,7 @@ describe('Metadata generation', () => {
       expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type.typeName).to.equal('boolean');
+      expect(humanParam.type.dataType).to.equal('boolean');
 
       const genderParam = method.parameters[5];
       expect(genderParam.in).to.equal('query');
@@ -250,7 +250,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.typeName).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('enum');
     });
 
     it('should generate an path parameter', () => {
@@ -267,7 +267,7 @@ describe('Metadata generation', () => {
       expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type.typeName).to.equal('string');
+      expect(firstnameParam.type.dataType).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('path');
@@ -275,7 +275,7 @@ describe('Metadata generation', () => {
       expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type.typeName).to.equal('string');
+      expect(lastnameParam.type.dataType).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('path');
@@ -283,7 +283,7 @@ describe('Metadata generation', () => {
       expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type.typeName).to.equal('integer');
+      expect(ageParam.type.dataType).to.equal('integer');
 
       const weightParam = method.parameters[3];
       expect(weightParam.in).to.equal('path');
@@ -291,7 +291,7 @@ describe('Metadata generation', () => {
       expect(weightParam.parameterName).to.equal('weight');
       expect(weightParam.description).to.equal('Weight description');
       expect(weightParam.required).to.be.true;
-      expect(weightParam.type.typeName).to.equal('float');
+      expect(weightParam.type.dataType).to.equal('float');
 
       const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('path');
@@ -299,7 +299,7 @@ describe('Metadata generation', () => {
       expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type.typeName).to.equal('boolean');
+      expect(humanParam.type.dataType).to.equal('boolean');
 
       const genderParam = method.parameters[5];
       expect(genderParam.in).to.equal('path');
@@ -307,7 +307,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.typeName).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('enum');
     });
 
     it('should generate an header parameter', () => {
@@ -324,7 +324,7 @@ describe('Metadata generation', () => {
       expect(firstnameParam.parameterName).to.equal('firstname');
       expect(firstnameParam.description).to.equal('Firstname description');
       expect(firstnameParam.required).to.be.true;
-      expect(firstnameParam.type.typeName).to.equal('string');
+      expect(firstnameParam.type.dataType).to.equal('string');
 
       const lastnameParam = method.parameters[1];
       expect(lastnameParam.in).to.equal('header');
@@ -332,7 +332,7 @@ describe('Metadata generation', () => {
       expect(lastnameParam.parameterName).to.equal('lastname');
       expect(lastnameParam.description).to.equal('Lastname description');
       expect(lastnameParam.required).to.be.true;
-      expect(lastnameParam.type.typeName).to.equal('string');
+      expect(lastnameParam.type.dataType).to.equal('string');
 
       const ageParam = method.parameters[2];
       expect(ageParam.in).to.equal('header');
@@ -340,7 +340,7 @@ describe('Metadata generation', () => {
       expect(ageParam.parameterName).to.equal('age');
       expect(ageParam.description).to.equal('Age description');
       expect(ageParam.required).to.be.true;
-      expect(ageParam.type.typeName).to.equal('integer');
+      expect(ageParam.type.dataType).to.equal('integer');
 
       const weightParam = method.parameters[3];
       expect(weightParam.in).to.equal('header');
@@ -348,7 +348,7 @@ describe('Metadata generation', () => {
       expect(weightParam.parameterName).to.equal('weight');
       expect(weightParam.description).to.equal('Weight description');
       expect(weightParam.required).to.be.true;
-      expect(weightParam.type.typeName).to.equal('float');
+      expect(weightParam.type.dataType).to.equal('float');
 
       const humanParam = method.parameters[4];
       expect(humanParam.in).to.equal('header');
@@ -356,7 +356,7 @@ describe('Metadata generation', () => {
       expect(humanParam.parameterName).to.equal('human');
       expect(humanParam.description).to.equal('Human description');
       expect(humanParam.required).to.be.true;
-      expect(humanParam.type.typeName).to.equal('boolean');
+      expect(humanParam.type.dataType).to.equal('boolean');
 
       const genderParam = method.parameters[5];
       expect(genderParam.in).to.equal('header');
@@ -364,7 +364,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.typeName).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('enum');
     });
 
     it('should generate an request parameter', () => {
@@ -383,7 +383,7 @@ describe('Metadata generation', () => {
       expect(parameter.name).to.equal('request');
       expect(parameter.parameterName).to.equal('request');
       expect(parameter.required).to.be.true;
-      expect(parameter.type.typeName).to.equal('object');
+      expect(parameter.type.dataType).to.equal('object');
     });
 
     it('should generate an body parameter', () => {

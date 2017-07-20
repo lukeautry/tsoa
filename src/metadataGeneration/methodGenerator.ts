@@ -7,7 +7,7 @@ import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 
 export class MethodGenerator {
-  private method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
+  private method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   private path: string;
 
   constructor(private readonly node: ts.MethodDeclaration) {
@@ -19,8 +19,12 @@ export class MethodGenerator {
   }
 
   public Generate(): Tsoa.Method {
-    if (!this.IsValid()) { throw new GenerateMetadataError(this.node, 'This isn\'t a valid a controller method.'); }
-    if (!this.node.type) { throw new GenerateMetadataError(this.node, 'Controller methods must have a return type.'); }
+    if (!this.IsValid()) {
+      throw new GenerateMetadataError('This isn\'t a valid a controller method.');
+    }
+    if (!this.node.type) {
+      throw new GenerateMetadataError('Controller methods must have a return type.');
+    }
 
     const identifier = this.node.name as ts.Identifier;
     const type = ResolveType(this.node.type);
@@ -50,7 +54,7 @@ export class MethodGenerator {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
         const parameterId = p.name as ts.Identifier;
-        throw new GenerateMetadataError(this.node, `Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
+        throw new GenerateMetadataError(`Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
       }
     });
 
@@ -58,10 +62,10 @@ export class MethodGenerator {
     const bodyProps = parameters.filter(p => p.in === 'body-prop');
 
     if (bodyParameters.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
     }
     if (bodyParameters.length > 0 && bodyProps.length > 0) {
-      throw new GenerateMetadataError(this.node, `Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
     }
     return parameters;
   }
@@ -77,7 +81,7 @@ export class MethodGenerator {
 
     if (!pathDecorators || !pathDecorators.length) { return; }
     if (pathDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
+      throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
     }
 
     const decorator = pathDecorators[0];
@@ -93,7 +97,9 @@ export class MethodGenerator {
 
   private getMethodResponses(): Tsoa.Response[] {
     const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
-    if (!decorators || !decorators.length) { return []; }
+    if (!decorators || !decorators.length) {
+      return [];
+    }
 
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
@@ -127,14 +133,14 @@ export class MethodGenerator {
     const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
-        description: type.typeName === 'void' ? 'No content' : 'Ok',
+        description: type.dataType === 'void' ? 'No content' : 'Ok',
         examples: this.getMethodSuccessExamples(),
-        name: type.typeName === 'void' ? '204' : '200',
+        name: type.dataType === 'void' ? '204' : '200',
         schema: type,
       };
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
@@ -161,9 +167,11 @@ export class MethodGenerator {
 
   private getMethodSuccessExamples() {
     const exampleDecorators = getDecorators(this.node, identifier => identifier.text === 'Example');
-    if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
+    if (!exampleDecorators || !exampleDecorators.length) {
+      return undefined;
+    }
     if (exampleDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = exampleDecorators[0];
@@ -174,7 +182,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['get', 'post', 'patch', 'delete', 'put'].some(m => m === method.toLowerCase());
+    return ['get', 'post', 'put', 'patch', 'delete'].some(m => m === method.toLowerCase());
   }
 
   private getExamplesValue(argument: any) {
@@ -187,9 +195,11 @@ export class MethodGenerator {
 
   private getMethodTags() {
     const tagsDecorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
-    if (!tagsDecorators || !tagsDecorators.length) { return []; }
+    if (!tagsDecorators || !tagsDecorators.length) {
+      return [];
+    }
     if (tagsDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = tagsDecorators[0];
@@ -200,9 +210,11 @@ export class MethodGenerator {
 
   private getMethodSecurity() {
     const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
-    if (!securityDecorators || !securityDecorators.length) { return undefined; }
+    if (!securityDecorators || !securityDecorators.length) {
+      return undefined;
+    }
     if (securityDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = securityDecorators[0];

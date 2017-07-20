@@ -52,14 +52,23 @@ export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
 
+/**
+ * EnumIndexValue.
+ */
 export enum EnumIndexValue {
   VALUE_1, VALUE_2,
 }
 
+/**
+ * EnumNumberValue.
+ */
 export enum EnumNumberValue {
   VALUE_1 = 2, VALUE_2 = 5,
 }
 
+/**
+ * EnumStringValue.
+ */
 export enum EnumStringValue {
   VALUE_1 = 'VALUE_1' as any, VALUE_2 = 'VALUE_2' as any,
 }
@@ -208,7 +217,13 @@ export class ValidateModel {
   public arrayUniqueItem: number[];
 }
 
-export type Gender = 'MALE' | 'FEMALE';
+/**
+ * Gender msg
+ */
+export enum Gender {
+   MALE = 'MALE' as any,
+   FEMALE = 'FEMALE' as any,
+}
 
 export interface ErrorResponseModel {
   status: number;

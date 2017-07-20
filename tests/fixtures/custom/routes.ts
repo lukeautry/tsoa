@@ -1,6 +1,5 @@
 /* tslint:disable */
-import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { PutTestController } from './../controllers/putController';
 import { PostTestController } from './../controllers/postController';
 import { PatchTestController } from './../controllers/patchController';
@@ -11,169 +10,167 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { expressAuthentication } from './authentication';
 
-const models: any = {
+const models: TsoaRoute.Models = {
+  "EnumIndexValue": {
+    "enums": ["0", "1"],
+  },
+  "EnumNumberValue": {
+    "enums": ["2", "5"],
+  },
+  "EnumStringValue": {
+    "enums": ["VALUE_1", "VALUE_2"],
+  },
   "TestModel": {
-    properties: {
-      "numberValue": { "required": true, "typeName": "double" },
-      "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
-      "stringValue": { "required": true, "typeName": "string" },
-      "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
-      "boolValue": { "required": true, "typeName": "boolean" },
-      "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
-      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
-      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
-      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
-      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
-      "modelValue": { "required": true, "typeName": "TestSubModel" },
-      "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
-      "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
-      "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
-      "dateValue": { "required": false, "typeName": "datetime" },
-      "optionalString": { "required": false, "typeName": "string" },
-      "modelsObjectIndirect": { "required": false, "typeName": "TestSubModelContainer" },
-      "modelsObjectIndirectNS": { "required": false, "typeName": "TestSubModelContainerNamespace.TestSubModelContainer" },
-      "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
-      "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
-      "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
-      "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
-      "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
-      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
-      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "numberValue": { "dataType": "double", "required": true },
+      "numberArray": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
+      "stringValue": { "dataType": "string", "required": true },
+      "stringArray": { "dataType": "array", "array": { "dataType": "string" }, "required": true },
+      "boolValue": { "dataType": "boolean", "required": true },
+      "boolArray": { "dataType": "array", "array": { "dataType": "boolean" }, "required": true },
+      "enumValue": { "ref": "EnumIndexValue" },
+      "enumArray": { "dataType": "array", "array": { "ref": "EnumIndexValue" } },
+      "enumNumberValue": { "ref": "EnumNumberValue" },
+      "enumNumberArray": { "dataType": "array", "array": { "ref": "EnumNumberValue" } },
+      "enumStringValue": { "ref": "EnumStringValue" },
+      "enumStringArray": { "dataType": "array", "array": { "ref": "EnumStringValue" } },
+      "modelValue": { "ref": "TestSubModel", "required": true },
+      "modelsArray": { "dataType": "array", "array": { "ref": "TestSubModel" }, "required": true },
+      "strLiteralVal": { "dataType": "enum", "enums": ["Foo", "Bar"], "required": true },
+      "strLiteralArr": { "dataType": "array", "array": { "dataType": "enum", "enums": ["Foo", "Bar"] }, "required": true },
+      "dateValue": { "dataType": "datetime" },
+      "optionalString": { "dataType": "string" },
+      "modelsObjectIndirect": { "ref": "TestSubModelContainer" },
+      "modelsObjectIndirectNS": { "ref": "TestSubModelContainerNamespace.TestSubModelContainer" },
+      "modelsObjectIndirectNS2": { "ref": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
+      "modelsObjectIndirectNS_Alias": { "ref": "TestSubModelContainerNamespace_TestSubModelContainer" },
+      "modelsObjectIndirectNS2_Alias": { "ref": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+      "modelsArrayIndirect": { "ref": "TestSubArrayModelContainer" },
+      "modelsEnumIndirect": { "ref": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "ref": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "ref": "TypeAliasModelCase2" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel": {
-    properties: {
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel2": {
-    properties: {
-      "testSubModel2": { "required": true, "typeName": "boolean" },
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "testSubModel2": { "dataType": "boolean", "required": true },
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModel2" },
+    "additionalProperties": { "ref": "TestSubModel2" },
   },
   "TestSubModelNamespace.TestSubModelNS": {
-    properties: {
-      "testSubModelNS": { "required": true, "typeName": "boolean" },
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "testSubModelNS": { "dataType": "boolean", "required": true },
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModelContainerNamespace.TestSubModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
+    "additionalProperties": { "ref": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
+    "additionalProperties": { "ref": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace_TestSubModelContainer": {
-    properties: {
-    },
   },
   "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
-    properties: {
-    },
   },
   "TestSubArrayModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "array", "array": { "typeName": "TestSubModel2" } },
+    "additionalProperties": { "dataType": "array", "array": { "ref": "TestSubModel2" } },
   },
   "TestSubEnumModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    "additionalProperties": { "ref": "EnumStringValue" },
   },
   "TypeAliasModelCase1": {
-    properties: {
-      "value1": { "required": true, "typeName": "string" },
-      "value2": { "required": true, "typeName": "string" },
+    "properties": {
+      "value1": { "dataType": "string", "required": true },
+      "value2": { "dataType": "string", "required": true },
     },
   },
   "TypeAliasModelCase2": {
-    properties: {
-      "value1": { "required": true, "typeName": "string" },
-      "value2": { "required": true, "typeName": "string" },
-      "value3": { "required": true, "typeName": "string" },
+    "properties": {
+      "value1": { "dataType": "string", "required": true },
+      "value2": { "dataType": "string", "required": true },
+      "value3": { "dataType": "string", "required": true },
     },
   },
   "TestClassModel": {
-    properties: {
-      "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
-      "optionalPublicStringProperty": { "required": false, "typeName": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
-      "stringProperty": { "required": true, "typeName": "string" },
-      "publicConstructorVar": { "required": true, "typeName": "string" },
-      "optionalPublicConstructorVar": { "required": false, "typeName": "string" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
+      "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "stringProperty": { "dataType": "string", "required": true },
+      "publicConstructorVar": { "dataType": "string", "required": true },
+      "optionalPublicConstructorVar": { "dataType": "string" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "GenericRequestTestModel": {
-    properties: {
-      "name": { "required": true, "typeName": "string" },
-      "value": { "required": true, "typeName": "TestModel" },
+    "properties": {
+      "name": { "dataType": "string", "required": true },
+      "value": { "ref": "TestModel", "required": true },
     },
   },
   "Result": {
-    properties: {
-      "value": { "required": true, "typeName": "object" },
+    "properties": {
+      "value": { "dataType": "object", "required": true },
     },
   },
   "GenericModelTestModel": {
-    properties: {
-      "result": { "required": true, "typeName": "TestModel" },
+    "properties": {
+      "result": { "ref": "TestModel", "required": true },
     },
   },
   "GenericModelTestModel[]": {
-    properties: {
-      "result": { "required": true, "typeName": "array", "array": { "typeName": "TestModel" } },
+    "properties": {
+      "result": { "dataType": "array", "array": { "ref": "TestModel" }, "required": true },
     },
   },
   "GenericModelstring": {
-    properties: {
-      "result": { "required": true, "typeName": "string" },
+    "properties": {
+      "result": { "dataType": "string", "required": true },
     },
   },
   "GenericModelstring[]": {
-    properties: {
-      "result": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
+    "properties": {
+      "result": { "dataType": "array", "array": { "dataType": "string" }, "required": true },
     },
   },
   "ErrorResponseModel": {
-    properties: {
-      "status": { "required": true, "typeName": "double" },
-      "message": { "required": true, "typeName": "string" },
+    "properties": {
+      "status": { "dataType": "double", "required": true },
+      "message": { "dataType": "string", "required": true },
     },
   },
+  "Gender": {
+    "enums": ["MALE", "FEMALE"],
+  },
   "ParameterTestModel": {
-    properties: {
-      "firstname": { "required": true, "typeName": "string" },
-      "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
-      "weight": { "required": true, "typeName": "float" },
-      "human": { "required": true, "typeName": "boolean" },
-      "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+    "properties": {
+      "firstname": { "dataType": "string", "required": true },
+      "lastname": { "dataType": "string", "required": true },
+      "age": { "dataType": "integer", "required": true, "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "weight": { "dataType": "float", "required": true },
+      "human": { "dataType": "boolean", "required": true },
+      "gender": { "ref": "Gender", "required": true },
     },
   },
   "UserResponseModel": {
-    properties: {
-      "id": { "required": true, "typeName": "double" },
-      "name": { "required": true, "typeName": "string" },
+    "properties": {
+      "id": { "dataType": "double", "required": true },
+      "name": { "dataType": "string", "required": true },
     },
   },
 };
@@ -182,7 +179,7 @@ export function RegisterRoutes(app: any) {
   app.put('/v1/PutTest',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -196,11 +193,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.putModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.put('/v1/PutTest/Location',
     function(request: any, response: any, next: any) {
@@ -218,11 +211,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.putModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.put('/v1/PutTest/Multi',
     function(request: any, response: any, next: any) {
@@ -240,16 +229,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.putWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.put('/v1/PutTest/WithId/:id',
     function(request: any, response: any, next: any) {
       const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+        id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -263,16 +248,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.putWithId.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -286,16 +267,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/PostTest',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -309,16 +286,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.updateModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/WithClassModel',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestClassModel" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestClassModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -332,11 +305,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postClassModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/Location',
     function(request: any, response: any, next: any) {
@@ -354,11 +323,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/Multi',
     function(request: any, response: any, next: any) {
@@ -376,16 +341,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/WithId/:id',
     function(request: any, response: any, next: any) {
       const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+        id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -399,17 +360,13 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postWithId.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/WithBodyAndQueryParams',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
-        query: { "in": "query", "name": "query", "required": true, "typeName": "string" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
+        query: { "in": "query", "name": "query", "required": true, "dataType": "string" },
       };
 
       let validatedArgs: any[] = [];
@@ -423,16 +380,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/PostTest/GenericBody',
     function(request: any, response: any, next: any) {
       const args = {
-        genericReq: { "in": "body", "name": "genericReq", "required": true, "typeName": "GenericRequestTestModel" },
+        genericReq: { "in": "body", "name": "genericReq", "required": true, "ref": "GenericRequestTestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -446,16 +399,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGenericRequest.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/PatchTest',
     function(request: any, response: any, next: any) {
       const args = {
-        model: { "in": "body", "name": "model", "required": true, "typeName": "TestModel" },
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -469,11 +418,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.patchModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/PatchTest/Location',
     function(request: any, response: any, next: any) {
@@ -491,11 +436,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.patchModelAtLocation.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/PatchTest/Multi',
     function(request: any, response: any, next: any) {
@@ -513,16 +454,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.patchWithMultiReturn.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/PatchTest/WithId/:id',
     function(request: any, response: any, next: any) {
       const args = {
-        id: { "in": "path", "name": "id", "required": true, "typeName": "double" },
+        id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -536,11 +473,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.patchWithId.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest',
     function(request: any, response: any, next: any) {
@@ -558,11 +491,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/Current',
     function(request: any, response: any, next: any) {
@@ -580,11 +509,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getCurrentModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/ClassModel',
     function(request: any, response: any, next: any) {
@@ -602,11 +527,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getClassModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/Multi',
     function(request: any, response: any, next: any) {
@@ -624,22 +545,18 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getMultipleModels.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
       const args = {
-        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double", "validators": { "isDouble": { "errorMsg": "numberPathParam" }, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
-        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
-        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
-        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
-        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string", "validators": { "isString": { "errorMsg": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
-        numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
-        optionalStringParam: { "in": "query", "name": "optionalStringParam", "typeName": "string" },
+        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double", "validators": { "isDouble": { "errorMsg": "numberPathParam" }, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
+        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
+        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "dataType": "boolean" },
+        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "dataType": "boolean" },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string", "validators": { "isString": { "errorMsg": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
+        numberParam: { "in": "query", "name": "numberParam", "required": true, "dataType": "double" },
+        optionalStringParam: { "in": "query", "name": "optionalStringParam", "dataType": "string" },
       };
 
       let validatedArgs: any[] = [];
@@ -653,11 +570,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/ResponseWithUnionTypeProperty',
     function(request: any, response: any, next: any) {
@@ -675,11 +588,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/UnionTypeResponse',
     function(request: any, response: any, next: any) {
@@ -697,16 +606,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getUnionTypeResponse.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/Request',
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -720,16 +625,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/DateParam',
     function(request: any, response: any, next: any) {
       const args = {
-        date: { "in": "query", "name": "date", "required": true, "typeName": "datetime" },
+        date: { "in": "query", "name": "date", "required": true, "dataType": "datetime" },
       };
 
       let validatedArgs: any[] = [];
@@ -743,11 +644,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getByDataParam.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/ThrowsError',
     function(request: any, response: any, next: any) {
@@ -765,11 +662,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getThrowsError.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/GeneratesTags',
     function(request: any, response: any, next: any) {
@@ -787,16 +680,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGeneratesTags.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/HandleBufferType',
     function(request: any, response: any, next: any) {
       const args = {
-        buffer: { "in": "query", "name": "buffer", "required": true, "typeName": "buffer" },
+        buffer: { "in": "query", "name": "buffer", "required": true, "dataType": "buffer" },
       };
 
       let validatedArgs: any[] = [];
@@ -810,11 +699,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getBuffer.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/GenericModel',
     function(request: any, response: any, next: any) {
@@ -832,11 +717,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGenericModel.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/GenericModelArray',
     function(request: any, response: any, next: any) {
@@ -854,11 +735,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGenericModelArray.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/GenericPrimitive',
     function(request: any, response: any, next: any) {
@@ -876,11 +753,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGenericPrimitive.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/GetTest/GenericPrimitiveArray',
     function(request: any, response: any, next: any) {
@@ -898,11 +771,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.delete('/v1/DeleteTest',
     function(request: any, response: any, next: any) {
@@ -920,11 +789,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.deleteWithReturnValue.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.delete('/v1/DeleteTest/Current',
     function(request: any, response: any, next: any) {
@@ -942,21 +807,17 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.deleteCurrent.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
       const args = {
-        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "typeName": "double" },
-        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "typeName": "string" },
-        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "typeName": "boolean" },
-        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "typeName": "boolean" },
-        stringParam: { "in": "query", "name": "stringParam", "required": true, "typeName": "string" },
-        numberParam: { "in": "query", "name": "numberParam", "required": true, "typeName": "double" },
+        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double" },
+        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string" },
+        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "dataType": "boolean" },
+        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "dataType": "boolean" },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string" },
+        numberParam: { "in": "query", "name": "numberParam", "required": true, "dataType": "double" },
       };
 
       let validatedArgs: any[] = [];
@@ -970,11 +831,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getModelByParams.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/Get',
     function(request: any, response: any, next: any) {
@@ -992,11 +849,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/MethodTest/Post',
     function(request: any, response: any, next: any) {
@@ -1014,11 +867,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.postMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.patch('/v1/MethodTest/Patch',
     function(request: any, response: any, next: any) {
@@ -1036,11 +885,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.patchMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.put('/v1/MethodTest/Put',
     function(request: any, response: any, next: any) {
@@ -1058,11 +903,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.putMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.delete('/v1/MethodTest/Delete',
     function(request: any, response: any, next: any) {
@@ -1080,11 +921,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.deleteMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/Description',
     function(request: any, response: any, next: any) {
@@ -1102,11 +939,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.description.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/Tags',
     function(request: any, response: any, next: any) {
@@ -1124,11 +957,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.tags.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/MultiResponse',
     function(request: any, response: any, next: any) {
@@ -1146,11 +975,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.multiResponse.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/SuccessResponse',
     function(request: any, response: any, next: any) {
@@ -1168,11 +993,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.successResponse.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/ApiSecurity',
     authenticateMiddleware('api_key'
@@ -1192,11 +1013,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.apiSecurity.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/OauthSecurity',
     authenticateMiddleware('tsoa_auth'
@@ -1217,11 +1034,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.oauthSecurity.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/DeprecatedMethod',
     function(request: any, response: any, next: any) {
@@ -1239,11 +1052,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.deprecatedMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/SummaryMethod',
     function(request: any, response: any, next: any) {
@@ -1261,21 +1070,17 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/Query',
     function(request: any, response: any, next: any) {
       const args = {
-        firstname: { "in": "query", "name": "firstname", "required": true, "typeName": "string" },
-        lastname: { "in": "query", "name": "last_name", "required": true, "typeName": "string" },
-        age: { "in": "query", "name": "age", "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-        weight: { "in": "query", "name": "weight", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
-        human: { "in": "query", "name": "human", "required": true, "typeName": "boolean" },
-        gender: { "in": "query", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+        firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
+        lastname: { "in": "query", "name": "last_name", "required": true, "dataType": "string" },
+        age: { "in": "query", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
+        weight: { "in": "query", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+        human: { "in": "query", "name": "human", "required": true, "dataType": "boolean" },
+        gender: { "in": "query", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
       };
 
       let validatedArgs: any[] = [];
@@ -1289,21 +1094,17 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getQuery.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:weight/:human/:gender',
     function(request: any, response: any, next: any) {
       const args = {
-        firstname: { "in": "path", "name": "firstname", "required": true, "typeName": "string" },
-        lastname: { "in": "path", "name": "last_name", "required": true, "typeName": "string" },
-        age: { "in": "path", "name": "age", "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-        weight: { "in": "path", "name": "weight", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
-        human: { "in": "path", "name": "human", "required": true, "typeName": "boolean" },
-        gender: { "in": "path", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+        firstname: { "in": "path", "name": "firstname", "required": true, "dataType": "string" },
+        lastname: { "in": "path", "name": "last_name", "required": true, "dataType": "string" },
+        age: { "in": "path", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
+        weight: { "in": "path", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+        human: { "in": "path", "name": "human", "required": true, "dataType": "boolean" },
+        gender: { "in": "path", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
       };
 
       let validatedArgs: any[] = [];
@@ -1317,21 +1118,17 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getPath.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/Header',
     function(request: any, response: any, next: any) {
       const args = {
-        firstname: { "in": "header", "name": "firstname", "required": true, "typeName": "string" },
-        lastname: { "in": "header", "name": "last_name", "required": true, "typeName": "string" },
-        age: { "in": "header", "name": "age", "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-        weight: { "in": "header", "name": "weight", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
-        human: { "in": "header", "name": "human", "required": true, "typeName": "boolean" },
-        gender: { "in": "header", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+        firstname: { "in": "header", "name": "firstname", "required": true, "dataType": "string" },
+        lastname: { "in": "header", "name": "last_name", "required": true, "dataType": "string" },
+        age: { "in": "header", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
+        weight: { "in": "header", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+        human: { "in": "header", "name": "human", "required": true, "dataType": "boolean" },
+        gender: { "in": "header", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
       };
 
       let validatedArgs: any[] = [];
@@ -1345,16 +1142,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getHeader.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/Request',
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1368,16 +1161,12 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getRequest.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/ParameterTest/Body',
     function(request: any, response: any, next: any) {
       const args = {
-        body: { "in": "body", "name": "body", "required": true, "typeName": "ParameterTestModel" },
+        body: { "in": "body", "name": "body", "required": true, "ref": "ParameterTestModel" },
       };
 
       let validatedArgs: any[] = [];
@@ -1391,21 +1180,17 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getBody.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/ParameterTest/BodyProps',
     function(request: any, response: any, next: any) {
       const args = {
-        firstname: { "in": "body-prop", "name": "firstname", "required": true, "typeName": "string" },
-        lastname: { "in": "body-prop", "name": "lastname", "required": true, "typeName": "string" },
-        age: { "in": "body-prop", "name": "age", "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-        weight: { "in": "body-prop", "name": "weight", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
-        human: { "in": "body-prop", "name": "human", "required": true, "typeName": "boolean" },
-        gender: { "in": "body-prop", "name": "gender", "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
+        firstname: { "in": "body-prop", "name": "firstname", "required": true, "dataType": "string" },
+        lastname: { "in": "body-prop", "name": "lastname", "required": true, "dataType": "string" },
+        age: { "in": "body-prop", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
+        weight: { "in": "body-prop", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+        human: { "in": "body-prop", "name": "human", "required": true, "dataType": "boolean" },
+        gender: { "in": "body-prop", "name": "gender", "required": true, "ref": "Gender" },
       };
 
       let validatedArgs: any[] = [];
@@ -1419,18 +1204,14 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest',
     authenticateMiddleware('api_key'
     ),
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1444,18 +1225,14 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.GetWithApi.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Koa',
     authenticateMiddleware('api_key'
     ),
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1469,11 +1246,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.GetWithApiForKoa.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Oauth',
     authenticateMiddleware('tsoa_auth'
@@ -1481,7 +1254,7 @@ export function RegisterRoutes(app: any) {
     ),
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1495,11 +1268,7 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.GetWithSecurity.apply(controller, validatedArgs);
-      let statusCode: number | undefined = undefined;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(controller, promise, response, next);
     });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
@@ -1515,15 +1284,24 @@ export function RegisterRoutes(app: any) {
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
+  function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
+        let statusCode;
+        if (controllerObj instanceof Controller) {
+          const controller = controllerObj as Controller
+          const headers = controller.getHeaders();
+          Object.keys(headers).forEach((name: string) => {
+            response.set(name, headers[name]);
+          });
+
+          statusCode = controller.getStatus();
+        }
+
         if (data) {
-          response.json(data);
-          response.status(statusCode || 200);
+          response.status(statusCode | 200).json(data);
         } else {
-          response.status(statusCode || 204);
-          response.end();
+          response.status(statusCode | 204).end();
         }
       })
       .catch((error: any) => next(error));

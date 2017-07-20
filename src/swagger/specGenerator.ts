@@ -43,19 +43,31 @@ export class SpecGenerator {
 
   private buildDefinitions() {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
-    Object.keys(this.metadata.ReferenceTypes).map(typeName => {
-      const referenceType = this.metadata.ReferenceTypes[typeName];
-      const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+    Object.keys(this.metadata.referenceTypeMap).map(typeName => {
+      const referenceType = this.metadata.referenceTypeMap[typeName];
 
-      definitions[referenceType.typeName] = {
-        description: referenceType.description,
-        properties: this.buildProperties(referenceType.properties),
-        required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
-        type: 'object',
-      };
+      // Object definition
+      if (referenceType.properties) {
+        const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+        definitions[referenceType.refName] = {
+          description: referenceType.description,
+          properties: this.buildProperties(referenceType.properties),
+          required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
+          type: 'object',
+        };
 
-      if (referenceType.additionalProperties) {
-        definitions[referenceType.typeName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        if (referenceType.additionalProperties) {
+          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        }
+      }
+
+      // Enum definition
+      if (referenceType.enums) {
+        definitions[referenceType.refName] = {
+          description: referenceType.description,
+          enum: referenceType.enums,
+          type: 'string',
+        };
       }
     });
 
@@ -65,18 +77,18 @@ export class SpecGenerator {
   private buildPaths() {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
-    this.metadata.Controllers.forEach(controller => {
+    this.metadata.controllers.forEach(controller => {
       controller.methods.forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
-        this.buildPathMethod(controller.name, method, paths[path]);
+        this.buildMethod(controller.name, method, paths[path]);
       });
     });
 
     return paths;
   }
 
-  private buildPathMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
     const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
@@ -116,9 +128,13 @@ export class SpecGenerator {
       .filter(p => p.in === 'body-prop')
       .forEach(p => {
         properties[p.name] = this.getSwaggerType(p.type);
-        properties[p.name].description = p.description;
 
-        if (p.required) { required.push(p.name); }
+        if (!properties[p.name].$ref) {
+          properties[p.name].description = p.description;
+        }
+        if (p.required) {
+          required.push(p.name);
+        }
       });
 
     if (!Object.keys(properties).length) { return; }
@@ -139,12 +155,12 @@ export class SpecGenerator {
   }
 
   private buildParameter(parameter: Tsoa.Parameter): Swagger.Parameter {
-    const swaggerParameter: any = {
+    const swaggerParameter = {
       description: parameter.description,
       in: parameter.in,
       name: parameter.name,
       required: parameter.required,
-    };
+    } as any;
 
     const parameterType = this.getSwaggerType(parameter.type);
     if (parameterType.$ref) {
@@ -152,6 +168,7 @@ export class SpecGenerator {
     } else {
       swaggerParameter.type = parameterType.type;
       swaggerParameter.items = parameterType.items;
+      swaggerParameter.enum = parameterType.enum;
     }
 
     if (parameterType.format) {
@@ -201,7 +218,7 @@ export class SpecGenerator {
       swaggerResponses[res.name] = {
         description: res.description,
       };
-      if (res.schema && res.schema.typeName !== 'void') {
+      if (res.schema && res.schema.dataType !== 'void') {
         swaggerResponses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
       if (res.examples) {
@@ -227,22 +244,19 @@ export class SpecGenerator {
       return swaggerType;
     }
 
-    const arrayType = type as Tsoa.ArrayType;
-    if (arrayType.elementType) {
-      return this.getSwaggerTypeForArrayType(arrayType);
+    if (type.dataType === 'array') {
+      return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
     }
 
-    const enumType = type as Tsoa.EnumerateType;
-    if (enumType.members) {
-      return this.getSwaggerTypeForEnumType(enumType);
+    if (type.dataType === 'enum') {
+      return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
     }
 
-    const refType = this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
-    return refType;
+    return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
   }
 
   private getSwaggerTypeForPrimitiveType(type: Tsoa.Type): Swagger.Schema | undefined {
-    const typeMap = {
+    const map = {
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
       buffer: { type: 'string', format: 'byte' },
@@ -257,7 +271,7 @@ export class SpecGenerator {
       string: { type: 'string' },
     } as { [name: string]: Swagger.Schema };
 
-    return typeMap[type.typeName];
+    return map[type.dataType];
   }
 
   private getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType): Swagger.BaseSchema {
@@ -265,10 +279,10 @@ export class SpecGenerator {
   }
 
   private getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.BaseSchema {
-    return { type: 'string', enum: enumType.members.map(member => member as string) };
+    return { type: 'string', enum: enumType.enums.map(member => String(member)) };
   }
 
   private getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
-    return { $ref: `#/definitions/${referenceType.typeName}` };
+    return { $ref: `#/definitions/${referenceType.refName}` };
   }
 }

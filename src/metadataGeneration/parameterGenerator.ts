@@ -47,7 +47,7 @@ export class ParameterGenerator {
       in: 'request',
       name: parameterName,
       required: !parameter.questionToken,
-      type: { typeName: 'object' },
+      type: { dataType: 'object' },
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -58,7 +58,7 @@ export class ParameterGenerator {
     const type = this.getValidatedType(parameter);
 
     if (!this.supportBodyMethod(this.method)) {
-      throw new GenerateMetadataError(parameter, `Body can't support '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Body can't support '${this.getCurrentLocation()}' method.`);
     }
 
     return {
@@ -77,7 +77,7 @@ export class ParameterGenerator {
     const type = this.getValidatedType(parameter);
 
     if (!this.supportBodyMethod(this.method)) {
-      throw new GenerateMetadataError(parameter, `Body can't support ${this.method} method`);
+      throw new GenerateMetadataError(`Body can't support ${this.method} method`);
     }
 
     return {
@@ -93,10 +93,10 @@ export class ParameterGenerator {
 
   private getHeaderParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = this.getValidatedType(parameter, false);
 
     if (!this.supportPathDataType(type)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
+      throw new GenerateMetadataError(`Parameter '${parameterName}' can't be passed as a header parameter in '${this.getCurrentLocation()}'.`);
     }
 
     return {
@@ -112,17 +112,17 @@ export class ParameterGenerator {
 
   private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = this.getValidatedType(parameter, false);
 
-    if (type.typeName === 'array') {
+    if (type.dataType === 'array') {
       const arrayType = type as Tsoa.ArrayType;
 
       if (!this.supportPathDataType(arrayType.elementType)) {
-        throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed array as a query parameter in '${this.getCurrentLocation()}'.`);
+        throw new GenerateMetadataError(`Parameter '${parameterName}' can't be passed array as a query parameter in '${this.getCurrentLocation()}'.`);
       }
     } else {
       if (!this.supportPathDataType(type)) {
-        throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
+        throw new GenerateMetadataError(`Parameter '${parameterName}' can't be passed as a query parameter in '${this.getCurrentLocation()}'.`);
       }
     }
 
@@ -139,14 +139,14 @@ export class ParameterGenerator {
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = this.getValidatedType(parameter, false);
     const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
 
     if (!this.supportPathDataType(type)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
     if (!this.path.includes(`{${pathName}}`)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't match in path: '${this.path}'`);
+      throw new GenerateMetadataError(`Parameter '${parameterName}' can't match in path: '${this.path}'`);
     }
 
     return {
@@ -179,13 +179,13 @@ export class ParameterGenerator {
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
-    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum'].find(t => t === parameterType.typeName);
+    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum'].find(t => t === parameterType.dataType);
   }
 
-  private getValidatedType(parameter: ts.ParameterDeclaration) {
+  private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
     if (!parameter.type) {
-      throw new GenerateMetadataError(parameter, `Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+      throw new GenerateMetadataError(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
     }
-    return ResolveType(parameter.type);
+    return ResolveType(parameter.type, extractEnum);
   }
 }

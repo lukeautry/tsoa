@@ -1,10 +1,8 @@
 /* tslint:disable */
 {{#if canImportByAlias}}
-  import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
-  import { Controller } from 'tsoa';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
-  import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-  import { Controller } from '../../../src/interfaces/controller';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -16,21 +14,24 @@ import { {{name}} } from '{{modulePath}}';
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
 
-const models: any = {
-  {{#each models}}
-  "{{name}}": {
-      {{#if properties}}
-      properties: {
-          {{#each properties}}
-              "{{@key}}": {{{json this}}},
-          {{/each}}
-      },
-      {{/if}}
-      {{#if additionalProperties}}
-      additionalProperties: {{{json additionalProperties}}},
-      {{/if}}
-  },
-  {{/each}}
+const models: TsoaRoute.Models = {
+    {{#each models}}
+    "{{@key}}": {
+        {{#if enums}}
+        "enums": {{{json enums}}},
+        {{/if}}
+        {{#if properties}}
+        "properties": {
+            {{#each properties}}
+            "{{@key}}": {{{json this}}},
+            {{/each}}
+        },
+        {{/if}}
+        {{#if additionalProperties}}
+        "additionalProperties": {{{json additionalProperties}}},
+        {{/if}}
+    },
+    {{/each}}
 };
 
 export function RegisterRoutes(router: any) {
@@ -67,12 +68,7 @@ export function RegisterRoutes(router: any) {
             {{/if}}
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode: any;
-            if (controller instanceof Controller) {
-                statusCode = (controller as Controller).getStatus();
-            }
-
-            return promiseHandler(promise, statusCode, context, next);
+            return promiseHandler(controller, promise, context, next);
         });
     {{/each}}
     {{/each}}
@@ -93,22 +89,34 @@ export function RegisterRoutes(router: any) {
   }
   {{/if}}
 
-  function promiseHandler(promise: any, statusCode: any, context: any, next: () => Promise<any>) {
+  function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
-          if (data) {
-            context.body = data;
-            context.status = (statusCode || 200)
-          } else {
-            context.status = (statusCode || 204)
-          }
+            if (data) {
+                context.body = data;
+                context.status = 200;
+            } else {
+                context.status = 204;
+            }
 
-          next();
+            if (controllerObj instanceof Controller) {
+                const controller = controllerObj as Controller
+                const headers = controller.getHeaders();
+                Object.keys(headers).forEach((name: string) => {
+                    context.set(name, headers[name]);
+                });
+
+                const statusCode = controller.getStatus();
+                if (statusCode) {
+                    context.status = statusCode;
+                }
+            }
+            next();
         })
         .catch((error: any) => {
-          context.status = error.status || 500;
-          context.body = error;
-          next();
+            context.status = error.status || 500;
+            context.body = error;
+            next();
         });
     }
 
