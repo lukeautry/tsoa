@@ -76,7 +76,7 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
   }
 
   const numberValue = validator.toInt(String(value), 10);
-  if (!validators) { return value; }
+  if (!validators) { return numberValue; }
   if (validators.minimum && validators.minimum.value) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
@@ -117,7 +117,7 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
   }
 
   const numberValue = validator.toFloat(String(value));
-  if (!validators) { return value; }
+  if (!validators) { return numberValue; }
   if (validators.minimum && validators.minimum.value) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
@@ -172,7 +172,7 @@ export function validateDate(name: string, value: any, fieldErrors: FieldErrors,
   }
 
   const dateValue = new Date(String(value));
-  if (!validators) { return value; }
+  if (!validators) { return dateValue; }
   if (validators.minDate && validators.minDate.value) {
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > dateValue.getTime()) {
@@ -208,7 +208,7 @@ export function validateDateTime(name: string, value: any, fieldErrors: FieldErr
   }
 
   const datetimeValue = new Date(String(value));
-  if (!validators) { return value; }
+  if (!validators) { return datetimeValue; }
   if (validators.minDate && validators.minDate.value) {
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > datetimeValue.getTime()) {
@@ -243,7 +243,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
   }
 
   const stringValue = String(value);
-  if (!validators) { return value; }
+  if (!validators) { return stringValue; }
   if (validators.minLength && validators.minLength.value) {
     if (validators.minLength.value > stringValue.length) {
       fieldErrors[parent + name] = {
