@@ -2558,6 +2558,72 @@
 					}
 				]
 			}
+		},
+		"/Controller/normalStatusCode": {
+			"get": {
+				"operationId": "TestNormalStatusCode",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/Controller/customNomalStatusCode": {
+			"get": {
+				"operationId": "TestCustomNomalStatusCode",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/Controller/noContentStatusCode": {
+			"get": {
+				"operationId": "TestNoContentStatusCode",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/Controller/customNoContentStatusCode": {
+			"get": {
+				"operationId": "TestCustomNoContentStatusCode",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
 		}
 	},
 	"produces": [

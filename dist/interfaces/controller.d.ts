@@ -1,5 +1,5 @@
 export declare class Controller {
-    private statusCode?;
+    statusCode?: number;
     getStatus(): number | undefined;
     setStatus(statusCode: number): void;
 }
