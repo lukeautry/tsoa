@@ -120,16 +120,16 @@ describe('Express Server', () => {
 
   it('should parse valid date', () => {
     const data = getFakeModel();
-    data.dateValue = '2016-01-01T00:00:00' as any;
+    data.dateValue = '2016-01-01T00:00:00Z' as any;
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
-      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00');
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
 
   it('should parse valid date as query param', () => {
-    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00', (err: any, res: any) => {
-      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00');
+    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
 
@@ -384,7 +384,6 @@ describe('Express Server', () => {
       bodyModel.intValue = 1.20;
       bodyModel.longValue = 1.20;
       bodyModel.booleanValue = 'abc' as any;
-      bodyModel.arrayValue = 'abc' as any;
       bodyModel.dateValue = 'abc' as any;
       bodyModel.datetimeValue = 'abc' as any;
 
@@ -411,8 +410,6 @@ describe('Express Server', () => {
         expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
         expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
         expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
-        expect(body.fields['body.arrayValue'].message).to.equal('invalid array');
-        expect(body.fields['body.arrayValue'].value).to.equal(bodyModel.arrayValue);
 
         expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
         expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);

@@ -110,13 +110,13 @@ describe('Hapi Server', () => {
     data.dateValue = '2016-01-01T00:00:00Z' as any;
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
-      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00Z');
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
 
   it('should parse valid date as query param', () => {
     return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
-      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00Z');
+      expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
 
@@ -370,7 +370,6 @@ describe('Hapi Server', () => {
       bodyModel.intValue = 1.20;
       bodyModel.longValue = 1.20;
       bodyModel.booleanValue = 'abc' as any;
-      bodyModel.arrayValue = 'abc' as any;
       bodyModel.dateValue = 'abc' as any;
       bodyModel.datetimeValue = 'abc' as any;
 
@@ -397,8 +396,6 @@ describe('Hapi Server', () => {
         expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
         expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
         expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
-        expect(body.fields['body.arrayValue'].message).to.equal('invalid array');
-        expect(body.fields['body.arrayValue'].value).to.equal(bodyModel.arrayValue);
 
         expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
         expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);

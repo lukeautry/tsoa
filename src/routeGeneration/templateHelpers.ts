@@ -275,6 +275,9 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
 }
 
 export function validateBool(name: string, value: any, fieldErrors: FieldErrors, validators?: BooleanValidator, parent = '') {
+  if (value === undefined || value === null) {
+    return false;
+  }
   if (value === true || value === false) { return value; }
   if (String(value).toLowerCase() === 'true') { return true; }
   if (String(value).toLowerCase() === 'false') { return false; }
@@ -288,7 +291,7 @@ export function validateBool(name: string, value: any, fieldErrors: FieldErrors,
 }
 
 export function validateArray(name: string, value: any[], fieldErrors: FieldErrors, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
-  if (!schema || !Array.isArray(value)) {
+  if (!schema || value === undefined || value === null) {
     const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
     fieldErrors[parent + name] = {
       message,
@@ -297,10 +300,20 @@ export function validateArray(name: string, value: any[], fieldErrors: FieldErro
     return;
   }
 
-  const arrayValue: any[] = value.map((v, index) => {
-    return ValidateParam(schema, v, models, `$${index}`, fieldErrors, name + '.');
-  });
-  if (!validators) { return arrayValue; }
+  let arrayValue = [] as any[];
+  if (Array.isArray(value)) {
+    arrayValue = value.map((elementValue, index) => {
+      return ValidateParam(schema, elementValue, models, `$${index}`, fieldErrors, name + '.');
+    });
+  } else {
+    arrayValue = [
+      ValidateParam(schema, value, models, '$0', fieldErrors, name + '.'),
+    ];
+  }
+
+  if (!validators) {
+    return arrayValue;
+  }
   if (validators.minItems && validators.minItems.value) {
     if (validators.minItems.value > arrayValue.length) {
       fieldErrors[parent + name] = {

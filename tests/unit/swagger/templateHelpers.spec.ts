@@ -10,7 +10,7 @@ describe('templateHelpers', () => {
         it('should integer value', () => {
             const value = '10';
             const result = templateHelpers.validateInt('name', value, {});
-            expect(result).to.equal(value);
+            expect(result).to.equal(Number(value));
         });
 
         it('should invalid integer format', () => {
@@ -56,7 +56,7 @@ describe('templateHelpers', () => {
         it('should float value', () => {
             const value = '10';
             const result = templateHelpers.validateFloat('name', value, {});
-            expect(result).to.equal(value);
+            expect(result).to.equal(Number(value));
         });
 
         it('should invalid float format', () => {
@@ -169,7 +169,7 @@ describe('templateHelpers', () => {
         it('should date value', () => {
             const value = '2017-01-01';
             const result = templateHelpers.validateDate('name', value, {});
-            expect(result).to.deep.equal(value);
+            expect(result).to.deep.equal(new Date(value));
         });
 
         it('should invalid date format', () => {
@@ -204,7 +204,7 @@ describe('templateHelpers', () => {
         it('should datetime value', () => {
             const value = '2017-12-30T00:00:00';
             const result = templateHelpers.validateDateTime('name', value, {});
-            expect(result).to.deep.equal(value);
+            expect(result).to.deep.equal(new Date(value));
         });
 
         it('should invalid datetime format', () => {
