@@ -11,6 +11,7 @@ import { MethodController } from './../controllers/methodController';
 import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
+import { TestController } from './../controllers/testController';
 import { set } from 'lodash';
 import { koaAuthentication } from './authentication';
 
@@ -1869,6 +1870,102 @@ export function RegisterRoutes(router: KoaRouter) {
       const controller = new ValidateController();
 
       const promise = controller.bodyValidate.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Controller/normalStatusCode',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new TestController();
+
+      const promise = controller.normalStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Controller/customNomalStatusCode',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new TestController();
+
+      const promise = controller.customNomalStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Controller/noContentStatusCode',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new TestController();
+
+      const promise = controller.noContentStatusCode.apply(controller, validatedArgs);
+      let statusCode: any;
+      if (controller instanceof Controller) {
+        statusCode = (controller as Controller).getStatus();
+      }
+
+      return promiseHandler(promise, statusCode, context, next);
+    });
+  router.get('/v1/Controller/customNoContentStatusCode',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new TestController();
+
+      const promise = controller.customNoContentStatusCode.apply(controller, validatedArgs);
       let statusCode: any;
       if (controller instanceof Controller) {
         statusCode = (controller as Controller).getStatus();

@@ -142,6 +142,35 @@ describe('Koa Server', () => {
     }, 400);
   });
 
+  describe('Controller', () => {
+
+    it('should normal status code', () => {
+      return verifyGetRequest(basePath + `/Controller/normalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(200);
+      }, 200);
+    });
+
+    it('should custom notmal status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customNomalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(201);
+      }, 201);
+    });
+
+    it('should no content status code', () => {
+      return verifyGetRequest(basePath + `/Controller/noContentStatusCode`, (err, res) => {
+        expect(res.status).to.equal(204);
+      }, 204);
+    });
+
+    it('should custom no content status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customNoContentStatusCode`, (err, res) => {
+        console.error(res.body);
+        expect(res.status).to.equal(201);
+      }, 201);
+    });
+
+  });
+
   describe('Validate', () => {
 
     it('should valid minDate and maxDate validation of date type', () => {
