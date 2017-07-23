@@ -1,0 +1,2598 @@
+{
+	"basePath": "/v1",
+	"consumes": [
+		"application/json"
+	],
+	"definitions": {
+		"TestModel": {
+			"description": "This is a description of a model",
+			"properties": {
+				"numberValue": {
+					"type": "number",
+					"format": "double",
+					"description": "This is a description of this model property, numberValue"
+				},
+				"numberArray": {
+					"type": "array",
+					"items": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": ""
+				},
+				"stringValue": {
+					"type": "string",
+					"description": ""
+				},
+				"stringArray": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"description": ""
+				},
+				"boolValue": {
+					"type": "boolean",
+					"description": ""
+				},
+				"boolArray": {
+					"type": "array",
+					"items": {
+						"type": "boolean"
+					},
+					"description": ""
+				},
+				"enumValue": {
+					"type": "string",
+					"enum": [
+						0,
+						1
+					],
+					"description": ""
+				},
+				"enumArray": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							0,
+							1
+						]
+					},
+					"description": ""
+				},
+				"enumStringValue": {
+					"type": "string",
+					"enum": [
+						"VALUE_1",
+						"VALUE_2"
+					],
+					"description": ""
+				},
+				"enumStringArray": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"VALUE_1",
+							"VALUE_2"
+						]
+					},
+					"description": ""
+				},
+				"modelValue": {
+					"$ref": "#/definitions/TestSubModel"
+				},
+				"modelsArray": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/TestSubModel"
+					},
+					"description": ""
+				},
+				"strLiteralVal": {
+					"type": "string",
+					"enum": [
+						"Foo",
+						"Bar"
+					],
+					"description": ""
+				},
+				"strLiteralArr": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"Foo",
+							"Bar"
+						]
+					},
+					"description": ""
+				},
+				"dateValue": {
+					"type": "string",
+					"format": "date-time",
+					"description": ""
+				},
+				"optionalString": {
+					"type": "string",
+					"description": ""
+				},
+				"modelsObjectIndirect": {
+					"$ref": "#/definitions/TestSubModelContainer"
+				},
+				"modelsObjectIndirectNS": {
+					"$ref": "#/definitions/TestSubModelContainerNamespace.TestSubModelContainer"
+				},
+				"modelsObjectIndirectNS2": {
+					"$ref": "#/definitions/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2"
+				},
+				"modelsObjectIndirectNS_Alias": {
+					"$ref": "#/definitions/TestSubModelContainerNamespace_TestSubModelContainer"
+				},
+				"modelsObjectIndirectNS2_Alias": {
+					"$ref": "#/definitions/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2"
+				},
+				"modelsArrayIndirect": {
+					"$ref": "#/definitions/TestSubArrayModelContainer"
+				},
+				"modelsEnumIndirect": {
+					"$ref": "#/definitions/TestSubEnumModelContainer"
+				},
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"numberValue",
+				"numberArray",
+				"stringValue",
+				"stringArray",
+				"boolValue",
+				"boolArray",
+				"modelValue",
+				"modelsArray",
+				"strLiteralVal",
+				"strLiteralArr",
+				"id"
+			],
+			"type": "object"
+		},
+		"TestSubModel": {
+			"description": "",
+			"properties": {
+				"email": {
+					"type": "string",
+					"description": ""
+				},
+				"circular": {
+					"$ref": "#/definitions/TestModel"
+				},
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"email",
+				"id"
+			],
+			"type": "object"
+		},
+		"TestSubModel2": {
+			"description": "",
+			"properties": {
+				"testSubModel2": {
+					"type": "boolean",
+					"description": ""
+				},
+				"email": {
+					"type": "string",
+					"description": ""
+				},
+				"circular": {
+					"$ref": "#/definitions/TestModel"
+				},
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"testSubModel2",
+				"email",
+				"id"
+			],
+			"type": "object"
+		},
+		"TestSubModelContainer": {
+			"description": "",
+			"properties": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/TestSubModel2"
+			}
+		},
+		"TestSubModelNamespace.TestSubModelNS": {
+			"description": "",
+			"properties": {
+				"testSubModelNS": {
+					"type": "boolean",
+					"description": ""
+				},
+				"email": {
+					"type": "string",
+					"description": ""
+				},
+				"circular": {
+					"$ref": "#/definitions/TestModel"
+				},
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"testSubModelNS",
+				"email",
+				"id"
+			],
+			"type": "object"
+		},
+		"TestSubModelContainerNamespace.TestSubModelContainer": {
+			"description": "",
+			"properties": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/TestSubModelNamespace.TestSubModelNS"
+			}
+		},
+		"TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
+			"description": "",
+			"properties": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/TestSubModelNamespace.TestSubModelNS"
+			}
+		},
+		"TestSubModelContainerNamespace_TestSubModelContainer": {
+			"description": "",
+			"properties": {},
+			"type": "object"
+		},
+		"TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
+			"description": "",
+			"properties": {},
+			"type": "object"
+		},
+		"TestSubArrayModelContainer": {
+			"description": "",
+			"properties": {},
+			"type": "object",
+			"additionalProperties": {
+				"type": "array",
+				"items": {
+					"$ref": "#/definitions/TestSubModel2"
+				}
+			}
+		},
+		"TestSubEnumModelContainer": {
+			"description": "",
+			"properties": {},
+			"type": "object",
+			"additionalProperties": {
+				"type": "string",
+				"enum": [
+					"VALUE_1",
+					"VALUE_2"
+				]
+			}
+		},
+		"TestClassModel": {
+			"description": "This is a description of TestClassModel",
+			"properties": {
+				"publicStringProperty": {
+					"type": "string",
+					"description": "This is a description of a public string property",
+					"minLength": 3,
+					"maxLength": 20,
+					"pattern": "^[a-zA-Z]+$"
+				},
+				"optionalPublicStringProperty": {
+					"type": "string",
+					"description": "",
+					"minLength": 0,
+					"maxLength": 10
+				},
+				"stringProperty": {
+					"type": "string",
+					"description": ""
+				},
+				"publicConstructorVar": {
+					"type": "string",
+					"description": "This is a description for publicConstructorVar"
+				},
+				"optionalPublicConstructorVar": {
+					"type": "string",
+					"description": ""
+				},
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"publicStringProperty",
+				"stringProperty",
+				"publicConstructorVar",
+				"id"
+			],
+			"type": "object"
+		},
+		"GenericRequestTestModel": {
+			"description": "",
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": ""
+				},
+				"value": {
+					"$ref": "#/definitions/TestModel"
+				}
+			},
+			"required": [
+				"name",
+				"value"
+			],
+			"type": "object"
+		},
+		"Result": {
+			"description": "",
+			"properties": {
+				"value": {
+					"type": "object",
+					"description": ""
+				}
+			},
+			"required": [
+				"value"
+			],
+			"type": "object"
+		},
+		"GenericModelTestModel": {
+			"description": "",
+			"properties": {
+				"result": {
+					"$ref": "#/definitions/TestModel"
+				}
+			},
+			"required": [
+				"result"
+			],
+			"type": "object"
+		},
+		"GenericModelTestModel[]": {
+			"description": "",
+			"properties": {
+				"result": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/TestModel"
+					},
+					"description": ""
+				}
+			},
+			"required": [
+				"result"
+			],
+			"type": "object"
+		},
+		"GenericModelstring": {
+			"description": "",
+			"properties": {
+				"result": {
+					"type": "string",
+					"description": ""
+				}
+			},
+			"required": [
+				"result"
+			],
+			"type": "object"
+		},
+		"GenericModelstring[]": {
+			"description": "",
+			"properties": {
+				"result": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"description": ""
+				}
+			},
+			"required": [
+				"result"
+			],
+			"type": "object"
+		},
+		"ErrorResponseModel": {
+			"description": "",
+			"properties": {
+				"status": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				},
+				"message": {
+					"type": "string",
+					"description": ""
+				}
+			},
+			"required": [
+				"status",
+				"message"
+			],
+			"type": "object"
+		},
+		"ParameterTestModel": {
+			"description": "",
+			"properties": {
+				"firstname": {
+					"type": "string",
+					"description": ""
+				},
+				"lastname": {
+					"type": "string",
+					"description": ""
+				},
+				"age": {
+					"type": "integer",
+					"format": "int32",
+					"description": "",
+					"minimum": 1,
+					"maximum": 100
+				},
+				"weight": {
+					"type": "number",
+					"format": "float",
+					"description": ""
+				},
+				"human": {
+					"type": "boolean",
+					"description": ""
+				},
+				"gender": {
+					"type": "string",
+					"enum": [
+						"MALE",
+						"FEMALE"
+					],
+					"description": ""
+				}
+			},
+			"required": [
+				"firstname",
+				"lastname",
+				"age",
+				"weight",
+				"human",
+				"gender"
+			],
+			"type": "object"
+		},
+		"UserResponseModel": {
+			"description": "",
+			"properties": {
+				"id": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				},
+				"name": {
+					"type": "string",
+					"description": ""
+				}
+			},
+			"required": [
+				"id",
+				"name"
+			],
+			"type": "object"
+		},
+		"ValidateDateResponse": {
+			"description": "",
+			"properties": {
+				"minDateValue": {
+					"type": "string",
+					"format": "date-time",
+					"description": ""
+				},
+				"maxDateValue": {
+					"type": "string",
+					"format": "date-time",
+					"description": ""
+				}
+			},
+			"required": [
+				"minDateValue",
+				"maxDateValue"
+			],
+			"type": "object"
+		},
+		"ValidateNumberResponse": {
+			"description": "",
+			"properties": {
+				"minValue": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				},
+				"maxValue": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				}
+			},
+			"required": [
+				"minValue",
+				"maxValue"
+			],
+			"type": "object"
+		},
+		"ValidateBooleanResponse": {
+			"description": "",
+			"properties": {
+				"boolValue": {
+					"type": "boolean",
+					"description": ""
+				}
+			},
+			"required": [
+				"boolValue"
+			],
+			"type": "object"
+		},
+		"ValidateStringResponse": {
+			"description": "",
+			"properties": {
+				"minLength": {
+					"type": "string",
+					"description": ""
+				},
+				"maxLength": {
+					"type": "string",
+					"description": ""
+				},
+				"patternValue": {
+					"type": "string",
+					"description": ""
+				}
+			},
+			"required": [
+				"minLength",
+				"maxLength",
+				"patternValue"
+			],
+			"type": "object"
+		},
+		"ValidateModel": {
+			"description": "",
+			"properties": {
+				"floatValue": {
+					"type": "number",
+					"format": "float",
+					"description": ""
+				},
+				"doubleValue": {
+					"type": "number",
+					"format": "double",
+					"description": ""
+				},
+				"intValue": {
+					"type": "integer",
+					"format": "int32",
+					"description": ""
+				},
+				"longValue": {
+					"type": "integer",
+					"format": "int64",
+					"description": ""
+				},
+				"booleanValue": {
+					"type": "boolean",
+					"description": ""
+				},
+				"arrayValue": {
+					"type": "array",
+					"items": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": ""
+				},
+				"dateValue": {
+					"type": "string",
+					"format": "date",
+					"description": ""
+				},
+				"datetimeValue": {
+					"type": "string",
+					"format": "date-time",
+					"description": ""
+				},
+				"numberMax10": {
+					"type": "number",
+					"format": "double",
+					"description": "",
+					"maximum": 10
+				},
+				"numberMin5": {
+					"type": "number",
+					"format": "double",
+					"description": "",
+					"minimum": 5
+				},
+				"stringMax10Lenght": {
+					"type": "string",
+					"description": "",
+					"maxLength": 10
+				},
+				"stringMin5Lenght": {
+					"type": "string",
+					"description": "",
+					"minLength": 5
+				},
+				"stringPatternAZaz": {
+					"type": "string",
+					"description": "",
+					"pattern": "^[a-zA-Z]+$"
+				},
+				"arrayMax5Item": {
+					"type": "array",
+					"items": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": "",
+					"maxItems": 5
+				},
+				"arrayMin2Item": {
+					"type": "array",
+					"items": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": "",
+					"minItems": 2
+				},
+				"arrayUniqueItem": {
+					"type": "array",
+					"items": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": ""
+				}
+			},
+			"required": [
+				"floatValue",
+				"doubleValue",
+				"intValue",
+				"longValue",
+				"booleanValue",
+				"arrayValue",
+				"dateValue",
+				"datetimeValue",
+				"numberMax10",
+				"numberMin5",
+				"stringMax10Lenght",
+				"stringMin5Lenght",
+				"stringPatternAZaz",
+				"arrayMax5Item",
+				"arrayMin2Item",
+				"arrayUniqueItem"
+			],
+			"type": "object"
+		}
+	},
+	"info": {
+		"description": "a description",
+		"license": {
+			"name": "MIT"
+		},
+		"title": "tsoa app",
+		"version": "1.0"
+	},
+	"paths": {
+		"/PutTest": {
+			"put": {
+				"operationId": "PutTestPutModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				]
+			}
+		},
+		"/PutTest/Location": {
+			"put": {
+				"operationId": "PutTestPutModelAtLocation",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PutTest/Multi": {
+			"put": {
+				"operationId": "PutTestPutWithMultiReturn",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/TestModel"
+							}
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PutTest/WithId/{id}": {
+			"put": {
+				"operationId": "PutTestPutWithId",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					}
+				]
+			}
+		},
+		"/PostTest": {
+			"post": {
+				"operationId": "PostTestPostModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "PostTestUpdateModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				]
+			}
+		},
+		"/PostTest/WithClassModel": {
+			"post": {
+				"operationId": "PostTestPostClassModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestClassModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestClassModel"
+						}
+					}
+				]
+			}
+		},
+		"/PostTest/Location": {
+			"post": {
+				"operationId": "PostTestPostModelAtLocation",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PostTest/Multi": {
+			"post": {
+				"operationId": "PostTestPostWithMultiReturn",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/TestModel"
+							}
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PostTest/WithId/{id}": {
+			"post": {
+				"operationId": "PostTestPostWithId",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					}
+				]
+			}
+		},
+		"/PostTest/WithBodyAndQueryParams": {
+			"post": {
+				"operationId": "PostTestPostWithBodyAndQueryParams",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"type": "string"
+					}
+				]
+			}
+		},
+		"/PostTest/GenericBody": {
+			"post": {
+				"operationId": "PostTestGetGenericRequest",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "genericReq",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/GenericRequestTestModel"
+						}
+					}
+				]
+			}
+		},
+		"/PatchTest": {
+			"patch": {
+				"operationId": "PatchTestPatchModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "model",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				]
+			}
+		},
+		"/PatchTest/Location": {
+			"patch": {
+				"operationId": "PatchTestPatchModelAtLocation",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PatchTest/Multi": {
+			"patch": {
+				"operationId": "PatchTestPatchWithMultiReturn",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/TestModel"
+							}
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/PatchTest/WithId/{id}": {
+			"patch": {
+				"operationId": "PatchTestPatchWithId",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					}
+				]
+			}
+		},
+		"/GetTest": {
+			"get": {
+				"operationId": "GetTestGetModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						},
+						"examples": {
+							"application/json": {
+								"boolArray": [
+									true,
+									false
+								],
+								"boolValue": true,
+								"id": 1,
+								"modelValue": {
+									"email": "test@test.com",
+									"id": 100
+								},
+								"numberArray": [
+									1,
+									2,
+									3
+								],
+								"numberValue": 1,
+								"optionalString": "optional string",
+								"strLiteralArr": [
+									"Foo",
+									"Bar"
+								],
+								"strLiteralVal": "Foo",
+								"stringArray": [
+									"string one",
+									"string two"
+								],
+								"stringValue": "a string"
+							}
+						}
+					}
+				},
+				"description": "This is a description of the getModel method\r\nthis is some more text on another line",
+				"parameters": []
+			}
+		},
+		"/GetTest/Current": {
+			"get": {
+				"operationId": "GetTestGetCurrentModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/ClassModel": {
+			"get": {
+				"operationId": "GetTestGetClassModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestClassModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/Multi": {
+			"get": {
+				"operationId": "GetTestGetMultipleModels",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/TestModel"
+							}
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}": {
+			"get": {
+				"operationId": "GetTestGetModelByParams",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "This is a description for numberPathParam",
+						"in": "path",
+						"name": "numberPathParam",
+						"required": true,
+						"type": "number",
+						"format": "double",
+						"minimum": 1,
+						"maximum": 10
+					},
+					{
+						"description": "",
+						"in": "path",
+						"name": "stringPathParam",
+						"required": true,
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 10
+					},
+					{
+						"description": "",
+						"in": "path",
+						"name": "booleanPathParam",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "booleanParam",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "stringParam",
+						"required": true,
+						"type": "string",
+						"minLength": 3,
+						"maxLength": 10
+					},
+					{
+						"description": "This is a description for numberParam",
+						"in": "query",
+						"name": "numberParam",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "optionalStringParam",
+						"required": false,
+						"type": "string"
+					}
+				]
+			}
+		},
+		"/GetTest/ResponseWithUnionTypeProperty": {
+			"get": {
+				"operationId": "GetTestGetResponseWithUnionTypeProperty",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/UnionTypeResponse": {
+			"get": {
+				"operationId": "GetTestGetUnionTypeResponse",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "object"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/Request": {
+			"get": {
+				"operationId": "GetTestGetRequest",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/DateParam": {
+			"get": {
+				"operationId": "GetTestGetByDataParam",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "date",
+						"required": true,
+						"type": "string",
+						"format": "date-time"
+					}
+				]
+			}
+		},
+		"/GetTest/ThrowsError": {
+			"get": {
+				"operationId": "GetTestGetThrowsError",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/GeneratesTags": {
+			"get": {
+				"operationId": "GetTestGetGeneratesTags",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"tags": [
+					"test",
+					"test-two"
+				],
+				"parameters": []
+			}
+		},
+		"/GetTest/HandleBufferType": {
+			"get": {
+				"operationId": "GetTestGetBuffer",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"type": "string",
+							"format": "base64"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "buffer",
+						"required": true,
+						"type": "string",
+						"format": "base64"
+					}
+				]
+			}
+		},
+		"/GetTest/GenericModel": {
+			"get": {
+				"operationId": "GetTestGetGenericModel",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/GenericModelTestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/GenericModelArray": {
+			"get": {
+				"operationId": "GetTestGetGenericModelArray",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/GenericModelTestModel[]"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/GenericPrimitive": {
+			"get": {
+				"operationId": "GetTestGetGenericPrimitive",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/GenericModelstring"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/GetTest/GenericPrimitiveArray": {
+			"get": {
+				"operationId": "GetTestGetGenericPrimitiveArray",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/GenericModelstring[]"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/DeleteTest": {
+			"delete": {
+				"operationId": "DeleteTestDeleteWithReturnValue",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/DeleteTest/Current": {
+			"delete": {
+				"operationId": "DeleteTestDeleteCurrent",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/DeleteTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}": {
+			"delete": {
+				"operationId": "DeleteTestGetModelByParams",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "path",
+						"name": "numberPathParam",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					},
+					{
+						"description": "",
+						"in": "path",
+						"name": "stringPathParam",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "",
+						"in": "path",
+						"name": "booleanPathParam",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "booleanParam",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "stringParam",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "numberParam",
+						"required": true,
+						"type": "number",
+						"format": "double"
+					}
+				]
+			}
+		},
+		"/MethodTest/Get": {
+			"get": {
+				"operationId": "MethodGetMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Post": {
+			"post": {
+				"operationId": "MethodPostMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Patch": {
+			"patch": {
+				"operationId": "MethodPatchMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Put": {
+			"put": {
+				"operationId": "MethodPutMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Delete": {
+			"delete": {
+				"operationId": "MethodDeleteMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Description": {
+			"get": {
+				"operationId": "MethodDescription",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "method description",
+				"parameters": []
+			}
+		},
+		"/MethodTest/Tags": {
+			"get": {
+				"operationId": "MethodTags",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"tags": [
+					"Tag1",
+					"Tag2",
+					"Tag3"
+				],
+				"parameters": []
+			}
+		},
+		"/MethodTest/MultiResponse": {
+			"get": {
+				"operationId": "MethodMultiResponse",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					},
+					"default": {
+						"description": "Unexpected error",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/SuccessResponse": {
+			"get": {
+				"operationId": "MethodSuccessResponse",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"201": {
+						"description": "Created"
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/MethodTest/ApiSecurity": {
+			"get": {
+				"operationId": "MethodApiSecurity",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"security": [
+					{
+						"api_key": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/MethodTest/OauthSecurity": {
+			"get": {
+				"operationId": "MethodOauthSecurity",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"security": [
+					{
+						"tsoa_auth": [
+							"write:pets",
+							"read:pets"
+						]
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/MethodTest/DeprecatedMethod": {
+			"get": {
+				"operationId": "MethodDeprecatedMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"deprecated": true,
+				"parameters": []
+			}
+		},
+		"/MethodTest/SummaryMethod": {
+			"get": {
+				"operationId": "MethodSummaryMethod",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/TestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": []
+			}
+		},
+		"/ParameterTest/Query": {
+			"get": {
+				"operationId": "ParameterGetQuery",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "Get test paramater",
+				"parameters": [
+					{
+						"description": "Firstname description",
+						"in": "query",
+						"name": "firstname",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Lastname description",
+						"in": "query",
+						"name": "last_name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Age description",
+						"in": "query",
+						"name": "age",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"description": "Weight description",
+						"in": "query",
+						"name": "weight",
+						"required": true,
+						"type": "number",
+						"format": "float"
+					},
+					{
+						"description": "Human description",
+						"in": "query",
+						"name": "human",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "Gender description",
+						"in": "query",
+						"name": "gender",
+						"required": true,
+						"type": "string"
+					}
+				]
+			}
+		},
+		"/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}": {
+			"get": {
+				"operationId": "ParameterGetPath",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "Path test paramater",
+				"parameters": [
+					{
+						"description": "Firstname description",
+						"in": "path",
+						"name": "firstname",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Lastname description",
+						"in": "path",
+						"name": "last_name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Age description",
+						"in": "path",
+						"name": "age",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"description": "Weight description",
+						"in": "path",
+						"name": "weight",
+						"required": true,
+						"type": "number",
+						"format": "float"
+					},
+					{
+						"description": "Human description",
+						"in": "path",
+						"name": "human",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "Gender description",
+						"in": "path",
+						"name": "gender",
+						"required": true,
+						"type": "string"
+					}
+				]
+			}
+		},
+		"/ParameterTest/Header": {
+			"get": {
+				"operationId": "ParameterGetHeader",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "Header test paramater",
+				"parameters": [
+					{
+						"description": "Firstname description",
+						"in": "header",
+						"name": "firstname",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Lastname description",
+						"in": "header",
+						"name": "last_name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"description": "Age description",
+						"in": "header",
+						"name": "age",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"description": "Weight description",
+						"in": "header",
+						"name": "weight",
+						"required": true,
+						"type": "number",
+						"format": "float"
+					},
+					{
+						"description": "Human description",
+						"in": "header",
+						"name": "human",
+						"required": true,
+						"type": "boolean"
+					},
+					{
+						"description": "Gender description",
+						"in": "header",
+						"name": "gender",
+						"required": true,
+						"type": "string"
+					}
+				]
+			}
+		},
+		"/ParameterTest/Request": {
+			"get": {
+				"operationId": "ParameterGetRequest",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "Request test paramater",
+				"parameters": []
+			}
+		},
+		"/ParameterTest/Body": {
+			"post": {
+				"operationId": "ParameterGetBody",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "Body test paramater",
+				"parameters": [
+					{
+						"description": "Body description",
+						"in": "body",
+						"name": "body",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				]
+			}
+		},
+		"/ParameterTest/BodyProps": {
+			"post": {
+				"operationId": "ParameterGetBodyProps",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ParameterTestModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"in": "body",
+						"name": "body",
+						"schema": {
+							"properties": {
+								"firstname": {
+									"type": "string",
+									"description": "firstname description"
+								},
+								"lastname": {
+									"type": "string",
+									"description": "lastname description"
+								},
+								"age": {
+									"type": "integer",
+									"format": "int32",
+									"description": "age description"
+								},
+								"weight": {
+									"type": "number",
+									"format": "float",
+									"description": "weight description"
+								},
+								"human": {
+									"type": "boolean",
+									"description": "human description"
+								},
+								"gender": {
+									"type": "string",
+									"enum": [
+										"MALE",
+										"FEMALE"
+									],
+									"description": "Gender description"
+								}
+							},
+							"title": "ParameterGetBodyPropsBody",
+							"type": "object",
+							"required": [
+								"firstname",
+								"lastname",
+								"age",
+								"weight",
+								"human",
+								"gender"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/SecurityTest": {
+			"get": {
+				"operationId": "SecurityTestGetWithApi",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/UserResponseModel"
+						}
+					},
+					"default": {
+						"description": "Unexpected error",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					}
+				},
+				"description": "",
+				"security": [
+					{
+						"api_key": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/SecurityTest/Koa": {
+			"get": {
+				"operationId": "SecurityTestGetWithApiForKoa",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/UserResponseModel"
+						}
+					},
+					"default": {
+						"description": "Unexpected error",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					}
+				},
+				"description": "",
+				"security": [
+					{
+						"api_key": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/SecurityTest/Oauth": {
+			"get": {
+				"operationId": "SecurityTestGetWithSecurity",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/UserResponseModel"
+						}
+					},
+					"404": {
+						"description": "Not Fount",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponseModel"
+						}
+					}
+				},
+				"description": "",
+				"security": [
+					{
+						"tsoa_auth": [
+							"write:pets",
+							"read:pets"
+						]
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/Validate/parameter/date": {
+			"get": {
+				"operationId": "ValidateDateValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateDateResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "minDateValue",
+						"required": true,
+						"type": "string",
+						"format": "date",
+						"minDate": "2018-01-01"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "maxDateValue",
+						"required": true,
+						"type": "string",
+						"format": "date",
+						"maxDate": "2016-01-01"
+					}
+				]
+			}
+		},
+		"/Validate/parameter/datetime": {
+			"get": {
+				"operationId": "ValidateDateTimeValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateDateResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "minDateValue",
+						"required": true,
+						"type": "string",
+						"format": "date-time",
+						"minDate": "2018-01-01T00:00:00"
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "maxDateValue",
+						"required": true,
+						"type": "string",
+						"format": "date-time",
+						"maxDate": "2016-01-01T00:00:00"
+					}
+				]
+			}
+		},
+		"/Validate/parameter/integer": {
+			"get": {
+				"operationId": "ValidateLongValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateNumberResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "minValue",
+						"required": true,
+						"type": "integer",
+						"format": "int32",
+						"minimum": 5
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "maxValue",
+						"required": true,
+						"type": "integer",
+						"format": "int32",
+						"maximum": 3
+					}
+				]
+			}
+		},
+		"/Validate/parameter/float": {
+			"get": {
+				"operationId": "ValidateDoubleValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateNumberResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "minValue",
+						"required": false,
+						"type": "number",
+						"format": "float",
+						"minimum": 5.5
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "maxValue",
+						"required": false,
+						"type": "number",
+						"format": "float",
+						"maximum": 3.5
+					}
+				]
+			}
+		},
+		"/Validate/parameter/boolean": {
+			"get": {
+				"operationId": "ValidateBooleanValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateBooleanResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "boolValue",
+						"required": true,
+						"type": "boolean"
+					}
+				]
+			}
+		},
+		"/Validate/parameter/string": {
+			"get": {
+				"operationId": "ValidateStringValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateStringResponse"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "minLength",
+						"required": true,
+						"type": "string",
+						"minLength": 5
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "maxLength",
+						"required": true,
+						"type": "string",
+						"maxLength": 3
+					},
+					{
+						"description": "",
+						"in": "query",
+						"name": "patternValue",
+						"required": true,
+						"type": "string",
+						"pattern": "^[a-zA-Z]+$"
+					}
+				]
+			}
+		},
+		"/Validate/parameter/customRequiredErrorMsg": {
+			"get": {
+				"operationId": "ValidateCustomRequiredErrorMsg",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "longValue",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				]
+			}
+		},
+		"/Validate/parameter/customInvalidErrorMsg": {
+			"get": {
+				"operationId": "ValidateCustomInvalidErrorMsg",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "query",
+						"name": "longValue",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				]
+			}
+		},
+		"/Validate/body": {
+			"post": {
+				"operationId": "ValidateBodyValidate",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"schema": {
+							"$ref": "#/definitions/ValidateModel"
+						}
+					}
+				},
+				"description": "",
+				"parameters": [
+					{
+						"description": "",
+						"in": "body",
+						"name": "body",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/ValidateModel"
+						}
+					}
+				]
+			}
+		}
+	},
+	"produces": [
+		"application/json"
+	],
+	"swagger": "2.0",
+	"securityDefinitions": {
+		"api_key": {
+			"type": "apiKey",
+			"name": "access_token",
+			"in": "query"
+		},
+		"tsoa_auth": {
+			"type": "oauth2",
+			"authorizationUrl": "http://swagger.io/api/oauth/dialog",
+			"flow": "implicit",
+			"scopes": {
+				"write:pets": "modify things",
+				"read:pets": "read things"
+			}
+		}
+	},
+	"host": "localhost:3000",
+	"api_key": {
+		"type": "apiKey",
+		"name": "api_key",
+		"in": "header"
+	},
+	"tsoa_auth": {
+		"type": "oauth2",
+		"authorizationUrl": "http://swagger.io/api/oauth/dialog",
+		"flow": "implicit",
+		"scopes": {
+			"write:pets": "modify things",
+			"read:pets": "read things"
+		}
+	}
+}
