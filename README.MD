@@ -106,7 +106,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
     "entryFile": "...",
     "routesDir": "...",
     "middleware": "express",
-    "minddlewareTemplate": "custom-template.ts"
+    "middlewareTemplate": "custom-template.ts"
     ...
   }
 }
@@ -246,6 +246,10 @@ public async getResponse(): Promise<TestModel> {
 
 ### Authentication 
 
+Authentication is done using a middleware handler along with `@Security('name', ['scopes'])` decorator in your controller.
+
+First, define the security definitions for swagger, and also configure where the authentication middleware handler is. In this case, it is in the `authentication.ts` file.
+
 ```json
 {
   "swagger": {
@@ -268,39 +272,68 @@ public async getResponse(): Promise<TestModel> {
     ...
   },
   "routes": {
-    "authenticationModule": "./authentication",
+    "authenticationModule": "./authentication.ts",
     ...
   }
 }
 ```
 
+
+In the middleware, export the function based on which library (Express, Koa, Hapi) you are using. You only create 1 function to handle all authenticate types. The `securityName` and `scopes` come from the annotation you put above your controller function. 
 `./authentication.ts`
 ```ts
 import * as express from 'express';
-export function expressAuthentication(request: express.Request, securityName: string, scopes?: string[]): Promise<any> {
-    let token;
-    if (request.query && request.query.access_token) {
-        token = request.query.access_token;
-    }
+import * as jwt from 'jsonwebtoken';
 
-    if (token === 'abc123456') {
-        return Promise.resolve({
-            id: 1,
-            name: 'Ironman'
-        });
-    } else {
-        return Promise.reject({});
+export function expressAuthentication(request: express.Request, securityName: string, scopes?: string[]): Promise<any> {
+    if (securityName === 'api_token') {
+        let token;
+        if (request.query && request.query.access_token) {
+            token = request.query.access_token;
+        }
+
+        if (token === 'abc123456') {
+            return Promise.resolve({
+                id: 1,
+                name: 'Ironman'
+            });
+        } else {
+            return Promise.reject({});
+        }
+    }
+    
+    if (securityName === 'jwt') {
+        const token = request.body.token || request.query.token || request.headers['x-access-token'];
+
+        return new Promise((resolve, reject) => {
+            if (!token) {
+                reject(new Error("No token provided"))
+            }
+            jwt.verify(token, "[secret]", function (err: any, decoded: any) {
+                if (err) {
+                    reject(err)
+                } else {
+                    // Check if JWT contains all required scopes
+                    for (let scope of scopes) {
+                        if (!decoded.scopes.includes(scope)) {
+                            reject(new Error("JWT does not contain required scope."));
+                        }
+                    }                
+                    resolve(decoded)
+                }
+            });
+        });    
     }
 };
 
 import * as hapi from 'hapi';
 export function hapiAuthentication(request: hapi.Request, securityName: string, scopes?: string[]): Promise<any> {
-    ...
+    // See above
 }
 
 import { Request } from 'koa';
 export function koaAuthentication(request: Request, securityName: string, scopes?: string[]): Promise<any> {
-    ...
+    // See above
 }
 ```
 `./contollers/securityController.ts`
@@ -310,14 +343,56 @@ import { Get, Route, Security, Response } from 'tsoa';
 @Route('secure')
 export class SecureController {
     @Response<ErrorResponseModel>('Unexpected error')
-    @Security('api_key')
+    @Security('api_token')
     @Get("UserInfo")
     public async userInfo(@Request() request: any): Promise<UserResponseModel> {
         return Promise.resolve(request.user);
     }
+    
+    @Security('jwt', ['admin'])
+    @Get("EditUser")
+    public async userInfo(@Request() request: any): Promise<string> {
+        // Do something here
+    }
 }
 ```
 
+### Path Mapping
+
+Per the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/basic-types.html) under [module resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html):
+
+> Sometimes modules are not directly located under baseUrl. For instance, an import to a module "jquery" would be translated at runtime to "node_modules\jquery\dist\jquery.slim.min.js". Loaders use a mapping configuration to map module names to files at run-time, see RequireJs documentation and SystemJS documentation.
+>
+>The TypeScript compiler supports the declaration of such mappings using "paths" property in tsconfig.json files. Here is an example for how to specify the "paths" property for jquery.
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".", // This must be specified if "paths" is.
+    "paths": {
+      "jquery": ["node_modules/jquery/dist/jquery"] // This mapping is relative to "baseUrl"
+    }
+  }
+}
+```
+
+If you have a project that utilized this functionality, you can configure the internal generators to use the correct paths by providing a compilerOptions property to route configuration property in tsoa.json.
+
+```json
+{
+  "swagger": {
+    ...
+  },
+  "routes": {
+    ...
+  },
+   "compilerOptions": {
+        "baseUrl": "./path/to/base/url",
+        "paths": {
+            "exampleLib": "./path/to/example/lib"
+        }
+    }
+}
+```
 
 ### Use awesome Swagger tools
 

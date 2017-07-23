@@ -1,5 +1,6 @@
+const map = require('lodash/map');
+const indexOf = require('lodash/indexOf');
 import * as ts from 'typescript';
-import * as _ from 'lodash';
 import { MetadataGenerator } from './metadataGenerator';
 import { Type, EnumerateType, ReferenceType, ArrayType, Property } from './types';
 import { getJSDocTagNames } from './../utils/jsDocUtils';
@@ -15,7 +16,9 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
+type UsableDeclaration = ts.InterfaceDeclaration
+  | ts.ClassDeclaration
+  | ts.TypeAliasDeclaration;
 
 export function ResolveType(typeNode: ts.TypeNode): Type {
   const primitiveType = getPrimitiveType(typeNode);
@@ -150,12 +153,12 @@ function getEnumerateType(typeNode: ts.TypeNode): EnumerateType | undefined {
     }
     return;
   }
-  return <EnumerateType>{
+  return {
     enumMembers: enumDeclaration.members.map((member: any, index) => {
-      return getEnumValue(member) || index;
+      return getEnumValue(member) || String(index);
     }),
     typeName: 'enum',
-  };
+  } as EnumerateType;
 }
 
 function getLiteralType(typeNode: ts.TypeNode): EnumerateType | undefined {
@@ -267,10 +270,9 @@ function getAnyTypeName(typeNode: ts.TypeNode): string {
 
 function createCircularDependencyResolver(typeName: string) {
   const referenceType = {
-    description: '',
     properties: new Array<Property>(),
     typeName: typeName,
-  };
+  } as any;
 
   MetadataGenerator.current.OnFinish(referenceTypes => {
     const realReferenceType = referenceTypes[typeName];
@@ -368,7 +370,6 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
     return interfaceDeclaration.members
       .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
       .map((member: any) => {
-
         const propertyDeclaration = member as ts.PropertyDeclaration;
         const identifier = propertyDeclaration.name as ts.Identifier;
 
@@ -383,7 +384,7 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
         if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
 
           // The type definitions are conviently located on the object which allow us to map -> to the genericTypes
-          const typeParams = _.map(node.typeParameters, (typeParam: ts.TypeParameterDeclaration) => {
+          const typeParams = map(node.typeParameters, (typeParam: ts.TypeParameterDeclaration) => {
             return typeParam.name.text;
           });
 
@@ -399,7 +400,7 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
           }
 
           // I could not produce a situation where this did not find it so its possible this check is irrelevant
-          const indexOfType = _.indexOf<string>(typeParams, typeIdentifierName);
+          const indexOfType = indexOf(typeParams, typeIdentifierName);
           if (indexOfType >= 0) {
             aType = genericTypes[indexOfType] as ts.TypeNode;
           }
@@ -416,13 +417,29 @@ function getModelTypeProperties(node: UsableDeclaration, genericTypes?: ts.TypeN
   }
 
   if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-    /**
-     * TOOD
-     *
-     * Flesh this out so that we can properly support Type Alii instead of just assuming
-     * string literal enums
-    */
-    return [];
+    const aliasDeclaration = node as ts.TypeAliasDeclaration;
+    const properties: Property[] = [];
+
+    if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
+      const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
+
+      intersectionTypeNode.types.forEach(type => {
+        if (type.kind === ts.SyntaxKind.TypeReference) {
+          const typeReferenceNode = type as ts.TypeReferenceNode;
+          const modelType = getModelTypeDeclaration(typeReferenceNode.typeName);
+          const modelProps = getModelTypeProperties(modelType);
+          properties.push(...modelProps);
+        }
+      });
+    }
+
+    if (aliasDeclaration.type.kind === ts.SyntaxKind.TypeReference) {
+      const typeReferenceNode = aliasDeclaration.type as ts.TypeReferenceNode;
+      const modelType = getModelTypeDeclaration(typeReferenceNode.typeName);
+      const modelProps = getModelTypeProperties(modelType);
+      properties.push(...modelProps);
+    }
+    return properties;
   }
 
   const classDeclaration = node as ts.ClassDeclaration;
@@ -510,6 +527,9 @@ function getModelDescription(modelTypeDeclaration: UsableDeclaration) {
 
 function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration) {
   const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
+  if (!symbol) {
+    return undefined;
+  };
 
   /**
   * TODO: Workaround for what seems like a bug in the compiler
@@ -524,5 +544,5 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
   const comments = symbol.getDocumentationComment();
   if (comments.length) { return ts.displayPartsToString(comments); }
 
-  return '';
+  return undefined;
 }

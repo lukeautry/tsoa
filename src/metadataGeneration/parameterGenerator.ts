@@ -138,7 +138,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(parameter, `Parameter '${parameterName}:${type}' can't be passed as a path parameter in '${this.getCurrentLocation()}'.`);
     }
     if (!this.path.includes(`{${pathName}}`)) {
-      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't macth in path: '${this.path}'`);
+      throw new GenerateMetadataError(parameter, `Parameter '${parameterName}' can't match in path: '${this.path}'`);
     }
 
     return {
@@ -154,11 +154,12 @@ export class ParameterGenerator {
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+    if (!symbol) { return undefined; }
 
     const comments = symbol.getDocumentationComment();
     if (comments.length) { return ts.displayPartsToString(comments); }
 
-    return '';
+    return undefined;
   }
 
   private supportBodyMethod(method: string) {

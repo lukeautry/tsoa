@@ -11,8 +11,10 @@ export interface TestModel extends Model {
   stringArray: string[];
   boolValue: boolean;
   boolArray: boolean[];
-  enumValue?: EnumNumberValue;
-  enumArray?: EnumNumberValue[];
+  enumValue?: EnumIndexValue;
+  enumArray?: EnumIndexValue[];
+  enumNumberValue?: EnumNumberValue;
+  enumNumberArray?: EnumNumberValue[];
   enumStringValue?: EnumStringValue;
   enumStringArray?: EnumStringValue[];
   modelValue: TestSubModel;
@@ -30,10 +32,32 @@ export interface TestModel extends Model {
 
   modelsArrayIndirect?: TestSubArrayModelContainer;
   modelsEnumIndirect?: TestSubEnumModelContainer;
+  typeAliasCase1?: TypeAliasModelCase1;
+  TypeAliasCase2?: TypeAliasModelCase2;
+}
+
+export interface TypeAliasModel1 {
+  value1: string;
+}
+
+export interface TypeAliasModel2 {
+  value2: string;
+}
+
+export class TypeAliasModel3 {
+  public value3: string;
+}
+
+export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
+
+export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
+
+export enum EnumIndexValue {
+  VALUE_1, VALUE_2
 }
 
 export enum EnumNumberValue {
-  VALUE_1, VALUE_2
+  VALUE_1 = 2, VALUE_2 = 5
 }
 
 export enum EnumStringValue {
@@ -184,9 +208,7 @@ export class ValidateModel {
   public arrayUniqueItem: number[];
 }
 
-export enum Gender {
-  MALE = <any>'MALE', FEMALE = <any>'FEMALE'
-}
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface ErrorResponseModel {
   status: number;

@@ -26,7 +26,9 @@ export class SpecGenerator {
       basePath: this.config.basePath,
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
-      info: {},
+      info: {
+        title: '',
+      },
       paths: this.buildPaths(),
       produces: ['application/json'],
       swagger: '2.0'
@@ -60,12 +62,14 @@ export class SpecGenerator {
     Object.keys(this.metadata.ReferenceTypes).map(typeName => {
       const referenceType = this.metadata.ReferenceTypes[typeName];
       const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+
       definitions[referenceType.typeName] = {
         description: referenceType.description,
         properties: this.buildProperties(referenceType.properties),
-        required: required && required.length > 0 ? required : undefined,
+        required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
         type: 'object'
       };
+
       if (referenceType.additionalProperties) {
         definitions[referenceType.typeName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
       }
@@ -89,11 +93,16 @@ export class SpecGenerator {
   }
 
   private buildPathMethod(controllerName: string, method: Method, pathObject: any) {
-    const pathMethod: any = pathObject[method.method] = this.buildOperation(controllerName, method);
+    const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
+    pathMethod.summary = method.summary;
 
-    if (method.deprecated) { pathMethod.deprecated = method.deprecated; }
-    if (method.tags.length) { pathMethod.tags = method.tags; }
+    if (method.deprecated) {
+      pathMethod.deprecated = method.deprecated;
+    }
+    if (method.tags.length) {
+      pathMethod.tags = method.tags;
+    }
     if (method.security) {
       const security: any = {};
       security[method.security.name] = method.security.scopes ? method.security.scopes : [];
@@ -110,7 +119,6 @@ export class SpecGenerator {
     if (bodyPropParameter) {
       pathMethod.parameters.push(bodyPropParameter);
     }
-
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
@@ -161,13 +169,17 @@ export class SpecGenerator {
       swaggerParameter.type = parameterType.type;
     }
 
-    if (parameterType.format) { swaggerParameter.format = parameterType.format; }
+    if (parameterType.format) {
+      swaggerParameter.format = parameterType.format;
+    }
 
-    Object.keys(parameter.validators).forEach((key: string) => {
-      if (!key.startsWith('is')) {
+    Object.keys(parameter.validators)
+      .filter(key => {
+        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+      })
+      .forEach((key: string) => {
         swaggerParameter[key] = parameter.validators[key].value;
-      }
-    });
+      });
     return swaggerParameter;
   }
 
@@ -179,11 +191,15 @@ export class SpecGenerator {
       if (!swaggerType.$ref) {
         swaggerType.description = property.description;
 
-        Object.keys(property.validators).forEach(key => {
-          (swaggerType as any)[key] = property.validators[key].value;
-        });
+        Object.keys(property.validators)
+          .filter(key => {
+            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+          })
+          .forEach(key => {
+            swaggerType[key] = property.validators[key].value;
+          });
       }
-      swaggerProperties[property.name] = swaggerType;
+      swaggerProperties[property.name] = swaggerType as Swagger.Schema;
     });
 
     return swaggerProperties;
@@ -193,14 +209,14 @@ export class SpecGenerator {
     return this.getSwaggerType(type);
   }
 
-  private buildOperation(controllerName: string, method: Method) {
+  private buildOperation(controllerName: string, method: Method): Swagger.Operation {
     const swaggerResponses: any = {};
 
     method.responses.forEach((res: ResponseType) => {
       swaggerResponses[res.name] = {
         description: res.description
       };
-      if (res.schema && this.getSwaggerType(res.schema).type !== 'void') {
+      if (res.schema && res.schema.typeName !== 'void') {
         swaggerResponses[res.name]['schema'] = this.getSwaggerType(res.schema);
       }
       if (res.examples) {
@@ -240,11 +256,11 @@ export class SpecGenerator {
     return refType;
   }
 
-  private getSwaggerTypeForPrimitiveType(type: Type) {
+  private getSwaggerTypeForPrimitiveType(type: Type): Swagger.Schema | undefined {
     const typeMap: { [name: string]: Swagger.Schema } = {
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
-      buffer: { type: 'string', format: 'base64' },
+      buffer: { type: 'string', format: 'byte' },
       byte: { type: 'string', format: 'byte' },
       date: { type: 'string', format: 'date' },
       datetime: { type: 'string', format: 'date-time' },
@@ -254,21 +270,20 @@ export class SpecGenerator {
       long: { type: 'integer', format: 'int64' },
       object: { type: 'object' },
       string: { type: 'string' },
-      void: { type: 'void' }
     };
 
     return typeMap[type.typeName];
   }
 
-  private getSwaggerTypeForArrayType(arrayType: ArrayType): Swagger.Schema {
+  private getSwaggerTypeForArrayType(arrayType: ArrayType): Swagger.BaseSchema {
     return { type: 'array', items: this.getSwaggerType(arrayType.elementType) };
   }
 
-  private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enumMembers.map( member => member as string ) as [string] };
+  private getSwaggerTypeForEnumType(enumType: EnumerateType): Swagger.BaseSchema {
+    return { type: 'string', enum: enumType.enumMembers.map(member => member as string) };
   }
 
-  private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.Schema {
+  private getSwaggerTypeForReferenceType(referenceType: ReferenceType): Swagger.BaseSchema {
     return { $ref: `#/definitions/${referenceType.typeName}` };
   }
 }

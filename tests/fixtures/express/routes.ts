@@ -11,9 +11,7 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
 import { TestController } from './../controllers/testController';
-import { set } from 'lodash';
 import { expressAuthentication } from './authentication';
-
 const models: any = {
   "TestModel": {
     properties: {
@@ -23,8 +21,10 @@ const models: any = {
       "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
       "boolValue": { "required": true, "typeName": "boolean" },
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
+      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
+      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
       "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
       "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
@@ -40,6 +40,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -99,6 +101,19 @@ const models: any = {
     },
     additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
+  },
   "TestClassModel": {
     properties: {
       "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
@@ -150,7 +165,7 @@ const models: any = {
     properties: {
       "firstname": { "required": true, "typeName": "string" },
       "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "* " }, "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
       "weight": { "required": true, "typeName": "float" },
       "human": { "required": true, "typeName": "boolean" },
       "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
@@ -1485,7 +1500,7 @@ export function RegisterRoutes(app: any) {
     ),
     function(request: any, response: any, next: any) {
       const args = {
-        ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1606,8 +1621,8 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/Validate/parameter/float',
     function(request: any, response: any, next: any) {
       const args = {
-        minValue: { "in": "query", "name": "minValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
-        maxValue: { "in": "query", "name": "maxValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
+        minValue: { "in": "query", "name": "minValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
+        maxValue: { "in": "query", "name": "maxValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
       };
 
       let validatedArgs: any[] = [];
@@ -1836,7 +1851,7 @@ export function RegisterRoutes(app: any) {
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return (request: any, response: any, next: any) => {
       expressAuthentication(request, name, scopes).then((user: any) => {
-        set(request, 'user', user);
+        request['user'] = user;
         next();
       })
         .catch((error: any) => {
@@ -1847,7 +1862,7 @@ export function RegisterRoutes(app: any) {
   }
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
-    return promise
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           response.status(statusCode || 200).json(data);;
@@ -1873,9 +1888,9 @@ export function RegisterRoutes(app: any) {
         case 'header':
           return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name, fieldErrors);
+          return ValidateParam(args[key], request.body, models, name, fieldErrors, name + '.');
         case 'body-prop':
-          return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
+          return ValidateParam(args[key], request.body[name], models, name, fieldErrors, 'body.');
       }
     });
     if (Object.keys(fieldErrors).length > 0) {
@@ -1884,5 +1899,3 @@ export function RegisterRoutes(app: any) {
     return values;
   }
 }
-
-

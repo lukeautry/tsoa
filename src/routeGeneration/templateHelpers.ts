@@ -8,7 +8,7 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
 
   if (value === undefined || value === null) {
     if (schema.required) {
-      let message = `'${name}' is a required ${schema.in} parameter.`;
+      let message = `'${name}' is a required ${schema.in} parameter`;
       if (schema.validators) {
         Object.keys(schema.validators).forEach((key: string) => {
           if (key.startsWith('is')) {
@@ -28,23 +28,23 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
 
   switch (schema.typeName) {
     case 'string':
-      return validateString(name, value, fieldErrors, schema.validators);
+      return validateString(name, value, fieldErrors, schema.validators, parent);
     case 'boolean':
-      return validateBool(name, value, fieldErrors);
+      return validateBool(name, value, fieldErrors, schema.validators, parent);
     case 'integer':
     case 'long':
-      return validateInt(name, value, fieldErrors, schema.validators);
+      return validateInt(name, value, fieldErrors, schema.validators, parent);
     case 'float':
     case 'double':
-      return validateFloat(name, value, fieldErrors, schema.validators);
+      return validateFloat(name, value, fieldErrors, schema.validators, parent);
     case 'enum':
-      return validateEnum(name, value, fieldErrors, schema.enumMembers);
+      return validateEnum(name, value, fieldErrors, schema.enumMembers, parent);
     case 'array':
-      return validateArray(name, value, fieldErrors, schema.array, schema.validators);
+      return validateArray(name, value, fieldErrors, schema.array, schema.validators, parent);
     case 'date':
-      return validateDate(name, value, fieldErrors, schema.validators);
+      return validateDate(name, value, fieldErrors, schema.validators, parent);
     case 'datetime':
-      return validateDateTime(name, value, fieldErrors, schema.validators);
+      return validateDateTime(name, value, fieldErrors, schema.validators, parent);
     case 'buffer':
       return validateBuffer(name, value);
     default:
@@ -52,9 +52,9 @@ export function ValidateParam(schema: any, value: any, generatedModels: any, nam
   }
 }
 
-function validateInt(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
+export function validateInt(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: IntegerValidator, parent = '') {
   if (!validator.isInt(numberValue + '')) {
-    let message = 'Invalid integer number.';
+    let message = `invalid integer number`;
     if (validators) {
       if (validators.isInt && validators.isInt.errorMsg) {
         message = validators.isInt.errorMsg;
@@ -93,9 +93,9 @@ function validateInt(name: string, numberValue: string, fieldErrors: FieldErrors
   return value;
 }
 
-function validateFloat(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
+export function validateFloat(name: string, numberValue: string, fieldErrors: FieldErrors, validators?: FloatValidator, parent = '') {
   if (!validator.isFloat(numberValue + '')) {
-    let message = 'Invalid float number.';
+    let message = 'invalid float number';
     if (validators) {
       if (validators.isFloat && validators.isFloat.errorMsg) {
         message = validators.isFloat.errorMsg;
@@ -134,29 +134,31 @@ function validateFloat(name: string, numberValue: string, fieldErrors: FieldErro
   return value;
 }
 
-function validateEnum(name: string, enumValue: string, fieldErrors: FieldErrors, members?: string[], parent = ''): any {
-  if (!members) {
+export function validateEnum(name: string, enumValue: string | number, fieldErrors: FieldErrors, members?: string[], parent = ''): any {
+  if (!members || members.length === 0) {
     fieldErrors[parent + name] = {
-      message: `${name} no member.`,
+      message: `no member`,
       value: enumValue
     };
     return;
   }
-  const existValue = members.filter(m => m === enumValue);
-  if (!existValue || !enumValue.length || !existValue.length) {
+  const value = members.find(member => {
+    return member === enumValue + '';
+  });
+  if (!value) {
     fieldErrors[parent + name] = {
-      message: name + ' should be one of the following; ' + members.join(', '),
+      message: `should be one of the following; ['${members.join(`', '`)}']`,
       value: enumValue
     };
     return;
   }
-  return existValue[0];
+  return enumValue;
 }
 
-function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
-  const momentDate = moment(dateValue, 'YYYY-MM-DD');
+export function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
+  const momentDate = moment(dateValue, moment.ISO_8601, true);
   if (!momentDate.isValid()) {
-    const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `Invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
+    const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
     fieldErrors[parent + name] = {
       message,
       value: dateValue
@@ -170,7 +172,7 @@ function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors,
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > value.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.minDate.errorMsg || `minDate ${validators.minDate.value}`,
+        message: validators.minDate.errorMsg || `minDate '${validators.minDate.value}'`,
         value: dateValue,
       };
       return;
@@ -180,7 +182,7 @@ function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors,
     const maxDate = new Date(validators.maxDate.value);
     if (maxDate.getTime() < value.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.maxDate.errorMsg || `maxDate ${validators.maxDate.value}`,
+        message: validators.maxDate.errorMsg || `maxDate '${validators.maxDate.value}'`,
         value: dateValue,
       };
       return;
@@ -189,10 +191,10 @@ function validateDate(name: string, dateValue: string, fieldErrors: FieldErrors,
   return value;
 }
 
-function validateDateTime(name: string, datetimeValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
-  const momentDateTime = moment(datetimeValue, moment.ISO_8601);
+export function validateDateTime(name: string, datetimeValue: string, fieldErrors: FieldErrors, validators?: DateTimeValidator, parent = '') {
+  const momentDateTime = moment(datetimeValue, moment.ISO_8601, true);
   if (!momentDateTime.isValid()) {
-    const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
+    const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
     fieldErrors[parent + name] = {
       message,
       value: datetimeValue
@@ -206,7 +208,7 @@ function validateDateTime(name: string, datetimeValue: string, fieldErrors: Fiel
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > value.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.minDate.errorMsg || `minDate ${validators.minDate.value}`,
+        message: validators.minDate.errorMsg || `minDate '${validators.minDate.value}'`,
         value: datetimeValue,
       };
       return;
@@ -216,7 +218,7 @@ function validateDateTime(name: string, datetimeValue: string, fieldErrors: Fiel
     const maxDate = new Date(validators.maxDate.value);
     if (maxDate.getTime() < value.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.maxDate.errorMsg || `maxDate ${validators.maxDate.value}`,
+        message: validators.maxDate.errorMsg || `maxDate '${validators.maxDate.value}'`,
         value: datetimeValue,
       };
       return;
@@ -225,9 +227,9 @@ function validateDateTime(name: string, datetimeValue: string, fieldErrors: Fiel
   return value;
 }
 
-function validateString(name: string, stringValue: string, fieldErrors: FieldErrors, validators?: any, parent = '') {
+export function validateString(name: string, stringValue: string, fieldErrors: FieldErrors, validators?: StringValidator, parent = '') {
   if (typeof stringValue !== 'string') {
-    const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `Invalid string value.`;
+    const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `invalid string value`;
     fieldErrors[parent + name] = {
       message,
       value: stringValue
@@ -258,7 +260,7 @@ function validateString(name: string, stringValue: string, fieldErrors: FieldErr
   if (validators.pattern && validators.pattern.value) {
     if (!validator.matches(value, validators.pattern.value)) {
       fieldErrors[parent + name] = {
-        message: validators.pattern.errorMsg || `Not match in '${validators.pattern.value}'.`,
+        message: validators.pattern.errorMsg || `Not match in '${validators.pattern.value}'`,
         value: stringValue,
       };
       return;
@@ -267,17 +269,69 @@ function validateString(name: string, stringValue: string, fieldErrors: FieldErr
   return value;
 }
 
-function validateBool(name: string, boolValue: any, fieldErrors: FieldErrors, validators?: any, parent = '') {
+export function validateBool(name: string, boolValue: any, fieldErrors: FieldErrors, validators?: BooleanValidator, parent = '') {
   if (boolValue === true || boolValue === false) { return boolValue; }
   if (boolValue.toLowerCase() === 'true') { return true; }
   if (boolValue.toLowerCase() === 'false') { return false; }
 
-  const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `Invalid boolean value.`;
+  const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid boolean value`;
   fieldErrors[parent + name] = {
     message,
     value: boolValue
   };
   return;
+}
+
+export function validateArray(name: string, arrayValue: any[], fieldErrors: FieldErrors, schema?: any, validators?: ArrayValidator, parent = '') {
+  if (!schema || !Array.isArray(arrayValue)) {
+    const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
+    fieldErrors[parent + name] = {
+      message,
+      value: arrayValue
+    };
+    return;
+  }
+
+  const value: any[] = arrayValue.map((v, index) => {
+    return ValidateParam(schema, v, models, `$${index}`, fieldErrors, name + '.');
+  });
+  if (!validators) { return value; };
+  if (validators.minItems && validators.minItems.value) {
+    if (validators.minItems.value > value.length) {
+      fieldErrors[parent + name] = {
+        message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
+        value
+      };
+      return;
+    }
+  }
+  if (validators.maxItems && validators.maxItems.value) {
+    if (validators.maxItems.value < value.length) {
+      fieldErrors[parent + name] = {
+        message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
+        value
+      };
+      return;
+    }
+  }
+  if (validators.uniqueItems) {
+    const unique = value.some((elem, index, arr) => {
+      const indexOf = arr.indexOf(elem);
+      return indexOf > -1 && indexOf !== index;
+    });
+    if (unique) {
+      fieldErrors[parent + name] = {
+        message: validators.uniqueItems.errorMsg || `required unique array`,
+        value
+      };
+      return;
+    }
+  }
+  return value;
+}
+
+function validateBuffer(name: string, value: string) {
+  return new Buffer(value);
 }
 
 function validateModel(typeName: string, modelValue: any, fieldErrors: FieldErrors, parent = ''): any {
@@ -308,57 +362,57 @@ function validateModel(typeName: string, modelValue: any, fieldErrors: FieldErro
   return modelValue;
 }
 
-function validateArray(name: string, arrayValue: any[], fieldErrors: FieldErrors, schema?: any, validators?: any, parent = '') {
-  if (!schema || !Array.isArray(arrayValue)) {
-    const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `Invalid array.`;
-    fieldErrors[parent + name] = {
-      message,
-      value: arrayValue
-    };
-    return;
-  }
-
-  const value: any[] = arrayValue.map(v => {
-    return ValidateParam(schema, v, models, undefined, fieldErrors);
-  });
-  if (!validators) { return value; };
-  if (validators.minItems && validators.minItems.value) {
-    if (validators.minItems.value > value.length) {
-      fieldErrors[parent + name] = {
-        message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
-        value
-      };
-      return;
-    }
-  }
-  if (validators.maxItems && validators.maxItems.value) {
-    if (validators.maxItems.value < value.length) {
-      fieldErrors[parent + name] = {
-        message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
-        value
-      };
-      return;
-    }
-  }
-  if (validators.uniqueItems) {
-    const unique = value.some((elem, index, arr) => {
-      const indexOf = arr.indexOf(elem);
-      return indexOf > -1 && indexOf !== index;
-    });
-    if (unique) {
-      fieldErrors[parent + name] = {
-        message: validators.uniqueItems.errorMsg || `Required unique array.`,
-        value
-      };
-      return;
-    }
-  }
-  return value;
+export interface IntegerValidator {
+  isInt?: { errorMsg?: string };
+  isLong?: { errorMsg?: string };
+  minimum?: { value: number, errorMsg?: string };
+  maximum?: { value: number, errorMsg?: string };
 }
 
-function validateBuffer(name: string, value: string) {
-  return new Buffer(value);
+export interface FloatValidator {
+  isFloat?: { errorMsg?: string };
+  isDouble?: { errorMsg?: string };
+  minimum?: { value: number, errorMsg?: string };
+  maximum?: { value: number, errorMsg?: string };
 }
+
+export interface DateValidator {
+  isDate?: { errorMsg?: string };
+  minDate?: { value: string, errorMsg?: string };
+  maxDate?: { value: string, errorMsg?: string };
+}
+
+export interface DateTimeValidator {
+  isDateTime?: { errorMsg?: string };
+  minDate?: { value: string, errorMsg?: string };
+  maxDate?: { value: string, errorMsg?: string };
+}
+
+export interface StringValidator {
+  isString?: { errorMsg?: string };
+  minLength?: { value: number, errorMsg?: string };
+  maxLength?: { value: number, errorMsg?: string };
+  pattern?: { value: string, errorMsg?: string };
+}
+
+export interface BooleanValidator {
+  isArray?: { errorMsg?: string };
+}
+
+export interface ArrayValidator {
+  isArray?: { errorMsg?: string };
+  minItems?: { value: number; errorMsg?: string; };
+  maxItems?: { value: number; errorMsg?: string; };
+  uniqueItems?: { errorMsg?: string; };
+}
+
+export type Validator = IntegerValidator
+  | FloatValidator
+  | DateValidator
+  | DateTimeValidator
+  | StringValidator
+  | BooleanValidator
+  | ArrayValidator;
 
 export interface FieldErrors {
   [name: string]: { message: string, value?: any };

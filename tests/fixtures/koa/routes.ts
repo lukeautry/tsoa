@@ -1,5 +1,4 @@
 /* tslint:disable */
-import * as KoaRouter from 'koa-router';
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
@@ -12,7 +11,6 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
 import { TestController } from './../controllers/testController';
-import { set } from 'lodash';
 import { koaAuthentication } from './authentication';
 
 const models: any = {
@@ -24,8 +22,10 @@ const models: any = {
       "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
       "boolValue": { "required": true, "typeName": "boolean" },
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
+      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
+      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
       "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
       "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
@@ -41,6 +41,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -100,6 +102,19 @@ const models: any = {
     },
     additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
+  },
   "TestClassModel": {
     properties: {
       "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
@@ -151,7 +166,7 @@ const models: any = {
     properties: {
       "firstname": { "required": true, "typeName": "string" },
       "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "* " }, "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
       "weight": { "required": true, "typeName": "float" },
       "human": { "required": true, "typeName": "boolean" },
       "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
@@ -209,7 +224,7 @@ const models: any = {
   },
 };
 
-export function RegisterRoutes(router: KoaRouter) {
+export function RegisterRoutes(router: any) {
   router.put('/v1/PutTest',
     async (context, next) => {
       const args = {
@@ -1596,7 +1611,7 @@ export function RegisterRoutes(router: KoaRouter) {
     ),
     async (context, next) => {
       const args = {
-        ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
+        request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
       };
 
       let validatedArgs: any[] = [];
@@ -1727,8 +1742,8 @@ export function RegisterRoutes(router: KoaRouter) {
   router.get('/v1/Validate/parameter/float',
     async (context, next) => {
       const args = {
-        minValue: { "in": "query", "name": "minValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
-        maxValue: { "in": "query", "name": "maxValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
+        minValue: { "in": "query", "name": "minValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
+        maxValue: { "in": "query", "name": "maxValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
       };
 
       let validatedArgs: any[] = [];
@@ -1977,7 +1992,7 @@ export function RegisterRoutes(router: KoaRouter) {
   function authenticateMiddleware(name: string, scopes: string[] = []) {
     return async (context: any, next: any) => {
       koaAuthentication(context.request, name, scopes).then((user: any) => {
-        set(context.request, 'user', user);
+        context.request['user'] = user;
         next();
       })
         .catch((error: any) => {
@@ -1988,8 +2003,8 @@ export function RegisterRoutes(router: KoaRouter) {
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, context: KoaRouter.IRouterContext, next: () => Promise<any>) {
-    return promise
+  function promiseHandler(promise: any, statusCode: any, context: any, next: () => Promise<any>) {
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           context.body = data;
@@ -2007,13 +2022,13 @@ export function RegisterRoutes(router: KoaRouter) {
       });
   }
 
-  function getValidatedArgs(args: any, context: KoaRouter.IRouterContext): any[] {
+  function getValidatedArgs(args: any, context: any): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
       const name = args[key].name;
       switch (args[key].in) {
         case 'request':
-          return context;
+          return context.request;
         case 'query':
           return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
         case 'path':
@@ -2021,9 +2036,9 @@ export function RegisterRoutes(router: KoaRouter) {
         case 'header':
           return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
         case 'body':
-          return ValidateParam(args[key], context.request.body, models, name, errorFields);
+          return ValidateParam(args[key], context.request.body, models, name, errorFields, name + '.');
         case 'body-prop':
-          return ValidateParam(args[key], context.request.body[name], models, name, errorFields);
+          return ValidateParam(args[key], context.request.body[name], models, name, errorFields, 'body.');
       }
     });
     if (Object.keys(errorFields).length > 0) {
@@ -2032,4 +2047,3 @@ export function RegisterRoutes(router: KoaRouter) {
     return values;
   }
 }
-

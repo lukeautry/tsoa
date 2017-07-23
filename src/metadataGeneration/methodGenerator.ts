@@ -113,13 +113,13 @@ export class MethodGenerator {
       }
 
       return {
-        description: description,
+        description,
         examples: examples,
         name: name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
           ? ResolveType(expression.typeArguments[0])
           : undefined
-      };
+      } as ResponseType;
     });
   }
 

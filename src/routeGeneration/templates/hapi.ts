@@ -1,6 +1,5 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
-import * as hapi from 'hapi';
 {{#if canImportByAlias}}
   import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
   import { Controller } from 'tsoa';
@@ -14,9 +13,6 @@ import { iocContainer } from '{{iocModule}}';
 {{#each controllers}}
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
-{{#if useSecurity}}
-import { set } from 'lodash';
-{{/if}}
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
@@ -38,7 +34,7 @@ const models: any = {
   {{/each}}
 };
 
-export function RegisterRoutes(server: hapi.Server) {
+export function RegisterRoutes(server: any) {
     {{#each controllers}}
     {{#each actions}}
         server.route({
@@ -89,9 +85,9 @@ export function RegisterRoutes(server: hapi.Server) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(name: string, scopes: string[] = []) {
-      return (request: hapi.Request, reply: hapi.IReply) => {
-            hapiAuthentication(request, name, scopes).then((user: any) => {
-                set(request, 'user', user);
+      return (request: any, reply: any) => {
+            return hapiAuthentication(request, name, scopes).then((user: any) => {
+                request['user'] = user;
                 reply.continue();
             })
             .catch((error: any) => reply(error).code(error.status || 401));
@@ -99,8 +95,8 @@ export function RegisterRoutes(server: hapi.Server) {
     }
     {{/if}}
 
-    function promiseHandler(promise: any, statusCode: any, request: hapi.Request, reply: hapi.IReply) {
-      return promise
+    function promiseHandler(promise: any, statusCode: any, request: any, reply: any) {
+      return Promise.resolve(promise)
         .then((data: any) => {
           if (data) {
             return reply(data).code(statusCode || 200);
@@ -111,7 +107,7 @@ export function RegisterRoutes(server: hapi.Server) {
         .catch((error: any) => reply(error).code(error.status || 500));
     }
 
-    function getValidatedArgs(args: any, request: hapi.Request): any[] {
+    function getValidatedArgs(args: any, request: any): any[] {
         const errorFields: FieldErrors = {};
         const values = Object.keys(args).map(key => {
             const name = args[key].name;
@@ -125,9 +121,9 @@ export function RegisterRoutes(server: hapi.Server) {
             case 'header':
                 return ValidateParam(args[key], request.headers[name], models, name, errorFields);
             case 'body':
-                return ValidateParam(args[key], request.payload, models, name, errorFields);
+                return ValidateParam(args[key], request.payload, models, name, errorFields, name + '.');
              case 'body-prop':
-                return ValidateParam(args[key], request.payload[name], models, name, errorFields);
+                return ValidateParam(args[key], request.payload[name], models, name, errorFields, 'body.');
             }
         });
         if (Object.keys(errorFields).length > 0) {
@@ -136,4 +132,3 @@ export function RegisterRoutes(server: hapi.Server) {
         return values;
     }
 }
-

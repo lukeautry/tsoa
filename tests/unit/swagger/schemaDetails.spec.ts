@@ -16,10 +16,18 @@ describe('Schema details generation', () => {
   if (!spec.info.version) { throw new Error('No spec info version.'); }
   if (!spec.host) { throw new Error('No host'); }
 
-  it('should set API name if provided', () => expect(spec.info.title).to.equal(getDefaultOptions().name));
-  it('should set API description if provided', () => expect(spec.info.description).to.equal(getDefaultOptions().description));
-  it('should set API version if provided', () => expect(spec.info.version).to.equal(getDefaultOptions().version));
-  it('should set API host if provided', () => expect(spec.host).to.equal(getDefaultOptions().host));
+  it('should set API name if provided', () => {
+    expect(spec.info.title).to.equal(getDefaultOptions().name);
+  });
+  it('should set API description if provided', () => {
+    expect(spec.info.description).to.equal(getDefaultOptions().description);
+  });
+  it('should set API version if provided', () => {
+    expect(spec.info.version).to.equal(getDefaultOptions().version);
+  });
+  it('should set API host if provided', () => {
+    expect(spec.host).to.equal(getDefaultOptions().host);
+  });
 
   const license = spec.info.license;
   if (!license) { throw new Error('No license.'); }

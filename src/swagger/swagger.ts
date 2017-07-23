@@ -1,6 +1,50 @@
 export namespace Swagger {
+  export type DataType = 'integer'
+    | 'number'
+    | 'boolean'
+    | 'string';
+  export type SchemaDataType = 'integer'
+    | 'number'
+    | 'boolean'
+    | 'string'
+    | 'array'
+    | 'object'
+    ;
+
+  export type DataFormat = 'int32'
+    | 'int64'
+    | 'float'
+    | 'double'
+    | 'byte'
+    | 'binary'
+    | 'date'
+    | 'date-time'
+    | 'password';
+  export type Protocol = 'http'
+    | 'https'
+    | 'ws'
+    | 'wss';
+
+  export interface Spec {
+    swagger: '2.0';
+    info: Info;
+    host?: string;
+    basePath?: string;
+    schemes?: Protocol[];
+    consumes?: string[];
+    produces?: string[];
+    paths: { [name: string]: Path };
+    definitions?: { [name: string]: Schema };
+    parameters?: { [name: string]: Parameter };
+    responses?: { [name: string]: Response };
+    security?: Secuirty[];
+    securityDefinitions?: { [name: string]: Secuirty };
+    tags?: Tag[];
+    externalDocs?: ExternalDocs;
+  }
+
   export interface Info {
-    title?: string;
+    title: string;
     version?: string;
     description?: string;
     termsOfService?: string;
@@ -30,61 +74,47 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
   }
 
-  export interface Example { }
-
-  export interface Header extends BaseSchema {
-    type: string;
+  export interface Example {
+    [name: string]: any;
   }
 
-  export interface BaseParameter {
+  export interface BaseParameter extends BaseSchema {
     name: string;
-    in: string;
+    in: 'query' | 'header' | 'path' | 'formData' | 'body';
     required?: boolean;
     description?: string;
-    maximum?: number;
-    exclusiveMaximum?: number;
-    minimum?: number;
-    exclusiveMinimum?: number;
-    maxLength?: number;
-    minLength?: number;
-    pattern?: string;
-    maxItems?: number;
-    minItems?: number;
-    uniqueItems?: boolean;
+    schema: Schema;
+    type: DataType;
+    format?: DataFormat;
   }
 
   export interface BodyParameter extends BaseParameter {
-    schema?: Schema;
+    in: 'body';
   }
 
-  export interface QueryParameter extends BaseParameter, BaseSchema {
-    type: string;
-    format?: string;
+  export interface QueryParameter extends BaseParameter {
+    in: 'query';
     allowEmptyValue?: boolean;
   }
 
   export interface PathParameter extends BaseParameter {
-    type: string;
-    format?: string;
-    required: boolean;
+    in: 'path';
   }
 
   export interface HeaderParameter extends BaseParameter {
-    type: string;
-    format?: string;
+    in: 'header';
   }
 
-  export interface FormDataParameter extends BaseParameter, BaseSchema {
-    type: string;
+  export interface FormDataParameter extends BaseParameter {
+    in: 'formData';
     collectionFormat?: string;
   }
 
-  export type Parameter =
-    BodyParameter |
-    FormDataParameter |
-    QueryParameter |
-    PathParameter |
-    HeaderParameter;
+  export type Parameter = BodyParameter
+    | FormDataParameter
+    | QueryParameter
+    | PathParameter
+    | HeaderParameter;
 
   export interface Path {
     $ref?: string;
@@ -95,33 +125,35 @@ export namespace Swagger {
     options?: Operation;
     head?: Operation;
     patch?: Operation;
-    parameters?: [Parameter];
+    parameters?: Parameter[];
   }
 
   export interface Operation {
-    responses: { [responseName: string]: Response };
+    tags?: string[];
     summary?: string;
     description?: string;
     externalDocs?: ExternalDocs;
-    operationId?: string;
-    produces?: [string];
-    consumes?: [string];
-    parameters?: [Parameter];
-    schemes?: [string];
+    operationId: string;
+    consumes?: string[];
+    produces?: string[];
+    parameters?: Parameter[];
+    responses: { [name: string]: Response };
+    schemes?: Protocol[];
     deprecated?: boolean;
-    security?: [Secuirty];
-    tags?: [string];
+    security?: Secuirty[];
   }
 
   export interface Response {
     description: string;
     schema?: Schema;
-    headers?: { [headerName: string]: Header };
-    examples?: { [exampleName: string]: Example };
+    headers?: { [name: string]: Header };
+    examples?: { [name: string]: Example };
   }
 
   export interface BaseSchema {
+    type?: string;
     format?: string;
+    $ref?: string;
     title?: string;
     description?: string;
     default?: string | boolean | number | Object;
@@ -138,15 +170,15 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: [string];
-    type?: string;
-    items?: Schema | [Schema];
+    enum?: string[];
+    items?: BaseSchema;
   }
 
   export interface Schema extends BaseSchema {
-    $ref?: string;
-    allOf?: [Schema];
-    additionalProperties?: boolean | Schema;
+    type: SchemaDataType;
+    format?: DataFormat;
+    allOf?: Schema[];
+    additionalProperties?: boolean | BaseSchema;
     properties?: { [propertyName: string]: Schema };
     discriminator?: string;
     readOnly?: boolean;
@@ -154,6 +186,10 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
     example?: { [exampleName: string]: Example };
     required?: string[];
+  }
+
+  export interface Header extends BaseSchema {
+    type: DataType & 'array';
   }
 
   export interface XML {
@@ -164,69 +200,58 @@ export namespace Swagger {
     wrapped?: boolean;
   }
 
-  export interface BaseSecurity {
-    type: string;
+  export interface BasicSecurity {
+    type: 'basic';
     description?: string;
   }
 
-  export interface BasicAuthenticationSecurity extends BaseSecurity { }
-
-  export interface ApiKeySecurity extends BaseSecurity {
+  export interface ApiKeySecurity {
+    type: 'apiKey';
     name: string;
-    in: string;
+    in: 'query' | 'header';
+    description?: string;
   }
 
-  export interface BaseOAuthSecuirty extends BaseSecurity {
-    flow: string;
-  }
-
-  export interface OAuth2ImplicitSecurity extends BaseOAuthSecuirty {
+  export interface OAuth2ImplicitSecurity {
+    type: 'oauth2';
+    description?: string;
+    flow: 'implicit';
     authorizationUrl: string;
   }
 
-  export interface OAuth2PasswordSecurity extends BaseOAuthSecuirty {
+  export interface OAuth2PasswordSecurity {
+    type: 'oauth2';
+    description?: string;
+    flow: 'password';
     tokenUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
-  export interface OAuth2ApplicationSecurity extends BaseOAuthSecuirty {
+  export interface OAuth2ApplicationSecurity {
+    type: 'oauth2';
+    description?: string;
+    flow: 'application';
     tokenUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
-  export interface OAuth2AccessCodeSecurity extends BaseOAuthSecuirty {
+  export interface OAuth2AccessCodeSecurity {
+    type: 'oauth2';
+    description?: string;
+    flow: 'accessCode';
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: [OAuthScope];
+    scopes?: OAuthScope[];
   }
 
   export interface OAuthScope {
-    [scopeName: string]: string;
+    [name: string]: string;
   }
 
-  export type Secuirty =
-    BasicAuthenticationSecurity |
-    OAuth2AccessCodeSecurity |
-    OAuth2ApplicationSecurity |
-    OAuth2ImplicitSecurity |
-    OAuth2PasswordSecurity |
-    ApiKeySecurity;
-
-  export interface Spec {
-    swagger: string;
-    info: Info;
-    externalDocs?: ExternalDocs;
-    host?: string;
-    basePath?: string;
-    schemes?: [string];
-    consumes?: [string];
-    produces?: [string];
-    paths: { [pathName: string]: Path };
-    definitions?: { [definitionsName: string]: Schema };
-    parameters?: { [parameterName: string]: BodyParameter | QueryParameter };
-    responses?: { [responseName: string]: Response };
-    security?: [Secuirty];
-    securityDefinitions?: { [securityDefinitionName: string]: Secuirty };
-    tags?: [Tag];
-  }
+  export type Secuirty = BasicSecurity
+    | ApiKeySecurity
+    | OAuth2AccessCodeSecurity
+    | OAuth2ApplicationSecurity
+    | OAuth2ImplicitSecurity
+    | OAuth2PasswordSecurity;
 }

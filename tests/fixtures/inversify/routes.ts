@@ -3,7 +3,6 @@ import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGen
 import { Controller } from '../../../src/interfaces/controller';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
-
 const models: any = {
   "TestModel": {
     properties: {
@@ -13,8 +12,10 @@ const models: any = {
       "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
       "boolValue": { "required": true, "typeName": "boolean" },
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
+      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
+      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
       "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
       "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
@@ -30,6 +31,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -89,6 +92,19 @@ const models: any = {
     },
     additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
+  },
 };
 
 export function RegisterRoutes(app: any) {
@@ -117,7 +133,7 @@ export function RegisterRoutes(app: any) {
 
 
   function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
-    return promise
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           response.status(statusCode || 200).json(data);;
@@ -143,9 +159,9 @@ export function RegisterRoutes(app: any) {
         case 'header':
           return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name, fieldErrors);
+          return ValidateParam(args[key], request.body, models, name, fieldErrors, name + '.');
         case 'body-prop':
-          return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
+          return ValidateParam(args[key], request.body[name], models, name, fieldErrors, 'body.');
       }
     });
     if (Object.keys(fieldErrors).length > 0) {
@@ -154,5 +170,3 @@ export function RegisterRoutes(app: any) {
     return values;
   }
 }
-
-

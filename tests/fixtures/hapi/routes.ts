@@ -1,6 +1,5 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
-import * as hapi from 'hapi';
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { Controller } from '../../../src/interfaces/controller';
 import { PutTestController } from './../controllers/putController';
@@ -13,7 +12,6 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { ValidateController } from './../controllers/validateController';
 import { TestController } from './../controllers/testController';
-import { set } from 'lodash';
 import { hapiAuthentication } from './authentication';
 
 const models: any = {
@@ -25,8 +23,10 @@ const models: any = {
       "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
       "boolValue": { "required": true, "typeName": "boolean" },
       "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": [0, 1] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": [0, 1] } },
+      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
+      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
+      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
+      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
       "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
       "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
       "modelValue": { "required": true, "typeName": "TestSubModel" },
@@ -42,6 +42,8 @@ const models: any = {
       "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
       "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
       "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
       "id": { "required": true, "typeName": "double" },
     },
   },
@@ -101,6 +103,19 @@ const models: any = {
     },
     additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
   },
+  "TypeAliasModelCase1": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+    },
+  },
+  "TypeAliasModelCase2": {
+    properties: {
+      "value1": { "required": true, "typeName": "string" },
+      "value2": { "required": true, "typeName": "string" },
+      "value3": { "required": true, "typeName": "string" },
+    },
+  },
   "TestClassModel": {
     properties: {
       "publicStringProperty": { "required": true, "typeName": "string", "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
@@ -152,7 +167,7 @@ const models: any = {
     properties: {
       "firstname": { "required": true, "typeName": "string" },
       "lastname": { "required": true, "typeName": "string" },
-      "age": { "required": true, "typeName": "integer", "validators": { "isInt": { "errorMsg": "* " }, "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "age": { "required": true, "typeName": "integer", "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
       "weight": { "required": true, "typeName": "float" },
       "human": { "required": true, "typeName": "boolean" },
       "gender": { "required": true, "typeName": "enum", "enumMembers": ["MALE", "FEMALE"] },
@@ -210,7 +225,7 @@ const models: any = {
   },
 };
 
-export function RegisterRoutes(server: hapi.Server) {
+export function RegisterRoutes(server: any) {
   server.route({
     method: 'put',
     path: '/v1/PutTest',
@@ -1389,8 +1404,8 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1721,12 +1736,12 @@ export function RegisterRoutes(server: hapi.Server) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
-          ctx: { "in": "request", "name": "ctx", "required": true, "typeName": "object" },
+          request: { "in": "request", "name": "request", "required": true, "typeName": "object" },
         };
 
         let validatedArgs: any[] = [];
@@ -1871,8 +1886,8 @@ export function RegisterRoutes(server: hapi.Server) {
     config: {
       handler: (request: any, reply) => {
         const args = {
-          minValue: { "in": "query", "name": "minValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
-          maxValue: { "in": "query", "name": "maxValue", "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
+          minValue: { "in": "query", "name": "minValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
+          maxValue: { "in": "query", "name": "maxValue", "required": true, "typeName": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
         };
 
         let validatedArgs: any[] = [];
@@ -2136,17 +2151,17 @@ export function RegisterRoutes(server: hapi.Server) {
   });
 
   function authenticateMiddleware(name: string, scopes: string[] = []) {
-    return (request: hapi.Request, reply: hapi.IReply) => {
+    return (request: any, reply: any) => {
       hapiAuthentication(request, name, scopes).then((user: any) => {
-        set(request, 'user', user);
+        request['user'] = user;
         reply.continue();
       })
         .catch((error: any) => reply(error).code(error.status || 401));
     }
   }
 
-  function promiseHandler(promise: any, statusCode: any, request: hapi.Request, reply: hapi.IReply) {
-    return promise
+  function promiseHandler(promise: any, statusCode: any, request: any, reply: any) {
+    return Promise.resolve(promise)
       .then((data: any) => {
         if (data) {
           return reply(data).code(statusCode || 200);
@@ -2157,7 +2172,7 @@ export function RegisterRoutes(server: hapi.Server) {
       .catch((error: any) => reply(error).code(error.status || 500));
   }
 
-  function getValidatedArgs(args: any, request: hapi.Request): any[] {
+  function getValidatedArgs(args: any, request: any): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
       const name = args[key].name;
@@ -2171,9 +2186,9 @@ export function RegisterRoutes(server: hapi.Server) {
         case 'header':
           return ValidateParam(args[key], request.headers[name], models, name, errorFields);
         case 'body':
-          return ValidateParam(args[key], request.payload, models, name, errorFields);
+          return ValidateParam(args[key], request.payload, models, name, errorFields, name + '.');
         case 'body-prop':
-          return ValidateParam(args[key], request.payload[name], models, name, errorFields);
+          return ValidateParam(args[key], request.payload[name], models, name, errorFields, 'body.');
       }
     });
     if (Object.keys(errorFields).length > 0) {
@@ -2182,4 +2197,3 @@ export function RegisterRoutes(server: hapi.Server) {
     return values;
   }
 }
-
