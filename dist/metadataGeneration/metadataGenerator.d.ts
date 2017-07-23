@@ -8,7 +8,7 @@ export declare class MetadataGenerator {
     private referenceTypes;
     private circularDependencyResolvers;
     IsExportedNode(node: ts.Node): boolean;
-    constructor(entryFile: string);
+    constructor(entryFile: string, compilerOptions?: ts.CompilerOptions);
     Generate(): Metadata;
     TypeChecker(): ts.TypeChecker;
     AddReferenceType(referenceType: ReferenceType): void;

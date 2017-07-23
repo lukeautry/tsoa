@@ -26,7 +26,9 @@ var SpecGenerator = (function () {
             basePath: this.config.basePath,
             consumes: ['application/json'],
             definitions: this.buildDefinitions(),
-            info: {},
+            info: {
+                title: '',
+            },
             paths: this.buildPaths(),
             produces: ['application/json'],
             swagger: '2.0'
@@ -68,7 +70,7 @@ var SpecGenerator = (function () {
             definitions[referenceType.typeName] = {
                 description: referenceType.description,
                 properties: _this.buildProperties(referenceType.properties),
-                required: required && required.length > 0 ? required : undefined,
+                required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
                 type: 'object'
             };
             if (referenceType.additionalProperties) {
@@ -93,6 +95,7 @@ var SpecGenerator = (function () {
         var _this = this;
         var pathMethod = pathObject[method.method] = this.buildOperation(controllerName, method);
         pathMethod.description = method.description;
+        pathMethod.summary = method.summary;
         if (method.deprecated) {
             pathMethod.deprecated = method.deprecated;
         }
@@ -165,10 +168,12 @@ var SpecGenerator = (function () {
         if (parameterType.format) {
             swaggerParameter.format = parameterType.format;
         }
-        Object.keys(parameter.validators).forEach(function (key) {
-            if (!key.startsWith('is')) {
-                swaggerParameter[key] = parameter.validators[key].value;
-            }
+        Object.keys(parameter.validators)
+            .filter(function (key) {
+            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+        })
+            .forEach(function (key) {
+            swaggerParameter[key] = parameter.validators[key].value;
         });
         return swaggerParameter;
     };
@@ -179,7 +184,11 @@ var SpecGenerator = (function () {
             var swaggerType = _this.getSwaggerType(property.type);
             if (!swaggerType.$ref) {
                 swaggerType.description = property.description;
-                Object.keys(property.validators).forEach(function (key) {
+                Object.keys(property.validators)
+                    .filter(function (key) {
+                    return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+                })
+                    .forEach(function (key) {
                     swaggerType[key] = property.validators[key].value;
                 });
             }
@@ -197,7 +206,7 @@ var SpecGenerator = (function () {
             swaggerResponses[res.name] = {
                 description: res.description
             };
-            if (res.schema && _this.getSwaggerType(res.schema).type !== 'void') {
+            if (res.schema && res.schema.typeName !== 'void') {
                 swaggerResponses[res.name]['schema'] = _this.getSwaggerType(res.schema);
             }
             if (res.examples) {
@@ -234,7 +243,7 @@ var SpecGenerator = (function () {
         var typeMap = {
             binary: { type: 'string', format: 'binary' },
             boolean: { type: 'boolean' },
-            buffer: { type: 'string', format: 'base64' },
+            buffer: { type: 'string', format: 'byte' },
             byte: { type: 'string', format: 'byte' },
             date: { type: 'string', format: 'date' },
             datetime: { type: 'string', format: 'date-time' },
@@ -244,7 +253,6 @@ var SpecGenerator = (function () {
             long: { type: 'integer', format: 'int64' },
             object: { type: 'object' },
             string: { type: 'string' },
-            void: { type: 'void' }
         };
         return typeMap[type.typeName];
     };

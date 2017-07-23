@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var map = require('lodash/map');
+var indexOf = require('lodash/indexOf');
 var ts = require("typescript");
-var _ = require("lodash");
 var metadataGenerator_1 = require("./metadataGenerator");
 var jsDocUtils_1 = require("./../utils/jsDocUtils");
 var validatorUtils_1 = require("./../utils/validatorUtils");
@@ -139,7 +140,7 @@ function getEnumerateType(typeNode) {
     }
     return {
         enumMembers: enumDeclaration.members.map(function (member, index) {
-            return getEnumValue(member) || index;
+            return getEnumValue(member) || String(index);
         }),
         typeName: 'enum',
     };
@@ -238,7 +239,6 @@ function getAnyTypeName(typeNode) {
 }
 function createCircularDependencyResolver(typeName) {
     var referenceType = {
-        description: '',
         properties: new Array(),
         typeName: typeName,
     };
@@ -338,7 +338,7 @@ function getModelTypeProperties(node, genericTypes) {
             // aType.kind will always be a TypeReference when the property of Interface<T> is of type T
             if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
                 // The type definitions are conviently located on the object which allow us to map -> to the genericTypes
-                var typeParams = _.map(node.typeParameters, function (typeParam) {
+                var typeParams = map(node.typeParameters, function (typeParam) {
                     return typeParam.name.text;
                 });
                 // I am not sure in what cases
@@ -352,7 +352,7 @@ function getModelTypeProperties(node, genericTypes) {
                     typeIdentifierName = typeIdentifier.right.text;
                 }
                 // I could not produce a situation where this did not find it so its possible this check is irrelevant
-                var indexOfType = _.indexOf(typeParams, typeIdentifierName);
+                var indexOfType = indexOf(typeParams, typeIdentifierName);
                 if (indexOfType >= 0) {
                     aType = genericTypes[indexOfType];
                 }
@@ -367,13 +367,26 @@ function getModelTypeProperties(node, genericTypes) {
         });
     }
     if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-        /**
-         * TOOD
-         *
-         * Flesh this out so that we can properly support Type Alii instead of just assuming
-         * string literal enums
-        */
-        return [];
+        var aliasDeclaration = node;
+        var properties_1 = [];
+        if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
+            var intersectionTypeNode = aliasDeclaration.type;
+            intersectionTypeNode.types.forEach(function (type) {
+                if (type.kind === ts.SyntaxKind.TypeReference) {
+                    var typeReferenceNode = type;
+                    var modelType = getModelTypeDeclaration(typeReferenceNode.typeName);
+                    var modelProps = getModelTypeProperties(modelType);
+                    properties_1.push.apply(properties_1, modelProps);
+                }
+            });
+        }
+        if (aliasDeclaration.type.kind === ts.SyntaxKind.TypeReference) {
+            var typeReferenceNode = aliasDeclaration.type;
+            var modelType = getModelTypeDeclaration(typeReferenceNode.typeName);
+            var modelProps = getModelTypeProperties(modelType);
+            properties_1.push.apply(properties_1, modelProps);
+        }
+        return properties_1;
     }
     var classDeclaration = node;
     var properties = classDeclaration.members.filter(function (member) {
@@ -449,6 +462,10 @@ function getModelDescription(modelTypeDeclaration) {
 }
 function getNodeDescription(node) {
     var symbol = metadataGenerator_1.MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+    if (!symbol) {
+        return undefined;
+    }
+    ;
     /**
     * TODO: Workaround for what seems like a bug in the compiler
     * Warrants more investigation and possibly a PR against typescript
@@ -462,6 +479,6 @@ function getNodeDescription(node) {
     if (comments.length) {
         return ts.displayPartsToString(comments);
     }
-    return '';
+    return undefined;
 }
 //# sourceMappingURL=resolveType.js.map

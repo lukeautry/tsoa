@@ -3,11 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ts = require("typescript");
 var controllerGenerator_1 = require("./controllerGenerator");
 var MetadataGenerator = (function () {
-    function MetadataGenerator(entryFile) {
+    function MetadataGenerator(entryFile, compilerOptions) {
         this.nodes = new Array();
         this.referenceTypes = {};
         this.circularDependencyResolvers = new Array();
-        this.program = ts.createProgram([entryFile], {});
+        this.program = ts.createProgram([entryFile], compilerOptions || {});
         this.typeChecker = this.program.getTypeChecker();
         MetadataGenerator.current = this;
     }

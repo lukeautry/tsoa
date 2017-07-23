@@ -121,7 +121,7 @@ var ParameterGenerator = (function () {
             throw new exceptions_1.GenerateMetadataError(parameter, "Parameter '" + parameterName + ":" + type + "' can't be passed as a path parameter in '" + this.getCurrentLocation() + "'.");
         }
         if (!this.path.includes("{" + pathName + "}")) {
-            throw new exceptions_1.GenerateMetadataError(parameter, "Parameter '" + parameterName + "' can't macth in path: '" + this.path + "'");
+            throw new exceptions_1.GenerateMetadataError(parameter, "Parameter '" + parameterName + "' can't match in path: '" + this.path + "'");
         }
         return {
             description: this.getParameterDescription(parameter),
@@ -135,11 +135,14 @@ var ParameterGenerator = (function () {
     };
     ParameterGenerator.prototype.getParameterDescription = function (node) {
         var symbol = metadataGenerator_1.MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+        if (!symbol) {
+            return undefined;
+        }
         var comments = symbol.getDocumentationComment();
         if (comments.length) {
             return ts.displayPartsToString(comments);
         }
-        return '';
+        return undefined;
     };
     ParameterGenerator.prototype.supportBodyMethod = function (method) {
         return ['post', 'put', 'patch'].some(function (m) { return m === method.toLowerCase(); });

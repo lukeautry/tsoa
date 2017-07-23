@@ -9,7 +9,7 @@ function ValidateParam(schema, value, generatedModels, name, fieldErrors, parent
     models = generatedModels;
     if (value === undefined || value === null) {
         if (schema.required) {
-            var message_1 = "'" + name + "' is a required " + schema.in + " parameter.";
+            var message_1 = "'" + name + "' is a required " + schema.in + " parameter";
             if (schema.validators) {
                 Object.keys(schema.validators).forEach(function (key) {
                     if (key.startsWith('is')) {
@@ -29,23 +29,23 @@ function ValidateParam(schema, value, generatedModels, name, fieldErrors, parent
     }
     switch (schema.typeName) {
         case 'string':
-            return validateString(name, value, fieldErrors, schema.validators);
+            return validateString(name, value, fieldErrors, schema.validators, parent);
         case 'boolean':
-            return validateBool(name, value, fieldErrors);
+            return validateBool(name, value, fieldErrors, schema.validators, parent);
         case 'integer':
         case 'long':
-            return validateInt(name, value, fieldErrors, schema.validators);
+            return validateInt(name, value, fieldErrors, schema.validators, parent);
         case 'float':
         case 'double':
-            return validateFloat(name, value, fieldErrors, schema.validators);
+            return validateFloat(name, value, fieldErrors, schema.validators, parent);
         case 'enum':
-            return validateEnum(name, value, fieldErrors, schema.enumMembers);
+            return validateEnum(name, value, fieldErrors, schema.enumMembers, parent);
         case 'array':
-            return validateArray(name, value, fieldErrors, schema.array, schema.validators);
+            return validateArray(name, value, fieldErrors, schema.array, schema.validators, parent);
         case 'date':
-            return validateDate(name, value, fieldErrors, schema.validators);
+            return validateDate(name, value, fieldErrors, schema.validators, parent);
         case 'datetime':
-            return validateDateTime(name, value, fieldErrors, schema.validators);
+            return validateDateTime(name, value, fieldErrors, schema.validators, parent);
         case 'buffer':
             return validateBuffer(name, value);
         default:
@@ -56,7 +56,7 @@ exports.ValidateParam = ValidateParam;
 function validateInt(name, numberValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
     if (!validator.isInt(numberValue + '')) {
-        var message = 'Invalid integer number.';
+        var message = "invalid integer number";
         if (validators) {
             if (validators.isInt && validators.isInt.errorMsg) {
                 message = validators.isInt.errorMsg;
@@ -95,10 +95,11 @@ function validateInt(name, numberValue, fieldErrors, validators, parent) {
     }
     return value;
 }
+exports.validateInt = validateInt;
 function validateFloat(name, numberValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
     if (!validator.isFloat(numberValue + '')) {
-        var message = 'Invalid float number.';
+        var message = 'invalid float number';
         if (validators) {
             if (validators.isFloat && validators.isFloat.errorMsg) {
                 message = validators.isFloat.errorMsg;
@@ -137,30 +138,34 @@ function validateFloat(name, numberValue, fieldErrors, validators, parent) {
     }
     return value;
 }
+exports.validateFloat = validateFloat;
 function validateEnum(name, enumValue, fieldErrors, members, parent) {
     if (parent === void 0) { parent = ''; }
-    if (!members) {
+    if (!members || members.length === 0) {
         fieldErrors[parent + name] = {
-            message: name + " no member.",
+            message: "no member",
             value: enumValue
         };
         return;
     }
-    var existValue = members.filter(function (m) { return m === enumValue; });
-    if (!existValue || !enumValue.length || !existValue.length) {
+    var value = members.find(function (member) {
+        return member === enumValue + '';
+    });
+    if (!value) {
         fieldErrors[parent + name] = {
-            message: name + ' should be one of the following; ' + members.join(', '),
+            message: "should be one of the following; ['" + members.join("', '") + "']",
             value: enumValue
         };
         return;
     }
-    return existValue[0];
+    return enumValue;
 }
+exports.validateEnum = validateEnum;
 function validateDate(name, dateValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
-    var momentDate = moment(dateValue, 'YYYY-MM-DD');
+    var momentDate = moment(dateValue, moment.ISO_8601, true);
     if (!momentDate.isValid()) {
-        var message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : "Invalid ISO 8601 date format, i.e. YYYY-MM-DD";
+        var message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : "invalid ISO 8601 date format, i.e. YYYY-MM-DD";
         fieldErrors[parent + name] = {
             message: message,
             value: dateValue
@@ -175,7 +180,7 @@ function validateDate(name, dateValue, fieldErrors, validators, parent) {
         var minDate = new Date(validators.minDate.value);
         if (minDate.getTime() > value.getTime()) {
             fieldErrors[parent + name] = {
-                message: validators.minDate.errorMsg || "minDate " + validators.minDate.value,
+                message: validators.minDate.errorMsg || "minDate '" + validators.minDate.value + "'",
                 value: dateValue,
             };
             return;
@@ -185,7 +190,7 @@ function validateDate(name, dateValue, fieldErrors, validators, parent) {
         var maxDate = new Date(validators.maxDate.value);
         if (maxDate.getTime() < value.getTime()) {
             fieldErrors[parent + name] = {
-                message: validators.maxDate.errorMsg || "maxDate " + validators.maxDate.value,
+                message: validators.maxDate.errorMsg || "maxDate '" + validators.maxDate.value + "'",
                 value: dateValue,
             };
             return;
@@ -193,11 +198,12 @@ function validateDate(name, dateValue, fieldErrors, validators, parent) {
     }
     return value;
 }
+exports.validateDate = validateDate;
 function validateDateTime(name, datetimeValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
-    var momentDateTime = moment(datetimeValue, moment.ISO_8601);
+    var momentDateTime = moment(datetimeValue, moment.ISO_8601, true);
     if (!momentDateTime.isValid()) {
-        var message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : "Invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss";
+        var message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : "invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss";
         fieldErrors[parent + name] = {
             message: message,
             value: datetimeValue
@@ -212,7 +218,7 @@ function validateDateTime(name, datetimeValue, fieldErrors, validators, parent) 
         var minDate = new Date(validators.minDate.value);
         if (minDate.getTime() > value.getTime()) {
             fieldErrors[parent + name] = {
-                message: validators.minDate.errorMsg || "minDate " + validators.minDate.value,
+                message: validators.minDate.errorMsg || "minDate '" + validators.minDate.value + "'",
                 value: datetimeValue,
             };
             return;
@@ -222,7 +228,7 @@ function validateDateTime(name, datetimeValue, fieldErrors, validators, parent) 
         var maxDate = new Date(validators.maxDate.value);
         if (maxDate.getTime() < value.getTime()) {
             fieldErrors[parent + name] = {
-                message: validators.maxDate.errorMsg || "maxDate " + validators.maxDate.value,
+                message: validators.maxDate.errorMsg || "maxDate '" + validators.maxDate.value + "'",
                 value: datetimeValue,
             };
             return;
@@ -230,10 +236,11 @@ function validateDateTime(name, datetimeValue, fieldErrors, validators, parent) 
     }
     return value;
 }
+exports.validateDateTime = validateDateTime;
 function validateString(name, stringValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
     if (typeof stringValue !== 'string') {
-        var message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : "Invalid string value.";
+        var message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : "invalid string value";
         fieldErrors[parent + name] = {
             message: message,
             value: stringValue
@@ -265,7 +272,7 @@ function validateString(name, stringValue, fieldErrors, validators, parent) {
     if (validators.pattern && validators.pattern.value) {
         if (!validator.matches(value, validators.pattern.value)) {
             fieldErrors[parent + name] = {
-                message: validators.pattern.errorMsg || "Not match in '" + validators.pattern.value + "'.",
+                message: validators.pattern.errorMsg || "Not match in '" + validators.pattern.value + "'",
                 value: stringValue,
             };
             return;
@@ -273,6 +280,7 @@ function validateString(name, stringValue, fieldErrors, validators, parent) {
     }
     return value;
 }
+exports.validateString = validateString;
 function validateBool(name, boolValue, fieldErrors, validators, parent) {
     if (parent === void 0) { parent = ''; }
     if (boolValue === true || boolValue === false) {
@@ -284,52 +292,26 @@ function validateBool(name, boolValue, fieldErrors, validators, parent) {
     if (boolValue.toLowerCase() === 'false') {
         return false;
     }
-    var message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : "Invalid boolean value.";
+    var message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : "invalid boolean value";
     fieldErrors[parent + name] = {
         message: message,
         value: boolValue
     };
     return;
 }
-function validateModel(typeName, modelValue, fieldErrors, parent) {
-    if (parent === void 0) { parent = ''; }
-    var modelDefinition = models[typeName];
-    if (modelDefinition) {
-        if (modelDefinition.properties) {
-            Object.keys(modelDefinition.properties).forEach(function (key) {
-                var property = modelDefinition.properties[key];
-                modelValue[key] = ValidateParam(property, modelValue[key], models, key, fieldErrors, parent);
-            });
-        }
-        if (modelDefinition.additionalProperties) {
-            Object.keys(modelValue).forEach(function (key) {
-                var validatedValue = ValidateParam(modelDefinition.additionalProperties, modelValue[key], models, key, fieldErrors, parent);
-                if (validatedValue) {
-                    modelValue[key] = validatedValue;
-                }
-                else {
-                    fieldErrors[parent + typeName + '.' + key] = {
-                        message: "No matching model found in additionalProperties to validate " + key,
-                        value: key
-                    };
-                }
-            });
-        }
-    }
-    return modelValue;
-}
+exports.validateBool = validateBool;
 function validateArray(name, arrayValue, fieldErrors, schema, validators, parent) {
     if (parent === void 0) { parent = ''; }
     if (!schema || !Array.isArray(arrayValue)) {
-        var message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : "Invalid array.";
+        var message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : "invalid array";
         fieldErrors[parent + name] = {
             message: message,
             value: arrayValue
         };
         return;
     }
-    var value = arrayValue.map(function (v) {
-        return ValidateParam(schema, v, models, undefined, fieldErrors);
+    var value = arrayValue.map(function (v, index) {
+        return ValidateParam(schema, v, models, "$" + index, fieldErrors, name + '.');
     });
     if (!validators) {
         return value;
@@ -360,7 +342,7 @@ function validateArray(name, arrayValue, fieldErrors, schema, validators, parent
         });
         if (unique) {
             fieldErrors[parent + name] = {
-                message: validators.uniqueItems.errorMsg || "Required unique array.",
+                message: validators.uniqueItems.errorMsg || "required unique array",
                 value: value
             };
             return;
@@ -368,8 +350,36 @@ function validateArray(name, arrayValue, fieldErrors, schema, validators, parent
     }
     return value;
 }
+exports.validateArray = validateArray;
 function validateBuffer(name, value) {
     return new Buffer(value);
+}
+function validateModel(typeName, modelValue, fieldErrors, parent) {
+    if (parent === void 0) { parent = ''; }
+    var modelDefinition = models[typeName];
+    if (modelDefinition) {
+        if (modelDefinition.properties) {
+            Object.keys(modelDefinition.properties).forEach(function (key) {
+                var property = modelDefinition.properties[key];
+                modelValue[key] = ValidateParam(property, modelValue[key], models, key, fieldErrors, parent);
+            });
+        }
+        if (modelDefinition.additionalProperties) {
+            Object.keys(modelValue).forEach(function (key) {
+                var validatedValue = ValidateParam(modelDefinition.additionalProperties, modelValue[key], models, key, fieldErrors, parent);
+                if (validatedValue) {
+                    modelValue[key] = validatedValue;
+                }
+                else {
+                    fieldErrors[parent + typeName + '.' + key] = {
+                        message: "No matching model found in additionalProperties to validate " + key,
+                        value: key
+                    };
+                }
+            });
+        }
+    }
+    return modelValue;
 }
 var ValidateError = (function () {
     function ValidateError(fields, message) {

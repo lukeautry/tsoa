@@ -12,7 +12,7 @@ export interface Controller {
 }
 export interface Method {
     deprecated?: boolean;
-    description: string;
+    description?: string;
     method: string;
     name: string;
     parameters: Parameter[];
@@ -25,8 +25,8 @@ export interface Method {
 }
 export interface Parameter {
     parameterName: string;
-    description: string;
-    in: string;
+    description?: string;
+    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
     name: string;
     required?: boolean;
     type: Type;
@@ -49,7 +49,7 @@ export interface EnumerateType extends Type {
     enumMembers: string[];
 }
 export interface ReferenceType extends Type {
-    description: string;
+    description?: string;
     properties: Property[];
     additionalProperties?: Type;
 }
@@ -63,7 +63,7 @@ export interface ResponseType {
     examples?: any;
 }
 export interface Property {
-    description: string;
+    description?: string;
     name: string;
     type: Type;
     required: boolean;

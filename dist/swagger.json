@@ -17,57 +17,66 @@
 					"items": {
 						"type": "number",
 						"format": "double"
-					},
-					"description": ""
+					}
 				},
 				"stringValue": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"stringArray": {
 					"type": "array",
 					"items": {
 						"type": "string"
-					},
-					"description": ""
+					}
 				},
 				"boolValue": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				},
 				"boolArray": {
 					"type": "array",
 					"items": {
 						"type": "boolean"
-					},
-					"description": ""
+					}
 				},
 				"enumValue": {
 					"type": "string",
 					"enum": [
-						0,
-						1
-					],
-					"description": ""
+						"0",
+						"1"
+					]
 				},
 				"enumArray": {
 					"type": "array",
 					"items": {
 						"type": "string",
 						"enum": [
-							0,
-							1
+							"0",
+							"1"
 						]
-					},
-					"description": ""
+					}
+				},
+				"enumNumberValue": {
+					"type": "string",
+					"enum": [
+						"2",
+						"5"
+					]
+				},
+				"enumNumberArray": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"2",
+							"5"
+						]
+					}
 				},
 				"enumStringValue": {
 					"type": "string",
 					"enum": [
 						"VALUE_1",
 						"VALUE_2"
-					],
-					"description": ""
+					]
 				},
 				"enumStringArray": {
 					"type": "array",
@@ -77,8 +86,7 @@
 							"VALUE_1",
 							"VALUE_2"
 						]
-					},
-					"description": ""
+					}
 				},
 				"modelValue": {
 					"$ref": "#/definitions/TestSubModel"
@@ -87,16 +95,14 @@
 					"type": "array",
 					"items": {
 						"$ref": "#/definitions/TestSubModel"
-					},
-					"description": ""
+					}
 				},
 				"strLiteralVal": {
 					"type": "string",
 					"enum": [
 						"Foo",
 						"Bar"
-					],
-					"description": ""
+					]
 				},
 				"strLiteralArr": {
 					"type": "array",
@@ -106,17 +112,14 @@
 							"Foo",
 							"Bar"
 						]
-					},
-					"description": ""
+					}
 				},
 				"dateValue": {
 					"type": "string",
-					"format": "date-time",
-					"description": ""
+					"format": "date-time"
 				},
 				"optionalString": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"modelsObjectIndirect": {
 					"$ref": "#/definitions/TestSubModelContainer"
@@ -139,10 +142,15 @@
 				"modelsEnumIndirect": {
 					"$ref": "#/definitions/TestSubEnumModelContainer"
 				},
+				"typeAliasCase1": {
+					"$ref": "#/definitions/TypeAliasModelCase1"
+				},
+				"TypeAliasCase2": {
+					"$ref": "#/definitions/TypeAliasModelCase2"
+				},
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -161,19 +169,16 @@
 			"type": "object"
 		},
 		"TestSubModel": {
-			"description": "",
 			"properties": {
 				"email": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"circular": {
 					"$ref": "#/definitions/TestModel"
 				},
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -183,23 +188,19 @@
 			"type": "object"
 		},
 		"TestSubModel2": {
-			"description": "",
 			"properties": {
 				"testSubModel2": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				},
 				"email": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"circular": {
 					"$ref": "#/definitions/TestModel"
 				},
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -210,7 +211,6 @@
 			"type": "object"
 		},
 		"TestSubModelContainer": {
-			"description": "",
 			"properties": {},
 			"type": "object",
 			"additionalProperties": {
@@ -218,23 +218,19 @@
 			}
 		},
 		"TestSubModelNamespace.TestSubModelNS": {
-			"description": "",
 			"properties": {
 				"testSubModelNS": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				},
 				"email": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"circular": {
 					"$ref": "#/definitions/TestModel"
 				},
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -245,7 +241,6 @@
 			"type": "object"
 		},
 		"TestSubModelContainerNamespace.TestSubModelContainer": {
-			"description": "",
 			"properties": {},
 			"type": "object",
 			"additionalProperties": {
@@ -253,7 +248,6 @@
 			}
 		},
 		"TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
-			"description": "",
 			"properties": {},
 			"type": "object",
 			"additionalProperties": {
@@ -261,17 +255,14 @@
 			}
 		},
 		"TestSubModelContainerNamespace_TestSubModelContainer": {
-			"description": "",
 			"properties": {},
 			"type": "object"
 		},
 		"TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
-			"description": "",
 			"properties": {},
 			"type": "object"
 		},
 		"TestSubArrayModelContainer": {
-			"description": "",
 			"properties": {},
 			"type": "object",
 			"additionalProperties": {
@@ -282,7 +273,6 @@
 			}
 		},
 		"TestSubEnumModelContainer": {
-			"description": "",
 			"properties": {},
 			"type": "object",
 			"additionalProperties": {
@@ -292,6 +282,40 @@
 					"VALUE_2"
 				]
 			}
+		},
+		"TypeAliasModelCase1": {
+			"properties": {
+				"value1": {
+					"type": "string"
+				},
+				"value2": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"value1",
+				"value2"
+			],
+			"type": "object"
+		},
+		"TypeAliasModelCase2": {
+			"properties": {
+				"value1": {
+					"type": "string"
+				},
+				"value2": {
+					"type": "string"
+				},
+				"value3": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"value1",
+				"value2",
+				"value3"
+			],
+			"type": "object"
 		},
 		"TestClassModel": {
 			"description": "This is a description of TestClassModel",
@@ -305,26 +329,22 @@
 				},
 				"optionalPublicStringProperty": {
 					"type": "string",
-					"description": "",
 					"minLength": 0,
 					"maxLength": 10
 				},
 				"stringProperty": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"publicConstructorVar": {
 					"type": "string",
 					"description": "This is a description for publicConstructorVar"
 				},
 				"optionalPublicConstructorVar": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -336,11 +356,9 @@
 			"type": "object"
 		},
 		"GenericRequestTestModel": {
-			"description": "",
 			"properties": {
 				"name": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"value": {
 					"$ref": "#/definitions/TestModel"
@@ -353,11 +371,9 @@
 			"type": "object"
 		},
 		"Result": {
-			"description": "",
 			"properties": {
 				"value": {
-					"type": "object",
-					"description": ""
+					"type": "object"
 				}
 			},
 			"required": [
@@ -366,7 +382,6 @@
 			"type": "object"
 		},
 		"GenericModelTestModel": {
-			"description": "",
 			"properties": {
 				"result": {
 					"$ref": "#/definitions/TestModel"
@@ -378,14 +393,12 @@
 			"type": "object"
 		},
 		"GenericModelTestModel[]": {
-			"description": "",
 			"properties": {
 				"result": {
 					"type": "array",
 					"items": {
 						"$ref": "#/definitions/TestModel"
-					},
-					"description": ""
+					}
 				}
 			},
 			"required": [
@@ -394,11 +407,9 @@
 			"type": "object"
 		},
 		"GenericModelstring": {
-			"description": "",
 			"properties": {
 				"result": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				}
 			},
 			"required": [
@@ -407,14 +418,12 @@
 			"type": "object"
 		},
 		"GenericModelstring[]": {
-			"description": "",
 			"properties": {
 				"result": {
 					"type": "array",
 					"items": {
 						"type": "string"
-					},
-					"description": ""
+					}
 				}
 			},
 			"required": [
@@ -423,16 +432,13 @@
 			"type": "object"
 		},
 		"ErrorResponseModel": {
-			"description": "",
 			"properties": {
 				"status": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				},
 				"message": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				}
 			},
 			"required": [
@@ -442,39 +448,32 @@
 			"type": "object"
 		},
 		"ParameterTestModel": {
-			"description": "",
 			"properties": {
 				"firstname": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"lastname": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"age": {
 					"type": "integer",
 					"format": "int32",
-					"description": "",
 					"minimum": 1,
 					"maximum": 100
 				},
 				"weight": {
 					"type": "number",
-					"format": "float",
-					"description": ""
+					"format": "float"
 				},
 				"human": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				},
 				"gender": {
 					"type": "string",
 					"enum": [
 						"MALE",
 						"FEMALE"
-					],
-					"description": ""
+					]
 				}
 			},
 			"required": [
@@ -488,16 +487,13 @@
 			"type": "object"
 		},
 		"UserResponseModel": {
-			"description": "",
 			"properties": {
 				"id": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				},
 				"name": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				}
 			},
 			"required": [
@@ -507,17 +503,14 @@
 			"type": "object"
 		},
 		"ValidateDateResponse": {
-			"description": "",
 			"properties": {
 				"minDateValue": {
 					"type": "string",
-					"format": "date-time",
-					"description": ""
+					"format": "date-time"
 				},
 				"maxDateValue": {
 					"type": "string",
-					"format": "date-time",
-					"description": ""
+					"format": "date-time"
 				}
 			},
 			"required": [
@@ -527,17 +520,14 @@
 			"type": "object"
 		},
 		"ValidateNumberResponse": {
-			"description": "",
 			"properties": {
 				"minValue": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				},
 				"maxValue": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				}
 			},
 			"required": [
@@ -547,11 +537,9 @@
 			"type": "object"
 		},
 		"ValidateBooleanResponse": {
-			"description": "",
 			"properties": {
 				"boolValue": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				}
 			},
 			"required": [
@@ -560,19 +548,15 @@
 			"type": "object"
 		},
 		"ValidateStringResponse": {
-			"description": "",
 			"properties": {
 				"minLength": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"maxLength": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				},
 				"patternValue": {
-					"type": "string",
-					"description": ""
+					"type": "string"
 				}
 			},
 			"required": [
@@ -583,75 +567,61 @@
 			"type": "object"
 		},
 		"ValidateModel": {
-			"description": "",
 			"properties": {
 				"floatValue": {
 					"type": "number",
-					"format": "float",
-					"description": ""
+					"format": "float"
 				},
 				"doubleValue": {
 					"type": "number",
-					"format": "double",
-					"description": ""
+					"format": "double"
 				},
 				"intValue": {
 					"type": "integer",
-					"format": "int32",
-					"description": ""
+					"format": "int32"
 				},
 				"longValue": {
 					"type": "integer",
-					"format": "int64",
-					"description": ""
+					"format": "int64"
 				},
 				"booleanValue": {
-					"type": "boolean",
-					"description": ""
+					"type": "boolean"
 				},
 				"arrayValue": {
 					"type": "array",
 					"items": {
 						"type": "number",
 						"format": "double"
-					},
-					"description": ""
+					}
 				},
 				"dateValue": {
 					"type": "string",
-					"format": "date",
-					"description": ""
+					"format": "date"
 				},
 				"datetimeValue": {
 					"type": "string",
-					"format": "date-time",
-					"description": ""
+					"format": "date-time"
 				},
 				"numberMax10": {
 					"type": "number",
 					"format": "double",
-					"description": "",
 					"maximum": 10
 				},
 				"numberMin5": {
 					"type": "number",
 					"format": "double",
-					"description": "",
 					"minimum": 5
 				},
 				"stringMax10Lenght": {
 					"type": "string",
-					"description": "",
 					"maxLength": 10
 				},
 				"stringMin5Lenght": {
 					"type": "string",
-					"description": "",
 					"minLength": 5
 				},
 				"stringPatternAZaz": {
 					"type": "string",
-					"description": "",
 					"pattern": "^[a-zA-Z]+$"
 				},
 				"arrayMax5Item": {
@@ -660,7 +630,6 @@
 						"type": "number",
 						"format": "double"
 					},
-					"description": "",
 					"maxItems": 5
 				},
 				"arrayMin2Item": {
@@ -669,7 +638,6 @@
 						"type": "number",
 						"format": "double"
 					},
-					"description": "",
 					"minItems": 2
 				},
 				"arrayUniqueItem": {
@@ -677,8 +645,7 @@
 					"items": {
 						"type": "number",
 						"format": "double"
-					},
-					"description": ""
+					}
 				}
 			},
 			"required": [
@@ -703,11 +670,11 @@
 		}
 	},
 	"info": {
+		"title": "tsoa app",
 		"description": "a description",
 		"license": {
 			"name": "MIT"
 		},
-		"title": "tsoa app",
 		"version": "1.0"
 	},
 	"paths": {
@@ -725,10 +692,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -753,7 +718,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -774,7 +738,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -792,10 +755,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "path",
 						"name": "id",
 						"required": true,
@@ -819,10 +780,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -845,10 +804,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -873,10 +830,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -901,7 +856,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -922,7 +876,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -940,10 +893,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "path",
 						"name": "id",
 						"required": true,
@@ -967,10 +918,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -979,7 +928,6 @@
 						}
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "query",
 						"required": true,
@@ -1002,10 +950,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "genericReq",
 						"required": true,
@@ -1030,10 +976,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "model",
 						"required": true,
@@ -1058,7 +1002,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1079,7 +1022,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1097,10 +1039,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "path",
 						"name": "id",
 						"required": true,
@@ -1173,7 +1113,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1191,7 +1130,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1212,7 +1150,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1230,7 +1167,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
 						"description": "This is a description for numberPathParam",
@@ -1243,7 +1179,6 @@
 						"maximum": 10
 					},
 					{
-						"description": "",
 						"in": "path",
 						"name": "stringPathParam",
 						"required": true,
@@ -1252,21 +1187,18 @@
 						"maxLength": 10
 					},
 					{
-						"description": "",
 						"in": "path",
 						"name": "booleanPathParam",
 						"required": true,
 						"type": "boolean"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "booleanParam",
 						"required": true,
 						"type": "boolean"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "stringParam",
 						"required": true,
@@ -1283,7 +1215,6 @@
 						"format": "double"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "optionalStringParam",
 						"required": false,
@@ -1306,7 +1237,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1324,7 +1254,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1342,7 +1271,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1360,10 +1288,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "date",
 						"required": true,
@@ -1387,7 +1313,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1405,7 +1330,6 @@
 						}
 					}
 				},
-				"description": "",
 				"tags": [
 					"test",
 					"test-two"
@@ -1424,19 +1348,17 @@
 						"description": "Ok",
 						"schema": {
 							"type": "string",
-							"format": "base64"
+							"format": "byte"
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "buffer",
 						"required": true,
 						"type": "string",
-						"format": "base64"
+						"format": "byte"
 					}
 				]
 			}
@@ -1455,7 +1377,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1473,7 +1394,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1491,7 +1411,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1509,7 +1428,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1527,7 +1445,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1542,7 +1459,6 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1557,10 +1473,8 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "path",
 						"name": "numberPathParam",
 						"required": true,
@@ -1568,35 +1482,30 @@
 						"format": "double"
 					},
 					{
-						"description": "",
 						"in": "path",
 						"name": "stringPathParam",
 						"required": true,
 						"type": "string"
 					},
 					{
-						"description": "",
 						"in": "path",
 						"name": "booleanPathParam",
 						"required": true,
 						"type": "boolean"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "booleanParam",
 						"required": true,
 						"type": "boolean"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "stringParam",
 						"required": true,
 						"type": "string"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "numberParam",
 						"required": true,
@@ -1620,7 +1529,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1638,7 +1546,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1656,7 +1563,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1674,7 +1580,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1692,7 +1597,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1728,7 +1632,6 @@
 						}
 					}
 				},
-				"description": "",
 				"tags": [
 					"Tag1",
 					"Tag2",
@@ -1769,7 +1672,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1784,7 +1686,6 @@
 						"description": "Created"
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -1802,7 +1703,6 @@
 						}
 					}
 				},
-				"description": "",
 				"security": [
 					{
 						"api_key": []
@@ -1825,7 +1725,6 @@
 						}
 					}
 				},
-				"description": "",
 				"security": [
 					{
 						"tsoa_auth": [
@@ -1851,7 +1750,6 @@
 						}
 					}
 				},
-				"description": "",
 				"deprecated": true,
 				"parameters": []
 			}
@@ -1870,7 +1768,7 @@
 						}
 					}
 				},
-				"description": "",
+				"summary": "simple summary",
 				"parameters": []
 			}
 		},
@@ -2123,7 +2021,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
 						"in": "body",
@@ -2196,7 +2093,6 @@
 						}
 					}
 				},
-				"description": "",
 				"security": [
 					{
 						"api_key": []
@@ -2225,7 +2121,6 @@
 						}
 					}
 				},
-				"description": "",
 				"security": [
 					{
 						"api_key": []
@@ -2254,7 +2149,6 @@
 						}
 					}
 				},
-				"description": "",
 				"security": [
 					{
 						"tsoa_auth": [
@@ -2280,25 +2174,20 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "minDateValue",
 						"required": true,
 						"type": "string",
-						"format": "date",
-						"minDate": "2018-01-01"
+						"format": "date"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "maxDateValue",
 						"required": true,
 						"type": "string",
-						"format": "date",
-						"maxDate": "2016-01-01"
+						"format": "date"
 					}
 				]
 			}
@@ -2317,25 +2206,20 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "minDateValue",
 						"required": true,
 						"type": "string",
-						"format": "date-time",
-						"minDate": "2018-01-01T00:00:00"
+						"format": "date-time"
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "maxDateValue",
 						"required": true,
 						"type": "string",
-						"format": "date-time",
-						"maxDate": "2016-01-01T00:00:00"
+						"format": "date-time"
 					}
 				]
 			}
@@ -2354,10 +2238,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "minValue",
 						"required": true,
@@ -2366,7 +2248,6 @@
 						"minimum": 5
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "maxValue",
 						"required": true,
@@ -2391,22 +2272,19 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "minValue",
-						"required": false,
+						"required": true,
 						"type": "number",
 						"format": "float",
 						"minimum": 5.5
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "maxValue",
-						"required": false,
+						"required": true,
 						"type": "number",
 						"format": "float",
 						"maximum": 3.5
@@ -2428,10 +2306,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "boolValue",
 						"required": true,
@@ -2454,10 +2330,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "minLength",
 						"required": true,
@@ -2465,7 +2339,6 @@
 						"minLength": 5
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "maxLength",
 						"required": true,
@@ -2473,7 +2346,6 @@
 						"maxLength": 3
 					},
 					{
-						"description": "",
 						"in": "query",
 						"name": "patternValue",
 						"required": true,
@@ -2494,10 +2366,8 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "longValue",
 						"required": true,
@@ -2518,10 +2388,8 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "query",
 						"name": "longValue",
 						"required": true,
@@ -2545,10 +2413,8 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": [
 					{
-						"description": "",
 						"in": "body",
 						"name": "body",
 						"required": true,
@@ -2573,7 +2439,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -2591,7 +2456,6 @@
 						}
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -2606,7 +2470,6 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		},
@@ -2621,7 +2484,6 @@
 						"description": "No content"
 					}
 				},
-				"description": "",
 				"parameters": []
 			}
 		}

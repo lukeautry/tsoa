@@ -4,9 +4,9 @@ var ts = require("typescript");
 function getJSDocDescription(node) {
     var jsDocs = node.jsDoc;
     if (!jsDocs || !jsDocs.length) {
-        return '';
+        return undefined;
     }
-    return jsDocs[0].comment || '';
+    return jsDocs[0].comment || undefined;
 }
 exports.getJSDocDescription = getJSDocDescription;
 function getJSDocComment(node, tagName) {

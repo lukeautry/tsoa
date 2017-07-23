@@ -1,3 +1,5 @@
+import * as ts from 'typescript';
+import { Swagger } from './swagger/swagger';
 export interface Config {
     /**
     * Swagger generation configuration object
@@ -7,6 +9,13 @@ export interface Config {
     * Route generation configuration object
     */
     routes: RoutesConfig;
+    /**
+     * Typescript CompilerOptions to be used during generation
+     *
+     * @type {ts.CompilerOptions}
+     * @memberof RoutesConfig
+     */
+    compilerOptions?: ts.CompilerOptions;
 }
 export interface SwaggerConfig {
     /**
@@ -62,17 +71,7 @@ export interface SwaggerConfig {
      * and only serves to provide the relevant details for each scheme.
      */
     securityDefinitions?: {
-        [name: string]: {
-            type: string;
-            name?: string;
-            authorizationUrl?: string;
-            tokenUrl?: string;
-            flow?: string;
-            in?: string;
-            scopes?: {
-                [scopeName: string]: string;
-            };
-        };
+        [name: string]: Swagger.Secuirty;
     };
 }
 export interface RoutesConfig {

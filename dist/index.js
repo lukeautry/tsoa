@@ -1,4 +1,7 @@
 "use strict";
+/// <reference path="express.d.ts" />
+/// <reference path="hapi.d.ts" />
+/// <reference path="koa.d.ts" />
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
