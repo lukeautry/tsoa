@@ -31,6 +31,7 @@ const models: TsoaRoute.Models = {
       "modelsArray": { "dataType": "array", "array": { "ref": "TestSubModel" }, "required": true },
       "strLiteralVal": { "dataType": "enum", "enums": ["Foo", "Bar"], "required": true },
       "strLiteralArr": { "dataType": "array", "array": { "dataType": "enum", "enums": ["Foo", "Bar"] }, "required": true },
+      "unionPrimetiveType": { "dataType": "enum", "enums": ["String", "1", "20", "true", "false"] },
       "dateValue": { "dataType": "datetime" },
       "optionalString": { "dataType": "string" },
       "modelsObjectIndirect": { "ref": "TestSubModelContainer" },

@@ -21,6 +21,7 @@ export interface TestModel extends Model {
   modelsArray: TestSubModel[];
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
+  unionPrimetiveType?: 'String' | 1 | 20.0 | true | false;
   dateValue?: Date;
   optionalString?: string;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};

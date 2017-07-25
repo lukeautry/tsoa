@@ -34,7 +34,23 @@ export function ResolveType(typeNode: ts.TypeNode, extractEnum = true): Tsoa.Typ
   }
 
   if (typeNode.kind === ts.SyntaxKind.UnionType) {
-    return { dataType: 'object' } as Tsoa.Type;
+    const unionType = typeNode as ts.UnionTypeNode;
+    const supportType = unionType.types.some(type => type.kind === ts.SyntaxKind.LiteralType);
+    if (supportType) {
+      return {
+        dataType: 'enum',
+        enums: unionType.types.map(type => {
+          const literalType = (type as ts.LiteralTypeNode).literal;
+          switch (literalType.kind) {
+            case ts.SyntaxKind.TrueKeyword: return 'true';
+            case ts.SyntaxKind.FalseKeyword: return 'false';
+            default: return String((literalType as any).text);
+          }
+        }),
+      } as Tsoa.EnumerateType;
+    } else {
+      return { dataType: 'object' } as Tsoa.Type;
+    }
   }
 
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
