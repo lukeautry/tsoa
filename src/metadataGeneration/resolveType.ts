@@ -20,7 +20,7 @@ type UsableDeclaration = ts.InterfaceDeclaration
   | ts.ClassDeclaration
   | ts.TypeAliasDeclaration;
 
-export function ResolveType(typeNode: ts.TypeNode): Type {
+export function ResolveType(typeNode: ts.TypeNode, depth = 1): Type {
   const primitiveType = getPrimitiveType(typeNode);
   if (primitiveType) {
     return primitiveType;
@@ -48,7 +48,11 @@ export function ResolveType(typeNode: ts.TypeNode): Type {
 
     if (typeReference.typeName.text === 'Promise') {
       typeReference = typeReference.typeArguments[0];
-      return ResolveType(typeReference);
+      return ResolveType(typeReference, 2);
+    }
+
+    if (depth > 1 && typeReference.typeArguments && typeReference.typeArguments.length) {
+      return ResolveType(typeReference.typeArguments[0], depth - 1);
     }
   }
 

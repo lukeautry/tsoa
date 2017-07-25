@@ -1,10 +1,10 @@
 /* tslint:disable */
 {{#if canImportByAlias}}
   import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
-  import { Controller } from 'tsoa';
+  import { TsoaResponse } from 'tsoa';
 {{else}}
   import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-  import { Controller } from '../../../src/interfaces/controller';
+  import { TsoaResponse } from '../../../src/interfaces/response';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -67,12 +67,8 @@ export function RegisterRoutes(router: any) {
             {{/if}}
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode: any;
-            if (controller instanceof Controller) {
-                statusCode = (controller as Controller).getStatus();
-            }
 
-            return promiseHandler(promise, statusCode, context, next);
+            return promiseHandler(promise, context, next);
         });
     {{/each}}
     {{/each}}
@@ -93,14 +89,14 @@ export function RegisterRoutes(router: any) {
   }
   {{/if}}
 
-  function promiseHandler(promise: any, statusCode: any, context: any, next: () => Promise<any>) {
+  function promiseHandler(promise: any, context: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
-        .then((data: any) => {
-          if (data) {
-            context.body = data;
-            context.status = (statusCode || 200)
+        .then((res: TsoaResponse<any>) => {
+          if (res.body) {
+            context.body = res.body;
+            context.status = (res.status || 200)
           } else {
-            context.status = (statusCode || 204)
+            context.status = (res.status || 204)
           }
 
           next();

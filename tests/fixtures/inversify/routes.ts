@@ -1,6 +1,6 @@
 /* tslint:disable */
 import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { TsoaResponse } from '../../../src/interfaces/response';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 const models: any = {
@@ -122,28 +122,21 @@ export function RegisterRoutes(app: any) {
 
       const controller = iocContainer.get<ManagedController>(ManagedController);
 
-
       const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      promiseHandler(promise, response, next);
     });
 
-
-  function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
+  function promiseHandler(promise: any, response: any, next: any) {
     return Promise.resolve(promise)
-      .then((data: any) => {
-        if (data) {
-          response.status(statusCode || 200).json(data);;
+      .then((res: TsoaResponse<any>) => {
+        if (res.body) {
+          response.status(res.status || 200).json(res.body);;
         } else {
-          response.status(statusCode || 204).end();
+          response.status(res.status || 204).end();
         }
       })
       .catch((error: any) => next(error));
   }
-
 
   function getValidatedArgs(args: any, request: any): any[] {
     const fieldErrors: FieldErrors = {};

@@ -7,7 +7,7 @@ import {
     Route,
     Response,
     SuccessResponse,
-    Controller,
+    TsoaResponse,
     Tags,
     Security
 } from '../../../src';
@@ -15,87 +15,86 @@ import { ModelService } from '../services/modelService';
 import { TestModel, ErrorResponseModel } from '../testModel';
 
 @Route('MethodTest')
-export class MethodController extends Controller {
+export class MethodController {
 
     @Get('Get')
-    public async getMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async getMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Post('Post')
-    public async postMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async postMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Patch('Patch')
-    public async patchMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async patchMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Put('Put')
-    public async putMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async putMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Delete('Delete')
-    public async deleteMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async deleteMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     /**
      * method description
      */
     @Get('Description')
-    public async description(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async description(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Tags('Tag1', 'Tag2', 'Tag3')
     @Get('Tags')
-    public async tags(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async tags(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Response<ErrorResponseModel>('400', 'Bad Request')
     @Response<ErrorResponseModel>('401', 'Unauthorized')
     @Response<ErrorResponseModel>('default', 'Unexpected error')
     @Get('MultiResponse')
-    public async multiResponse(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async multiResponse(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @SuccessResponse('201', 'Created')
     @Get('SuccessResponse')
-    public async successResponse(): Promise<void> {
-        this.setStatus(201);
-        return Promise.resolve();
+    public async successResponse(): Promise<TsoaResponse<void>> {
+        return Promise.resolve({status: 201});
     }
 
     @Security('api_key')
     @Get('ApiSecurity')
-    public async apiSecurity(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async apiSecurity(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     @Security('tsoa_auth', ['write:pets', 'read:pets'])
     @Get('OauthSecurity')
-    public async oauthSecurity(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async oauthSecurity(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     /**
      * @deprecated
      */
     @Get('DeprecatedMethod')
-    public async deprecatedMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async deprecatedMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 
     /**
      * @summary simple summary
      */
     @Get('SummaryMethod')
-    public async summaryMethod(): Promise<TestModel> {
-        return new ModelService().getModel();
+    public async summaryMethod(): Promise<TsoaResponse<TestModel>> {
+        return {body: new ModelService().getModel()};
     }
 }

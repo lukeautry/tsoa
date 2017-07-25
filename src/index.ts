@@ -8,6 +8,6 @@ export * from './decorators/methods';
 export * from './decorators/tags';
 export * from './decorators/route';
 export * from './decorators/security';
-export * from './interfaces/controller';
+export * from './interfaces/response';
 export * from './decorators/response';
 export * from './routeGeneration/templateHelpers';
