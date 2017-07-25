@@ -199,21 +199,22 @@ function getReferenceType(type: ts.EntityName, genericTypes?: ts.TypeNode[]): Re
     inProgressTypes[typeNameWithGenerics] = true;
 
     const modelTypeDeclaration = getModelTypeDeclaration(type);
+    const extendedProperties = getInheritedProperties(modelTypeDeclaration);
 
     const properties = getModelTypeProperties(modelTypeDeclaration, genericTypes);
     const additionalProperties = getModelTypeAdditionalProperties(modelTypeDeclaration);
 
     const referenceType: ReferenceType = {
       description: getModelDescription(modelTypeDeclaration),
-      properties: properties,
+      properties: extendedProperties || [],
       typeName: typeNameWithGenerics,
     };
+    
+    referenceType.properties = referenceType.properties.concat(properties);
+
     if (additionalProperties) {
       referenceType.additionalProperties = additionalProperties;
     }
-
-    const extendedProperties = getInheritedProperties(modelTypeDeclaration);
-    referenceType.properties = referenceType.properties.concat(extendedProperties);
 
     localReferenceTypeCache[typeNameWithGenerics] = referenceType;
 
