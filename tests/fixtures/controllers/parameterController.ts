@@ -171,4 +171,14 @@ export class ParameterController {
             gender,
         });
     }
+
+    @Get('ParamaterQueyAnyType')
+    public async parameterAnyType(@Query() name: any): Promise<void> {
+        //
+    }
+
+    @Post('ParamaterBodyAnyType')
+    public async paramaterBodyAnyType(@Body() body: any): Promise<void> {
+        //
+    }
 }

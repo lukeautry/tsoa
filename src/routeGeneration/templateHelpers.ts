@@ -50,10 +50,13 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
       return validateDateTime(name, value, fieldErrors, property.validators, parent);
     case 'buffer':
       return validateBuffer(name, value);
+    case 'any':
+      return value;
     default:
       if (property.ref) {
         return validateModel(name, value, property.ref, fieldErrors, parent);
       }
+      return value;
   }
 }
 

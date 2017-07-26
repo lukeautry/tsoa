@@ -98,4 +98,9 @@ export class MethodController extends Controller {
     public async summaryMethod(): Promise<TestModel> {
         return new ModelService().getModel();
     }
+
+    @Get('returnAnyType')
+    public async returnAnyType(): Promise<any> {
+        return 'Hello Word';
+    }
 }

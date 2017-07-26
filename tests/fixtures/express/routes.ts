@@ -1119,6 +1119,24 @@ export function RegisterRoutes(app: any) {
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/MethodTest/returnAnyType',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MethodController();
+
+
+      const promise = controller.returnAnyType.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/ParameterTest/Query',
     function(request: any, response: any, next: any) {
       const args = {
@@ -1251,6 +1269,44 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/ParamaterQueyAnyType',
+    function(request: any, response: any, next: any) {
+      const args = {
+        name: { "in": "query", "name": "name", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new ParameterController();
+
+
+      const promise = controller.parameterAnyType.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/v1/ParameterTest/ParamaterBodyAnyType',
+    function(request: any, response: any, next: any) {
+      const args = {
+        body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new ParameterController();
+
+
+      const promise = controller.paramaterBodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest',

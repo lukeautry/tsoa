@@ -53,6 +53,10 @@ export function ResolveType(typeNode: ts.TypeNode, extractEnum = true): Tsoa.Typ
     }
   }
 
+  if (typeNode.kind === ts.SyntaxKind.AnyKeyword) {
+    return { dataType: 'any' } as Tsoa.Type;
+  }
+
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }

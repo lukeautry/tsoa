@@ -1167,6 +1167,25 @@ export function RegisterRoutes(router: any) {
       const promise = controller.summaryMethod.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.get('/v1/MethodTest/returnAnyType',
+    async (context, next) => {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new MethodController();
+
+      const promise = controller.returnAnyType.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.get('/v1/ParameterTest/Query',
     async (context, next) => {
       const args = {
@@ -1305,6 +1324,46 @@ export function RegisterRoutes(router: any) {
       const controller = new ParameterController();
 
       const promise = controller.getBodyProps.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/ParameterTest/ParamaterQueyAnyType',
+    async (context, next) => {
+      const args = {
+        name: { "in": "query", "name": "name", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.parameterAnyType.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.post('/v1/ParameterTest/ParamaterBodyAnyType',
+    async (context, next) => {
+      const args = {
+        body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, context);
+      } catch (error) {
+        context.status = error.status || 500;
+        context.body = error;
+        return next();
+      }
+
+      const controller = new ParameterController();
+
+      const promise = controller.paramaterBodyAnyType.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest',

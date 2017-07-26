@@ -1322,6 +1322,28 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/MethodTest/returnAnyType',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new MethodController();
+
+        const promise = controller.returnAnyType.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/ParameterTest/Query',
     config: {
       handler: (request: any, reply) => {
@@ -1480,6 +1502,52 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/ParameterTest/ParamaterQueyAnyType',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          name: { "in": "query", "name": "name", "required": true, "dataType": "any" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.parameterAnyType.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/ParameterTest/ParamaterBodyAnyType',
+    config: {
+      handler: (request: any, reply) => {
+        const args = {
+          body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
+        };
+
+        let validatedArgs: any[] = [];
+        try {
+          validatedArgs = getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status || 500);
+        }
+
+        const controller = new ParameterController();
+
+        const promise = controller.paramaterBodyAnyType.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/SecurityTest',
     config: {
       pre: [
@@ -1514,8 +1582,8 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {

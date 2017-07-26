@@ -22,12 +22,11 @@ export class SpecGenerator {
       ? this.config.securityDefinitions
       : {};
 
-    if (this.config.description) { spec.info.description = this.config.description; }
-    if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.name) { spec.info.title = this.config.name; }
     if (this.config.version) { spec.info.version = this.config.version; }
     if (this.config.host) { spec.host = this.config.host; }
-
+    if (this.config.description) { spec.info.description = this.config.description; }
+    if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: Function } = {
@@ -160,15 +159,23 @@ export class SpecGenerator {
       in: parameter.in,
       name: parameter.name,
       required: parameter.required,
-    } as any;
+    } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(parameter.type);
     if (parameterType.$ref) {
-      swaggerParameter.schema = parameterType;
+      swaggerParameter.schema = parameterType as Swagger.Schema;
     } else {
-      swaggerParameter.type = parameterType.type;
-      swaggerParameter.items = parameterType.items;
-      swaggerParameter.enum = parameterType.enum;
+      if (parameter.type.dataType === 'any') {
+        if (parameter.in === 'body') {
+          swaggerParameter.schema = { type: 'object' };
+        }else {
+          swaggerParameter.type = 'string';
+        }
+      } else {
+        swaggerParameter.type = parameterType.type;
+        swaggerParameter.items = parameterType.items;
+        swaggerParameter.enum = parameterType.enum;
+      }
     }
 
     if (parameterType.format) {
@@ -238,7 +245,7 @@ export class SpecGenerator {
     return `${controllerNameWithoutSuffix}${methodName.charAt(0).toUpperCase() + methodName.substr(1)}`;
   }
 
-  private getSwaggerType(type: Tsoa.Type) {
+  private getSwaggerType(type: Tsoa.Type): Swagger.Schema {
     const swaggerType = this.getSwaggerTypeForPrimitiveType(type);
     if (swaggerType) {
       return swaggerType;
@@ -252,11 +259,12 @@ export class SpecGenerator {
       return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
     }
 
-    return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
+    return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType) as Swagger.Schema;
   }
 
   private getSwaggerTypeForPrimitiveType(type: Tsoa.Type): Swagger.Schema | undefined {
     const map = {
+      any: { type: 'object' },
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
       buffer: { type: 'string', format: 'byte' },
@@ -274,11 +282,11 @@ export class SpecGenerator {
     return map[type.dataType];
   }
 
-  private getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType): Swagger.BaseSchema {
+  private getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType): Swagger.Schema {
     return { type: 'array', items: this.getSwaggerType(arrayType.elementType) };
   }
 
-  private getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.BaseSchema {
+  private getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.Schema {
     return { type: 'string', enum: enumType.enums.map(member => String(member)) };
   }
 

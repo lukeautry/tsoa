@@ -21,7 +21,7 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse',
-      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod'];
+      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod', 'returnAnyType'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
