@@ -17,3 +17,9 @@ dependencies:
 test:
   override:
     - yarn test
+
+deployment:
+  npm:
+    tag: /v[0-9]+(\.[0-9]+)*/
+      commands:
+      - npm publish
