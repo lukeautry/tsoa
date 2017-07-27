@@ -178,6 +178,10 @@ export class SpecGenerator {
       }
     }
 
+    if (swaggerParameter.in === 'query' && swaggerParameter.type === 'array') {
+        (swaggerParameter as Swagger.QueryParameter).collectionFormat = 'multi';
+    }
+
     if (parameterType.format) {
       swaggerParameter.format = parameterType.format;
     }

@@ -41,6 +41,7 @@ const models: TsoaRoute.Models = {
       "unionPrimetiveType": { "dataType": "enum", "enums": ["String", "1", "20", "true", "false"] },
       "dateValue": { "dataType": "datetime" },
       "optionalString": { "dataType": "string" },
+      "anyType": { "dataType": "any" },
       "modelsObjectIndirect": { "ref": "TestSubModelContainer" },
       "modelsObjectIndirectNS": { "ref": "TestSubModelContainerNamespace.TestSubModelContainer" },
       "modelsObjectIndirectNS2": { "ref": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },

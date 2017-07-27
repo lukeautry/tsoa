@@ -44,6 +44,7 @@ const models: TsoaRoute.Models = {
       "unionPrimetiveType": { "dataType": "enum", "enums": ["String", "1", "20", "true", "false"] },
       "dateValue": { "dataType": "datetime" },
       "optionalString": { "dataType": "string" },
+      "anyType": { "dataType": "any" },
       "modelsObjectIndirect": { "ref": "TestSubModelContainer" },
       "modelsObjectIndirectNS": { "ref": "TestSubModelContainerNamespace.TestSubModelContainer" },
       "modelsObjectIndirectNS2": { "ref": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
@@ -1226,8 +1227,8 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1255,8 +1256,8 @@ export function RegisterRoutes(server: any) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1553,8 +1554,8 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )        
-}
+          )
+        }
       ],
       handler: (request: any, reply) => {
         const args = {
@@ -1612,8 +1613,8 @@ export function RegisterRoutes(server: any) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args = {

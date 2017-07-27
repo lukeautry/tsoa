@@ -91,6 +91,7 @@ export namespace Swagger {
   export interface QueryParameter extends BaseParameter {
     in: 'query';
     allowEmptyValue?: boolean;
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
   }
 
   export interface PathParameter extends BaseParameter {
@@ -103,7 +104,7 @@ export namespace Swagger {
 
   export interface FormDataParameter extends BaseParameter {
     in: 'formData';
-    collectionFormat?: string;
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
   }
 
   export type Parameter = BodyParameter

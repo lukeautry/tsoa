@@ -24,6 +24,7 @@ export interface TestModel extends Model {
   unionPrimetiveType?: 'String' | 1 | 20.0 | true | false;
   dateValue?: Date;
   optionalString?: string;
+  anyType?: any;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
