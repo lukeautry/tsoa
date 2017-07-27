@@ -138,7 +138,7 @@ describe('GET route generation', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
       new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
-    }).to.throw('Parameter \'myModel\' can\'t be passed as a query parameter in \'InvalidGetTestController.getModelWithComplex\'.');
+    }).to.throw('@Query(\'myModel\') Can\'t support \'refObject\' type. \n in \'InvalidGetTestController.getModelWithComplex\'');
   });
 
   it('should generate a path description from jsdoc comment', () => {

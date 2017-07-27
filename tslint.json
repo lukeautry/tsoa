@@ -25,7 +25,7 @@
       "static-before-instance",
       "variables-before-functions"
     ],
-    "no-angle-bracket-type-assertion": false,
+    "no-angle-bracket-type-assertion": true,
     "no-any": false,
     "no-arg": true,
     "no-bitwise": false,
@@ -76,6 +76,13 @@
     "switch-default": true,
     "prefer-const": true,
     "no-string-throw": true,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "always",
+        "singleline": "never"
+      }
+    ],
     "triple-equals": [
       true,
       "allow-undefined-check"

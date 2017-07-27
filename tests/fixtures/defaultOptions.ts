@@ -10,4 +10,4 @@ export function getDefaultOptions(): SwaggerConfig {
     outputDirectory: '',
     version: '1.0.0',
   };
-};
+}

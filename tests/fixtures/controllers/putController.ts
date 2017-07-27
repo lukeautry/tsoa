@@ -1,5 +1,5 @@
 import {
-  Route, Body, Put
+  Route, Body, Put,
 } from '../../../src';
 import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';

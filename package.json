@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "start": "tsc -w",
-    "build": "npm run clean && tsc && npm run copy-templates",
+    "build": "npm run clean && tsc && npm run copy-templates && npm run copy-types",
+    "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist && rimraf test/fixtures/routes.ts",
     "lint": "tslint --exclude=./node_modules/** ./src/**/*.ts ./tests/**/*.ts",
@@ -24,7 +25,7 @@
     "postversion": "git push origin master",
     "routes-gen": "node ./dist/cli.js routes",
     "swagger-gen": "node ./dist/cli.js swagger",
-    "routes-gen:hapi": "node ./dist/cli.js routes --configuration=hapi-tsoa.json",
+    "routes-gen:hapi": "node ./dist/cli.js routes --configuration=hapi-tsoa.yaml",
     "routes-gen:koa": "node ./dist/cli.js routes --configuration=koa-tsoa.json",
     "routes-gen:custom": "node ./dist/cli.js routes --configuration=custom-tsoa.json",
     "routes-gen:inversify": "node ./dist/cli.js routes --configuration=inversify-tsoa.json",
@@ -46,6 +47,7 @@
     "typescript": "^2.4.1",
     "typescript-formatter": "^5.1.0",
     "validator": "^7.0.0",
+    "yamljs": "^0.3.0",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
@@ -67,6 +69,7 @@
     "@types/superagent": "^2.0.36",
     "@types/supertest": "^2.0.0",
     "@types/validator": "^6.2.0",
+    "@types/yamljs": "^0.2.30",
     "@types/yargs": "^6.6.0",
     "body-parser": "^1.16.1",
     "chai": "^3.5.0",

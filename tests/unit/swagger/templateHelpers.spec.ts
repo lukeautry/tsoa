@@ -238,7 +238,7 @@ describe('templateHelpers', () => {
     describe('Array validate', () => {
         it('should array value', () => {
             const value = ['A', 'B', 'C'];
-            const result = templateHelpers.validateArray('name', value, {}, { typeName: 'string' });
+            const result = templateHelpers.validateArray('name', value, {}, { dataType: 'string' });
             expect(result).to.deep.equal(value);
         });
 
@@ -246,7 +246,7 @@ describe('templateHelpers', () => {
             const name = 'name';
             const value = ['A', 10, true];
             const error = {};
-            const result = templateHelpers.validateArray(name, value, error, { typeName: 'integer' });
+            const result = templateHelpers.validateArray(name, value, error, { dataType: 'integer' });
             expect(result).to.deep.equal([undefined, 10, undefined]);
             expect(error[`${name}.$0`].message).to.equal('invalid integer number');
             expect(error[`${name}.$0`].value).to.equal('A');
@@ -258,7 +258,7 @@ describe('templateHelpers', () => {
             const name = 'name';
             const value = [80, 10, 199];
             const error = {};
-            const result = templateHelpers.validateArray(name, value, error, { typeName: 'integer' }, { minItems: { value: 4 } });
+            const result = templateHelpers.validateArray(name, value, error, { dataType: 'integer' }, { minItems: { value: 4 } });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`minItems 4`);
         });
@@ -267,7 +267,7 @@ describe('templateHelpers', () => {
             const name = 'name';
             const value = [80, 10, 199];
             const error = {};
-            const result = templateHelpers.validateArray(name, value, error, { typeName: 'integer' }, { maxItems: { value: 2 } });
+            const result = templateHelpers.validateArray(name, value, error, { dataType: 'integer' }, { maxItems: { value: 2 } });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`maxItems 2`);
         });
@@ -276,7 +276,7 @@ describe('templateHelpers', () => {
             const name = 'name';
             const value = [10, 10, 20];
             const error = {};
-            const result = templateHelpers.validateArray(name, value, error, { typeName: 'integer' }, { uniqueItems: {} });
+            const result = templateHelpers.validateArray(name, value, error, { dataType: 'integer' }, { uniqueItems: {} });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`required unique array`);
         });

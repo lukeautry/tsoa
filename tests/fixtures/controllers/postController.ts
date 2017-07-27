@@ -1,5 +1,5 @@
 import {
-  Route, Body, Query, Post, Patch
+  Route, Body, Query, Post, Patch,
 } from '../../../src';
 import { GenericRequest, TestModel, TestClassModel } from '../testModel';
 import { ModelService } from '../services/modelService';
@@ -35,7 +35,7 @@ export class PostTestController {
 
     return [
       model,
-      model
+      model,
     ];
   }
 

@@ -1,5 +1,5 @@
 ﻿import {
-  Get, Request, Response, Route, Security
+  Get, Request, Response, Route, Security,
 } from '../../../src';
 import * as express from 'express';
 import * as koa from 'koa';

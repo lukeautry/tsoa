@@ -1,11 +1,9 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
 {{#if canImportByAlias}}
-  import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
-  import { Controller } from 'tsoa';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
-  import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-  import { Controller } from '../../../src/interfaces/controller';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -17,21 +15,24 @@ import { {{name}} } from '{{modulePath}}';
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
 
-const models: any = {
-  {{#each models}}
-  "{{name}}": {
-      {{#if properties}}
-      properties: {
-          {{#each properties}}
-              "{{@key}}": {{{json this}}},
-          {{/each}}
-      },
-      {{/if}}
-      {{#if additionalProperties}}
-      additionalProperties: {{{json additionalProperties}}},
-      {{/if}}
-  },
-  {{/each}}
+const models: TsoaRoute.Models = {
+    {{#each models}}
+    "{{@key}}": {
+        {{#if enums}}
+        "enums": {{{json enums}}},
+        {{/if}}
+        {{#if properties}}
+        "properties": {
+            {{#each properties}}
+            "{{@key}}": {{{json this}}},
+            {{/each}}
+        },
+        {{/if}}
+        {{#if additionalProperties}}
+        "additionalProperties": {{{json additionalProperties}}},
+        {{/if}}
+    },
+    {{/each}}
 };
 
 export function RegisterRoutes(server: any) {
@@ -72,11 +73,7 @@ export function RegisterRoutes(server: any) {
                     {{/if}}
 
                     const promise = controller.{{name}}.apply(controller, validatedArgs);
-                    let statusCode: any;
-                    if (controller instanceof Controller) {
-                        statusCode = (controller as Controller).getStatus();
-                    }
-                    return promiseHandler(promise, statusCode, request, reply);
+                    return promiseHandler(controller, promise, request, reply);
                 }
             }
         });
@@ -95,16 +92,26 @@ export function RegisterRoutes(server: any) {
     }
     {{/if}}
 
-    function promiseHandler(promise: any, statusCode: any, request: any, reply: any) {
-      return Promise.resolve(promise)
-        .then((data: any) => {
-          if (data) {
-            return reply(data).code(statusCode || 200);
-          } else {
-            return (reply as any)().code(statusCode || 204);
-          }
-        })
-        .catch((error: any) => reply(error).code(error.status || 500));
+    function promiseHandler(controllerObj: any, promise: any, request: any, reply: any) {
+        return Promise.resolve(promise)
+            .then((data: any) => {
+                const response = data ? reply(data).code(200) : reply("").code(204);
+
+                if (controllerObj instanceof Controller) {
+                    const controller = controllerObj as Controller
+                    const headers = controller.getHeaders();
+                    Object.keys(headers).forEach((name: string) => {
+                        response.header(name, headers[name]);
+                    });
+
+                    const statusCode = controller.getStatus();
+                    if (statusCode) {
+                        response.code(statusCode);
+                    }
+                }
+                return response;
+            })
+            .catch((error: any) => reply(error).code(error.status || 500));
     }
 
     function getValidatedArgs(args: any, request: any): any[] {

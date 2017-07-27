@@ -1,6 +1,6 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import {Swagger} from '../../../../src/swagger/swagger';
+import { Swagger } from '../../../../src/swagger/swagger';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import * as chai from 'chai';
@@ -37,7 +37,8 @@ describe('Definition generation', () => {
       if (!definition.properties) { throw new Error('Definition has no properties.'); }
       if (!definition.properties['value']) { throw new Error('There was no \'value\' property.'); }
 
-      expect(definition.properties['value'].type).to.equal('object');
+      expect(definition.properties['value'].type).to.equal('string');
+      expect(definition.properties['value'].enum).to.deep.equal(['success', 'failure']);
     });
 
     it('should generate a definition description from a model jsdoc comment', () => {

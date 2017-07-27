@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { ReferenceType, Metadata } from './types';
+import { Tsoa } from './tsoa';
 import { ControllerGenerator } from './controllerGenerator';
 
 export class MetadataGenerator {
@@ -7,8 +7,8 @@ export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
-  private referenceTypes: { [typeName: string]: ReferenceType } = {};
-  private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: ReferenceType }) => void>();
+  private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
+  private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
   public IsExportedNode(node: ts.Node) { return true; }
 
@@ -18,7 +18,7 @@ export class MetadataGenerator {
     MetadataGenerator.current = this;
   }
 
-  public Generate(): Metadata {
+  public Generate(): Tsoa.Metadata {
     this.program.getSourceFiles().forEach(sf => {
       ts.forEachChild(sf, node => {
         this.nodes.push(node);
@@ -27,11 +27,11 @@ export class MetadataGenerator {
 
     const controllers = this.buildControllers();
 
-    this.circularDependencyResolvers.forEach(c => c(this.referenceTypes));
+    this.circularDependencyResolvers.forEach(c => c(this.referenceTypeMap));
 
     return {
-      Controllers: controllers,
-      ReferenceTypes: this.referenceTypes
+      controllers,
+      referenceTypeMap: this.referenceTypeMap,
     };
   }
 
@@ -39,15 +39,18 @@ export class MetadataGenerator {
     return this.typeChecker;
   }
 
-  public AddReferenceType(referenceType: ReferenceType) {
-    this.referenceTypes[referenceType.typeName] = referenceType;
+  public AddReferenceType(referenceType: Tsoa.ReferenceType) {
+    if (!referenceType.refName) {
+      return;
+    }
+    this.referenceTypeMap[referenceType.refName] = referenceType;
   }
 
-  public GetReferenceType(typeName: string) {
-    return this.referenceTypes[typeName];
+  public GetReferenceType(refName: string) {
+    return this.referenceTypeMap[refName];
   }
 
-  public OnFinish(callback: (referenceTypes: { [typeName: string]: ReferenceType }) => void) {
+  public OnFinish(callback: (referenceTypes: Tsoa.ReferenceTypeMap) => void) {
     this.circularDependencyResolvers.push(callback);
   }
 

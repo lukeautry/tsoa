@@ -9,6 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as ts from 'typescript';
+import * as mkdirp from 'mkdirp';
+import * as YAML from 'yamljs';
 
 const workingDir: string = process.cwd();
 const pe = new PrettyError();
@@ -30,13 +32,21 @@ const licenseDefault = getPackageJsonValue('license');
 const getConfig = (configPath = 'tsoa.json'): Config => {
   let config: Config;
   try {
-    config = require(`${workingDir}/${configPath}`);
+    const ext = path.extname(configPath);
+    if (ext === '.yaml' || ext === '.yml') {
+      config = YAML.load(configPath);
+    } else {
+      config = require(`${workingDir}/${configPath}`);
+    }
+
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
+      console.error(err);
       throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
     } else {
+      console.error(err);
       throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
     }
   }
@@ -78,23 +88,30 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   return config;
 };
 
-const configurationArgs = {
+const configurationArgs: yargs.Options = {
   alias: 'c',
   describe: 'tsoa configuration file; default is tsoa.json in the working directory',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
-const hostArgs = {
+const hostArgs: yargs.Options = {
   describe: 'API host',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
-const basePathArgs = {
+const basePathArgs: yargs.Options = {
   describe: 'Base API path',
   required: false,
-  type: 'string'
+  type: 'string',
+};
+
+const yarmlArgs: yargs.Options = {
+  default: false,
+  describe: 'Output yaml format',
+  required: false,
+  type: 'boolean',
 };
 
 yargs
@@ -102,9 +119,10 @@ yargs
   .demand(1)
 
   .command('swagger', 'Generate swagger spec', {
-    basePath: basePathArgs as any,
-    configuration: configurationArgs as any,
-    host: hostArgs as any
+    basePath: basePathArgs,
+    configuration: configurationArgs,
+    host: hostArgs,
+    yaml: yarmlArgs,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -114,11 +132,29 @@ yargs
       if (args.host) {
         config.swagger.host = args.host;
       }
+      if (args.yaml) {
+        config.swagger.yaml = args.yaml;
+      }
 
       const compilerOptions = validateCompilerOptions(config.compilerOptions);
       const swaggerConfig = validateSwaggerConfig(config.swagger);
       const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
-      new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
+      const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
+
+      mkdirp(swaggerConfig.outputDirectory, (dirErr: any) => {
+        if (dirErr) {
+          throw dirErr;
+        }
+
+        const data = config.swagger.yaml ? YAML.stringify(spec, 10) : JSON.stringify(spec, null, '\t');
+        const ext = config.swagger.yaml ? 'yaml' : 'json';
+
+        fs.writeFile(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, (err: any) => {
+          if (err) {
+            throw new Error(err.toString());
+          }
+        });
+      });
 
       // tslint:disable-next-line:no-console
       console.info('Generate swagger successful.');
@@ -129,7 +165,7 @@ yargs
 
   .command('routes', 'Generate routes', {
     basePath: basePathArgs as any,
-    configuration: configurationArgs as any
+    configuration: configurationArgs as any,
   }, (args: CommandLineArgs) => {
     try {
       const config = getConfig(args.configuration);
@@ -181,4 +217,5 @@ interface CommandLineArgs extends yargs.Argv {
   basePath: string;
   configuration: string;
   host: string;
+  yaml: boolean;
 }
