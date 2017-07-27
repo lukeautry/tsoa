@@ -37,7 +37,7 @@ export function getJSDocTags(node: ts.Node, isMatching: (tag: ts.JSDocTag) => bo
   if (!jsDocs || jsDocs.length === 0) { return []; }
 
   const jsDoc = jsDocs[0];
-  if (!jsDoc.tags) { return []; };
+  if (!jsDoc.tags) { return []; }
 
   return jsDoc.tags.filter(isMatching);
 }

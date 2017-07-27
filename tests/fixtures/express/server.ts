@@ -32,7 +32,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     fields: err.fields || undefined,
     message: err.message || 'An error occurred during the request.',
     name: err.name,
-    status
+    status,
   };
   res.status(status).json(body);
 });

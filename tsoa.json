@@ -39,7 +39,8 @@
                     "read:pets": "read things"
                 }
             }
-        }
+        },
+        "yaml": true
     },
     "routes": {
         "basePath": "/v1",

@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { Controller } from './types';
+import { Tsoa } from './tsoa';
 import { MethodGenerator } from './methodGenerator';
 import { GenerateMetadataError } from './exceptions';
 
@@ -14,9 +14,13 @@ export class ControllerGenerator {
     return !!this.pathValue || this.pathValue === '';
   }
 
-  public Generate(): Controller {
-    if (!this.node.parent) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid parent source file.'); }
-    if (!this.node.name) { throw new GenerateMetadataError(this.node, 'Controller node doesn\'t have a valid name.'); }
+  public Generate(): Tsoa.Controller {
+    if (!this.node.parent) {
+      throw new GenerateMetadataError('Controller node doesn\'t have a valid parent source file.');
+    }
+    if (!this.node.name) {
+      throw new GenerateMetadataError('Controller node doesn\'t have a valid name.');
+    }
 
     const sourceFile = this.node.parent.getSourceFile();
 
@@ -24,7 +28,7 @@ export class ControllerGenerator {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.pathValue || ''
+      path: this.pathValue || '',
     };
   }
 
@@ -52,7 +56,7 @@ export class ControllerGenerator {
 
     if (!matchedAttributes.length) { return undefined; }
     if (matchedAttributes.length > 1) {
-      throw new GenerateMetadataError(this.node, `A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
+      throw new GenerateMetadataError(`A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
     }
 
     const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;

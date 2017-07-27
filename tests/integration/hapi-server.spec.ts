@@ -1,6 +1,6 @@
 import 'mocha';
 import { server } from '../fixtures/hapi/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, Model, ParameterTestModel, ValidateModel } from '../fixtures/testModel';
+import { GenericModel, GenericRequest, Gender, TestModel, TestClassModel, Model, ParameterTestModel, ValidateModel } from '../fixtures/testModel';
 import * as chai from 'chai';
 import * as request from 'supertest';
 
@@ -42,7 +42,7 @@ describe('Hapi Server', () => {
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       const body = JSON.parse(err.text);
-      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required query parameter`);
+      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required`);
     }, 400);
   });
 
@@ -173,22 +173,24 @@ describe('Hapi Server', () => {
       }, 200);
     });
 
-    it('should custom notmal status code', () => {
-      return verifyGetRequest(basePath + `/Controller/customNomalStatusCode`, (err, res) => {
-        expect(res.status).to.equal(201);
-      }, 201);
-    });
-
     it('should no content status code', () => {
       return verifyGetRequest(basePath + `/Controller/noContentStatusCode`, (err, res) => {
         expect(res.status).to.equal(204);
       }, 204);
     });
 
-    it('should custom no content status code', () => {
-      return verifyGetRequest(basePath + `/Controller/customNoContentStatusCode`, (err, res) => {
-        expect(res.status).to.equal(201);
-      }, 201);
+    it('should custom status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customStatusCode`, (err, res) => {
+        expect(res.status).to.equal(205);
+      }, 205);
+    });
+
+    it('should custom header', () => {
+      return verifyGetRequest(basePath + `/Controller/customHeader`, (err, res) => {
+        expect(res.status).to.equal(204);
+        expect(res.header.hero).to.equal('IronMan');
+        expect(res.header.name).to.equal('Tony Stark');
+      }, 204);
     });
 
   });
@@ -250,9 +252,9 @@ describe('Hapi Server', () => {
       return verifyGetRequest(basePath + `/Validate/parameter/integer?minValue=${value}&maxValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.minValue.message).to.equal('min 5');
-        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.minValue.value).to.equal(String(value));
         expect(body.fields.maxValue.message).to.equal('max 3');
-        expect(body.fields.maxValue.value).to.equal(value);
+        expect(body.fields.maxValue.value).to.equal(String(value));
       }, 400);
     });
 
@@ -269,9 +271,9 @@ describe('Hapi Server', () => {
       return verifyGetRequest(basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.minValue.message).to.equal('min 5.5');
-        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.minValue.value).to.equal(String(value));
         expect(body.fields.maxValue.message).to.equal('max 3.5');
-        expect(body.fields.maxValue.value).to.equal(value);
+        expect(body.fields.maxValue.value).to.equal(String(value));
       }, 400);
     });
 
@@ -368,7 +370,6 @@ describe('Hapi Server', () => {
       bodyModel.intValue = 1.20;
       bodyModel.longValue = 1.20;
       bodyModel.booleanValue = 'abc' as any;
-      bodyModel.arrayValue = 'abc' as any;
       bodyModel.dateValue = 'abc' as any;
       bodyModel.datetimeValue = 'abc' as any;
 
@@ -395,8 +396,6 @@ describe('Hapi Server', () => {
         expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
         expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
         expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
-        expect(body.fields['body.arrayValue'].message).to.equal('invalid array');
-        expect(body.fields['body.arrayValue'].value).to.equal(bodyModel.arrayValue);
 
         expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
         expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);
@@ -499,7 +498,7 @@ describe('Hapi Server', () => {
             'gender': 'MALE',
             'human': true,
             'last_name': 'Stark',
-            'weight': 82.1
+            'weight': 82.1,
           });
       }, 200);
     });
@@ -520,10 +519,10 @@ describe('Hapi Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: 'MALE',
+        gender: Gender.MALE,
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -532,7 +531,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal('MALE');
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -540,10 +539,10 @@ describe('Hapi Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: 'MALE',
+        gender: Gender.MALE,
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -552,7 +551,7 @@ describe('Hapi Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal('MALE');
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -588,7 +587,7 @@ describe('Hapi Server', () => {
 
       const data: GenericRequest<TestModel> = {
         name: 'something',
-        value: getFakeModel()
+        value: getFakeModel(),
       };
       return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
         const model = res.body as TestModel;
@@ -608,7 +607,7 @@ describe('Hapi Server', () => {
   function verifyRequest(
     verifyResponse: (err: any, res: any) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(server.listener))
@@ -624,7 +623,7 @@ describe('Hapi Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }
@@ -646,8 +645,8 @@ describe('Hapi Server', () => {
         key: {
           email: 'test@test.com',
           id: 1,
-          testSubModel2: false
-        }
+          testSubModel2: false,
+        },
       },
       numberArray: [1, 2],
       numberValue: 5,
@@ -655,7 +654,7 @@ describe('Hapi Server', () => {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
-      stringValue: 'test1234'
+      stringValue: 'test1234',
     };
   }
 

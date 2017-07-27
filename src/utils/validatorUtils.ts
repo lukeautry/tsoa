@@ -1,15 +1,15 @@
 import * as ts from 'typescript';
 import * as moment from 'moment';
-import { Validators } from './../metadataGeneration/types';
+import { Tsoa } from './../metadataGeneration/tsoa';
 import { getJSDocTags } from './jsDocUtils';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 
-export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Validators {
-    if (!parameter.parent) { return {}; };
+export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Tsoa.Validators {
+    if (!parameter.parent) { return {}; }
 
     const tags = getJSDocTags(parameter.parent, tag => {
         return getParameterTagSupport().some(value => {
-            if (!tag.comment) { return false; };
+            if (!tag.comment) { return false; }
             return value === tag.tagName.text && tag.comment.startsWith(parameterName);
         });
     });
@@ -53,7 +53,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
             case 'minLength':
             case 'maxLength':
                 if (isNaN(value as any)) {
-                    throw new GenerateMetadataError(parameter, `${name} parameter use number.`);
+                    throw new GenerateMetadataError(`${name} parameter use number.`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
@@ -63,7 +63,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
             case 'minDate':
             case 'maxDate':
                 if (!moment(value, moment.ISO_8601, true).isValid()) {
-                    throw new GenerateMetadataError(parameter, `${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
+                    throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
@@ -72,11 +72,11 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
                 break;
             case 'pattern':
                 if (typeof value !== 'string') {
-                    throw new GenerateMetadataError(parameter, `${name} patameter use string.`);
+                    throw new GenerateMetadataError(`${name} patameter use string.`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
-                    value
+                    value,
                 };
                 break;
             default:
@@ -92,10 +92,10 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
                 break;
         }
         return validateObj;
-    }, {} as Validators);
+    }, {} as Tsoa.Validators);
 }
 
-export function getPropertyValidators(property: ts.PropertyDeclaration): Validators {
+export function getPropertyValidators(property: ts.PropertyDeclaration): Tsoa.Validators | undefined {
     const tags = getJSDocTags(property, (tag) => {
         return getParameterTagSupport().some(value => value === tag.tagName.text);
     });
@@ -136,7 +136,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
             case 'minLength':
             case 'maxLength':
                 if (isNaN(value as any)) {
-                    throw new GenerateMetadataError(property, `${name} parameter use number.`);
+                    throw new GenerateMetadataError(`${name} parameter use number.`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
@@ -146,7 +146,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
             case 'minDate':
             case 'maxDate':
                 if (!moment(value, moment.ISO_8601, true).isValid()) {
-                    throw new GenerateMetadataError(property, `${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
+                    throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
@@ -155,11 +155,11 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
                 break;
             case 'pattern':
                 if (typeof value !== 'string') {
-                    throw new GenerateMetadataError(property, `${name} patameter use string.`);
+                    throw new GenerateMetadataError(`${name} patameter use string.`);
                 }
                 validateObj[name] = {
                     errorMsg: getErrorMsg(comment),
-                    value
+                    value,
                 };
                 break;
             default:
@@ -175,8 +175,8 @@ export function getPropertyValidators(property: ts.PropertyDeclaration): Validat
                 break;
         }
         return validateObj;
-    }, {} as Validators);
-};
+    }, {} as Tsoa.Validators);
+}
 
 function getParameterTagSupport() {
     return [

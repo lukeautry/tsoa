@@ -2,7 +2,7 @@ import {
   Route, Get, Post, Query, Body,
 } from './../../../src';
 import {
-  ValidateModel
+  ValidateModel,
 } from './../testModel';
 
 export interface ValidateDateResponse {
@@ -103,7 +103,7 @@ export class ValidateController {
   public booleanValidate(
     @Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
     return Promise.resolve({
-      boolValue
+      boolValue,
     });
   }
   /**

@@ -9,7 +9,7 @@ import {
     SuccessResponse,
     Controller,
     Tags,
-    Security
+    Security,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestModel, ErrorResponseModel } from '../testModel';
@@ -97,5 +97,10 @@ export class MethodController extends Controller {
     @Get('SummaryMethod')
     public async summaryMethod(): Promise<TestModel> {
         return new ModelService().getModel();
+    }
+
+    @Get('returnAnyType')
+    public async returnAnyType(): Promise<any> {
+        return 'Hello Word';
     }
 }
