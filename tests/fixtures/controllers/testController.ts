@@ -1,5 +1,5 @@
 import {
-    Route, Get, Controller
+    Controller, Get, Route,
 } from '../../../src';
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';
@@ -12,31 +12,31 @@ export class TestController extends Controller {
         return Promise.resolve(new ModelService().getModel());
     }
 
-    @Get('customNomalStatusCode')
+    @Get('noContentStatusCode')
+    public async noContentStatusCode(): Promise<void> {
+        return;
+    }
+
+    @Get('customStatusCode')
     public async customNomalStatusCode(): Promise<TestModel> {
-        const that = this;
         const service = new ModelService();
-        const promise = service.getModelPromise();
 
         return new Promise<TestModel>(resolve => {
-            that.statusCode = 201;
-            resolve(promise);
+            setTimeout(() => {
+                this.setStatus(205);
+                resolve(service.getModel());
+            }, 1000);
         });
     }
 
-    @Get('noContentStatusCode')
-    public async noContentStatusCode(): Promise<void> {
-        return Promise.resolve();
-    }
-
-    @Get('customNoContentStatusCode')
-    public async customNoContentStatusCode(): Promise<void> {
-        const that = this;
-        const promise = Promise.resolve();
-
+    @Get('customHeader')
+    public async customHeader(): Promise<void> {
         return new Promise<void>(resolve => {
-            that.statusCode = 201;
-            resolve(promise);
+            setTimeout(() => {
+                this.setHeader('hero', 'IronMan');
+                this.setHeader('name', 'Tony Stark');
+                resolve();
+            }, 1000);
         });
     }
 }

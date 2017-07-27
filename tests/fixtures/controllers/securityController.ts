@@ -1,10 +1,10 @@
-﻿import {
-  Get, Request, Response, Route, Security
-} from '../../../src';
 import * as express from 'express';
-import * as koa from 'koa';
 import * as hapi from 'hapi';
-import { UserResponseModel, ErrorResponseModel } from '../../fixtures/testModel';
+import * as koa from 'koa';
+import {
+  Get, Request, Response, Route, Security,
+} from '../../../src';
+import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 @Route('SecurityTest')
 export class SecurityTestController {

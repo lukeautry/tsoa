@@ -1,15 +1,15 @@
 import {
-    Request,
-    Query,
-    Path,
-    Header,
     Body,
     BodyProp,
     Get,
+    Header,
+    Path,
     Post,
-    Route
+    Query,
+    Request,
+    Route,
 } from '../../../src';
-import { ParameterTestModel, Gender } from '../testModel';
+import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -33,15 +33,15 @@ export class ParameterController {
         @Query() age: number,
         @Query() weight: number,
         @Query() human: boolean,
-        @Query() gender: Gender
+        @Query() gender: Gender,
         ): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
             age,
-            weight,
+            firstname,
+            gender,
             human,
-            gender
+            lastname,
+            weight,
         });
     }
 
@@ -65,15 +65,15 @@ export class ParameterController {
         @Path() age: number,
         @Path() weight: number,
         @Path() human: boolean,
-        @Path() gender: Gender
+        @Path() gender: Gender,
         ): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
             age,
-            weight,
+            firstname,
+            gender,
             human,
-            gender
+            lastname,
+            weight,
         });
     }
 
@@ -97,15 +97,15 @@ export class ParameterController {
         @Header() age: number,
         @Header() weight: number,
         @Header() human: boolean,
-        @Header() gender: Gender
+        @Header() gender: Gender,
         ): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({
-            firstname,
-            lastname,
             age,
-            weight,
+            firstname,
+            gender,
             human,
-            gender
+            lastname,
+            weight,
         });
     }
 
@@ -119,7 +119,7 @@ export class ParameterController {
         return Promise.resolve<ParameterTestModel>({
             age: Number(request.query.age),
             firstname: request.query.firstname,
-            gender: request.query.gender === 'MALE' ? 'MALE' : 'FEMALE',
+            gender: request.query.gender === 'MALE' ? Gender.MALE : Gender.FEMALE,
             human: Boolean(request.query.age),
             lastname: request.query.lastname,
             weight: Number(request.query.weight),
@@ -139,7 +139,7 @@ export class ParameterController {
             gender: body.gender,
             human: body.human,
             lastname: body.lastname,
-            weight: body.weight
+            weight: body.weight,
         });
     }
 
@@ -163,12 +163,27 @@ export class ParameterController {
         @BodyProp('human') human: boolean,
         @BodyProp('gender') gender: Gender): Promise<ParameterTestModel> {
         return Promise.resolve<ParameterTestModel>({
-            age: age,
-            firstname: firstname,
-            human: human,
-            lastname: lastname,
+            age,
+            firstname,
+            gender,
+            human,
+            lastname,
             weight,
-            gender
         });
+    }
+
+    @Get('ParamaterQueyAnyType')
+    public async parameterAnyType(@Query() name: any): Promise<void> {
+        //
+    }
+
+    @Post('ParamaterBodyAnyType')
+    public async paramaterBodyAnyType(@Body() body: any): Promise<void> {
+        //
+    }
+
+    @Post('ParamaterQueyArray')
+    public async paramaterQueyArray(@Query() name: string[]): Promise<void> {
+        //
     }
 }

@@ -1,10 +1,10 @@
-import 'mocha';
-import { VerifyPath, modelName } from '../../utilities/verifyPath';
-import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
-import { SpecGenerator } from '../../../../src/swagger/specGenerator';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import * as chai from 'chai';
+import 'mocha';
+import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
+import { modelName, VerifyPath } from '../../utilities/verifyPath';
 
 describe('POST route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();

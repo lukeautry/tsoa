@@ -3,8 +3,8 @@
  */
 export interface TestModel extends Model {
   /**
-  * This is a description of this model property, numberValue
-  */
+   * This is a description of this model property, numberValue
+   */
   numberValue: number;
   numberArray: number[];
   stringValue: string;
@@ -21,8 +21,10 @@ export interface TestModel extends Model {
   modelsArray: TestSubModel[];
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
+  unionPrimetiveType?: 'String' | 1 | 20.0 | true | false;
   dateValue?: Date;
   optionalString?: string;
+  anyType?: any;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
@@ -52,16 +54,25 @@ export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
 
+/**
+ * EnumIndexValue.
+ */
 export enum EnumIndexValue {
-  VALUE_1, VALUE_2
+  VALUE_1, VALUE_2,
 }
 
+/**
+ * EnumNumberValue.
+ */
 export enum EnumNumberValue {
-  VALUE_1 = 2, VALUE_2 = 5
+  VALUE_1 = 2, VALUE_2 = 5,
 }
 
+/**
+ * EnumStringValue.
+ */
 export enum EnumStringValue {
-  VALUE_1 = <any>'VALUE_1', VALUE_2 = <any>'VALUE_2'
+  VALUE_1 = 'VALUE_1' as any, VALUE_2 = 'VALUE_2' as any,
 }
 
 // shortened from StringLiteral to make the tslint enforced
@@ -208,7 +219,13 @@ export class ValidateModel {
   public arrayUniqueItem: number[];
 }
 
-export type Gender = 'MALE' | 'FEMALE';
+/**
+ * Gender msg
+ */
+export enum Gender {
+   MALE = 'MALE' as any,
+   FEMALE = 'FEMALE' as any,
+}
 
 export interface ErrorResponseModel {
   status: number;
@@ -228,12 +245,12 @@ export class TestClassBaseModel {
  */
 export class TestClassModel extends TestClassBaseModel {
   /**
-  * This is a description of a public string property
-  *
-  * @minLength 3
-  * @maxLength 20
-  * @pattern ^[a-zA-Z]+$
-  */
+   * This is a description of a public string property
+   *
+   * @minLength 3
+   * @maxLength 20
+   * @pattern ^[a-zA-Z]+$
+   */
   public publicStringProperty: string;
   /**
    * @minLength 0
@@ -245,12 +262,12 @@ export class TestClassModel extends TestClassBaseModel {
   protected protectedStringProperty: string;
 
   /**
-  * @param publicConstructorVar This is a description for publicConstructorVar
-  */
+   * @param publicConstructorVar This is a description for publicConstructorVar
+   */
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,
-    public optionalPublicConstructorVar?: string
+    public optionalPublicConstructorVar?: string,
   ) {
     super();
   }

@@ -1,10 +1,12 @@
 import * as ts from 'typescript';
 
 export class GenerateMetadataError extends Error {
-    constructor(node: ts.Node, message: string) {
-        super();
-        this.message = `${message}\n in: ${getSourceFile(node)}`;
+  constructor(message?: string, node?: ts.Node) {
+    super(message);
+    if (node) {
+      this.message = `${message}\n in: ${getSourceFile(node)}`;
     }
+  }
 }
 
 function getSourceFile(node: ts.Node): string {

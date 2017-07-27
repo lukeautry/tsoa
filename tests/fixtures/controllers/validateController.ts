@@ -1,8 +1,8 @@
 import {
-  Route, Get, Post, Query, Body,
+  Body, Get, Post, Query, Route,
 } from './../../../src';
 import {
-  ValidateModel
+  ValidateModel,
 } from './../testModel';
 
 export interface ValidateDateResponse {
@@ -39,8 +39,8 @@ export class ValidateController {
     @Query() minDateValue: Date,
     @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
-      minDateValue,
       maxDateValue,
+      minDateValue,
     });
   }
   /**
@@ -57,8 +57,8 @@ export class ValidateController {
     @Query() minDateValue: Date,
     @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
-      minDateValue,
       maxDateValue,
+      minDateValue,
     });
   }
   /**
@@ -74,8 +74,8 @@ export class ValidateController {
     @Query() minValue: number,
     @Query() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
-      minValue,
       maxValue,
+      minValue,
     });
   }
   /**
@@ -91,8 +91,8 @@ export class ValidateController {
     @Query() minValue: number,
     @Query() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
-      minValue,
       maxValue,
+      minValue,
     });
   }
   /**
@@ -103,7 +103,7 @@ export class ValidateController {
   public booleanValidate(
     @Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
     return Promise.resolve({
-      boolValue
+      boolValue,
     });
   }
   /**
@@ -120,8 +120,8 @@ export class ValidateController {
     @Query() maxLength: string,
     @Query() patternValue: string): Promise<ValidateStringResponse> {
     return Promise.resolve({
-      minLength,
       maxLength,
+      minLength,
       patternValue,
     });
   }
@@ -130,8 +130,7 @@ export class ValidateController {
    * @isLong longValue Required long number.
    */
   @Get('parameter/customRequiredErrorMsg')
-  public customRequiredErrorMsg(
-    @Query() longValue: number): Promise<void> {
+  public customRequiredErrorMsg( @Query() longValue: number): Promise<void> {
     return Promise.resolve();
   }
   /**
@@ -139,8 +138,7 @@ export class ValidateController {
    * @isLong longValue Invalid long number.
    */
   @Get('parameter/customInvalidErrorMsg')
-  public customInvalidErrorMsg(
-    @Query() longValue: number): Promise<void> {
+  public customInvalidErrorMsg( @Query() longValue: number): Promise<void> {
     return Promise.resolve();
   }
 

@@ -1,10 +1,8 @@
 /* tslint:disable */
 {{#if canImportByAlias}}
-  import { ValidateParam, FieldErrors, ValidateError } from 'tsoa';
-  import { Controller } from 'tsoa';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
-  import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-  import { Controller } from '../../../src/interfaces/controller';
+  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -15,21 +13,25 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
-const models: any = {
-  {{#each models}}
-  "{{name}}": {
-      {{#if properties}}
-      properties: {
-          {{#each properties}}
-              "{{@key}}": {{{json this}}},
-          {{/each}}
-      },
-      {{/if}}
-      {{#if additionalProperties}}
-      additionalProperties: {{{json additionalProperties}}},
-      {{/if}}
-  },
-  {{/each}}
+
+const models: TsoaRoute.Models = {
+    {{#each models}}
+    "{{@key}}": {
+        {{#if enums}}
+        "enums": {{{json enums}}},
+        {{/if}}
+        {{#if properties}}
+        "properties": {
+            {{#each properties}}
+            "{{@key}}": {{{json this}}},
+            {{/each}}
+        },
+        {{/if}}
+        {{#if additionalProperties}}
+        "additionalProperties": {{{json additionalProperties}}},
+        {{/if}}
+    },
+    {{/each}}
 };
 
 export function RegisterRoutes(app: any) {
@@ -64,11 +66,7 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.{{name}}.apply(controller, validatedArgs);
-            let statusCode: any;
-            if (controller instanceof Controller) {
-                statusCode = (controller as Controller).getStatus();
-            }
-            promiseHandler(promise, statusCode, response, next);
+            promiseHandler(controller, promise, response, next);
         });
     {{/each}}
     {{/each}}
@@ -88,19 +86,29 @@ export function RegisterRoutes(app: any) {
     }
     {{/if}}
 
-    function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
+    function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
+                let statusCode;
+                if (controllerObj instanceof Controller) {
+                    const controller = controllerObj as Controller
+                    const headers = controller.getHeaders();
+                    Object.keys(headers).forEach((name: string) => {
+                        response.set(name, headers[name]);
+                    });
+
+                    statusCode = controller.getStatus();
+                }
+
                 if (data) {
-                    response.status(statusCode || 200).json(data);;
+                    response.status(statusCode | 200).json(data);
                 } else {
-                    response.status(statusCode || 204).end();
+                    response.status(statusCode | 204).end();
                 }
             })
             .catch((error: any) => next(error));
     }
 
-    
     function getValidatedArgs(args: any, request: any): any[] {
         const fieldErrors: FieldErrors  = {};
         const values = Object.keys(args).map((key) => {

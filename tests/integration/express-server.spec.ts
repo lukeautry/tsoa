@@ -1,11 +1,10 @@
+import { expect } from 'chai';
 import 'mocha';
-import { app } from '../fixtures/express/server';
-import { GenericModel, GenericRequest, TestModel, TestClassModel, UserResponseModel, ParameterTestModel, ValidateModel } from '../fixtures/testModel';
-import * as chai from 'chai';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
+import { app } from '../fixtures/express/server';
+import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateModel } from '../fixtures/testModel';
 
-const expect = chai.expect;
 const basePath = '/v1';
 
 describe('Express Server', () => {
@@ -27,7 +26,7 @@ describe('Express Server', () => {
     return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
-      models.forEach(m => {
+      models.forEach((m) => {
         expect(m.id).to.equal(1);
       });
     });
@@ -51,7 +50,7 @@ describe('Express Server', () => {
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       const body = JSON.parse(err.text);
-      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required query parameter`);
+      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required`);
     }, 400);
   });
 
@@ -120,7 +119,7 @@ describe('Express Server', () => {
 
   it('should parse valid date', () => {
     const data = getFakeModel();
-    data.dateValue = '2016-01-01T00:00:00' as any;
+    data.dateValue = '2016-01-01T00:00:00Z' as any;
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
@@ -128,7 +127,7 @@ describe('Express Server', () => {
   });
 
   it('should parse valid date as query param', () => {
-    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00', (err: any, res: any) => {
+    return verifyGetRequest(basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z', (err: any, res: any) => {
       expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
     }, 200);
   });
@@ -187,22 +186,24 @@ describe('Express Server', () => {
       }, 200);
     });
 
-    it('should custom notmal status code', () => {
-      return verifyGetRequest(basePath + `/Controller/customNomalStatusCode`, (err, res) => {
-        expect(res.status).to.equal(201);
-      }, 201);
-    });
-
     it('should no content status code', () => {
       return verifyGetRequest(basePath + `/Controller/noContentStatusCode`, (err, res) => {
         expect(res.status).to.equal(204);
       }, 204);
     });
 
-    it('should custom no content status code', () => {
-      return verifyGetRequest(basePath + `/Controller/customNoContentStatusCode`, (err, res) => {
-        expect(res.status).to.equal(201);
-      }, 201);
+    it('should custom status code', () => {
+      return verifyGetRequest(basePath + `/Controller/customStatusCode`, (err, res) => {
+        expect(res.status).to.equal(205);
+      }, 205);
+    });
+
+    it('should custom header', () => {
+      return verifyGetRequest(basePath + `/Controller/customHeader`, (err, res) => {
+        expect(res.status).to.equal(204);
+        expect(res.header.hero).to.equal('IronMan');
+        expect(res.header.name).to.equal('Tony Stark');
+      }, 204);
     });
 
   });
@@ -264,9 +265,9 @@ describe('Express Server', () => {
       return verifyGetRequest(basePath + `/Validate/parameter/integer?minValue=${value}&maxValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.minValue.message).to.equal('min 5');
-        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.minValue.value).to.equal(String(value));
         expect(body.fields.maxValue.message).to.equal('max 3');
-        expect(body.fields.maxValue.value).to.equal(value);
+        expect(body.fields.maxValue.value).to.equal(String(value));
       }, 400);
     });
 
@@ -283,9 +284,9 @@ describe('Express Server', () => {
       return verifyGetRequest(basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.minValue.message).to.equal('min 5.5');
-        expect(body.fields.minValue.value).to.equal(value);
+        expect(body.fields.minValue.value).to.equal(String(value));
         expect(body.fields.maxValue.message).to.equal('max 3.5');
-        expect(body.fields.maxValue.value).to.equal(value);
+        expect(body.fields.maxValue.value).to.equal(String(value));
       }, 400);
     });
 
@@ -382,7 +383,6 @@ describe('Express Server', () => {
       bodyModel.intValue = 1.20;
       bodyModel.longValue = 1.20;
       bodyModel.booleanValue = 'abc' as any;
-      bodyModel.arrayValue = 'abc' as any;
       bodyModel.dateValue = 'abc' as any;
       bodyModel.datetimeValue = 'abc' as any;
 
@@ -409,8 +409,6 @@ describe('Express Server', () => {
         expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
         expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
         expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
-        expect(body.fields['body.arrayValue'].message).to.equal('invalid array');
-        expect(body.fields['body.arrayValue'].value).to.equal(bodyModel.arrayValue);
 
         expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
         expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);
@@ -508,12 +506,12 @@ describe('Express Server', () => {
         return request
           .get(basePath + '/ParameterTest/Header')
           .set({
-            'age': 45,
-            'firstname': 'Tony',
-            'gender': 'MALE',
-            'human': true,
-            'last_name': 'Stark',
-            'weight': 82.1
+            age: 45,
+            firstname: 'Tony',
+            gender: 'MALE',
+            human: true,
+            last_name: 'Stark',
+            weight: 82.1,
           });
       }, 200);
     });
@@ -533,10 +531,10 @@ describe('Express Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: 'MALE',
+        gender: Gender.MALE,
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -545,7 +543,7 @@ describe('Express Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal('MALE');
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -553,10 +551,10 @@ describe('Express Server', () => {
       const data: ParameterTestModel = {
         age: 45,
         firstname: 'Tony',
-        gender: 'MALE',
+        gender: Gender.MALE,
         human: true,
         lastname: 'Stark',
-        weight: 82.1
+        weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -565,7 +563,7 @@ describe('Express Server', () => {
         expect(model.age).to.equal(45);
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
-        expect(model.gender).to.equal('MALE');
+        expect(model.gender).to.equal(Gender.MALE);
       });
     });
 
@@ -601,7 +599,7 @@ describe('Express Server', () => {
 
       const data: GenericRequest<TestModel> = {
         name: 'something',
-        value: getFakeModel()
+        value: getFakeModel(),
       };
       return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
         const model = res.body as TestModel;
@@ -611,17 +609,17 @@ describe('Express Server', () => {
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.post(path).send(data), expectedStatus);
   }
 
   function verifyRequest(
     verifyResponse: (err: any, res: request.Response) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(app))
@@ -637,7 +635,7 @@ describe('Express Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }
@@ -659,8 +657,8 @@ describe('Express Server', () => {
         key: {
           email: 'test@test.com',
           id: 1,
-          testSubModel2: false
-        }
+          testSubModel2: false,
+        },
       },
       numberArray: [1, 2],
       numberValue: 5,
@@ -668,7 +666,7 @@ describe('Express Server', () => {
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
-      stringValue: 'test1234'
+      stringValue: 'test1234',
     };
   }
 

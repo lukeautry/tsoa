@@ -1,19 +1,19 @@
 import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
-import '../controllers/putController';
-import '../controllers/postController';
-import '../controllers/patchController';
-import '../controllers/getController';
 import '../controllers/deleteController';
+import '../controllers/getController';
+import '../controllers/patchController';
+import '../controllers/postController';
+import '../controllers/putController';
 
 import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
-import '../controllers/validateController';
 import '../controllers/testController';
+import '../controllers/validateController';
 
-import { RegisterRoutes } from './routes';
 import * as bodyParser from 'koa-bodyparser';
+import { RegisterRoutes } from './routes';
 
 const app = new Koa();
 app.use(bodyParser());
@@ -27,6 +27,7 @@ app.use(async (context, next) => {
   try {
     await next();
   } catch (err) {
+    // tslint:disable-next-line:no-console
     console.error(err);
     context.status = err.status || 500;
     context.body = err.message || 'An error occurred during the request.';

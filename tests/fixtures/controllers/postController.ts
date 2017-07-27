@@ -1,8 +1,8 @@
 import {
-  Route, Body, Query, Post, Patch
+  Body, Patch, Post, Query, Route,
 } from '../../../src';
-import { GenericRequest, TestModel, TestClassModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
 @Route('PostTest')
 export class PostTestController {
@@ -35,7 +35,7 @@ export class PostTestController {
 
     return [
       model,
-      model
+      model,
     ];
   }
 

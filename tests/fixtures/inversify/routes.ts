@@ -1,108 +1,105 @@
 /* tslint:disable */
-import { ValidateParam, FieldErrors, ValidateError } from '../../../src/routeGeneration/templateHelpers';
-import { Controller } from '../../../src/interfaces/controller';
+import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
-const models: any = {
+
+const models: TsoaRoute.Models={
+  "EnumIndexValue": {
+    "enums": ["0", "1"],
+  },
+  "EnumNumberValue": {
+    "enums": ["2", "5"],
+  },
+  "EnumStringValue": {
+    "enums": ["VALUE_1", "VALUE_2"],
+  },
   "TestModel": {
-    properties: {
-      "numberValue": { "required": true, "typeName": "double" },
-      "numberArray": { "required": true, "typeName": "array", "array": { "typeName": "double" } },
-      "stringValue": { "required": true, "typeName": "string" },
-      "stringArray": { "required": true, "typeName": "array", "array": { "typeName": "string" } },
-      "boolValue": { "required": true, "typeName": "boolean" },
-      "boolArray": { "required": true, "typeName": "array", "array": { "typeName": "boolean" } },
-      "enumValue": { "required": false, "typeName": "enum", "enumMembers": ["0", "1"] },
-      "enumArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["0", "1"] } },
-      "enumNumberValue": { "required": false, "typeName": "enum", "enumMembers": ["2", "5"] },
-      "enumNumberArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["2", "5"] } },
-      "enumStringValue": { "required": false, "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
-      "enumStringArray": { "required": false, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] } },
-      "modelValue": { "required": true, "typeName": "TestSubModel" },
-      "modelsArray": { "required": true, "typeName": "array", "array": { "typeName": "TestSubModel" } },
-      "strLiteralVal": { "required": true, "typeName": "enum", "enumMembers": ["Foo", "Bar"] },
-      "strLiteralArr": { "required": true, "typeName": "array", "array": { "typeName": "enum", "enumMembers": ["Foo", "Bar"] } },
-      "dateValue": { "required": false, "typeName": "datetime" },
-      "optionalString": { "required": false, "typeName": "string" },
-      "modelsObjectIndirect": { "required": false, "typeName": "TestSubModelContainer" },
-      "modelsObjectIndirectNS": { "required": false, "typeName": "TestSubModelContainerNamespace.TestSubModelContainer" },
-      "modelsObjectIndirectNS2": { "required": false, "typeName": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
-      "modelsObjectIndirectNS_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_TestSubModelContainer" },
-      "modelsObjectIndirectNS2_Alias": { "required": false, "typeName": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
-      "modelsArrayIndirect": { "required": false, "typeName": "TestSubArrayModelContainer" },
-      "modelsEnumIndirect": { "required": false, "typeName": "TestSubEnumModelContainer" },
-      "typeAliasCase1": { "required": false, "typeName": "TypeAliasModelCase1" },
-      "TypeAliasCase2": { "required": false, "typeName": "TypeAliasModelCase2" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "numberValue": { "dataType": "double", "required": true },
+      "numberArray": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
+      "stringValue": { "dataType": "string", "required": true },
+      "stringArray": { "dataType": "array", "array": { "dataType": "string" }, "required": true },
+      "boolValue": { "dataType": "boolean", "required": true },
+      "boolArray": { "dataType": "array", "array": { "dataType": "boolean" }, "required": true },
+      "enumValue": { "ref": "EnumIndexValue" },
+      "enumArray": { "dataType": "array", "array": { "ref": "EnumIndexValue" } },
+      "enumNumberValue": { "ref": "EnumNumberValue" },
+      "enumNumberArray": { "dataType": "array", "array": { "ref": "EnumNumberValue" } },
+      "enumStringValue": { "ref": "EnumStringValue" },
+      "enumStringArray": { "dataType": "array", "array": { "ref": "EnumStringValue" } },
+      "modelValue": { "ref": "TestSubModel", "required": true },
+      "modelsArray": { "dataType": "array", "array": { "ref": "TestSubModel" }, "required": true },
+      "strLiteralVal": { "dataType": "enum", "enums": ["Foo", "Bar"], "required": true },
+      "strLiteralArr": { "dataType": "array", "array": { "dataType": "enum", "enums": ["Foo", "Bar"] }, "required": true },
+      "unionPrimetiveType": { "dataType": "enum", "enums": ["String", "1", "20", "true", "false"] },
+      "dateValue": { "dataType": "datetime" },
+      "optionalString": { "dataType": "string" },
+      "anyType": { "dataType": "any" },
+      "modelsObjectIndirect": { "ref": "TestSubModelContainer" },
+      "modelsObjectIndirectNS": { "ref": "TestSubModelContainerNamespace.TestSubModelContainer" },
+      "modelsObjectIndirectNS2": { "ref": "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2" },
+      "modelsObjectIndirectNS_Alias": { "ref": "TestSubModelContainerNamespace_TestSubModelContainer" },
+      "modelsObjectIndirectNS2_Alias": { "ref": "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2" },
+      "modelsArrayIndirect": { "ref": "TestSubArrayModelContainer" },
+      "modelsEnumIndirect": { "ref": "TestSubEnumModelContainer" },
+      "typeAliasCase1": { "ref": "TypeAliasModelCase1" },
+      "TypeAliasCase2": { "ref": "TypeAliasModelCase2" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel": {
-    properties: {
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel2": {
-    properties: {
-      "testSubModel2": { "required": true, "typeName": "boolean" },
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "testSubModel2": { "dataType": "boolean", "required": true },
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModel2" },
+    "additionalProperties": { "ref": "TestSubModel2" },
   },
   "TestSubModelNamespace.TestSubModelNS": {
-    properties: {
-      "testSubModelNS": { "required": true, "typeName": "boolean" },
-      "email": { "required": true, "typeName": "string" },
-      "circular": { "required": false, "typeName": "TestModel" },
-      "id": { "required": true, "typeName": "double" },
+    "properties": {
+      "testSubModelNS": { "dataType": "boolean", "required": true },
+      "email": { "dataType": "string", "required": true },
+      "circular": { "ref": "TestModel" },
+      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModelContainerNamespace.TestSubModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
+    "additionalProperties": { "ref": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "TestSubModelNamespace.TestSubModelNS" },
+    "additionalProperties": { "ref": "TestSubModelNamespace.TestSubModelNS" },
   },
   "TestSubModelContainerNamespace_TestSubModelContainer": {
-    properties: {
-    },
   },
   "TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2": {
-    properties: {
-    },
   },
   "TestSubArrayModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "array", "array": { "typeName": "TestSubModel2" } },
+    "additionalProperties": { "dataType": "array", "array": { "ref": "TestSubModel2" } },
   },
   "TestSubEnumModelContainer": {
-    properties: {
-    },
-    additionalProperties: { "typeName": "enum", "enumMembers": ["VALUE_1", "VALUE_2"] },
+    "additionalProperties": { "ref": "EnumStringValue" },
   },
   "TypeAliasModelCase1": {
-    properties: {
-      "value1": { "required": true, "typeName": "string" },
-      "value2": { "required": true, "typeName": "string" },
+    "properties": {
+      "value1": { "dataType": "string", "required": true },
+      "value2": { "dataType": "string", "required": true },
     },
   },
   "TypeAliasModelCase2": {
-    properties: {
-      "value1": { "required": true, "typeName": "string" },
-      "value2": { "required": true, "typeName": "string" },
-      "value3": { "required": true, "typeName": "string" },
+    "properties": {
+      "value1": { "dataType": "string", "required": true },
+      "value2": { "dataType": "string", "required": true },
+      "value3": { "dataType": "string", "required": true },
     },
   },
 };
@@ -110,45 +107,51 @@ const models: any = {
 export function RegisterRoutes(app: any) {
   app.get('/v1/ManagedTest',
     function(request: any, response: any, next: any) {
-      const args = {
+      const args={
       };
 
-      let validatedArgs: any[] = [];
+      let validatedArgs: any[]=[];
       try {
-        validatedArgs = getValidatedArgs(args, request);
+        validatedArgs=getValidatedArgs(args, request);
       } catch (err) {
         return next(err);
       }
 
-      const controller = iocContainer.get<ManagedController>(ManagedController);
+      const controller=iocContainer.get<ManagedController>(ManagedController);
 
 
-      const promise = controller.getModel.apply(controller, validatedArgs);
-      let statusCode: any;
-      if (controller instanceof Controller) {
-        statusCode = (controller as Controller).getStatus();
-      }
-      promiseHandler(promise, statusCode, response, next);
+      const promise=controller.getModel.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
     });
 
 
-  function promiseHandler(promise: any, statusCode: any, response: any, next: any) {
+  function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
+        let statusCode;
+        if (controllerObj instanceof Controller) {
+          const controller=controllerObj as Controller
+          const headers=controller.getHeaders();
+          Object.keys(headers).forEach((name: string) => {
+            response.set(name, headers[name]);
+          });
+
+          statusCode=controller.getStatus();
+        }
+
         if (data) {
-          response.status(statusCode || 200).json(data);;
+          response.status(statusCode|200).json(data);
         } else {
-          response.status(statusCode || 204).end();
+          response.status(statusCode|204).end();
         }
       })
       .catch((error: any) => next(error));
   }
 
-
   function getValidatedArgs(args: any, request: any): any[] {
-    const fieldErrors: FieldErrors = {};
-    const values = Object.keys(args).map((key) => {
-      const name = args[key].name;
+    const fieldErrors: FieldErrors={};
+    const values=Object.keys(args).map((key) => {
+      const name=args[key].name;
       switch (args[key].in) {
         case 'request':
           return request;
@@ -159,12 +162,12 @@ export function RegisterRoutes(app: any) {
         case 'header':
           return ValidateParam(args[key], request.header(name), models, name, fieldErrors);
         case 'body':
-          return ValidateParam(args[key], request.body, models, name, fieldErrors, name + '.');
+          return ValidateParam(args[key], request.body, models, name, fieldErrors, name+'.');
         case 'body-prop':
           return ValidateParam(args[key], request.body[name], models, name, fieldErrors, 'body.');
       }
     });
-    if (Object.keys(fieldErrors).length > 0) {
+    if (Object.keys(fieldErrors).length>0) {
       throw new ValidateError(fieldErrors, '');
     }
     return values;

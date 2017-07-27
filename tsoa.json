@@ -24,22 +24,7 @@
                 }
             }
         },
-        "spec": {
-            "api_key": {
-                "type": "apiKey",
-                "name": "api_key",
-                "in": "header"
-            },
-            "tsoa_auth": {
-                "type": "oauth2",
-                "authorizationUrl": "http://swagger.io/api/oauth/dialog",
-                "flow": "implicit",
-                "scopes": {
-                    "write:pets": "modify things",
-                    "read:pets": "read things"
-                }
-            }
-        }
+        "yaml": true
     },
     "routes": {
         "basePath": "/v1",

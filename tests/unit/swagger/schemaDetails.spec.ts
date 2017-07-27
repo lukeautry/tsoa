@@ -1,10 +1,8 @@
+import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator } from '../../../src/swagger/specGenerator';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
-import * as chai from 'chai';
-
-const expect = chai.expect;
 
 describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();

@@ -1,13 +1,12 @@
+import { expect } from 'chai';
 import 'mocha';
 import 'reflect-metadata';
+import * as request from 'supertest';
 import { iocContainer } from '../fixtures/inversify/ioc';
 import { ManagedService } from '../fixtures/inversify/managedService';
 import { app } from '../fixtures/inversify/server';
 import { TestModel, TestSubModel } from '../fixtures/testModel';
-import * as chai from 'chai';
-import * as request from 'supertest';
 
-const expect = chai.expect;
 const basePath = '/v1';
 
 describe('Inversify Express Server', () => {
@@ -36,8 +35,8 @@ describe('Inversify Express Server', () => {
           key: {
             email: 'test@test.com',
             id: 1,
-            testSubModel2: false
-          }
+            testSubModel2: false,
+          },
         },
         numberArray: [1, 2, 3],
         numberValue: 1,
@@ -45,7 +44,7 @@ describe('Inversify Express Server', () => {
         strLiteralArr: ['Foo', 'Bar'],
         strLiteralVal: 'Foo',
         stringArray: ['string one', 'string two'],
-        stringValue: 'a string'
+        stringValue: 'a string',
       };
     };
     return verifyGetRequest(basePath + '/ManagedTest', (err, res) => {
@@ -58,13 +57,13 @@ describe('Inversify Express Server', () => {
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
 
   function verifyRequest(
     verifyResponse: (err: any, res: request.Response) => any,
     methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200
+    expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
       methodOperation(request(app))
@@ -80,7 +79,7 @@ describe('Inversify Express Server', () => {
           if (err) {
             reject({
               error: err,
-              response: parsedError
+              response: parsedError,
             });
             return;
           }
