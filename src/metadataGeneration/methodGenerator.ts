@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
+import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
 import { ResolveType } from './resolveType';
 import { Tsoa } from './tsoa';
@@ -22,12 +23,17 @@ export class MethodGenerator {
     if (!this.IsValid()) {
       throw new GenerateMetadataError('This isn\'t a valid a controller method.');
     }
-    if (!this.node.type) {
-      throw new GenerateMetadataError('Controller methods must have a return type.');
-    }
 
     const identifier = this.node.name as ts.Identifier;
-    const type = ResolveType(this.node.type);
+
+    let nodeType = this.node.type;
+    if (!nodeType) {
+      const typeChecker = MetadataGenerator.current.typeChecker;
+      const signature = typeChecker.getSignatureFromDeclaration(this.node);
+      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+      nodeType = typeChecker.typeToTypeNode(implicitType);
+    }
+    const type = ResolveType(nodeType);
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 

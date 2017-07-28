@@ -1963,7 +1963,7 @@ export function RegisterRoutes(server: any) {
   function authenticateMiddleware(name: string, scopes: string[]=[]) {
     return (request: any, reply: any) => {
       return hapiAuthentication(request, name, scopes).then((user: any) => {
-        request['user']=user;
+        request['user'] = user;
         reply.continue();
       })
         .catch((error: any) => reply(error).code(error.status||401));

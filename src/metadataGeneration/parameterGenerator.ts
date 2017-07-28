@@ -47,7 +47,7 @@ export class ParameterGenerator {
       in: 'request',
       name: parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -66,7 +66,7 @@ export class ParameterGenerator {
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'BodyProp') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -85,7 +85,7 @@ export class ParameterGenerator {
       in: 'body',
       name: parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -104,7 +104,7 @@ export class ParameterGenerator {
       in: 'header',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Header') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -129,9 +129,9 @@ export class ParameterGenerator {
     return {
       description: this.getParameterDescription(parameter),
       in: 'query',
-      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Query') || parameterName,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
     };
@@ -183,9 +183,11 @@ export class ParameterGenerator {
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
-    if (!parameter.type) {
-      throw new GenerateMetadataError(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+    let typeNode = parameter.type;
+    if (!typeNode) {
+      const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
+      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type);
     }
-    return ResolveType(parameter.type, extractEnum);
+    return ResolveType(typeNode, extractEnum);
   }
 }
