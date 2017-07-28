@@ -48,3 +48,12 @@ export function Query(name?: string): any {
 export function Header(name?: string): any {
   return () => { return; };
 }
+
+/**
+ * Inject file from formData
+ *
+ * @param {string} [name] The name of the file parameter
+ */
+export function UploadFile(name?: string): any {
+  return () => { return; };
+}

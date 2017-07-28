@@ -23,6 +23,7 @@ export namespace Tsoa {
     responses: Response[];
     security?: Security;
     summary?: string;
+    consumes?: string[];
   }
 
   export interface Parameter {
@@ -36,7 +37,7 @@ export namespace Tsoa {
   }
 
   export interface Validators {
-    [key: string]: { value?: any, errorMsg?: string };
+    [key: string]: { value?: any, message?: string };
   }
 
   export interface Security {
@@ -60,7 +61,7 @@ export namespace Tsoa {
   }
 
   export interface Type {
-    dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject';
+    dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'file' | 'any' | 'refEnum' | 'refObject';
   }
 
   export interface EnumerateType extends Type {

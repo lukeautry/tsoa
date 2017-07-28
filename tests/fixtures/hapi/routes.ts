@@ -166,8 +166,8 @@ const models: TsoaRoute.Models={
     "properties": {
       "firstname": { "dataType": "string", "required": true },
       "lastname": { "dataType": "string", "required": true },
-      "age": { "dataType": "integer", "required": true, "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
-      "weight": { "dataType": "float", "required": true },
+      "age": { "dataType": "double", "required": true },
+      "weight": { "dataType": "double", "required": true },
       "human": { "dataType": "boolean", "required": true },
       "gender": { "ref": "Gender", "required": true },
     },
@@ -204,10 +204,10 @@ const models: TsoaRoute.Models={
   },
   "ValidateModel": {
     "properties": {
-      "floatValue": { "dataType": "float", "required": true, "validators": { "isFloat": { "errorMsg": "Invalid float error message." } } },
-      "doubleValue": { "dataType": "double", "required": true, "validators": { "isDouble": { "errorMsg": "Invalid double error message." } } },
+      "floatValue": { "dataType": "float", "required": true, "validators": { "isFloat": { "message": "Invalid float error message." } } },
+      "doubleValue": { "dataType": "double", "required": true, "validators": { "isDouble": { "message": "Invalid double error message." } } },
       "intValue": { "dataType": "integer", "required": true },
-      "longValue": { "dataType": "long", "required": true, "validators": { "isLong": { "errorMsg": "Custom Required long number." } } },
+      "longValue": { "dataType": "long", "required": true, "validators": { "isLong": { "message": "Custom Required long number." } } },
       "booleanValue": { "dataType": "boolean", "required": true },
       "arrayValue": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
       "dateValue": { "dataType": "date", "required": true },
@@ -391,11 +391,11 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double", "validators": { "isDouble": { "errorMsg": "numberPathParam" }, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
+          numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double", "validators": { "isDouble": {}, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
           stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
           booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "dataType": "boolean" },
           booleanParam: { "in": "query", "name": "booleanParam", "required": true, "dataType": "boolean" },
-          stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string", "validators": { "isString": { "errorMsg": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
+          stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string", "validators": { "isString": { "message": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
           numberParam: { "in": "query", "name": "numberParam", "required": true, "dataType": "double" },
           optionalStringParam: { "in": "query", "name": "optionalStringParam", "dataType": "string" },
         };
@@ -1351,8 +1351,8 @@ export function RegisterRoutes(server: any) {
         const args={
           firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "query", "name": "last_name", "required": true, "dataType": "string" },
-          age: { "in": "query", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-          weight: { "in": "query", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+          age: { "in": "query", "name": "age", "required": true, "dataType": "integer" },
+          weight: { "in": "query", "name": "weight", "required": true, "dataType": "float" },
           human: { "in": "query", "name": "human", "required": true, "dataType": "boolean" },
           gender: { "in": "query", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
         };
@@ -1379,8 +1379,8 @@ export function RegisterRoutes(server: any) {
         const args={
           firstname: { "in": "path", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "path", "name": "last_name", "required": true, "dataType": "string" },
-          age: { "in": "path", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-          weight: { "in": "path", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+          age: { "in": "path", "name": "age", "required": true, "dataType": "integer" },
+          weight: { "in": "path", "name": "weight", "required": true, "dataType": "float" },
           human: { "in": "path", "name": "human", "required": true, "dataType": "boolean" },
           gender: { "in": "path", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
         };
@@ -1407,8 +1407,8 @@ export function RegisterRoutes(server: any) {
         const args={
           firstname: { "in": "header", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "header", "name": "last_name", "required": true, "dataType": "string" },
-          age: { "in": "header", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-          weight: { "in": "header", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+          age: { "in": "header", "name": "age", "required": true, "dataType": "integer" },
+          weight: { "in": "header", "name": "weight", "required": true, "dataType": "float" },
           human: { "in": "header", "name": "human", "required": true, "dataType": "boolean" },
           gender: { "in": "header", "name": "gender", "required": true, "dataType": "enum", "enums": ["MALE", "FEMALE"] },
         };
@@ -1481,8 +1481,8 @@ export function RegisterRoutes(server: any) {
         const args={
           firstname: { "in": "body-prop", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "body-prop", "name": "lastname", "required": true, "dataType": "string" },
-          age: { "in": "body-prop", "name": "age", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "age" } } },
-          weight: { "in": "body-prop", "name": "weight", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "weight" } } },
+          age: { "in": "body-prop", "name": "age", "required": true, "dataType": "integer" },
+          weight: { "in": "body-prop", "name": "weight", "required": true, "dataType": "float" },
           human: { "in": "body-prop", "name": "human", "required": true, "dataType": "boolean" },
           gender: { "in": "body-prop", "name": "gender", "required": true, "ref": "Gender" },
         };
@@ -1571,6 +1571,33 @@ export function RegisterRoutes(server: any) {
     }
   });
   server.route({
+    method: 'post',
+    path: '/v1/ParameterTest/ParamaterUploadFile',
+    config: {
+      payload: {
+        output: 'stream',
+        allow: 'multipart/form-data'
+      },
+      handler: (request: any, reply) => {
+        const args={
+          image: { "in": "formData", "name": "image", "required": true, "dataType": "file" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new ParameterController();
+
+        const promise=controller.paramaterUploadFile.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'get',
     path: '/v1/SecurityTest',
     config: {
@@ -1606,8 +1633,8 @@ export function RegisterRoutes(server: any) {
       pre: [
         {
           method: authenticateMiddleware('api_key'
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args={
@@ -1636,8 +1663,8 @@ export function RegisterRoutes(server: any) {
         {
           method: authenticateMiddleware('tsoa_auth'
             , ["write:pets", "read:pets"]
-          )
-        }
+          )        
+}
       ],
       handler: (request: any, reply) => {
         const args={
@@ -1752,8 +1779,8 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "date", "validators": { "isDate": { "errorMsg": "minDateValue" }, "minDate": { "value": "2018-01-01" } } },
-          maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "date", "validators": { "isDate": { "errorMsg": "maxDateValue" }, "maxDate": { "value": "2016-01-01" } } },
+          minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "date", "validators": { "isDate": {}, "minDate": { "value": "2018-01-01" } } },
+          maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "date", "validators": { "isDate": {}, "maxDate": { "value": "2016-01-01" } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1776,8 +1803,8 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": { "errorMsg": "minDateValue" }, "minDate": { "value": "2018-01-01T00:00:00" } } },
-          maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": { "errorMsg": "maxDateValue" }, "maxDate": { "value": "2016-01-01T00:00:00" } } },
+          minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": {}, "minDate": { "value": "2018-01-01T00:00:00" } } },
+          maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": {}, "maxDate": { "value": "2016-01-01T00:00:00" } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1800,8 +1827,8 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "minValue" }, "minimum": { "value": 5 } } },
-          maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "maxValue" }, "maximum": { "value": 3 } } },
+          minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "integer", "validators": { "isInt": {}, "minimum": { "value": 5 } } },
+          maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "integer", "validators": { "isInt": {}, "maximum": { "value": 3 } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1824,8 +1851,8 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
-          maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
+          minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "float", "validators": { "isFloat": {}, "minimum": { "value": 5.5 } } },
+          maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "float", "validators": { "isFloat": {}, "maximum": { "value": 3.5 } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1848,7 +1875,7 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          boolValue: { "in": "query", "name": "boolValue", "required": true, "dataType": "boolean", "validators": { "isBoolean": { "errorMsg": "boolValue" } } },
+          boolValue: { "in": "query", "name": "boolValue", "required": true, "dataType": "boolean" },
         };
 
         let validatedArgs: any[]=[];
@@ -1896,7 +1923,7 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "errorMsg": "Required long number." } } },
+          longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "message": "Required long number." } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1919,7 +1946,7 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply) => {
         const args={
-          longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "errorMsg": "Invalid long number." } } },
+          longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "message": "Invalid long number." } } },
         };
 
         let validatedArgs: any[]=[];
@@ -2001,6 +2028,12 @@ export function RegisterRoutes(server: any) {
           return request;
         case 'query':
           return ValidateParam(args[key], request.query[name], models, name, errorFields)
+        case 'formData':
+          if (args[key].dataType==='file') {
+            return request.payload[name];
+          } else {
+            return ValidateParam(args[key], request.payload[name], models, name, errorFields);
+          }
         case 'path':
           return ValidateParam(args[key], request.params[name], models, name, errorFields)
         case 'header':

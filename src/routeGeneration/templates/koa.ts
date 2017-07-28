@@ -120,23 +120,29 @@ export function RegisterRoutes(router: any) {
         });
     }
 
-    function getValidatedArgs(args: any, context: any): any[] {
+    function getValidatedArgs(args: any, ctx: any): any[] {
         const errorFields: FieldErrors = {};
         const values = Object.keys(args).map(key => {
             const name = args[key].name;
             switch (args[key].in) {
             case 'request':
-                return context.request;
+                return ctx.request;
             case 'query':
-                return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
+                return ValidateParam(args[key], ctx.request.query[name], models, name, errorFields)
+            case 'formData':
+                if (args[key].dataType === 'file') {
+                    return ctx.request.body.files[name];
+                } else {
+                    return ValidateParam(args[key], ctx.request.body[name], models, name, errorFields);
+                }
             case 'path':
-                return ValidateParam(args[key], context.params[name], models, name, errorFields)
+                return ValidateParam(args[key], ctx.params[name], models, name, errorFields)
             case 'header':
-                return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
+                return ValidateParam(args[key], ctx.request.headers[name], models, name, errorFields);
             case 'body':
-                return ValidateParam(args[key], context.request.body, models, name, errorFields, name + '.');
+                return ValidateParam(args[key], ctx.request.body, models, name, errorFields, name + '.');
             case 'body-prop':
-                return ValidateParam(args[key], context.request.body[name], models, name, errorFields, 'body.');
+                return ValidateParam(args[key], ctx.request.body[name], models, name, errorFields, 'body.');
             }
         });
         if (Object.keys(errorFields).length > 0) {

@@ -2,6 +2,12 @@ import {
   Controller,
   Example,
   Get,
+  IsDouble,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
   Query,
   Request,
   Route,
@@ -80,11 +86,11 @@ export class GetTestController extends Controller {
    */
   @Get('{numberPathParam}/{booleanPathParam}/{stringPathParam}')
   public async getModelByParams(
-    numberPathParam: number,
-    stringPathParam: string,
+    @IsDouble() @Min(1) @Max(10) numberPathParam: number,
+    @MinLength(1) @MaxLength(10) stringPathParam: string,
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
-    @Query() stringParam: string,
+    @Query() @IsString('Custom error message') @MinLength(3) @MaxLength(10) stringParam: string,
     @Query() numberParam: number,
     @Query() optionalStringParam?: string): Promise<TestModel> {
     const model = new ModelService().getModel();

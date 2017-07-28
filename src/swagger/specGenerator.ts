@@ -88,23 +88,18 @@ export class SpecGenerator {
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
-    pathMethod.description = method.description;
-    pathMethod.summary = method.summary;
-
-    if (method.deprecated) {
-      pathMethod.deprecated = method.deprecated;
-    }
-    if (method.tags.length) {
-      pathMethod.tags = method.tags;
-    }
+    const swaggerMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     if (method.security) {
       const security: any = {};
       security[method.security.name] = method.security.scopes ? method.security.scopes : [];
-      pathMethod.security = [security];
+      swaggerMethod.security = [security];
     }
-
-    pathMethod.parameters = method.parameters
+    swaggerMethod.deprecated = method.deprecated ? method.deprecated : undefined;
+    swaggerMethod.description = method.description;
+    swaggerMethod.tags = method.tags.length > 0 ? method.tags : undefined;
+    swaggerMethod.summary = method.summary;
+    swaggerMethod.consumes = method.consumes;
+    swaggerMethod.parameters = method.parameters
       .filter(p => {
         return !(p.in === 'request' || p.in === 'body-prop');
       })
@@ -112,9 +107,9 @@ export class SpecGenerator {
 
     const bodyPropParameter = this.buildBodyPropParameter(controllerName, method);
     if (bodyPropParameter) {
-      pathMethod.parameters.push(bodyPropParameter);
+      swaggerMethod.parameters.push(bodyPropParameter);
     }
-    if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
+    if (swaggerMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
   }
@@ -276,6 +271,7 @@ export class SpecGenerator {
       date: { type: 'string', format: 'date' },
       datetime: { type: 'string', format: 'date-time' },
       double: { type: 'number', format: 'double' },
+      file: { type: 'file' },
       float: { type: 'number', format: 'float' },
       integer: { type: 'integer', format: 'int32' },
       long: { type: 'integer', format: 'int64' },

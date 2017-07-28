@@ -89,6 +89,7 @@ export class RouteGenerator {
               parameters: parameterObjs,
               path: pathTransformer(method.path),
               security: method.security,
+              upload: method.parameters.some(parameter => parameter.in === 'formData' && parameter.type.dataType === 'file'),
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),

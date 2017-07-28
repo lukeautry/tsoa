@@ -118,6 +118,12 @@ export function RegisterRoutes(app: any) {
                     return request;
                 case 'query':
                     return ValidateParam(args[key], request.query[name], models, name, fieldErrors);
+                case 'formData':
+                    if (args[key].dataType === 'file') {
+                        return request.file;
+                    } else {
+                        return ValidateParam(args[key], request.body[name], models, name, fieldErrors);
+                    }
                 case 'path':
                     return ValidateParam(args[key], request.params[name], models, name, fieldErrors);
                 case 'header':

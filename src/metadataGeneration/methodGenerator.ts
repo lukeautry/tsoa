@@ -10,8 +10,12 @@ export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   private path: string;
 
-  constructor(private readonly node: ts.MethodDeclaration) {
-    this.processMethodDecorators();
+  constructor(
+    private readonly node: ts.MethodDeclaration,
+    private readonly parentTags: string[],
+    private readonly parentConsumes: string[],
+    private readonly parentSecurity?: Tsoa.Security) {
+    this.processMethodDecorator();
   }
 
   public IsValid() {
@@ -26,22 +30,27 @@ export class MethodGenerator {
       throw new GenerateMetadataError('Controller methods must have a return type.');
     }
 
-    const identifier = this.node.name as ts.Identifier;
+    const ident = this.node.name as ts.Identifier;
     const type = ResolveType(this.node.type);
-    const responses = this.getMethodResponses();
-    responses.push(this.getMethodSuccessResponse(type));
+    const responses = this.getResponses();
+    responses.push(this.getSuccessResponse(type));
+
+    const tags = this.parentTags.concat(this.getTags());
+    const security = this.getSecurity() || this.parentSecurity;
+    const consumes = this.getConsumes() || this.parentConsumes;
 
     return {
+      consumes,
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
-      name: identifier.text,
+      name: ident.text,
       parameters: this.buildParameters(),
       path: this.path,
       responses,
-      security: this.getMethodSecurity(),
+      security,
       summary: getJSDocComment(this.node, 'summary'),
-      tags: this.getMethodTags(),
+      tags,
       type,
     };
   }
@@ -75,7 +84,7 @@ export class MethodGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
-  private processMethodDecorators() {
+  private processMethodDecorator() {
     const pathDecorators = getDecorators(this.node, (identifier) => this.supportsPathMethod(identifier.text));
 
     if (!pathDecorators || !pathDecorators.length) { return; }
@@ -94,7 +103,7 @@ export class MethodGenerator {
     this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
   }
 
-  private getMethodResponses(): Tsoa.Response[] {
+  private getResponses(): Tsoa.Response[] {
     const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Response');
     if (!decorators || !decorators.length) {
       return [];
@@ -128,12 +137,12 @@ export class MethodGenerator {
     });
   }
 
-  private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
+  private getSuccessResponse(type: Tsoa.Type): Tsoa.Response {
     const decorators = getDecorators(this.node, (identifier) => identifier.text === 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
         description: type.dataType === 'void' ? 'No content' : 'Ok',
-        examples: this.getMethodSuccessExamples(),
+        examples: this.getSuccessExamples(),
         name: type.dataType === 'void' ? '204' : '200',
         schema: type,
       };
@@ -164,16 +173,16 @@ export class MethodGenerator {
     };
   }
 
-  private getMethodSuccessExamples() {
-    const exampleDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Example');
-    if (!exampleDecorators || !exampleDecorators.length) {
+  private getSuccessExamples() {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Example' || ident.text === 'tsoa.Example');
+    if (!decorators || !decorators.length) {
       return undefined;
     }
-    if (exampleDecorators.length > 1) {
+    if (decorators.length > 1) {
       throw new GenerateMetadataError(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
-    const decorator = exampleDecorators[0];
+    const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
     const argument = expression.arguments[0] as any;
 
@@ -192,31 +201,46 @@ export class MethodGenerator {
     return example;
   }
 
-  private getMethodTags() {
-    const tagsDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
-    if (!tagsDecorators || !tagsDecorators.length) {
+  private getTags(): string[] {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Tags' || ident.text === 'tsoa.Tags');
+    if (!decorators || !decorators.length) {
       return [];
     }
-    if (tagsDecorators.length > 1) {
+    if (decorators.length > 1) {
       throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
-    const decorator = tagsDecorators[0];
+    const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
     return expression.arguments.map((a: any) => a.text);
   }
 
-  private getMethodSecurity() {
-    const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
-    if (!securityDecorators || !securityDecorators.length) {
+  private getConsumes(): string[] | undefined {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Consumers' || ident.text === 'tsoa.Consumers');
+    if (!decorators || !decorators.length) {
       return undefined;
     }
-    if (securityDecorators.length > 1) {
+    if (decorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Consumers decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    const decorator = decorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return expression.arguments.map((a: any) => a.text);
+  }
+
+  private getSecurity(): Tsoa.Security | undefined {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Security' || ident.text === 'tsoa.Security');
+    if (!decorators || !decorators.length) {
+      return undefined;
+    }
+    if (decorators.length > 1) {
       throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
-    const decorator = securityDecorators[0];
+    const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
     return {

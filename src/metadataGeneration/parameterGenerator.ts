@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
-import { getParameterValidators } from './../utils/validatorUtils';
+import { getValidateDecorators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ResolveType } from './resolveType';
@@ -17,17 +17,29 @@ export class ParameterGenerator {
     const decoratorName = getDecoratorName(this.parameter, (identifier) => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
+      case 'UploadFile':
+      case 'tsoa.UploadFile':
+        return this.getUploadFieldParameter(this.parameter);
       case 'Request':
+      case 'tsoa.Request':
         return this.getRequestParameter(this.parameter);
       case 'Body':
+      case 'tsoa.Body':
         return this.getBodyParameter(this.parameter);
+      case 'FormData':
+      case 'tsoa.FormData':
+        return this.getFormDataParameter(this.parameter);
       case 'BodyProp':
+      case 'tsoa.BodyProp':
         return this.getBodyPropParameter(this.parameter);
       case 'Header':
+      case 'tsoaHeader':
         return this.getHeaderParameter(this.parameter);
       case 'Query':
+      case 'tsoa.Query':
         return this.getQueryParameter(this.parameter);
       case 'Path':
+      case 'tsoa.Path':
         return this.getPathParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
@@ -40,8 +52,37 @@ export class ParameterGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
+  private getUploadFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: parameterName,
+      parameterName,
+      required: !parameter.questionToken,
+      type: { dataType: 'file' },
+      validators: getValidateDecorators(this.parameter),
+    };
+  }
+
+  private getFormDataParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: parameterName,
+      parameterName,
+      required: !parameter.questionToken,
+      type,
+      validators: getValidateDecorators(this.parameter),
+    };
+  }
+
   private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
+
     return {
       description: this.getParameterDescription(parameter),
       in: 'request',
@@ -49,7 +90,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken,
       type: { dataType: 'object' },
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -68,7 +109,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken,
       type,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -87,7 +128,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken,
       type,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -106,7 +147,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken,
       type,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -133,7 +174,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken,
       type,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -156,7 +197,7 @@ export class ParameterGenerator {
       parameterName,
       required: true,
       type,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getValidateDecorators(this.parameter),
     };
   }
 
@@ -171,11 +212,18 @@ export class ParameterGenerator {
   }
 
   private supportBodyMethod(method: string) {
-    return ['post', 'put', 'patch'].some((m) => m === method.toLowerCase());
+    return [
+      'post', 'put', 'patch',
+      'tsoa.post', 'tsoa.put', 'tsoa.patch',
+    ].indexOf(method.toLowerCase()) >= -1;
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return [
+      'header', 'tsoa.header', 'query', 'tsoa.query', 'parem',  'tsoa.parem',
+      'body', 'tsoa.body', 'bodyprop', 'tsoa.bodyprop', 'request', 'tsoa.request',
+      'uploadfile', 'tsoa.uploadfile', 'formdata', 'tsoa.formdata',
+    ].indexOf(decoratorName.toLocaleLowerCase()) >= -1;
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

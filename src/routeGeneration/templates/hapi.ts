@@ -52,6 +52,12 @@ export function RegisterRoutes(server: any) {
                     )}
                 ],
                 {{/if}} 
+                {{#if upload}}
+                payload: {
+                    output: 'stream',
+                    allow: 'multipart/form-data'
+                },
+                {{/if}}
                 handler: (request: any, reply) => {
                     const args = {
                         {{#each parameters}}
@@ -123,6 +129,12 @@ export function RegisterRoutes(server: any) {
                 return request;
             case 'query':
                 return ValidateParam(args[key], request.query[name], models, name, errorFields)
+            case 'formData':
+                 if (args[key].dataType === 'file') {
+                    return request.payload[name];
+                } else {
+                    return ValidateParam(args[key], request.payload[name], models, name, errorFields);
+                }
             case 'path':
                 return ValidateParam(args[key], request.params[name], models, name, errorFields)
             case 'header':

@@ -1,5 +1,22 @@
 import {
-  Body, Get, Post, Query, Route,
+  Body,
+  Get,
+  IsBoolean,
+  IsDate,
+  IsDateTime,
+  IsFloat,
+  IsInt,
+  IsLong,
+  Max,
+  MaxDate,
+  MaxLength,
+  Min,
+  MinDate,
+  MinLength,
+  Pattern,
+  Post,
+  Query,
+  Route,
 } from './../../../src';
 import {
   ValidateModel,
@@ -36,8 +53,8 @@ export class ValidateController {
    */
   @Get('parameter/date')
   public dateValidate(
-    @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+    @Query() @IsDate() @MinDate('2018-01-01') minDateValue: Date,
+    @Query() @IsDate() @MaxDate('2016-01-01') maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -54,8 +71,8 @@ export class ValidateController {
    */
   @Get('parameter/datetime')
   public dateTimeValidate(
-    @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+    @Query() @IsDateTime() @MinDate('2018-01-01T00:00:00') minDateValue: Date,
+    @Query() @IsDateTime() @MaxDate('2016-01-01T00:00:00') maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -71,8 +88,8 @@ export class ValidateController {
    */
   @Get('parameter/integer')
   public longValidate(
-    @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+    @Query() @IsInt() @Min(5) minValue: number,
+    @Query() @IsInt() @Max(3) maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       maxValue,
       minValue,
@@ -88,8 +105,8 @@ export class ValidateController {
    */
   @Get('parameter/float')
   public doubleValidate(
-    @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+    @Query() @IsFloat() @Min(5.5) minValue: number,
+    @Query() @IsFloat() @Max(3.5) maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       maxValue,
       minValue,
@@ -101,7 +118,7 @@ export class ValidateController {
    */
   @Get('parameter/boolean')
   public booleanValidate(
-    @Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
+    @Query() @IsBoolean() boolValue: boolean): Promise<ValidateBooleanResponse> {
     return Promise.resolve({
       boolValue,
     });
@@ -116,9 +133,9 @@ export class ValidateController {
    */
   @Get('parameter/string')
   public stringValidate(
-    @Query() minLength: string,
-    @Query() maxLength: string,
-    @Query() patternValue: string): Promise<ValidateStringResponse> {
+    @Query() @MinLength(5) minLength: string,
+    @Query() @MaxLength(3) maxLength: string,
+    @Query() @Pattern('^[a-zA-Z]+$') patternValue: string): Promise<ValidateStringResponse> {
     return Promise.resolve({
       maxLength,
       minLength,
@@ -130,7 +147,7 @@ export class ValidateController {
    * @isLong longValue Required long number.
    */
   @Get('parameter/customRequiredErrorMsg')
-  public customRequiredErrorMsg( @Query() longValue: number): Promise<void> {
+  public customRequiredErrorMsg( @Query() @IsLong('Required long number.') longValue: number): Promise<void> {
     return Promise.resolve();
   }
   /**
@@ -138,7 +155,7 @@ export class ValidateController {
    * @isLong longValue Invalid long number.
    */
   @Get('parameter/customInvalidErrorMsg')
-  public customInvalidErrorMsg( @Query() longValue: number): Promise<void> {
+  public customInvalidErrorMsg( @Query() @IsLong('Invalid long number.') longValue: number): Promise<void> {
     return Promise.resolve();
   }
 

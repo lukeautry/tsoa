@@ -13,9 +13,9 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
       if (property.validators) {
         const validators = property.validators;
         Object.keys(validators).forEach((key: string) => {
-          const errorMsg = validators[key].errorMsg;
-          if (key.startsWith('is') && errorMsg) {
-            message = errorMsg;
+          const messageError = validators[key].message;
+          if (key.startsWith('is') && messageError) {
+            message = messageError;
           }
         });
       }
@@ -64,11 +64,11 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
   if (!validator.isInt(String(value))) {
     let message = `invalid integer number`;
     if (validators) {
-      if (validators.isInt && validators.isInt.errorMsg) {
-        message = validators.isInt.errorMsg;
+      if (validators.isInt && validators.isInt.message) {
+        message = validators.isInt.message;
       }
-      if (validators.isLong && validators.isLong.errorMsg) {
-        message = validators.isLong.errorMsg;
+      if (validators.isLong && validators.isLong.message) {
+        message = validators.isLong.message;
       }
     }
     fieldErrors[parent + name] = {
@@ -83,7 +83,7 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
   if (validators.minimum && validators.minimum.value) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
-        message: validators.minimum.errorMsg || `min ${validators.minimum.value}`,
+        message: validators.minimum.message || `min ${validators.minimum.value}`,
         value,
       };
       return;
@@ -92,7 +92,7 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
   if (validators.maximum && validators.maximum.value) {
     if (validators.maximum.value < numberValue) {
       fieldErrors[parent + name] = {
-        message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
+        message: validators.maximum.message || `max ${validators.maximum.value}`,
         value,
       };
       return;
@@ -105,11 +105,11 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
   if (!validator.isFloat(String(value))) {
     let message = 'invalid float number';
     if (validators) {
-      if (validators.isFloat && validators.isFloat.errorMsg) {
-        message = validators.isFloat.errorMsg;
+      if (validators.isFloat && validators.isFloat.message) {
+        message = validators.isFloat.message;
       }
-      if (validators.isDouble && validators.isDouble.errorMsg) {
-        message = validators.isDouble.errorMsg;
+      if (validators.isDouble && validators.isDouble.message) {
+        message = validators.isDouble.message;
       }
     }
     fieldErrors[parent + name] = {
@@ -124,7 +124,7 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
   if (validators.minimum && validators.minimum.value) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
-        message: validators.minimum.errorMsg || `min ${validators.minimum.value}`,
+        message: validators.minimum.message || `min ${validators.minimum.value}`,
         value,
       };
       return;
@@ -133,7 +133,7 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
   if (validators.maximum && validators.maximum.value) {
     if (validators.maximum.value < numberValue) {
       fieldErrors[parent + name] = {
-        message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
+        message: validators.maximum.message || `max ${validators.maximum.value}`,
         value,
       };
       return;
@@ -166,7 +166,7 @@ export function validateEnum(name: string, value: any, fieldErrors: FieldErrors,
 export function validateDate(name: string, value: any, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
   const momentDate = moment(String(value), moment.ISO_8601, true);
   if (!momentDate.isValid()) {
-    const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
+    const message = (validators && validators.isDate && validators.isDate.message) ? validators.isDate.message : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -180,7 +180,7 @@ export function validateDate(name: string, value: any, fieldErrors: FieldErrors,
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > dateValue.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.minDate.errorMsg || `minDate '${validators.minDate.value}'`,
+        message: validators.minDate.message || `minDate '${validators.minDate.value}'`,
         value,
       };
       return;
@@ -190,7 +190,7 @@ export function validateDate(name: string, value: any, fieldErrors: FieldErrors,
     const maxDate = new Date(validators.maxDate.value);
     if (maxDate.getTime() < dateValue.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.maxDate.errorMsg || `maxDate '${validators.maxDate.value}'`,
+        message: validators.maxDate.message || `maxDate '${validators.maxDate.value}'`,
         value,
       };
       return;
@@ -202,7 +202,7 @@ export function validateDate(name: string, value: any, fieldErrors: FieldErrors,
 export function validateDateTime(name: string, value: any, fieldErrors: FieldErrors, validators?: DateTimeValidator, parent = '') {
   const momentDateTime = moment(String(value), moment.ISO_8601, true);
   if (!momentDateTime.isValid()) {
-    const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
+    const message = (validators && validators.isDateTime && validators.isDateTime.message) ? validators.isDateTime.message : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -216,7 +216,7 @@ export function validateDateTime(name: string, value: any, fieldErrors: FieldErr
     const minDate = new Date(validators.minDate.value);
     if (minDate.getTime() > datetimeValue.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.minDate.errorMsg || `minDate '${validators.minDate.value}'`,
+        message: validators.minDate.message || `minDate '${validators.minDate.value}'`,
         value,
       };
       return;
@@ -226,7 +226,7 @@ export function validateDateTime(name: string, value: any, fieldErrors: FieldErr
     const maxDate = new Date(validators.maxDate.value);
     if (maxDate.getTime() < datetimeValue.getTime()) {
       fieldErrors[parent + name] = {
-        message: validators.maxDate.errorMsg || `maxDate '${validators.maxDate.value}'`,
+        message: validators.maxDate.message || `maxDate '${validators.maxDate.value}'`,
         value,
       };
       return;
@@ -237,7 +237,7 @@ export function validateDateTime(name: string, value: any, fieldErrors: FieldErr
 
 export function validateString(name: string, value: any, fieldErrors: FieldErrors, validators?: StringValidator, parent = '') {
   if (typeof value !== 'string') {
-    const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `invalid string value`;
+    const message = (validators && validators.isString && validators.isString.message) ? validators.isString.message : `invalid string value`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -250,7 +250,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
   if (validators.minLength && validators.minLength.value) {
     if (validators.minLength.value > stringValue.length) {
       fieldErrors[parent + name] = {
-        message: validators.minLength.errorMsg || `minLength ${validators.minLength.value}`,
+        message: validators.minLength.message || `minLength ${validators.minLength.value}`,
         value,
       };
       return;
@@ -259,7 +259,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
   if (validators.maxLength && validators.maxLength.value) {
     if (validators.maxLength.value < stringValue.length) {
       fieldErrors[parent + name] = {
-        message: validators.maxLength.errorMsg || `maxLength ${validators.maxLength.value}`,
+        message: validators.maxLength.message || `maxLength ${validators.maxLength.value}`,
         value,
       };
       return;
@@ -268,7 +268,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
   if (validators.pattern && validators.pattern.value) {
     if (!validator.matches(String(stringValue), validators.pattern.value)) {
       fieldErrors[parent + name] = {
-        message: validators.pattern.errorMsg || `Not match in '${validators.pattern.value}'`,
+        message: validators.pattern.message || `Not match in '${validators.pattern.value}'`,
         value,
       };
       return;
@@ -285,7 +285,7 @@ export function validateBool(name: string, value: any, fieldErrors: FieldErrors,
   if (String(value).toLowerCase() === 'true') { return true; }
   if (String(value).toLowerCase() === 'false') { return false; }
 
-  const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid boolean value`;
+  const message = (validators && validators.isArray && validators.isArray.message) ? validators.isArray.message : `invalid boolean value`;
   fieldErrors[parent + name] = {
     message,
     value,
@@ -295,7 +295,7 @@ export function validateBool(name: string, value: any, fieldErrors: FieldErrors,
 
 export function validateArray(name: string, value: any[], fieldErrors: FieldErrors, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
   if (!schema || value === undefined || value === null) {
-    const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
+    const message = (validators && validators.isArray && validators.isArray.message) ? validators.isArray.message : `invalid array`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -320,7 +320,7 @@ export function validateArray(name: string, value: any[], fieldErrors: FieldErro
   if (validators.minItems && validators.minItems.value) {
     if (validators.minItems.value > arrayValue.length) {
       fieldErrors[parent + name] = {
-        message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
+        message: validators.minItems.message || `minItems ${validators.minItems.value}`,
         value,
       };
       return;
@@ -329,7 +329,7 @@ export function validateArray(name: string, value: any[], fieldErrors: FieldErro
   if (validators.maxItems && validators.maxItems.value) {
     if (validators.maxItems.value < arrayValue.length) {
       fieldErrors[parent + name] = {
-        message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
+        message: validators.maxItems.message || `maxItems ${validators.maxItems.value}`,
         value,
       };
       return;
@@ -342,7 +342,7 @@ export function validateArray(name: string, value: any[], fieldErrors: FieldErro
     });
     if (unique) {
       fieldErrors[parent + name] = {
-        message: validators.uniqueItems.errorMsg || `required unique array`,
+        message: validators.uniqueItems.message || `required unique array`,
         value,
       };
       return;
@@ -392,47 +392,47 @@ function validateModel(name: string, value: any, refName: string, fieldErrors: F
 }
 
 export interface IntegerValidator {
-  isInt?: { errorMsg?: string };
-  isLong?: { errorMsg?: string };
-  minimum?: { value: number, errorMsg?: string };
-  maximum?: { value: number, errorMsg?: string };
+  isInt?: { message?: string };
+  isLong?: { message?: string };
+  minimum?: { value: number, message?: string };
+  maximum?: { value: number, message?: string };
 }
 
 export interface FloatValidator {
-  isFloat?: { errorMsg?: string };
-  isDouble?: { errorMsg?: string };
-  minimum?: { value: number, errorMsg?: string };
-  maximum?: { value: number, errorMsg?: string };
+  isFloat?: { message?: string };
+  isDouble?: { message?: string };
+  minimum?: { value: number, message?: string };
+  maximum?: { value: number, message?: string };
 }
 
 export interface DateValidator {
-  isDate?: { errorMsg?: string };
-  minDate?: { value: string, errorMsg?: string };
-  maxDate?: { value: string, errorMsg?: string };
+  isDate?: { message?: string };
+  minDate?: { value: string, message?: string };
+  maxDate?: { value: string, message?: string };
 }
 
 export interface DateTimeValidator {
-  isDateTime?: { errorMsg?: string };
-  minDate?: { value: string, errorMsg?: string };
-  maxDate?: { value: string, errorMsg?: string };
+  isDateTime?: { message?: string };
+  minDate?: { value: string, message?: string };
+  maxDate?: { value: string, message?: string };
 }
 
 export interface StringValidator {
-  isString?: { errorMsg?: string };
-  minLength?: { value: number, errorMsg?: string };
-  maxLength?: { value: number, errorMsg?: string };
-  pattern?: { value: string, errorMsg?: string };
+  isString?: { message?: string };
+  minLength?: { value: number, message?: string };
+  maxLength?: { value: number, message?: string };
+  pattern?: { value: string, message?: string };
 }
 
 export interface BooleanValidator {
-  isArray?: { errorMsg?: string };
+  isArray?: { message?: string };
 }
 
 export interface ArrayValidator {
-  isArray?: { errorMsg?: string };
-  minItems?: { value: number; errorMsg?: string; };
-  maxItems?: { value: number; errorMsg?: string; };
-  uniqueItems?: { errorMsg?: string; };
+  isArray?: { message?: string };
+  minItems?: { value: number; message?: string; };
+  maxItems?: { value: number; message?: string; };
+  uniqueItems?: { message?: string; };
 }
 
 export type Validator = IntegerValidator

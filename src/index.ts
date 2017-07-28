@@ -10,4 +10,6 @@ export * from './decorators/route';
 export * from './decorators/security';
 export * from './interfaces/controller';
 export * from './decorators/response';
+export * from './decorators/content-type';
+export * from './decorators/validate';
 export * from './routeGeneration/templateHelpers';

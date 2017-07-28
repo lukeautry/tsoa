@@ -1,3 +1,21 @@
+import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsDateTime,
+  IsDouble,
+  IsFloat,
+  IsInt,
+  IsLong,
+  Max,
+  MaxItems,
+  MaxLength,
+  Min,
+  MinItems,
+  MinLength,
+  Pattern,
+  UniqueItems,
+} from './../../src';
 /**
  * This is a description of a model
  */
@@ -25,7 +43,7 @@ export interface TestModel extends Model {
   dateValue?: Date;
   optionalString?: string;
   anyType?: any;
-  // modelsObjectDirect?: {[key: string]: TestSubModel2;};
+  // modelsObjectDirect?: {[key: string]: TestSubModel2};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
   modelsObjectIndirectNS2?: TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2;
@@ -132,15 +150,11 @@ export interface UserResponseModel {
 export class ParameterTestModel {
   public firstname: string;
   public lastname: string;
-  /**
-   * @isInt
-   * @minimum 1
-   * @maximum 100
-   */
+  @IsInt()
+  @Min(1)
+  @Max(100)
   public age: number;
-  /**
-   * @isFloat
-   */
+  @IsFloat()
   public weight: number;
   public human: boolean;
   public gender: Gender;
@@ -154,68 +168,84 @@ export class ValidateModel {
   /**
    * @isFloat Invalid float error message.
    */
+  @IsFloat('Invalid float error message.')
   public floatValue: number;
   /**
    * @isDouble Invalid double error message.
    */
+  @IsDouble('Invalid double error message.')
   public doubleValue: number;
   /**
    * @isInt
    */
+  @IsInt()
   public intValue: number;
   /**
    * @isLong Custom Required long number.
    */
+  @IsLong('Custom Required long number.')
   public longValue: number;
   /**
    * @isBoolean
    */
+  @IsBoolean()
   public booleanValue: boolean;
   /**
    * @isArray
    */
+  @IsArray()
   public arrayValue: number[];
   /**
    * @isDate
    */
+  @IsDate()
   public dateValue: Date;
   /**
    * @isDateTime
    */
+  @IsDateTime()
   public datetimeValue: Date;
 
   /**
    * @maximum 10
    */
+  @Max(10)
   public numberMax10: number;
   /**
    * @minimum 5
    */
+  @Min(5)
   public numberMin5: number;
   /**
    * @maxLength 10
    */
+  @MaxLength(10)
   public stringMax10Lenght: string;
   /**
    * @minLength 5
    */
+  @MinLength(5)
   public stringMin5Lenght: string;
   /**
    *  @pattern ^[a-zA-Z]+$
    */
+  @Pattern('^[a-zA-Z]+$')
   public stringPatternAZaz: string;
 
   /**
    * @maxItems 5
    */
+  @MaxItems(5)
   public arrayMax5Item: number[];
   /**
    * @minItems 2
    */
+  @MinItems(2)
   public arrayMin2Item: number[];
   /**
    * @uniqueItems
    */
+  @UniqueItems()
   public arrayUniqueItem: number[];
 }
 

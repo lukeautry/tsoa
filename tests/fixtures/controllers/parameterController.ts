@@ -1,6 +1,7 @@
 import {
     Body,
     BodyProp,
+    Consumers,
     Get,
     Header,
     Path,
@@ -8,6 +9,7 @@ import {
     Query,
     Request,
     Route,
+    UploadFile,
 } from '../../../src';
 import { Gender, ParameterTestModel } from '../testModel';
 
@@ -185,5 +187,11 @@ export class ParameterController {
     @Post('ParamaterQueyArray')
     public async paramaterQueyArray(@Query() name: string[]): Promise<void> {
         //
+    }
+
+    @Post('ParamaterUploadFile')
+    @Consumers('multipart/form-data')
+    public async paramaterUploadFile(@UploadFile('image') image: any): Promise<any> {
+        return image;
     }
 }
