@@ -3,10 +3,6 @@
         "outputDirectory": "./dist",
         "entryFile": "./tests/fixtures/express/server.ts",
         "host": "localhost:3000",
-        "version": "1.0",
-        "name": "tsoa app",
-        "description": "a description",
-        "license": "MIT",
         "basePath": "/v1",
         "securityDefinitions": {
             "api_key": {
