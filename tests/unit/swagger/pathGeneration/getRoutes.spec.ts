@@ -1,12 +1,10 @@
+import { expect } from 'chai';
 import 'mocha';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { VerifyPathableParameter, VerifyPathableNumberParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
-import * as chai from 'chai';
-
-const expect = chai.expect;
 
 describe('GET route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -49,19 +47,19 @@ describe('GET route generation', () => {
     const parameter = parameters[0];
     if (!parameter) { throw new Error('Should have one parameter.'); }
 
-    chai.expect(parameter.type).to.equal('string');
-    chai.expect(parameter.format).to.equal('date-time');
+    expect(parameter.type).to.equal('string');
+    expect(parameter.format).to.equal('date-time');
   });
 
   it('should generate tags for tag decorated method', () => {
     const operation = getValidatedGetOperation(`${baseRoute}/GeneratesTags`);
-    chai.expect(operation.tags).to.deep.equal(['test', 'test-two']);
+    expect(operation.tags).to.deep.equal(['test', 'test-two']);
   });
 
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator(pathlessMetadata, getDefaultOptions()).GetSpec();
-    VerifyPath(pathlessSpec, '/Current', path => path.get, false);
+    VerifyPath(pathlessSpec, '/Current', (path) => path.get, false);
   });
 
   it('should generate a path for a GET route with a path argument', () => {
@@ -138,7 +136,7 @@ describe('GET route generation', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
       new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
-    }).to.throw('Parameter \'myModel\' can\'t be passed as a query parameter in \'InvalidGetTestController.getModelWithComplex\'.');
+    }).to.throw('@Query(\'myModel\') Can\'t support \'refObject\' type. \n in \'InvalidGetTestController.getModelWithComplex\'');
   });
 
   it('should generate a path description from jsdoc comment', () => {
@@ -195,6 +193,6 @@ describe('GET route generation', () => {
   }
 
   function verifyPath(route: string, isCollection?: boolean) {
-    return VerifyPath(spec, route, path => path.get, isCollection);
+    return VerifyPath(spec, route, (path) => path.get, isCollection);
   }
 });

@@ -1,42 +1,50 @@
 #!/usr/bin/env node
-/* tslint:disable:no-console */
-import { Config, SwaggerConfig, RoutesConfig } from './config';
-import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
-import { SpecGenerator } from './swagger/specGenerator';
-import { RouteGenerator } from './routeGeneration/routeGenerator';
-import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as PrettyError from 'pretty-error';
 import * as ts from 'typescript';
+import * as YAML from 'yamljs';
+import * as yargs from 'yargs';
+import { Config, RoutesConfig, SwaggerConfig } from './config';
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
+import { RouteGenerator } from './routeGeneration/routeGenerator';
+import { SpecGenerator } from './swagger/specGenerator';
 
 const workingDir: string = process.cwd();
-const pe = new PrettyError();
 
-const getPackageJsonValue = (key: string): string => {
+const getPackageJsonValue = (key: string, defaultValue = ''): string => {
   try {
     const packageJson = require(`${workingDir}/package.json`);
     return packageJson[key] || '';
   } catch (err) {
-    return '';
+    return defaultValue;
   }
 };
 
-const versionDefault = getPackageJsonValue('version');
-const nameDefault = getPackageJsonValue('name');
-const descriptionDefault = getPackageJsonValue('description');
-const licenseDefault = getPackageJsonValue('license');
+const nameDefault = getPackageJsonValue('name', 'TSOA');
+const versionDefault = getPackageJsonValue('version', '1.0.0');
+const descriptionDefault = getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
+const licenseDefault = getPackageJsonValue('license', 'MIT');
 
 const getConfig = (configPath = 'tsoa.json'): Config => {
   let config: Config;
   try {
-    config = require(`${workingDir}/${configPath}`);
+    const ext = path.extname(configPath);
+    if (ext === '.yaml' || ext === '.yml') {
+      config = YAML.load(configPath);
+    } else {
+      config = require(`${workingDir}/${configPath}`);
+    }
+
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
+      // tslint:disable-next-line:no-console
+      console.error(err);
       throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
     } else {
+      // tslint:disable-next-line:no-console
+      console.error(err);
       throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
     }
   }
@@ -78,107 +86,132 @@ const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   return config;
 };
 
-const configurationArgs = {
+const configurationArgs: yargs.Options = {
   alias: 'c',
   describe: 'tsoa configuration file; default is tsoa.json in the working directory',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
-const hostArgs = {
+const hostArgs: yargs.Options = {
   describe: 'API host',
   required: false,
-  type: 'string'
+  type: 'string',
 };
 
-const basePathArgs = {
+const basePathArgs: yargs.Options = {
   describe: 'Base API path',
   required: false,
-  type: 'string'
+  type: 'string',
+};
+
+const yarmlArgs: yargs.Options = {
+  describe: 'Swagger spec yaml format',
+  required: false,
+  type: 'boolean',
+};
+
+const jsonArgs: yargs.Options = {
+  describe: 'Swagger spec json format',
+  required: false,
+  type: 'boolean',
 };
 
 yargs
   .usage('Usage: $0 <command> [options]')
   .demand(1)
-
   .command('swagger', 'Generate swagger spec', {
-    basePath: basePathArgs as any,
-    configuration: configurationArgs as any,
-    host: hostArgs as any
-  }, (args: CommandLineArgs) => {
-    try {
-      const config = getConfig(args.configuration);
-      if (args.basePath) {
-        config.swagger.basePath = args.basePath;
-      }
-      if (args.host) {
-        config.swagger.host = args.host;
-      }
-
-      const compilerOptions = validateCompilerOptions(config.compilerOptions);
-      const swaggerConfig = validateSwaggerConfig(config.swagger);
-      const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
-      new SpecGenerator(metadata, config.swagger).GenerateJson(swaggerConfig.outputDirectory);
-
-      // tslint:disable-next-line:no-console
-      console.info('Generate swagger successful.');
-    } catch (err) {
-      console.error('Generate swagger error.\n', pe.render(err));
-    }
-  })
-
+    basePath: basePathArgs,
+    configuration: configurationArgs,
+    host: hostArgs,
+    json: jsonArgs,
+    yaml: yarmlArgs,
+  }, swaggerSpecGenerator)
   .command('routes', 'Generate routes', {
-    basePath: basePathArgs as any,
-    configuration: configurationArgs as any
-  }, (args: CommandLineArgs) => {
-    try {
-      const config = getConfig(args.configuration);
-      if (args.basePath) {
-        config.routes.basePath = args.basePath;
-      }
-
-      const compilerOptions = validateCompilerOptions(config.compilerOptions);
-      const routesConfig = validateRoutesConfig(config.routes);
-      const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions).Generate();
-      const routeGenerator = new RouteGenerator(metadata, routesConfig);
-
-      let pathTransformer;
-      let template;
-      pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
-
-      switch (routesConfig.middleware) {
-        case 'express':
-          template = path.join(__dirname, 'routeGeneration/templates/express.ts');
-          break;
-        case 'hapi':
-          template = path.join(__dirname, 'routeGeneration/templates/hapi.ts');
-          pathTransformer = (path: string) => path;
-          break;
-        case 'koa':
-          template = path.join(__dirname, 'routeGeneration/templates/koa.ts');
-          break;
-        default:
-          template = path.join(__dirname, 'routeGeneration/templates/express.ts');
-      }
-
-      if (routesConfig.middlewareTemplate) {
-        template = routesConfig.middlewareTemplate;
-      }
-
-      routeGenerator.GenerateCustomRoutes(template, pathTransformer);
-      // tslint:disable-next-line:no-console
-      console.info('Generate routes successful.');
-    } catch (err) {
-      console.error('Generate routes error.\n', pe.render(err));
-    }
-  })
-
+    basePath: basePathArgs,
+    configuration: configurationArgs,
+  }, routeGenerator)
   .help('help')
   .alias('help', 'h')
+  .version(() => getPackageJsonValue('version'))
   .argv;
 
-interface CommandLineArgs extends yargs.Argv {
-  basePath: string;
-  configuration: string;
-  host: string;
+function swaggerSpecGenerator(args) {
+  try {
+    const config = getConfig(args.configuration);
+    if (args.basePath) {
+      config.swagger.basePath = args.basePath;
+    }
+    if (args.host) {
+      config.swagger.host = args.host;
+    }
+    if (args.yaml) {
+      config.swagger.yaml = args.yaml;
+    }
+    if (args.json) {
+      config.swagger.yaml = false;
+    }
+
+    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const swaggerConfig = validateSwaggerConfig(config.swagger);
+    const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
+    const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
+
+    const exists = fs.existsSync(swaggerConfig.outputDirectory);
+    if (!exists) {
+      fs.mkdirSync(swaggerConfig.outputDirectory);
+    }
+    let data = JSON.stringify(spec, null, '\t');
+    if (config.swagger.yaml) {
+      data = YAML.stringify(JSON.parse(data), 10);
+    }
+    const ext = config.swagger.yaml ? 'yaml' : 'json';
+
+    fs.writeFileSync(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
+  } catch (err) {
+    // tslint:disable-next-line:no-console
+    console.error('Generate swagger error.\n', err);
+  }
+}
+
+function routeGenerator(args) {
+  try {
+    const config = getConfig(args.configuration);
+    if (args.basePath) {
+      config.routes.basePath = args.basePath;
+    }
+
+    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const routesConfig = validateRoutesConfig(config.routes);
+    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions).Generate();
+    const routeGenerator = new RouteGenerator(metadata, routesConfig);
+
+    let pathTransformer;
+    let template;
+    pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
+
+    switch (routesConfig.middleware) {
+      case 'express':
+        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
+        break;
+      case 'hapi':
+        template = path.join(__dirname, 'routeGeneration/templates/hapi.ts');
+        pathTransformer = (path: string) => path;
+        break;
+      case 'koa':
+        template = path.join(__dirname, 'routeGeneration/templates/koa.ts');
+        break;
+      default:
+        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
+    }
+
+    if (routesConfig.middlewareTemplate) {
+      template = routesConfig.middlewareTemplate;
+    }
+
+    routeGenerator.GenerateCustomRoutes(template, pathTransformer);
+  } catch (err) {
+    // tslint:disable-next-line:no-console
+    console.error('Generate routes error.\n', err);
+  }
 }

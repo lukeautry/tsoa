@@ -1,6 +1,6 @@
-import * as methodOverride from 'method-override';
-import * as express from 'express';
 import * as bodyParser from 'body-parser';
+import * as express from 'express';
+import * as methodOverride from 'method-override';
 
 import './managedController';
 import { RegisterRoutes } from './routes';

@@ -2,10 +2,6 @@ export namespace Swagger {
   export type DataType = 'integer'
     | 'number'
     | 'boolean'
-    | 'string';
-  export type SchemaDataType = 'integer'
-    | 'number'
-    | 'boolean'
     | 'string'
     | 'array'
     | 'object'
@@ -95,6 +91,7 @@ export namespace Swagger {
   export interface QueryParameter extends BaseParameter {
     in: 'query';
     allowEmptyValue?: boolean;
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
   }
 
   export interface PathParameter extends BaseParameter {
@@ -107,7 +104,7 @@ export namespace Swagger {
 
   export interface FormDataParameter extends BaseParameter {
     in: 'formData';
-    collectionFormat?: string;
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
   }
 
   export type Parameter = BodyParameter
@@ -156,7 +153,7 @@ export namespace Swagger {
     $ref?: string;
     title?: string;
     description?: string;
-    default?: string | boolean | number | Object;
+    default?: string | boolean | number | any;
     multipleOf?: number;
     maximum?: number;
     exclusiveMaximum?: number;
@@ -175,7 +172,7 @@ export namespace Swagger {
   }
 
   export interface Schema extends BaseSchema {
-    type: SchemaDataType;
+    type: DataType;
     format?: DataFormat;
     allOf?: Schema[];
     additionalProperties?: boolean | BaseSchema;
@@ -189,7 +186,7 @@ export namespace Swagger {
   }
 
   export interface Header extends BaseSchema {
-    type: DataType & 'array';
+    type: 'integer' | 'number' | 'boolean' | 'string' | 'array';
   }
 
   export interface XML {

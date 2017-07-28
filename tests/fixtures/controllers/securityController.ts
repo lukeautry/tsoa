@@ -1,10 +1,10 @@
-﻿import {
-  Get, Request, Response, Route, Security
-} from '../../../src';
 import * as express from 'express';
-import * as koa from 'koa';
 import * as hapi from 'hapi';
-import { UserResponseModel, ErrorResponseModel } from '../../fixtures/testModel';
+import * as koa from 'koa';
+import {
+  Get, Request, Response, Route, Security,
+} from '../../../src';
+import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 @Route('SecurityTest')
 export class SecurityTestController {
@@ -23,7 +23,7 @@ export class SecurityTestController {
     return Promise.resolve(request.user);
   }
 
-  @Response<ErrorResponseModel>('404', 'Not Fount')
+  @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Get('Oauth')
   public async GetWithSecurity( @Request() request: koa.Request): Promise<UserResponseModel> {

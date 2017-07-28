@@ -1,11 +1,9 @@
+import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import {Swagger} from '../../../../src/swagger/swagger';
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { Swagger } from '../../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
-import * as chai from 'chai';
-
-const expect = chai.expect;
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -27,7 +25,7 @@ describe('Definition generation', () => {
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
       const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS'];
-      expectedModels.forEach(modelName => {
+      expectedModels.forEach((modelName) => {
         getValidatedDefinition(modelName);
       });
     });
@@ -35,9 +33,10 @@ describe('Definition generation', () => {
     it('should generate an member of type object for union type', () => {
       const definition = getValidatedDefinition('Result');
       if (!definition.properties) { throw new Error('Definition has no properties.'); }
-      if (!definition.properties['value']) { throw new Error('There was no \'value\' property.'); }
+      if (!definition.properties.value) { throw new Error('There was no \'value\' property.'); }
 
-      expect(definition.properties['value'].type).to.equal('object');
+      expect(definition.properties.value.type).to.equal('string');
+      expect(definition.properties.value.enum).to.deep.equal(['success', 'failure']);
     });
 
     it('should generate a definition description from a model jsdoc comment', () => {
@@ -49,7 +48,7 @@ describe('Definition generation', () => {
       const definition = getValidatedDefinition('TestModel');
       if (!definition.properties) { throw new Error('Definition has no properties.'); }
 
-      const property = definition.properties['numberValue'];
+      const property = definition.properties.numberValue;
       if (!property) { throw new Error('There was no \'numberValue\' property.'); }
 
       expect(property).to.exist;
@@ -60,7 +59,7 @@ describe('Definition generation', () => {
       const definition = getValidatedDefinition('TestModel');
       if (!definition.properties) { throw new Error('Definition has no properties.'); }
 
-      const property = definition.properties['id'];
+      const property = definition.properties.id;
 
       expect(property).to.exist;
     });
@@ -140,7 +139,7 @@ describe('Definition generation', () => {
     });
 
     it('should generate properties from a base class', () => {
-      const property = properties['id'];
+      const property = properties.id;
       expect(property).to.exist;
     });
 
@@ -205,30 +204,30 @@ describe('Definition generation', () => {
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
-      const property = definition['result'];
+      const property = definition.result;
 
       expect(property).to.exist;
-      expect(property['$ref']).to.equal('#/definitions/TestModel');
+      expect(property.$ref).to.equal('#/definitions/TestModel');
     });
     it('should generate different definitions for a generic model array', () => {
       const definition = getValidatedDefinition('GenericModelTestModel[]').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
-      const property = definition['result'];
+      const property = definition.result;
 
       expect(property).to.exist;
       expect(property.type).to.equal('array');
 
       if (!property.items) { throw new Error(`There were no items on the property model.`); }
-      expect((property.items as Swagger.Schema)['$ref']).to.equal('#/definitions/TestModel');
+      expect((property.items as Swagger.Schema).$ref).to.equal('#/definitions/TestModel');
     });
     it('should generate different definitions for a generic primitive', () => {
       const definition = getValidatedDefinition('GenericModelstring').properties;
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
-      const property = definition['result'];
+      const property = definition.result;
 
       expect(property).to.exist;
       expect(property.type).to.equal('string');
@@ -238,13 +237,13 @@ describe('Definition generation', () => {
 
       if (!definition) { throw new Error(`There were no properties on model.`); }
 
-      const property = definition['result'];
+      const property = definition.result;
 
       expect(property).to.exist;
       expect(property.type).to.equal('array');
 
       if (!property.items) { throw new Error(`There were no items on the property model.`); }
-      expect((property.items as Swagger.Schema)['type']).to.equal('string');
+      expect((property.items as Swagger.Schema).type).to.equal('string');
     });
   });
 });

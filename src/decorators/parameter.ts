@@ -4,7 +4,7 @@
  */
 export function Body(): any {
   return () => { return; };
-};
+}
 
 /**
  * Inject value from body
@@ -13,14 +13,14 @@ export function Body(): any {
  */
 export function BodyProp(name?: string): any {
   return () => { return; };
-};
+}
 
 /**
  * Inject http request
  */
 export function Request(): any {
   return () => { return; };
-};
+}
 
 /**
  * Inject value from Path
@@ -29,7 +29,7 @@ export function Request(): any {
  */
 export function Path(name?: string): any {
   return () => { return; };
-};
+}
 
 /**
  * Inject value from query string
@@ -38,7 +38,7 @@ export function Path(name?: string): any {
  */
 export function Query(name?: string): any {
   return () => { return; };
-};
+}
 
 /**
  * Inject value from Http header
@@ -47,4 +47,4 @@ export function Query(name?: string): any {
  */
 export function Header(name?: string): any {
   return () => { return; };
-};
+}

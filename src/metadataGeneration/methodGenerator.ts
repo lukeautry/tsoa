@@ -1,14 +1,14 @@
 import * as ts from 'typescript';
-import { Method, ResponseType, Type } from './types';
-import { ResolveType } from './resolveType';
-import { ParameterGenerator } from './parameterGenerator';
-import { getJSDocDescription, isExistJSDocTag, getJSDocComment } from './../utils/jsDocUtils';
 import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
+import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
+import { ParameterGenerator } from './parameterGenerator';
+import { ResolveType } from './resolveType';
+import { Tsoa } from './tsoa';
 
 export class MethodGenerator {
-  private method: string;
+  private method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   private path: string;
 
   constructor(private readonly node: ts.MethodDeclaration) {
@@ -19,8 +19,10 @@ export class MethodGenerator {
     return !!this.method;
   }
 
-  public Generate(): Method {
-    if (!this.IsValid()) { throw new GenerateMetadataError(this.node, 'This isn\'t a valid a controller method.'); }
+  public Generate(): Tsoa.Method {
+    if (!this.IsValid()) {
+      throw new GenerateMetadataError('This isn\'t a valid a controller method.');
+    }
 
     const identifier = this.node.name as ts.Identifier;
 
@@ -36,7 +38,7 @@ export class MethodGenerator {
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
-      deprecated: isExistJSDocTag(this.node, tag => tag.tagName.text === 'deprecated'),
+      deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
       name: identifier.text,
@@ -46,30 +48,29 @@ export class MethodGenerator {
       security: this.getMethodSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getMethodTags(),
-      type
+      type,
     };
   }
 
   private buildParameters() {
-    const parameters = this.node.parameters.map(p => {
+    const parameters = this.node.parameters.map((p) => {
       try {
         return new ParameterGenerator(p, this.method, this.path).Generate();
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
-        const parameterId = p.name as ts.Identifier;
-        throw new GenerateMetadataError(this.node, `Error generate parameter method: '${controllerId.text}.${methodId.text}' argument: ${parameterId.text} ${e}`);
+        throw new GenerateMetadataError(`${e.message} \n in '${controllerId.text}.${methodId.text}'`);
       }
     });
 
-    const bodyParameters = parameters.filter(p => p.in === 'body');
-    const bodyProps = parameters.filter(p => p.in === 'body-prop');
+    const bodyParameters = parameters.filter((p) => p.in === 'body');
+    const bodyProps = parameters.filter((p) => p.in === 'body-prop');
 
     if (bodyParameters.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
     }
     if (bodyParameters.length > 0 && bodyProps.length > 0) {
-      throw new GenerateMetadataError(this.node, `Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
     }
     return parameters;
   }
@@ -81,34 +82,36 @@ export class MethodGenerator {
   }
 
   private processMethodDecorators() {
-    const pathDecorators = getDecorators(this.node, identifier => this.supportsPathMethod(identifier.text));
+    const pathDecorators = getDecorators(this.node, (identifier) => this.supportsPathMethod(identifier.text));
 
     if (!pathDecorators || !pathDecorators.length) { return; }
     if (pathDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
+      throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map((d) => d.text).join(', ')}`);
     }
 
     const decorator = pathDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
     const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
-    this.method = decorator.text.toLowerCase();
+    this.method = decorator.text.toLowerCase() as any;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
     this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
   }
 
-  private getMethodResponses(): ResponseType[] {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
-    if (!decorators || !decorators.length) { return []; }
+  private getMethodResponses(): Tsoa.Response[] {
+    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Response');
+    if (!decorators || !decorators.length) {
+      return [];
+    }
 
-    return decorators.map(decorator => {
+    return decorators.map((decorator) => {
       const expression = decorator.parent as ts.CallExpression;
 
       let description = '';
       let name = '200';
-      let examples = undefined;
+      let examples;
       if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
         name = (expression.arguments[0] as any).text;
       }
@@ -122,27 +125,27 @@ export class MethodGenerator {
 
       return {
         description,
-        examples: examples,
-        name: name,
+        examples,
+        name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
           ? ResolveType(expression.typeArguments[0])
-          : undefined
-      } as ResponseType;
+          : undefined,
+      } as Tsoa.Response;
     });
   }
 
-  private getMethodSuccessResponse(type: Type): ResponseType {
-    const decorators = getDecorators(this.node, identifier => identifier.text === 'SuccessResponse');
+  private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
+    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
-        description: type.typeName === 'void' ? 'No content' : 'Ok',
+        description: type.dataType === 'void' ? 'No content' : 'Ok',
         examples: this.getMethodSuccessExamples(),
-        name: type.typeName === 'void' ? '204' : '200',
-        schema: type
+        name: type.dataType === 'void' ? '204' : '200',
+        schema: type,
       };
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
@@ -163,15 +166,17 @@ export class MethodGenerator {
       description,
       examples,
       name,
-      schema: type
+      schema: type,
     };
   }
 
   private getMethodSuccessExamples() {
-    const exampleDecorators = getDecorators(this.node, identifier => identifier.text === 'Example');
-    if (!exampleDecorators || !exampleDecorators.length) { return undefined; }
+    const exampleDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Example');
+    if (!exampleDecorators || !exampleDecorators.length) {
+      return undefined;
+    }
     if (exampleDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = exampleDecorators[0];
@@ -182,7 +187,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['get', 'post', 'patch', 'delete', 'put'].some(m => m === method.toLowerCase());
+    return ['get', 'post', 'put', 'patch', 'delete'].some((m) => m === method.toLowerCase());
   }
 
   private getExamplesValue(argument: any) {
@@ -194,10 +199,12 @@ export class MethodGenerator {
   }
 
   private getMethodTags() {
-    const tagsDecorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
-    if (!tagsDecorators || !tagsDecorators.length) { return []; }
+    const tagsDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
+    if (!tagsDecorators || !tagsDecorators.length) {
+      return [];
+    }
     if (tagsDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = tagsDecorators[0];
@@ -207,10 +214,12 @@ export class MethodGenerator {
   }
 
   private getMethodSecurity() {
-    const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
-    if (!securityDecorators || !securityDecorators.length) { return undefined; }
+    const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
+    if (!securityDecorators || !securityDecorators.length) {
+      return undefined;
+    }
     if (securityDecorators.length > 1) {
-      throw new GenerateMetadataError(this.node, `Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = securityDecorators[0];
@@ -218,7 +227,7 @@ export class MethodGenerator {
 
     return {
       name: (expression.arguments[0] as any).text,
-      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined
+      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
     };
   }
 }

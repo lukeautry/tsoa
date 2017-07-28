@@ -1,14 +1,14 @@
 import * as ts from 'typescript';
-import { ReferenceType, Metadata } from './types';
 import { ControllerGenerator } from './controllerGenerator';
+import { Tsoa } from './tsoa';
 
 export class MetadataGenerator {
   public static current: MetadataGenerator;
   public readonly nodes = new Array<ts.Node>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
-  private referenceTypes: { [typeName: string]: ReferenceType } = {};
-  private circularDependencyResolvers = new Array<(referenceTypes: { [typeName: string]: ReferenceType }) => void>();
+  private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
+  private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
   public IsExportedNode(node: ts.Node) { return true; }
 
@@ -18,20 +18,20 @@ export class MetadataGenerator {
     MetadataGenerator.current = this;
   }
 
-  public Generate(): Metadata {
-    this.program.getSourceFiles().forEach(sf => {
-      ts.forEachChild(sf, node => {
+  public Generate(): Tsoa.Metadata {
+    this.program.getSourceFiles().forEach((sf) => {
+      ts.forEachChild(sf, (node) => {
         this.nodes.push(node);
       });
     });
 
     const controllers = this.buildControllers();
 
-    this.circularDependencyResolvers.forEach(c => c(this.referenceTypes));
+    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
 
     return {
-      Controllers: controllers,
-      ReferenceTypes: this.referenceTypes
+      controllers,
+      referenceTypeMap: this.referenceTypeMap,
     };
   }
 
@@ -39,23 +39,26 @@ export class MetadataGenerator {
     return this.typeChecker;
   }
 
-  public AddReferenceType(referenceType: ReferenceType) {
-    this.referenceTypes[referenceType.typeName] = referenceType;
+  public AddReferenceType(referenceType: Tsoa.ReferenceType) {
+    if (!referenceType.refName) {
+      return;
+    }
+    this.referenceTypeMap[referenceType.refName] = referenceType;
   }
 
-  public GetReferenceType(typeName: string) {
-    return this.referenceTypes[typeName];
+  public GetReferenceType(refName: string) {
+    return this.referenceTypeMap[refName];
   }
 
-  public OnFinish(callback: (referenceTypes: { [typeName: string]: ReferenceType }) => void) {
+  public OnFinish(callback: (referenceTypes: Tsoa.ReferenceTypeMap) => void) {
     this.circularDependencyResolvers.push(callback);
   }
 
   private buildControllers() {
     return this.nodes
-      .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
+      .filter((node) => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
       .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration))
-      .filter(generator => generator.IsValid())
-      .map(generator => generator.Generate());
+      .filter((generator) => generator.IsValid())
+      .map((generator) => generator.Generate());
   }
 }

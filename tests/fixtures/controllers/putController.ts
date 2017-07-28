@@ -1,8 +1,8 @@
 import {
-  Route, Body, Put
+  Body, Put, Route,
 } from '../../../src';
-import { TestModel } from '../testModel';
 import { ModelService } from '../services/modelService';
+import { TestModel } from '../testModel';
 
 @Route('PutTest')
 export class PutTestController {

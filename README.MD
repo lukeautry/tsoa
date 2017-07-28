@@ -23,6 +23,14 @@
 
 ## How it works
 
+## Installation
+
+```sh
+npm install tsoa --save
+// OR
+npm install lukeautry/tsoa#[VERSION]
+```
+
 ### Create Controllers
 
 ```typescript
@@ -397,12 +405,6 @@ If you have a project that utilized this functionality, you can configure the in
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
-
-## Installation
-
-```
-npm install tsoa --save
-```
 
 ## Command Line Interface
 

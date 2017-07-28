@@ -1,18 +1,18 @@
 import {
-    Get,
-    Post,
-    Patch,
-    Put,
-    Delete,
-    Route,
-    Response,
-    SuccessResponse,
     Controller,
+    Delete,
+    Get,
+    Patch,
+    Post,
+    Put,
+    Response,
+    Route,
+    Security,
+    SuccessResponse,
     Tags,
-    Security
 } from '../../../src';
 import { ModelService } from '../services/modelService';
-import { TestModel, ErrorResponseModel } from '../testModel';
+import { ErrorResponseModel, TestModel } from '../testModel';
 
 @Route('MethodTest')
 export class MethodController extends Controller {
@@ -97,5 +97,10 @@ export class MethodController extends Controller {
     @Get('SummaryMethod')
     public async summaryMethod(): Promise<TestModel> {
         return new ModelService().getModel();
+    }
+
+    @Get('returnAnyType')
+    public async returnAnyType(): Promise<any> {
+        return 'Hello Word';
     }
 }
