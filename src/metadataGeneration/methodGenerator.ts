@@ -1,10 +1,10 @@
 import * as ts from 'typescript';
-import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
+import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
-import { resolveType } from './resolveType';
+import { getInitializerValue, resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
 
 export class MethodGenerator {

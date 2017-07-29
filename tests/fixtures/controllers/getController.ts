@@ -27,6 +27,7 @@ export class GetTestController extends Controller {
   @Example<TestModel>({
     boolArray: [true, false],
     boolValue: true,
+    dateValue: new Date(),
     id: 1,
     modelValue: {
       email: 'test@test.com',

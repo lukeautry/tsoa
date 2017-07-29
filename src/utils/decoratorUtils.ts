@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { getInitializerValue } from './../metadataGeneration/resolveType';
 
 export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = node.decorators;
@@ -43,30 +44,4 @@ export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifie
     return false;
   }
   return true;
-}
-
-export function getInitializerValue(initializer: any) {
-  switch (initializer.kind as ts.SyntaxKind) {
-    case ts.SyntaxKind.ArrayLiteralExpression:
-      return initializer.elements.map((e: any) => getInitializerValue(e));
-    case ts.SyntaxKind.StringLiteral:
-      return initializer.text;
-    case ts.SyntaxKind.TrueKeyword:
-      return true;
-    case ts.SyntaxKind.FalseKeyword:
-      return false;
-    case ts.SyntaxKind.NumberKeyword:
-    case ts.SyntaxKind.FirstLiteralToken:
-      return parseInt(initializer.text, 10);
-    case ts.SyntaxKind.ObjectLiteralExpression:
-      const nestedObject: any = {};
-
-      initializer.properties.forEach((p: any) => {
-        nestedObject[p.name.text] = getInitializerValue(p.initializer);
-      });
-
-      return nestedObject;
-    default:
-      return undefined;
-  }
 }
