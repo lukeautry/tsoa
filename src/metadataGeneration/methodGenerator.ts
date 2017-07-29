@@ -4,7 +4,7 @@ import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../util
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
-import { ResolveType } from './resolveType';
+import { resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
 
 export class MethodGenerator {
@@ -33,7 +33,7 @@ export class MethodGenerator {
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType);
     }
-    const type = ResolveType(nodeType);
+    const type = resolveType(nodeType);
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 
@@ -128,7 +128,7 @@ export class MethodGenerator {
         examples,
         name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
-          ? ResolveType(expression.typeArguments[0])
+          ? resolveType(expression.typeArguments[0])
           : undefined,
       } as Tsoa.Response;
     });

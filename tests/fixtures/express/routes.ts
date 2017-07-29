@@ -113,12 +113,14 @@ const models: TsoaRoute.Models={
   },
   "TestClassModel": {
     "properties": {
+      "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
       "stringProperty": { "dataType": "string", "required": true },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
       "id": { "dataType": "double", "required": true },
+      "defaultValue1": { "dataType": "string", "default": "Default Value 1" },
     },
   },
   "Result": {
@@ -365,7 +367,7 @@ export function RegisterRoutes(app: any) {
         booleanParam: { "in": "query", "name": "booleanParam", "required": true, "dataType": "boolean" },
         stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string", "validators": { "isString": { "errorMsg": "Custom error message" }, "minLength": { "value": 3 }, "maxLength": { "value": 10 } } },
         numberParam: { "in": "query", "name": "numberParam", "required": true, "dataType": "double" },
-        optionalStringParam: { "in": "query", "name": "optionalStringParam", "dataType": "string" },
+        optionalStringParam: { "default": "", "in": "query", "name": "optionalStringParam", "dataType": "string" },
       };
 
       let validatedArgs: any[]=[];
@@ -1288,7 +1290,7 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.parameterAnyType.apply(controller, validatedArgs);
+      const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/ParameterTest/ParamaterBodyAnyType',
@@ -1307,7 +1309,7 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.paramaterBodyAnyType.apply(controller, validatedArgs);
+      const promise=controller.bodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.post('/v1/ParameterTest/ParamaterQueyArray',
@@ -1326,7 +1328,140 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.paramaterQueyArray.apply(controller, validatedArgs);
+      const promise=controller.queyArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/ParamaterImplicitString',
+    function(request: any, response: any, next: any) {
+      const args={
+        name: { "default": "Iron man", "in": "query", "name": "name", "dataType": "string" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitString.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/ParamaterImplicitNumber',
+    function(request: any, response: any, next: any) {
+      const args={
+        age: { "default": 40, "in": "query", "name": "age", "dataType": "double" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitNumber.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/ParamaterImplicitEnum',
+    function(request: any, response: any, next: any) {
+      const args={
+        gender: { "in": "query", "name": "gender", "dataType": "enum", "enums": ["MALE", "FEMALE"] },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitEnum.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/ParamaterImplicitStringArray',
+    function(request: any, response: any, next: any) {
+      const args={
+        arr: { "default": ["V1", "V2"], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "string" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitStringArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/paramaterImplicitNumberArray',
+    function(request: any, response: any, next: any) {
+      const args={
+        arr: { "default": [1, 2, 3], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "double" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitNumberArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/paramaterImplicitDateTime',
+    function(request: any, response: any, next: any) {
+      const args={
+        date: { "default": "2017-01-01T00:00:00.000Z", "in": "query", "name": "date", "dataType": "datetime" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitDateTime.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTest/paramaterImplicitDate',
+    function(request: any, response: any, next: any) {
+      const args={
+        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.implicitDate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest',
@@ -1646,7 +1781,7 @@ export function RegisterRoutes(app: any) {
   function authenticateMiddleware(name: string, scopes: string[]=[]) {
     return (request: any, response: any, next: any) => {
       return expressAuthentication(request, name, scopes).then((user: any) => {
-        request['user'] = user;
+        request['user']=user;
         next();
       })
         .catch((error: any) => {

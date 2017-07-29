@@ -136,6 +136,7 @@ export class RouteGenerator {
 
   private buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {
     const propertySchema = this.buildProperty(source.type);
+    propertySchema.default = source.default;
     propertySchema.required = source.required ? true : undefined;
 
     if (Object.keys(source.validators).length > 0) {
@@ -147,6 +148,7 @@ export class RouteGenerator {
   private buildParameterSchema(source: Tsoa.Parameter): TsoaRoute.ParameterSchema {
     const property = this.buildProperty(source.type);
     const parameter = {
+      default: source.default,
       in: source.in,
       name: source.name,
       required: source.required ? true : undefined,

@@ -3,7 +3,7 @@ import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUti
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
-import { ResolveType } from './resolveType';
+import { getInitializerValue, resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
 
 export class ParameterGenerator {
@@ -34,12 +34,6 @@ export class ParameterGenerator {
     }
   }
 
-  private getCurrentLocation() {
-    const methodId = (this.parameter.parent as ts.MethodDeclaration).name as ts.Identifier;
-    const controllerId = ((this.parameter.parent as ts.MethodDeclaration).parent as ts.ClassDeclaration).name as ts.Identifier;
-    return `${controllerId.text}.${methodId.text}`;
-  }
-
   private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     return {
@@ -62,6 +56,7 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'BodyProp') || parameterName,
@@ -100,6 +95,7 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Header') || parameterName,
@@ -127,6 +123,7 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
@@ -150,6 +147,7 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'path',
       name: pathName,
@@ -188,6 +186,6 @@ export class ParameterGenerator {
       const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
       typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type);
     }
-    return ResolveType(typeNode, extractEnum);
+    return resolveType(typeNode, parameter, extractEnum);
   }
 }

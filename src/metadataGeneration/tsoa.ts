@@ -32,6 +32,7 @@ export namespace Tsoa {
     name: string;
     required?: boolean;
     type: Type;
+    default?: any;
     validators: Validators;
   }
 
@@ -52,6 +53,7 @@ export namespace Tsoa {
   }
 
   export interface Property {
+    default?: any;
     description?: string;
     name: string;
     type: Type;

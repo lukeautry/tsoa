@@ -25,7 +25,7 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
       };
       return;
     } else {
-      return;
+      return property.default;
     }
   }
 
