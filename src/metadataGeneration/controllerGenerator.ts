@@ -1,17 +1,22 @@
 import * as ts from 'typescript';
+import { getDecorators } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from './tsoa';
 
 export class ControllerGenerator {
-  private readonly pathValue: string | undefined;
+  private readonly path?: string;
+  private readonly tags?: string[];
+  private readonly security?: Tsoa.Security;
 
   constructor(private readonly node: ts.ClassDeclaration) {
-    this.pathValue = this.getControllerRouteValue(node);
+    this.path = this.getPath();
+    this.tags = this.getTags();
+    this.security = this.getSecurity();
   }
 
   public IsValid() {
-    return !!this.pathValue || this.pathValue === '';
+    return !!this.path || this.path === '';
   }
 
   public Generate(): Tsoa.Controller {
@@ -28,39 +33,64 @@ export class ControllerGenerator {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.pathValue || '',
+      path: this.path || '',
     };
   }
 
   private buildMethods() {
     return this.node.members
       .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.tags, this.security))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
 
-  private getControllerRouteValue(node: ts.ClassDeclaration) {
-    return this.getControllerDecoratorValue(node, 'Route', '');
-  }
-
-  private getControllerDecoratorValue(node: ts.ClassDeclaration, decoratorName: string, defaultValue: string) {
-    if (!node.decorators) { return undefined; }
-
-    const matchedAttributes = node.decorators
-      .map((d) => d.expression as ts.CallExpression)
-      .filter((expression) => {
-        const subExpression = expression.expression as ts.Identifier;
-        return subExpression.text === decoratorName;
-      });
-
-    if (!matchedAttributes.length) { return undefined; }
-    if (matchedAttributes.length > 1) {
-      throw new GenerateMetadataError(`A controller can only have a single 'decoratorName' decorator in \`${(this.node.name as any).text}\` class.`);
+  private getPath() {
+    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Route');
+    if (!decorators || !decorators.length) {
+      return;
+    }
+    if (decorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Route decorator allowed in '${this.node.name!.text}' class.`);
     }
 
-    const value = matchedAttributes[0].arguments[0] as ts.StringLiteral;
-    return value ? value.text : defaultValue;
+    const decorator = decorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+    const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
+    return decoratorArgument ? `${decoratorArgument.text}` : '';
+  }
+
+  private getTags() {
+    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
+    if (!decorators || !decorators.length) {
+      return;
+    }
+    if (decorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.node.name!.text}' class.`);
+    }
+
+    const decorator = decorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return expression.arguments.map((a: any) => a.text as string);
+  }
+
+  private getSecurity() {
+    const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
+    if (!securityDecorators || !securityDecorators.length) {
+      return undefined;
+    }
+    if (securityDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.node.name!.text}' class.`);
+    }
+
+    const decorator = securityDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return {
+      name: (expression.arguments[0] as any).text,
+      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
+    };
   }
 
 }

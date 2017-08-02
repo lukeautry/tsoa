@@ -11,7 +11,10 @@ export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   private path: string;
 
-  constructor(private readonly node: ts.MethodDeclaration) {
+  constructor(
+    private readonly node: ts.MethodDeclaration,
+    private readonly parentTags?: string[],
+    private readonly parentSecurity?: Tsoa.Security) {
     this.processMethodDecorators();
   }
 
@@ -23,8 +26,6 @@ export class MethodGenerator {
     if (!this.IsValid()) {
       throw new GenerateMetadataError('This isn\'t a valid a controller method.');
     }
-
-    const identifier = this.node.name as ts.Identifier;
 
     let nodeType = this.node.type;
     if (!nodeType) {
@@ -41,13 +42,13 @@ export class MethodGenerator {
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
-      name: identifier.text,
+      name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
       path: this.path,
       responses,
-      security: this.getMethodSecurity(),
+      security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
-      tags: this.getMethodTags(),
+      tags: this.getTags(),
       type,
     };
   }
@@ -198,10 +199,10 @@ export class MethodGenerator {
     return example;
   }
 
-  private getMethodTags() {
+  private getTags() {
     const tagsDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) {
-      return [];
+      return this.parentTags;
     }
     if (tagsDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -209,14 +210,17 @@ export class MethodGenerator {
 
     const decorator = tagsDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
-
-    return expression.arguments.map((a: any) => a.text);
+    const tags = expression.arguments.map((a: any) => a.text as string);
+    if (this.parentTags) {
+      tags.push(...this.parentTags);
+    }
+    return tags;
   }
 
-  private getMethodSecurity() {
+  private getSecurity() {
     const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) {
-      return undefined;
+      return this.parentSecurity;
     }
     if (securityDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
@@ -224,7 +228,6 @@ export class MethodGenerator {
 
     const decorator = securityDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
-
     return {
       name: (expression.arguments[0] as any).text,
       scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,

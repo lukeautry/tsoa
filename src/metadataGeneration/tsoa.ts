@@ -19,7 +19,7 @@ export namespace Tsoa {
     parameters: Parameter[];
     path: string;
     type: Type;
-    tags: string[];
+    tags?: string[];
     responses: Response[];
     security?: Security;
     summary?: string;

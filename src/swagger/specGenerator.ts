@@ -91,12 +91,10 @@ export class SpecGenerator {
     const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
+    pathMethod.tags = method.tags;
 
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;
-    }
-    if (method.tags.length) {
-      pathMethod.tags = method.tags;
     }
     if (method.security) {
       const security: any = {};
