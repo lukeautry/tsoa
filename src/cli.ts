@@ -171,6 +171,7 @@ function swaggerSpecGenerator(args) {
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
+    process.exit(1);
   }
 }
 
@@ -213,5 +214,6 @@ function routeGenerator(args) {
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
+    process.exit(1);
   }
 }
