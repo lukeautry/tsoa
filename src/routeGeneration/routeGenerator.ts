@@ -13,7 +13,7 @@ export class RouteGenerator {
     replace: true,
     tsconfig: true,
     tsfmt: true,
-    tslint: true,
+    tslint: false,
     verify: true,
     vscode: true,
   };
@@ -25,7 +25,8 @@ export class RouteGenerator {
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     return new Promise<void>((resolve, reject) => {
-      tsfmt.processString(fileName, content, this.tsfmtConfig as any)
+      tsfmt
+        .processString(fileName, content, this.tsfmtConfig as any)
         .then(result => {
           fs.writeFile(fileName, result.dest, (err) => {
             if (err) {
@@ -34,8 +35,8 @@ export class RouteGenerator {
               resolve();
             }
           });
-        },
-      );
+        })
+        .catch(reject);
     });
   }
 

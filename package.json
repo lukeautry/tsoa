@@ -26,6 +26,7 @@
     "format": "tsfmt -r",
     "prepublish": "npm run build",
     "deploy": "npm version patch -m \"Release v%s\" && npm publish",
+    "preversion": "npm test",
     "postversion": "git push origin master && git push --follow-tags",
     "routes-gen": "node ./dist/cli.js routes",
     "swagger-gen": "node ./dist/cli.js swagger",
