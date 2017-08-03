@@ -83,6 +83,13 @@ export class MethodController extends Controller {
         return new ModelService().getModel();
     }
 
+    @Security('tsoa_auth', ['write:pets', 'read:pets'])
+    @Security('api_key')
+    @Get('OauthOrAPIkeySecurity')
+    public async oauthOrAPIkeySecurity(): Promise<TestModel> {
+        return new ModelService().getModel();
+    }
+
     /**
      * @deprecated
      */

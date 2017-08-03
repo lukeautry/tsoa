@@ -7,7 +7,7 @@ import { Tsoa } from './tsoa';
 export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
-  private readonly security?: Tsoa.Security;
+  private readonly security?: Tsoa.Security[];
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.path = this.getPath();
@@ -75,22 +75,22 @@ export class ControllerGenerator {
     return expression.arguments.map((a: any) => a.text as string);
   }
 
-  private getSecurity() {
+  private getSecurity(): Tsoa.Security[] {
     const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) {
-      return undefined;
-    }
-    if (securityDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.node.name!.text}' class.`);
+      return [];
     }
 
-    const decorator = securityDecorators[0];
-    const expression = decorator.parent as ts.CallExpression;
+    const security: Tsoa.Security[] = [];
+    for (const sec of securityDecorators) {
+      const expression = sec.parent as ts.CallExpression;
+      security.push({
+        name: (expression.arguments[0] as any).text,
+        scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
+      });
+    }
 
-    return {
-      name: (expression.arguments[0] as any).text,
-      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
-    };
+    return security;
   }
 
 }

@@ -14,7 +14,7 @@ export class MethodGenerator {
   constructor(
     private readonly node: ts.MethodDeclaration,
     private readonly parentTags?: string[],
-    private readonly parentSecurity?: Tsoa.Security) {
+    private readonly parentSecurity?: Tsoa.Security[]) {
     this.processMethodDecorators();
   }
 
@@ -217,20 +217,21 @@ export class MethodGenerator {
     return tags;
   }
 
-  private getSecurity() {
+  private getSecurity(): Tsoa.Security[] {
     const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) {
-      return this.parentSecurity;
-    }
-    if (securityDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
+      return this.parentSecurity || [];
     }
 
-    const decorator = securityDecorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-    return {
-      name: (expression.arguments[0] as any).text,
-      scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
-    };
+    const security: Tsoa.Security[] = [];
+    for (const sec of securityDecorators) {
+      const expression = sec.parent as ts.CallExpression;
+      security.push({
+        name: (expression.arguments[0] as any).text,
+        scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
+      });
+    }
+
+    return security;
   }
 }

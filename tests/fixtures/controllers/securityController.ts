@@ -29,4 +29,13 @@ export class SecurityTestController {
   public async GetWithSecurity( @Request() request: koa.Request): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
+
+  @Response<ErrorResponseModel>('404', 'Not Found')
+  @Security('tsoa_auth', ['write:pets', 'read:pets'])
+  @Security('api_key')
+  @Get('OauthOrAPIkey')
+  public async GetWithDoubleSecurity( @Request() request: koa.Request): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
+
 }
