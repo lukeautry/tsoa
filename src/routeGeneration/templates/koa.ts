@@ -37,14 +37,10 @@ const models: TsoaRoute.Models = {
 export function RegisterRoutes(router: any) {
     {{#each controllers}}
     {{#each actions}}
-        router.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
-            {{#if security}} 
-            authenticateMiddleware('{{security.name}}'
-              {{#if security.scopes.length}} 
-              , {{{json security.scopes}}}
-              {{/if}}
-            ), 
-            {{/if}} 
+        router.{{method}}('{{../../basePath}}/{{../path}}{{path}}',
+            {{#if security.length}}
+            authenticateMiddleware({{json security}}),
+            {{/if}}
             async (context, next) => {
             const args = {
                 {{#each parameters}}
@@ -72,20 +68,32 @@ export function RegisterRoutes(router: any) {
         });
     {{/each}}
     {{/each}}
-  
+
   {{#if useSecurity}}
-  function authenticateMiddleware(name: string, scopes: string[] = []) {
-      return async (context: any, next: any) => {
-          return koaAuthentication(context.request, name, scopes).then((user: any) => {
-              context.request['user'] = user;
-              next();
-          })
-          .catch((error: any) => {
-              context.status = error.status || 401;
-              context.body = error;
-              next();
-        });
-     }
+  function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+    return (context: any, next: any) => {
+        let responded = 0;
+        let success = false;
+        for (const secMethod of security) {
+            koaAuthentication(context.request, secMethod.name, secMethod.scopes).then((user: any) => {
+                // only need to respond once
+                if (!success) {
+                    success = true;
+                    responded++;
+                    context.request['user'] = user;
+                    next();
+                }
+            })
+            .catch((error: any) => {
+                responded++;
+                if (responded == security.length && !success) {
+                    context.status = error.status || 401;
+                    context.body = error;
+                    next();
+                }
+            })
+        }
+    }
   }
   {{/if}}
 

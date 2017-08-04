@@ -21,7 +21,7 @@ export namespace Tsoa {
     type: Type;
     tags?: string[];
     responses: Response[];
-    security?: Security;
+    security: Security[];
     summary?: string;
   }
 

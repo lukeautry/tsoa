@@ -37,13 +37,10 @@ const models: TsoaRoute.Models = {
 export function RegisterRoutes(app: any) {
     {{#each controllers}}
     {{#each actions}}
-        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}', 
-            {{#if security}} 
-            authenticateMiddleware('{{security.name}}'
-                {{#if security.scopes.length}} 
-                ,{{{json security.scopes}}}
-                {{/if}}), 
-            {{/if}} 
+        app.{{method}}('{{../../basePath}}/{{../path}}{{path}}',
+            {{#if security.length}}
+            authenticateMiddleware({{json security}}),
+            {{/if}}
             function (request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
@@ -72,16 +69,28 @@ export function RegisterRoutes(app: any) {
     {{/each}}
 
     {{#if useSecurity}}
-    function authenticateMiddleware(name: string, scopes: string[] = []) {
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
         return (request: any, response: any, next: any) => {
-            expressAuthentication(request, name, scopes).then((user: any) => {
-                request['user'] = user;
-                next();
-            })
-            .catch((error: any) => {
-                response.status(401);
-                next(error)
-            });
+            let responded = 0;
+            let success = false;
+            for (const secMethod of security) {
+                expressAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
+                    // only need to respond once
+                    if (!success) {
+                        success = true;
+                        responded++;
+                        request['user'] = user;
+                        next();
+                    }
+                })
+                .catch((error: any) => {
+                    responded++;
+                    if (responded == security.length && !success) {
+                        response.status(401);
+                        next(error)
+                    }
+                })
+            }
         }
     }
     {{/if}}

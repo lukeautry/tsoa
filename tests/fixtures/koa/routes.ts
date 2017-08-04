@@ -1090,8 +1090,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/MethodTest/ApiSecurity',
-    authenticateMiddleware('api_key'
-    ),
+    authenticateMiddleware([{ "name": "api_key" }]),
     async (context, next) => {
       const args={
       };
@@ -1111,9 +1110,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/MethodTest/OauthSecurity',
-    authenticateMiddleware('tsoa_auth'
-      , ["write:pets", "read:pets"]
-    ),
+    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
     async (context, next) => {
       const args={
       };
@@ -1130,6 +1127,26 @@ export function RegisterRoutes(router: any) {
       const controller=new MethodController();
 
       const promise=controller.oauthSecurity.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/MethodTest/OauthOrAPIkeySecurity',
+    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    async (context, next) => {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new MethodController();
+
+      const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/MethodTest/DeprecatedMethod',
@@ -1530,8 +1547,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest',
-    authenticateMiddleware('api_key'
-    ),
+    authenticateMiddleware([{ "name": "api_key" }]),
     async (context, next) => {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1552,8 +1568,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest/Koa',
-    authenticateMiddleware('api_key'
-    ),
+    authenticateMiddleware([{ "name": "api_key" }]),
     async (context, next) => {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1574,9 +1589,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest/Oauth',
-    authenticateMiddleware('tsoa_auth'
-      , ["write:pets", "read:pets"]
-    ),
+    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
     async (context, next) => {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1594,6 +1607,27 @@ export function RegisterRoutes(router: any) {
       const controller=new SecurityTestController();
 
       const promise=controller.GetWithSecurity.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/SecurityTest/OauthOrAPIkey',
+    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    async (context, next) => {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new SecurityTestController();
+
+      const promise=controller.GetWithDoubleSecurity.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/Controller/normalStatusCode',
@@ -1859,17 +1893,29 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
 
-  function authenticateMiddleware(name: string, scopes: string[]=[]) {
-    return async (context: any, next: any) => {
-      return koaAuthentication(context.request, name, scopes).then((user: any) => {
-        context.request['user']=user;
-        next();
-      })
-        .catch((error: any) => {
-          context.status=error.status||401;
-          context.body=error;
-          next();
-        });
+  function authenticateMiddleware(security: TsoaRoute.Security[]=[]) {
+    return (context: any, next: any) => {
+      let responded=0;
+      let success=false;
+      for (const secMethod of security) {
+        koaAuthentication(context.request, secMethod.name, secMethod.scopes).then((user: any) => {
+          // only need to respond once
+          if (!success) {
+            success=true;
+            responded++;
+            context.request['user']=user;
+            next();
+          }
+        })
+          .catch((error: any) => {
+            responded++;
+            if (responded==security.length&&!success) {
+              context.status=error.status||401;
+              context.body=error;
+              next();
+            }
+          })
+      }
     }
   }
 

@@ -97,9 +97,15 @@ export class SpecGenerator {
       pathMethod.deprecated = method.deprecated;
     }
     if (method.security) {
-      const security: any = {};
-      security[method.security.name] = method.security.scopes ? method.security.scopes : [];
-      pathMethod.security = [security];
+
+      const methodSecurity: any[] = [];
+      for (const thisSecurity of method.security) {
+        const security: any = {};
+        security[thisSecurity.name] = thisSecurity.scopes ? thisSecurity.scopes : [];
+        methodSecurity.push(security);
+      }
+
+      pathMethod.security = methodSecurity;
     }
 
     pathMethod.parameters = method.parameters

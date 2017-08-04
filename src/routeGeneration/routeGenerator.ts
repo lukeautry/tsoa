@@ -101,7 +101,7 @@ export class RouteGenerator {
       iocModule,
       models: this.buildModels(),
       useSecurity: this.metadata.controllers.some(
-        controller => controller.methods.some(methods => methods.security !== undefined),
+        controller => controller.methods.some(method => !!method.security.length),
       ),
     });
   }

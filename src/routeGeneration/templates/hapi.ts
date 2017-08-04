@@ -41,17 +41,14 @@ export function RegisterRoutes(server: any) {
         server.route({
             method: '{{method}}',
             path: '{{../../basePath}}/{{../path}}{{path}}',
-            config: { 
-                {{#if security}} 
+            config: {
+                {{#if security.length}}
                 pre: [
-                    { 
-                      method: authenticateMiddleware('{{security.name}}'
-                              {{#if security.scopes.length}} 
-                              , {{{json security.scopes}}}
-                              {{/if}}
-                    )}
+                    {
+                      method: authenticateMiddleware({{json security}})
+                    }
                 ],
-                {{/if}} 
+                {{/if}}
                 handler: (request: any, reply) => {
                     const args = {
                         {{#each parameters}}
@@ -81,14 +78,28 @@ export function RegisterRoutes(server: any) {
     {{/each}}
 
     {{#if useSecurity}}
-    function authenticateMiddleware(name: string, scopes: string[] = []) {
-      return (request: any, reply: any) => {
-            return hapiAuthentication(request, name, scopes).then((user: any) => {
-                request['user'] = user;
-                reply.continue();
-            })
-            .catch((error: any) => reply(error).code(error.status || 401));
-      }
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return (request: any, reply: any) => {
+            let responded = 0;
+            let success = false;
+            for (const secMethod of security) {
+                hapiAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
+                    // only need to respond once
+                    if (!success) {
+                        success = true;
+                        responded++;
+                        request['user'] = user;
+                        reply.continue();
+                    }
+                })
+                .catch((error: any) => {
+                    responded++;
+                    if (responded == security.length && !success) {
+                        reply(error).code(error.status || 401);
+                    }
+                })
+            }
+        }
     }
     {{/if}}
 
