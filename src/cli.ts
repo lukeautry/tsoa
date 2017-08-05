@@ -192,18 +192,16 @@ function routeGenerator(args) {
     pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
 
     switch (routesConfig.middleware) {
-      case 'express':
-        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
-        break;
       case 'hapi':
-        template = path.join(__dirname, 'routeGeneration/templates/hapi.ts');
+        template = path.join(__dirname, 'routeGeneration/templates/hapi.handlebars');
         pathTransformer = (path: string) => path;
         break;
       case 'koa':
-        template = path.join(__dirname, 'routeGeneration/templates/koa.ts');
+        template = path.join(__dirname, 'routeGeneration/templates/koa.handlebars');
         break;
+      case 'express':
       default:
-        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
+        template = path.join(__dirname, 'routeGeneration/templates/express.handlebars');
     }
 
     if (routesConfig.middlewareTemplate) {
