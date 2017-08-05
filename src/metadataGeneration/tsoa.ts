@@ -12,6 +12,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
+    contentTypes?: string[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
@@ -19,11 +20,10 @@ export namespace Tsoa {
     parameters: Parameter[];
     path: string;
     type: Type;
-    tags: string[];
+    tags?: string[];
     responses: Response[];
     security?: Security;
     summary?: string;
-    consumes?: string[];
   }
 
   export interface Parameter {
@@ -33,6 +33,7 @@ export namespace Tsoa {
     name: string;
     required?: boolean;
     type: Type;
+    default?: any;
     validators: Validators;
   }
 
@@ -53,6 +54,7 @@ export namespace Tsoa {
   }
 
   export interface Property {
+    default?: any;
     description?: string;
     name: string;
     type: Type;

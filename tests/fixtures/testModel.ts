@@ -268,12 +268,14 @@ export interface Model {
 
 export class TestClassBaseModel {
   public id: number;
+  public defaultValue1 = 'Default Value 1';
 }
 
 /**
  * This is a description of TestClassModel
  */
 export class TestClassModel extends TestClassBaseModel {
+  public defaultValue2 = 'Default Value 2';
   /**
    * This is a description of a public string property
    *

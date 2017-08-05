@@ -20,6 +20,7 @@ export namespace TsoaRoute {
         array?: PropertySchema;
         enums?: string[];
         validators?: ValidatorSchema;
+        default?: any;
     }
 
     export interface ParameterSchema extends PropertySchema {

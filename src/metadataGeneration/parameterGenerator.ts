@@ -3,7 +3,7 @@ import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUti
 import { getValidateDecorators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
-import { ResolveType } from './resolveType';
+import { getInitializerValue, resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
 
 export class ParameterGenerator {
@@ -18,38 +18,21 @@ export class ParameterGenerator {
 
     switch (decoratorName) {
       case 'UploadFile':
-      case 'tsoa.UploadFile':
         return this.getUploadFieldParameter(this.parameter);
       case 'Request':
-      case 'tsoa.Request':
         return this.getRequestParameter(this.parameter);
       case 'Body':
-      case 'tsoa.Body':
         return this.getBodyParameter(this.parameter);
-      case 'FormData':
-      case 'tsoa.FormData':
-        return this.getFormDataParameter(this.parameter);
       case 'BodyProp':
-      case 'tsoa.BodyProp':
         return this.getBodyPropParameter(this.parameter);
       case 'Header':
-      case 'tsoaHeader':
         return this.getHeaderParameter(this.parameter);
       case 'Query':
-      case 'tsoa.Query':
         return this.getQueryParameter(this.parameter);
       case 'Path':
-      case 'tsoa.Path':
-        return this.getPathParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
-  }
-
-  private getCurrentLocation() {
-    const methodId = (this.parameter.parent as ts.MethodDeclaration).name as ts.Identifier;
-    const controllerId = ((this.parameter.parent as ts.MethodDeclaration).parent as ts.ClassDeclaration).name as ts.Identifier;
-    return `${controllerId.text}.${methodId.text}`;
   }
 
   private getUploadFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
@@ -65,21 +48,6 @@ export class ParameterGenerator {
     };
   }
 
-  private getFormDataParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
-    const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
-
-    return {
-      description: this.getParameterDescription(parameter),
-      in: 'formData',
-      name: parameterName,
-      parameterName,
-      required: !parameter.questionToken,
-      type,
-      validators: getValidateDecorators(this.parameter),
-    };
-  }
-
   private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
 
@@ -88,7 +56,7 @@ export class ParameterGenerator {
       in: 'request',
       name: parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
       validators: getValidateDecorators(this.parameter),
     };
@@ -103,11 +71,12 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'BodyProp') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getValidateDecorators(this.parameter),
     };
@@ -126,7 +95,7 @@ export class ParameterGenerator {
       in: 'body',
       name: parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getValidateDecorators(this.parameter),
     };
@@ -141,11 +110,12 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Header') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getValidateDecorators(this.parameter),
     };
@@ -168,11 +138,12 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'query',
-      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Query') || parameterName,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
-      required: !parameter.questionToken,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getValidateDecorators(this.parameter),
     };
@@ -191,6 +162,7 @@ export class ParameterGenerator {
     }
 
     return {
+      default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'path',
       name: pathName,
@@ -212,17 +184,12 @@ export class ParameterGenerator {
   }
 
   private supportBodyMethod(method: string) {
-    return [
-      'post', 'put', 'patch',
-      'tsoa.post', 'tsoa.put', 'tsoa.patch',
-    ].indexOf(method.toLowerCase()) >= -1;
+    return ['post', 'put', 'patch'].indexOf(method.toLowerCase()) >= -1;
   }
 
   private supportParameterDecorator(decoratorName: string) {
     return [
-      'header', 'tsoa.header', 'query', 'tsoa.query', 'parem',  'tsoa.parem',
-      'body', 'tsoa.body', 'bodyprop', 'tsoa.bodyprop', 'request', 'tsoa.request',
-      'uploadfile', 'tsoa.uploadfile', 'formdata', 'tsoa.formdata',
+      'header', 'query', 'parem', 'body', 'bodyprop', 'request', 'uploadfile',
     ].indexOf(decoratorName.toLocaleLowerCase()) >= -1;
   }
 
@@ -231,9 +198,11 @@ export class ParameterGenerator {
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
-    if (!parameter.type) {
-      throw new GenerateMetadataError(`Parameter ${parameter.name} doesn't have a valid type assigned in '${this.getCurrentLocation()}'.`);
+    let typeNode = parameter.type;
+    if (!typeNode) {
+      const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
+      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type);
     }
-    return ResolveType(parameter.type, extractEnum);
+    return resolveType(typeNode, parameter, extractEnum);
   }
 }

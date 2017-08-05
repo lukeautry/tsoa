@@ -1,9 +1,10 @@
 import * as ts from 'typescript';
-import { getDecorators, getInitializerValue } from './../utils/decoratorUtils';
+import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
+import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
-import { ResolveType } from './resolveType';
+import { getInitializerValue, resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
 
 export class MethodGenerator {
@@ -12,9 +13,9 @@ export class MethodGenerator {
 
   constructor(
     private readonly node: ts.MethodDeclaration,
-    private readonly parentTags: string[],
-    private readonly parentConsumes: string[],
-    private readonly parentSecurity?: Tsoa.Security) {
+    private readonly parentTags?: string[],
+    private readonly parentSecurity?: Tsoa.Security,
+    private readonly parentContentTypes?: string[]) {
     this.processMethodDecorator();
   }
 
@@ -22,37 +23,36 @@ export class MethodGenerator {
     return !!this.method;
   }
 
-  public Generate(): Tsoa.Method {
+  public Generate() {
     if (!this.IsValid()) {
       throw new GenerateMetadataError('This isn\'t a valid a controller method.');
     }
-    if (!this.node.type) {
-      throw new GenerateMetadataError('Controller methods must have a return type.');
-    }
 
-    const ident = this.node.name as ts.Identifier;
-    const type = ResolveType(this.node.type);
+    let nodeType = this.node.type;
+    if (!nodeType) {
+      const typeChecker = MetadataGenerator.current.typeChecker;
+      const signature = typeChecker.getSignatureFromDeclaration(this.node);
+      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+      nodeType = typeChecker.typeToTypeNode(implicitType);
+    }
+    const type = resolveType(nodeType);
     const responses = this.getResponses();
     responses.push(this.getSuccessResponse(type));
 
-    const tags = this.parentTags.concat(this.getTags());
-    const security = this.getSecurity() || this.parentSecurity;
-    const consumes = this.getConsumes() || this.parentConsumes;
-
     return {
-      consumes,
+      contentTypes: this.getContentTypes(),
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
-      name: ident.text,
+      name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
       path: this.path,
       responses,
-      security,
+      security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
-      tags,
+      tags: this.getTags(),
       type,
-    };
+    } as Tsoa.Method;
   }
 
   private buildParameters() {
@@ -131,7 +131,7 @@ export class MethodGenerator {
         examples,
         name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
-          ? ResolveType(expression.typeArguments[0])
+          ? resolveType(expression.typeArguments[0])
           : undefined,
       } as Tsoa.Response;
     });
@@ -201,13 +201,13 @@ export class MethodGenerator {
     return example;
   }
 
-  private getTags(): string[] {
-    const decorators = getDecorators(this.node, (ident) => ident.text === 'Tags' || ident.text === 'tsoa.Tags');
+  private getTags() {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Tags');
     if (!decorators || !decorators.length) {
-      return [];
+      return this.parentTags;
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one @Tags decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
@@ -216,33 +216,35 @@ export class MethodGenerator {
     return expression.arguments.map((a: any) => a.text);
   }
 
-  private getConsumes(): string[] | undefined {
-    const decorators = getDecorators(this.node, (ident) => ident.text === 'Consumers' || ident.text === 'tsoa.Consumers');
+  private getContentTypes(): string[] | undefined {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'ContentType');
     if (!decorators || !decorators.length) {
       return undefined;
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Consumers decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one @ContentType decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
-
-    return expression.arguments.map((a: any) => a.text);
+    const contentTypes = expression.arguments.map((a: any) => a.text as string);
+    if (this.parentContentTypes) {
+      contentTypes.push(...this.parentContentTypes);
+    }
+    return contentTypes;
   }
 
-  private getSecurity(): Tsoa.Security | undefined {
-    const decorators = getDecorators(this.node, (ident) => ident.text === 'Security' || ident.text === 'tsoa.Security');
+  private getSecurity() {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Security');
     if (!decorators || !decorators.length) {
-      return undefined;
+      return this.parentSecurity;
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Security decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one @Security decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
-
     return {
       name: (expression.arguments[0] as any).text,
       scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,

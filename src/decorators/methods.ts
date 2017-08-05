@@ -17,3 +17,7 @@ export function Patch(value?: string): any {
 export function Delete(value?: string): any {
   return () => { return; };
 }
+
+export function ContentType(...mimeType: string[]): any {
+  return () => { return; };
+}

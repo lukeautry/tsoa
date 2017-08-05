@@ -96,9 +96,9 @@ export class SpecGenerator {
     }
     swaggerMethod.deprecated = method.deprecated ? method.deprecated : undefined;
     swaggerMethod.description = method.description;
-    swaggerMethod.tags = method.tags.length > 0 ? method.tags : undefined;
+    swaggerMethod.tags = method.tags;
     swaggerMethod.summary = method.summary;
-    swaggerMethod.consumes = method.consumes;
+    swaggerMethod.consumes = method.contentTypes;
     swaggerMethod.parameters = method.parameters
       .filter(p => {
         return !(p.in === 'request' || p.in === 'body-prop');
@@ -115,17 +115,18 @@ export class SpecGenerator {
   }
 
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties: any = {};
+    const properties = {} as { [name: string]: Swagger.Schema };
     const required: string[] = [];
 
     method.parameters
       .filter(p => p.in === 'body-prop')
       .forEach(p => {
         properties[p.name] = this.getSwaggerType(p.type);
+        properties[p.name].default = p.default;
+        properties[p.name].description = p.description;
 
-        if (!properties[p.name].$ref) {
-          properties[p.name].description = p.description;
-        }
+        // if (!properties[p.name].$ref) {
+        // }
         if (p.required) {
           required.push(p.name);
         }
@@ -133,7 +134,7 @@ export class SpecGenerator {
 
     if (!Object.keys(properties).length) { return; }
 
-    const parameter: any = {
+    const parameter = {
       in: 'body',
       name: 'body',
       schema: {
@@ -141,63 +142,65 @@ export class SpecGenerator {
         title: `${this.getOperationId(controllerName, method.name)}Body`,
         type: 'object',
       },
-    };
+    } as Swagger.Parameter;
     if (required.length) {
       parameter.schema.required = required;
     }
     return parameter;
   }
 
-  private buildParameter(parameter: Tsoa.Parameter): Swagger.Parameter {
-    const swaggerParameter = {
-      description: parameter.description,
-      in: parameter.in,
-      name: parameter.name,
-      required: parameter.required,
+  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
+    const parameter = {
+      default: source.default,
+      description: source.description,
+      in: source.in,
+      name: source.name,
+      required: source.required,
     } as Swagger.Parameter;
 
-    const parameterType = this.getSwaggerType(parameter.type);
+    const parameterType = this.getSwaggerType(source.type);
     if (parameterType.$ref) {
-      swaggerParameter.schema = parameterType as Swagger.Schema;
+      parameter.schema = parameterType as Swagger.Schema;
     } else {
-      if (parameter.type.dataType === 'any') {
-        if (parameter.in === 'body') {
-          swaggerParameter.schema = { type: 'object' };
-        }else {
-          swaggerParameter.type = 'string';
+      if (source.type.dataType === 'any') {
+        if (source.in === 'body') {
+          parameter.schema = { type: 'object' };
+        } else {
+          parameter.type = 'string';
         }
       } else {
-        swaggerParameter.type = parameterType.type;
-        swaggerParameter.items = parameterType.items;
-        swaggerParameter.enum = parameterType.enum;
+        parameter.type = parameterType.type;
+        parameter.items = parameterType.items;
+        parameter.enum = parameterType.enum;
       }
     }
 
-    if (swaggerParameter.in === 'query' && swaggerParameter.type === 'array') {
-        (swaggerParameter as Swagger.QueryParameter).collectionFormat = 'multi';
+    if (parameter.in === 'query' && parameter.type === 'array') {
+      (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
     }
 
     if (parameterType.format) {
-      swaggerParameter.format = parameterType.format;
+      parameter.format = parameterType.format;
     }
 
-    Object.keys(parameter.validators)
+    Object.keys(source.validators)
       .filter(key => {
         return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
       })
       .forEach((key: string) => {
-        swaggerParameter[key] = parameter.validators[key].value;
+        parameter[key] = source.validators[key].value;
       });
-    return swaggerParameter;
+    return parameter;
   }
 
-  private buildProperties(properties: Tsoa.Property[]) {
-    const swaggerProperties: { [propertyName: string]: Swagger.Schema } = {};
+  private buildProperties(source: Tsoa.Property[]) {
+    const properties: { [propertyName: string]: Swagger.Schema } = {};
 
-    properties.forEach(property => {
+    source.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type);
+      swaggerType.description = property.description;
       if (!swaggerType.$ref) {
-        swaggerType.description = property.description;
+        swaggerType.default = property.default;
 
         Object.keys(property.validators)
           .filter(key => {
@@ -207,10 +210,10 @@ export class SpecGenerator {
             swaggerType[key] = property.validators[key].value;
           });
       }
-      swaggerProperties[property.name] = swaggerType as Swagger.Schema;
+      properties[property.name] = swaggerType as Swagger.Schema;
     });
 
-    return swaggerProperties;
+    return properties;
   }
 
   private buildAdditionalProperties(type: Tsoa.Type) {

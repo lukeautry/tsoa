@@ -33,6 +33,7 @@ export class GetTestController extends Controller {
   @Example<TestModel>({
     boolArray: [true, false],
     boolValue: true,
+    dateValue: new Date(),
     id: 1,
     modelValue: {
       email: 'test@test.com',
@@ -92,7 +93,7 @@ export class GetTestController extends Controller {
     @Query() booleanParam: boolean,
     @Query() @IsString('Custom error message') @MinLength(3) @MaxLength(10) stringParam: string,
     @Query() numberParam: number,
-    @Query() optionalStringParam?: string): Promise<TestModel> {
+    @Query() optionalStringParam = '') {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
     model.numberValue = numberPathParam;

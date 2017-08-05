@@ -11,19 +11,19 @@ import { SpecGenerator } from './swagger/specGenerator';
 
 const workingDir: string = process.cwd();
 
-const getPackageJsonValue = (key: string): string => {
+const getPackageJsonValue = (key: string, defaultValue = ''): string => {
   try {
     const packageJson = require(`${workingDir}/package.json`);
     return packageJson[key] || '';
   } catch (err) {
-    return '';
+    return defaultValue;
   }
 };
 
-const versionDefault = getPackageJsonValue('version');
-const nameDefault = getPackageJsonValue('name');
-const descriptionDefault = getPackageJsonValue('description');
-const licenseDefault = getPackageJsonValue('license');
+const nameDefault = getPackageJsonValue('name', 'TSOA');
+const versionDefault = getPackageJsonValue('version', '1.0.0');
+const descriptionDefault = getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
+const licenseDefault = getPackageJsonValue('license', 'MIT');
 
 const getConfig = (configPath = 'tsoa.json'): Config => {
   let config: Config;
@@ -171,6 +171,7 @@ function swaggerSpecGenerator(args) {
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
+    process.exit(1);
   }
 }
 
@@ -213,5 +214,6 @@ function routeGenerator(args) {
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
+    process.exit(1);
   }
 }
