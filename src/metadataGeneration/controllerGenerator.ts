@@ -7,14 +7,14 @@ import { Tsoa } from './tsoa';
 export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
-  private readonly contentTypes?: string[];
+  private readonly consumers?: string[];
   private readonly security?: Tsoa.Security;
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
-    this.contentTypes = this.getContentTypes();
+    this.consumers = this.getConsumers();
   }
 
   public IsValid() {
@@ -42,7 +42,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((method: ts.MethodDeclaration) => new MethodGenerator(method, this.tags, this.security, this.contentTypes))
+      .map((method: ts.MethodDeclaration) => new MethodGenerator(method, this.tags, this.security, this.consumers))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
@@ -77,13 +77,13 @@ export class ControllerGenerator {
     return expression.arguments.map((a: any) => a.text as string);
   }
 
-  private getContentTypes() {
-    const decorators = getDecorators(this.node, (ident) => ident.text === 'ContentType');
+  private getConsumers() {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Consumers');
     if (!decorators || !decorators.length) {
       return;
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one @ContentType decorator allowed in '${this.node.name!.text}' class.`);
+      throw new GenerateMetadataError(`Only one @Consumers decorator allowed in '${this.node.name!.text}' class.`);
     }
 
     const decorator = decorators[0];

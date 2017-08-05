@@ -12,7 +12,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
-    contentTypes?: string[];
+    consumers?: string[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';

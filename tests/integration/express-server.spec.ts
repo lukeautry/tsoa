@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
-import { app } from '../fixtures/express/server';
+import { expressApp } from '../fixtures/express/server';
 import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
@@ -622,7 +622,7 @@ describe('Express Server', () => {
     expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
-      methodOperation(request(app))
+      methodOperation(request(expressApp))
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;

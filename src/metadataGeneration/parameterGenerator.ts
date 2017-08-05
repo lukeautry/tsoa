@@ -40,7 +40,7 @@ export class ParameterGenerator {
     return {
       description: this.getParameterDescription(parameter),
       in: 'formData',
-      name: parameterName,
+      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'UploadFile') || parameterName,
       parameterName,
       required: !parameter.questionToken,
       type: { dataType: 'file' },

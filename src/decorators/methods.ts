@@ -18,6 +18,6 @@ export function Delete(value?: string): any {
   return () => { return; };
 }
 
-export function ContentType(...mimeType: string[]): any {
+export function Consumers(...mimeType: string[]): any {
   return () => { return; };
 }

@@ -11,13 +11,15 @@ import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
 
+import '../../functional/upload.controller';
+
 import { RegisterRoutes } from './routes';
 
-export const server = new hapi.Server();
-server.connection({ port: 3003 });
+export const hapiApp = new hapi.Server();
+hapiApp.connection({ port: 3003 });
 
-RegisterRoutes(server);
+RegisterRoutes(hapiApp);
 
-server.start((err) => {
+hapiApp.start((err) => {
   if (err) { throw err; }
 });

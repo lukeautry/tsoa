@@ -130,11 +130,10 @@ export function RegisterRoutes(router: any) {
             case 'query':
                 return ValidateParam(args[key], ctx.request.query[name], models, name, errorFields)
             case 'formData':
-                if (args[key].dataType === 'file') {
-                    return ctx.request.body.files[name];
-                } else {
-                    return ValidateParam(args[key], ctx.request.body[name], models, name, errorFields);
+                if (args[key].dataType==='file') {
+                    return ctx.req.file;
                 }
+                return ValidateParam(args[key], ctx.request.body[name], models, name, errorFields);
             case 'path':
                 return ValidateParam(args[key], ctx.params[name], models, name, errorFields)
             case 'header':

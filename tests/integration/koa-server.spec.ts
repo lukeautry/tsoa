@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
-import { server } from '../fixtures/koa/server';
+import { koaApp } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
@@ -572,7 +572,7 @@ describe('Koa Server', () => {
     });
   });
 
-  it('shutdown server', () => server.close());
+  it('shutdown server', () => koaApp.close());
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
@@ -588,7 +588,7 @@ describe('Koa Server', () => {
     expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
-      methodOperation(request(server))
+      methodOperation(request(koaApp))
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;

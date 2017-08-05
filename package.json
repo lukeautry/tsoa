@@ -84,6 +84,7 @@
     "inversify": "^4.3.0",
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
+    "koa-multer": "^1.0.1",
     "koa-router": "^7.2.1",
     "method-override": "^2.3.9",
     "mocha": "^3.4.2",

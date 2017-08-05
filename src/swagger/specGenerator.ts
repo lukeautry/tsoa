@@ -98,7 +98,7 @@ export class SpecGenerator {
     swaggerMethod.description = method.description;
     swaggerMethod.tags = method.tags;
     swaggerMethod.summary = method.summary;
-    swaggerMethod.consumes = method.contentTypes;
+    swaggerMethod.consumes = method.consumers;
     swaggerMethod.parameters = method.parameters
       .filter(p => {
         return !(p.in === 'request' || p.in === 'body-prop');

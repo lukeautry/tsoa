@@ -15,7 +15,7 @@ export class MethodGenerator {
     private readonly node: ts.MethodDeclaration,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security,
-    private readonly parentContentTypes?: string[]) {
+    private readonly parentConsumers?: string[]) {
     this.processMethodDecorator();
   }
 
@@ -40,7 +40,7 @@ export class MethodGenerator {
     responses.push(this.getSuccessResponse(type));
 
     return {
-      contentTypes: this.getContentTypes(),
+      consumers: this.getConsumers(),
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       method: this.method,
@@ -216,22 +216,22 @@ export class MethodGenerator {
     return expression.arguments.map((a: any) => a.text);
   }
 
-  private getContentTypes(): string[] | undefined {
-    const decorators = getDecorators(this.node, (ident) => ident.text === 'ContentType');
+  private getConsumers() {
+    const decorators = getDecorators(this.node, (ident) => ident.text === 'Consumers');
     if (!decorators || !decorators.length) {
-      return undefined;
+      return;
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one @ContentType decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one @Consumers decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
     const decorator = decorators[0];
     const expression = decorator.parent as ts.CallExpression;
-    const contentTypes = expression.arguments.map((a: any) => a.text as string);
-    if (this.parentContentTypes) {
-      contentTypes.push(...this.parentContentTypes);
+    const consumers = expression.arguments.map((a: any) => a.text as string);
+    if (this.parentConsumers) {
+      consumers.push(...this.parentConsumers);
     }
-    return contentTypes;
+    return consumers;
   }
 
   private getSecurity() {

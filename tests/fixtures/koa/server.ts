@@ -1,5 +1,8 @@
 import * as Koa from 'koa';
+import * as bodyParser from 'koa-bodyparser';
+import * as multer from 'koa-multer';
 import * as KoaRouter from 'koa-router';
+
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/patchController';
@@ -12,15 +15,23 @@ import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
 
-import * as bodyParser from 'koa-bodyparser';
+import '../../functional/upload.controller';
+
 import { RegisterRoutes } from './routes';
 
-const app = new Koa();
-app.use(bodyParser());
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
+const app = new Koa();
 const router = new KoaRouter();
+router.post('/v1/UploadController/File', upload.single('avater'));
 
 RegisterRoutes(router);
+
+app
+  .use(bodyParser())
+  .use(router.routes())
+  .use(router.allowedMethods());
 
 // It's important that this come after the main routes are registered
 app.use(async (context, next) => {
@@ -34,8 +45,4 @@ app.use(async (context, next) => {
   }
 });
 
-app
-  .use(router.routes())
-  .use(router.allowedMethods());
-
-export const server = app.listen(3002);
+export const koaApp = app.listen(3002);

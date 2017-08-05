@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
-import { server } from '../fixtures/hapi/server';
+import { hapiApp } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
@@ -609,7 +609,7 @@ describe('Hapi Server', () => {
     expectedStatus = 200,
   ) {
     return new Promise((resolve, reject) => {
-      methodOperation(request(server.listener))
+      methodOperation(request(hapiApp.listener))
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;
