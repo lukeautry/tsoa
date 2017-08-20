@@ -120,7 +120,7 @@ export class MethodGenerator {
       if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
         description = (expression.arguments[1] as any).text;
       }
-      if (expression.arguments.length > 2 && (expression.arguments[2] as any).text) {
+      if (expression.arguments.length > 2 && (expression.arguments[2] as any)) {
         const argument = expression.arguments[2] as any;
         examples = this.getExamplesValue(argument);
       }
