@@ -435,4 +435,31 @@ describe('Metadata generation', () => {
       expect(parameter.required).to.be.true;
     });
   });
+
+  describe('HiddenMethodGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should generate methods visible by default', () => {
+      const method = controller.methods.find(m => m.name === 'normalGetMethod');
+      if (!method) {
+        throw new Error('Method normalGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('/normalGetMethod');
+      expect(method.isHidden).to.equal(false);
+    });
+
+    it('should generate hidden methods', () => {
+      const method = controller.methods.find(m => m.name === 'hiddenGetMethod');
+      if (!method) {
+        throw new Error('Method hiddenGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('/hiddenGetMethod');
+      expect(method.isHidden).to.equal(true);
+    });
+  });
 });
