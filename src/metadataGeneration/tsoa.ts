@@ -23,6 +23,8 @@ export namespace Tsoa {
     responses: Response[];
     security: Security[];
     summary?: string;
+    isHidden: boolean;
+
   }
 
   export interface Parameter {

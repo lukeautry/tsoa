@@ -41,6 +41,7 @@ export class MethodGenerator {
     return {
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
+      isHidden: this.getIsHidden(),
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
@@ -215,6 +216,18 @@ export class MethodGenerator {
       tags.push(...this.parentTags);
     }
     return tags;
+  }
+
+  private getIsHidden() {
+    const hiddenDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Hidden');
+    if (!hiddenDecorators || !hiddenDecorators.length) {
+      return false;
+    }
+    if (hiddenDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    return true;
   }
 
   private getSecurity(): Tsoa.Security[] {

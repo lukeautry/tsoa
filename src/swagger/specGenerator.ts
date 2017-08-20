@@ -77,7 +77,8 @@ export class SpecGenerator {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
     this.metadata.controllers.forEach(controller => {
-      controller.methods.forEach(method => {
+      // construct documentation using all methods except @Hidden
+      controller.methods.filter(method => !method.isHidden).forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
         this.buildMethod(controller.name, method, paths[path]);
