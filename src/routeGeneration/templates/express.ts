@@ -1,8 +1,10 @@
+import { Readable } from 'stream';
+
 /* tslint:disable */
 {{#if canImportByAlias}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+  import { Controller, FileResult, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+  import { Controller, FileResult, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -61,8 +63,12 @@ export function RegisterRoutes(app: any) {
             const controller = new {{../name}}();
             {{/if}}
 
-
             const promise = controller.{{name}}.apply(controller, validatedArgs);
+            {{#if contentType}}
+            if (controller instanceof Controller) {
+                controller.setHeader('Content-Type', '{{contentType}}');
+            }
+            {{/if}}
             promiseHandler(controller, promise, response, next);
         });
     {{/each}}
@@ -110,7 +116,16 @@ export function RegisterRoutes(app: any) {
                 }
 
                 if (data) {
-                    response.status(statusCode | 200).json(data);
+                    if (data instanceof FileResult) {
+                        if (data.data instanceof Readable) {
+                            response.status(statusCode | 200);
+                            data.data.pipe(response);
+                        } else {
+                            response.status(statusCode | 200).send(data.data);
+                        }
+                    } else {
+                        response.status(statusCode | 200).json(data);
+                    }
                 } else {
                     response.status(statusCode | 204).end();
                 }

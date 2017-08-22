@@ -81,6 +81,10 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
     if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
       return resolveType(typeReference.typeArguments[0]);
     }
+
+    if (typeReference.typeName.text === 'FileResult') {
+      return { dataType: 'file' } as Tsoa.Type;
+    }
   }
 
   if (!extractEnum) {

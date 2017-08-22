@@ -24,7 +24,7 @@ export namespace Tsoa {
     security: Security[];
     summary?: string;
     isHidden: boolean;
-
+    produces?: string[];
   }
 
   export interface Parameter {
@@ -64,7 +64,7 @@ export namespace Tsoa {
   }
 
   export interface Type {
-    dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject';
+    dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject' | 'file';
   }
 
   export interface EnumerateType extends Type {

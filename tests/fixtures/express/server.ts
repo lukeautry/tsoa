@@ -13,6 +13,8 @@ import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
 
+import '../controllers/fileController';
+
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();

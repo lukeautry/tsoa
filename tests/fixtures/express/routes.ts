@@ -1,5 +1,7 @@
+import { Readable } from 'stream';
+
 /* tslint:disable */
-import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { Controller, FileResult, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
 import { PatchTestController } from './../controllers/patchController';
@@ -10,6 +12,7 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { TestController } from './../controllers/testController';
 import { ValidateController } from './../controllers/validateController';
+import { FileController } from './../controllers/fileController';
 import { expressAuthentication } from './authentication';
 
 const models: TsoaRoute.Models={
@@ -240,7 +243,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new DeleteTestController();
 
-
       const promise=controller.deleteWithReturnValue.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -257,7 +259,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new DeleteTestController();
-
 
       const promise=controller.deleteCurrent.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -282,7 +283,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new DeleteTestController();
 
-
       const promise=controller.getModelByParams.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -299,7 +299,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -318,7 +317,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getCurrentModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -336,7 +334,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getClassModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -353,7 +350,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getMultipleModels.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -379,7 +375,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getModelByParams.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -397,7 +392,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -414,7 +408,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getUnionTypeResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -434,7 +427,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -453,7 +445,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getByDataParam.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -471,7 +462,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getThrowsError.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -488,7 +478,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getGeneratesTags.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -508,7 +497,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getBuffer.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -525,7 +513,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getGenericModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -544,7 +531,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getGenericModelArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -562,7 +548,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new GetTestController();
 
-
       const promise=controller.getGenericPrimitive.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -579,7 +564,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new GetTestController();
-
 
       const promise=controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -599,7 +583,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PatchTestController();
 
-
       const promise=controller.patchModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -617,7 +600,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PatchTestController();
 
-
       const promise=controller.patchModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -634,7 +616,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PatchTestController();
-
 
       const promise=controller.patchWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -654,7 +635,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PatchTestController();
 
-
       const promise=controller.patchWithId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -672,7 +652,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PostTestController();
-
 
       const promise=controller.postModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -692,7 +671,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PostTestController();
 
-
       const promise=controller.updateModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -711,7 +689,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PostTestController();
 
-
       const promise=controller.postClassModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -728,7 +705,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PostTestController();
-
 
       const promise=controller.postModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -747,7 +723,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PostTestController();
 
-
       const promise=controller.postWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -765,7 +740,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PostTestController();
-
 
       const promise=controller.postWithId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -786,7 +760,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PostTestController();
 
-
       const promise=controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -804,7 +777,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PostTestController();
-
 
       const promise=controller.getGenericRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -824,7 +796,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PutTestController();
 
-
       const promise=controller.putModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -842,7 +813,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PutTestController();
 
-
       const promise=controller.putModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -859,7 +829,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new PutTestController();
-
 
       const promise=controller.putWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -879,7 +848,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new PutTestController();
 
-
       const promise=controller.putWithId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -896,7 +864,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.getMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -915,7 +882,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.postMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -932,7 +898,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.patchMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -951,7 +916,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.putMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -968,7 +932,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.deleteMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -987,7 +950,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.description.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1004,7 +966,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.tags.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1023,7 +984,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.multiResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1040,7 +1000,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.successResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1060,7 +1019,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.apiSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1078,7 +1036,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.oauthSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1098,7 +1055,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1115,7 +1071,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.deprecatedMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1134,7 +1089,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new MethodController();
 
-
       const promise=controller.summaryMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1151,7 +1105,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new MethodController();
-
 
       const promise=controller.returnAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1176,7 +1129,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.getQuery.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1199,7 +1151,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.getPath.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1224,7 +1175,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.getHeader.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1243,7 +1193,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.getRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1261,7 +1210,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.getBody.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1286,7 +1234,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.getBodyProps.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1304,7 +1251,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1324,7 +1270,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.bodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1342,7 +1287,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.queyArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1362,7 +1306,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.implicitString.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1380,7 +1323,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.implicitNumber.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1400,7 +1342,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.implicitEnum.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1418,7 +1359,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.implicitStringArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1438,7 +1378,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.implicitNumberArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1457,14 +1396,13 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ParameterController();
 
-
       const promise=controller.implicitDateTime.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1475,7 +1413,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ParameterController();
-
 
       const promise=controller.implicitDate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1496,7 +1433,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new SecurityTestController();
 
-
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1515,7 +1451,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new SecurityTestController();
-
 
       const promise=controller.GetWithApiForKoa.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1536,7 +1471,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new SecurityTestController();
 
-
       const promise=controller.GetWithSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1556,7 +1490,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new SecurityTestController();
 
-
       const promise=controller.GetWithDoubleSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1573,7 +1506,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new TestController();
-
 
       const promise=controller.normalStatusCode.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1592,7 +1524,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new TestController();
 
-
       const promise=controller.noContentStatusCode.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1610,7 +1541,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new TestController();
 
-
       const promise=controller.customNomalStatusCode.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1627,7 +1557,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new TestController();
-
 
       const promise=controller.customHeader.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1648,7 +1577,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.dateValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1667,7 +1595,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ValidateController();
-
 
       const promise=controller.dateTimeValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1688,7 +1615,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.longValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1708,7 +1634,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.doubleValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1726,7 +1651,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ValidateController();
-
 
       const promise=controller.booleanValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1748,7 +1672,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.stringValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1766,7 +1689,6 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=new ValidateController();
-
 
       const promise=controller.customRequiredErrorMsg.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
@@ -1786,7 +1708,6 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.customInvalidErrorMsg.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
@@ -1805,8 +1726,44 @@ export function RegisterRoutes(app: any) {
 
       const controller=new ValidateController();
 
-
       const promise=controller.bodyValidate.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/File/normalGetMethod',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new FileController();
+
+      const promise=controller.normalGetMethod.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/File/fileMethod',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new FileController();
+
+      const promise=controller.fileMethod.apply(controller, validatedArgs);
+      if (controller instanceof Controller) {
+        controller.setHeader('Content-Type', 'text/html; charset=utf-8');
+      }
       promiseHandler(controller, promise, response, next);
     });
 
@@ -1850,7 +1807,16 @@ export function RegisterRoutes(app: any) {
         }
 
         if (data) {
-          response.status(statusCode|200).json(data);
+          if (data instanceof FileResult) {
+            if (data.data instanceof Readable) {
+              response.status(statusCode|200);
+              data.data.pipe(response);
+            } else {
+              response.status(statusCode|200).send(data.data);
+            }
+          } else {
+            response.status(statusCode|200).json(data);
+          }
         } else {
           response.status(statusCode|204).end();
         }

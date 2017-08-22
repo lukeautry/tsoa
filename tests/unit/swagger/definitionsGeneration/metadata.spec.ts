@@ -462,4 +462,32 @@ describe('Metadata generation', () => {
       expect(method.isHidden).to.equal(true);
     });
   });
+
+  describe('CustomContentTypeMethodGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/FileController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should generate method produces default content type', () => {
+      const method = controller.methods.find(m => m.name === 'normalGetMethod');
+      if (!method) {
+        throw new Error('Method normalGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('/normalGetMethod');
+      expect(method.produces).to.be.undefined;
+    });
+
+    it('should generate method produces custom content type ["text/html"]', () => {
+      const method = controller.methods.find(m => m.name === 'fileMethod');
+      if (!method) {
+        throw new Error('Method fileMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('/fileMethod');
+
+      expect(method.produces).to.have.members(['text/html; charset=utf-8']);
+    });
+  });
 });

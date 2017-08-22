@@ -608,6 +608,17 @@ describe('Express Server', () => {
     });
   });
 
+  describe('Express server', () => {
+    it('can handle get request with text/html file as result', () => {
+      return verifyGetRequest(basePath + '/File/fileMethod', (err, res) => {
+        const contentType = res.header['content-type'];
+
+        expect(contentType).to.equal('text/html; charset=utf-8');
+        expect(res.text).to.not.be.empty;
+      }, 200);
+    });
+  });
+
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
