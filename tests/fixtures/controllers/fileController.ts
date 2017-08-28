@@ -12,9 +12,9 @@ export class FileController extends Controller {
     return Promise.resolve(new ModelService().getModel());
   }
 
-  @Get('fileMethod')
+  @Get('producesTextHtmlContent')
   @Produces('text/html; charset=utf-8')
-  public async fileMethod(): Promise<FileResult> {
+  public async producesTextHtmlContent(): Promise<FileResult> {
     const result = new FileResult();
 
     result.data = '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'

@@ -22,6 +22,7 @@ export declare namespace Tsoa {
         security: Security[];
         summary?: string;
         isHidden: boolean;
+        produces?: string[];
     }
     interface Parameter {
         parameterName: string;
@@ -58,7 +59,7 @@ export declare namespace Tsoa {
         validators: Validators;
     }
     interface Type {
-        dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject';
+        dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject' | 'file';
     }
     interface EnumerateType extends Type {
         dataType: 'enum';

@@ -233,7 +233,7 @@ var SpecGenerator = (function () {
         });
         return {
             operationId: this.getOperationId(controllerName, method.name),
-            produces: ['application/json'],
+            produces: method.produces && method.produces.length ? method.produces : ['application/json'],
             responses: swaggerResponses,
         };
     };
@@ -251,6 +251,9 @@ var SpecGenerator = (function () {
         }
         if (type.dataType === 'enum') {
             return this.getSwaggerTypeForEnumType(type);
+        }
+        if (type.dataType === 'file') {
+            return { type: 'file' };
         }
         return this.getSwaggerTypeForReferenceType(type);
     };

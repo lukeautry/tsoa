@@ -10,9 +10,11 @@ __export(require("./decorators/example"));
 __export(require("./decorators/parameter"));
 __export(require("./decorators/methods"));
 __export(require("./decorators/tags"));
+__export(require("./decorators/produces"));
 __export(require("./decorators/route"));
 __export(require("./decorators/security"));
 __export(require("./interfaces/controller"));
+__export(require("./interfaces/fileResult"));
 __export(require("./decorators/response"));
 __export(require("./routeGeneration/templateHelpers"));
 //# sourceMappingURL=index.js.map

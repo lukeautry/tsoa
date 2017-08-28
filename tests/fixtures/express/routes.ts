@@ -1746,7 +1746,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.normalGetMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/File/fileMethod',
+  app.get('/v1/File/producesTextHtmlContent',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1760,7 +1760,7 @@ export function RegisterRoutes(app: any) {
 
       const controller=new FileController();
 
-      const promise=controller.fileMethod.apply(controller, validatedArgs);
+      const promise=controller.producesTextHtmlContent.apply(controller, validatedArgs);
       if (controller instanceof Controller) {
         controller.setHeader('Content-Type', 'text/html; charset=utf-8');
       }

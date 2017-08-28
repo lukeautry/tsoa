@@ -478,14 +478,14 @@ describe('Metadata generation', () => {
       expect(method.produces).to.be.undefined;
     });
 
-    it('should generate method produces custom content type ["text/html"]', () => {
-      const method = controller.methods.find(m => m.name === 'fileMethod');
+    it('should generate method produces custom content type', () => {
+      const method = controller.methods.find(m => m.name === 'producesTextHtmlContent');
       if (!method) {
-        throw new Error('Method fileMethod not defined!');
+        throw new Error('Method producesTextHtmlContent not defined!');
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('/fileMethod');
+      expect(method.path).to.equal('/producesTextHtmlContent');
 
       expect(method.produces).to.have.members(['text/html; charset=utf-8']);
     });

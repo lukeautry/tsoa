@@ -69,6 +69,9 @@ function resolveType(typeNode, parentNode, extractEnum) {
         if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
             return resolveType(typeReference.typeArguments[0]);
         }
+        if (typeReference.typeName.text === 'FileResult') {
+            return { dataType: 'file' };
+        }
     }
     if (!extractEnum) {
         var enumType = getEnumerateType(typeReference.typeName, extractEnum);

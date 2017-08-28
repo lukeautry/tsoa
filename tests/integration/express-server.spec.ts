@@ -610,7 +610,7 @@ describe('Express Server', () => {
 
   describe('Express server', () => {
     it('can handle get request with text/html file as result', () => {
-      return verifyGetRequest(basePath + '/File/fileMethod', (err, res) => {
+      return verifyGetRequest(basePath + '/File/producesTextHtmlContent', (err, res) => {
         const contentType = res.header['content-type'];
 
         expect(contentType).to.equal('text/html; charset=utf-8');

@@ -581,7 +581,7 @@ paths:
                                 - true
                                 - false
                             boolValue: true
-                            dateValue: '2017-08-22T08:57:47.597Z'
+                            dateValue: '2017-08-28T06:52:52.997Z'
                             id: 1
                             modelValue:
                                 email: test@test.com
@@ -2068,9 +2068,9 @@ paths:
                         $ref: '#/definitions/TestModel'
             security: []
             parameters: []
-    /File/fileMethod:
+    /File/producesTextHtmlContent:
         get:
-            operationId: FileFileMethod
+            operationId: FileProducesTextHtmlContent
             produces:
                 - 'text/html; charset=utf-8'
             responses:

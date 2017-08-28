@@ -1,5 +1,5 @@
 export declare namespace Swagger {
-    type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object';
+    type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object' | 'file';
     type DataFormat = 'int32' | 'int64' | 'float' | 'double' | 'byte' | 'binary' | 'date' | 'date-time' | 'password';
     type Protocol = 'http' | 'https' | 'ws' | 'wss';
     interface Spec {

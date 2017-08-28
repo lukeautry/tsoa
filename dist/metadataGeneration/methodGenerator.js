@@ -38,6 +38,7 @@ var MethodGenerator = (function () {
             name: this.node.name.text,
             parameters: this.buildParameters(),
             path: this.path,
+            produces: this.getProduces(),
             responses: responses,
             security: this.getSecurity(),
             summary: jsDocUtils_1.getJSDocComment(this.node, 'summary'),
@@ -200,6 +201,21 @@ var MethodGenerator = (function () {
             throw new exceptions_1.GenerateMetadataError("Only one Hidden decorator allowed in '" + this.getCurrentLocation + "' method.");
         }
         return true;
+    };
+    MethodGenerator.prototype.getProduces = function () {
+        var producesDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Produces'; });
+        if (!producesDecorators || !producesDecorators.length) {
+            return undefined;
+        }
+        if (producesDecorators.length > 1) {
+            throw new exceptions_1.GenerateMetadataError("Only one Produces decorator allowed in '" + this.getCurrentLocation + "' method.");
+        }
+        var decorator = producesDecorators[0];
+        var expression = decorator.parent;
+        if (expression.arguments.length > 0 && expression.arguments[0].text) {
+            return [expression.arguments[0].text];
+        }
+        return undefined;
     };
     MethodGenerator.prototype.getSecurity = function () {
         var securityDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Security'; });

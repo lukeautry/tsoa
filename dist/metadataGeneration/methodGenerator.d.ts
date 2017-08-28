@@ -19,5 +19,6 @@ export declare class MethodGenerator {
     private getExamplesValue(argument);
     private getTags();
     private getIsHidden();
+    private getProduces();
     private getSecurity();
 }

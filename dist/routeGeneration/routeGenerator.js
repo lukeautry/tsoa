@@ -80,6 +80,7 @@ var RouteGenerator = (function () {
                             parameterObjs[parameter.parameterName] = _this.buildParameterSchema(parameter);
                         });
                         return {
+                            contentType: method.produces && method.produces.length === 1 ? method.produces[0] : '',
                             method: method.method.toLowerCase(),
                             name: method.name,
                             parameters: parameterObjs,
