@@ -1555,9 +1555,9 @@ export function RegisterRoutes(app: any) {
         }
 
         if (data) {
-          response.status(statusCode|200).json(data);
+          response.status(statusCode||200).json(data);
         } else {
-          response.status(statusCode|204).end();
+          response.status(statusCode||204).end();
         }
       })
       .catch((error: any) => next(error));
