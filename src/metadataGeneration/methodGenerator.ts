@@ -99,7 +99,7 @@ export class MethodGenerator {
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
-    this.path = decoratorArgument ? `/${decoratorArgument.text}` : '';
+    this.path = decoratorArgument ? `${decoratorArgument.text}` : '';
   }
 
   private getMethodResponses(): Tsoa.Response[] {

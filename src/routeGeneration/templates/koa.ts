@@ -37,7 +37,7 @@ const models: TsoaRoute.Models = {
 export function RegisterRoutes(router: any) {
     {{#each controllers}}
     {{#each actions}}
-        router.{{method}}('{{../../basePath}}/{{../path}}{{path}}',
+        router.{{method}}('{{../../basePath}}{{../path}}{{path}}',
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}

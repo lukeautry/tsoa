@@ -1,4 +1,5 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { normalisePath } from '../utils/pathUtils';
 import { SwaggerConfig } from './../config';
 import { Swagger } from './swagger';
 
@@ -7,7 +8,7 @@ export class SpecGenerator {
 
   public GetSpec() {
     let spec: Swagger.Spec = {
-      basePath: this.config.basePath,
+      basePath: normalisePath(this.config.basePath as string, '/'),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
       info: {
@@ -79,7 +80,7 @@ export class SpecGenerator {
     this.metadata.controllers.forEach(controller => {
       // construct documentation using all methods except @Hidden
       controller.methods.filter(method => !method.isHidden).forEach(method => {
-        const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
+        const path = normalisePath(controller.path, '/') + normalisePath(method.path, '/');
         paths[path] = paths[path] || {};
         this.buildMethod(controller.name, method, paths[path]);
       });

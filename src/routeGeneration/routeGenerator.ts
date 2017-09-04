@@ -4,6 +4,7 @@ import * as handlebarsHelpers from 'handlebars-helpers';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { normalisePath } from '../utils/pathUtils';
 import { RoutesConfig } from './../config';
 import { TsoaRoute } from './tsoa-route';
 
@@ -74,7 +75,7 @@ export class RouteGenerator {
 
     return routesTemplate({
       authenticationModule,
-      basePath: this.options.basePath === '/' ? '' : this.options.basePath,
+      basePath: normalisePath(this.options.basePath as string, '/'),
       canImportByAlias,
       controllers: this.metadata.controllers.map(controller => {
         return {
@@ -88,13 +89,13 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
-              path: pathTransformer(method.path),
+              path: normalisePath(pathTransformer(method.path), '/'),
               security: method.security,
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
-          path: controller.path,
+          path: normalisePath(pathTransformer(controller.path), '/'),
         };
       }),
       environment: process.env,
