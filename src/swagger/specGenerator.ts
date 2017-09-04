@@ -5,7 +5,7 @@ import { Swagger } from './swagger';
 export class SpecGenerator {
   constructor(private readonly metadata: Tsoa.Metadata, private readonly config: SwaggerConfig) { }
 
-  public GetSpec() {
+  public GetSpec(isInternalDoc: boolean = false) {
     let spec: Swagger.Spec = {
       basePath: this.config.basePath,
       consumes: ['application/json'],
@@ -13,7 +13,7 @@ export class SpecGenerator {
       info: {
         title: '',
       },
-      paths: this.buildPaths(),
+      paths: this.buildPaths(isInternalDoc),
       produces: ['application/json'],
       swagger: '2.0',
     };
@@ -35,6 +35,15 @@ export class SpecGenerator {
       };
 
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
+    }
+
+    if (isInternalDoc && this.config.internal) {
+      if (this.config.internal.name) {
+        spec.info.title = this.config.internal.name;
+      }
+      if (this.config.internal.description) {
+        spec.info.description = this.config.internal.description;
+      }
     }
 
     return spec;
@@ -73,22 +82,40 @@ export class SpecGenerator {
     return definitions;
   }
 
-  private buildPaths() {
+  private buildPaths(isInternalDoc: boolean) {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
-    this.metadata.controllers.forEach(controller => {
+    this.metadata.controllers.filter(c => {
+      if (isInternalDoc && c.isInternal || !isInternalDoc && !c.isInternal) {
+        return true;
+      } else if (isInternalDoc && !c.isInternal) {
+        // if controller has internal method or has method with internal parameters
+        return c.methods.find(m =>
+          m.isInternal || !!m.parameters.find(p => !!p.isInternal),
+        );
+      }
+      return false;
+    }).forEach(controller => {
       // construct documentation using all methods except @Hidden
-      controller.methods.filter(method => !method.isHidden).forEach(method => {
-        const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
-        paths[path] = paths[path] || {};
-        this.buildMethod(controller.name, method, paths[path]);
-      });
+      controller.methods
+        .filter(method => !method.isHidden)
+        .filter(m => {
+          if (isInternalDoc && (controller.isInternal || m.isInternal || m.parameters.find(p => !!p.isInternal)) ||
+              !isInternalDoc && !controller.isInternal && !m.isInternal) {
+            return true;
+          }
+          return false;
+        })
+        .forEach(method => {
+          const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
+          paths[path] = paths[path] || {};
+          this.buildMethod(controller.name, method, paths[path], isInternalDoc);
+        });
     });
-
     return paths;
   }
 
-  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, isInternalDoc: boolean) {
     const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
@@ -111,6 +138,10 @@ export class SpecGenerator {
 
     pathMethod.parameters = method.parameters
       .filter(p => {
+        // if internal query/header parameter and we are generating non private documentation
+        if (!isInternalDoc && p.isInternal && ['query', 'header'].indexOf(p.in) > -1) {
+          return false;
+        }
         return !(p.in === 'request' || p.in === 'body-prop');
       })
       .map(p => this.buildParameter(p));
