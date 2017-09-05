@@ -4,8 +4,8 @@ import * as handlebarsHelpers from 'handlebars-helpers';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
-import { normalisePath } from '../utils/pathUtils';
 import { RoutesConfig } from './../config';
+import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
 
 export class RouteGenerator {

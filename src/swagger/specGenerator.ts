@@ -1,6 +1,6 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
-import { normalisePath } from '../utils/pathUtils';
 import { SwaggerConfig } from './../config';
+import { normalisePath } from './../utils/pathUtils';
 import { Swagger } from './swagger';
 
 export class SpecGenerator {

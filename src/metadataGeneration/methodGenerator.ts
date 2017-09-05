@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
-import { normalisePath } from '../utils/pathUtils';
 import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
+import { normalisePath } from './../utils/pathUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';

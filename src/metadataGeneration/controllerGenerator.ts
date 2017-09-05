@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { normalisePath } from '../utils/pathUtils';
 import { getDecorators } from './../utils/decoratorUtils';
+import { normalisePath } from './../utils/pathUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from './tsoa';
