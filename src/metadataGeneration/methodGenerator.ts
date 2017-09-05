@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { normalisePath } from '../utils/pathUtils';
 import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
@@ -45,7 +46,7 @@ export class MethodGenerator {
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
-      path: this.path,
+      path: normalisePath(this.path as string, '/'),
       responses,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),

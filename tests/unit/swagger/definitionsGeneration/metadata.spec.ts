@@ -9,7 +9,7 @@ describe('Metadata generation', () => {
     it('should generate one controller', () => {
       expect(metadata.controllers.length).to.equal(1);
       expect(metadata.controllers[0].name).to.equal('GetTestController');
-      expect(metadata.controllers[0].path).to.equal('GetTest');
+      expect(metadata.controllers[0].path).to.equal('/GetTest');
     });
   });
 
@@ -37,7 +37,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('Get');
+      expect(method.path).to.equal('/Get');
     });
 
     it('should generate post method', () => {
@@ -47,7 +47,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('post');
-      expect(method.path).to.equal('Post');
+      expect(method.path).to.equal('/Post');
     });
 
     it('should generate patch method', () => {
@@ -57,7 +57,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('patch');
-      expect(method.path).to.equal('Patch');
+      expect(method.path).to.equal('/Patch');
     });
 
     it('should generate put method', () => {
@@ -67,7 +67,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('put');
-      expect(method.path).to.equal('Put');
+      expect(method.path).to.equal('/Put');
     });
 
     it('should generate delete method', () => {
@@ -77,7 +77,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('delete');
-      expect(method.path).to.equal('Delete');
+      expect(method.path).to.equal('/Delete');
     });
 
     it('should generate method description', () => {
@@ -447,7 +447,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('normalGetMethod');
+      expect(method.path).to.equal('/normalGetMethod');
       expect(method.isHidden).to.equal(false);
     });
 
@@ -458,7 +458,7 @@ describe('Metadata generation', () => {
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('hiddenGetMethod');
+      expect(method.path).to.equal('/hiddenGetMethod');
       expect(method.isHidden).to.equal(true);
     });
   });

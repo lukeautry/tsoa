@@ -89,13 +89,13 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
-              path: normalisePath(pathTransformer(method.path), '/'),
+              path: pathTransformer(method.path),
               security: method.security,
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
-          path: normalisePath(pathTransformer(controller.path), '/'),
+          path: controller.path,
         };
       }),
       environment: process.env,
