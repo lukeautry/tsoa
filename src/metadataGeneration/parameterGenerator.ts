@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import {getDecoratorName, getDecoratorTextValue, isDecorator} from './../utils/decoratorUtils';
+import { getDecoratorName, getDecoratorTextValue, isDecorator } from './../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';

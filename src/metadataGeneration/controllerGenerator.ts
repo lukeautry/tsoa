@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import {getDecorators, isDecorator} from './../utils/decoratorUtils';
+import { getDecorators, isDecorator } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from './tsoa';

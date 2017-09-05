@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import {getDecorators, isDecorator} from './../utils/decoratorUtils';
+import { getDecorators, isDecorator } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
