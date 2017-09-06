@@ -438,7 +438,7 @@ function getModelTypeDeclaration(type: ts.EntityName) {
     ? (type as ts.Identifier).text
     : (type as ts.QualifiedName).right.text;
 
-  const modelTypes = statements
+  let modelTypes = statements
     .filter((node) => {
       if (!nodeIsUsable(node) || !MetadataGenerator.current.IsExportedNode(node)) {
         return false;
@@ -450,6 +450,15 @@ function getModelTypeDeclaration(type: ts.EntityName) {
 
   if (!modelTypes.length) {
     throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
+  }
+  if (modelTypes.length > 1) {
+    // remove types that are from typescript e.g. 'Account'
+    modelTypes = modelTypes.filter((modelType) => {
+      if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
+        return false;
+      }
+      return true;
+    });
   }
   if (modelTypes.length > 1) {
     const conflicts = modelTypes.map((modelType) => modelType.getSourceFile().fileName).join('"; "');
