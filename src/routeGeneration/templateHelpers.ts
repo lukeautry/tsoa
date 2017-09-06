@@ -361,7 +361,7 @@ function validateModel(name: string, value: any, refName: string, fieldErrors: F
   if (modelDefinition) {
     const properties = modelDefinition.properties;
     if (properties) {
-      Object.keys(modelDefinition.properties).forEach((key: string) => {
+      Object.keys(properties).forEach((key: string) => {
         const property = properties[key];
         value[key] = ValidateParam(property, value[key], models, key, fieldErrors, parent);
       });

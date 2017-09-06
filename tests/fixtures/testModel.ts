@@ -259,6 +259,10 @@ export class TestClassModel extends TestClassBaseModel {
    * @maxLength 10
    */
   public optionalPublicStringProperty?: string;
+  /**
+   * @pattern ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$
+   */
+  public emailPattern: string;
   /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
