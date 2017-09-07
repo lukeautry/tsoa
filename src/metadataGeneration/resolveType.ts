@@ -93,7 +93,7 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
 
   let referenceType: Tsoa.ReferenceType;
   if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-    const typeT: ts.TypeNode[] = typeReference.typeArguments as ts.TypeNode[];
+    const typeT: ts.NodeArray<ts.TypeNode> = typeReference.typeArguments as ts.NodeArray<ts.TypeNode>;
     referenceType = getReferenceType(typeReference.typeName as ts.EntityName, extractEnum, typeT);
   } else {
     referenceType = getReferenceType(typeReference.typeName as ts.EntityName, extractEnum);
@@ -270,7 +270,7 @@ function getLiteralType(typeName: ts.EntityName): Tsoa.EnumerateType | undefined
   } as Tsoa.EnumerateType;
 }
 
-function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.TypeNode[]): Tsoa.ReferenceType {
+function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.ReferenceType {
   const typeName = resolveFqTypeName(type);
   const refNameWithGenerics = getTypeName(typeName, genericTypes);
 
@@ -324,7 +324,7 @@ function resolveFqTypeName(type: ts.EntityName): string {
   return resolveFqTypeName(qualifiedType.left) + '.' + (qualifiedType.right as ts.Identifier).text;
 }
 
-function getTypeName(typeName: string, genericTypes?: ts.TypeNode[]): string {
+function getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
   if (!genericTypes || !genericTypes.length) { return typeName; }
   return typeName + genericTypes.map((t) => getAnyTypeName(t)).join('');
 }
@@ -396,7 +396,7 @@ function resolveLeftmostIdentifier(type: ts.EntityName): ts.Identifier {
   return type as ts.Identifier;
 }
 
-function resolveModelTypeScope(leftmost: ts.EntityName, statements: any[]): any[] {
+function resolveModelTypeScope(leftmost: ts.EntityName, statements: any): any[] {
   while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
     const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier
       ? (leftmost as ts.Identifier).text
@@ -459,7 +459,7 @@ function getModelTypeDeclaration(type: ts.EntityName) {
   return modelTypes[0];
 }
 
-function getModelProperties(node: UsableDeclaration, genericTypes?: ts.TypeNode[]): Tsoa.Property[] {
+function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
   // Interface model
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
