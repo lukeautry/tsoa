@@ -20,7 +20,12 @@
                 }
             }
         },
-        "yaml": true
+        "yaml": true,
+        "internal": {
+            "name": "Internal documentation",
+            "description": "For internal use",
+            "outputDirectory": "./dist/internal"
+        }
     },
     "routes": {
         "basePath": "/v1",

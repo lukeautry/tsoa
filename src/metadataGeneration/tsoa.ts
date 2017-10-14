@@ -9,6 +9,7 @@ export namespace Tsoa {
     methods: Method[];
     name: string;
     path: string;
+    isInternal: boolean;
   }
 
   export interface Method {
@@ -24,7 +25,7 @@ export namespace Tsoa {
     security: Security[];
     summary?: string;
     isHidden: boolean;
-
+    isInternal: boolean;
   }
 
   export interface Parameter {
@@ -36,6 +37,7 @@ export namespace Tsoa {
     type: Type;
     default?: any;
     validators: Validators;
+    isInternal?: boolean;
   }
 
   export interface Validators {

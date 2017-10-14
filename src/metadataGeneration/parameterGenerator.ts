@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import { getDecoratorName, getDecoratorTextValue, isDecorator } from './../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -98,6 +98,7 @@ export class ParameterGenerator {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'header',
+      isInternal: isDecorator(this.parameter, ident => ident.text === 'Internal'),
       name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Header') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
@@ -126,6 +127,7 @@ export class ParameterGenerator {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'query',
+      isInternal: isDecorator(this.parameter, ident => ident.text === 'Internal'),
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,

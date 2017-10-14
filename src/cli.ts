@@ -155,24 +155,34 @@ function swaggerSpecGenerator(args) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = validateSwaggerConfig(config.swagger);
     const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
-    const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
 
-    const exists = fs.existsSync(swaggerConfig.outputDirectory);
-    if (!exists) {
-      fs.mkdirSync(swaggerConfig.outputDirectory);
+    generateSwaggerFile(metadata, 'swagger', swaggerConfig.outputDirectory, swaggerConfig);
+    if (config.swagger.internal) {
+      const outputDir = swaggerConfig.internal && swaggerConfig.internal.outputDirectory
+        ? swaggerConfig.internal.outputDirectory
+        : swaggerConfig.outputDirectory;
+      generateSwaggerFile(metadata, 'internalSwagger', outputDir, swaggerConfig, true);
     }
-    let data = JSON.stringify(spec, null, '\t');
-    if (config.swagger.yaml) {
-      data = YAML.stringify(JSON.parse(data), 10);
-    }
-    const ext = config.swagger.yaml ? 'yaml' : 'json';
-
-    fs.writeFileSync(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
     process.exit(1);
   }
+}
+
+function generateSwaggerFile(metadata, fileName: string, outputDir: string, config: SwaggerConfig, isInternalDoc: boolean = false): void {
+  const spec = new SpecGenerator(metadata, config).GetSpec(isInternalDoc);
+  const exists = fs.existsSync(outputDir);
+  if (!exists) {
+    fs.mkdirSync(outputDir);
+  }
+  let data = JSON.stringify(spec, null, '\t');
+  if (config.yaml) {
+    data = YAML.stringify(JSON.parse(data), 10);
+  }
+  const ext = config.yaml ? 'yaml' : 'json';
+
+  fs.writeFileSync(`${outputDir}/${fileName}.${ext}`, data, { encoding: 'utf8' });
 }
 
 function routeGenerator(args) {

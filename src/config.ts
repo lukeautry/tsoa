@@ -89,6 +89,12 @@ export interface SwaggerConfig {
   };
 
   yaml?: boolean;
+
+  internal?: {
+    name?: string;
+    description?: string;
+    outputDirectory?: string;
+  };
 }
 
 export interface RoutesConfig {

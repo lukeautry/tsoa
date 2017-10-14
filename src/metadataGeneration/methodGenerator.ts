@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecorators } from './../utils/decoratorUtils';
+import { getDecorators, isDecorator } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -42,6 +42,7 @@ export class MethodGenerator {
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
+      isInternal: isDecorator(this.node, ident => ident.text === 'Internal'),
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),

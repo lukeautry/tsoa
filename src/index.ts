@@ -10,4 +10,5 @@ export * from './decorators/route';
 export * from './decorators/security';
 export * from './interfaces/controller';
 export * from './decorators/response';
+export * from './decorators/swagger';
 export * from './routeGeneration/templateHelpers';
