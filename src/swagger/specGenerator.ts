@@ -160,7 +160,7 @@ export class SpecGenerator {
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
-    const parameter = {
+    let parameter = {
       default: source.default,
       description: source.description,
       in: source.in,
@@ -169,8 +169,31 @@ export class SpecGenerator {
     } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(source.type);
+    parameter.format = parameterType.format || undefined;
+
+    if (parameter.in === 'query' && parameter.type === 'array') {
+      (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
+    }
+
     if (parameterType.$ref) {
       parameter.schema = parameterType as Swagger.Schema;
+      return parameter;
+    }
+
+    const validatorObjs = {};
+    Object.keys(source.validators)
+      .filter(key => {
+        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+      })
+      .forEach((key: string) => {
+        validatorObjs[key] = source.validators[key].value;
+      });
+
+    if (source.in === 'body' && source.type.dataType === 'array') {
+      parameter.schema = {
+        items: parameterType.items,
+        type: 'array',
+      };
     } else {
       if (source.type.dataType === 'any') {
         if (source.in === 'body') {
@@ -185,21 +208,12 @@ export class SpecGenerator {
       }
     }
 
-    if (parameter.in === 'query' && parameter.type === 'array') {
-      (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
+    if (parameter.schema) {
+      parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
+    } else {
+      parameter = Object.assign({}, parameter, validatorObjs);
     }
 
-    if (parameterType.format) {
-      parameter.format = parameterType.format;
-    }
-
-    Object.keys(source.validators)
-      .filter(key => {
-        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
-      })
-      .forEach((key: string) => {
-        parameter[key] = source.validators[key].value;
-      });
     return parameter;
   }
 

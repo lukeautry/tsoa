@@ -177,13 +177,18 @@ export class ParameterController {
         //
     }
 
+    @Post('ParamaterQueyArray')
+    public async queyArray( @Query() name: string[]): Promise<void> {
+        //
+    }
+
     @Post('ParamaterBodyAnyType')
     public async bodyAnyType( @Body() body: any): Promise<void> {
         //
     }
 
-    @Post('ParamaterQueyArray')
-    public async queyArray( @Query() name: string[]): Promise<void> {
+    @Post('ParamaterBodyArrayType')
+    public async bodyArrayType(@Body() body: ParameterTestModel[]): Promise<void> {
         //
     }
 
@@ -224,4 +229,5 @@ export class ParameterController {
     public async implicitDate( @Query() date = new Date(2018, 1, 15)): Promise<void> {
         //
     }
+
 }
