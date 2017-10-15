@@ -9,7 +9,7 @@ describe('Metadata generation', () => {
     it('should generate one controller', () => {
       expect(metadata.controllers.length).to.equal(1);
       expect(metadata.controllers[0].name).to.equal('GetTestController');
-      expect(metadata.controllers[0].path).to.equal('GetTest');
+      expect(metadata.controllers[0].path).to.equal('/GetTest');
     });
   });
 

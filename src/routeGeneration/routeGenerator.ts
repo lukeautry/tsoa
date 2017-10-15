@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { RoutesConfig } from './../config';
+import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
 
 export class RouteGenerator {
@@ -74,7 +75,7 @@ export class RouteGenerator {
 
     return routesTemplate({
       authenticationModule,
-      basePath: this.options.basePath === '/' ? '' : this.options.basePath,
+      basePath: normalisePath(this.options.basePath as string, '/'),
       canImportByAlias,
       controllers: this.metadata.controllers.map(controller => {
         return {

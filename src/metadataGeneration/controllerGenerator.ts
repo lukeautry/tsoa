@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
+import { normalisePath } from './../utils/pathUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from './tsoa';
@@ -33,7 +34,7 @@ export class ControllerGenerator {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
-      path: this.path || '',
+      path: normalisePath(this.path as string, '/'),
     };
   }
 
