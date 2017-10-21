@@ -1,3 +1,4 @@
+import * as mm from 'minimatch';
 import * as ts from 'typescript';
 import { ControllerGenerator } from './controllerGenerator';
 import { Tsoa } from './tsoa';
@@ -12,7 +13,7 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions) {
+  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[]) {
     this.program = ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
     MetadataGenerator.current = this;
@@ -20,6 +21,14 @@ export class MetadataGenerator {
 
   public Generate(): Tsoa.Metadata {
     this.program.getSourceFiles().forEach((sf) => {
+      if (this.ignorePaths && this.ignorePaths.length) {
+        for (const path of this.ignorePaths) {
+          if (mm(sf.fileName, path)) {
+            return;
+          }
+        }
+      }
+
       ts.forEachChild(sf, (node) => {
         this.nodes.push(node);
       });

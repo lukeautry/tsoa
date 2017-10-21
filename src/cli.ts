@@ -34,7 +34,6 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
     } else {
       config = require(`${workingDir}/${configPath}`);
     }
-
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
@@ -154,7 +153,7 @@ function swaggerSpecGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = validateSwaggerConfig(config.swagger);
-    const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions).Generate();
+    const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, config.ignore).Generate();
     const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
 
     const exists = fs.existsSync(swaggerConfig.outputDirectory);
@@ -184,7 +183,7 @@ function routeGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = validateRoutesConfig(config.routes);
-    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions).Generate();
+    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore).Generate();
     const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
     let pathTransformer;

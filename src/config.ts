@@ -13,6 +13,11 @@ export interface Config {
   routes: RoutesConfig;
 
   /**
+   * Directories to ignore during TypeScript metadata scan
+   */
+  ignore?: string[];
+
+  /**
    * Typescript CompilerOptions to be used during generation
    *
    * @type {ts.CompilerOptions}
