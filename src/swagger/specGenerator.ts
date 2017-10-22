@@ -150,7 +150,7 @@ export class SpecGenerator {
       name: 'body',
       schema: {
         properties,
-        title: `${this.getOperationId(controllerName, method.name)}Body`,
+        title: `${this.getOperationId(method.name)}Body`,
         type: 'object',
       },
     } as Swagger.Parameter;
@@ -261,15 +261,14 @@ export class SpecGenerator {
     });
 
     return {
-      operationId: this.getOperationId(controllerName, method.name),
+      operationId: this.getOperationId(method.name),
       produces: ['application/json'],
       responses: swaggerResponses,
     };
   }
 
-  private getOperationId(controllerName: string, methodName: string) {
-    const controllerNameWithoutSuffix = controllerName.replace(new RegExp('Controller$'), '');
-    return `${controllerNameWithoutSuffix}${methodName.charAt(0).toUpperCase() + methodName.substr(1)}`;
+  private getOperationId(methodName: string) {
+    return methodName.charAt(0).toUpperCase() + methodName.substr(1);
   }
 
   private getSwaggerType(type: Tsoa.Type): Swagger.Schema {
