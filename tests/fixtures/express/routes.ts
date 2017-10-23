@@ -116,7 +116,9 @@ const models: TsoaRoute.Models={
       "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "emailPattern": { "dataType": "string", "validators": { "pattern": { "value": "^[a-zA-Z0-9_.+-]+" } } },
       "stringProperty": { "dataType": "string", "required": true },
+      "typeLiterals": { "dataType": "any", "default": { "booleanTypeLiteral": {}, "numberTypeLiteral": {}, "stringTypeLiteral": {} } },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
       "id": { "dataType": "double", "required": true },
@@ -1309,6 +1311,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/v1/ParameterTest/ParamaterQueyArray',
+    function(request: any, response: any, next: any) {
+      const args={
+        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.queyArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/v1/ParameterTest/ParamaterBodyAnyType',
     function(request: any, response: any, next: any) {
       const args={
@@ -1328,10 +1349,10 @@ export function RegisterRoutes(app: any) {
       const promise=controller.bodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/ParamaterQueyArray',
+  app.post('/v1/ParameterTest/ParamaterBodyArrayType',
     function(request: any, response: any, next: any) {
       const args={
-        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+        body: { "in": "body", "name": "body", "required": true, "dataType": "array", "array": { "ref": "ParameterTestModel" } },
       };
 
       let validatedArgs: any[]=[];
@@ -1344,7 +1365,7 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.queyArray.apply(controller, validatedArgs);
+      const promise=controller.bodyArrayType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/ParamaterImplicitString',

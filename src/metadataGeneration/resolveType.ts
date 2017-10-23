@@ -57,6 +57,10 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
     return { dataType: 'any' } as Tsoa.Type;
   }
 
+  if (typeNode.kind === ts.SyntaxKind.TypeLiteral) {
+    return { dataType: 'any' } as Tsoa.Type;
+  }
+
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
