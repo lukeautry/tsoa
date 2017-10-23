@@ -49,7 +49,7 @@ export function RegisterRoutes(server: any) {
                     }
                 ],
                 {{/if}}
-                handler: (request: any, reply) => {
+                handler: (request: any, reply: any) => {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},
