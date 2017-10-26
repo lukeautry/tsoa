@@ -99,7 +99,7 @@ export class RouteGenerator {
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
-              path: pathTransformer(method.path),
+              path: normalisedMethodPath,
               security: method.security,
             };
           }),
