@@ -114,6 +114,7 @@ const models: TsoaRoute.Models={
       "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "emailPattern": { "dataType": "string", "validators": { "pattern": { "value": "^[a-zA-Z0-9_.+-]+" } } },
       "stringProperty": { "dataType": "string", "required": true },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
@@ -198,7 +199,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.deleteWithReturnValue.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.delete('/v1/DeleteTest/Current',
+  app.delete('/v1/DeleteTestCurrent',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -216,7 +217,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.deleteCurrent.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.delete('/v1/DeleteTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+  app.delete('/v1/DeleteTest:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
       const args={
         numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double" },
@@ -258,7 +259,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/Current',
+  app.get('/v1/GetTestCurrent',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -276,7 +277,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getCurrentModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/ClassModel',
+  app.get('/v1/GetTestClassModel',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -294,7 +295,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getClassModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/Multi',
+  app.get('/v1/GetTestMulti',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -312,7 +313,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getMultipleModels.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+  app.get('/v1/GetTest:numberPathParam/:booleanPathParam/:stringPathParam',
     function(request: any, response: any, next: any) {
       const args={
         numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double", "validators": { "isDouble": { "errorMsg": "numberPathParam" }, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
@@ -337,7 +338,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getModelByParams.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/ResponseWithUnionTypeProperty',
+  app.get('/v1/GetTestResponseWithUnionTypeProperty',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -355,7 +356,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getResponseWithUnionTypeProperty.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/UnionTypeResponse',
+  app.get('/v1/GetTestUnionTypeResponse',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -373,7 +374,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getUnionTypeResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/Request',
+  app.get('/v1/GetTestRequest',
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -392,7 +393,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/DateParam',
+  app.get('/v1/GetTestDateParam',
     function(request: any, response: any, next: any) {
       const args={
         date: { "in": "query", "name": "date", "required": true, "dataType": "datetime" },
@@ -411,7 +412,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getByDataParam.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/ThrowsError',
+  app.get('/v1/GetTestThrowsError',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -429,7 +430,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getThrowsError.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/GeneratesTags',
+  app.get('/v1/GetTestGeneratesTags',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -447,7 +448,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getGeneratesTags.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/HandleBufferType',
+  app.get('/v1/GetTestHandleBufferType',
     function(request: any, response: any, next: any) {
       const args={
         buffer: { "in": "query", "name": "buffer", "required": true, "dataType": "buffer" },
@@ -466,7 +467,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getBuffer.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/GenericModel',
+  app.get('/v1/GetTestGenericModel',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -484,7 +485,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getGenericModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/GenericModelArray',
+  app.get('/v1/GetTestGenericModelArray',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -502,7 +503,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getGenericModelArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/GenericPrimitive',
+  app.get('/v1/GetTestGenericPrimitive',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -520,7 +521,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getGenericPrimitive.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/GetTest/GenericPrimitiveArray',
+  app.get('/v1/GetTestGenericPrimitiveArray',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -557,7 +558,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.patchModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.patch('/v1/PatchTest/Location',
+  app.patch('/v1/PatchTestLocation',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -575,7 +576,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.patchModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.patch('/v1/PatchTest/Multi',
+  app.patch('/v1/PatchTestMulti',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -593,7 +594,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.patchWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.patch('/v1/PatchTest/WithId/:id',
+  app.patch('/v1/PatchTestWithId/:id',
     function(request: any, response: any, next: any) {
       const args={
         id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
@@ -650,7 +651,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.updateModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/WithClassModel',
+  app.post('/v1/PostTestWithClassModel',
     function(request: any, response: any, next: any) {
       const args={
         model: { "in": "body", "name": "model", "required": true, "ref": "TestClassModel" },
@@ -669,7 +670,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postClassModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/Location',
+  app.post('/v1/PostTestLocation',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -687,7 +688,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/Multi',
+  app.post('/v1/PostTestMulti',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -705,7 +706,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/WithId/:id',
+  app.post('/v1/PostTestWithId/:id',
     function(request: any, response: any, next: any) {
       const args={
         id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
@@ -724,7 +725,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postWithId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/WithBodyAndQueryParams',
+  app.post('/v1/PostTestWithBodyAndQueryParams',
     function(request: any, response: any, next: any) {
       const args={
         model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
@@ -744,7 +745,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postWithBodyAndQueryParams.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/PostTest/GenericBody',
+  app.post('/v1/PostTestGenericBody',
     function(request: any, response: any, next: any) {
       const args={
         genericReq: { "in": "body", "name": "genericReq", "required": true, "ref": "GenericRequestTestModel" },
@@ -782,7 +783,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.putModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.put('/v1/PutTest/Location',
+  app.put('/v1/PutTestLocation',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -800,7 +801,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.putModelAtLocation.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.put('/v1/PutTest/Multi',
+  app.put('/v1/PutTestMulti',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -818,7 +819,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.putWithMultiReturn.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.put('/v1/PutTest/WithId/:id',
+  app.put('/v1/PutTestWithId/:id',
     function(request: any, response: any, next: any) {
       const args={
         id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
@@ -837,7 +838,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.putWithId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/Get',
+  app.get('/v1/MethodTestGet',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -855,7 +856,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/MethodTest/Post',
+  app.post('/v1/MethodTestPost',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -873,7 +874,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.postMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.patch('/v1/MethodTest/Patch',
+  app.patch('/v1/MethodTestPatch',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -891,7 +892,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.patchMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.put('/v1/MethodTest/Put',
+  app.put('/v1/MethodTestPut',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -909,7 +910,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.putMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.delete('/v1/MethodTest/Delete',
+  app.delete('/v1/MethodTestDelete',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -927,7 +928,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.deleteMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/Description',
+  app.get('/v1/MethodTestDescription',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -945,7 +946,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.description.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/Tags',
+  app.get('/v1/MethodTestTags',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -963,7 +964,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.tags.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/MultiResponse',
+  app.get('/v1/MethodTestMultiResponse',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -981,7 +982,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.multiResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/SuccessResponse',
+  app.get('/v1/MethodTestSuccessResponse',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -999,7 +1000,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.successResponse.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/ApiSecurity',
+  app.get('/v1/MethodTestApiSecurity',
     authenticateMiddleware([{ "name": "api_key" }]),
     function(request: any, response: any, next: any) {
       const args={
@@ -1018,7 +1019,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.apiSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/OauthSecurity',
+  app.get('/v1/MethodTestOauthSecurity',
     authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
@@ -1037,7 +1038,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.oauthSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/OauthOrAPIkeySecurity',
+  app.get('/v1/MethodTestOauthOrAPIkeySecurity',
     authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
     function(request: any, response: any, next: any) {
       const args={
@@ -1056,7 +1057,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/DeprecatedMethod',
+  app.get('/v1/MethodTestDeprecatedMethod',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1074,7 +1075,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.deprecatedMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/SummaryMethod',
+  app.get('/v1/MethodTestSummaryMethod',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1092,7 +1093,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.summaryMethod.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/MethodTest/returnAnyType',
+  app.get('/v1/MethodTestreturnAnyType',
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1110,7 +1111,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.returnAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/Query',
+  app.get('/v1/ParameterTestQuery',
     function(request: any, response: any, next: any) {
       const args={
         firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
@@ -1134,7 +1135,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getQuery.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/Path/:firstname/:last_name/:age/:weight/:human/:gender',
+  app.get('/v1/ParameterTestPath/:firstname/:last_name/:age/:weight/:human/:gender',
     function(request: any, response: any, next: any) {
       const args={
         firstname: { "in": "path", "name": "firstname", "required": true, "dataType": "string" },
@@ -1158,7 +1159,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getPath.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/Header',
+  app.get('/v1/ParameterTestHeader',
     function(request: any, response: any, next: any) {
       const args={
         firstname: { "in": "header", "name": "firstname", "required": true, "dataType": "string" },
@@ -1182,7 +1183,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getHeader.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/Request',
+  app.get('/v1/ParameterTestRequest',
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1201,7 +1202,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/Body',
+  app.post('/v1/ParameterTestBody',
     function(request: any, response: any, next: any) {
       const args={
         body: { "in": "body", "name": "body", "required": true, "ref": "ParameterTestModel" },
@@ -1220,7 +1221,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getBody.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/BodyProps',
+  app.post('/v1/ParameterTestBodyProps',
     function(request: any, response: any, next: any) {
       const args={
         firstname: { "in": "body-prop", "name": "firstname", "required": true, "dataType": "string" },
@@ -1244,7 +1245,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getBodyProps.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/ParamaterQueyAnyType',
+  app.get('/v1/ParameterTestParamaterQueyAnyType',
     function(request: any, response: any, next: any) {
       const args={
         name: { "in": "query", "name": "name", "required": true, "dataType": "any" },
@@ -1263,26 +1264,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/ParamaterBodyAnyType',
-    function(request: any, response: any, next: any) {
-      const args={
-        body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
-      };
-
-      let validatedArgs: any[]=[];
-      try {
-        validatedArgs=getValidatedArgs(args, request);
-      } catch (err) {
-        return next(err);
-      }
-
-      const controller=new ParameterController();
-
-
-      const promise=controller.bodyAnyType.apply(controller, validatedArgs);
-      promiseHandler(controller, promise, response, next);
-    });
-  app.post('/v1/ParameterTest/ParamaterQueyArray',
+  app.post('/v1/ParameterTestParamaterQueyArray',
     function(request: any, response: any, next: any) {
       const args={
         name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
@@ -1301,7 +1283,45 @@ export function RegisterRoutes(app: any) {
       const promise=controller.queyArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/ParamaterImplicitString',
+  app.post('/v1/ParameterTestParamaterBodyAnyType',
+    function(request: any, response: any, next: any) {
+      const args={
+        body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.bodyAnyType.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/v1/ParameterTestParamaterBodyArrayType',
+    function(request: any, response: any, next: any) {
+      const args={
+        body: { "in": "body", "name": "body", "required": true, "dataType": "array", "array": { "ref": "ParameterTestModel" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.bodyArrayType.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/ParameterTestParamaterImplicitString',
     function(request: any, response: any, next: any) {
       const args={
         name: { "default": "Iron man", "in": "query", "name": "name", "dataType": "string" },
@@ -1320,7 +1340,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitString.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/ParamaterImplicitNumber',
+  app.get('/v1/ParameterTestParamaterImplicitNumber',
     function(request: any, response: any, next: any) {
       const args={
         age: { "default": 40, "in": "query", "name": "age", "dataType": "double" },
@@ -1339,7 +1359,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitNumber.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/ParamaterImplicitEnum',
+  app.get('/v1/ParameterTestParamaterImplicitEnum',
     function(request: any, response: any, next: any) {
       const args={
         gender: { "in": "query", "name": "gender", "dataType": "enum", "enums": ["MALE", "FEMALE"] },
@@ -1358,7 +1378,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitEnum.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/ParamaterImplicitStringArray',
+  app.get('/v1/ParameterTestParamaterImplicitStringArray',
     function(request: any, response: any, next: any) {
       const args={
         arr: { "default": ["V1", "V2"], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "string" } },
@@ -1377,7 +1397,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitStringArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/paramaterImplicitNumberArray',
+  app.get('/v1/ParameterTestparamaterImplicitNumberArray',
     function(request: any, response: any, next: any) {
       const args={
         arr: { "default": [1, 2, 3], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "double" } },
@@ -1396,7 +1416,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitNumberArray.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/paramaterImplicitDateTime',
+  app.get('/v1/ParameterTestparamaterImplicitDateTime',
     function(request: any, response: any, next: any) {
       const args={
         date: { "default": "2017-01-01T00:00:00.000Z", "in": "query", "name": "date", "dataType": "datetime" },
@@ -1415,10 +1435,10 @@ export function RegisterRoutes(app: any) {
       const promise=controller.implicitDateTime.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/ParameterTest/paramaterImplicitDate',
+  app.get('/v1/ParameterTestparamaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1454,7 +1474,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/SecurityTest/Koa',
+  app.get('/v1/SecurityTestKoa',
     authenticateMiddleware([{ "name": "api_key" }]),
     function(request: any, response: any, next: any) {
       const args={
@@ -1474,7 +1494,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.GetWithApiForKoa.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/SecurityTest/Oauth',
+  app.get('/v1/SecurityTestOauth',
     authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
@@ -1494,7 +1514,7 @@ export function RegisterRoutes(app: any) {
       const promise=controller.GetWithSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/v1/SecurityTest/OauthOrAPIkey',
+  app.get('/v1/SecurityTestOauthOrAPIkey',
     authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
     function(request: any, response: any, next: any) {
       const args={

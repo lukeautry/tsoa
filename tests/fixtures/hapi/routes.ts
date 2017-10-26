@@ -1,6 +1,7 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
 import { PatchTestController } from './../controllers/patchController';
@@ -117,6 +118,7 @@ const models: TsoaRoute.Models={
       "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "emailPattern": { "dataType": "string", "validators": { "pattern": { "value": "^[a-zA-Z0-9_.+-]+" } } },
       "stringProperty": { "dataType": "string", "required": true },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
@@ -228,10 +230,54 @@ const models: TsoaRoute.Models={
 
 export function RegisterRoutes(server: any) {
   server.route({
+    method: 'get',
+    path: '/v1',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new RootController();
+
+        const promise=controller.rootHandler.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/rootControllerMethodWithPath',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new RootController();
+
+        const promise=controller.rootControllerMethodWithPath.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
     method: 'delete',
     path: '/v1/DeleteTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -253,7 +299,7 @@ export function RegisterRoutes(server: any) {
     method: 'delete',
     path: '/v1/DeleteTest/Current',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -275,7 +321,7 @@ export function RegisterRoutes(server: any) {
     method: 'delete',
     path: '/v1/DeleteTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double" },
           stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string" },
@@ -303,7 +349,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -325,7 +371,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/Current',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -347,7 +393,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/ClassModel',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -369,7 +415,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/Multi',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -391,7 +437,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/{numberPathParam}/{booleanPathParam}/{stringPathParam}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double", "validators": { "isDouble": { "errorMsg": "numberPathParam" }, "minimum": { "value": 1 }, "maximum": { "value": 10 } } },
           stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string", "validators": { "minLength": { "value": 1 }, "maxLength": { "value": 10 } } },
@@ -420,7 +466,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/ResponseWithUnionTypeProperty',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -442,7 +488,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/UnionTypeResponse',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -464,7 +510,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/Request',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -487,7 +533,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/DateParam',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           date: { "in": "query", "name": "date", "required": true, "dataType": "datetime" },
         };
@@ -510,7 +556,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/ThrowsError',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -532,7 +578,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/GeneratesTags',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -554,7 +600,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/HandleBufferType',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           buffer: { "in": "query", "name": "buffer", "required": true, "dataType": "buffer" },
         };
@@ -577,7 +623,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/GenericModel',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -599,7 +645,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/GenericModelArray',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -621,7 +667,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/GenericPrimitive',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -643,7 +689,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/GetTest/GenericPrimitiveArray',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -665,7 +711,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/PatchTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
         };
@@ -688,7 +734,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/PatchTest/Location',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -710,7 +756,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/PatchTest/Multi',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -732,7 +778,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/PatchTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
         };
@@ -755,7 +801,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
         };
@@ -778,7 +824,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/PostTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
         };
@@ -801,7 +847,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/WithClassModel',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestClassModel" },
         };
@@ -824,7 +870,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/Location',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -846,7 +892,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/Multi',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -868,7 +914,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
         };
@@ -891,7 +937,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/WithBodyAndQueryParams',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
           query: { "in": "query", "name": "query", "required": true, "dataType": "string" },
@@ -915,7 +961,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/PostTest/GenericBody',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           genericReq: { "in": "body", "name": "genericReq", "required": true, "ref": "GenericRequestTestModel" },
         };
@@ -938,7 +984,7 @@ export function RegisterRoutes(server: any) {
     method: 'put',
     path: '/v1/PutTest',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
         };
@@ -961,7 +1007,7 @@ export function RegisterRoutes(server: any) {
     method: 'put',
     path: '/v1/PutTest/Location',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -983,7 +1029,7 @@ export function RegisterRoutes(server: any) {
     method: 'put',
     path: '/v1/PutTest/Multi',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1005,7 +1051,7 @@ export function RegisterRoutes(server: any) {
     method: 'put',
     path: '/v1/PutTest/WithId/{id}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           id: { "in": "path", "name": "id", "required": true, "dataType": "double" },
         };
@@ -1028,7 +1074,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/Get',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1050,7 +1096,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/MethodTest/Post',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1072,7 +1118,7 @@ export function RegisterRoutes(server: any) {
     method: 'patch',
     path: '/v1/MethodTest/Patch',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1094,7 +1140,7 @@ export function RegisterRoutes(server: any) {
     method: 'put',
     path: '/v1/MethodTest/Put',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1116,7 +1162,7 @@ export function RegisterRoutes(server: any) {
     method: 'delete',
     path: '/v1/MethodTest/Delete',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1138,7 +1184,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/Description',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1160,7 +1206,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/Tags',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1182,7 +1228,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/MultiResponse',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1204,7 +1250,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/SuccessResponse',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1231,7 +1277,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "api_key" }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1258,7 +1304,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1285,7 +1331,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1307,7 +1353,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/DeprecatedMethod',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1329,7 +1375,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/SummaryMethod',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1351,7 +1397,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/MethodTest/returnAnyType',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1373,7 +1419,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/Query',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "query", "name": "last_name", "required": true, "dataType": "string" },
@@ -1401,7 +1447,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           firstname: { "in": "path", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "path", "name": "last_name", "required": true, "dataType": "string" },
@@ -1429,7 +1475,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/Header',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           firstname: { "in": "header", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "header", "name": "last_name", "required": true, "dataType": "string" },
@@ -1457,7 +1503,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/Request',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -1480,7 +1526,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/ParameterTest/Body',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           body: { "in": "body", "name": "body", "required": true, "ref": "ParameterTestModel" },
         };
@@ -1503,7 +1549,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/ParameterTest/BodyProps',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           firstname: { "in": "body-prop", "name": "firstname", "required": true, "dataType": "string" },
           lastname: { "in": "body-prop", "name": "lastname", "required": true, "dataType": "string" },
@@ -1531,7 +1577,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/ParamaterQueyAnyType',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           name: { "in": "query", "name": "name", "required": true, "dataType": "any" },
         };
@@ -1552,9 +1598,32 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'post',
+    path: '/v1/ParameterTest/ParamaterQueyArray',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new ParameterController();
+
+        const promise=controller.queyArray.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
     path: '/v1/ParameterTest/ParamaterBodyAnyType',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           body: { "in": "body", "name": "body", "required": true, "dataType": "any" },
         };
@@ -1575,11 +1644,11 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'post',
-    path: '/v1/ParameterTest/ParamaterQueyArray',
+    path: '/v1/ParameterTest/ParamaterBodyArrayType',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
-          name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+          body: { "in": "body", "name": "body", "required": true, "dataType": "array", "array": { "ref": "ParameterTestModel" } },
         };
 
         let validatedArgs: any[]=[];
@@ -1591,7 +1660,7 @@ export function RegisterRoutes(server: any) {
 
         const controller=new ParameterController();
 
-        const promise=controller.queyArray.apply(controller, validatedArgs);
+        const promise=controller.bodyArrayType.apply(controller, validatedArgs);
         return promiseHandler(controller, promise, request, reply);
       }
     }
@@ -1600,7 +1669,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/ParamaterImplicitString',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           name: { "default": "Iron man", "in": "query", "name": "name", "dataType": "string" },
         };
@@ -1623,7 +1692,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/ParamaterImplicitNumber',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           age: { "default": 40, "in": "query", "name": "age", "dataType": "double" },
         };
@@ -1646,7 +1715,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/ParamaterImplicitEnum',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           gender: { "in": "query", "name": "gender", "dataType": "enum", "enums": ["MALE", "FEMALE"] },
         };
@@ -1669,7 +1738,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/ParamaterImplicitStringArray',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           arr: { "default": ["V1", "V2"], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "string" } },
         };
@@ -1692,7 +1761,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/paramaterImplicitNumberArray',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           arr: { "default": [1, 2, 3], "in": "query", "name": "arr", "dataType": "array", "array": { "dataType": "double" } },
         };
@@ -1715,7 +1784,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/paramaterImplicitDateTime',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           date: { "default": "2017-01-01T00:00:00.000Z", "in": "query", "name": "date", "dataType": "datetime" },
         };
@@ -1738,9 +1807,9 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/ParameterTest/paramaterImplicitDate',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
-          date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+          date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
         };
 
         let validatedArgs: any[]=[];
@@ -1766,7 +1835,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "api_key" }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -1794,7 +1863,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "api_key" }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -1822,7 +1891,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -1850,7 +1919,7 @@ export function RegisterRoutes(server: any) {
           method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }])
         }
       ],
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
         };
@@ -1873,7 +1942,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Controller/normalStatusCode',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1895,7 +1964,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Controller/noContentStatusCode',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1917,7 +1986,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Controller/customStatusCode',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1939,7 +2008,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Controller/customHeader',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
         };
 
@@ -1961,7 +2030,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/date',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "date", "validators": { "isDate": { "errorMsg": "minDateValue" }, "minDate": { "value": "2018-01-01" } } },
           maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "date", "validators": { "isDate": { "errorMsg": "maxDateValue" }, "maxDate": { "value": "2016-01-01" } } },
@@ -1985,7 +2054,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/datetime',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           minDateValue: { "in": "query", "name": "minDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": { "errorMsg": "minDateValue" }, "minDate": { "value": "2018-01-01T00:00:00" } } },
           maxDateValue: { "in": "query", "name": "maxDateValue", "required": true, "dataType": "datetime", "validators": { "isDateTime": { "errorMsg": "maxDateValue" }, "maxDate": { "value": "2016-01-01T00:00:00" } } },
@@ -2009,7 +2078,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/integer',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "minValue" }, "minimum": { "value": 5 } } },
           maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "integer", "validators": { "isInt": { "errorMsg": "maxValue" }, "maximum": { "value": 3 } } },
@@ -2033,7 +2102,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/float',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           minValue: { "in": "query", "name": "minValue", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "minValue" }, "minimum": { "value": 5.5 } } },
           maxValue: { "in": "query", "name": "maxValue", "required": true, "dataType": "float", "validators": { "isFloat": { "errorMsg": "maxValue" }, "maximum": { "value": 3.5 } } },
@@ -2057,7 +2126,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/boolean',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           boolValue: { "in": "query", "name": "boolValue", "required": true, "dataType": "boolean", "validators": { "isBoolean": { "errorMsg": "boolValue" } } },
         };
@@ -2080,7 +2149,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/string',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           minLength: { "in": "query", "name": "minLength", "required": true, "dataType": "string", "validators": { "minLength": { "value": 5 } } },
           maxLength: { "in": "query", "name": "maxLength", "required": true, "dataType": "string", "validators": { "maxLength": { "value": 3 } } },
@@ -2105,7 +2174,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/customRequiredErrorMsg',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "errorMsg": "Required long number." } } },
         };
@@ -2128,7 +2197,7 @@ export function RegisterRoutes(server: any) {
     method: 'get',
     path: '/v1/Validate/parameter/customInvalidErrorMsg',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           longValue: { "in": "query", "name": "longValue", "required": true, "dataType": "long", "validators": { "isLong": { "errorMsg": "Invalid long number." } } },
         };
@@ -2151,7 +2220,7 @@ export function RegisterRoutes(server: any) {
     method: 'post',
     path: '/v1/Validate/body',
     config: {
-      handler: (request: any, reply) => {
+      handler: (request: any, reply: any) => {
         const args={
           body: { "in": "body", "name": "body", "required": true, "ref": "ValidateModel" },
         };

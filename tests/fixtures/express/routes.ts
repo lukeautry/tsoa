@@ -1,5 +1,6 @@
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
 import { PatchTestController } from './../controllers/patchController';
@@ -116,6 +117,7 @@ const models: TsoaRoute.Models={
       "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "emailPattern": { "dataType": "string", "validators": { "pattern": { "value": "^[a-zA-Z0-9_.+-]+" } } },
       "stringProperty": { "dataType": "string", "required": true },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
@@ -226,6 +228,42 @@ const models: TsoaRoute.Models={
 };
 
 export function RegisterRoutes(app: any) {
+  app.get('/v1',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new RootController();
+
+
+      const promise=controller.rootHandler.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/rootControllerMethodWithPath',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new RootController();
+
+
+      const promise=controller.rootControllerMethodWithPath.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.delete('/v1/DeleteTest',
     function(request: any, response: any, next: any) {
       const args={
@@ -1309,6 +1347,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/v1/ParameterTest/ParamaterQueyArray',
+    function(request: any, response: any, next: any) {
+      const args={
+        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.queyArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/v1/ParameterTest/ParamaterBodyAnyType',
     function(request: any, response: any, next: any) {
       const args={
@@ -1328,10 +1385,10 @@ export function RegisterRoutes(app: any) {
       const promise=controller.bodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/ParamaterQueyArray',
+  app.post('/v1/ParameterTest/ParamaterBodyArrayType',
     function(request: any, response: any, next: any) {
       const args={
-        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+        body: { "in": "body", "name": "body", "required": true, "dataType": "array", "array": { "ref": "ParameterTestModel" } },
       };
 
       let validatedArgs: any[]=[];
@@ -1344,7 +1401,7 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.queyArray.apply(controller, validatedArgs);
+      const promise=controller.bodyArrayType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/ParamaterImplicitString',
@@ -1464,7 +1521,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
