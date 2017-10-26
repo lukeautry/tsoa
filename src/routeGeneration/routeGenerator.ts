@@ -91,10 +91,7 @@ export class RouteGenerator {
             const normalisedMethodPath = pathTransformer(normalisePath(method.path, '/'));
 
             const normalisedFullPath = normalisePath(
-              normalisedBasePath + normalisedControllerPath + normalisedMethodPath,
-              '/',
-              '',
-              false,
+              `${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false,
             );
 
             return {

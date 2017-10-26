@@ -8,7 +8,7 @@ const basePath = '/v1';
 
 describe('Hapi Server', () => {
   it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath + '/', (err, res) => {
+    return verifyGetRequest(basePath, (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
