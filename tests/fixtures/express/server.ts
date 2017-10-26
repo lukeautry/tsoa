@@ -1,6 +1,8 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as methodOverride from 'method-override';
+import '../controllers/rootController';
+
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/patchController';

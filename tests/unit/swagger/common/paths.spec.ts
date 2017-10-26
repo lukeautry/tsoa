@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import {normalisePath} from '../../../../src/utils/pathUtils';
+import { normalisePath } from '../../../../src/utils/pathUtils';
 
 describe('Paths normalisation', () => {
   it('should remove all redundant symbols at the beginning and at the end', () => {
@@ -50,7 +50,7 @@ describe('Paths normalisation', () => {
     expect(normalisePath('path', null as any, null as any)).to.equal('path');
     expect(normalisePath('path', undefined as any, undefined as any)).to.equal('path');
     expect(normalisePath('path', 1 as any, 2 as any)).to.equal('1path2');
-    expect(normalisePath('path', {} as any, {} as any)).to.equal('[object Object]path[object Object]');
+    expect(normalisePath('path', {} as any, {} as any)).to.equal('[object/Object]path[object/Object]');
   });
 
   it('should handle empty path', () => {
