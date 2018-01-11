@@ -241,10 +241,16 @@ export class TestClassBaseModel {
   public defaultValue1 = 'Default Value 1';
 }
 
+// bug #158
+export class Account {
+  public id: number;
+}
+
 /**
  * This is a description of TestClassModel
  */
 export class TestClassModel extends TestClassBaseModel {
+  public account: Account;
   public defaultValue2 = 'Default Value 2';
   /**
    * This is a description of a public string property
@@ -262,7 +268,7 @@ export class TestClassModel extends TestClassBaseModel {
   /**
    * @pattern ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$
    */
-  public emailPattern?: string;
+  public emailPattern?: string
   /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
