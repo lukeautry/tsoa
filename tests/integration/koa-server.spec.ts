@@ -634,6 +634,7 @@ describe('Koa Server', () => {
     model.id = 100;
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';
+    model.account = { id: 1234 };
 
     return model;
   }
