@@ -11,6 +11,7 @@ export class SpecGenerator {
       basePath: normalisePath(this.config.basePath as string, '/'),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
+      info: this.config.info,
       paths: this.buildPaths(),
       produces: ['application/json'],
       swagger: '2.0',
