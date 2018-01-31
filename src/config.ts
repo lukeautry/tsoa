@@ -33,6 +33,11 @@ export interface SwaggerConfig {
   outputDirectory: string;
 
   /**
+   * Swagger Spec Info of your API
+   */
+  info: Swagger.Info;
+
+  /**
    * The entry point to your API
    */
   entryFile: string;
@@ -41,26 +46,6 @@ export interface SwaggerConfig {
    * API host, expressTemplate.g. localhost:3000 or https://myapi.com
    */
   host?: string;
-
-  /**
-   * API version number; defaults to npm package version
-   */
-  version?: string;
-
-  /**
-   * API name; defaults to npm package name
-   */
-  name?: string;
-
-  /**
-   * 'API description; defaults to npm package description
-   */
-  description?: string;
-
-  /**
-   * API license; defaults to npm package license
-   */
-  license?: string;
 
   /**
    * Base API path; e.g. the 'v1' in https://myapi.com/v1
@@ -92,6 +77,11 @@ export interface SwaggerConfig {
   securityDefinitions?: {
     [name: string]: Swagger.Secuirty,
   };
+
+  /**
+   * Swagger Tags Information for your API
+   */
+  tags?: Swagger.Tag[];
 
   yaml?: boolean;
 }

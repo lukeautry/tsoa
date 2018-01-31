@@ -11,9 +11,6 @@ export class SpecGenerator {
       basePath: normalisePath(this.config.basePath as string, '/'),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
-      info: {
-        title: '',
-      },
       paths: this.buildPaths(),
       produces: ['application/json'],
       swagger: '2.0',
@@ -23,11 +20,9 @@ export class SpecGenerator {
       ? this.config.securityDefinitions
       : {};
 
-    if (this.config.name) { spec.info.title = this.config.name; }
-    if (this.config.version) { spec.info.version = this.config.version; }
+    if (this.config.info) { spec.info = this.config.info; }
     if (this.config.host) { spec.host = this.config.host; }
-    if (this.config.description) { spec.info.description = this.config.description; }
-    if (this.config.license) { spec.info.license = { name: this.config.license }; }
+    if (this.config.tags) { spec.tags = this.config.tags; }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {

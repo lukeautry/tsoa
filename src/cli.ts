@@ -58,10 +58,12 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
 const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
   if (!config.outputDirectory) { throw new Error('Missing outputDirectory: onfiguration most contain output directory'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
-  config.version = config.version || versionDefault;
-  config.name = config.name || nameDefault;
-  config.description = config.description || descriptionDefault;
-  config.license = config.license || licenseDefault;
+  config.info = config.info || {
+    description: descriptionDefault,
+    license: licenseDefault,
+    title: nameDefault,
+    version: versionDefault,
+  };
   config.basePath = config.basePath || '/';
 
   return config;
