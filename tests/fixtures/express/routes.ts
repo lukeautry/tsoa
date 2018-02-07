@@ -111,11 +111,18 @@ const models: TsoaRoute.Models={
       "value3": { "dataType": "string", "required": true },
     },
   },
+  "Account": {
+    "properties": {
+      "id": { "dataType": "double", "required": true },
+    },
+  },
   "TestClassModel": {
     "properties": {
+      "account": { "ref": "Account", "required": true },
       "defaultValue2": { "dataType": "string", "default": "Default Value 2" },
       "publicStringProperty": { "dataType": "string", "required": true, "validators": { "minLength": { "value": 3 }, "maxLength": { "value": 20 }, "pattern": { "value": "^[a-zA-Z]+$" } } },
       "optionalPublicStringProperty": { "dataType": "string", "validators": { "minLength": { "value": 0 }, "maxLength": { "value": 10 } } },
+      "emailPattern": { "dataType": "string", "validators": { "pattern": { "value": "^[a-zA-Z0-9_.+-]+" } } },
       "stringProperty": { "dataType": "string", "required": true },
       "publicConstructorVar": { "dataType": "string", "required": true },
       "optionalPublicConstructorVar": { "dataType": "string" },
@@ -167,8 +174,8 @@ const models: TsoaRoute.Models={
     "properties": {
       "firstname": { "dataType": "string", "required": true },
       "lastname": { "dataType": "string", "required": true },
-      "age": { "dataType": "integer", "required": true, "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
-      "weight": { "dataType": "float", "required": true },
+      "age": { "dataType": "double", "required": true, "validators": { "minimum": { "value": 1 }, "maximum": { "value": 100 } } },
+      "weight": { "dataType": "double", "required": true },
       "human": { "dataType": "boolean", "required": true },
       "gender": { "ref": "Gender", "required": true },
     },
@@ -207,11 +214,11 @@ const models: TsoaRoute.Models={
     "properties": {
       "floatValue": { "dataType": "float", "required": true, "validators": { "isFloat": { "errorMsg": "Invalid float error message." } } },
       "doubleValue": { "dataType": "double", "required": true, "validators": { "isDouble": { "errorMsg": "Invalid double error message." } } },
-      "intValue": { "dataType": "integer", "required": true },
+      "intValue": { "dataType": "double", "required": true },
       "longValue": { "dataType": "long", "required": true, "validators": { "isLong": { "errorMsg": "Custom Required long number." } } },
       "booleanValue": { "dataType": "boolean", "required": true },
       "arrayValue": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
-      "dateValue": { "dataType": "date", "required": true },
+      "dateValue": { "dataType": "datetime", "required": true },
       "datetimeValue": { "dataType": "datetime", "required": true },
       "numberMax10": { "dataType": "double", "required": true, "validators": { "maximum": { "value": 10 } } },
       "numberMin5": { "dataType": "double", "required": true, "validators": { "minimum": { "value": 5 } } },
@@ -1309,6 +1316,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.queryAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/v1/ParameterTest/ParamaterQueyArray',
+    function(request: any, response: any, next: any) {
+      const args={
+        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.queyArray.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/v1/ParameterTest/ParamaterBodyAnyType',
     function(request: any, response: any, next: any) {
       const args={
@@ -1328,10 +1354,10 @@ export function RegisterRoutes(app: any) {
       const promise=controller.bodyAnyType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/v1/ParameterTest/ParamaterQueyArray',
+  app.post('/v1/ParameterTest/ParamaterBodyArrayType',
     function(request: any, response: any, next: any) {
       const args={
-        name: { "in": "query", "name": "name", "required": true, "dataType": "array", "array": { "dataType": "string" } },
+        body: { "in": "body", "name": "body", "required": true, "dataType": "array", "array": { "ref": "ParameterTestModel" } },
       };
 
       let validatedArgs: any[]=[];
@@ -1344,7 +1370,7 @@ export function RegisterRoutes(app: any) {
       const controller=new ParameterController();
 
 
-      const promise=controller.queyArray.apply(controller, validatedArgs);
+      const promise=controller.bodyArrayType.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/ParameterTest/ParamaterImplicitString',
@@ -1464,7 +1490,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];

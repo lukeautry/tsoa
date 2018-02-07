@@ -660,7 +660,7 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
     symbol.flags = 0;
   }
 
-  const comments = symbol.getDocumentationComment();
+  const comments = symbol.getDocumentationComment(undefined);
   if (comments.length) { return ts.displayPartsToString(comments); }
 
   return undefined;
