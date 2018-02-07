@@ -160,7 +160,7 @@ export class ValidateModel {
    */
   public doubleValue: number;
   /**
-   * @isInt
+   * @isInt invalid integer number
    */
   public intValue: number;
   /**
@@ -176,7 +176,7 @@ export class ValidateModel {
    */
   public arrayValue: number[];
   /**
-   * @isDate
+   * @isDate invalid ISO 8601 date format, i.e. YYYY-MM-DD
    */
   public dateValue: Date;
   /**

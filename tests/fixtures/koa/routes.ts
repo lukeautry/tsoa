@@ -214,11 +214,11 @@ const models: TsoaRoute.Models={
     "properties": {
       "floatValue": { "dataType": "float", "required": true, "validators": { "isFloat": { "errorMsg": "Invalid float error message." } } },
       "doubleValue": { "dataType": "double", "required": true, "validators": { "isDouble": { "errorMsg": "Invalid double error message." } } },
-      "intValue": { "dataType": "double", "required": true },
+      "intValue": { "dataType": "integer", "required": true, "validators": { "isInt": { "errorMsg": "invalid integer number" } } },
       "longValue": { "dataType": "long", "required": true, "validators": { "isLong": { "errorMsg": "Custom Required long number." } } },
       "booleanValue": { "dataType": "boolean", "required": true },
       "arrayValue": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
-      "dateValue": { "dataType": "datetime", "required": true },
+      "dateValue": { "dataType": "date", "required": true, "validators": { "isDate": { "errorMsg": "invalid ISO 8601 date format, i.e. YYYY-MM-DD" } } },
       "datetimeValue": { "dataType": "datetime", "required": true },
       "numberMax10": { "dataType": "double", "required": true, "validators": { "maximum": { "value": 10 } } },
       "numberMin5": { "dataType": "double", "required": true, "validators": { "minimum": { "value": 5 } } },
@@ -1556,7 +1556,7 @@ export function RegisterRoutes(router: any) {
   router.get('/v1/ParameterTest/paramaterImplicitDate',
     async (context, next) => {
       const args={
-        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];

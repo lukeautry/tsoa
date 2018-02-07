@@ -515,7 +515,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
           description: getNodeDescription(propertyDeclaration),
           name: identifier.text,
           required: !propertyDeclaration.questionToken,
-          type: resolveType(aType),
+          type: resolveType(aType, aType.parent),
           validators: getPropertyValidators(propertyDeclaration),
         } as Tsoa.Property;
       });
