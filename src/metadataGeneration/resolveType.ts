@@ -309,7 +309,7 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
       additionalProperties,
       dataType: 'refObject',
       description: getNodeDescription(modelType),
-      properties: properties.concat(inheritedProperties),
+      properties: properties ? properties.concat(inheritedProperties) : [],
       refName: refNameWithGenerics,
     } as Tsoa.ReferenceType;
 
