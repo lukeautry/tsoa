@@ -57,6 +57,10 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
     return { dataType: 'any' } as Tsoa.Type;
   }
 
+  if (typeNode.kind === ts.SyntaxKind.TypeLiteral) {
+    return { dataType: 'any' } as Tsoa.Type;
+  }
+
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`);
   }
@@ -80,6 +84,10 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
 
     if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
       return resolveType(typeReference.typeArguments[0]);
+    }
+
+    if (typeReference.typeName.text === 'String') {
+      return { dataType: 'string' } as Tsoa.Type;
     }
   }
 

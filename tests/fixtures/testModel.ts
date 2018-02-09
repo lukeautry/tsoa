@@ -273,6 +273,12 @@ export class TestClassModel extends TestClassBaseModel {
   stringProperty: string;
   protected protectedStringProperty: string;
 
+  public static typeLiterals = {
+    booleanTypeLiteral: { $type: Boolean },
+    numberTypeLiteral: { $type: Number },
+    stringTypeLiteral: { $type: String },
+  };
+
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar
    */
