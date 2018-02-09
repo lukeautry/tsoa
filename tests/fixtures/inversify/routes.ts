@@ -15,6 +15,7 @@ const models: TsoaRoute.Models={
   },
   "TestModel": {
     "properties": {
+      "id": { "dataType": "double", "required": true },
       "numberValue": { "dataType": "double", "required": true },
       "numberArray": { "dataType": "array", "array": { "dataType": "double" }, "required": true },
       "stringValue": { "dataType": "string", "required": true },
@@ -44,22 +45,21 @@ const models: TsoaRoute.Models={
       "modelsEnumIndirect": { "ref": "TestSubEnumModelContainer" },
       "typeAliasCase1": { "ref": "TypeAliasModelCase1" },
       "TypeAliasCase2": { "ref": "TypeAliasModelCase2" },
-      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel": {
     "properties": {
+      "id": { "dataType": "double", "required": true },
       "email": { "dataType": "string", "required": true },
       "circular": { "ref": "TestModel" },
-      "id": { "dataType": "double", "required": true },
     },
   },
   "TestSubModel2": {
     "properties": {
-      "testSubModel2": { "dataType": "boolean", "required": true },
+      "id": { "dataType": "double", "required": true },
       "email": { "dataType": "string", "required": true },
       "circular": { "ref": "TestModel" },
-      "id": { "dataType": "double", "required": true },
+      "testSubModel2": { "dataType": "boolean", "required": true },
     },
   },
   "TestSubModelContainer": {
@@ -67,10 +67,10 @@ const models: TsoaRoute.Models={
   },
   "TestSubModelNamespace.TestSubModelNS": {
     "properties": {
-      "testSubModelNS": { "dataType": "boolean", "required": true },
+      "id": { "dataType": "double", "required": true },
       "email": { "dataType": "string", "required": true },
       "circular": { "ref": "TestModel" },
-      "id": { "dataType": "double", "required": true },
+      "testSubModelNS": { "dataType": "boolean", "required": true },
     },
   },
   "TestSubModelContainerNamespace.TestSubModelContainer": {

@@ -303,16 +303,17 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     const modelType = getModelTypeDeclaration(type);
     const properties = getModelProperties(modelType, genericTypes);
     const additionalProperties = getModelAdditionalProperties(modelType);
-    const inheritedProperties = getModelInheritedProperties(modelType);
+    const inheritedProperties = getModelInheritedProperties(modelType) || [];
 
     const referenceType = {
       additionalProperties,
       dataType: 'refObject',
       description: getNodeDescription(modelType),
-      properties: properties ? properties.concat(inheritedProperties) : [],
+      properties: inheritedProperties,
       refName: refNameWithGenerics,
     } as Tsoa.ReferenceType;
 
+    referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
     localReferenceTypeCache[refNameWithGenerics] = referenceType;
 
     return referenceType;
