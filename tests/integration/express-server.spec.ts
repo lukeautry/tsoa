@@ -8,6 +8,20 @@ import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassMode
 const basePath = '/v1';
 
 describe('Express Server', () => {
+  it('can handle get request to root controller`s path', () => {
+    return verifyGetRequest(basePath + '/', (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('can handle get request to root controller`s method path', () => {
+    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
   it('can handle get request with no path argument', () => {
     return verifyGetRequest(basePath + '/GetTest', (err, res) => {
       const model = res.body as TestModel;

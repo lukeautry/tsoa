@@ -1,5 +1,6 @@
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
 import { PatchTestController } from './../controllers/patchController';
@@ -234,6 +235,42 @@ const models: TsoaRoute.Models={
 };
 
 export function RegisterRoutes(app: any) {
+  app.get('/v1',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new RootController();
+
+
+      const promise=controller.rootHandler.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/rootControllerMethodWithPath',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new RootController();
+
+
+      const promise=controller.rootControllerMethodWithPath.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.delete('/v1/DeleteTest',
     function(request: any, response: any, next: any) {
       const args={

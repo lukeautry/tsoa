@@ -1,6 +1,7 @@
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
 import { PatchTestController } from './../controllers/patchController';
@@ -235,6 +236,50 @@ const models: TsoaRoute.Models={
 };
 
 export function RegisterRoutes(server: any) {
+  server.route({
+    method: 'get',
+    path: '/v1',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new RootController();
+
+        const promise=controller.rootHandler.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/rootControllerMethodWithPath',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new RootController();
+
+        const promise=controller.rootControllerMethodWithPath.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
   server.route({
     method: 'delete',
     path: '/v1/DeleteTest',

@@ -1,4 +1,6 @@
 import * as hapi from 'hapi';
+import '../controllers/rootController';
+
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/patchController';

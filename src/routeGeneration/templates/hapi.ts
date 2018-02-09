@@ -40,7 +40,7 @@ export function RegisterRoutes(server: any) {
     {{#each actions}}
         server.route({
             method: '{{method}}',
-            path: '{{../../basePath}}{{../path}}{{path}}',
+            path: '{{fullPath}}',
             config: {
                 {{#if security.length}}
                 pre: [

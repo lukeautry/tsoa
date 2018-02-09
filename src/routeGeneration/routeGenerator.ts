@@ -73,29 +73,39 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
+    const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
+
     return routesTemplate({
       authenticationModule,
-      basePath: normalisePath(this.options.basePath as string, '/'),
+      basePath: normalisedBasePath,
       canImportByAlias,
       controllers: this.metadata.controllers.map(controller => {
+        const normalisedControllerPath = normalisePath(controller.path, '/');
+
         return {
           actions: controller.methods.map(method => {
             const parameterObjs: { [name: string]: TsoaRoute.ParameterSchema } = {};
             method.parameters.forEach(parameter => {
               parameterObjs[parameter.parameterName] = this.buildParameterSchema(parameter);
             });
+            const normalisedMethodPath = pathTransformer(normalisePath(method.path, '/'));
+
+            const normalisedFullPath = normalisePath(
+              `${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false,
+            );
 
             return {
+              fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
-              path: pathTransformer(method.path),
+              path: normalisedMethodPath,
               security: method.security,
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
           name: controller.name,
-          path: controller.path,
+          path: normalisedControllerPath,
         };
       }),
       environment: process.env,
