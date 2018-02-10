@@ -5,10 +5,26 @@ export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identif
   const decorators = node.decorators;
   if (!decorators || !decorators.length) { return []; }
 
-  return decorators
-    .map(d => d.expression as ts.CallExpression)
-    .map(e => e.expression as ts.Identifier)
-    .filter(isMatching);
+
+  let identifiers : ts.Identifier[] = [];
+  // filter and transform decorators in a single loop
+  decorators.forEach((d: ts.Decorator) => {
+    let expression = d.expression as ts.CallExpression;
+    let identifier = expression.expression as ts.Identifier;
+
+    // filter out decorators without expression
+    if(!identifier) {
+      return;
+    }
+
+    // check if identifier matches
+    if(isMatching(identifier)) {
+      // and push to it to resulting array
+      identifiers.push(identifier)
+    }
+  });
+
+  return identifiers;
 }
 
 export function getDecoratorName(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
