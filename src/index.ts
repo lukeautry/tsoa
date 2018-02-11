@@ -2,6 +2,7 @@
 /// <reference path="hapi.d.ts" />
 /// <reference path="koa.d.ts" />
 
+export * from './decorators/custom';
 export * from './decorators/example';
 export * from './decorators/parameter';
 export * from './decorators/methods';

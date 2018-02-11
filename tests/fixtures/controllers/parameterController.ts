@@ -1,6 +1,8 @@
 import {
   Body,
   BodyProp,
+  CustomParameter,
+  CustomParameters,
   Get,
   Header,
   Path,
@@ -230,4 +232,19 @@ export class ParameterController {
     //
   }
 
+    @Get('CustomParameter')
+    @CustomParameters()
+    public async customParameter( @CustomParameter(req => req.method.toLowerCase()) method: string) {
+      return { method };
+    }
+
+    @Get('CustomParameters')
+    @CustomParameters()
+    public async customParameters(
+      @CustomParameter(req => req.method.toLowerCase()) method: string,
+      @Query() firstname: string,
+      @CustomParameter(req => typeof req.url === 'string' ? req.url : req.url.path) url: string,
+    ) {
+      return { method, firstname, url };
+    }
 }

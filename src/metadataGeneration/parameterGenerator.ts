@@ -29,6 +29,8 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'CustomParameter':
+        return this.getRequestParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -173,7 +175,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request', 'customparameter'].some((d) => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

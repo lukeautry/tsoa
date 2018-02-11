@@ -584,6 +584,25 @@ describe('Koa Server', () => {
         expect(model.id).to.equal(1);
       });
     });
+
+    it('can handle a custom parameter', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/CustomParameter', (err, res) => {
+        expect(res.body).to.eql({
+          method: 'get',
+        });
+      });
+    });
+
+    it('can handle a custom parameters', () => {
+      const url: string = basePath + '/ParameterTest/CustomParameters?firstname=Tony';
+      return verifyGetRequest(url, (err, res) => {
+        expect(res.body).to.eql({
+          firstname: 'Tony',
+          method: 'get',
+          url,
+        });
+      });
+    });
   });
 
   it('shutdown server', () => server.close());

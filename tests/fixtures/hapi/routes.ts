@@ -1835,6 +1835,54 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/ParameterTest/CustomParameter',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new ParameterController();
+
+        const promise=controller.customParameter.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/ParameterTest/CustomParameters',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+          firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
+          url: { "in": "request", "name": "url", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new ParameterController();
+
+        const promise=controller.customParameters.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/SecurityTest',
     config: {
       pre: [

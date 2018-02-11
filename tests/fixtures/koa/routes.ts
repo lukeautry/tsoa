@@ -1613,6 +1613,48 @@ export function RegisterRoutes(router: any) {
       const promise=controller.implicitDate.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.get('/v1/ParameterTest/CustomParameter',
+    async (context, next) => {
+      const args={
+        method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new ParameterController();
+
+      const promise=controller.customParameter.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/ParameterTest/CustomParameters',
+    async (context, next) => {
+      const args={
+        method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+        firstname: { "in": "query", "name": "firstname", "required": true, "dataType": "string" },
+        url: { "in": "request", "name": "url", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new ParameterController();
+
+      const promise=controller.customParameters.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.get('/v1/SecurityTest',
     authenticateMiddleware([{ "name": "api_key" }]),
     async (context, next) => {
