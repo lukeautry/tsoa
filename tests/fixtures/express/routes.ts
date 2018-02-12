@@ -1584,6 +1584,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.customParameters.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/ParameterTest/CustomParameterAsync',
+    function(request: any, response: any, next: any) {
+      const args={
+        method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new ParameterController();
+
+
+      const promise=controller.customParameterAsync.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/SecurityTest',
     authenticateMiddleware([{ "name": "api_key" }]),
     function(request: any, response: any, next: any) {

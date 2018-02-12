@@ -21,10 +21,11 @@ export function CustomParameter(getParam: (req: any) => any) {
 export function CustomParameters() {
   return (target: object, key: string | symbol, descriptor: any) =>  {
     const originalMethod = descriptor.value;
-    descriptor.value = function(...args: any[]) {
-      target[METADATA_KEY][key].forEach(({ getParam, index }) => {
-        args[index] = getParam(args[index]);
-      });
+    descriptor.value = async function(...args: any[]) {
+      const customParams = target[METADATA_KEY][key];
+      for (const {getParam, index} of customParams) {
+        args[index] = await getParam(args[index]);
+      }
       return originalMethod.apply(this, args);
     };
     return descriptor;

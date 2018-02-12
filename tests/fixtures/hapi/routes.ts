@@ -1883,6 +1883,29 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/ParameterTest/CustomParameterAsync',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          method: { "in": "request", "name": "method", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new ParameterController();
+
+        const promise=controller.customParameterAsync.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/SecurityTest',
     config: {
       pre: [

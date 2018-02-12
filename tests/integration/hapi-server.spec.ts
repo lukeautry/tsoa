@@ -626,6 +626,14 @@ describe('Hapi Server', () => {
         });
       });
     });
+
+    it('can handle custom parameters with async callbacks', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/CustomParameterAsync', (err, res) => {
+        expect(res.body).to.eql({
+          method: 'get',
+        });
+      });
+    });
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {

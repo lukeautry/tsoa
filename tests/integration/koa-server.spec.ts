@@ -603,6 +603,14 @@ describe('Koa Server', () => {
         });
       });
     });
+
+    it('can handle custom parameters with async callbacks', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/CustomParameterAsync', (err, res) => {
+        expect(res.body).to.eql({
+          method: 'get',
+        });
+      });
+    });
   });
 
   it('shutdown server', () => server.close());

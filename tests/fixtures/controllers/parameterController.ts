@@ -247,4 +247,11 @@ export class ParameterController {
     ) {
       return { method, firstname, url };
     }
+
+
+    @Get('CustomParameterAsync')
+    @CustomParameters()
+    public async customParameterAsync( @CustomParameter(req => Promise.resolve(req.method.toLowerCase())) method: string) {
+      return { method }
+    }
 }
