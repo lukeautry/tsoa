@@ -169,7 +169,7 @@ In this case you should write your own custom template where you inject the need
 By default all the controllers are created by the auto-generated routes template using an empty default constructor.
 If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS) or [typescript-ioc] (https://github.com/thiagobustamante/typescript-ioc)
 
-## Inversify.js
+#### Inversify.js
 
 
 To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
@@ -245,7 +245,7 @@ export class FooService {
 }
 ```
 
-## typescript-ioc
+#### typescript-ioc
 
 Here is some example code to setup the controller with typescript-ioc.
 
