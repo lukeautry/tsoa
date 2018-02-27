@@ -217,6 +217,11 @@ export class ValidateModel {
    * @uniqueItems
    */
   public arrayUniqueItem: number[];
+
+  /**
+   * @ignore
+   */
+  public ignoredProperty: string;
 }
 
 /**
