@@ -167,7 +167,11 @@ In this case you should write your own custom template where you inject the need
 ### Dependency injection / IOC
 
 By default all the controllers are created by the auto-generated routes template using an empty default constructor.
-If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS).
+If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS) or [typescript-ioc] (https://github.com/thiagobustamante/typescript-ioc)
+
+#### Inversify.js
+
+
 To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
 ```json
@@ -186,7 +190,7 @@ The convention is that you have to name your inversify `Container` `iocContainer
 ```
 Note that as of 1.1.1 the path is now relative to the your current working directory like the other paths.
 
-Here is some example code how to setup the container and your controller.
+Here is some example code to setup the container and your controller with inversify.js.
 
 `./inversify/ioc.ts`:
 ```ts
@@ -239,6 +243,39 @@ export class FooService {
         // maybe even more dependencies to be injected...
     )
 }
+```
+
+#### typescript-ioc
+
+Here is some example code to setup the controller with typescript-ioc.
+
+`./contollers/fooController.ts`
+```ts
+import { Route } from 'tsoa';
+import { Inject, Provides } from "typescript-ioc";
+
+@Route('foo')
+export class FooController {
+
+  @Inject
+  private fooService: FooService
+  ...
+
+}
+
+@Provides(FooService)
+export class FooService {
+
+}
+```
+
+The controllers need to be included in the application in order to be linked.
+
+`index.ts`
+```ts
+import "./contollers/fooController.ts"
+...
+
 ```
 
 ### Specify error response types for Swagger
