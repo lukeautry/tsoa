@@ -7,15 +7,16 @@ import {
   Route,
   Tags,
 } from '../../../src';
-import {
-  ModelService,
-} from './../services/modelService';
+import '../duplicateTestModel';
 import {
   GenericModel,
   TestClassModel,
   TestModel,
   TestSubModel,
-} from './../testModel';
+} from '../testModel';
+import {
+  ModelService,
+} from './../services/modelService';
 
 @Route('GetTest')
 export class GetTestController extends Controller {

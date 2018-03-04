@@ -460,17 +460,35 @@ function getModelTypeDeclaration(type: ts.EntityName) {
   if (!modelTypes.length) {
     throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
   }
+
   if (modelTypes.length > 1) {
     // remove types that are from typescript e.g. 'Account'
     modelTypes = modelTypes.filter((modelType) => {
       if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
         return false;
       }
+
       return true;
     });
+
+    /**
+     * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
+     */
+    const designatedModels = modelTypes.filter(modelType => {
+      const isDesignatedModel = isExistJSDocTag(modelType, tag => tag.tagName.text === 'tsoaModel');
+      return isDesignatedModel;
+    });
+
+    if (designatedModels.length > 0) {
+      if (designatedModels.length > 1) {
+        throw new GenerateMetadataError(`Multiple models for ${typeName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`);
+      }
+
+      modelTypes = designatedModels;
+    }
   }
   if (modelTypes.length > 1) {
-    const conflicts = modelTypes.map((modelType) => modelType.getSourceFile().fileName).join('"; "');
+    const conflicts = modelTypes.map(modelType => modelType.getSourceFile().fileName).join('"; "');
     throw new GenerateMetadataError(`Multiple matching models found for referenced type ${typeName}; please make model names unique. Conflicts found: "${conflicts}".`);
   }
 

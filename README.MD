@@ -102,6 +102,18 @@ tsoa routes
 
 See [CLI documentation](#command-line-interface)
 
+### Dealing with duplicate model names
+If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
+
+```
+/**
+ * @tsoaModel
+ */
+export interface MyModel {
+    ...
+}
+```
+
 ### Override route template
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
