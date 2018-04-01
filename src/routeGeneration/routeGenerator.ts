@@ -12,7 +12,9 @@ export class RouteGenerator {
   private tsfmtConfig = {
     editorconfig: true,
     replace: true,
-    tsconfig: true,
+    tsconfig: {
+      newLine: 'LF',
+    },
     tsfmt: true,
     tslint: false,
     verify: true,

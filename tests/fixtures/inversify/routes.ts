@@ -118,6 +118,9 @@ export function RegisterRoutes(app: any) {
       }
 
       const controller=iocContainer.get<ManagedController>(ManagedController);
+      if (typeof controller['setStatus']==='function') {
+        (<any>controller).setStatus(undefined);
+      }
 
 
       const promise=controller.getModel.apply(controller, validatedArgs);

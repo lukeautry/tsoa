@@ -102,6 +102,18 @@ tsoa routes
 
 See [CLI documentation](#command-line-interface)
 
+### Dealing with duplicate model names
+If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
+
+```
+/**
+ * @tsoaModel
+ */
+export interface MyModel {
+    ...
+}
+```
+
 ### Override route template
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
@@ -436,6 +448,76 @@ If you have a project that utilized this functionality, you can configure the in
             "exampleLib": "./path/to/example/lib"
         }
     }
+}
+```
+
+### Upload files
+
+This requires to have multer installed:
+
+`npm install --save multer`
+
+Inside a controller resource, call handleFile and pass the express Request to resolve 'file'. This also handles multipart/form-data. A quick sample:
+
+```ts
+import { Get, Route, Security, Response } from 'tsoa';
+import * as express from 'express';
+import * as multer from 'multer';
+
+@Route('files')
+export class FilesController {
+
+    @Post('uploadFile')
+    public async uploadFile(@Request() request: express.Request): Promise<any> {
+        await this.handleFile(request);
+        // file will be in request.randomFileIsHere, it is a buffer
+        return {};
+    }
+    
+    private handleFile(request: express.Request): Promise<any> {
+        const multerSingle = multer().single('randomFileIsHere');
+        return new Promise((resolve, reject) => {
+            multerSingle(request, undefined, async (error) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve();
+            });
+        });
+    }
+}
+```
+
+The according swagger definition can be merge-overwritten inside `tsoa.json`. Here is a quick sample, what the previous request should look like.
+
+```json
+{
+  "swagger": {
+    ...
+    "specMerging": "recursive",
+    "spec": {
+      "paths": {
+        "/files/uploadFile": {
+          "post": {
+            "consumes": [
+              "multipart/form-data"
+            ],
+            "parameters": [
+              {
+                "in": "formData",
+                "name": "randomFileIsHere",
+                "required": true,
+                "type": "file"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "routes": {
+     ...
+  }
 }
 ```
 

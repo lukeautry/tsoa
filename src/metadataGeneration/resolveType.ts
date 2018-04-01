@@ -1,7 +1,7 @@
 import * as indexOf from 'lodash.indexof';
 import * as map from 'lodash.map';
 import * as ts from 'typescript';
-import { getJSDocTagNames } from './../utils/jsDocUtils';
+import { getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -460,17 +460,35 @@ function getModelTypeDeclaration(type: ts.EntityName) {
   if (!modelTypes.length) {
     throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
   }
+
   if (modelTypes.length > 1) {
     // remove types that are from typescript e.g. 'Account'
     modelTypes = modelTypes.filter((modelType) => {
       if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
         return false;
       }
+
       return true;
     });
+
+    /**
+     * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
+     */
+    const designatedModels = modelTypes.filter(modelType => {
+      const isDesignatedModel = isExistJSDocTag(modelType, tag => tag.tagName.text === 'tsoaModel');
+      return isDesignatedModel;
+    });
+
+    if (designatedModels.length > 0) {
+      if (designatedModels.length > 1) {
+        throw new GenerateMetadataError(`Multiple models for ${typeName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`);
+      }
+
+      modelTypes = designatedModels;
+    }
   }
   if (modelTypes.length > 1) {
-    const conflicts = modelTypes.map((modelType) => modelType.getSourceFile().fileName).join('"; "');
+    const conflicts = modelTypes.map(modelType => modelType.getSourceFile().fileName).join('"; "');
     throw new GenerateMetadataError(`Multiple matching models found for referenced type ${typeName}; please make model names unique. Conflicts found: "${conflicts}".`);
   }
 
@@ -478,11 +496,19 @@ function getModelTypeDeclaration(type: ts.EntityName) {
 }
 
 function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
+  const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
+    const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
+    return ignore;
+  };
+
   // Interface model
   if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
     const interfaceDeclaration = node as ts.InterfaceDeclaration;
     return interfaceDeclaration.members
-      .filter((member) => member.kind === ts.SyntaxKind.PropertySignature)
+      .filter(member => {
+        const ignore = isIgnored(member);
+        return !ignore && member.kind === ts.SyntaxKind.PropertySignature;
+      })
       .map((member: any) => {
         const propertyDeclaration = member as ts.PropertyDeclaration;
         const identifier = propertyDeclaration.name as ts.Identifier;
@@ -560,6 +586,10 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
   // Class model
   const classDeclaration = node as ts.ClassDeclaration;
   const properties = classDeclaration.members
+    .filter(member => {
+      const ignore = isIgnored(member);
+      return !ignore;
+    })
     .filter((member) => member.kind === ts.SyntaxKind.PropertyDeclaration)
     .filter((member) => hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
 

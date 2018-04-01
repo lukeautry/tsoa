@@ -57,6 +57,9 @@ export function RegisterRoutes(app: any) {
 
             {{#if ../../iocModule}}
             const controller = iocContainer.get<{{../name}}>({{../name}});
+            if (typeof controller['setStatus'] === 'function') {
+                (<any>controller).setStatus(undefined);
+            }
             {{else}}
             const controller = new {{../name}}();
             {{/if}}
