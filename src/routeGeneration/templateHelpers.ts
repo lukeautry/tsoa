@@ -9,7 +9,7 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
 
   if (value === undefined || value === null) {
     if (property.required) {
-      let message = `'${name}' is a required`;
+      let message = `'${name}' is required`;
       if (property.validators) {
         const validators = property.validators;
         Object.keys(validators).forEach((key: string) => {
