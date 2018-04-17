@@ -64,7 +64,7 @@ describe('Express Server', () => {
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`, (err: any, res: any) => {
       const body = JSON.parse(err.text);
-      expect(body.fields.numberParam.message).to.equal(`'numberParam' is a required`);
+      expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
     }, 400);
   });
 
