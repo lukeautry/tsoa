@@ -23,6 +23,15 @@ export function Request(): any {
 }
 
 /**
+ * Inject value from http request
+ *
+ * @param {string} [name] The name of the request property
+ */
+export function RequestProp(name?: string): any {
+  return () => { return; };
+}
+
+/**
  * Inject value from Path
  *
  * @param {string} [name] The name of the path parameter

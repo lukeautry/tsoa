@@ -4,6 +4,7 @@ import {
   Get,
   Query,
   Request,
+  RequestProp,
   Route,
   Tags,
 } from '../../../src';
@@ -115,6 +116,14 @@ export class GetTestController extends Controller {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (request as any).stringValue;
+    return model;
+  }
+
+  @Get('RequestProp')
+  public async getRequestProp( @RequestProp('stringValue') stringValue: any): Promise<TestModel> {
+    const model = new ModelService().getModel();
+    // set the stringValue from the request context to test successful injection
+    model.stringValue = stringValue;
     return model;
   }
 

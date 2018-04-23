@@ -128,6 +128,8 @@ export function RegisterRoutes(app: any) {
             switch (args[key].in) {
                 case 'request':
                     return request;
+                case 'request-prop':
+                    return request[name];
                 case 'query':
                     return ValidateParam(args[key], request.query[name], models, name, fieldErrors);
                 case 'path':

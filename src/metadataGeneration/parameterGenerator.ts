@@ -19,6 +19,8 @@ export class ParameterGenerator {
     switch (decoratorName) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
+      case 'RequestProp':
+        return this.getRequestPropParameter(this.parameter);
       case 'Body':
         return this.getBodyParameter(this.parameter);
       case 'BodyProp':
@@ -43,6 +45,22 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getRequestPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+
+    return {
+      default: getInitializerValue(parameter.initializer, type),
+      description: this.getParameterDescription(parameter),
+      in: 'request-prop',
+      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'RequestProp') || parameterName,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type,
       validators: getParameterValidators(this.parameter, parameterName),
     };
   }
@@ -173,7 +191,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request', 'requestprop'].some((d) => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

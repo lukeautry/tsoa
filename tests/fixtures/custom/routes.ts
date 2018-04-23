@@ -400,6 +400,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getRequest.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/GetTest/RequestProp',
+    function(request: any, response: any, next: any) {
+      const args={
+        stringValue: { "in": "request-prop", "name": "stringValue", "required": true, "dataType": "any" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new GetTestController();
+
+
+      const promise=controller.getRequestProp.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/GetTest/DateParam',
     function(request: any, response: any, next: any) {
       const args={

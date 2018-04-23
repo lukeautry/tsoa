@@ -135,6 +135,8 @@ export function RegisterRoutes(router: any) {
             switch (args[key].in) {
             case 'request':
                 return context.request;
+            case 'request-prop':
+                return context.request[name];
             case 'query':
                 return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
             case 'path':

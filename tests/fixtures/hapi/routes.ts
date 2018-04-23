@@ -538,6 +538,29 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/GetTest/RequestProp',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          stringValue: { "in": "request-prop", "name": "stringValue", "required": true, "dataType": "any" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new GetTestController();
+
+        const promise=controller.getRequestProp.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/GetTest/DateParam',
     config: {
       handler: (request: any, reply: any) => {
@@ -2300,6 +2323,8 @@ export function RegisterRoutes(server: any) {
       switch (args[key].in) {
         case 'request':
           return request;
+        case 'request-prop':
+          return request[name];
         case 'query':
           return ValidateParam(args[key], request.query[name], models, name, errorFields)
         case 'path':
