@@ -32,6 +32,13 @@ export function RequestProp(name?: string): any {
 }
 
 /**
+ * Inject authenticated user (if any)
+ */
+export function User(): any {
+  return () => { return; };
+}
+
+/**
  * Inject value from Path
  *
  * @param {string} [name] The name of the path parameter

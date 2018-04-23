@@ -488,6 +488,13 @@ describe('Express Server', () => {
         expect(model.id).to.equal(2);
       });
     });
+
+    it('injects the user object', () => {
+      return verifyGetRequest(basePath + '/SecurityTest/User?access_token=abc123456', (err, res) => {
+        const model = res.body as UserResponseModel;
+        expect(model.id).to.equal(1);
+      });
+    });
   });
 
   describe('Parameter data', () => {

@@ -1886,6 +1886,34 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/SecurityTest/User',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware([{ "name": "api_key" }])
+        }
+      ],
+      handler: (request: any, reply: any) => {
+        const args={
+          user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new SecurityTestController();
+
+        const promise=controller.GetWithApiUser.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/SecurityTest/Koa',
     config: {
       pre: [
@@ -1908,6 +1936,34 @@ export function RegisterRoutes(server: any) {
         const controller=new SecurityTestController();
 
         const promise=controller.GetWithApiForKoa.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/SecurityTest/UserKoa',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware([{ "name": "api_key" }])
+        }
+      ],
+      handler: (request: any, reply: any) => {
+        const args={
+          user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new SecurityTestController();
+
+        const promise=controller.GetWithApiUserForKoa.apply(controller, validatedArgs);
         return promiseHandler(controller, promise, request, reply);
       }
     }

@@ -1654,6 +1654,27 @@ export function RegisterRoutes(router: any) {
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.get('/v1/SecurityTest/User',
+    authenticateMiddleware([{ "name": "api_key" }]),
+    async (context, next) => {
+      const args={
+        user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new SecurityTestController();
+
+      const promise=controller.GetWithApiUser.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.get('/v1/SecurityTest/Koa',
     authenticateMiddleware([{ "name": "api_key" }]),
     async (context, next) => {
@@ -1673,6 +1694,27 @@ export function RegisterRoutes(router: any) {
       const controller=new SecurityTestController();
 
       const promise=controller.GetWithApiForKoa.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/SecurityTest/UserKoa',
+    authenticateMiddleware([{ "name": "api_key" }]),
+    async (context, next) => {
+      const args={
+        user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new SecurityTestController();
+
+      const promise=controller.GetWithApiUserForKoa.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest/Oauth',

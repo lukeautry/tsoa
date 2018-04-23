@@ -1583,6 +1583,26 @@ export function RegisterRoutes(app: any) {
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/SecurityTest/User',
+    authenticateMiddleware([{ "name": "api_key" }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithApiUser.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/SecurityTest/Koa',
     authenticateMiddleware([{ "name": "api_key" }]),
     function(request: any, response: any, next: any) {
@@ -1601,6 +1621,26 @@ export function RegisterRoutes(app: any) {
 
 
       const promise=controller.GetWithApiForKoa.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/SecurityTest/UserKoa',
+    authenticateMiddleware([{ "name": "api_key" }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        user: { "in": "request-prop", "name": "user", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithApiUserForKoa.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Oauth',
