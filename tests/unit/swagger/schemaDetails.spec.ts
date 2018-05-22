@@ -26,6 +26,9 @@ describe('Schema details generation', () => {
   it('should set API host if provided', () => {
     expect(spec.host).to.equal(getDefaultOptions().host);
   });
+  it('should set API schemes if provided', () => {
+    expect(spec.schemes).to.equal(getDefaultOptions().schemes);
+  });
 
   const license = spec.info.license;
   if (!license) { throw new Error('No license.'); }
