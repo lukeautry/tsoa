@@ -37,6 +37,7 @@ export class SpecGenerator {
 
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
+    if (this.config.schemes) { spec.schemes = this.config.schemes; }
 
     return spec;
   }
