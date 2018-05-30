@@ -97,13 +97,13 @@ export class RouteGenerator {
             );
 
             return {
+              contentType: method.produces && method.produces.length === 1 ? method.produces[0] : '',
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
               path: normalisedMethodPath,
               security: method.security,
-              contentType: method.produces && method.produces.length === 1 ? method.produces[0] : '',
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
