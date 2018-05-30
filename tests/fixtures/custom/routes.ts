@@ -1445,7 +1445,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];

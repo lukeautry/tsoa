@@ -264,7 +264,7 @@ export class SpecGenerator {
 
     return {
       operationId: this.getOperationId(method.name),
-      produces: ['application/json'],
+      produces: method.produces && method.produces.length ? method.produces : ['application/json'],
       responses: swaggerResponses,
     };
   }
@@ -285,6 +285,10 @@ export class SpecGenerator {
 
     if (type.dataType === 'enum') {
       return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
+    }
+
+    if (type.dataType === 'file') {
+      return { type: 'file' } as Swagger.Schema;
     }
 
     return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType) as Swagger.Schema;

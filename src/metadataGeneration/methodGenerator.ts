@@ -46,6 +46,7 @@ export class MethodGenerator {
       name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
       path: this.path,
+      produces: this.getProduces(),
       responses,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
@@ -216,6 +217,26 @@ export class MethodGenerator {
       tags.push(...this.parentTags);
     }
     return tags;
+  }
+
+  private getProduces() {
+    const producesDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Produces');
+
+    if (!producesDecorators || !producesDecorators.length) {
+      return undefined;
+    }
+    if (producesDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Produces decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    const decorator = producesDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
+      return [(expression.arguments[0] as any).text];
+    }
+
+    return undefined;
   }
 
   private getIsHidden() {

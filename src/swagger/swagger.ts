@@ -5,6 +5,7 @@ export namespace Swagger {
     | 'string'
     | 'array'
     | 'object'
+    | 'file'
     ;
 
   export type DataFormat = 'int32'

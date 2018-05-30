@@ -1,5 +1,7 @@
 /* tslint:disable */
-import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { Readable } from 'stream';
+
+import { Controller, FileResult, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
@@ -11,6 +13,7 @@ import { ParameterController } from './../controllers/parameterController';
 import { SecurityTestController } from './../controllers/securityController';
 import { TestController } from './../controllers/testController';
 import { ValidateController } from './../controllers/validateController';
+import { FileController } from './../controllers/fileController';
 import { expressAuthentication } from './authentication';
 
 const models: TsoaRoute.Models={
@@ -1528,7 +1531,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1873,6 +1876,45 @@ export function RegisterRoutes(app: any) {
       const promise=controller.bodyValidate.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/File/normalGetMethod',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new FileController();
+
+
+      const promise=controller.normalGetMethod.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/File/producesTextHtmlContent',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new FileController();
+
+
+      const promise=controller.producesTextHtmlContent.apply(controller, validatedArgs);
+      if (controller instanceof Controller) {
+        controller.setHeader('Content-Type', 'text/html; charset=utf-8');
+      }
+      promiseHandler(controller, promise, response, next);
+    });
 
   function authenticateMiddleware(security: TsoaRoute.Security[]=[]) {
     return (request: any, response: any, next: any) => {
@@ -1914,7 +1956,16 @@ export function RegisterRoutes(app: any) {
         }
 
         if (data) {
-          response.status(statusCode||200).json(data);
+          if (data instanceof FileResult) {
+            if (data.data instanceof Readable) {
+              response.status(statusCode|200);
+              data.data.pipe(response);
+            } else {
+              response.status(statusCode|200).send(data.data);
+            }
+          } else {
+            response.status(statusCode|200).json(data);
+          }
         } else {
           response.status(statusCode||204).end();
         }

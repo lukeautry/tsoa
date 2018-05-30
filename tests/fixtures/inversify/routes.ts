@@ -1,5 +1,7 @@
 /* tslint:disable */
-import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { Readable } from 'stream';
+
+import { Controller, FileResult, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 
@@ -143,7 +145,16 @@ export function RegisterRoutes(app: any) {
         }
 
         if (data) {
-          response.status(statusCode||200).json(data);
+          if (data instanceof FileResult) {
+            if (data.data instanceof Readable) {
+              response.status(statusCode|200);
+              data.data.pipe(response);
+            } else {
+              response.status(statusCode|200).send(data.data);
+            }
+          } else {
+            response.status(statusCode|200).json(data);
+          }
         } else {
           response.status(statusCode||204).end();
         }

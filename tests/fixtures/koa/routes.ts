@@ -1596,7 +1596,7 @@ export function RegisterRoutes(router: any) {
   router.get('/v1/ParameterTest/paramaterImplicitDate',
     async (context, next) => {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
