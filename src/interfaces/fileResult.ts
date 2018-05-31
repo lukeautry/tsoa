@@ -1,3 +1,5 @@
 export class FileResult {
-  public data: any;
+  public path?: string;
+  public data?: any;
+  public filename?: string;
 }
