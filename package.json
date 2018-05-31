@@ -48,7 +48,7 @@
     "merge": "^1.2.0",
     "minimatch": "^3.0.4",
     "moment": "^2.18.1",
-    "typescript": "~2.7.2",
+    "typescript": "~2.8.4",
     "typescript-formatter": "^7.0.1",
     "validator": "^8.0.0",
     "yamljs": "^0.3.0",
