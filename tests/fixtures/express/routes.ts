@@ -1959,7 +1959,7 @@ export function RegisterRoutes(app: any) {
           if (data instanceof FileResult) {
             if (data.path) {
               response.status(statusCode|200);
-              data.filename? response.download(data.path, data.filename):response.download(data.path)
+              data.filename? response.sendFile(data.path, data.filename):response.sendFile(data.path);
             } else if (data.data) {
               if (data.data instanceof Readable) {
                 response.status(statusCode|200);
