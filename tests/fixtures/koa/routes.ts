@@ -1735,6 +1735,25 @@ export function RegisterRoutes(router: any) {
       const promise=controller.noContentStatusCode.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.get('/v1/Controller/falseStatusCode',
+    async (context, next) => {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new TestController();
+
+      const promise=controller.falseStatusCode.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.get('/v1/Controller/customStatusCode',
     async (context, next) => {
       const args={
@@ -1989,7 +2008,7 @@ export function RegisterRoutes(router: any) {
   function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
     return Promise.resolve(promise)
       .then((data: any) => {
-        if (data) {
+        if (data||data===false) {
           context.body=data;
           context.status=200;
         } else {

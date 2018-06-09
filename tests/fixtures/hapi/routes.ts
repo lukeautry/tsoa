@@ -1991,6 +1991,28 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/Controller/falseStatusCode',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new TestController();
+
+        const promise=controller.falseStatusCode.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/Controller/customStatusCode',
     config: {
       handler: (request: any, reply: any) => {
@@ -2274,7 +2296,7 @@ export function RegisterRoutes(server: any) {
   function promiseHandler(controllerObj: any, promise: any, request: any, reply: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
-        const response=data? reply(data).code(200):reply("").code(204);
+        const response=(data||data===false)? reply(data).code(200):reply("").code(204);
 
         if (controllerObj instanceof Controller) {
           const controller=controllerObj as Controller

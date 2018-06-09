@@ -1660,6 +1660,24 @@ export function RegisterRoutes(app: any) {
       const promise=controller.noContentStatusCode.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/Controller/falseStatusCode',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new TestController();
+
+
+      const promise=controller.falseStatusCode.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/Controller/customStatusCode',
     function(request: any, response: any, next: any) {
       const args={
@@ -1913,7 +1931,7 @@ export function RegisterRoutes(app: any) {
           statusCode=controller.getStatus();
         }
 
-        if (data) {
+        if (data||data===false) { // === false allows boolean result
           response.status(statusCode||200).json(data);
         } else {
           response.status(statusCode||204).end();

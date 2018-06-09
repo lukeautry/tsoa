@@ -106,7 +106,7 @@ export function RegisterRoutes(server: any) {
     function promiseHandler(controllerObj: any, promise: any, request: any, reply: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
-                const response = data ? reply(data).code(200) : reply("").code(204);
+                const response = (data || data === false) ? reply(data).code(200) : reply("").code(204);
 
                 if (controllerObj instanceof Controller) {
                     const controller = controllerObj as Controller

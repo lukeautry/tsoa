@@ -17,6 +17,11 @@ export class TestController extends Controller {
         return;
     }
 
+    @Get('falseStatusCode')
+    public async falseStatusCode(): Promise<boolean> {
+        return false;
+    }
+
     @Get('customStatusCode')
     public async customNomalStatusCode(): Promise<TestModel> {
         const service = new ModelService();
