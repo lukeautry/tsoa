@@ -23,7 +23,7 @@
 
 ## Looking for additional maintainers
 
-tsoa wants additional maintainers! The library has increased in popularity and has quite a lot of pull requests and issues. Please post in this issue if you're willing to take on the role of a maintainer.
+tsoa wants additional maintainers! The library has increased in popularity and has quite a lot of pull requests and issues. [Please post in this issue](https://github.com/lukeautry/tsoa/issues/236) if you're willing to take on the role of a maintainer.
 
 All merged changes that touch 'real' code should include unit tests and pass linting/type checking.
 
