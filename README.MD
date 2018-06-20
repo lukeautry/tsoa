@@ -1,5 +1,6 @@
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
 [![npm version](https://badge.fury.io/js/tsoa.svg)](https://badge.fury.io/js/tsoa)
+[![Open Source Helpers](https://www.codetriage.com/lukeautry/tsoa/badges/users.svg)](https://www.codetriage.com/lukeautry/tsoa)
 
 ## Goal
 
