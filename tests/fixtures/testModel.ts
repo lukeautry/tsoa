@@ -8,6 +8,9 @@ export interface TestModel extends Model {
    */
   numberValue: number;
   numberArray: number[];
+  /**
+   * @format password
+   */
   stringValue: string;
   stringArray: string[];
   boolValue: boolean;
@@ -272,6 +275,7 @@ export class TestClassModel extends TestClassBaseModel {
    */
   public optionalPublicStringProperty?: string;
   /**
+   * @format email
    * @pattern ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$
    */
   public emailPattern?: string;
