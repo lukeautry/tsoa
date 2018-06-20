@@ -67,6 +67,12 @@ describe('Definition generation', () => {
     it('should generate an optional property from an optional property', () => {
       const definition = getValidatedDefinition('TestModel');
       expect(definition.required).to.not.contain('optionalString');
+
+      if (!definition.properties) {
+        throw new Error('No definition properties.');
+      }
+
+      expect(definition.properties.optionalString['x-nullable']).to.equal(true);
     });
   });
 

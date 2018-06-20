@@ -138,8 +138,6 @@ export class SpecGenerator {
         properties[p.name].default = p.default;
         properties[p.name].description = p.description;
 
-        // if (!properties[p.name].$ref) {
-        // }
         if (p.required) {
           required.push(p.name);
         }
@@ -237,6 +235,11 @@ export class SpecGenerator {
             swaggerType[key] = property.validators[key].value;
           });
       }
+
+      if (!property.required)  {
+        swaggerType['x-nullable'] = true;
+      }
+
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 
