@@ -55,6 +55,16 @@ describe('Definition generation', () => {
       expect(property.description).to.equal('This is a description of this model property, numberValue');
     });
 
+    it('should generate a property format from a property jsdoc comment', () => {
+      const definition = getValidatedDefinition('TestModel');
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+
+      const property = definition.properties.stringValue;
+      if (!property) { throw new Error('There was no \'stringValue\' property.'); }
+
+      expect(property.format).to.equal('password');
+    });
+
     it('should generate properties from extended interface', () => {
       const definition = getValidatedDefinition('TestModel');
       if (!definition.properties) { throw new Error('Definition has no properties.'); }
@@ -145,6 +155,15 @@ describe('Definition generation', () => {
 
     it('should generate a definition description from a model jsdoc comment', () => {
       expect(definition.description).to.equal('This is a description of TestClassModel');
+    });
+
+    it("should generate a property format from a property jsdoc comment", () => {
+      const propertyName = 'emailPattern';
+
+      const property = properties[propertyName];
+      if (!property) { throw new Error(`There was no '${propertyName}' property.`); }
+
+      expect(property.format).to.equal('email');
     });
 
     it('should generate a property description from a property jsdoc comment', () => {

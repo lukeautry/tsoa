@@ -1,7 +1,7 @@
 import * as indexOf from 'lodash.indexof';
 import * as map from 'lodash.map';
 import * as ts from 'typescript';
-import { getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -548,6 +548,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
 
         return {
           description: getNodeDescription(propertyDeclaration),
+          format: getNodeFormat(propertyDeclaration),
           name: identifier.text,
           required: !propertyDeclaration.questionToken,
           type: resolveType(aType, aType.parent),
@@ -623,6 +624,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
       return {
         default: getInitializerValue(property.initializer, type),
         description: getNodeDescription(property),
+        format: getNodeFormat(property),
         name: identifier.text,
         required: !property.questionToken && !property.initializer,
         type,
@@ -703,4 +705,8 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
   if (comments.length) { return ts.displayPartsToString(comments); }
 
   return undefined;
+}
+
+function getNodeFormat(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  return getJSDocComment(node, 'format');
 }

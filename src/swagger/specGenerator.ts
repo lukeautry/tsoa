@@ -225,7 +225,9 @@ export class SpecGenerator {
 
     source.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type);
+      const format = property.format as Swagger.DataFormat;
       swaggerType.description = property.description;
+      swaggerType.format = format || swaggerType.format;
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;
 
