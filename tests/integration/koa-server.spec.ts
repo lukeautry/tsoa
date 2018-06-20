@@ -163,6 +163,12 @@ describe('Koa Server', () => {
       }, 200);
     });
 
+    it('should normal status code with false boolean result', () => {
+      return verifyGetRequest(basePath + `/Controller/falseStatusCode`, (err, res) => {
+        expect(res.status).to.equal(200);
+      }, 200);
+    });
+
     it('should no content status code', () => {
       return verifyGetRequest(basePath + `/Controller/noContentStatusCode`, (err, res) => {
         expect(res.status).to.equal(204);

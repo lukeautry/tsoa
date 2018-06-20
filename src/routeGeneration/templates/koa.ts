@@ -100,7 +100,7 @@ export function RegisterRoutes(router: any) {
   function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
-            if (data) {
+            if (data || data === false) {
                 context.body = data;
                 context.status = 200;
             } else {
