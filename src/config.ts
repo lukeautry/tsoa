@@ -90,7 +90,7 @@ export interface SwaggerConfig {
    * and only serves to provide the relevant details for each scheme.
    */
   securityDefinitions?: {
-    [name: string]: Swagger.Secuirty,
+    [name: string]: Swagger.Security,
   };
 
   yaml?: boolean;
