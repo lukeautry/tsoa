@@ -85,6 +85,7 @@ export namespace Tsoa {
     properties?: Property[];
     additionalProperties?: Type;
     enums?: string[];
+    example?: any;
   }
 
   export interface ReferenceTypeMap {
