@@ -6,8 +6,13 @@ export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identif
   if (!decorators || !decorators.length) { return []; }
 
   return decorators
-    .map(d => d.expression as ts.CallExpression)
-    .map(e => e.expression as ts.Identifier)
+    .map((e: any) => {
+      while (e.expression !== undefined) {
+        e = e.expression;
+      }
+
+      return e as ts.Identifier;
+    })
     .filter(isMatching);
 }
 
