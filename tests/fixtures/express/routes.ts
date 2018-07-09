@@ -741,6 +741,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.updateModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/v1/PostTest/WithDifferentReturnCode',
+    function(request: any, response: any, next: any) {
+      const args={
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new PostTestController();
+
+
+      const promise=controller.postWithDifferentReturnCode.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/v1/PostTest/WithClassModel',
     function(request: any, response: any, next: any) {
       const args={
@@ -1528,7 +1547,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1917,18 +1936,21 @@ export function RegisterRoutes(app: any) {
     }
   }
 
+  function isController(object: any): object is Controller {
+    return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;
+  }
+
   function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode;
-        if (controllerObj instanceof Controller) {
-          const controller=controllerObj as Controller
-          const headers=controller.getHeaders();
+        if (isController(controllerObj)) {
+          const headers=controllerObj.getHeaders();
           Object.keys(headers).forEach((name: string) => {
             response.set(name, headers[name]);
           });
 
-          statusCode=controller.getStatus();
+          statusCode=controllerObj.getStatus();
         }
 
         if (data||data===false) { // === false allows boolean result

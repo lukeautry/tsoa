@@ -852,6 +852,29 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'post',
+    path: '/v1/PostTest/WithDifferentReturnCode',
+    config: {
+      handler: (request: any, reply: any) => {
+        const args={
+          model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new PostTestController();
+
+        const promise=controller.postWithDifferentReturnCode.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
     path: '/v1/PostTest/WithClassModel',
     config: {
       handler: (request: any, reply: any) => {
@@ -1816,7 +1839,7 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply: any) => {
         const args={
-          date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+          date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
         };
 
         let validatedArgs: any[]=[];
@@ -2293,19 +2316,22 @@ export function RegisterRoutes(server: any) {
     }
   }
 
+  function isController(object: any): object is Controller {
+    return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;
+  }
+
   function promiseHandler(controllerObj: any, promise: any, request: any, reply: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
         const response=(data||data===false)? reply(data).code(200):reply("").code(204);
 
-        if (controllerObj instanceof Controller) {
-          const controller=controllerObj as Controller
-          const headers=controller.getHeaders();
+        if (isController(controllerObj)) {
+          const headers=controllerObj.getHeaders();
           Object.keys(headers).forEach((name: string) => {
             response.header(name, headers[name]);
           });
 
-          const statusCode=controller.getStatus();
+          const statusCode=controllerObj.getStatus();
           if (statusCode) {
             response.code(statusCode);
           }
