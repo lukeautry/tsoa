@@ -60,6 +60,10 @@ export class SpecGenerator {
         if (referenceType.additionalProperties) {
           definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
         }
+
+        if (referenceType.example) {
+          definitions[referenceType.refName].example = referenceType.example;
+        }
       }
 
       // Enum definition

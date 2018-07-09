@@ -304,6 +304,7 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     const properties = getModelProperties(modelType, genericTypes);
     const additionalProperties = getModelAdditionalProperties(modelType);
     const inheritedProperties = getModelInheritedProperties(modelType) || [];
+    const example = getNodeExample(modelType);
 
     const referenceType = {
       additionalProperties,
@@ -316,6 +317,9 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
     localReferenceTypeCache[refNameWithGenerics] = referenceType;
 
+    if (example) {
+      referenceType.example = example;
+    }
     return referenceType;
   } catch (err) {
     // tslint:disable-next-line:no-console
@@ -709,4 +713,14 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
 
 function getNodeFormat(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
   return getJSDocComment(node, 'format');
+}
+
+function getNodeExample(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  const example = getJSDocComment(node, 'example');
+
+  if (example) {
+    return JSON.parse(example);
+  } else {
+    return undefined;
+  }
 }

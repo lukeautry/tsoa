@@ -98,6 +98,12 @@ describe('Hapi Server', () => {
     });
   });
 
+  it('correctly returns status code', () => {
+    const data = getFakeModel();
+    const path = basePath + '/PostTest/WithDifferentReturnCode';
+    return verifyPostRequest(path, data, (err, res) => { return; }, 201);
+  });
+
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
