@@ -97,6 +97,10 @@ export function RegisterRoutes(router: any) {
   }
   {{/if}}
 
+  function isController(object: any): object is Controller {
+      return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
+  }
+
   function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
@@ -107,14 +111,13 @@ export function RegisterRoutes(router: any) {
                 context.status = 204;
             }
 
-            if (controllerObj instanceof Controller) {
-                const controller = controllerObj as Controller
-                const headers = controller.getHeaders();
+            if (isController(controllerObj)) {
+                const headers = controllerObj.getHeaders();
                 Object.keys(headers).forEach((name: string) => {
                     context.set(name, headers[name]);
                 });
 
-                const statusCode = controller.getStatus();
+                const statusCode = controllerObj.getStatus();
                 if (statusCode) {
                     context.status = statusCode;
                 }

@@ -768,6 +768,26 @@ export function RegisterRoutes(router: any) {
       const promise=controller.updateModel.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.post('/v1/PostTest/WithDifferentReturnCode',
+    async (context, next) => {
+      const args={
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new PostTestController();
+
+      const promise=controller.postWithDifferentReturnCode.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.post('/v1/PostTest/WithClassModel',
     async (context, next) => {
       const args={
@@ -1596,7 +1616,7 @@ export function RegisterRoutes(router: any) {
   router.get('/v1/ParameterTest/paramaterImplicitDate',
     async (context, next) => {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -2005,6 +2025,10 @@ export function RegisterRoutes(router: any) {
     }
   }
 
+  function isController(object: any): object is Controller {
+    return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;
+  }
+
   function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
     return Promise.resolve(promise)
       .then((data: any) => {
@@ -2015,14 +2039,13 @@ export function RegisterRoutes(router: any) {
           context.status=204;
         }
 
-        if (controllerObj instanceof Controller) {
-          const controller=controllerObj as Controller
-          const headers=controller.getHeaders();
+        if (isController(controllerObj)) {
+          const headers=controllerObj.getHeaders();
           Object.keys(headers).forEach((name: string) => {
             context.set(name, headers[name]);
           });
 
-          const statusCode=controller.getStatus();
+          const statusCode=controllerObj.getStatus();
           if (statusCode) {
             context.status=statusCode;
           }
