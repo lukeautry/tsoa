@@ -43,6 +43,7 @@
   "dependencies": {
     "handlebars": "^4.0.11",
     "handlebars-helpers": "^0.9.8",
+    "js-yaml": "3.12.0",
     "lodash.indexof": "^4.0.5",
     "lodash.map": "^4.6.0",
     "merge": "^1.2.0",
@@ -51,7 +52,6 @@
     "typescript": "~2.8.4",
     "typescript-formatter": "^7.2.0",
     "validator": "^8.2.0",
-    "yamljs": "^0.3.0",
     "yargs": "^8.0.2"
   },
   "devDependencies": {
@@ -72,7 +72,6 @@
     "@types/superagent": "^2.3.2",
     "@types/supertest": "^2.0.4",
     "@types/validator": "^6.3.0",
-    "@types/yamljs": "^0.2.30",
     "@types/yargs": "^8.0.3",
     "body-parser": "^1.18.3",
     "chai": "^4.1.2",

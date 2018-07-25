@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import * as YAML from 'yamljs';
+import * as YAML from 'js-yaml';
 import * as yargs from 'yargs';
 import { Config, RoutesConfig, SwaggerConfig } from './config';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
@@ -30,7 +30,8 @@ const getConfig = (configPath = 'tsoa.json'): Config => {
   try {
     const ext = path.extname(configPath);
     if (ext === '.yaml' || ext === '.yml') {
-      config = YAML.load(configPath);
+      const content = fs.readFileSync(configPath, 'utf8');
+      config = YAML.safeLoad(content);
     } else {
       config = require(`${workingDir}/${configPath}`);
     }
@@ -162,7 +163,7 @@ function swaggerSpecGenerator(args) {
     }
     let data = JSON.stringify(spec, null, '\t');
     if (config.swagger.yaml) {
-      data = YAML.stringify(JSON.parse(data), 10);
+      data = YAML.safeDump(JSON.parse(data), { indent: 4 });
     }
     const ext = config.swagger.yaml ? 'yaml' : 'json';
 
