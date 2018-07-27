@@ -25,7 +25,6 @@ export namespace Tsoa {
     summary?: string;
     isHidden: boolean;
     operationId?: string;
-
   }
 
   export interface Parameter {

@@ -3,7 +3,9 @@ import * as YAML from 'yamljs';
 import { SwaggerConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
-import { SpecGenerator } from '../swagger/specGenerator';
+import { SpecGenerator2 } from '../swagger/specGenerator2';
+import { SpecGenerator3 } from '../swagger/specGenerator3';
+import { Swagger } from '../swagger/swagger';
 import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
 
 export const generateSwaggerSpec = async (
@@ -22,7 +24,13 @@ export const generateSwaggerSpec = async (
       ignorePaths,
     ).Generate();
   }
-  const spec = new SpecGenerator(metadata, config).GetSpec();
+
+  let spec: Swagger.Spec;
+  if (config.version && config.version === '3.0.0') {
+    spec = new SpecGenerator3(metadata, config).GetSpec();
+  } else {
+    spec = new SpecGenerator2(metadata, config).GetSpec();
+  }
 
   const exists = await fsExists(config.outputDirectory);
   if (!exists) {
