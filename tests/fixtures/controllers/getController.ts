@@ -5,6 +5,7 @@ import {
   Query,
   Request,
   Route,
+  SuccessResponse,
   Tags,
 } from '../../../src';
 import '../duplicateTestModel';
@@ -25,6 +26,7 @@ export class GetTestController extends Controller {
    * this is some more text on another line
    */
   @Get()
+  @SuccessResponse('200', 'Returns TestModel')
   @Example<TestModel>({
     boolArray: [true, false],
     boolValue: true,
