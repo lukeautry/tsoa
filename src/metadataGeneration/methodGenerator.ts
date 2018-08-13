@@ -120,7 +120,7 @@ export class MethodGenerator {
       if (expression.arguments.length > 1 && (expression.arguments[1] as any).text) {
         description = (expression.arguments[1] as any).text;
       }
-      if (expression.arguments.length > 2 && (expression.arguments[2] as any).text) {
+      if (expression.arguments.length > 2) {
         const argument = expression.arguments[2] as any;
         examples = this.getExamplesValue(argument);
       }
@@ -155,7 +155,7 @@ export class MethodGenerator {
 
     let description = '';
     let name = '200';
-    const examples = undefined;
+    const examples = this.getMethodSuccessExamples();
 
     if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
       name = (expression.arguments[0] as any).text;
