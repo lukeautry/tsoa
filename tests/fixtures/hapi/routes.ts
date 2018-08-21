@@ -1304,7 +1304,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "api_key" }])
+          method: authenticateMiddleware([{ "api_key": [] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1331,7 +1331,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }])
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1358,7 +1358,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }])
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1375,6 +1375,33 @@ export function RegisterRoutes(server: any) {
         const controller=new MethodController();
 
         const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/MethodTest/OauthAndAPIkeySecurity',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }])
+        }
+      ],
+      handler: (request: any, reply: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new MethodController();
+
+        const promise=controller.oauthAndAPIkeySecurity.apply(controller, validatedArgs);
         return promiseHandler(controller, promise, request, reply);
       }
     }
@@ -1862,7 +1889,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "api_key" }])
+          method: authenticateMiddleware([{ "api_key": [] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1890,7 +1917,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "api_key" }])
+          method: authenticateMiddleware([{ "api_key": [] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1918,7 +1945,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }])
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1946,7 +1973,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }])
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1963,7 +1990,35 @@ export function RegisterRoutes(server: any) {
 
         const controller=new SecurityTestController();
 
-        const promise=controller.GetWithDoubleSecurity.apply(controller, validatedArgs);
+        const promise=controller.GetWithOrSecurity.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, reply);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
+    path: '/v1/SecurityTest/OauthAndAPIkey',
+    config: {
+      pre: [
+        {
+          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }])
+        }
+      ],
+      handler: (request: any, reply: any) => {
+        const args={
+          request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return reply(err).code(err.status||500);
+        }
+
+        const controller=new SecurityTestController();
+
+        const promise=controller.GetWithAndSecurity.apply(controller, validatedArgs);
         return promiseHandler(controller, promise, request, reply);
       }
     }
@@ -2296,22 +2351,41 @@ export function RegisterRoutes(server: any) {
     return (request: any, reply: any) => {
       let responded=0;
       let success=false;
+
+      const succeed=function(user: any) {
+        if (!success) {
+          success=true;
+          responded++;
+          request['user']=user;
+          reply.continue();
+        }
+      }
+
+      const fail=function(error: any) {
+        responded++;
+        if (responded==security.length&&!success) {
+          reply(error).code(error.status||401);
+        }
+      }
+
       for (const secMethod of security) {
-        hapiAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
-          // only need to respond once
-          if (!success) {
-            success=true;
-            responded++;
-            request['user']=user;
-            reply.continue();
+        if (Object.keys(secMethod).length>1) {
+          let promises: Promise<any>[]=[];
+
+          for (const name in secMethod) {
+            promises.push(hapiAuthentication(request, name, secMethod[name]));
           }
-        })
-          .catch((error: any) => {
-            responded++;
-            if (responded==security.length&&!success) {
-              reply(error).code(error.status||401);
-            }
-          })
+
+          Promise.all(promises)
+            .then((users) => { succeed(users[0]); })
+            .catch(fail);
+        } else {
+          for (const name in secMethod) {
+            hapiAuthentication(request, name, secMethod[name])
+              .then(succeed)
+              .catch(fail);
+          }
+        }
       }
     }
   }

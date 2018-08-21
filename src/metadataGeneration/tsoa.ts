@@ -43,8 +43,7 @@ export namespace Tsoa {
   }
 
   export interface Security {
-    name: string;
-    scopes?: string[];
+    [key: string]: string[];
   }
 
   export interface Response {

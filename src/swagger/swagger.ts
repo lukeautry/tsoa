@@ -4,8 +4,7 @@ export namespace Swagger {
     | 'boolean'
     | 'string'
     | 'array'
-    | 'object'
-    ;
+    | 'object';
 
   export type DataFormat = 'int32'
     | 'int64'
@@ -16,6 +15,7 @@ export namespace Swagger {
     | 'date'
     | 'date-time'
     | 'password';
+
   export type Protocol = 'http'
     | 'https'
     | 'ws'
