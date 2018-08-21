@@ -155,7 +155,7 @@ export class MethodGenerator {
 
     let description = '';
     let name = '200';
-    const examples = undefined;
+    const examples = this.getMethodSuccessExamples();
 
     if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
       name = (expression.arguments[0] as any).text;
