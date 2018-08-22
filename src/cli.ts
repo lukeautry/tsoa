@@ -58,6 +58,9 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
 const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
   if (!config.outputDirectory) { throw new Error('Missing outputDirectory: onfiguration most contain output directory'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
+  if (!fs.existsSync(config.entryFile)) {
+    throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
+  }
   config.version = config.version || versionDefault;
   config.name = config.name || nameDefault;
   config.description = config.description || descriptionDefault;
@@ -69,6 +72,9 @@ const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
 
 const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
+  if (!fs.existsSync(config.entryFile)) {
+    throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
+  }
   if (!config.routesDir) { throw new Error('Missing routesDir: Configuration must contain a routes file output directory.'); }
 
   if (config.authenticationModule && !(fs.existsSync(config.authenticationModule) || fs.existsSync(config.authenticationModule + '.ts'))) {
