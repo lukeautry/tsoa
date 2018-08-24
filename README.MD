@@ -1,5 +1,38 @@
+# tsoa
+
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
 [![npm version](https://badge.fury.io/js/tsoa.svg)](https://badge.fury.io/js/tsoa)
+
+## Table of Contents
+
+  * [Goal](#goal)
+  * [Philosophy](#philosophy)
+  * [How it works](#how-it-works)
+    - [Installation](#installation)
+    - [Create Controllers](#create-controllers)
+    - [Create Models](#create-models)
+    - [Generate](#generate)
+    - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
+    - [Overriding route template](#overriding-route-template)
+    - [Consuming generated routes](#consuming-generated-routes)
+    - [Get access to the request object of express in Controllers](#get-access-to-the-request-object-of-express-in-controllers)
+    - [Dependency injection or IOC](#dependency-injection-or-ioc)
+      + [InversifyJS](#inversifyjs)
+      + [typescript-ioc](#typescript-ioc)
+    - [Specify error response types for Swagger](#specify-error-response-types-for-swagger)
+    - [Authentication](#authentication)
+    - [Path mapping](#path-mapping)
+    - [Uploading files](#uploading-files)
+    - [Using awesome Swagger tools](#using-awesome-swagger-tools)
+  * [Decorators](#decorators)
+    - [Security](#security)
+    - [Tags](#tags)
+    - [OperationId](#operationid)
+  * [Command Line Interface](#command-line-interface)
+    - [Swagger spec generation](#swagger-spec-generation)
+    - [Route generation](#route-generation)
+  * [Examples](#examples)
+  * [Help wanted](#help-wanted)
 
 ## Goal
 
@@ -21,15 +54,10 @@
 - Minimize boilerplate
 - Models are best represented by interfaces (pure data structures), but can also be represented by classes
 
-## Looking for additional maintainers
-
-tsoa wants additional maintainers! The library has increased in popularity and has quite a lot of pull requests and issues. [Please post in this issue](https://github.com/lukeautry/tsoa/issues/236) if you're willing to take on the role of a maintainer.
-
-All merged changes that touch 'real' code should include unit tests and pass linting/type checking.
 
 ## How it works
 
-## Installation
+### Installation
 
 ```sh
 npm install tsoa --save
@@ -120,7 +148,7 @@ export interface MyModel {
 }
 ```
 
-### Override route template
+### Overriding route template
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
 ```
@@ -138,7 +166,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 }
 ```
 
-### Consume generated routes
+### Consuming generated routes
 
 ```typescript
 import * as methodOverride from 'method-override';
@@ -182,12 +210,12 @@ Note that the parameter `request` does not appear in your swagger definition fil
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call.
 
-### Dependency injection / IOC
+### Dependency injection or IOC
 
 By default all the controllers are created by the auto-generated routes template using an empty default constructor.
-If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS) or [typescript-ioc] (https://github.com/thiagobustamante/typescript-ioc)
+If you want to use dependency injection and let the DI-framework handle the creation of your controllers you can use [inversifyJS](https://github.com/inversify/InversifyJS) or [typescript-ioc](https://github.com/thiagobustamante/typescript-ioc)
 
-#### Inversify.js
+#### InversifyJS
 
 
 To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
@@ -240,7 +268,7 @@ let provideSingleton = function(
 export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inject };
 ```
 
-`./contollers/fooController.ts`
+`./controllers/fooController.ts`
 ```ts
 import { Route } from 'tsoa';
 import { provideSingleton, inject } from '../inversify/ioc';
@@ -267,7 +295,7 @@ export class FooService {
 
 Here is some example code to setup the controller with typescript-ioc.
 
-`./contollers/fooController.ts`
+`./controllers/fooController.ts`
 ```ts
 import { Route } from 'tsoa';
 import { Inject, Provides } from "typescript-ioc";
@@ -291,7 +319,7 @@ The controllers need to be included in the application in order to be linked.
 
 `index.ts`
 ```ts
-import "./contollers/fooController.ts"
+import "./controllers/fooController.ts"
 ...
 
 ```
@@ -399,7 +427,7 @@ export function koaAuthentication(request: Request, securityName: string, scopes
     // See above
 }
 ```
-`./contollers/securityController.ts`
+`./controllers/securityController.ts`
 ```ts
 import { Get, Route, Security, Response } from 'tsoa';
 
@@ -420,7 +448,7 @@ export class SecureController {
 }
 ```
 
-### Path Mapping
+### Path mapping
 
 Per the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/basic-types.html) under [module resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html):
 
@@ -457,7 +485,7 @@ If you have a project that utilized this functionality, you can configure the in
 }
 ```
 
-### Upload files
+### Uploading files
 
 This requires to have multer installed:
 
@@ -552,7 +580,7 @@ If you have a project that needs a description and/or external docs for tags, yo
 }
 ```
 
-### Use awesome Swagger tools
+### Using awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
 
@@ -628,7 +656,7 @@ For information on the configuration object (tsoa.json), check out the following
 
 [Configuration sample](./tsoa.json)
 
-### Swagger.json generation
+### Swagger spec generation
 
 ```
 Usage: tsoa swagger [options]
@@ -649,8 +677,16 @@ Options:
   --basePath  Base API path                                                                     [string]
 ```
 
+
 ## Examples
 
 [An example project is available here](https://github.com/lukeautry/tsoa-example)
 
 Also see example controllers in [the tests](tests/fixtures/controllers)
+
+
+## Help wanted
+
+tsoa wants additional maintainers! The library has increased in popularity and has quite a lot of pull requests and issues. [Please post in this issue](https://github.com/lukeautry/tsoa/issues/236) if you're willing to take on the role of a maintainer.
+
+All merged changes that touch 'real' code should include unit tests and pass linting/type checking.
