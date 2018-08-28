@@ -82,22 +82,41 @@ export function RegisterRoutes(server: any) {
         return (request: any, reply: any) => {
             let responded = 0;
             let success = false;
-            for (const secMethod of security) {
-                hapiAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
-                    // only need to respond once
-                    if (!success) {
-                        success = true;
-                        responded++;
-                        request['user'] = user;
-                        reply.continue();
-                    }
-                })
-                .catch((error: any) => {
+
+            const succeed = function(user: any) {
+                if (!success) {
+                    success = true;
                     responded++;
-                    if (responded == security.length && !success) {
-                        reply(error).code(error.status || 401);
+                    request['user'] = user;
+                    reply.continue();
+                }
+            }
+
+            const fail = function(error: any) {
+                responded++;
+                if (responded == security.length && !success) {
+                  reply(error).code(error.status || 401);
+                }
+            }
+
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    let promises: Promise<any>[] = [];
+
+                    for (const name in secMethod) {
+                        promises.push(hapiAuthentication(request, name, secMethod[name]));
                     }
-                })
+
+                    Promise.all(promises)
+                        .then((users) => { succeed(users[0]); })
+                        .catch(fail);
+                } else {
+                    for (const name in secMethod) {
+                        hapiAuthentication(request, name, secMethod[name])
+                            .then(succeed)
+                            .catch(fail);
+                    }
+                }
             }
         }
     }

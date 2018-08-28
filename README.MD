@@ -178,9 +178,9 @@ export class UsersController {
     }
 }
 ```
-Note that the parameter `request` does not appear in your swagger definition file. 
+Note that the parameter `request` does not appear in your swagger definition file.
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
-In this case you should write your own custom template where you inject the needed objects/values in the method-call. 
+In this case you should write your own custom template where you inject the needed objects/values in the method-call.
 
 ### Dependency injection / IOC
 
@@ -307,7 +307,7 @@ public async getResponse(): Promise<TestModel> {
 }
 ```
 
-### Authentication 
+### Authentication
 
 Authentication is done using a middleware handler along with `@Security('name', ['scopes'])` decorator in your controller.
 
@@ -342,7 +342,7 @@ First, define the security definitions for swagger, and also configure where the
 ```
 
 
-In the middleware, export the function based on which library (Express, Koa, Hapi) you are using. You only create 1 function to handle all authenticate types. The `securityName` and `scopes` come from the annotation you put above your controller function. 
+In the middleware, export the function based on which library (Express, Koa, Hapi) you are using. You only create 1 function to handle all authenticate types. The `securityName` and `scopes` come from the annotation you put above your controller function.
 `./authentication.ts`
 ```ts
 import * as express from 'express';
@@ -364,7 +364,7 @@ export function expressAuthentication(request: express.Request, securityName: st
             return Promise.reject({});
         }
     }
-    
+
     if (securityName === 'jwt') {
         const token = request.body.token || request.query.token || request.headers['x-access-token'];
 
@@ -381,11 +381,11 @@ export function expressAuthentication(request: express.Request, securityName: st
                         if (!decoded.scopes.includes(scope)) {
                             reject(new Error("JWT does not contain required scope."));
                         }
-                    }                
+                    }
                     resolve(decoded)
                 }
             });
-        });    
+        });
     }
 };
 
@@ -411,7 +411,7 @@ export class SecureController {
     public async userInfo(@Request() request: any): Promise<UserResponseModel> {
         return Promise.resolve(request.user);
     }
-    
+
     @Security('jwt', ['admin'])
     @Get("EditUser")
     public async userInfo(@Request() request: any): Promise<string> {
@@ -479,7 +479,7 @@ export class FilesController {
         // file will be in request.randomFileIsHere, it is a buffer
         return {};
     }
-    
+
     private handleFile(request: express.Request): Promise<any> {
         const multerSingle = multer().single('randomFileIsHere');
         return new Promise((resolve, reject) => {
@@ -530,6 +530,32 @@ The according swagger definition can be merge-overwritten inside `tsoa.json`. He
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
+
+## Decorators
+
+### Security
+
+The `Security` decorator can be used above controller methods to indicate that there should be authentication before running those methods. As described above, the authentication is done in a file that's referenced in tsoa's configuration. When using the `Security` decorator, you can choose between having one or multiple authentication methods. If you choose to have multiple authentication methods, you can choose between having to pass one of the methods (OR):
+
+```ts
+@Security('tsoa_auth', ['write:pets', 'read:pets'])
+@Security('api_key')
+@Get('OauthOrAPIkey')
+public async GetWithOrSecurity(@Request() request: express.Request): Promise<any> {
+}
+```
+
+or having to pass all of them (AND):
+
+```ts
+@Security({
+  tsoa_auth: ['write:pets', 'read:pets'],
+  api_key: [],
+})
+@Get('OauthAndAPIkey')
+public async GetWithAndSecurity(@Request() request: express.Request): Promise<any> {
+}
+```
 
 ## Command Line Interface
 

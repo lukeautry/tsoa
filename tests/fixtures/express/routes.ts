@@ -1110,7 +1110,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/ApiSecurity',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1129,7 +1129,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/OauthSecurity',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1148,7 +1148,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/OauthOrAPIkeySecurity',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1164,6 +1164,25 @@ export function RegisterRoutes(app: any) {
 
 
       const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/MethodTest/OauthAndAPIkeySecurity',
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new MethodController();
+
+
+      const promise=controller.oauthAndAPIkeySecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/DeprecatedMethod',
@@ -1564,7 +1583,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1584,7 +1603,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Koa',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1604,7 +1623,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Oauth',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1624,7 +1643,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/OauthOrAPIkey',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1640,7 +1659,27 @@ export function RegisterRoutes(app: any) {
       const controller=new SecurityTestController();
 
 
-      const promise=controller.GetWithDoubleSecurity.apply(controller, validatedArgs);
+      const promise=controller.GetWithOrSecurity.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/SecurityTest/OauthAndAPIkey',
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithAndSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/Controller/normalStatusCode',
@@ -1915,23 +1954,42 @@ export function RegisterRoutes(app: any) {
     return (request: any, response: any, next: any) => {
       let responded=0;
       let success=false;
+
+      const succeed=function(user: any) {
+        if (!success) {
+          success=true;
+          responded++;
+          request['user']=user;
+          next();
+        }
+      }
+
+      const fail=function(error: any) {
+        responded++;
+        if (responded==security.length&&!success) {
+          error.status=401;
+          next(error)
+        }
+      }
+
       for (const secMethod of security) {
-        expressAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
-          // only need to respond once
-          if (!success) {
-            success=true;
-            responded++;
-            request['user']=user;
-            next();
+        if (Object.keys(secMethod).length>1) {
+          let promises: Promise<any>[]=[];
+
+          for (const name in secMethod) {
+            promises.push(expressAuthentication(request, name, secMethod[name]));
           }
-        })
-          .catch((error: any) => {
-            responded++;
-            if (responded==security.length&&!success) {
-              response.status(401);
-              next(error)
-            }
-          })
+
+          Promise.all(promises)
+            .then((users) => { succeed(users[0]); })
+            .catch(fail);
+        } else {
+          for (const name in secMethod) {
+            expressAuthentication(request, name, secMethod[name])
+              .then(succeed)
+              .catch(fail);
+          }
+        }
       }
     }
   }

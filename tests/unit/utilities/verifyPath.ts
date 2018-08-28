@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Swagger } from '../../../src/swagger/swagger';
 
-export const modelName = '#/definitions/TestModel';
+export const defaultModelName = '#/definitions/TestModel';
 
 export function VerifyPath(
   spec: Swagger.Spec,
@@ -9,7 +9,9 @@ export function VerifyPath(
   getOperation: ((path: Swagger.Path) => Swagger.Operation | undefined),
   isCollection?: boolean,
   isNoContent?: boolean,
+  givenModelName?: string,
 ) {
+  const modelName = givenModelName || defaultModelName;
   const path = spec.paths[route];
   expect(path, `Path object for ${route} route wasn\'t generated.`).to.exist;
 
