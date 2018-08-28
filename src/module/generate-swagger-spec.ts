@@ -26,7 +26,7 @@ export const generateSwaggerSpec = async (
   }
 
   let spec: Swagger.Spec;
-  if (config.version && config.version === '3.0.0') {
+  if (config.version && config.version.split('.')[0] === '3') {
     spec = new SpecGenerator3(metadata, config).GetSpec();
   } else {
     spec = new SpecGenerator2(metadata, config).GetSpec();
