@@ -1,19 +1,19 @@
-export function Get(value?: string): any {
+export function Get(value?: string): Function {
   return () => { return; };
 }
 
-export function Post(value?: string): any {
+export function Post(value?: string): Function {
   return () => { return; };
 }
 
-export function Put(value?: string): any {
+export function Put(value?: string): Function {
   return () => { return; };
 }
 
-export function Patch(value?: string): any {
+export function Patch(value?: string): Function {
   return () => { return; };
 }
 
-export function Delete(value?: string): any {
+export function Delete(value?: string): Function {
   return () => { return; };
 }

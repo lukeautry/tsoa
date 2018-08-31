@@ -1385,7 +1385,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }])
+          method: authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }])
         }
       ],
       handler: (request: any, reply: any) => {
@@ -1866,7 +1866,7 @@ export function RegisterRoutes(server: any) {
     config: {
       handler: (request: any, reply: any) => {
         const args={
-          date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+          date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
         };
 
         let validatedArgs: any[]=[];
@@ -2001,7 +2001,7 @@ export function RegisterRoutes(server: any) {
     config: {
       pre: [
         {
-          method: authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }])
+          method: authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }])
         }
       ],
       handler: (request: any, reply: any) => {

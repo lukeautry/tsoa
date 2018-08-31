@@ -1,3 +1,3 @@
-export function Example<T>(exampleModel: T): any {
+export function Example<T>(exampleModel: T): Function {
   return () => { return; };
 }

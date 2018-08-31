@@ -2,7 +2,7 @@
  * Inject http Body
  *  @param {string} [name] properties name in body object
  */
-export function Body(): any {
+export function Body(): Function {
   return () => { return; };
 }
 
@@ -11,14 +11,14 @@ export function Body(): any {
  *
  * @param {string} [name] The name of the body parameter
  */
-export function BodyProp(name?: string): any {
+export function BodyProp(name?: string): Function {
   return () => { return; };
 }
 
 /**
  * Inject http request
  */
-export function Request(): any {
+export function Request(): Function {
   return () => { return; };
 }
 
@@ -27,7 +27,7 @@ export function Request(): any {
  *
  * @param {string} [name] The name of the path parameter
  */
-export function Path(name?: string): any {
+export function Path(name?: string): Function {
   return () => { return; };
 }
 
@@ -36,7 +36,7 @@ export function Path(name?: string): any {
  *
  * @param {string} [name] The name of the query parameter
  */
-export function Query(name?: string): any {
+export function Query(name?: string): Function {
   return () => { return; };
 }
 
@@ -45,6 +45,6 @@ export function Query(name?: string): any {
  *
  * @param {string} [name] The name of the header parameter
  */
-export function Header(name?: string): any {
+export function Header(name?: string): Function {
   return () => { return; };
 }
