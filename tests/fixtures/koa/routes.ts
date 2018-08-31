@@ -1217,7 +1217,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/MethodTest/OauthAndAPIkeySecurity',
-    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }]),
+    authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }]),
     async (context, next) => {
       const args={
       };
@@ -1636,7 +1636,7 @@ export function RegisterRoutes(router: any) {
   router.get('/v1/ParameterTest/paramaterImplicitDate',
     async (context, next) => {
       const args={
-        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1738,7 +1738,7 @@ export function RegisterRoutes(router: any) {
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest/OauthAndAPIkey',
-    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"], "api_key": [] }]),
+    authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }]),
     async (context, next) => {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },

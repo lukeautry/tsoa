@@ -4,6 +4,7 @@
   ],
   "rules": {
     "arrow-parens": false,
+    "ban-types": false,
     "trailing-comma": [
       true,
       {

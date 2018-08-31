@@ -1,3 +1,3 @@
-export function Tags(...values: string[]): any {
+export function Tags(...values: string[]): Function {
   return () => { return; };
 }
