@@ -240,7 +240,7 @@ let provideSingleton = function(
 export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inject };
 ```
 
-`./contollers/fooController.ts`
+`./controllers/fooController.ts`
 ```ts
 import { Route } from 'tsoa';
 import { provideSingleton, inject } from '../inversify/ioc';
@@ -267,7 +267,7 @@ export class FooService {
 
 Here is some example code to setup the controller with typescript-ioc.
 
-`./contollers/fooController.ts`
+`./controllers/fooController.ts`
 ```ts
 import { Route } from 'tsoa';
 import { Inject, Provides } from "typescript-ioc";
@@ -291,7 +291,7 @@ The controllers need to be included in the application in order to be linked.
 
 `index.ts`
 ```ts
-import "./contollers/fooController.ts"
+import "./controllers/fooController.ts"
 ...
 
 ```
@@ -399,7 +399,7 @@ export function koaAuthentication(request: Request, securityName: string, scopes
     // See above
 }
 ```
-`./contollers/securityController.ts`
+`./controllers/securityController.ts`
 ```ts
 import { Get, Route, Security, Response } from 'tsoa';
 
