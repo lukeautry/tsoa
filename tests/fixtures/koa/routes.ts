@@ -1636,7 +1636,7 @@ export function RegisterRoutes(router: any) {
   router.get('/v1/ParameterTest/paramaterImplicitDate',
     async (context, next) => {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1672,6 +1672,27 @@ export function RegisterRoutes(router: any) {
       const controller=new SecurityTestController();
 
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.get('/v1/SecurityTest/Hapi',
+    authenticateMiddleware([{ "api_key": [] }]),
+    async (context, next) => {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new SecurityTestController();
+
+      const promise=controller.GetWithApiForHapi.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.get('/v1/SecurityTest/Koa',

@@ -41,15 +41,16 @@ export function RegisterRoutes(server: any) {
         server.route({
             method: '{{method}}',
             path: '{{fullPath}}',
-            config: {
+            options: {
                 {{#if security.length}}
                 pre: [
                     {
-                      method: authenticateMiddleware({{json security}})
+                      method: authenticateMiddleware({{json security}}),
+                      assign: "user"
                     }
                 ],
                 {{/if}}
-                handler: (request: any, reply: any) => {
+                handler: (request: any, h: any) => {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},
@@ -60,7 +61,9 @@ export function RegisterRoutes(server: any) {
                     try {
                         validatedArgs = getValidatedArgs(args, request);
                     } catch (err) {
-                        return reply(err).code(err.status || 500);
+                        return h
+                            .response(err)
+                            .code(err.status || 500);
                     }
 
                     {{#if ../../iocModule}}
@@ -70,7 +73,7 @@ export function RegisterRoutes(server: any) {
                     {{/if}}
 
                     const promise = controller.{{name}}.apply(controller, validatedArgs);
-                    return promiseHandler(controller, promise, request, reply);
+                    return promiseHandler(controller, promise, request, h);
                 }
             }
         });
@@ -79,7 +82,7 @@ export function RegisterRoutes(server: any) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return (request: any, reply: any) => {
+        return (request: any, h: any) => {
             let responded = 0;
             let success = false;
 
@@ -88,16 +91,17 @@ export function RegisterRoutes(server: any) {
                     success = true;
                     responded++;
                     request['user'] = user;
-                    reply.continue();
                 }
-            }
+                return user;
+            };
 
             const fail = function(error: any) {
                 responded++;
                 if (responded == security.length && !success) {
-                  reply(error).code(error.status || 401);
+                    h.response(error).code(error.status || 401);
                 }
-            }
+                return error;
+            };
 
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
@@ -107,17 +111,18 @@ export function RegisterRoutes(server: any) {
                         promises.push(hapiAuthentication(request, name, secMethod[name]));
                     }
 
-                    Promise.all(promises)
+                    return Promise.all(promises)
                         .then((users) => { succeed(users[0]); })
                         .catch(fail);
                 } else {
                     for (const name in secMethod) {
-                        hapiAuthentication(request, name, secMethod[name])
+                        return hapiAuthentication(request, name, secMethod[name])
                             .then(succeed)
                             .catch(fail);
                     }
                 }
             }
+            return null;
         }
     }
     {{/if}}
@@ -126,10 +131,12 @@ export function RegisterRoutes(server: any) {
         return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
     }
 
-    function promiseHandler(controllerObj: any, promise: any, request: any, reply: any) {
+    function promiseHandler(controllerObj: any, promise: any, request: any, h: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
-                const response = (data || data === false) ? reply(data).code(200) : reply("").code(204);
+                const response = (data || data === false)
+                    ? h.response(data).code(200)
+                    : h.response("").code(204);
 
                 if (isController(controllerObj)) {
                     const headers = controllerObj.getHeaders();
@@ -144,7 +151,7 @@ export function RegisterRoutes(server: any) {
                 }
                 return response;
             })
-            .catch((error: any) => reply(error).code(error.status || 500));
+            .catch((error: any) => h.response(error).code(error.status || 500));
     }
 
     function getValidatedArgs(args: any, request: any): any[] {

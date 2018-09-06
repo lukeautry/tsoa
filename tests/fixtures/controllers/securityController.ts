@@ -17,15 +17,22 @@ export class SecurityTestController {
 
   @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
+  @Get('Hapi')
+  public async GetWithApiForHapi(@Request() request: hapi.Request): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
   @Get('Koa')
-  public async GetWithApiForKoa(@Request() request: hapi.Request): Promise<UserResponseModel> {
+  public async GetWithApiForKoa(@Request() request: koa.Request): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Get('Oauth')
-  public async GetWithSecurity(@Request() request: koa.Request): Promise<UserResponseModel> {
+  public async GetWithSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 

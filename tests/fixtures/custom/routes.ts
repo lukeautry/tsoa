@@ -1483,7 +1483,7 @@ export function RegisterRoutes(app: any) {
   app.get('/v1/ParameterTest/paramaterImplicitDate',
     function(request: any, response: any, next: any) {
       const args={
-        date: { "default": "2018-01-15", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
+        date: { "default": "2018-01-14", "in": "query", "name": "date", "dataType": "date", "validators": { "isDate": { "errorMsg": "date" } } },
       };
 
       let validatedArgs: any[]=[];
@@ -1517,6 +1517,26 @@ export function RegisterRoutes(app: any) {
 
 
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/SecurityTest/Hapi',
+    authenticateMiddleware([{ "api_key": [] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithApiForHapi.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Koa',
