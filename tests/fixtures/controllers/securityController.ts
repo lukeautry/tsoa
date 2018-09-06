@@ -39,8 +39,8 @@ export class SecurityTestController {
 
   @Response<ErrorResponseModel>('404', 'Not Found')
   @Security({
-    tsoa_auth: ['write:pets', 'read:pets'],
     api_key: [],
+    tsoa_auth: ['write:pets', 'read:pets'],
   })
   @Get('OauthAndAPIkey')
   public async GetWithAndSecurity(@Request() request: express.Request): Promise<UserResponseModel> {

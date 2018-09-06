@@ -174,7 +174,7 @@ describe('Definition generation', () => {
       expect(definition.description).to.equal('This is a description of TestClassModel');
     });
 
-    it("should generate a property format from a property jsdoc comment", () => {
+    it('should generate a property format from a property jsdoc comment', () => {
       const propertyName = 'emailPattern';
 
       const property = properties[propertyName];
