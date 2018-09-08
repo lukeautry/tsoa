@@ -101,7 +101,9 @@ export class SpecGenerator {
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
-    pathMethod.operationId = `${pathMethod.operationId}${controllerName.replace(/service/i, '')}`
+    
+    // Use operationId tag otherwise fallback to generated. Warning: This doesn't check uniqueness.
+    pathMethod.operationId = method.operationId || pathMethod.operationId 
 
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;
