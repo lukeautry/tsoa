@@ -50,6 +50,7 @@ export class MethodGenerator {
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getTags(),
+      operationId: this.getOperationId(),
       type,
     };
   }
@@ -200,6 +201,21 @@ export class MethodGenerator {
     return example;
   }
 
+  private getOperationId() {
+    const opDecorators = getDecorators(this.node, (identifier) => identifier.text === 'OperationId');
+    if (!opDecorators || !opDecorators.length) {
+      return undefined;
+    }
+    if (opDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one OperationId decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    const decorator = opDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+    const ops = expression.arguments.map((a: any) => a.text as string);
+    return ops[0]
+  }
+  
   private getTags() {
     const tagsDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) {
