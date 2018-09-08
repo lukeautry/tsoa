@@ -101,6 +101,7 @@ export class SpecGenerator {
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
+    pathMethod.operationId = `${pathMethod.operationId}${controllerName.replace(/service/i, '')}`
 
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;
