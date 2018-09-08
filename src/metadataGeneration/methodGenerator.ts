@@ -204,7 +204,7 @@ export class MethodGenerator {
   private getOperationId() {
     const opDecorators = getDecorators(this.node, (identifier) => identifier.text === 'OperationId');
     if (!opDecorators || !opDecorators.length) {
-      return null;
+      return undefined;
     }
     if (opDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one OperationId decorator allowed in '${this.getCurrentLocation}' method.`);
