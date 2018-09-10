@@ -466,14 +466,14 @@ describe('Hapi Server', () => {
 
   describe('Security', () => {
     it('can handle get request with access_token user id == 1', () => {
-      return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=abc123456', (err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(1);
       });
     });
 
     it('can handle get request with access_token user id == 2', () => {
-      return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=xyz123456', (err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
       });
