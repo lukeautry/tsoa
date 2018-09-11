@@ -213,7 +213,7 @@ export class MethodGenerator {
     const decorator = opDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
     const ops = expression.arguments.map((a: any) => a.text as string);
-    return ops[0]
+    return ops[0];
   }
   
   private getTags() {

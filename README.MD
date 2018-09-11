@@ -557,6 +557,18 @@ public async GetWithAndSecurity(@Request() request: express.Request): Promise<an
 }
 ```
 
+### OperationId
+
+Set operationId parameter under operation's path.
+Useful for use with Swagger code generation tool since this paramter is used to name the function generated in the client SDK.
+
+```ts
+@Get()
+@OperationId("findDomain")
+public async find(): Promise<any> {
+
+}
+```
 ## Command Line Interface
 
 For information on the configuration object (tsoa.json), check out the following:

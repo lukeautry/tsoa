@@ -101,7 +101,7 @@ export class SpecGenerator {
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     
-    pathMethod.tags = method.tags // [controllerName].concat(method.tags || []) 
+    pathMethod.tags = method.tags
     
     // Use operationId tag otherwise fallback to generated. Warning: This doesn't check uniqueness.
     pathMethod.operationId = method.operationId || pathMethod.operationId 
