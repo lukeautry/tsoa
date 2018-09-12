@@ -37,6 +37,7 @@ export class SpecGenerator {
 
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
+    if (this.config.schemes) { spec.schemes = this.config.schemes; }
 
     return spec;
   }
@@ -58,6 +59,10 @@ export class SpecGenerator {
 
         if (referenceType.additionalProperties) {
           definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        }
+
+        if (referenceType.example) {
+          definitions[referenceType.refName].example = referenceType.example;
         }
       }
 
@@ -100,16 +105,9 @@ export class SpecGenerator {
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;
     }
+
     if (method.security) {
-
-      const methodSecurity: any[] = [];
-      for (const thisSecurity of method.security) {
-        const security: any = {};
-        security[thisSecurity.name] = thisSecurity.scopes ? thisSecurity.scopes : [];
-        methodSecurity.push(security);
-      }
-
-      pathMethod.security = methodSecurity;
+      pathMethod.security = method.security as any[];
     }
 
     pathMethod.parameters = method.parameters
@@ -138,8 +136,6 @@ export class SpecGenerator {
         properties[p.name].default = p.default;
         properties[p.name].description = p.description;
 
-        // if (!properties[p.name].$ref) {
-        // }
         if (p.required) {
           required.push(p.name);
         }
@@ -225,7 +221,9 @@ export class SpecGenerator {
 
     source.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type);
+      const format = property.format as Swagger.DataFormat;
       swaggerType.description = property.description;
+      swaggerType.format = format || swaggerType.format;
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;
 
@@ -237,6 +235,11 @@ export class SpecGenerator {
             swaggerType[key] = property.validators[key].value;
           });
       }
+
+      if (!property.required)  {
+        swaggerType['x-nullable'] = true;
+      }
+
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 

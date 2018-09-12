@@ -2,11 +2,13 @@ import {
     Controller, Get, Route,
 } from '../../../src';
 import { TestModel } from '../../fixtures/testModel';
+import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';
 
 @Route('Controller')
 export class TestController extends Controller {
 
+    @NonFactoryDecorator
     @Get('normalStatusCode')
     public async normalStatusCode(): Promise<TestModel> {
         return Promise.resolve(new ModelService().getModel());
@@ -15,6 +17,11 @@ export class TestController extends Controller {
     @Get('noContentStatusCode')
     public async noContentStatusCode(): Promise<void> {
         return;
+    }
+
+    @Get('falseStatusCode')
+    public async falseStatusCode(): Promise<boolean> {
+        return false;
     }
 
     @Get('customStatusCode')

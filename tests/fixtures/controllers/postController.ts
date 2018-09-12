@@ -6,6 +6,20 @@ import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
 @Route('PostTest')
 export class PostTestController {
+  private statusCode?: number = undefined;
+
+  public setStatus(statusCode: number) {
+    this.statusCode = statusCode;
+  }
+
+  public getStatus() {
+    return this.statusCode;
+  }
+
+  public getHeaders() {
+    return [];
+  }
+
   @Post()
   public async postModel( @Body() model: TestModel): Promise<TestModel> {
     return model;
@@ -14,6 +28,12 @@ export class PostTestController {
   @Patch()
   public async updateModel( @Body() model: TestModel): Promise<TestModel> {
     return await new ModelService().getModel();
+  }
+
+  @Post('WithDifferentReturnCode')
+  public async postWithDifferentReturnCode( @Body() model: TestModel): Promise<TestModel> {
+    this.setStatus(201);
+    return model;
   }
 
   @Post('WithClassModel')

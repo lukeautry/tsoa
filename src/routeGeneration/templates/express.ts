@@ -83,43 +83,65 @@ export function RegisterRoutes(app: any) {
         return (request: any, response: any, next: any) => {
             let responded = 0;
             let success = false;
-            for (const secMethod of security) {
-                expressAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
-                    // only need to respond once
-                    if (!success) {
-                        success = true;
-                        responded++;
-                        request['user'] = user;
-                        next();
-                    }
-                })
-                .catch((error: any) => {
+
+            const succeed = function(user: any) {
+                if (!success) {
+                    success = true;
                     responded++;
-                    if (responded == security.length && !success) {
-                        response.status(401);
-                        next(error)
+                    request['user'] = user;
+                    next();
+                }
+            }
+
+            const fail = function(error: any) {
+                responded++;
+                if (responded == security.length && !success) {
+                    error.status = 401;
+                    next(error)
+                }
+            }
+
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    let promises: Promise<any>[] = [];
+
+                    for (const name in secMethod) {
+                        promises.push(expressAuthentication(request, name, secMethod[name]));
                     }
-                })
+
+                    Promise.all(promises)
+                        .then((users) => { succeed(users[0]); })
+                        .catch(fail);
+                } else {
+                    for (const name in secMethod) {
+                        expressAuthentication(request, name, secMethod[name])
+                            .then(succeed)
+                            .catch(fail);
+                    }
+                }
             }
         }
     }
     {{/if}}
 
+    function isController(object: any): object is Controller {
+        return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
+    }
+
     function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
                 let statusCode;
-                if (controllerObj instanceof Controller) {
-                    const controller = controllerObj as Controller
-                    const headers = controller.getHeaders();
+                if (isController(controllerObj)) {
+                    const headers = controllerObj.getHeaders();
                     Object.keys(headers).forEach((name: string) => {
                         response.set(name, headers[name]);
                     });
 
-                    statusCode = controller.getStatus();
+                    statusCode = controllerObj.getStatus();
                 }
 
-                if (data) {
+                if (data || data === false) { // === false allows boolean result
                     if (data instanceof FileResult) {
                         if (data.path) {
                           response.status(statusCode | 200);
@@ -135,7 +157,7 @@ export function RegisterRoutes(app: any) {
                           response.status(statusCode || 404).end();
                         }
                     } else {
-                        response.status(statusCode | 200).json(data);
+                        response.status(statusCode || 200).json(data);
                     }
                 } else {
                     response.status(statusCode || 204).end();

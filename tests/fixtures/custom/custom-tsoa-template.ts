@@ -109,7 +109,7 @@ export function RegisterRoutes(app: any) {
                     statusCode = controller.getStatus();
                 }
 
-                if (data) {
+                if (data || data === false) {
                     response.status(statusCode || 200).json(data);
                 } else {
                     response.status(statusCode || 204).end();

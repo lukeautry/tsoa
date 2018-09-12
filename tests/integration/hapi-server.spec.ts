@@ -98,6 +98,12 @@ describe('Hapi Server', () => {
     });
   });
 
+  it('correctly returns status code', () => {
+    const data = getFakeModel();
+    const path = basePath + '/PostTest/WithDifferentReturnCode';
+    return verifyPostRequest(path, data, (err, res) => { return; }, 201);
+  });
+
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
@@ -182,6 +188,12 @@ describe('Hapi Server', () => {
 
     it('should normal status code', () => {
       return verifyGetRequest(basePath + `/Controller/normalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(200);
+      }, 200);
+    });
+
+    it('should normal status code with false boolean result', () => {
+      return verifyGetRequest(basePath + `/Controller/falseStatusCode`, (err, res) => {
         expect(res.status).to.equal(200);
       }, 200);
     });
@@ -454,14 +466,14 @@ describe('Hapi Server', () => {
 
   describe('Security', () => {
     it('can handle get request with access_token user id == 1', () => {
-      return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=abc123456', (err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(1);
       });
     });
 
     it('can handle get request with access_token user id == 2', () => {
-      return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=xyz123456', (err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
       });

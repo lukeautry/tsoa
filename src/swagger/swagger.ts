@@ -17,6 +17,7 @@ export namespace Swagger {
     | 'date'
     | 'date-time'
     | 'password';
+
   export type Protocol = 'http'
     | 'https'
     | 'ws'
@@ -34,8 +35,8 @@ export namespace Swagger {
     definitions?: { [name: string]: Schema };
     parameters?: { [name: string]: Parameter };
     responses?: { [name: string]: Response };
-    security?: Secuirty[];
-    securityDefinitions?: { [name: string]: Secuirty };
+    security?: Security[];
+    securityDefinitions?: { [name: string]: Security };
     tags?: Tag[];
     externalDocs?: ExternalDocs;
   }
@@ -138,7 +139,7 @@ export namespace Swagger {
     responses: { [name: string]: Response };
     schemes?: Protocol[];
     deprecated?: boolean;
-    security?: Secuirty[];
+    security?: Security[];
   }
 
   export interface Response {
@@ -246,7 +247,7 @@ export namespace Swagger {
     [name: string]: string;
   }
 
-  export type Secuirty = BasicSecurity
+  export type Security = BasicSecurity
     | ApiKeySecurity
     | OAuth2AccessCodeSecurity
     | OAuth2ApplicationSecurity

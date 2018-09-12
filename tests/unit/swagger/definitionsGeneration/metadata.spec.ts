@@ -19,7 +19,8 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
-      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod', 'returnAnyType'];
+      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod',
+      'oauthAndAPIkeySecurity', 'returnAnyType'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
@@ -117,6 +118,7 @@ describe('Metadata generation', () => {
       const defaultResponse = method.responses[2];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
+      expect(defaultResponse.examples).to.deep.equal({ status: 500, message: 'Something went wrong!' });
 
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');
@@ -141,12 +143,10 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method apiSecurity not defined!');
       }
-
       if (!method.security) {
         throw new Error('Security decorator not defined!');
       }
-
-      expect(method.security[0].name).to.equal('api_key');
+      expect(method.security[0].api_key).to.deep.equal([]);
     });
 
     it('should generate oauth2 security', () => {
@@ -154,27 +154,34 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method oauthSecurity not defined!');
       }
-
       if (!method.security) {
         throw new Error('Security decorator not defined!');
       }
-      expect(method.security[0].name).to.equal('tsoa_auth');
-      expect(method.security[0].scopes).to.deep.equal(['write:pets', 'read:pets']);
+      expect(method.security[0].tsoa_auth).to.deep.equal(['write:pets', 'read:pets']);
     });
 
-    it('should generate oauth2 and api key security', () => {
-
+    it('should generate oauth2 or api key security', () => {
       const method = controller.methods.find(m => m.name === 'oauthOrAPIkeySecurity');
       if (!method) {
         throw new Error('Method OauthOrAPIkeySecurity not defined!');
       }
-
       if (!method.security) {
         throw new Error('Security decorator not defined!');
       }
-      expect(method.security[0].name).to.equal('tsoa_auth');
-      expect(method.security[0].scopes).to.deep.equal(['write:pets', 'read:pets']);
-      expect(method.security[1].name).to.equal('api_key');
+      expect(method.security[0].tsoa_auth).to.deep.equal(['write:pets', 'read:pets']);
+      expect(method.security[1].api_key).to.deep.equal([]);
+    });
+
+    it('should generate oauth2 and api key security', () => {
+      const method = controller.methods.find(m => m.name === 'oauthAndAPIkeySecurity');
+      if (!method) {
+        throw new Error('Method OauthAndAPIkeySecurity not defined!');
+      }
+      if (!method.security) {
+        throw new Error('Security decorator not defined!');
+      }
+      expect(method.security[0].tsoa_auth).to.deep.equal(['write:pets', 'read:pets']);
+      expect(method.security[0].api_key).to.deep.equal([]);
     });
 
     it('should generate deprecated method true', () => {

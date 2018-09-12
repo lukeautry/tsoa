@@ -1,7 +1,7 @@
 import * as indexOf from 'lodash.indexof';
 import * as map from 'lodash.map';
 import * as ts from 'typescript';
-import { getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -308,6 +308,7 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     const properties = getModelProperties(modelType, genericTypes);
     const additionalProperties = getModelAdditionalProperties(modelType);
     const inheritedProperties = getModelInheritedProperties(modelType) || [];
+    const example = getNodeExample(modelType);
 
     const referenceType = {
       additionalProperties,
@@ -320,6 +321,9 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
     localReferenceTypeCache[refNameWithGenerics] = referenceType;
 
+    if (example) {
+      referenceType.example = example;
+    }
     return referenceType;
   } catch (err) {
     // tslint:disable-next-line:no-console
@@ -552,6 +556,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
 
         return {
           description: getNodeDescription(propertyDeclaration),
+          format: getNodeFormat(propertyDeclaration),
           name: identifier.text,
           required: !propertyDeclaration.questionToken,
           type: resolveType(aType, aType.parent),
@@ -627,6 +632,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
       return {
         default: getInitializerValue(property.initializer, type),
         description: getNodeDescription(property),
+        format: getNodeFormat(property),
         name: identifier.text,
         required: !property.questionToken && !property.initializer,
         type,
@@ -707,4 +713,18 @@ function getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | t
   if (comments.length) { return ts.displayPartsToString(comments); }
 
   return undefined;
+}
+
+function getNodeFormat(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  return getJSDocComment(node, 'format');
+}
+
+function getNodeExample(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  const example = getJSDocComment(node, 'example');
+
+  if (example) {
+    return JSON.parse(example);
+  } else {
+    return undefined;
+  }
 }

@@ -15,11 +15,11 @@ import '../controllers/validateController';
 
 import { RegisterRoutes } from './routes';
 
-export const server = new hapi.Server();
-server.connection({ port: 3003 });
+export const server = new hapi.Server({ port: 3003 });
 
 RegisterRoutes(server);
 
-server.start((err) => {
-  if (err) { throw err; }
-});
+server.start()
+  .catch(err => {
+    if (err) { throw err; }
+  });

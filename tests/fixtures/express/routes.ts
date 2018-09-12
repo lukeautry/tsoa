@@ -744,6 +744,25 @@ export function RegisterRoutes(app: any) {
       const promise=controller.updateModel.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/v1/PostTest/WithDifferentReturnCode',
+    function(request: any, response: any, next: any) {
+      const args={
+        model: { "in": "body", "name": "model", "required": true, "ref": "TestModel" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new PostTestController();
+
+
+      const promise=controller.postWithDifferentReturnCode.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/v1/PostTest/WithClassModel',
     function(request: any, response: any, next: any) {
       const args={
@@ -1094,7 +1113,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/ApiSecurity',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1113,7 +1132,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/OauthSecurity',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1132,7 +1151,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/OauthOrAPIkeySecurity',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
       };
@@ -1148,6 +1167,25 @@ export function RegisterRoutes(app: any) {
 
 
       const promise=controller.oauthOrAPIkeySecurity.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/MethodTest/OauthAndAPIkeySecurity',
+    authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new MethodController();
+
+
+      const promise=controller.oauthAndAPIkeySecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/MethodTest/DeprecatedMethod',
@@ -1548,7 +1586,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1567,8 +1605,28 @@ export function RegisterRoutes(app: any) {
       const promise=controller.GetWithApi.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/SecurityTest/Hapi',
+    authenticateMiddleware([{ "api_key": [] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithApiForHapi.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/SecurityTest/Koa',
-    authenticateMiddleware([{ "name": "api_key" }]),
+    authenticateMiddleware([{ "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1588,7 +1646,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/Oauth',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1608,7 +1666,7 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/SecurityTest/OauthOrAPIkey',
-    authenticateMiddleware([{ "name": "tsoa_auth", "scopes": ["write:pets", "read:pets"] }, { "name": "api_key" }]),
+    authenticateMiddleware([{ "tsoa_auth": ["write:pets", "read:pets"] }, { "api_key": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
@@ -1624,7 +1682,27 @@ export function RegisterRoutes(app: any) {
       const controller=new SecurityTestController();
 
 
-      const promise=controller.GetWithDoubleSecurity.apply(controller, validatedArgs);
+      const promise=controller.GetWithOrSecurity.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/SecurityTest/OauthAndAPIkey',
+    authenticateMiddleware([{ "api_key": [], "tsoa_auth": ["write:pets", "read:pets"] }]),
+    function(request: any, response: any, next: any) {
+      const args={
+        request: { "in": "request", "name": "request", "required": true, "dataType": "object" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new SecurityTestController();
+
+
+      const promise=controller.GetWithAndSecurity.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/Controller/normalStatusCode',
@@ -1661,6 +1739,24 @@ export function RegisterRoutes(app: any) {
 
 
       const promise=controller.noContentStatusCode.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/v1/Controller/falseStatusCode',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new TestController();
+
+
+      const promise=controller.falseStatusCode.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/v1/Controller/customStatusCode',
@@ -1920,42 +2016,64 @@ export function RegisterRoutes(app: any) {
     return (request: any, response: any, next: any) => {
       let responded=0;
       let success=false;
+
+      const succeed=function(user: any) {
+        if (!success) {
+          success=true;
+          responded++;
+          request['user']=user;
+          next();
+        }
+      }
+
+      const fail=function(error: any) {
+        responded++;
+        if (responded==security.length&&!success) {
+          error.status=401;
+          next(error)
+        }
+      }
+
       for (const secMethod of security) {
-        expressAuthentication(request, secMethod.name, secMethod.scopes).then((user: any) => {
-          // only need to respond once
-          if (!success) {
-            success=true;
-            responded++;
-            request['user']=user;
-            next();
+        if (Object.keys(secMethod).length>1) {
+          let promises: Promise<any>[]=[];
+
+          for (const name in secMethod) {
+            promises.push(expressAuthentication(request, name, secMethod[name]));
           }
-        })
-          .catch((error: any) => {
-            responded++;
-            if (responded==security.length&&!success) {
-              response.status(401);
-              next(error)
-            }
-          })
+
+          Promise.all(promises)
+            .then((users) => { succeed(users[0]); })
+            .catch(fail);
+        } else {
+          for (const name in secMethod) {
+            expressAuthentication(request, name, secMethod[name])
+              .then(succeed)
+              .catch(fail);
+          }
+        }
       }
     }
+  }
+
+  function isController(object: any): object is Controller {
+    return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;
   }
 
   function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode;
-        if (controllerObj instanceof Controller) {
-          const controller=controllerObj as Controller
-          const headers=controller.getHeaders();
+        if (isController(controllerObj)) {
+          const headers=controllerObj.getHeaders();
           Object.keys(headers).forEach((name: string) => {
             response.set(name, headers[name]);
           });
 
-          statusCode=controller.getStatus();
+          statusCode=controllerObj.getStatus();
         }
-
-        if (data) {
+        
+        if (data||data===false) { // === false allows boolean result
           if (data instanceof FileResult) {
             if (data.path) {
               response.status(statusCode|200);
@@ -1971,7 +2089,7 @@ export function RegisterRoutes(app: any) {
               response.status(statusCode||404).end();
             }
           } else {
-            response.status(statusCode|200).json(data);
+            response.status(statusCode||200).json(data);
           }
         } else {
           response.status(statusCode||204).end();

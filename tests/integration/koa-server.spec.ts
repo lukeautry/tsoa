@@ -75,6 +75,12 @@ describe('Koa Server', () => {
     });
   });
 
+  it('correctly returns status code', () => {
+    const data = getFakeModel();
+    const path = basePath + '/PostTest/WithDifferentReturnCode';
+    return verifyPostRequest(path, data, (err, res) => { return; }, 201);
+  });
+
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
@@ -159,6 +165,12 @@ describe('Koa Server', () => {
 
     it('should normal status code', () => {
       return verifyGetRequest(basePath + `/Controller/normalStatusCode`, (err, res) => {
+        expect(res.status).to.equal(200);
+      }, 200);
+    });
+
+    it('should normal status code with false boolean result', () => {
+      return verifyGetRequest(basePath + `/Controller/falseStatusCode`, (err, res) => {
         expect(res.status).to.equal(200);
       }, 200);
     });

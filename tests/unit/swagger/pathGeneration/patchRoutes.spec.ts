@@ -3,7 +3,7 @@ import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGe
 import { SpecGenerator } from '../../../../src/swagger/specGenerator';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
-import { modelName, VerifyPath } from '../../utilities/verifyPath';
+import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 
 describe('PATCH route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/patchController.ts').Generate();
@@ -41,7 +41,7 @@ describe('PATCH route generation', () => {
 
   it('should generate a parameter for body parameters', () => {
     const parameters = getValidatedParameters(baseRoute);
-    VerifyBodyParameter(parameters, 'model', modelName, 'body');
+    VerifyBodyParameter(parameters, 'model', defaultModelName, 'body');
   });
 
   function verifyPath(route: string, isCollection?: boolean) {

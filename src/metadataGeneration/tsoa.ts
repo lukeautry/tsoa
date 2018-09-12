@@ -43,8 +43,7 @@ export namespace Tsoa {
   }
 
   export interface Security {
-    name: string;
-    scopes?: string[];
+    [key: string]: string[];
   }
 
   export interface Response {
@@ -57,6 +56,7 @@ export namespace Tsoa {
   export interface Property {
     default?: any;
     description?: string;
+    format?: string;
     name: string;
     type: Type;
     required: boolean;
@@ -84,6 +84,7 @@ export namespace Tsoa {
     properties?: Property[];
     additionalProperties?: Type;
     enums?: string[];
+    example?: any;
   }
 
   export interface ReferenceTypeMap {

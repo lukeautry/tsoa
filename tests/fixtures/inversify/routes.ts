@@ -130,21 +130,24 @@ export function RegisterRoutes(app: any) {
     });
 
 
+  function isController(object: any): object is Controller {
+    return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;
+  }
+
   function promiseHandler(controllerObj: any, promise: any, response: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode;
-        if (controllerObj instanceof Controller) {
-          const controller=controllerObj as Controller
-          const headers=controller.getHeaders();
+        if (isController(controllerObj)) {
+          const headers=controllerObj.getHeaders();
           Object.keys(headers).forEach((name: string) => {
             response.set(name, headers[name]);
           });
 
-          statusCode=controller.getStatus();
+          statusCode=controllerObj.getStatus();
         }
-
-        if (data) {
+        
+        if (data||data===false) { // === false allows boolean result
           if (data instanceof FileResult) {
             if (data.path) {
               response.status(statusCode|200);
@@ -160,7 +163,7 @@ export function RegisterRoutes(app: any) {
               response.status(statusCode||404).end();
             }
           } else {
-            response.status(statusCode|200).json(data);
+            response.status(statusCode||200).json(data);
           }
         } else {
           response.status(statusCode||204).end();

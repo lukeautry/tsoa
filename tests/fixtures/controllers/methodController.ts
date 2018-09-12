@@ -58,7 +58,7 @@ export class MethodController extends Controller {
 
     @Response<ErrorResponseModel>('400', 'Bad Request')
     @Response<ErrorResponseModel>('401', 'Unauthorized')
-    @Response<ErrorResponseModel>('default', 'Unexpected error')
+    @Response<ErrorResponseModel>('default', 'Unexpected error', { status: 500, message: 'Something went wrong!' })
     @Get('MultiResponse')
     public async multiResponse(): Promise<TestModel> {
         return new ModelService().getModel();
@@ -87,6 +87,15 @@ export class MethodController extends Controller {
     @Security('api_key')
     @Get('OauthOrAPIkeySecurity')
     public async oauthOrAPIkeySecurity(): Promise<TestModel> {
+        return new ModelService().getModel();
+    }
+
+    @Security({
+      api_key: [],
+      tsoa_auth: ['write:pets', 'read:pets'],
+    })
+    @Get('OauthAndAPIkeySecurity')
+    public async oauthAndAPIkeySecurity(): Promise<TestModel> {
         return new ModelService().getModel();
     }
 

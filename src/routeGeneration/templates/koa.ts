@@ -71,50 +71,72 @@ export function RegisterRoutes(router: any) {
 
   {{#if useSecurity}}
   function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-    return (context: any, next: any) => {
-        let responded = 0;
-        let success = false;
-        for (const secMethod of security) {
-            koaAuthentication(context.request, secMethod.name, secMethod.scopes).then((user: any) => {
-                // only need to respond once
-                if (!success) {
-                    success = true;
-                    responded++;
-                    context.request['user'] = user;
-                    next();
-                }
-            })
-            .catch((error: any) => {
-                responded++;
-                if (responded == security.length && !success) {
-                    context.status = error.status || 401;
-                    context.body = error;
-                    next();
-                }
-            })
-        }
-    }
+      return (context: any, next: any) => {
+          let responded = 0;
+          let success = false;
+
+          const succeed = function(user: any) {
+              if (!success) {
+                  success = true;
+                  responded++;
+                  context.request['user'] = user;
+                  next();
+              }
+          }
+
+          const fail = function(error: any) {
+              responded++;
+              if (responded == security.length && !success) {
+                context.status = error.status || 401;
+                context.body = error;
+                next();
+              }
+          }
+
+          for (const secMethod of security) {
+              if (Object.keys(secMethod).length > 1) {
+                  let promises: Promise<any>[] = [];
+
+                  for (const name in secMethod) {
+                      promises.push(koaAuthentication(context.request, name, secMethod[name]));
+                  }
+
+                  Promise.all(promises)
+                      .then((users) => { succeed(users[0]); })
+                      .catch(fail);
+              } else {
+                  for (const name in secMethod) {
+                      koaAuthentication(context.request, name, secMethod[name])
+                          .then(succeed)
+                          .catch(fail);
+                  }
+              }
+          }
+      }
   }
   {{/if}}
+
+  function isController(object: any): object is Controller {
+      return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
+  }
 
   function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
-            if (data) {
+            if (data || data === false) {
                 context.body = data;
                 context.status = 200;
             } else {
                 context.status = 204;
             }
 
-            if (controllerObj instanceof Controller) {
-                const controller = controllerObj as Controller
-                const headers = controller.getHeaders();
+            if (isController(controllerObj)) {
+                const headers = controllerObj.getHeaders();
                 Object.keys(headers).forEach((name: string) => {
                     context.set(name, headers[name]);
                 });
 
-                const statusCode = controller.getStatus();
+                const statusCode = controllerObj.getStatus();
                 if (statusCode) {
                     context.status = statusCode;
                 }

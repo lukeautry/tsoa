@@ -1,6 +1,25 @@
 /**
  * This is a description of a model
  * @tsoaModel
+ * @example
+ * {
+ *   "boolArray": [true, false],
+ *   "boolValue": true,
+ *   "dateValue": "2018-06-25T15:45:00Z",
+ *   "id": 2,
+ *   "modelValue": {
+ *     "id": 3,
+ *     "email": "test(at)example.com"
+ *   },
+ *   "modelsArray": [],
+ *   "numberArray": [1, 2, 3],
+ *   "numberValue": 1,
+ *   "optionalString": "optional string",
+ *   "strLiteralArr": ["Foo", "Bar"],
+ *   "strLiteralVal": "Foo",
+ *   "stringArray": ["string one", "string two"],
+ *   "stringValue": "a string"
+ * }
  */
 export interface TestModel extends Model {
   /**
@@ -8,6 +27,9 @@ export interface TestModel extends Model {
    */
   numberValue: number;
   numberArray: number[];
+  /**
+   * @format password
+   */
   stringValue: string;
   stringArray: string[];
   boolValue: boolean;
@@ -272,6 +294,7 @@ export class TestClassModel extends TestClassBaseModel {
    */
   public optionalPublicStringProperty?: string;
   /**
+   * @format email
    * @pattern ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$
    */
   public emailPattern?: string;

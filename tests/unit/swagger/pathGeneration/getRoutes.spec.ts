@@ -170,6 +170,7 @@ describe('GET route generation', () => {
     const jsonExample = response.examples['application/json'] as any;
     if (!jsonExample) { throw new Error('No json example.'); }
 
+    expect(response.description).to.equal('Returns TestModel');
     expect(jsonExample.id).to.equal(1);
     expect(jsonExample.boolArray).to.deep.equal([true, false]);
     expect(jsonExample.boolValue).to.equal(true);
