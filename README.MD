@@ -527,6 +527,31 @@ The according swagger definition can be merge-overwritten inside `tsoa.json`. He
 }
 ```
 
+### Tags
+
+If you have a project that needs a description and/or external docs for tags, you can configure the internal generators to use the correct tags definitions and external docs by providing a tags property to swagger property in tsoa.json.
+
+```json
+{
+  "swagger": {
+    "tags":  [
+      {
+        "name": "User",
+        "description": "Operations about users",
+        "externalDocs": {
+          "description": "Find out more about users",
+          "url": "http://swagger.io"
+        }
+      }
+    ],
+    ...
+  },
+  "routes": {
+    ...
+  }
+}
+```
+
 ### Use awesome Swagger tools
 
 Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
@@ -554,6 +579,31 @@ or having to pass all of them (AND):
 })
 @Get('OauthAndAPIkey')
 public async GetWithAndSecurity(@Request() request: express.Request): Promise<any> {
+}
+```
+
+### Tags
+
+Tags are defined with the `@Tags('tag1', 'tag2', ...)` decorator in the controllers and/or in the methods like in the following examples.
+
+```ts
+import { Get, Route, Response, Tags } from 'tsoa';
+
+@Route('user')
+@Tags('User')
+export class UserController {
+    @Response<ErrorResponseModel>('Unexpected error')
+    @Get('UserInfo')
+    @Tags('Info', 'Get')
+    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
+        return Promise.resolve(request.user);
+    }
+
+    @Get('EditUser')
+    @Tags('Edit')
+    public async userInfo(@Request() request: any): Promise<string> {
+        // Do something here
+    }
 }
 ```
 
