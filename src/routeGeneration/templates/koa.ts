@@ -54,6 +54,7 @@ export function RegisterRoutes(router: any) {
             } catch (error) {
               context.status = error.status || 500;
               context.body = error;
+              context.throw(context.status, error.message, error);
               return next();
             }
 
