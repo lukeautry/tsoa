@@ -28,6 +28,7 @@ export class SpecGenerator {
     if (this.config.host) { spec.host = this.config.host; }
     if (this.config.description) { spec.info.description = this.config.description; }
     if (this.config.license) { spec.info.license = { name: this.config.license }; }
+    if (this.config.tags) { spec.tags = this.config.tags; }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {
