@@ -607,6 +607,19 @@ export class UserController {
 }
 ```
 
+### OperationId
+
+Set operationId parameter under operation's path.
+Useful for use with Swagger code generation tool since this parameter is used to name the function generated in the client SDK.
+
+```ts
+@Get()
+@OperationId('findDomain')
+public async find(): Promise<any> {
+
+}
+```
+
 ## Command Line Interface
 
 For information on the configuration object (tsoa.json), check out the following:
