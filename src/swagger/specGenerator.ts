@@ -101,11 +101,10 @@ export class SpecGenerator {
     const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
-    
-    pathMethod.tags = method.tags
-    
+    pathMethod.tags = method.tags;
+
     // Use operationId tag otherwise fallback to generated. Warning: This doesn't check uniqueness.
-    pathMethod.operationId = method.operationId || pathMethod.operationId 
+    pathMethod.operationId = method.operationId || pathMethod.operationId;
 
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;

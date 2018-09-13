@@ -637,6 +637,30 @@ export function RegisterRoutes(server: any) {
   });
   server.route({
     method: 'get',
+    path: '/v1/GetTest/CustomOperationId',
+    options: {
+      handler: (request: any, h: any) => {
+        const args={
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return h
+            .response(err)
+            .code(err.status||500);
+        }
+
+        const controller=new GetTestController();
+
+        const promise=controller.getCustomOperationId.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, h);
+      }
+    }
+  });
+  server.route({
+    method: 'get',
     path: '/v1/GetTest/HandleBufferType',
     options: {
       handler: (request: any, h: any) => {

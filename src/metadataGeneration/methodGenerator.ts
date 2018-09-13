@@ -44,13 +44,13 @@ export class MethodGenerator {
       isHidden: this.getIsHidden(),
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
+      operationId: this.getOperationId(),
       parameters: this.buildParameters(),
       path: this.path,
       responses,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getTags(),
-      operationId: this.getOperationId(),
       type,
     };
   }
@@ -104,7 +104,7 @@ export class MethodGenerator {
   }
 
   private getMethodResponses(): Tsoa.Response[] {
-    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Response');
+    const decorators = this.getDecoratorsByIdentifier(this.node, 'Response');
     if (!decorators || !decorators.length) {
       return [];
     }
@@ -138,7 +138,7 @@ export class MethodGenerator {
   }
 
   private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
-    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'SuccessResponse');
+    const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {
         description: type.dataType === 'void' ? 'No content' : 'Ok',
@@ -174,7 +174,7 @@ export class MethodGenerator {
   }
 
   private getMethodSuccessExamples() {
-    const exampleDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Example');
+    const exampleDecorators = this.getDecoratorsByIdentifier(this.node, 'Example');
     if (!exampleDecorators || !exampleDecorators.length) {
       return undefined;
     }
@@ -202,7 +202,7 @@ export class MethodGenerator {
   }
 
   private getOperationId() {
-    const opDecorators = getDecorators(this.node, (identifier) => identifier.text === 'OperationId');
+    const opDecorators = this.getDecoratorsByIdentifier(this.node, 'OperationId');
     if (!opDecorators || !opDecorators.length) {
       return undefined;
     }
@@ -215,9 +215,9 @@ export class MethodGenerator {
     const ops = expression.arguments.map((a: any) => a.text as string);
     return ops[0];
   }
-  
+
   private getTags() {
-    const tagsDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
+    const tagsDecorators = this.getDecoratorsByIdentifier(this.node, 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) {
       return this.parentTags;
     }
@@ -235,7 +235,7 @@ export class MethodGenerator {
   }
 
   private getIsHidden() {
-    const hiddenDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Hidden');
+    const hiddenDecorators = this.getDecoratorsByIdentifier(this.node, 'Hidden');
     if (!hiddenDecorators || !hiddenDecorators.length) {
       return false;
     }
@@ -247,7 +247,7 @@ export class MethodGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
-    const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
+    const securityDecorators = this.getDecoratorsByIdentifier(this.node, 'Security');
     if (!securityDecorators || !securityDecorators.length) {
       return this.parentSecurity || [];
     }
@@ -274,5 +274,9 @@ export class MethodGenerator {
     }
 
     return securities;
+  }
+
+  private getDecoratorsByIdentifier(node: ts.Node, id: string) {
+    return getDecorators(node, (identifier) => identifier.text === id);
   }
 }

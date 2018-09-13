@@ -455,6 +455,24 @@ export function RegisterRoutes(app: any) {
       const promise=controller.getGeneratesTags.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/v1/GetTest/CustomOperationId',
+    function(request: any, response: any, next: any) {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller=new GetTestController();
+
+
+      const promise=controller.getCustomOperationId.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/v1/GetTest/HandleBufferType',
     function(request: any, response: any, next: any) {
       const args={
