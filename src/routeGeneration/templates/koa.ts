@@ -90,6 +90,7 @@ export function RegisterRoutes(router: any) {
               if (responded == security.length && !success) {
                 context.status = error.status || 401;
                 context.body = error;
+                context.throw(context.status, error.message, error);
                 next();
               }
           }
