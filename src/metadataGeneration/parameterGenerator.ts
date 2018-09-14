@@ -11,6 +11,7 @@ export class ParameterGenerator {
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
     private readonly path: string,
+    private readonly routePath?: string,
   ) { }
 
   public Generate(): Tsoa.Parameter {
@@ -143,7 +144,24 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
     }
     if (!this.path.includes(`{${pathName}}`)) {
-      throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
+      if (this.routePath !== undefined ) {
+        if (!this.routePath.includes(`{${pathName}}`)) {
+          throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
+        }
+
+        return {
+          default: getInitializerValue(parameter.initializer, type),
+          description: this.getParameterDescription(parameter),
+          in: 'path',
+          name: pathName,
+          parameterName,
+          required: true,
+          type,
+          validators: getParameterValidators(this.parameter, parameterName),
+        };
+      } else {
+        throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
+      }
     }
 
     return {

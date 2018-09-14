@@ -5,7 +5,7 @@ import { TestModel } from '../testModel';
 import { ManagedService } from './managedService';
 
 @injectable()
-@Route('ManagedTest')
+@Route('{routeParam}/ManagedTest')
 export class ManagedController {
 
   constructor(
@@ -13,7 +13,7 @@ export class ManagedController {
   ) { }
 
   @Get()
-  public async getModel(): Promise<TestModel> {
+  public async getModel(routeParam: string): Promise<TestModel> {
     return this.managedService.getModel();
   }
 }

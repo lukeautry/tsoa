@@ -105,9 +105,10 @@ const models: TsoaRoute.Models={
 };
 
 export function RegisterRoutes(app: any) {
-  app.get('/v1/ManagedTest',
+  app.get('/v1/:routeParam/ManagedTest',
     function(request: any, response: any, next: any) {
       const args={
+        routeParam: { "in": "path", "name": "routeParam", "required": true, "dataType": "string" },
       };
 
       let validatedArgs: any[]=[];
