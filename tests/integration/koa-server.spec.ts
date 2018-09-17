@@ -157,7 +157,7 @@ describe('Koa Server', () => {
 
   it('returns error if thrown in controller', () => {
     return verifyGetRequest(basePath + '/GetTest/ThrowsError', (err: any, res: any) => {
-      expect(JSON.parse(err.text).message).to.equal('error thrown');
+      expect(err.text).to.equal('error thrown');
     }, 400);
   });
 
@@ -618,6 +618,7 @@ describe('Koa Server', () => {
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;
+
           try {
             parsedError = JSON.parse((res.error as any));
           } catch (err) {
