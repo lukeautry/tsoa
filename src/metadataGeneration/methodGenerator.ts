@@ -5,6 +5,7 @@ import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
 import { getInitializerValue, resolveType } from './resolveType';
+import { getSecurities } from './security';
 import { Tsoa } from './tsoa';
 
 export class MethodGenerator {
@@ -252,28 +253,7 @@ export class MethodGenerator {
       return this.parentSecurity || [];
     }
 
-    const securities: Tsoa.Security[] = [];
-    for (const sec of securityDecorators) {
-      const expression = sec.parent as ts.CallExpression;
-      const security: Tsoa.Security = {};
-
-      if (expression.arguments[0].kind === ts.SyntaxKind.StringLiteral) {
-        const name = (expression.arguments[0] as any).text;
-        security[name] = expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : [];
-      } else {
-        const properties = (expression.arguments[0] as any).properties;
-
-        for (const property of properties) {
-          const name = property.name.text;
-          const scopes = getInitializerValue(property.initializer);
-          security[name] = scopes;
-        }
-      }
-
-      securities.push(security);
-    }
-
-    return securities;
+    return getSecurities(securityDecorators);
   }
 
   private getDecoratorsByIdentifier(node: ts.Node, id: string) {

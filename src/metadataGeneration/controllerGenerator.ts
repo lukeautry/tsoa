@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MethodGenerator } from './methodGenerator';
+import { getSecurities } from './security';
 import { Tsoa } from './tsoa';
 
 export class ControllerGenerator {
@@ -81,16 +82,6 @@ export class ControllerGenerator {
       return [];
     }
 
-    const security: Tsoa.Security[] = [];
-    for (const sec of securityDecorators) {
-      const expression = sec.parent as ts.CallExpression;
-      security.push({
-        name: (expression.arguments[0] as any).text,
-        scopes: expression.arguments[1] ? (expression.arguments[1] as any).elements.map((e: any) => e.text) : undefined,
-      });
-    }
-
-    return security;
+    return getSecurities(securityDecorators);
   }
-
 }
