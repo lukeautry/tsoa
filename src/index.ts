@@ -7,6 +7,7 @@ export * from './decorators/parameter';
 export * from './decorators/methods';
 export * from './decorators/tags';
 export * from './decorators/produces';
+export * from './decorators/operationid';
 export * from './decorators/route';
 export * from './decorators/security';
 export * from './interfaces/controller';

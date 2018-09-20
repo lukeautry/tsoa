@@ -28,6 +28,7 @@ export class SpecGenerator {
     if (this.config.host) { spec.host = this.config.host; }
     if (this.config.description) { spec.info.description = this.config.description; }
     if (this.config.license) { spec.info.license = { name: this.config.license }; }
+    if (this.config.tags) { spec.tags = this.config.tags; }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {
@@ -101,6 +102,9 @@ export class SpecGenerator {
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
+
+    // Use operationId tag otherwise fallback to generated. Warning: This doesn't check uniqueness.
+    pathMethod.operationId = method.operationId || pathMethod.operationId;
 
     if (method.deprecated) {
       pathMethod.deprecated = method.deprecated;

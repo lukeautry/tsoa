@@ -554,6 +554,25 @@ export function RegisterRoutes(router: any) {
       const promise=controller.getGeneratesTags.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
+  router.get('/v1/GetTest/CustomOperationId',
+    async (context, next) => {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status||500;
+        context.body=error;
+        return next();
+      }
+
+      const controller=new GetTestController();
+
+      const promise=controller.getCustomOperationId.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
   router.get('/v1/GetTest/HandleBufferType',
     async (context, next) => {
       const args={
