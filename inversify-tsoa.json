@@ -30,6 +30,7 @@
         "entryFile": "./tests/fixtures/inversify/server.ts",
         "routesDir": "./tests/fixtures/inversify",
         "middleware": "express",
-        "iocModule": "./tests/fixtures/inversify/ioc.ts"
+        "iocModule": "./tests/fixtures/inversify/ioc.ts",
+        "authenticationModule": "./tests/fixtures/inversify/authentication.ts"
     }
 }
