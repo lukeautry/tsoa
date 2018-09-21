@@ -1,5 +1,6 @@
 /* tslint:disable */
-import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+import { Controller, FieldErrors, TsoaRoute, ValidateError, ValidateParam } from '../../../src';
+import { expressAuthentication } from './authentication';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
 
@@ -105,7 +106,8 @@ const models: TsoaRoute.Models={
 };
 
 export function RegisterRoutes(app: any) {
-  app.get('/v1/:routeParam/ManagedTest',
+  app.get('/v1/ManagedTest',
+    authenticateMiddleware([{ "MySecurity": [] }]),
     function(request: any, response: any, next: any) {
       const args={
         routeParam: { "in": "path", "name": "routeParam", "required": true, "dataType": "string" },
@@ -128,6 +130,49 @@ export function RegisterRoutes(app: any) {
       promiseHandler(controller, promise, response, next);
     });
 
+  function authenticateMiddleware(security: TsoaRoute.Security[]=[]) {
+    return (request: any, response: any, next: any) => {
+      let responded=0;
+      let success=false;
+
+      const succeed=function(user: any) {
+        if (!success) {
+          success=true;
+          responded++;
+          request['user']=user;
+          next();
+        }
+      }
+
+      const fail=function(error: any) {
+        responded++;
+        if (responded==security.length&&!success) {
+          error.status=401;
+          next(error)
+        }
+      }
+
+      for (const secMethod of security) {
+        if (Object.keys(secMethod).length>1) {
+          let promises: Promise<any>[]=[];
+
+          for (const name in secMethod) {
+            promises.push(expressAuthentication(request, name, secMethod[name]));
+          }
+
+          Promise.all(promises)
+            .then((users) => { succeed(users[0]); })
+            .catch(fail);
+        } else {
+          for (const name in secMethod) {
+            expressAuthentication(request, name, secMethod[name])
+              .then(succeed)
+              .catch(fail);
+          }
+        }
+      }
+    }
+  }
 
   function isController(object: any): object is Controller {
     return 'getHeaders' in object&&'getStatus' in object&&'setStatus' in object;

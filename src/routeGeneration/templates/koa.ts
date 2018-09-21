@@ -52,8 +52,8 @@ export function RegisterRoutes(router: any) {
             try {
               validatedArgs = getValidatedArgs(args, context);
             } catch (error) {
-              context.status = error.status || 500;
-              context.body = error;
+              context.status = error.status;
+              context.throw(error.status, JSON.stringify({ fields: error.fields }));
               return next();
             }
 
@@ -87,9 +87,9 @@ export function RegisterRoutes(router: any) {
           const fail = function(error: any) {
               responded++;
               if (responded == security.length && !success) {
-                context.status = error.status || 401;
-                context.body = error;
-                next();
+                  context.status = error.status || 401;
+                  context.throw(context.status, error.message, error);
+                  next();
               }
           }
 
@@ -144,8 +144,8 @@ export function RegisterRoutes(router: any) {
             next();
         })
         .catch((error: any) => {
-            context.status = error.status || 500;
-            context.body = error;
+            context.status = error.status;
+            context.throw(error.status, error.message, error);
             next();
         });
     }

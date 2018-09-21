@@ -1,11 +1,11 @@
 import { inject, injectable } from 'inversify';
-import { Get } from '../../../src/decorators/methods';
-import { Route } from '../../../src/decorators/route';
+import { Get, Route, Security } from '../../../src';
 import { TestModel } from '../testModel';
 import { ManagedService } from './managedService';
 
 @injectable()
-@Route('{routeParam}/ManagedTest')
+@Route('ManagedTest')
+@Security('MySecurity')
 export class ManagedController {
 
   constructor(

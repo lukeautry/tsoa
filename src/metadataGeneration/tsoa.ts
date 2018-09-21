@@ -24,6 +24,7 @@ export namespace Tsoa {
     security: Security[];
     summary?: string;
     isHidden: boolean;
+    operationId?: string;
 
   }
 

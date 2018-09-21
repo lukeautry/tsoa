@@ -2,6 +2,7 @@ import {
   Controller,
   Example,
   Get,
+  OperationId,
   Query,
   Request,
   Route,
@@ -139,6 +140,12 @@ export class GetTestController extends Controller {
   @Get('GeneratesTags')
   @Tags('test', 'test-two')
   public async getGeneratesTags(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Get('CustomOperationId')
+  @OperationId('MyCustomOperationId')
+  public async getCustomOperationId(): Promise<TestModel> {
     return new ModelService().getModel();
   }
 
