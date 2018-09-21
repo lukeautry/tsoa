@@ -1,5 +1,3 @@
-import { MethodDecoratorReturn } from '../interfaces/decorator-return';
-
-export function Tags(...values: string[]): MethodDecoratorReturn {
+export function Tags(...values: string[]): Function {
   return () => { return; };
 }

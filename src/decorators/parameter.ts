@@ -1,10 +1,8 @@
-import { ParameterDecoratorReturn } from '../interfaces/decorator-return';
-
 /**
  * Inject http Body
  *  @param {string} [name] properties name in body object
  */
-export function Body(): ParameterDecoratorReturn {
+export function Body(): Function {
   return () => { return; };
 }
 
@@ -13,14 +11,14 @@ export function Body(): ParameterDecoratorReturn {
  *
  * @param {string} [name] The name of the body parameter
  */
-export function BodyProp(name?: string): ParameterDecoratorReturn {
+export function BodyProp(name?: string): Function {
   return () => { return; };
 }
 
 /**
  * Inject http request
  */
-export function Request(): ParameterDecoratorReturn {
+export function Request(): Function {
   return () => { return; };
 }
 
@@ -29,7 +27,7 @@ export function Request(): ParameterDecoratorReturn {
  *
  * @param {string} [name] The name of the path parameter
  */
-export function Path(name?: string): ParameterDecoratorReturn {
+export function Path(name?: string): Function {
   return () => { return; };
 }
 
@@ -38,8 +36,8 @@ export function Path(name?: string): ParameterDecoratorReturn {
  *
  * @param {string} [name] The name of the query parameter
  */
-export function Query(name?: string): ParameterDecoratorReturn {
-  return (ParameterDecoratorReturn) => { return; };
+export function Query(name?: string): Function {
+  return () => { return; };
 }
 
 /**
@@ -47,6 +45,6 @@ export function Query(name?: string): ParameterDecoratorReturn {
  *
  * @param {string} [name] The name of the header parameter
  */
-export function Header(name?: string): ParameterDecoratorReturn {
+export function Header(name?: string): Function {
   return () => { return; };
 }

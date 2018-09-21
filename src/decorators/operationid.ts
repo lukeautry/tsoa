@@ -1,5 +1,3 @@
-import { MethodDecoratorReturn } from '../interfaces/decorator-return';
-
-export function OperationId(value: string): MethodDecoratorReturn {
+export function OperationId(value: string): Function {
   return () => { return; };
 }
