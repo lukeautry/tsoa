@@ -1,21 +1,19 @@
-import { MethodDecoratorReturn } from '../interfaces/decorator-return';
-
-export function Get(value?: string): MethodDecoratorReturn {
+export function Get(value?: string): Function {
   return () => { return; };
 }
 
-export function Post(value?: string): MethodDecoratorReturn {
+export function Post(value?: string): Function {
   return () => { return; };
 }
 
-export function Put(value?: string): MethodDecoratorReturn {
+export function Put(value?: string): Function {
   return () => { return; };
 }
 
-export function Patch(value?: string): MethodDecoratorReturn {
+export function Patch(value?: string): Function {
   return () => { return; };
 }
 
-export function Delete(value?: string): MethodDecoratorReturn {
+export function Delete(value?: string): Function {
   return () => { return; };
 }
