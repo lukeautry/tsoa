@@ -143,37 +143,21 @@ export class ParameterGenerator {
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
     }
-    if (!this.path.includes(`{${pathName}}`)) {
-      if (this.routePath !== undefined ) {
-        if (!this.routePath.includes(`{${pathName}}`)) {
-          throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
-        }
 
-        return {
-          default: getInitializerValue(parameter.initializer, type),
-          description: this.getParameterDescription(parameter),
-          in: 'path',
-          name: pathName,
-          parameterName,
-          required: true,
-          type,
-          validators: getParameterValidators(this.parameter, parameterName),
-        };
-      } else {
-        throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
-      }
+    if ((this.routePath !== undefined && this.routePath.includes(`{${pathName}}`)) || this.path.includes(`{${pathName}}`)) {
+      return {
+        default: getInitializerValue(parameter.initializer, type),
+        description: this.getParameterDescription(parameter),
+        in: 'path',
+        name: pathName,
+        parameterName,
+        required: true,
+        type,
+        validators: getParameterValidators(this.parameter, parameterName),
+      };
     }
 
-    return {
-      default: getInitializerValue(parameter.initializer, type),
-      description: this.getParameterDescription(parameter),
-      in: 'path',
-      name: pathName,
-      parameterName,
-      required: true,
-      type,
-      validators: getParameterValidators(this.parameter, parameterName),
-    };
+    throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
   }
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
