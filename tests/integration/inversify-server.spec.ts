@@ -11,7 +11,7 @@ const basePath = '/v1';
 
 describe('Inversify Express Server', () => {
   it('can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/ManagedTest', (err, res) => {
+    return verifyGetRequest(basePath + '/ManagedTest?tsoa=abc123456', (err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -47,7 +47,7 @@ describe('Inversify Express Server', () => {
         stringValue: 'a string',
       };
     };
-    return verifyGetRequest(basePath + '/ManagedTest', (err, res) => {
+    return verifyGetRequest(basePath + '/ManagedTest?tsoa=abc123456', (err, res) => {
       const model = res.body as TestModel;
       // expect controller to use the same service
       expect(model.id).to.equal(2);
