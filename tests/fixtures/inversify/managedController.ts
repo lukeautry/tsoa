@@ -13,7 +13,7 @@ export class ManagedController {
   ) { }
 
   @Get()
-  public async getModel(routeParam: string): Promise<TestModel> {
+  public async getModel(): Promise<TestModel> {
     return this.managedService.getModel();
   }
 }
