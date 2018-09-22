@@ -3,6 +3,7 @@ import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from
 import { RootController } from './../controllers/rootController';
 import { DeleteTestController } from './../controllers/deleteController';
 import { GetTestController } from './../controllers/getController';
+import { HeadTestController } from './../controllers/headController';
 import { PatchTestController } from './../controllers/patchController';
 import { PostTestController } from './../controllers/postController';
 import { PutTestController } from './../controllers/putController';
@@ -667,6 +668,69 @@ export function RegisterRoutes(router: any) {
       const controller=new GetTestController();
 
       const promise=controller.getGenericPrimitiveArray.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.head('/v1/HeadTest',
+    async (context, next) => {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status;
+        context.throw(error.status, JSON.stringify({ fields: error.fields }));
+        return next();
+      }
+
+      const controller=new HeadTestController();
+
+      const promise=controller.resourceExists.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.head('/v1/HeadTest/Current',
+    async (context, next) => {
+      const args={
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status;
+        context.throw(error.status, JSON.stringify({ fields: error.fields }));
+        return next();
+      }
+
+      const controller=new HeadTestController();
+
+      const promise=controller.resourceExistsCurrent.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.head('/v1/HeadTest/:numberPathParam/:booleanPathParam/:stringPathParam',
+    async (context, next) => {
+      const args={
+        numberPathParam: { "in": "path", "name": "numberPathParam", "required": true, "dataType": "double" },
+        stringPathParam: { "in": "path", "name": "stringPathParam", "required": true, "dataType": "string" },
+        booleanPathParam: { "in": "path", "name": "booleanPathParam", "required": true, "dataType": "boolean" },
+        booleanParam: { "in": "query", "name": "booleanParam", "required": true, "dataType": "boolean" },
+        stringParam: { "in": "query", "name": "stringParam", "required": true, "dataType": "string" },
+        numberParam: { "in": "query", "name": "numberParam", "required": true, "dataType": "double" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status;
+        context.throw(error.status, JSON.stringify({ fields: error.fields }));
+        return next();
+      }
+
+      const controller=new HeadTestController();
+
+      const promise=controller.resourceExistsByParams.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
   router.patch('/v1/PatchTest',

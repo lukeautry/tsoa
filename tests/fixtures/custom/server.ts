@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as methodOverride from 'method-override';
 import '../controllers/deleteController';
 import '../controllers/getController';
+import '../controllers/headController';
 import '../controllers/patchController';
 import '../controllers/postController';
 import '../controllers/putController';
