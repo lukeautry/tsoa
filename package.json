@@ -42,7 +42,6 @@
   "license": "MIT",
   "dependencies": {
     "handlebars": "^4.0.11",
-    "handlebars-helpers": "^0.9.8",
     "lodash.indexof": "^4.0.5",
     "lodash.map": "^4.6.0",
     "merge": "^1.2.0",
