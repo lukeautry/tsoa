@@ -17,3 +17,7 @@ export function Patch(value?: string): Function {
 export function Delete(value?: string): Function {
   return () => { return; };
 }
+
+export function Head(value?: string): Function {
+  return () => { return; };
+}
