@@ -1,8 +1,8 @@
 /* tslint:disable */
-import { Controller, FieldErrors, TsoaRoute, ValidateError, ValidateParam } from '../../../src';
-import { expressAuthentication } from './authentication';
+import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 import { iocContainer } from './ioc';
 import { ManagedController } from './managedController';
+import { expressAuthentication } from './authentication';
 
 const models: TsoaRoute.Models={
   "EnumIndexValue": {
@@ -110,7 +110,6 @@ export function RegisterRoutes(app: any) {
     authenticateMiddleware([{ "MySecurity": [] }]),
     function(request: any, response: any, next: any) {
       const args={
-        routeParam: { "in": "path", "name": "routeParam", "required": true, "dataType": "string" },
       };
 
       let validatedArgs: any[]=[];
