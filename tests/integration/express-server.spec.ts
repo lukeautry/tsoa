@@ -483,6 +483,15 @@ describe('Express Server', () => {
       // This is an empty handler
     };
 
+    describe('Using @User', () => {
+      it('returns the correct user for user id 1', () => {
+        return verifyGetRequest(basePath + '/SecurityTest/user?access_token=abc123456', (err, res) => {
+          const model = res.body as UserResponseModel;
+          expect(model.id).to.equal(1);
+        });
+      });
+    });
+
     describe('Only API key', () => {
       it('returns the correct user for user id 1', () => {
         return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (err, res) => {

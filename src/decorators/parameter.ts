@@ -48,3 +48,10 @@ export function Query(name?: string): Function {
 export function Header(name?: string): Function {
   return () => { return; };
 }
+
+/**
+ * Inject user from request
+ */
+export function User(): Function {
+  return () => { return; };
+}

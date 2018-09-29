@@ -428,22 +428,34 @@ export function koaAuthentication(request: Request, securityName: string, scopes
 }
 ```
 `./controllers/securityController.ts`
-```ts
-import { Get, Route, Security, Response } from 'tsoa';
+```typescript
+import { Get, Route, Security, Response, User } from 'tsoa';
 
 @Route('secure')
 export class SecureController {
     @Response<ErrorResponseModel>('Unexpected error')
     @Security('api_token')
     @Get("UserInfo")
-    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
-        return Promise.resolve(request.user);
+    public async userInfo(@User() user: UserResponseModel | undefined): Promise<UserResponseModel> {
+        return user;
     }
 
     @Security('jwt', ['admin'])
     @Get("EditUser")
-    public async userInfo(@Request() request: any): Promise<string> {
+    public async userInfo(@User() user: UserResponseModel | undefined): Promise<string> {
         // Do something here
+    }
+}
+```
+
+Alternatively, you can access the user on the request, e.g.
+```typescript
+import { Get, Route, Security, Response, Request } from 'tsoa';
+
+@Route('secure')
+export class SecureController {
+    public async userInfo(@Request() request: any): Promise<any> {
+        return request.user;
     }
 }
 ```

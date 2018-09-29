@@ -455,6 +455,15 @@ describe('Koa Server', () => {
         expect(model.id).to.equal(2);
       });
     });
+
+    describe('Using @User', () => {
+      it('can handle get request with access_token user id == 1', () => {
+        return verifyGetRequest(basePath + '/SecurityTest/user/Koa?access_token=abc123456', (err, res) => {
+          const model = res.body as Model;
+          expect(model.id).to.equal(1);
+        });
+      });
+    });
   });
 
   describe('Parameter data', () => {

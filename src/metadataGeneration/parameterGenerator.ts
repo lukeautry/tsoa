@@ -29,6 +29,8 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'User':
+        return this.getUserParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -158,6 +160,20 @@ export class ParameterGenerator {
     };
   }
 
+  private getUserParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'user',
+      name: parameterName,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type: { dataType: 'object' },
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
     if (!symbol) { return undefined; }
@@ -173,7 +189,15 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return [
+      'header',
+      'query',
+      'parem',
+      'body',
+      'bodyprop',
+      'request',
+      'user',
+    ].some((d) => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

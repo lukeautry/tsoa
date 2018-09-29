@@ -161,6 +161,8 @@ export function RegisterRoutes(server: any) {
             switch (args[key].in) {
             case 'request':
                 return request;
+            case 'user':
+                return request.user;
             case 'query':
                 return ValidateParam(args[key], request.query[name], models, name, errorFields)
             case 'path':

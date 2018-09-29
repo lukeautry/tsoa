@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as hapi from 'hapi';
 import * as koa from 'koa';
 import {
-  Get, Request, Response, Route, Security,
+  Get, Request, Response, Route, Security, User,
 } from '../../../src';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
@@ -52,5 +52,26 @@ export class SecurityTestController {
   @Get('OauthAndAPIkey')
   public async GetWithAndSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Get('user')
+  public async GetUserWithApi(@User() user: UserResponseModel): Promise<UserResponseModel> {
+    return user;
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Get('user/Hapi')
+  public async GetUserWithApiForHapi(@User() user: UserResponseModel): Promise<UserResponseModel> {
+    return user;
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Get('user/Koa')
+  public async GetUserWithApiForKoa(@User() user: UserResponseModel): Promise<UserResponseModel> {
+    return user;
   }
 }
