@@ -24,8 +24,10 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
         value,
       };
       return;
-    } else {
+    } else if (property.hasOwnProperty('default')) {
       return property.default;
+    } else {
+      return value;
     }
   }
 
