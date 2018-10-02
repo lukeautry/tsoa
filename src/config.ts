@@ -100,7 +100,7 @@ export interface SwaggerConfig {
 
   yaml?: boolean;
 
-  schemes?: Swagger.Protocol [];
+  schemes?: Swagger.Protocol[];
 }
 
 export interface RoutesConfig {

@@ -3,7 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
-import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateModel } from '../fixtures/testModel';
+import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 
@@ -473,6 +473,30 @@ describe('Express Server', () => {
       return verifyGetRequest(basePath + `/Validate/parameter/custominvalidErrorMsg?longValue=${value}`, (err, res) => {
         const body = JSON.parse(err.text);
         expect(body.fields.longValue.message).to.equal('Invalid long number.');
+      }, 400);
+    });
+
+    it('should validate string-to-number dictionary body', () => {
+      const data: ValidateMapStringToNumber = {
+        key1: 0,
+        key2: 1,
+        key3: -1,
+      };
+      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+        const response = res.body as number[];
+        expect(response.sort()).to.eql([-1, 0, 1]);
+      });
+    });
+
+    it('should reject string-to-string dictionary body', () => {
+      const data: object = {
+        key1: '0',
+        key2: '1',
+        key3: '-1',
+      };
+      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['map..key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
       }, 400);
     });
 
