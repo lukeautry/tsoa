@@ -25,7 +25,11 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
       };
       return;
     } else {
-      return property.default;
+      if (property.dataType === 'any') {
+        return property.default !== undefined ? property.default : value;
+      } else {
+        return property.default;
+      }
     }
   }
 

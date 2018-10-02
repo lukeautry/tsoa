@@ -451,6 +451,18 @@ describe('Koa Server', () => {
       });
     });
 
+    it('should reject string-to-number dictionary body with nulls', () => {
+      const data: object = {
+        key1: 0,
+        key2: 1,
+        key3: null,
+      };
+      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['map..key3'].message).to.eql('No matching model found in additionalProperties to validate key3');
+      }, 400);
+    });
+
     it('should reject string-to-string dictionary body', () => {
       const data: object = {
         key1: 'val0',
@@ -477,16 +489,15 @@ describe('Koa Server', () => {
 
     it('should validate string-to-any dictionary body with falsy values', () => {
       const data: ValidateMapStringToAny = {
-        arrayItem: [],
-        falseItem: false,
-        nullItem: null,
-        stringItem: '',
-        undefinedItem: undefined,
-        zeroItem: 0,
+        array: [],
+        false: false,
+        null: null,
+        string: '',
+        zero: 0,
       };
       return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
         const response = res.body as any[];
-        expect(response.sort()).to.eql([ [], '', 0, false, null, undefined ]);
+        expect(response.sort()).to.eql([ [], '', 0, false, null ]);
       });
     });
   });
