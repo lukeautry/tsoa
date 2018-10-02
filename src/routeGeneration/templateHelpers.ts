@@ -371,7 +371,7 @@ function validateModel(name: string, value: any, refName: string, fieldErrors: F
     if (additionalProperties) {
       Object.keys(value).forEach((key: string) => {
         const validatedValue = ValidateParam(additionalProperties, value[key], models, key, fieldErrors, parent);
-        if (validatedValue) {
+        if (validatedValue !== undefined) {
           value[key] = validatedValue;
         } else {
           fieldErrors[parent + '.' + key] = {

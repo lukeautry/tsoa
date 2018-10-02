@@ -236,6 +236,9 @@ const models: TsoaRoute.Models={
   "ValidateMapStringToNumber": {
     "additionalProperties": { "dataType": "double" },
   },
+  "ValidateMapStringToAny": {
+    "additionalProperties": { "dataType": "any" },
+  },
 };
 
 export function RegisterRoutes(router: any) {
@@ -2164,6 +2167,26 @@ export function RegisterRoutes(router: any) {
       const controller=new ValidateController();
 
       const promise=controller.getNumberBodyRequest.apply(controller, validatedArgs);
+      return promiseHandler(controller, promise, context, next);
+    });
+  router.post('/v1/Validate/mapAny',
+    async (context, next) => {
+      const args={
+        map: { "in": "body", "name": "map", "required": true, "ref": "ValidateMapStringToAny" },
+      };
+
+      let validatedArgs: any[]=[];
+      try {
+        validatedArgs=getValidatedArgs(args, context);
+      } catch (error) {
+        context.status=error.status;
+        context.throw(error.status, JSON.stringify({ fields: error.fields }));
+        return next();
+      }
+
+      const controller=new ValidateController();
+
+      const promise=controller.getDictionaryRequest.apply(controller, validatedArgs);
       return promiseHandler(controller, promise, context, next);
     });
 

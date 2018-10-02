@@ -251,6 +251,10 @@ export interface ValidateMapStringToNumber {
   [key: string]: number;
 }
 
+export interface ValidateMapStringToAny {
+  [key: string]: any;
+}
+
 /**
  * Gender msg
  */
