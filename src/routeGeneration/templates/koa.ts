@@ -41,7 +41,7 @@ export function RegisterRoutes(router: any) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            async (context, next) => {
+            async (context: any, next: any) => {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
