@@ -14,6 +14,7 @@ export class MethodGenerator {
 
   constructor(
     private readonly node: ts.MethodDeclaration,
+    private readonly routePath?: string,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[]) {
     this.processMethodDecorators();
@@ -59,7 +60,7 @@ export class MethodGenerator {
   private buildParameters() {
     const parameters = this.node.parameters.map((p) => {
       try {
-        return new ParameterGenerator(p, this.method, this.path).Generate();
+        return new ParameterGenerator(p, this.method, this.path, this.routePath).Generate();
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;

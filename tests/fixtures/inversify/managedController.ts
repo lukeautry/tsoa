@@ -1,7 +1,5 @@
 import { inject, injectable } from 'inversify';
-import {
-  Get, Route, Security,
-} from '../../../src';
+import { Get, Route, Security } from '../../../src';
 import { TestModel } from '../testModel';
 import { ManagedService } from './managedService';
 

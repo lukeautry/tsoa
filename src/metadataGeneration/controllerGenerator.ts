@@ -41,7 +41,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.tags, this.security))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.path, this.tags, this.security))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
