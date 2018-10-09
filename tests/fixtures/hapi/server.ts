@@ -1,4 +1,4 @@
-import * as hapi from 'hapi';
+import { Server } from 'hapi';
 import '../controllers/rootController';
 
 import '../controllers/deleteController';
@@ -15,7 +15,9 @@ import '../controllers/validateController';
 
 import { RegisterRoutes } from './routes';
 
-export const server = new hapi.Server({ port: 3003 });
+export const server = new Server({
+  port: 3003,
+ });
 
 RegisterRoutes(server);
 
