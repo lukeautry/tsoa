@@ -70,7 +70,7 @@ export function RegisterRoutes(app: any) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(securities: TsoaRoute.Security[] = []) {
-        return (request: any, response: any, next: any) => {
+        return (request: any, _response: any, next: any) => {
             let responded = 0;
             let success = false;
             Object.keys(securities)
@@ -87,7 +87,7 @@ export function RegisterRoutes(app: any) {
                   .catch((error: any) => {
                     responded++;
                     if (responded==securities.length&&!success) {
-                      response.status(401);
+                      _response.status(401);
                       next(error)
                     }
                   })

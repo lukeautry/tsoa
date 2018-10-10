@@ -73,7 +73,7 @@ export function RegisterRoutes(app: any) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return (request: any, response: any, next: any) => {
+        return (request: any, _response: any, next: any) => {
             let responded = 0;
             let success = false;
 
