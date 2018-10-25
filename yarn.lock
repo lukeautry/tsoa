@@ -2895,9 +2895,9 @@ typeof-article@^0.1.1:
   dependencies:
     kind-of "^3.1.0"
 
-typescript-formatter@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/typescript-formatter/-/typescript-formatter-7.2.0.tgz#1c7868dd2524eb4bd573644b1c912a10b8111034"
+typescript-formatter@^7.2.2:
+  version "7.2.2"
+  resolved "https://registry.yarnpkg.com/typescript-formatter/-/typescript-formatter-7.2.2.tgz#a147181839b7bb09c2377b072f20f6336547c00a"
   dependencies:
     commandpost "^1.0.0"
     editorconfig "^0.15.0"
