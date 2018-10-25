@@ -80,7 +80,7 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
 
   const numberValue = validator.toInt(String(value), 10);
   if (!validators) { return numberValue; }
-  if (validators.minimum && validators.minimum.value) {
+  if (validators.minimum && validators.minimum.value !== undefined) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
         message: validators.minimum.errorMsg || `min ${validators.minimum.value}`,
@@ -89,7 +89,7 @@ export function validateInt(name: string, value: any, fieldErrors: FieldErrors, 
       return;
     }
   }
-  if (validators.maximum && validators.maximum.value) {
+  if (validators.maximum && validators.maximum.value !== undefined) {
     if (validators.maximum.value < numberValue) {
       fieldErrors[parent + name] = {
         message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
@@ -121,7 +121,7 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
 
   const numberValue = validator.toFloat(String(value));
   if (!validators) { return numberValue; }
-  if (validators.minimum && validators.minimum.value) {
+  if (validators.minimum && validators.minimum.value !== undefined) {
     if (validators.minimum.value > numberValue) {
       fieldErrors[parent + name] = {
         message: validators.minimum.errorMsg || `min ${validators.minimum.value}`,
@@ -130,7 +130,7 @@ export function validateFloat(name: string, value: any, fieldErrors: FieldErrors
       return;
     }
   }
-  if (validators.maximum && validators.maximum.value) {
+  if (validators.maximum && validators.maximum.value !== undefined) {
     if (validators.maximum.value < numberValue) {
       fieldErrors[parent + name] = {
         message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
@@ -247,7 +247,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
 
   const stringValue = String(value);
   if (!validators) { return stringValue; }
-  if (validators.minLength && validators.minLength.value) {
+  if (validators.minLength && validators.minLength.value !== undefined) {
     if (validators.minLength.value > stringValue.length) {
       fieldErrors[parent + name] = {
         message: validators.minLength.errorMsg || `minLength ${validators.minLength.value}`,
@@ -256,7 +256,7 @@ export function validateString(name: string, value: any, fieldErrors: FieldError
       return;
     }
   }
-  if (validators.maxLength && validators.maxLength.value) {
+  if (validators.maxLength && validators.maxLength.value !== undefined) {
     if (validators.maxLength.value < stringValue.length) {
       fieldErrors[parent + name] = {
         message: validators.maxLength.errorMsg || `maxLength ${validators.maxLength.value}`,
