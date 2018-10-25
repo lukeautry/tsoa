@@ -33,7 +33,7 @@ export class MethodGenerator {
       const typeChecker = MetadataGenerator.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-      nodeType = typeChecker.typeToTypeNode(implicitType);
+      nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
     }
     const type = resolveType(nodeType);
     const responses = this.getMethodResponses();

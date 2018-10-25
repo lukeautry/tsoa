@@ -162,7 +162,7 @@ export class ParameterGenerator {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
     if (!symbol) { return undefined; }
 
-    const comments = symbol.getDocumentationComment(undefined);
+    const comments = symbol.getDocumentationComment(MetadataGenerator.current.typeChecker);
     if (comments.length) { return ts.displayPartsToString(comments); }
 
     return undefined;
@@ -184,7 +184,7 @@ export class ParameterGenerator {
     let typeNode = parameter.type;
     if (!typeNode) {
       const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type);
+      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
     }
     return resolveType(typeNode, parameter, extractEnum);
   }
