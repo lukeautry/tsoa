@@ -436,13 +436,13 @@ export class SecureController {
     @Response<ErrorResponseModel>('Unexpected error')
     @Security('api_token')
     @Get("UserInfo")
-    public async userInfo(@User() user: UserResponseModel | undefined): Promise<UserResponseModel> {
+    public async userInfo(@User() user: UserResponseModel): Promise<UserResponseModel> {
         return user;
     }
 
     @Security('jwt', ['admin'])
     @Get("EditUser")
-    public async userInfo(@User() user: UserResponseModel | undefined): Promise<string> {
+    public async userInfo(@User() user: UserResponseModel): Promise<string> {
         // Do something here
     }
 }
