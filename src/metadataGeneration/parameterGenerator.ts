@@ -1,21 +1,21 @@
 import * as ts from 'typescript';
-import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
-import { getParameterValidators } from './../utils/validatorUtils';
-import { GenerateMetadataError } from './exceptions';
-import { MetadataGenerator } from './metadataGenerator';
-import { getInitializerValue, resolveType } from './resolveType';
-import { Tsoa } from './tsoa';
+import {getDecoratorName, getDecoratorTextValue} from './../utils/decoratorUtils';
+import {getParameterValidators} from './../utils/validatorUtils';
+import {GenerateMetadataError} from './exceptions';
+import {MetadataGenerator} from './metadataGenerator';
+import {getInitializerValue, resolveType} from './resolveType';
+import {Tsoa} from './tsoa';
 
 export class ParameterGenerator {
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
     private readonly path: string,
-  ) { }
+  ) {
+  }
 
-  public Generate(): Tsoa.Parameter {
+  public Generate(): Tsoa.Parameter | null {
     const decoratorName = getDecoratorName(this.parameter, (identifier) => this.supportParameterDecorator(identifier.text));
-
     switch (decoratorName) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
@@ -29,6 +29,8 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'Ignore':
+        return null;
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -42,7 +44,7 @@ export class ParameterGenerator {
       name: parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
-      type: { dataType: 'object' },
+      type: {dataType: 'object'},
       validators: getParameterValidators(this.parameter, parameterName),
     };
   }
@@ -160,10 +162,14 @@ export class ParameterGenerator {
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
-    if (!symbol) { return undefined; }
+    if (!symbol) {
+      return undefined;
+    }
 
     const comments = symbol.getDocumentationComment(MetadataGenerator.current.typeChecker);
-    if (comments.length) { return ts.displayPartsToString(comments); }
+    if (comments.length) {
+      return ts.displayPartsToString(comments);
+    }
 
     return undefined;
   }
@@ -173,7 +179,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request', 'ignore'].some((d) => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

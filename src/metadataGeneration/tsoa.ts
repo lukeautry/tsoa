@@ -31,7 +31,7 @@ export namespace Tsoa {
   export interface Parameter {
     parameterName: string;
     description?: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
+    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'ignored';
     name: string;
     required?: boolean;
     type: Type;

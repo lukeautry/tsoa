@@ -3,13 +3,14 @@ import {
   BodyProp,
   Get,
   Header,
+  Ignore,
   Path,
   Post,
   Query,
   Request,
   Route,
 } from '../../../src';
-import { Gender, ParameterTestModel } from '../testModel';
+import {Gender, ParameterTestModel} from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -23,6 +24,7 @@ export class ParameterController {
    * @param {boolean} human Human description
    * @param {Gender} gender Gender description
    *
+   * @param ignore
    * @isInt age
    * @isFloat weight
    */
@@ -34,6 +36,7 @@ export class ParameterController {
     @Query() weight: number,
     @Query() human: boolean,
     @Query() gender: Gender,
+    @Ignore() ignore: number,
   ): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age,
@@ -130,9 +133,10 @@ export class ParameterController {
    * Body test paramater
    *
    * @param {object} body Body description
+   * @param ignore
    */
   @Post('Body')
-  public async getBody(@Body() body: ParameterTestModel): Promise<ParameterTestModel> {
+  public async getBody(@Body() body: ParameterTestModel, @Ignore() ignore: number): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age: body.age,
       firstname: body.firstname,
@@ -151,6 +155,7 @@ export class ParameterController {
    * @param {boolean} human human description
    * @param {Gender} gender Gender description
    *
+   * @param ignore
    * @isInt age
    * @isFloat weight
    */
@@ -161,7 +166,8 @@ export class ParameterController {
     @BodyProp('age') age: number,
     @BodyProp('weight') weight: number,
     @BodyProp('human') human: boolean,
-    @BodyProp('gender') gender: Gender): Promise<ParameterTestModel> {
+    @BodyProp('gender') gender: Gender,
+    @Ignore() ignore: number): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age,
       firstname,

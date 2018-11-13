@@ -1,12 +1,12 @@
 import * as ts from 'typescript';
-import { getDecorators } from './../utils/decoratorUtils';
-import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
-import { GenerateMetadataError } from './exceptions';
-import { MetadataGenerator } from './metadataGenerator';
-import { ParameterGenerator } from './parameterGenerator';
-import { getInitializerValue, resolveType } from './resolveType';
-import { getSecurities } from './security';
-import { Tsoa } from './tsoa';
+import {getDecorators} from './../utils/decoratorUtils';
+import {getJSDocComment, getJSDocDescription, isExistJSDocTag} from './../utils/jsDocUtils';
+import {GenerateMetadataError} from './exceptions';
+import {MetadataGenerator} from './metadataGenerator';
+import {ParameterGenerator} from './parameterGenerator';
+import {getInitializerValue, resolveType} from './resolveType';
+import {getSecurities} from './security';
+import {Tsoa} from './tsoa';
 
 export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -38,7 +38,6 @@ export class MethodGenerator {
     const type = resolveType(nodeType);
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
-
     return {
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
@@ -57,7 +56,7 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
-    const parameters = this.node.parameters.map((p) => {
+    const map = this.node.parameters.map((p) => {
       try {
         return new ParameterGenerator(p, this.method, this.path).Generate();
       } catch (e) {
@@ -66,6 +65,7 @@ export class MethodGenerator {
         throw new GenerateMetadataError(`${e.message} \n in '${controllerId.text}.${methodId.text}'`);
       }
     });
+    const parameters = map.filter((parameter) => parameter !== null) as Tsoa.Parameter[];
 
     const bodyParameters = parameters.filter((p) => p.in === 'body');
     const bodyProps = parameters.filter((p) => p.in === 'body-prop');
@@ -88,7 +88,9 @@ export class MethodGenerator {
   private processMethodDecorators() {
     const pathDecorators = getDecorators(this.node, (identifier) => this.supportsPathMethod(identifier.text));
 
-    if (!pathDecorators || !pathDecorators.length) { return; }
+    if (!pathDecorators || !pathDecorators.length) {
+      return;
+    }
     if (pathDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map((d) => d.text).join(', ')}`);
     }

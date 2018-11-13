@@ -48,3 +48,10 @@ export function Query(name?: string): Function {
 export function Header(name?: string): Function {
   return () => { return; };
 }
+/**
+ * Ignore a parameter
+ *
+ */
+export function Ignore(): Function {
+  return () => { return; };
+}
