@@ -8,7 +8,7 @@ export class SpecGenerator {
 
   public GetSpec() {
     let spec: Swagger.Spec = {
-      basePath: normalisePath(this.config.basePath as string, '/'),
+      basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
       info: {
