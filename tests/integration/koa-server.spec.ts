@@ -451,19 +451,6 @@ describe('Koa Server', () => {
       });
     });
 
-    // TODO: explicitly nullable fields
-    // it('should reject string-to-number dictionary body with nulls', () => {
-    //   const data: object = {
-    //     key1: 0,
-    //     key2: 1,
-    //     key3: null,
-    //   };
-    //   return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
-    //     const body = JSON.parse(err.text);
-    //     expect(body.fields['map..key3'].message).to.eql('No matching model found in additionalProperties to validate key3');
-    //   }, 400);
-    // });
-
     it('should reject string-to-string dictionary body', () => {
       const data: object = {
         key1: 'val0',
