@@ -41,6 +41,7 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "fs-extra": "^7.0.1",
     "handlebars": "^4.0.11",
     "handlebars-helpers": "^0.9.8",
     "lodash.indexof": "^4.0.5",
