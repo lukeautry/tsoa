@@ -247,6 +247,14 @@ export class ValidateModel {
   public ignoredProperty: string;
 }
 
+export interface ValidateMapStringToNumber {
+  [key: string]: number;
+}
+
+export interface ValidateMapStringToAny {
+  [key: string]: any;
+}
+
 /**
  * Gender msg
  */

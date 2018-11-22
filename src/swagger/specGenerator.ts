@@ -240,7 +240,7 @@ export class SpecGenerator {
           });
       }
 
-      if (!property.required)  {
+      if (!property.required) {
         swaggerType['x-nullable'] = true;
       }
 

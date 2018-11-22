@@ -3,7 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
-import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateModel } from '../fixtures/testModel';
+import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 
@@ -474,6 +474,56 @@ describe('Express Server', () => {
         const body = JSON.parse(err.text);
         expect(body.fields.longValue.message).to.equal('Invalid long number.');
       }, 400);
+    });
+
+    it('should validate string-to-number dictionary body', () => {
+      const data: ValidateMapStringToNumber = {
+        key1: 0,
+        key2: 1,
+        key3: -1,
+      };
+      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+        const response = res.body as number[];
+        expect(response.sort()).to.eql([-1, 0, 1]);
+      });
+    });
+
+    it('should reject string-to-string dictionary body', () => {
+      const data: object = {
+        key1: 'val0',
+        key2: 'val1',
+        key3: '-val1',
+      };
+      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['map..key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
+      }, 400);
+    });
+
+    it('should validate string-to-any dictionary body', () => {
+      const data: ValidateMapStringToAny = {
+        key1: '0',
+        key2: 1,
+        key3: -1,
+      };
+      return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
+        const response = res.body as any[];
+        expect(response.sort()).to.eql([-1, '0', 1]);
+      });
+    });
+
+    it('should validate string-to-any dictionary body with falsy values', () => {
+      const data: ValidateMapStringToAny = {
+        array: [],
+        false: false,
+        null: null,
+        string: '',
+        zero: 0,
+      };
+      return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
+        const response = res.body as any[];
+        expect(response.sort()).to.eql([ [], '', 0, false, null ]);
+      });
     });
 
   });

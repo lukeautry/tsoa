@@ -233,6 +233,12 @@ const models: TsoaRoute.Models={
       "arrayUniqueItem": { "dataType": "array", "array": { "dataType": "double" }, "required": true, "validators": { "uniqueItems": {} } },
     },
   },
+  "ValidateMapStringToNumber": {
+    "additionalProperties": { "dataType": "double" },
+  },
+  "ValidateMapStringToAny": {
+    "additionalProperties": { "dataType": "any" },
+  },
 };
 
 export function RegisterRoutes(server: any) {
@@ -2586,6 +2592,56 @@ export function RegisterRoutes(server: any) {
         const controller=new ValidateController();
 
         const promise=controller.bodyValidate.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, h);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/Validate/map',
+    options: {
+      handler: (request: any, h: any) => {
+        const args={
+          map: { "in": "body", "name": "map", "required": true, "ref": "ValidateMapStringToNumber" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return h
+            .response(err)
+            .code(err.status||500);
+        }
+
+        const controller=new ValidateController();
+
+        const promise=controller.getNumberBodyRequest.apply(controller, validatedArgs);
+        return promiseHandler(controller, promise, request, h);
+      }
+    }
+  });
+  server.route({
+    method: 'post',
+    path: '/v1/Validate/mapAny',
+    options: {
+      handler: (request: any, h: any) => {
+        const args={
+          map: { "in": "body", "name": "map", "required": true, "ref": "ValidateMapStringToAny" },
+        };
+
+        let validatedArgs: any[]=[];
+        try {
+          validatedArgs=getValidatedArgs(args, request);
+        } catch (err) {
+          return h
+            .response(err)
+            .code(err.status||500);
+        }
+
+        const controller=new ValidateController();
+
+        const promise=controller.getDictionaryRequest.apply(controller, validatedArgs);
         return promiseHandler(controller, promise, request, h);
       }
     }
