@@ -359,25 +359,26 @@ export function validateModel(name: string, value: any, refName: string, fieldEr
   const modelDefinition = models[refName];
 
   if (modelDefinition) {
-    const properties = modelDefinition.properties;
-    if (properties) {
-      Object.keys(properties).forEach((key: string) => {
-        const property = properties[key];
-        value[key] = ValidateParam(property, value[key], models, key, fieldErrors, parent);
-      });
-    }
+    const properties = modelDefinition.properties || {};
+    Object.keys(properties).forEach((key: string) => {
+      const property = properties[key];
+      value[key] = ValidateParam(property, value[key], models, key, fieldErrors, parent);
+    });
 
     const additionalProperties = modelDefinition.additionalProperties;
     if (additionalProperties) {
+      const alreadyValidatedProperties = new Set(Object.keys(properties));
       Object.keys(value).forEach((key: string) => {
-        const validatedValue = ValidateParam(additionalProperties, value[key], models, key, fieldErrors, parent);
-        if (validatedValue !== undefined) {
-          value[key] = validatedValue;
-        } else {
-          fieldErrors[parent + '.' + key] = {
-            message: `No matching model found in additionalProperties to validate ${key}`,
-            value: key,
-          };
+        if (!alreadyValidatedProperties.has(key)) {
+          const validatedValue = ValidateParam(additionalProperties, value[key], models, key, fieldErrors, parent);
+          if (validatedValue !== undefined) {
+            value[key] = validatedValue;
+          } else {
+            fieldErrors[parent + '.' + key] = {
+              message: `No matching model found in additionalProperties to validate ${key}`,
+              value: key,
+            };
+          }
         }
       });
     }
