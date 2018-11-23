@@ -4,6 +4,62 @@ import * as templateHelpers from './../../../src/routeGeneration/templateHelpers
 
 describe('templateHelpers', () => {
 
+    afterEach(() => {
+        // clean up global models
+        Object.keys(templateHelpers.models).forEach(k => {
+            delete templateHelpers.models[k];
+        });
+    });
+
+    describe('Model validate', () => {
+        it('should validate a model with declared properties', () => {
+            templateHelpers.models.ExampleModel = {
+                properties: {
+                    a: { dataType: 'string', required: true },
+                },
+            };
+            const error = {};
+            const result = templateHelpers.validateModel('', { a: 's' }, 'ExampleModel', error);
+            expect(Object.keys(error)).to.be.empty;
+            expect(result).to.eql({ a: 's' });
+        });
+
+        it('should not require optional properties', () => {
+            templateHelpers.models.ExampleModel = {
+                properties: {
+                    a: { dataType: 'string' },
+                },
+            };
+            const error = {};
+            const result = templateHelpers.validateModel('', {}, 'ExampleModel', error);
+            expect(Object.keys(error)).to.be.empty;
+            expect(result).to.eql({ a: undefined });
+        });
+
+        it('should validate a model with additional properties', () => {
+            templateHelpers.models.ExampleModel = {
+                additionalProperties: { dataType: 'any' },
+            };
+            const error = {};
+            const result = templateHelpers.validateModel('', { a: 's' }, 'ExampleModel', error);
+            expect(Object.keys(error)).to.be.empty;
+            expect(result).to.eql({ a: 's' });
+        });
+
+        it('should validate a model with optional and additional properties', () => {
+            templateHelpers.models.ExampleModel = {
+                additionalProperties: { dataType: 'any' },
+                properties: {
+                    a: { dataType: 'string' },
+                },
+            };
+            const error = {};
+            const result = templateHelpers.validateModel('', {}, 'ExampleModel', error);
+            expect(Object.keys(error)).to.be.empty;
+            expect(result).to.eql({ a: undefined });
+        });
+    });
+
     describe('Integer validate', () => {
         it('should integer value', () => {
             const value = '10';

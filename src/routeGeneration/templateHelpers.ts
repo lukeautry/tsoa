@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import * as validator from 'validator';
 import { TsoaRoute } from './tsoa-route';
 
-let models: TsoaRoute.Models = {};
+export let models: TsoaRoute.Models = {};
 
 export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '') {
   models = generatedModels;
@@ -355,7 +355,7 @@ function validateBuffer(name: string, value: string) {
   return new Buffer(value);
 }
 
-function validateModel(name: string, value: any, refName: string, fieldErrors: FieldErrors, parent = ''): any {
+export function validateModel(name: string, value: any, refName: string, fieldErrors: FieldErrors, parent = ''): any {
   const modelDefinition = models[refName];
 
   if (modelDefinition) {
