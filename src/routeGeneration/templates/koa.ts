@@ -1,8 +1,8 @@
 /* tslint:disable */
 {{#if canImportByAlias}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -33,6 +33,7 @@ const models: TsoaRoute.Models = {
     },
     {{/each}}
 };
+const validationService = new ValidationService(models);
 
 export function RegisterRoutes(router: any) {
     {{#each controllers}}
@@ -158,15 +159,15 @@ export function RegisterRoutes(router: any) {
             case 'request':
                 return context.request;
             case 'query':
-                return ValidateParam(args[key], context.request.query[name], models, name, errorFields)
+                return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields)
             case 'path':
-                return ValidateParam(args[key], context.params[name], models, name, errorFields)
+                return validationService.ValidateParam(args[key], context.params[name], name, errorFields)
             case 'header':
-                return ValidateParam(args[key], context.request.headers[name], models, name, errorFields);
+                return validationService.ValidateParam(args[key], context.request.headers[name], name, errorFields);
             case 'body':
-                return ValidateParam(args[key], context.request.body, models, name, errorFields, name + '.');
+                return validationService.ValidateParam(args[key], context.request.body, name, errorFields, name + '.');
             case 'body-prop':
-                return ValidateParam(args[key], context.request.body[name], models, name, errorFields, 'body.');
+                return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.');
             }
         });
         if (Object.keys(errorFields).length > 0) {
