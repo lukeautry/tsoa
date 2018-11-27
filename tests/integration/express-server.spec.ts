@@ -590,7 +590,7 @@ describe('Express Server', () => {
 
   describe('Parameter data', () => {
     it('parses query parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -598,6 +598,7 @@ describe('Express Server', () => {
         expect(model.weight).to.equal(82.1);
         expect(model.human).to.equal(true);
         expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
       });
     });
 

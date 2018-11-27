@@ -22,6 +22,7 @@ export class ParameterController {
    * @param {number} weight Weight description
    * @param {boolean} human Human description
    * @param {Gender} gender Gender description
+   * @param {string[]} nicknames Nicknames description
    *
    * @isInt age
    * @isFloat weight
@@ -34,6 +35,7 @@ export class ParameterController {
     @Query() weight: number,
     @Query() human: boolean,
     @Query() gender: Gender,
+    @Query() nicknames: string[],
   ): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age,
@@ -41,6 +43,7 @@ export class ParameterController {
       gender,
       human,
       lastname,
+      nicknames,
       weight,
     });
   }

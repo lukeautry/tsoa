@@ -174,7 +174,7 @@ export class SpecGenerator {
     const parameterType = this.getSwaggerType(source.type);
     parameter.format = parameterType.format || undefined;
 
-    if (parameter.in === 'query' && parameter.type === 'array') {
+    if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
     }
 

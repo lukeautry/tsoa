@@ -110,27 +110,35 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter, false);
 
-    if (type.dataType === 'array') {
-      const arrayType = type as Tsoa.ArrayType;
-
-      if (!this.supportPathDataType(arrayType.elementType)) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
-      }
-    } else {
-      if (!this.supportPathDataType(type)) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
-      }
-    }
-
-    return {
+    const commonProperties = {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
-      in: 'query',
+      in: 'query' as 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
-      type,
       validators: getParameterValidators(this.parameter, parameterName),
+    };
+
+    if (type.dataType === 'array') {
+      const arrayType = type as Tsoa.ArrayType;
+      if (!this.supportPathDataType(arrayType.elementType)) {
+        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
+      }
+      return {
+        ...commonProperties,
+        collectionFormat: 'multi',
+        type: arrayType,
+      } as Tsoa.ArrayParameter;
+    }
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
+    }
+
+    return {
+      ...commonProperties,
+      type,
     };
   }
 
