@@ -167,6 +167,7 @@ export class ParameterTestModel {
   public weight: number;
   public human: boolean;
   public gender: Gender;
+  public nicknames?: string[];
 }
 
 export class ValidateCustomErrorModel {
