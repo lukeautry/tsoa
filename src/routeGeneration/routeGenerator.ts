@@ -54,7 +54,7 @@ export class RouteGenerator {
     // So, when in testing mode we reference the module by path instead.
     const env = process.env.NODE_ENV;
     let canImportByAlias = true;
-    if (env === 'test') {
+    if (env === 'tsoa_test') {
       canImportByAlias = false;
     }
 

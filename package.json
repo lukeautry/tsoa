@@ -34,8 +34,8 @@
     "routes-gen:koa": "node ./dist/cli.js routes --configuration=koa-tsoa.json",
     "routes-gen:custom": "node ./dist/cli.js routes --configuration=custom-tsoa.json",
     "routes-gen:inversify": "node ./dist/cli.js routes --configuration=inversify-tsoa.json",
-    "pretest": "cross-env NODE_ENV=test npm run build && npm run swagger-gen && cross-env NODE_ENV=test npm run routes-gen && cross-env NODE_ENV=test npm run routes-gen:hapi && cross-env NODE_ENV=test npm run routes-gen:koa && cross-env NODE_ENV=test npm run routes-gen:custom && cross-env NODE_ENV=test npm run routes-gen:inversify && npm run lint",
-    "test": "cross-env NODE_ENV=test mocha **/*.spec.ts --compilers ts:ts-node/register",
+    "pretest": "cross-env NODE_ENV=tsoa_test npm run build && npm run swagger-gen && cross-env NODE_ENV=tsoa_test npm run routes-gen && cross-env NODE_ENV=tsoa_test npm run routes-gen:hapi && cross-env NODE_ENV=tsoa_test npm run routes-gen:koa && cross-env NODE_ENV=tsoa_test npm run routes-gen:custom && cross-env NODE_ENV=tsoa_test npm run routes-gen:inversify && npm run lint",
+    "test": "cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --compilers ts:ts-node/register",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
