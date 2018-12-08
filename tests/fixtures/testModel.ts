@@ -32,6 +32,9 @@ export interface TestModel extends Model {
    */
   stringValue: string;
   stringArray: string[];
+  /**
+   * @default true
+   */
   boolValue: boolean;
   boolArray: boolean[];
   enumValue?: EnumIndexValue;

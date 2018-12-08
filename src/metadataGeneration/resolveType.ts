@@ -551,6 +551,7 @@ function getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray
         }
 
         return {
+          default: getJSDocComment(propertyDeclaration, 'default'),
           description: getNodeDescription(propertyDeclaration),
           format: getNodeFormat(propertyDeclaration),
           name: identifier.text,
