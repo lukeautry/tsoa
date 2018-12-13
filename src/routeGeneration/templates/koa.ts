@@ -84,7 +84,7 @@ export function RegisterRoutes(router: KoaRouter) {
                   context.request['user'] = user;
                   await next();
               }
-          }
+          };
 
           const fail = async (error: any) => {
               responded++;
@@ -93,7 +93,7 @@ export function RegisterRoutes(router: KoaRouter) {
                   context.throw(context.status, error.message, error);
                   await next();
               }
-          }
+          };
 
           for (const secMethod of security) {
               if (Object.keys(secMethod).length > 1) {
@@ -143,12 +143,12 @@ export function RegisterRoutes(router: KoaRouter) {
                     context.status = statusCode;
                 }
             }
-            next();
+            return next();
         })
         .catch((error: any) => {
             context.status = error.status;
             context.throw(error.status, error.message, error);
-            next();
+            return next();
         });
     }
 
@@ -160,9 +160,9 @@ export function RegisterRoutes(router: KoaRouter) {
             case 'request':
                 return context.request;
             case 'query':
-                return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields)
+                return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields);
             case 'path':
-                return validationService.ValidateParam(args[key], context.params[name], name, errorFields)
+                return validationService.ValidateParam(args[key], context.params[name], name, errorFields);
             case 'header':
                 return validationService.ValidateParam(args[key], context.request.headers[name], name, errorFields);
             case 'body':
