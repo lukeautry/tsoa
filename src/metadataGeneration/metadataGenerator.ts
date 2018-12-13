@@ -4,7 +4,6 @@ import { ControllerGenerator } from './controllerGenerator';
 import { Tsoa } from './tsoa';
 
 export class MetadataGenerator {
-  public static current: MetadataGenerator;
   public readonly nodes = new Array<ts.Node>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
@@ -16,7 +15,6 @@ export class MetadataGenerator {
   constructor(entryFile: string, compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[]) {
     this.program = ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
-    MetadataGenerator.current = this;
   }
 
   public Generate(): Tsoa.Metadata {
@@ -66,7 +64,7 @@ export class MetadataGenerator {
   private buildControllers() {
     return this.nodes
       .filter((node) => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
-      .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration))
+      .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
