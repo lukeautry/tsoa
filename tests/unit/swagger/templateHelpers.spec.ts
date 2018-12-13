@@ -11,7 +11,7 @@ describe('ValidationService', () => {
                     properties: {
                         a: { dataType: 'string', required: true },
                     },
-                }
+                },
             });
             const error = {};
             const result = v.validateModel('', { a: 's' }, 'ExampleModel', error);
@@ -25,7 +25,7 @@ describe('ValidationService', () => {
                     properties: {
                         a: { dataType: 'string' },
                     },
-                }
+                },
             });
             const error = {};
             const result = v.validateModel('', {}, 'ExampleModel', error);
@@ -37,7 +37,7 @@ describe('ValidationService', () => {
             const v = new ValidationService({
                 ExampleModel: {
                     additionalProperties: { dataType: 'any' },
-                }
+                },
             });
             const error = {};
             const result = v.validateModel('', { a: 's' }, 'ExampleModel', error);
@@ -52,7 +52,7 @@ describe('ValidationService', () => {
                     properties: {
                         a: { dataType: 'string' },
                     },
-                }
+                },
             });
             const error = {};
             const result = v.validateModel('', {}, 'ExampleModel', error);
@@ -65,12 +65,12 @@ describe('ValidationService', () => {
                 ExampleModel: {
                     additionalProperties: {
                         dataType: 'integer',
-                        validators: { minimum: { value: 10 } }
+                        validators: { minimum: { value: 10 } },
                     },
                     properties: {
                         a: { dataType: 'integer' },
                     },
-                }
+                },
             });
             const error = {};
             const result = v.validateModel('', { a: 9 }, 'ExampleModel', error);

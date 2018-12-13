@@ -90,7 +90,7 @@
     "rimraf": "^2.6.2",
     "supertest": "^3.1.0",
     "ts-node": "^3.3.0",
-    "tslint": "^5.10.0"
+    "tslint": "^5.11.0"
   },
   "repository": {
     "type": "git",
