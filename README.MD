@@ -125,7 +125,7 @@ Note that type aliases are only supported for string literal types like `type st
 
 ### Generate
 
-From command line/npm script:
+#### From command line/npm script:
 ```
 // generate swagger.json
 tsoa swagger
@@ -135,6 +135,26 @@ tsoa routes
 ```
 
 See [CLI documentation](#command-line-interface)
+
+#### Programmatic/"Module" usage
+
+```
+import { generateRoutes, generateSwaggerSpec } from 'tsoa';
+
+(async () => {
+    await generateRoutes({
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        routesDir: "./api",
+    });
+
+    await generateSwaggerSpec({
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        outputDirectory: "./api/dist",
+    });
+})();
+```
 
 ### Dealing with duplicate model names
 If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
