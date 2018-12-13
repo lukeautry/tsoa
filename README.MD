@@ -12,6 +12,8 @@
     - [Create Controllers](#create-controllers)
     - [Create Models](#create-models)
     - [Generate](#generate)
+      + [Using CLI](#using-cli)
+      + [Programmatic](#programmatic)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
     - [Consuming generated routes](#consuming-generated-routes)
@@ -125,7 +127,7 @@ Note that type aliases are only supported for string literal types like `type st
 
 ### Generate
 
-#### From command line/npm script:
+#### Using CLI
 ```
 // generate swagger.json
 tsoa swagger
@@ -136,7 +138,7 @@ tsoa routes
 
 See [CLI documentation](#command-line-interface)
 
-#### Programmatic/"Module" usage
+#### Programmatic
 
 ```
 import { generateRoutes, generateSwaggerSpec } from 'tsoa';
