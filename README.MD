@@ -680,10 +680,9 @@ Options:
 
 ## Examples
 
-[An example project is available here](https://github.com/lukeautry/tsoa-example)
+[An example project with tsoa implementation and client library generation/React integration is available here](https://github.com/lukeautry/ts-app)
 
-Also see example controllers in [the tests](tests/fixtures/controllers)
-
+See example controllers in [the tests](tests/fixtures/controllers)
 
 ## Help wanted
 
