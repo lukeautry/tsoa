@@ -1,5 +1,4 @@
 import * as handlebars from 'handlebars';
-import * as handlebarsHelpers from 'handlebars-helpers';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
@@ -40,10 +39,6 @@ export class RouteGenerator {
   private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
-    });
-
-    handlebarsHelpers.comparison({
-      handlebars,
     });
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
