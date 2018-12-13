@@ -13,6 +13,7 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
+import * as KoaRouter from 'koa-router';
 
 const models: TsoaRoute.Models = {
     {{#each models}}
@@ -35,7 +36,7 @@ const models: TsoaRoute.Models = {
 };
 const validationService = new ValidationService(models);
 
-export function RegisterRoutes(router: any) {
+export function RegisterRoutes(router: KoaRouter) {
     {{#each controllers}}
     {{#each actions}}
         router.{{method}}('{{fullPath}}',
@@ -72,25 +73,25 @@ export function RegisterRoutes(router: any) {
 
   {{#if useSecurity}}
   function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-      return (context: any, next: any) => {
+      return async (context: any, next: any) => {
           let responded = 0;
           let success = false;
 
-          const succeed = function(user: any) {
+          const succeed = async (user: any) => {
               if (!success) {
                   success = true;
                   responded++;
                   context.request['user'] = user;
-                  next();
+                  await next();
               }
           }
 
-          const fail = function(error: any) {
+          const fail = async (error: any) => {
               responded++;
               if (responded == security.length && !success) {
                   context.status = error.status || 401;
                   context.throw(context.status, error.message, error);
-                  next();
+                  await next();
               }
           }
 
@@ -102,12 +103,12 @@ export function RegisterRoutes(router: any) {
                       promises.push(koaAuthentication(context.request, name, secMethod[name]));
                   }
 
-                  Promise.all(promises)
+                  return Promise.all(promises)
                       .then((users) => { succeed(users[0]); })
                       .catch(fail);
               } else {
                   for (const name in secMethod) {
-                      koaAuthentication(context.request, name, secMethod[name])
+                      return koaAuthentication(context.request, name, secMethod[name])
                           .then(succeed)
                           .catch(fail);
                   }

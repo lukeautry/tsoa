@@ -13,6 +13,7 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
+import * as express from 'express';
 
 const models: TsoaRoute.Models = {
     {{#each models}}
@@ -35,7 +36,7 @@ const models: TsoaRoute.Models = {
 };
 const validationService = new ValidationService(models);
 
-export function RegisterRoutes(app: any) {
+export function RegisterRoutes(app: express.Express) {
     {{#each controllers}}
     {{#each actions}}
         app.{{method}}('{{fullPath}}',
