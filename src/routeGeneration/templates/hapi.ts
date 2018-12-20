@@ -73,7 +73,7 @@ export function RegisterRoutes(server: any) {
                     const controller = new {{../name}}();
                     {{/if}}
 
-                    const promise = controller.{{name}}.apply(controller, validatedArgs);
+                    const promise = controller.{{name}}.apply(controller, validatedArgs as any);
                     return promiseHandler(controller, promise, request, h);
                 }
             }
