@@ -271,42 +271,60 @@ describe('ValidationService', () => {
       expect(result).to.equal(Number(value));
     });
 
-    it('should invalid integer format', () => {
-      const name = 'name';
-      const value = '10.0';
-      const error = {};
-      const result = new ValidationService({}).validateInt(name, value, error);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`invalid integer number`);
-    });
+    describe('Enum validate', () => {
+        let validationService: ValidationService;
 
-    it('should interger validate', () => {
-      const name = 'name';
-      const value = '11';
-      const error = {};
-      const validator = { minimum: { value: 10 }, maximum: { value: 12 } };
-      const result = new ValidationService({}).validateInt(name, value, error, validator);
-      expect(result).to.equal(Number(value));
-    });
+        beforeEach(() => {
+          validationService = new ValidationService({});
+        });
 
-    it('should invalid interger min validate', () => {
-      const name = 'name';
-      const value = '11';
-      const error = {};
-      const validator = { minimum: { value: 12 } };
-      const result = new ValidationService({}).validateInt(name, value, error, validator);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`min 12`);
-    });
+        it('should enum number value', () => {
+            const value = '1';
+            const result = validationService.validateEnum(
+              'name', value, {}, ['0', '1']);
+            expect(result).to.equal(value);
+        });
 
-    it('should invalid interger max validate', () => {
-      const name = 'name';
-      const value = '11';
-      const error = {};
-      const validator = { maximum: { value: 10 } };
-      const result = new ValidationService({}).validateInt(name, value, error, validator);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`max 10`);
+        it('should enum string value', () => {
+            const value = 'HELLO';
+            const result = validationService.validateEnum(
+              'name', value, {}, ['HELLO']);
+            expect(result).to.equal(value);
+        });
+
+        it('should enum no member', () => {
+            const error: any = {};
+            const name = 'name';
+            const value = 'HI';
+            const result = validationService.validateEnum(
+              name, value, error, []);
+            expect(result).to.equal(undefined);
+            expect(error[name].message).to.equal(`no member`);
+        });
+
+        it('should enum out of member', () => {
+            const error: any = {};
+            const name = 'name';
+            const value = 'SAY';
+            const result = validationService.validateEnum(
+              name, value, error, ['HELLO', 'HI']);
+            expect(result).to.equal(undefined);
+            expect(error[name].message).to.equal(
+              `should be one of the following; ['HELLO', 'HI']`);
+        });
+
+        it('should not discriminate between numeric and string enum values', () => {
+          function run(
+            val: string | number,
+            enumeration: string[] | number[],
+          ) {
+            const result = validationService.validateEnum(
+              'name', val, {}, enumeration);
+            expect(result).to.equal(val);
+          }
+          run('1', [0, 1]);
+          run(1, ['0', '1']);
+        });
     });
   });
 
