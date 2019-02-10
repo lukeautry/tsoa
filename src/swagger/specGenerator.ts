@@ -11,6 +11,41 @@ export abstract class SpecGenerator {
     return this.getSwaggerType(type);
   }
 
+  private buildDefinitions() {
+    const definitions: { [definitionsName: string]: Swagger.Schema } = {};
+    Object.keys(this.metadata.referenceTypeMap).map(typeName => {
+      const referenceType = this.metadata.referenceTypeMap[typeName];
+
+      // Object definition
+      if (referenceType.properties) {
+        const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+        definitions[referenceType.refName] = {
+          description: referenceType.description,
+          properties: this.buildProperties(referenceType.properties),
+          required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
+          type: 'object',
+        };
+
+        if (referenceType.additionalProperties) {
+          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        }
+
+        if (referenceType.example) {
+          definitions[referenceType.refName].example = referenceType.example;
+        }
+      }
+
+      // Enum definition
+      if (referenceType.enums) {
+        definitions[referenceType.refName] = {
+          description: referenceType.description,
+          enum: referenceType.enums,
+          type: 'integer',
+        };
+      }
+    });
+
+    return definitions;
   protected getOperationId(methodName: string) {
     return methodName.charAt(0).toUpperCase() + methodName.substr(1);
   }
