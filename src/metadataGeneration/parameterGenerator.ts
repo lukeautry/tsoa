@@ -2,15 +2,17 @@ import * as ts from 'typescript';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
+import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
-import { getInitializerValue, resolveType } from './resolveType';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class ParameterGenerator {
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
     private readonly path: string,
+    private readonly current: MetadataGenerator,
   ) { }
 
   public Generate(): Tsoa.Parameter {
@@ -167,10 +169,10 @@ export class ParameterGenerator {
   }
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
-    const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
+    const symbol = this.current.typeChecker.getSymbolAtLocation(node.name);
     if (!symbol) { return undefined; }
 
-    const comments = symbol.getDocumentationComment(MetadataGenerator.current.typeChecker);
+    const comments = symbol.getDocumentationComment(this.current.typeChecker);
     if (comments.length) { return ts.displayPartsToString(comments); }
 
     return undefined;
@@ -191,9 +193,9 @@ export class ParameterGenerator {
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
     let typeNode = parameter.type;
     if (!typeNode) {
-      const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
+      const type = this.current.typeChecker.getTypeAtLocation(parameter);
+      typeNode = this.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
     }
-    return resolveType(typeNode, parameter, extractEnum);
+    return new TypeResolver(typeNode, this.current, parameter, extractEnum).resolve();
   }
 }

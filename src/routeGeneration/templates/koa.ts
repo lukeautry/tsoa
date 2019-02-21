@@ -65,7 +65,7 @@ export function RegisterRoutes(router: KoaRouter) {
             const controller = new {{../name}}();
             {{/if}}
 
-            const promise = controller.{{name}}.apply(controller, validatedArgs);
+            const promise = controller.{{name}}.apply(controller, validatedArgs as any);
             return promiseHandler(controller, promise, context, next);
         });
     {{/each}}

@@ -2,14 +2,26 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import { RoutesConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
+import { Tsoa } from '../metadataGeneration/tsoa';
 import { RouteGenerator } from '../routeGeneration/routeGenerator';
 
-export const generateRoutes = async (routesConfig: RoutesConfig, compilerOptions?: ts.CompilerOptions, ignorePaths?: string[]) => {
-  const metadata = new MetadataGenerator(
-    routesConfig.entryFile,
-    compilerOptions,
-    ignorePaths,
-  ).Generate();
+export const generateRoutes = async (
+  routesConfig: RoutesConfig,
+  compilerOptions?: ts.CompilerOptions,
+  ignorePaths?: string[],
+  /**
+   * pass in cached metadata returned in a previous step to speed things up
+   */
+  metadata?: Tsoa.Metadata,
+) => {
+  if (!metadata) {
+    metadata = new MetadataGenerator(
+      routesConfig.entryFile,
+      compilerOptions,
+      ignorePaths,
+    ).Generate();
+  }
+
   const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
   let pathTransformer;
@@ -36,4 +48,6 @@ export const generateRoutes = async (routesConfig: RoutesConfig, compilerOptions
   }
 
   await routeGenerator.GenerateCustomRoutes(template, pathTransformer);
+
+  return metadata;
 };

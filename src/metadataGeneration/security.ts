@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getInitializerValue } from './resolveType';
+import { getInitializerValue } from './initializer-value';
 import { Tsoa } from './tsoa';
 
 export function getSecurities(decorators: ts.Identifier[]): Tsoa.Security[] {
