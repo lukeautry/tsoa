@@ -53,4 +53,11 @@ export class SecurityTestController {
   public async GetWithAndSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Get('ServerError')
+  public async GetServerError(@Request() request: express.Request): Promise<UserResponseModel> {
+    return Promise.reject(new Error('Unexpected'));
+  }
 }
