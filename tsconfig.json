@@ -4,10 +4,11 @@
         "sourceMap": true,
         "noImplicitAny": false,
         "module": "commonjs",
-        "target": "es5",
+        "target": "es2017",
         "lib": [
             "es6",
-            "dom"
+            "dom",
+            "es2017"
         ],
         "typeRoots": [
             "node_modules/@types",

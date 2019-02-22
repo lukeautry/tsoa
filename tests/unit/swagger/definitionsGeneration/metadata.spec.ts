@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import {expect} from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
+import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
+import {Tsoa} from '../../../../src/metadataGeneration/tsoa';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -119,7 +119,10 @@ describe('Metadata generation', () => {
       const defaultResponse = method.responses[2];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
-      expect(defaultResponse.examples).to.deep.equal({ status: 500, message: 'Something went wrong!' });
+      expect(defaultResponse.examples).to.deep.equal({
+        message: 'Something went wrong!',
+        status: 500,
+      });
 
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');
@@ -281,7 +284,7 @@ describe('Metadata generation', () => {
       expect(nicknamesParam.required).to.be.true;
       expect(nicknamesParam.type.dataType).to.equal('array');
       expect(nicknamesParam.collectionFormat).to.equal('multi');
-      expect(nicknamesParam.type.elementType).to.deep.equal({ dataType: 'string' });
+      expect(nicknamesParam.type.elementType).to.deep.equal({dataType: 'string'});
     });
 
     it('should generate an path parameter', () => {
@@ -454,6 +457,28 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('MoleculerParamGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/moleculer/get.service.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+    it('should generate a path parameter', () => {
+      const method = controller.methods.find(m => m.name === '_getModel');
+      if (!method) {
+        throw new Error('Method getModel not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(1);
+      const userParam = method.parameters[0];
+      expect(userParam.in).to.equal('path');
+      expect(userParam.name).to.equal('withUser');
+      expect(userParam.parameterName).to.equal('withUser');
+      expect(userParam.required).to.be.true;
+      expect(userParam.type.dataType).to.equal('string');
+      const response = method.responses[0];
+      expect(response.name).to.equal('200');
+      expect(response.schema!.dataType).to.equal('refObject');
+      expect((response.schema! as any).refName).to.equal('TestClassModel');
+    });
+  });
   describe('HiddenMethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
