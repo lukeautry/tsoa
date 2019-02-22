@@ -8,7 +8,7 @@ export interface User {
   id: string;
 }
 
-const {Errors} = ApiGateway;
+const { Errors } = ApiGateway;
 
 @Service({
   mixins: [ApiGateway],
@@ -34,7 +34,7 @@ class ApiGateWay {
     if (accessToken) {
       const user = await this._getUserFromRemoterService(ctx, accessToken);
       if (user) {
-        return Promise.resolve({...user.user, id: user.user.externalId});
+        return Promise.resolve({ ...user.user, id: user.user.externalId });
       } else {
         return Promise.reject(new Errors.UnAuthorizedError(Errors.ERR_INVALID_TOKEN, {}));
       }
@@ -45,7 +45,7 @@ class ApiGateWay {
 
   @Method
   private _getUserFromRemoterService(ctx: Moleculer.Context, accessToken): Promise<any> {
-    return Promise.resolve({user: {}});
+    return Promise.resolve({ user: {} });
   }
 }
 

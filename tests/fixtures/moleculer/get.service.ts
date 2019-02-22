@@ -28,7 +28,7 @@ class GetTest {
     },
   })
   public async getModel(ctx: AuthContext<ChatsActionParams>) {
-    const {withUser} = ctx.params;
+    const { withUser } = ctx.params;
     const fromUser = ctx.meta.user.id;
     return this._getModel(withUser, fromUser);
   }
