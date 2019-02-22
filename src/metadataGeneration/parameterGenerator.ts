@@ -1,21 +1,23 @@
 import * as ts from 'typescript';
-import {getDecoratorName, getDecoratorTextValue} from './../utils/decoratorUtils';
-import {getParameterValidators} from './../utils/validatorUtils';
-import {GenerateMetadataError} from './exceptions';
-import {MetadataGenerator} from './metadataGenerator';
-import {getInitializerValue, resolveType} from './resolveType';
-import {Tsoa} from './tsoa';
+import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import { getParameterValidators } from './../utils/validatorUtils';
+import { GenerateMetadataError } from './exceptions';
+import { getInitializerValue } from './initializer-value';
+import { MetadataGenerator } from './metadataGenerator';
+import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class ParameterGenerator {
   constructor(
     private readonly parameter: ts.ParameterDeclaration,
     private readonly method: string,
     private readonly path: string,
-  ) {
-  }
+    private readonly current: MetadataGenerator,
+  ) { }
 
   public Generate(): Tsoa.Parameter | null {
     const decoratorName = getDecoratorName(this.parameter, (identifier) => this.supportParameterDecorator(identifier.text));
+
     switch (decoratorName) {
       case 'Request':
         return this.getRequestParameter(this.parameter);
@@ -44,7 +46,7 @@ export class ParameterGenerator {
       name: parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
-      type: {dataType: 'object'},
+      type: { dataType: 'object' },
       validators: getParameterValidators(this.parameter, parameterName),
     };
   }
@@ -112,27 +114,35 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter, false);
 
-    if (type.dataType === 'array') {
-      const arrayType = type as Tsoa.ArrayType;
-
-      if (!this.supportPathDataType(arrayType.elementType)) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
-      }
-    } else {
-      if (!this.supportPathDataType(type)) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
-      }
-    }
-
-    return {
+    const commonProperties = {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
-      in: 'query',
+      in: 'query' as 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
-      type,
       validators: getParameterValidators(this.parameter, parameterName),
+    };
+
+    if (type.dataType === 'array') {
+      const arrayType = type as Tsoa.ArrayType;
+      if (!this.supportPathDataType(arrayType.elementType)) {
+        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
+      }
+      return {
+        ...commonProperties,
+        collectionFormat: 'multi',
+        type: arrayType,
+      } as Tsoa.ArrayParameter;
+    }
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
+    }
+
+    return {
+      ...commonProperties,
+      type,
     };
   }
 
@@ -161,15 +171,11 @@ export class ParameterGenerator {
   }
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
-    const symbol = MetadataGenerator.current.typeChecker.getSymbolAtLocation(node.name);
-    if (!symbol) {
-      return undefined;
-    }
+    const symbol = this.current.typeChecker.getSymbolAtLocation(node.name);
+    if (!symbol) { return undefined; }
 
-    const comments = symbol.getDocumentationComment(MetadataGenerator.current.typeChecker);
-    if (comments.length) {
-      return ts.displayPartsToString(comments);
-    }
+    const comments = symbol.getDocumentationComment(this.current.typeChecker);
+    if (comments.length) { return ts.displayPartsToString(comments); }
 
     return undefined;
   }
@@ -189,9 +195,9 @@ export class ParameterGenerator {
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
     let typeNode = parameter.type;
     if (!typeNode) {
-      const type = MetadataGenerator.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = MetadataGenerator.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
+      const type = this.current.typeChecker.getTypeAtLocation(parameter);
+      typeNode = this.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
     }
-    return resolveType(typeNode, parameter, extractEnum);
+    return new TypeResolver(typeNode, this.current, parameter, extractEnum).resolve();
   }
 }

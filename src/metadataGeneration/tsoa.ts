@@ -39,6 +39,11 @@ export namespace Tsoa {
     validators: Validators;
   }
 
+  export interface ArrayParameter extends Parameter {
+    type: ArrayType;
+    collectionFormat?: 'csv' | 'multi'| 'pipes' | 'ssv' | 'tsv' ;
+  }
+
   export interface Validators {
     [key: string]: { value?: any, errorMsg?: string };
   }

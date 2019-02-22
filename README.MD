@@ -12,6 +12,8 @@
     - [Create Controllers](#create-controllers)
     - [Create Models](#create-models)
     - [Generate](#generate)
+      + [Using CLI](#using-cli)
+      + [Programmatic](#programmatic)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
     - [Consuming generated routes](#consuming-generated-routes)
@@ -125,7 +127,7 @@ Note that type aliases are only supported for string literal types like `type st
 
 ### Generate
 
-From command line/npm script:
+#### Using CLI
 ```
 // generate swagger.json
 tsoa swagger
@@ -135,6 +137,26 @@ tsoa routes
 ```
 
 See [CLI documentation](#command-line-interface)
+
+#### Programmatic
+
+```
+import { generateRoutes, generateSwaggerSpec } from 'tsoa';
+
+(async () => {
+    await generateRoutes({
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        routesDir: "./api",
+    });
+
+    await generateSwaggerSpec({
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        outputDirectory: "./api/dist",
+    });
+})();
+```
 
 ### Dealing with duplicate model names
 If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
@@ -680,10 +702,9 @@ Options:
 
 ## Examples
 
-[An example project is available here](https://github.com/lukeautry/tsoa-example)
+[An example project with tsoa implementation and client library generation/React integration is available here](https://github.com/lukeautry/ts-app)
 
-Also see example controllers in [the tests](tests/fixtures/controllers)
-
+See example controllers in [the tests](tests/fixtures/controllers)
 
 ## Help wanted
 

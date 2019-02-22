@@ -10,7 +10,7 @@ import {
   Request,
   Route,
 } from '../../../src';
-import {Gender, ParameterTestModel} from '../testModel';
+import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -23,6 +23,7 @@ export class ParameterController {
    * @param {number} weight Weight description
    * @param {boolean} human Human description
    * @param {Gender} gender Gender description
+   * @param {string[]} nicknames Nicknames description
    *
    * @param ignore
    * @isInt age
@@ -36,6 +37,7 @@ export class ParameterController {
     @Query() weight: number,
     @Query() human: boolean,
     @Query() gender: Gender,
+    @Query() nicknames: string[],
     @Ignore() ignore: number,
   ): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
@@ -44,6 +46,7 @@ export class ParameterController {
       gender,
       human,
       lastname,
+      nicknames,
       weight,
     });
   }

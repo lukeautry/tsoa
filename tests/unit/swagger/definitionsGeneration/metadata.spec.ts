@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -216,13 +217,13 @@ describe('Metadata generation', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/parameterController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
-    it('should generate an query parameter', () => {
+    it('should generate a query parameter', () => {
       const method = controller.methods.find(m => m.name === 'getQuery');
       if (!method) {
         throw new Error('Method getQuery not defined!');
       }
 
-      expect(method.parameters.length).to.equal(6);
+      expect(method.parameters.length).to.equal(7);
 
       const firstnameParam = method.parameters[0];
       expect(firstnameParam.in).to.equal('query');
@@ -271,6 +272,16 @@ describe('Metadata generation', () => {
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
       expect(genderParam.type.dataType).to.equal('enum');
+
+      const nicknamesParam = method.parameters[6] as Tsoa.ArrayParameter;
+      expect(nicknamesParam.in).to.equal('query');
+      expect(nicknamesParam.name).to.equal('nicknames');
+      expect(nicknamesParam.parameterName).to.equal('nicknames');
+      expect(nicknamesParam.description).to.equal('Nicknames description');
+      expect(nicknamesParam.required).to.be.true;
+      expect(nicknamesParam.type.dataType).to.equal('array');
+      expect(nicknamesParam.collectionFormat).to.equal('multi');
+      expect(nicknamesParam.type.elementType).to.deep.equal({ dataType: 'string' });
     });
 
     it('should generate an path parameter', () => {

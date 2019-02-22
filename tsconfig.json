@@ -22,7 +22,8 @@
         "emitDecoratorMetadata": true,
         "noImplicitThis": true,
         "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
+        "noFallthroughCasesInSwitch": true,
+        "strictBindCallApply": true
     },
     "exclude": [
         "src/routeGeneration/templates/**/*"

@@ -12,3 +12,5 @@ export * from './decorators/security';
 export * from './interfaces/controller';
 export * from './decorators/response';
 export * from './routeGeneration/templateHelpers';
+export * from './module/generate-swagger-spec';
+export * from './module/generate-routes';

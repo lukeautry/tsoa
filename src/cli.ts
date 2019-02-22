@@ -1,38 +1,43 @@
 #!/usr/bin/env node
-import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
 import { Config, RoutesConfig, SwaggerConfig } from './config';
-import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
-import { RouteGenerator } from './routeGeneration/routeGenerator';
-import { SpecGenerator } from './swagger/specGenerator';
+import { generateRoutes } from './module/generate-routes';
+import { generateSwaggerSpec } from './module/generate-swagger-spec';
+import { fsExists, fsReadFile } from './utils/fs';
 
 const workingDir: string = process.cwd();
 
-const getPackageJsonValue = (key: string, defaultValue = ''): string => {
-  try {
-    const packageJson = require(`${workingDir}/package.json`);
-    return packageJson[key] || '';
-  } catch (err) {
-    return defaultValue;
+let packageJson: any;
+const getPackageJsonValue = async (key: string, defaultValue = ''): Promise<string> => {
+  if (!packageJson) {
+    try {
+      const packageJsonRaw = await fsReadFile(`${workingDir}/package.json`);
+      packageJson = JSON.parse(packageJsonRaw.toString('utf8'));
+    } catch (err) {
+      return defaultValue;
+    }
   }
+
+  return packageJson[key] || '';
 };
 
-const nameDefault = getPackageJsonValue('name', 'TSOA');
-const versionDefault = getPackageJsonValue('version', '1.0.0');
-const descriptionDefault = getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
-const licenseDefault = getPackageJsonValue('license', 'MIT');
+const nameDefault = () => getPackageJsonValue('name', 'TSOA');
+const versionDefault = () => getPackageJsonValue('version', '1.0.0');
+const descriptionDefault = () => getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
+const licenseDefault = () => getPackageJsonValue('license', 'MIT');
 
-const getConfig = (configPath = 'tsoa.json'): Config => {
+const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
   try {
     const ext = path.extname(configPath);
     if (ext === '.yaml' || ext === '.yml') {
       config = YAML.load(configPath);
     } else {
-      config = require(`${workingDir}/${configPath}`);
+      const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
+      config = JSON.parse(configRaw.toString('utf8'));
     }
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
@@ -55,33 +60,33 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
   return config || {};
 };
 
-const validateSwaggerConfig = (config: SwaggerConfig): SwaggerConfig => {
+const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
   if (!config.outputDirectory) { throw new Error('Missing outputDirectory: onfiguration most contain output directory'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
-  if (!fs.existsSync(config.entryFile)) {
+  if (!await fsExists(config.entryFile)) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  config.version = config.version || versionDefault;
-  config.name = config.name || nameDefault;
-  config.description = config.description || descriptionDefault;
-  config.license = config.license || licenseDefault;
+  config.version = config.version || await versionDefault();
+  config.name = config.name || await nameDefault();
+  config.description = config.description || await descriptionDefault();
+  config.license = config.license || await licenseDefault();
   config.basePath = config.basePath || '/';
 
   return config;
 };
 
-const validateRoutesConfig = (config: RoutesConfig): RoutesConfig => {
+const validateRoutesConfig = async (config: RoutesConfig): Promise<RoutesConfig> => {
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
-  if (!fs.existsSync(config.entryFile)) {
+  if (!await fsExists(config.entryFile)) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
   if (!config.routesDir) { throw new Error('Missing routesDir: Configuration must contain a routes file output directory.'); }
 
-  if (config.authenticationModule && !(fs.existsSync(config.authenticationModule) || fs.existsSync(config.authenticationModule + '.ts'))) {
+  if (config.authenticationModule && !(await fsExists(config.authenticationModule) || await fsExists(config.authenticationModule + '.ts'))) {
     throw new Error(`No authenticationModule file found at '${config.authenticationModule}'`);
   }
 
-  if (config.iocModule && !(fs.existsSync(config.iocModule) || fs.existsSync(config.iocModule + '.ts'))) {
+  if (config.iocModule && !(await fsExists(config.iocModule) || await fsExists(config.iocModule + '.ts'))) {
     throw new Error(`No iocModule file found at '${config.iocModule}'`);
   }
 
@@ -138,12 +143,11 @@ yargs
   }, routeGenerator)
   .help('help')
   .alias('help', 'h')
-  .version(() => getPackageJsonValue('version'))
   .argv;
 
-function swaggerSpecGenerator(args) {
+async function swaggerSpecGenerator(args) {
   try {
-    const config = getConfig(args.configuration);
+    const config = await getConfig(args.configuration);
     if (args.basePath) {
       config.swagger.basePath = args.basePath;
     }
@@ -158,21 +162,9 @@ function swaggerSpecGenerator(args) {
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const swaggerConfig = validateSwaggerConfig(config.swagger);
-    const metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, config.ignore).Generate();
-    const spec = new SpecGenerator(metadata, config.swagger).GetSpec();
+    const swaggerConfig = await validateSwaggerConfig(config.swagger);
 
-    const exists = fs.existsSync(swaggerConfig.outputDirectory);
-    if (!exists) {
-      fs.mkdirSync(swaggerConfig.outputDirectory);
-    }
-    let data = JSON.stringify(spec, null, '\t');
-    if (config.swagger.yaml) {
-      data = YAML.stringify(JSON.parse(data), 10);
-    }
-    const ext = config.swagger.yaml ? 'yaml' : 'json';
-
-    fs.writeFileSync(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
+    await generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
@@ -180,42 +172,17 @@ function swaggerSpecGenerator(args) {
   }
 }
 
-function routeGenerator(args) {
+async function routeGenerator(args) {
   try {
-    const config = getConfig(args.configuration);
+    const config = await getConfig(args.configuration);
     if (args.basePath) {
       config.routes.basePath = args.basePath;
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const routesConfig = validateRoutesConfig(config.routes);
-    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore).Generate();
-    const routeGenerator = new RouteGenerator(metadata, routesConfig);
+    const routesConfig = await validateRoutesConfig(config.routes);
 
-    let pathTransformer;
-    let template;
-    pathTransformer = (path: string) => path.replace(/{/g, ':').replace(/}/g, '');
-
-    switch (routesConfig.middleware) {
-      case 'express':
-        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
-        break;
-      case 'hapi':
-        template = path.join(__dirname, 'routeGeneration/templates/hapi.ts');
-        pathTransformer = (path: string) => path;
-        break;
-      case 'koa':
-        template = path.join(__dirname, 'routeGeneration/templates/koa.ts');
-        break;
-      default:
-        template = path.join(__dirname, 'routeGeneration/templates/express.ts');
-    }
-
-    if (routesConfig.middlewareTemplate) {
-      template = routesConfig.middlewareTemplate;
-    }
-
-    routeGenerator.GenerateCustomRoutes(template, pathTransformer);
+    await generateRoutes(routesConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);

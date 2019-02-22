@@ -1,6 +1,6 @@
 import 'koa';
 declare module 'koa' {
-    interface Request {
-        user?: any;
-    }
+  interface Request {
+    user?: any;
+  }
 }

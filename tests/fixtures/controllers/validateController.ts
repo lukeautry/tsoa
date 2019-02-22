@@ -2,7 +2,7 @@ import {
   Body, Get, Post, Query, Route,
 } from './../../../src';
 import {
-  ValidateModel,
+  ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel,
 } from './../testModel';
 
 export interface ValidateDateResponse {
@@ -145,5 +145,15 @@ export class ValidateController {
   @Post('body')
   public bodyValidate( @Body() body: ValidateModel): Promise<ValidateModel> {
     return Promise.resolve(body);
+  }
+
+  @Post('map')
+  public async getNumberBodyRequest(@Body() map: ValidateMapStringToNumber): Promise<number[]> {
+    return Object.keys(map).map((key) => map[key]);
+  }
+
+  @Post('mapAny')
+  public async getDictionaryRequest(@Body() map: ValidateMapStringToAny): Promise<any[]> {
+    return Object.keys(map).map((key) => map[key]);
   }
 }

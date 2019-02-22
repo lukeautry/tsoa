@@ -32,6 +32,9 @@ export interface TestModel extends Model {
    */
   stringValue: string;
   stringArray: string[];
+  /**
+   * @default true
+   */
   boolValue: boolean;
   boolArray: boolean[];
   enumValue?: EnumIndexValue;
@@ -167,6 +170,7 @@ export class ParameterTestModel {
   public weight: number;
   public human: boolean;
   public gender: Gender;
+  public nicknames?: string[];
 }
 
 export class ValidateCustomErrorModel {
@@ -245,6 +249,14 @@ export class ValidateModel {
    * @ignore
    */
   public ignoredProperty: string;
+}
+
+export interface ValidateMapStringToNumber {
+  [key: string]: number;
+}
+
+export interface ValidateMapStringToAny {
+  [key: string]: any;
 }
 
 /**
