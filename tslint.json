@@ -15,6 +15,7 @@
         "singleline": "never"
       }
     ],
+    "brace-style": ["1tbs", { "allowSingleLine": true }],
     "quotemark": [
       true,
       "single"
