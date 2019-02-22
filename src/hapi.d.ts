@@ -1,6 +1,6 @@
 import 'hapi';
 declare module 'hapi' {
-    interface Request {
-        user?: any;
-    }
+  interface Request {
+    user?: any;
+  }
 }
