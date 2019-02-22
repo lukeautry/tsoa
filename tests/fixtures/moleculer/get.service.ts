@@ -1,9 +1,9 @@
-import {Context, GenericObject} from 'moleculer';
-import {Action, Method, Service} from 'moleculer-decorators';
-import {Get, Ignore, Path, Route, Security} from '../../../src';
-import {ModelService} from '../services/modelService';
-import {TestClassModel} from '../testModel';
-import {User} from './api.service';
+import { Context, GenericObject } from 'moleculer';
+import { Action, Method, Service } from 'moleculer-decorators';
+import { Get, Ignore, Path, Route, Security } from '../../../src';
+import { ModelService } from '../services/modelService';
+import { TestClassModel } from '../testModel';
+import { User } from './api.service';
 
 interface ChatsActionParams {
   withUser: string;

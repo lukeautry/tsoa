@@ -1,7 +1,7 @@
-import {IncomingMessage, ServerResponse} from 'http';
-import {Context} from 'moleculer';
+import { IncomingMessage, ServerResponse } from 'http';
+import { Context } from 'moleculer';
 import * as Moleculer from 'moleculer';
-import {Method, Service} from 'moleculer-decorators';
+import { Method, Service } from 'moleculer-decorators';
 import * as ApiGateway from 'moleculer-web';
 
 export interface User {
@@ -42,6 +42,7 @@ class ApiGateWay {
       return Promise.reject(new Errors.UnAuthorizedError(Errors.ERR_NO_TOKEN, {}));
     }
   }
+
   @Method
   private _getUserFromRemoterService(ctx: Moleculer.Context, accessToken): Promise<any> {
     return Promise.resolve({user: {}});

@@ -42,7 +42,7 @@ export class RouteGenerator {
       return JSON.stringify(context);
     });
 
-    const routesTemplate = handlebars.compile(middlewareTemplate, {noEscape: true});
+    const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule):undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule):undefined;
 

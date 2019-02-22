@@ -2,7 +2,11 @@
   "extends": [
     "tslint:recommended"
   ],
+  "rulesDirectory": [
+    "node_modules/tslint-eslint-rules/dist/rules"
+  ],
   "rules": {
+    "object-curly-spacing": "always",
     "arrow-parens": false,
     "trailing-comma": [
       true,
@@ -21,7 +25,7 @@
     ],
     "no-unused-expression": false,
     "no-shadowed-variable": false,
-    "whitespace": [true, "check-module"],
+    "whitespace": [true, "check-module", "check-preblock"],
     "interface-name": [
       true,
       "never-prefix"
