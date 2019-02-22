@@ -43,8 +43,8 @@ export class RouteGenerator {
     });
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
-    const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule):undefined;
-    const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule):undefined;
+    const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
+    const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
 
     // If we're working locally then tsoa won't exist as an importable module.
     // So, when in testing mode we reference the module by path instead.
@@ -112,7 +112,7 @@ export class RouteGenerator {
       }
       const modelSchema = {
         enums: referenceType.enums,
-        properties: Object.keys(properties).length === 0 ? undefined:properties,
+        properties: Object.keys(properties).length === 0 ? undefined : properties,
       } as TsoaRoute.ModelSchema;
       if (referenceType.additionalProperties) {
         modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
@@ -130,7 +130,7 @@ export class RouteGenerator {
   private buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {
     const propertySchema = this.buildProperty(source.type);
     propertySchema.default = source.default;
-    propertySchema.required = source.required ? true:undefined;
+    propertySchema.required = source.required ? true : undefined;
 
     if (Object.keys(source.validators).length > 0) {
       propertySchema.validators = source.validators;
@@ -144,7 +144,7 @@ export class RouteGenerator {
       default: source.default,
       in: source.in,
       name: source.name,
-      required: source.required ? true:undefined,
+      required: source.required ? true : undefined,
     } as TsoaRoute.ParameterSchema;
     const parameterSchema = Object.assign(parameter, property);
 

@@ -25,8 +25,7 @@
     ],
     "no-unused-expression": false,
     "no-shadowed-variable": false,
-    "semicolon": [true, "always"],
-    "whitespace": [true, "check-module"],
+    "whitespace": [true, "check-module", "check-operator"],
     "interface-name": [
       true,
       "never-prefix"
