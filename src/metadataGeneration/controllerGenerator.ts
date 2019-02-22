@@ -14,7 +14,7 @@ export class ControllerGenerator {
   constructor(
     private readonly node: ts.ClassDeclaration,
     private readonly current: MetadataGenerator,
-    ) {
+  ) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();

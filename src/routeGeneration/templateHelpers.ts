@@ -8,7 +8,7 @@ export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, ge
 }
 
 export class ValidationService {
-  constructor(private readonly models: TsoaRoute.Models) {}
+  constructor(private readonly models: TsoaRoute.Models) { }
 
   public ValidateParam(property: TsoaRoute.PropertySchema, value: any, name = '', fieldErrors: FieldErrors, parent = '') {
     if (value === undefined || value === null) {

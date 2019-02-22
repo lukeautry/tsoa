@@ -18,7 +18,7 @@ export class MethodGenerator {
     private readonly current: MetadataGenerator,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
-    ) {
+  ) {
     this.processMethodDecorators();
   }
 
@@ -60,7 +60,7 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
-    const map = this.node.parameters.map((p) => {
+    const parameters = this.node.parameters.map((p) => {
       try {
         return new ParameterGenerator(p, this.method, this.path, this.current).Generate();
       } catch (e) {
@@ -68,8 +68,7 @@ export class MethodGenerator {
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
         throw new GenerateMetadataError(`${e.message} \n in '${controllerId.text}.${methodId.text}'`);
       }
-    });
-    const parameters = map.filter((parameter) => parameter !== null) as Tsoa.Parameter[];
+    }).filter((parameter) => parameter !== null) as Tsoa.Parameter[];
 
     const bodyParameters = parameters.filter((p) => p.in === 'body');
     const bodyProps = parameters.filter((p) => p.in === 'body-prop');
