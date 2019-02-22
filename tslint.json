@@ -16,18 +16,21 @@
       "single"
     ],
     "max-line-length": [
+      true,
       200
     ],
     "no-unused-expression": false,
     "no-shadowed-variable": false,
+    "whitespace": [true, "check-module"],
     "interface-name": [
+      true,
       "never-prefix"
     ],
     "member-ordering": [
       false
     ],
     "max-classes-per-file": [
-      false
+      false, 1
     ],
     "no-reference": false,
     "no-namespace": [
