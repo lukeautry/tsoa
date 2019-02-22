@@ -1,7 +1,7 @@
 import {IncomingMessage, ServerResponse} from 'http';
 import {Context} from 'moleculer';
 import * as Moleculer from 'moleculer';
-import {BaseSchema, Method, Service} from 'moleculer-decorators';
+import {Method, Service} from 'moleculer-decorators';
 import * as ApiGateway from 'moleculer-web';
 
 export interface User {
@@ -27,7 +27,7 @@ const {Errors} = ApiGateway;
     ],
   },
 })
-class ApiGateWay extends BaseSchema {
+class ApiGateWay {
   @Method
   public async authenticate(ctx: Context, route: string, req: IncomingMessage, res: ServerResponse) {
     const accessToken = req.headers.authorization;

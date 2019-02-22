@@ -1,5 +1,8 @@
 import { expect } from 'chai';
 import {ServiceBroker} from 'moleculer';
+import 'reflect-metadata';
+const name = require.resolve('reflect-metadata');
+delete require.cache[name];
 
 import * as request from 'supertest';
 import {TestModel} from '../fixtures/testModel';

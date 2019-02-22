@@ -1,5 +1,5 @@
 import {Context, GenericObject} from 'moleculer';
-import {Action, BaseSchema, Method, Service} from 'moleculer-decorators';
+import {Action, Method, Service} from 'moleculer-decorators';
 import {Get, Ignore, Path, Route, Security} from '../../../src';
 import {ModelService} from '../services/modelService';
 import {TestClassModel} from '../testModel';
@@ -21,7 +21,7 @@ export interface AuthContext<P = GenericObject> extends Context<P, AuthMeta> {
 
 @Service()
 @Route('GetTest')
-class GetTest extends BaseSchema {
+class GetTest {
   @Action({
     params: {
       withUser: 'string',
