@@ -1,7 +1,7 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-import {MetadataGenerator} from '../../../../src/metadataGeneration/metadataGenerator';
-import {Tsoa} from '../../../../src/metadataGeneration/tsoa';
+import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
+import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -284,7 +284,7 @@ describe('Metadata generation', () => {
       expect(nicknamesParam.required).to.be.true;
       expect(nicknamesParam.type.dataType).to.equal('array');
       expect(nicknamesParam.collectionFormat).to.equal('multi');
-      expect(nicknamesParam.type.elementType).to.deep.equal({dataType: 'string'});
+      expect(nicknamesParam.type.elementType).to.deep.equal({ dataType: 'string' });
     });
 
     it('should generate an path parameter', () => {

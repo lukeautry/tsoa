@@ -3,7 +3,18 @@ import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
-import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import {
+  Gender,
+  GenericModel,
+  GenericRequest,
+  ParameterTestModel,
+  TestClassModel,
+  TestModel,
+  UserResponseModel,
+  ValidateMapStringToAny,
+  ValidateMapStringToNumber,
+  ValidateModel,
+} from '../fixtures/testModel';
 
 const basePath = '/v1';
 
@@ -99,7 +110,9 @@ describe('Express Server', () => {
   });
 
   it('parses buffer parameter', () => {
-    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => { return; });
+    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
+      return;
+    });
   });
 
   it('parsed body parameters', () => {
@@ -114,7 +127,9 @@ describe('Express Server', () => {
   it('correctly returns status code', () => {
     const data = getFakeModel();
     const path = basePath + '/PostTest/WithDifferentReturnCode';
-    return verifyPostRequest(path, data, (err, res) => { return; }, 201);
+    return verifyPostRequest(path, data, (err, res) => {
+      return;
+    }, 201);
   });
 
   it('parses class model as body parameter', () => {
@@ -522,7 +537,7 @@ describe('Express Server', () => {
       };
       return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
         const response = res.body as any[];
-        expect(response.sort()).to.eql([ [], '', 0, false, null ]);
+        expect(response.sort()).to.eql([[], '', 0, false, null]);
       });
     });
 

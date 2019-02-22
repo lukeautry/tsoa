@@ -14,7 +14,7 @@ describe('Security route generation', () => {
 
     if (!path.get) { throw new Error('No get operation.'); }
 
-    expect(path.get.security).to.deep.equal([{api_key: []}]);
+    expect(path.get.security).to.deep.equal([{ api_key: [] }]);
   });
 
   it('should generate a route with scoped security', () => {
@@ -22,7 +22,7 @@ describe('Security route generation', () => {
 
     if (!path.get) { throw new Error('No get operation.'); }
 
-    expect(path.get.security).to.deep.equal([{tsoa_auth: ['write:pets', 'read:pets']}]);
+    expect(path.get.security).to.deep.equal([{ tsoa_auth: ['write:pets', 'read:pets'] }]);
   });
 
   it('should generate a route with security A OR security B', () => {

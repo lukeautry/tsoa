@@ -1,11 +1,12 @@
 import { expect } from 'chai';
-import {ServiceBroker} from 'moleculer';
+import { ServiceBroker } from 'moleculer';
 import 'reflect-metadata';
+
 const name = require.resolve('reflect-metadata');
 delete require.cache[name];
 
 import * as request from 'supertest';
-import {TestModel} from '../fixtures/testModel';
+import { TestModel } from '../fixtures/testModel';
 
 describe('Moleculer', () => {
   describe('Test auth', () => {
@@ -34,16 +35,5 @@ describe('Moleculer', () => {
         });
 
     });
-    // it('should not pass auth', async (done) => {
-    //   request(apiService.server).get('/v3/test').set('Authorization', '234')
-    //     .expect(401, done);
-    // });
-    // it('should not pass auth wihtout token', async (done) => {
-    //   request(apiService.server).get('/v3/test')
-    //     .expect(401, done);
-    // });
-    // it('should pass health check', async (done) => {
-    //   request(apiService.server).get('/health').expect(200, done);
-    // });
   });
 });

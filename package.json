@@ -22,7 +22,7 @@
     "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist && rimraf tests/fixtures/*/routes.ts",
-    "lint": "tslint --exclude ./node_modules/** ./src/**/*.ts ./tests/**/*.ts",
+    "lint": "tslint --exclude ./node_modules/** --exclude ./**/routeGeneration/templates/** --exclude ./tests/fixtures/custom/custom-tsoa-template.ts ./src/**/*.ts ./tests/**/*.ts",
     "format": "tsfmt -r",
     "prepare": "npm run build",
     "deploy": "npm version patch -m \"Release v%s\" && npm publish",

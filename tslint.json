@@ -15,7 +15,7 @@
         "singleline": "never"
       }
     ],
-    "brace-style": ["1tbs", { "allowSingleLine": true }],
+
     "quotemark": [
       true,
       "single"
@@ -26,7 +26,7 @@
     ],
     "no-unused-expression": false,
     "no-shadowed-variable": false,
-    "whitespace": [true, "check-module", "check-operator"],
+    "whitespace": [true, "check-module", "check-operator", "check-decl"],
     "interface-name": [
       true,
       "never-prefix"
