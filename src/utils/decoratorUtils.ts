@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getInitializerValue } from './../metadataGeneration/resolveType';
+import { getInitializerValue } from '../metadataGeneration/initializer-value';
 
 export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = node.decorators;
@@ -40,7 +40,7 @@ export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: 
   const expression = decorators[0].parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) { return; }
-  return getInitializerValue(expArguments[0] as any);
+  return getInitializerValue(expArguments[0]);
 }
 
 export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {

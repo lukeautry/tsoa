@@ -1,9 +1,8 @@
-import * as fs from 'fs';
 import * as handlebars from 'handlebars';
-import * as handlebarsHelpers from 'handlebars-helpers';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { fsReadFile, fsWriteFile } from '../utils/fs';
 import { RoutesConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
@@ -23,44 +22,23 @@ export class RouteGenerator {
 
   constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig) { }
 
-  public GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
+  public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
-    return new Promise<void>((resolve, reject) => {
-      tsfmt
-        .processString(fileName, content, this.tsfmtConfig as any)
-        .then(result => {
-          fs.writeFile(fileName, result.dest, (err) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-        })
-        .catch(reject);
-    });
+    const formatted = await tsfmt.processString(fileName, content, this.tsfmtConfig as any);
+    await fsWriteFile(fileName, formatted.dest);
   }
 
-  public GenerateCustomRoutes(template: string, pathTransformer: (path: string) => string) {
-    let file: string;
-    fs.readFile(path.join(template), (err, data) => {
-      if (err) {
-        throw err;
-      }
-      file = data.toString();
-      return this.GenerateRoutes(file, pathTransformer);
-    });
+  public async GenerateCustomRoutes(template: string, pathTransformer: (path: string) => string) {
+    const data = await fsReadFile(path.join(template));
+    const file = data.toString();
+    return await this.GenerateRoutes(file, pathTransformer);
   }
 
   private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
-    });
-
-    handlebarsHelpers.comparison({
-      handlebars,
     });
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
@@ -71,7 +49,7 @@ export class RouteGenerator {
     // So, when in testing mode we reference the module by path instead.
     const env = process.env.NODE_ENV;
     let canImportByAlias = true;
-    if (env === 'test') {
+    if (env === 'tsoa_test') {
       canImportByAlias = false;
     }
 

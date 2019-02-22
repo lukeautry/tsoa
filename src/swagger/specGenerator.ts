@@ -8,7 +8,7 @@ export class SpecGenerator {
 
   public GetSpec() {
     let spec: Swagger.Spec = {
-      basePath: normalisePath(this.config.basePath as string, '/'),
+      basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
       info: {
@@ -174,7 +174,7 @@ export class SpecGenerator {
     const parameterType = this.getSwaggerType(source.type);
     parameter.format = parameterType.format || undefined;
 
-    if (parameter.in === 'query' && parameter.type === 'array') {
+    if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
     }
 
@@ -240,7 +240,7 @@ export class SpecGenerator {
           });
       }
 
-      if (!property.required)  {
+      if (!property.required) {
         swaggerType['x-nullable'] = true;
       }
 

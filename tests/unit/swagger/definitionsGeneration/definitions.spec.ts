@@ -95,6 +95,15 @@ describe('Definition generation', () => {
 
       expect(definition.properties.optionalString['x-nullable']).to.equal(true);
     });
+
+    it('should generate a default value from jsdoc', () => {
+      const definition = getValidatedDefinition('TestModel');
+      if (!definition.properties) {
+        throw new Error('No definition properties.');
+      }
+
+      expect(definition.properties.boolValue.default).to.equal('true');
+    });
   });
 
   describe('Class-based generation', () => {

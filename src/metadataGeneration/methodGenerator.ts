@@ -2,11 +2,12 @@ import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
+import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
-import { getInitializerValue, resolveType } from './resolveType';
 import { getSecurities } from './security';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -14,8 +15,10 @@ export class MethodGenerator {
 
   constructor(
     private readonly node: ts.MethodDeclaration,
+    private readonly current: MetadataGenerator,
     private readonly parentTags?: string[],
-    private readonly parentSecurity?: Tsoa.Security[]) {
+    private readonly parentSecurity?: Tsoa.Security[],
+    ) {
     this.processMethodDecorators();
   }
 
@@ -30,12 +33,12 @@ export class MethodGenerator {
 
     let nodeType = this.node.type;
     if (!nodeType) {
-      const typeChecker = MetadataGenerator.current.typeChecker;
+      const typeChecker = this.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
     }
-    const type = resolveType(nodeType);
+    const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 
@@ -59,7 +62,7 @@ export class MethodGenerator {
   private buildParameters() {
     const parameters = this.node.parameters.map((p) => {
       try {
-        return new ParameterGenerator(p, this.method, this.path).Generate();
+        return new ParameterGenerator(p, this.method, this.path, this.current).Generate();
       } catch (e) {
         const methodId = this.node.name as ts.Identifier;
         const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
@@ -132,7 +135,7 @@ export class MethodGenerator {
         examples,
         name,
         schema: (expression.typeArguments && expression.typeArguments.length > 0)
-          ? resolveType(expression.typeArguments[0])
+          ? new TypeResolver(expression.typeArguments[0], this.current).resolve()
           : undefined,
       } as Tsoa.Response;
     });
