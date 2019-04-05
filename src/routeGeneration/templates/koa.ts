@@ -56,7 +56,6 @@ export function RegisterRoutes(router: KoaRouter) {
             } catch (error) {
               context.status = error.status;
               context.throw(error.status, JSON.stringify({ fields: error.fields }));
-              return next();
             }
 
             {{#if ../../iocModule}}
@@ -89,9 +88,14 @@ export function RegisterRoutes(router: KoaRouter) {
           const fail = async (error: any) => {
               responded++;
               if (responded == security.length && !success) {
+                  // this is an authentication error
                   context.status = error.status || 401;
                   context.throw(context.status, error.message, error);
-                  await next();
+              } else if (success) {
+                  // the authentication was a success but arriving here means the controller
+                  // probably threw an error that we caught as well
+                  // so just pass it on
+                  throw error;
               }
           };
 
@@ -104,7 +108,7 @@ export function RegisterRoutes(router: KoaRouter) {
                   }
 
                   return Promise.all(promises)
-                      .then((users) => { succeed(users[0]); })
+                      .then((users) => succeed(users[0]))
                       .catch(fail);
               } else {
                   for (const name in secMethod) {
@@ -146,9 +150,8 @@ export function RegisterRoutes(router: KoaRouter) {
             return next();
         })
         .catch((error: any) => {
-            context.status = error.status;
-            context.throw(error.status, error.message, error);
-            return next();
+            context.status = error.status || 500;
+            context.throw(context.status, error.message, error);
         });
     }
 
