@@ -5,6 +5,7 @@ export namespace Tsoa {
   }
 
   export interface Controller {
+    inheritanceList: string[];
     location: string;
     methods: Method[];
     name: string;
