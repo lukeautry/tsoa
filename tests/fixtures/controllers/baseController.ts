@@ -1,18 +1,12 @@
 import {
   Controller,
-  Delete,
   Get,
   Patch,
   Post,
   Put,
-  Response,
-  Route,
-  Security,
-  SuccessResponse,
-  Tags,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
-import { ErrorResponseModel, TestModel } from '../testModel';
+import { TestModel } from '../testModel';
 
 class SuperBaseController extends Controller {
   @Patch('SuperBasePatch')

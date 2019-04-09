@@ -6,6 +6,7 @@ import '../controllers/rootController';
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/headController';
+import '../controllers/inheritanceMethodController';
 import '../controllers/patchController';
 import '../controllers/postController';
 import '../controllers/putController';

@@ -1,22 +1,15 @@
 import {
-  Controller,
-  Delete,
   Get,
   Patch,
-  Post,
   Put,
-  Response,
   Route,
-  Security,
-  SuccessResponse,
-  Tags,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
-import { ErrorResponseModel, TestModel } from '../testModel';
-import { BaseController } from './baseController'
+import { TestModel } from '../testModel';
+import { BaseController } from './baseController';
 
 @Route('InheritedMethodTest')
-export class MethodController extends BaseController {
+export class InheritanceMethodController extends BaseController {
   @Get('Get')
   public async getMethod(): Promise<TestModel> {
       return new ModelService().getModel();
