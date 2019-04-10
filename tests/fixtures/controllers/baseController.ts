@@ -17,8 +17,8 @@ class SuperBaseController extends Controller {
 
 export class BaseController extends SuperBaseController{
   @Get('Get')
-  public async getMethod(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getMethod(): Promise<IncorrectResponseType> {
+    return { wrong: true}
   }
 
   @Post('Post')
@@ -37,5 +37,6 @@ export class BaseController extends SuperBaseController{
   }
 }
 interface IncorrectResponseType {
-  wrong: boolean;
+  wrong?: boolean;
+  [index: string]: any;
 }

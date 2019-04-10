@@ -52,18 +52,27 @@ describe('Inherited method schema generation', () => {
     expect(spec.paths).to.have.property('/InheritedMethodTest/SuperBasePatch');
   });
 
-  const overwrittenPath = spec.paths['/InheritedMethodTest/OverwrittenMethod'];
+  const overwrittenPutPath = spec.paths['/InheritedMethodTest/OverwrittenMethod'];
+  const overwrittenGetPath = spec.paths['/InheritedMethodTest/Get'];
 
-  it('children should overwrite their inherited methods', () => {
-    expect(overwrittenPath).to.have.property('put');
-    expect(overwrittenPath).to.have.nested.property('put.operationId');
-    expect(overwrittenPath).to.not.have.nested.property(
+  it('child should overwrite inherited put method', () => {
+    expect(overwrittenPutPath).to.have.nested.property('put.operationId');
+    expect(overwrittenPutPath).to.have.nested.property(
       'put.operationId',
-      'ThisMethodShouldBeOverwritten',
+      'PutMethod',
     );
-    expect(overwrittenPath).to.have.nested.property(
-        'put.operationId',
-        'PutMethod',
-      );
   });
+
+  it('child should overwrite inherited get method', () => {
+    expect(spec.paths).to.have.property('/InheritedMethodTest/Get');
+    expect(overwrittenGetPath).to.have.nested.property(
+      'get.operationId',
+      'GetMethod',
+    );
+  })
+
+  it('children should overwrite their inherited method response types', () => {
+    expect(overwrittenPutPath).to.have.nested.property('put.responses.200.schema.$ref', "#/definitions/TestModel")
+    expect(overwrittenGetPath).to.have.nested.property('get.responses.200.schema.$ref', "#/definitions/TestModel")
+  })
 });
