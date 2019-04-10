@@ -46,8 +46,6 @@ describe('Inherited method schema generation', () => {
 
   if (!spec.paths) { throw new Error('No spec info.'); }
 
-  console.log(JSON.stringify(spec))
-
   it('should have inherited methods', () => {
     expect(spec.paths).to.have.property('/InheritedMethodTest/Base');
     expect(spec.paths).to.have.property('/InheritedMethodTest/Post');
@@ -56,14 +54,16 @@ describe('Inherited method schema generation', () => {
 
   const overwrittenPath = spec.paths['/InheritedMethodTest/OverwrittenMethod'];
 
-  if (!overwrittenPath) { throw new Error('InheritedMethodTest path does not exist'); }
-  if (!overwrittenPath.put) { throw new Error('InheritedMethodTest put path does not exist'); }
-  if (!overwrittenPath.put.operationId) { throw new Error('InheritedMethodTest put operationId path does not exist'); }
-
   it('children should overwrite their inherited methods', () => {
-    expect(spec.paths).to.have.property('/InheritedMethodTest/OverwrittenMethod');
     expect(overwrittenPath).to.have.property('put');
-    expect(overwrittenPath.put).to.have.property('operationId');
-    expect(overwrittenPath.put.operationId).to.not.equal('ThisMethodShouldBeOverwritten');
+    expect(overwrittenPath).to.have.nested.property('put.operationId');
+    expect(overwrittenPath).to.not.have.nested.property(
+      'put.operationId',
+      'ThisMethodShouldBeOverwritten',
+    );
+    expect(overwrittenPath).to.have.nested.property(
+        'put.operationId',
+        'PutMethod',
+      );
   });
 });
