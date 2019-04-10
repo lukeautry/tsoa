@@ -64,9 +64,13 @@ export class MetadataGenerator {
   private getInheritedMethods(controller: Tsoa.Controller, controllerList: Tsoa.Controller[]): Tsoa.Method[] {
     const inheritedClasses = controllerList.filter(({ name }) => controller.inheritanceList.includes(name));
 
-    const methods: Tsoa.Method[] = inheritedClasses.reduce((acc, item) => [...acc, ...item.methods], []);
+    // Crawl the inherited classes for decorated methods, filter out any that exist on the current controller
+    const currentMethodPaths = controller.methods.map(method => method.path)
+    const inheritedMethods: Tsoa.Method[] = inheritedClasses
+      .reduce((acc, item) => [...acc, ...item.methods], [])
+      .filter(method => !currentMethodPaths.includes(method.path));
 
-    return inheritedClasses.reduce((acc, item) => [...acc, ...this.getInheritedMethods(item, controllerList)], methods);
+    return inheritedClasses.reduce((acc, item) => [...acc, ...this.getInheritedMethods(item, controllerList)], inheritedMethods);
   }
 
   private buildControllers() {
@@ -82,7 +86,6 @@ export class MetadataGenerator {
       .map((generator) => generator.Generate());
 
     // Attach all decorated methods, including those on parent classes, to the controller.
-    // Reverse the array so that children with the same decorated method will overwrite the parent method.
     validControllers.forEach(controller => controller.methods.push(...this.getInheritedMethods(controller, allControllers)));
 
     return validControllers;
