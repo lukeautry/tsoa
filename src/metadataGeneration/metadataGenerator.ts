@@ -83,7 +83,7 @@ export class MetadataGenerator {
 
     // Attach all decorated methods, including those on parent classes, to the controller.
     // Reverse the array so that children with the same decorated method will overwrite the parent method.
-    validControllers.forEach(controller => controller.methods.push(...this.getInheritedMethods(controller, allControllers).reverse()));
+    validControllers.forEach(controller => controller.methods.push(...this.getInheritedMethods(controller, allControllers)));
 
     return validControllers;
   }

@@ -32,8 +32,10 @@ export class BaseController extends SuperBaseController{
   }
 
   @Put('OverwrittenMethod')
-  public async thisMethodShouldBeOverwritten(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async thisMethodShouldBeOverwritten(): Promise<IncorrectResponseType> {
+    return { wrong: true };
   }
 }
-
+interface IncorrectResponseType {
+  wrong: boolean;
+}

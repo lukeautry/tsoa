@@ -8,6 +8,7 @@ describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
   const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
 
+
   if (!spec.info) { throw new Error('No spec info.'); }
   if (!spec.info.title) { throw new Error('No spec info title.'); }
   if (!spec.info.description) { throw new Error('No spec info description.'); }
@@ -37,4 +38,32 @@ describe('Schema details generation', () => {
   if (!licenseName) { throw new Error('No license name.'); }
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultOptions().license));
+});
+
+describe('Inherited method schema generation', () => {
+  const metadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController').Generate();
+  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+
+  if (!spec.paths) { throw new Error('No spec info.'); }
+
+  console.log(JSON.stringify(spec))
+
+  it('should have inherited methods', () => {
+    expect(spec.paths).to.have.property('/InheritedMethodTest/Base');
+    expect(spec.paths).to.have.property('/InheritedMethodTest/Post');
+    expect(spec.paths).to.have.property('/InheritedMethodTest/SuperBasePatch');
+  });
+
+  const overwrittenPath = spec.paths['/InheritedMethodTest/OverwrittenMethod'];
+
+  if (!overwrittenPath) { throw new Error('InheritedMethodTest path does not exist'); }
+  if (!overwrittenPath.put) { throw new Error('InheritedMethodTest put path does not exist'); }
+  if (!overwrittenPath.put.operationId) { throw new Error('InheritedMethodTest put operationId path does not exist'); }
+
+  it('children should overwrite their inherited methods', () => {
+    expect(spec.paths).to.have.property('/InheritedMethodTest/OverwrittenMethod');
+    expect(overwrittenPath).to.have.property('put');
+    expect(overwrittenPath.put).to.have.property('operationId');
+    expect(overwrittenPath.put.operationId).to.not.equal('ThisMethodShouldBeOverwritten');
+  });
 });
