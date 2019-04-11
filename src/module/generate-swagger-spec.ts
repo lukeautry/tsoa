@@ -22,6 +22,7 @@ export const generateSwaggerSpec = async (
       ignorePaths,
     ).Generate();
   }
+
   const spec = new SpecGenerator(metadata, config).GetSpec();
 
   const exists = await fsExists(config.outputDirectory);

@@ -14,6 +14,39 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('InheritedMethodGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should inherit from BaseController', () => {
+      expect(controller.inheritanceList[0]).to.equal('BaseController');
+    });
+
+    it('should inherit postMethod from BaseController', () => {
+      const method = controller.methods.find(m => m.name === 'postMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      expect(method.method).to.equal('post');
+      expect(method.path).to.equal('Post');
+      expect(method.name).to.equal('postMethod');
+    });
+
+    it('should inherit superBasePatch from SuperBaseController', () => {
+      const method = controller.methods.find(m => m.name === 'superBasePatch');
+
+      if (!method) {
+        throw new Error('Method superBasePatch not defined!');
+      }
+
+      expect(method.method).to.equal('patch');
+      expect(method.path).to.equal('SuperBasePatch');
+      expect(method.name).to.equal('superBasePatch');
+    });
+  });
+
   describe('MethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];

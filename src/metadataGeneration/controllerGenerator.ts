@@ -35,6 +35,7 @@ export class ControllerGenerator {
     const sourceFile = this.node.parent.getSourceFile();
 
     return {
+      inheritanceList: this.getInheritanceList(),
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
@@ -87,5 +88,15 @@ export class ControllerGenerator {
     }
 
     return getSecurities(securityDecorators);
+  }
+
+  private getInheritanceList(): string[] {
+    if (!this.node.heritageClauses || !this.node.heritageClauses.length) {
+      return [];
+    }
+
+    return this.node.heritageClauses
+      .reduce((acc, node) => [...acc, ...node.types], [])
+      .map((nodeType: any) => nodeType.expression.escapedText);
   }
 }
