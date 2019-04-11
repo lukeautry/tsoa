@@ -65,7 +65,7 @@ export class MetadataGenerator {
     const inheritedClasses = controllerList.filter(({ name }) => controller.inheritanceList.includes(name));
 
     // Crawl the inherited classes for decorated methods, filter out any that exist on the current controller
-    const currentMethodPaths = controller.methods.map(method => method.path)
+    const currentMethodPaths = controller.methods.map(method => method.path);
     const inheritedMethods: Tsoa.Method[] = inheritedClasses
       .reduce((acc, item) => [...acc, ...item.methods], [])
       .filter(method => !currentMethodPaths.includes(method.path));
