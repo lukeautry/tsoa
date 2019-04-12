@@ -5,7 +5,6 @@ export namespace Tsoa {
   }
 
   export interface Controller {
-    inheritanceList: string[];
     location: string;
     methods: Method[];
     name: string;
@@ -97,4 +96,6 @@ export namespace Tsoa {
   export interface ReferenceTypeMap {
     [refName: string]: Tsoa.ReferenceType;
   }
+
+  export type GenericTypeMap = Map<string, Map<string, string>>
 }

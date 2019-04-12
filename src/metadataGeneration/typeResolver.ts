@@ -27,6 +27,7 @@ export class TypeResolver {
     private readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
     private readonly extractEnum = true,
+    private readonly genericTypeMap?: Tsoa.GenericTypeMap,
   ) { }
 
   public resolve(): Tsoa.Type {
@@ -87,12 +88,12 @@ export class TypeResolver {
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
         return {
           dataType: 'array',
-          elementType: new TypeResolver(typeReference.typeArguments[0], this.current).resolve(),
+          elementType: new TypeResolver(typeReference.typeArguments[0], this.current, undefined, true, this.genericTypeMap).resolve(),
         } as Tsoa.ArrayType;
       }
 
       if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        return new TypeResolver(typeReference.typeArguments[0], this.current).resolve();
+        return new TypeResolver(typeReference.typeArguments[0], this.current, undefined, true, this.genericTypeMap).resolve();
       }
 
       if (typeReference.typeName.text === 'String') {
@@ -124,6 +125,10 @@ export class TypeResolver {
     const primitiveType = syntaxKindMap[typeNode.kind];
     if (!primitiveType) { return; }
 
+    return this.getPrimitiveTypeByString(primitiveType, parentNode)
+  }
+
+  private getPrimitiveTypeByString(primitiveType: string, parentNode?: ts.Node): Tsoa.Type | undefined {
     if (primitiveType === 'number') {
       if (!parentNode) {
         return { dataType: 'double' };
@@ -249,6 +254,11 @@ export class TypeResolver {
         return existingType;
       }
 
+      const resolvedGenericType = this.resolveGenericTypeFromMap(refNameWithGenerics)
+      if (resolvedGenericType) {
+        return resolvedGenericType
+      }
+
       const referenceEnumType = this.getEnumerateType(type, true) as Tsoa.ReferenceType;
       if (referenceEnumType) {
         localReferenceTypeCache[refNameWithGenerics] = referenceEnumType;
@@ -287,6 +297,38 @@ export class TypeResolver {
       console.error(`There was a problem resolving type of '${this.getTypeName(typeName, genericTypes)}'.`);
       throw err;
     }
+  }
+
+  private resolveGenericTypeFromMap(typeName: string, typeNode: ts.Node = this.typeNode) {
+    if (!this.genericTypeMap) return undefined
+
+    // traverse the syntax tree upwards until we find a class declaration that has an entry in the
+    // passed in genericTypeMap, with a corresponding mapping of a generic template variable to a 
+    // resolved type. if found, return it. if we hit the top of the tree without finding it, return
+    // undefined
+
+    if (typeNode.kind === ts.SyntaxKind.ClassDeclaration) {
+      const baseClass = typeNode as ts.ClassDeclaration
+      if (baseClass && baseClass.name) {
+        const baseClassMap = this.genericTypeMap.get(baseClass.name.text)
+        if (baseClassMap) {
+          const resolvedTypeName = baseClassMap.get(typeName)
+          if (resolvedTypeName) {
+            const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase())
+            if (primitiveKind) {
+              return this.getPrimitiveTypeByString(primitiveKind)
+            }
+            return localReferenceTypeCache[resolvedTypeName]
+          }
+        }
+      }
+    }
+    
+    if (typeNode.parent) {
+      return this.resolveGenericTypeFromMap(typeName, typeNode.parent)
+    }
+
+    return undefined
   }
 
   private resolveFqTypeName(type: ts.EntityName): string {
