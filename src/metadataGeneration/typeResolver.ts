@@ -125,7 +125,7 @@ export class TypeResolver {
     const primitiveType = syntaxKindMap[typeNode.kind];
     if (!primitiveType) { return; }
 
-    return this.getPrimitiveTypeByString(primitiveType, parentNode)
+    return this.getPrimitiveTypeByString(primitiveType, parentNode);
   }
 
   private getPrimitiveTypeByString(primitiveType: string, parentNode?: ts.Node): Tsoa.Type | undefined {
@@ -254,9 +254,9 @@ export class TypeResolver {
         return existingType;
       }
 
-      const resolvedGenericType = this.resolveGenericTypeFromMap(refNameWithGenerics)
+      const resolvedGenericType = this.resolveGenericTypeFromMap(refNameWithGenerics);
       if (resolvedGenericType) {
-        return resolvedGenericType
+        return resolvedGenericType;
       }
 
       const referenceEnumType = this.getEnumerateType(type, true) as Tsoa.ReferenceType;
@@ -300,7 +300,7 @@ export class TypeResolver {
   }
 
   private resolveGenericTypeFromMap(typeName: string, typeNode: ts.Node = this.typeNode) {
-    if (!this.genericTypeMap) return undefined
+    if (!this.genericTypeMap) return undefined;
 
     // traverse the syntax tree upwards until we find a class declaration that has an entry in the
     // passed in genericTypeMap, with a corresponding mapping of a generic template variable to a 
@@ -308,27 +308,32 @@ export class TypeResolver {
     // undefined
 
     if (typeNode.kind === ts.SyntaxKind.ClassDeclaration) {
-      const baseClass = typeNode as ts.ClassDeclaration
+      const baseClass = typeNode as ts.ClassDeclaration;
+
       if (baseClass && baseClass.name) {
-        const baseClassMap = this.genericTypeMap.get(baseClass.name.text)
+        const baseClassMap = this.genericTypeMap.get(baseClass.name.text);
+
         if (baseClassMap) {
-          const resolvedTypeName = baseClassMap.get(typeName)
+          const resolvedTypeName = baseClassMap.get(typeName);
+
           if (resolvedTypeName) {
-            const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase())
+            const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase());
+
             if (primitiveKind) {
-              return this.getPrimitiveTypeByString(primitiveKind)
+              return this.getPrimitiveTypeByString(primitiveKind);
             }
-            return localReferenceTypeCache[resolvedTypeName]
+
+            return localReferenceTypeCache[resolvedTypeName];
           }
         }
       }
     }
     
     if (typeNode.parent) {
-      return this.resolveGenericTypeFromMap(typeName, typeNode.parent)
+      return this.resolveGenericTypeFromMap(typeName, typeNode.parent);
     }
 
-    return undefined
+    return undefined;
   }
 
   private resolveFqTypeName(type: ts.EntityName): string {
