@@ -61,6 +61,22 @@ export class MetadataGenerator {
     this.circularDependencyResolvers.push(callback);
   }
 
+  private checkForDuplicateMethods(controllers: Tsoa.Controller[]) {
+    const methodSet = new Set<string>();
+
+    controllers.forEach((controller) => {
+      controller.methods.forEach(({method, path}) => {
+        const methodIdentifier = `${method.toUpperCase()} /${controller.path}/${path}`;
+
+        if (methodSet.has(methodIdentifier)) {
+          throw new Error(`Duplicate method for path '${methodIdentifier}' was found`);
+        }
+
+        methodSet.add(methodIdentifier);
+      });
+    });
+  }
+
   private buildControllers() {
     const controllerGenerators: ControllerGenerator[] = this.nodes
       .filter((node) => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
@@ -69,6 +85,8 @@ export class MetadataGenerator {
     const validControllers: Tsoa.Controller[] = controllerGenerators
       .filter((controllerGenerator: ControllerGenerator) => controllerGenerator.IsValid())
       .map((generator) => generator.Generate());
+
+    this.checkForDuplicateMethods(validControllers);
 
     return validControllers;
   }
