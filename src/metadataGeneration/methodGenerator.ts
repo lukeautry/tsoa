@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getCustomAttributes } from './customAttribute';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
@@ -43,6 +44,7 @@ export class MethodGenerator {
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
+      customAttributes: this.getCustomAttributes(),
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
@@ -80,6 +82,15 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
     }
     return parameters;
+  }
+
+  private getCustomAttributes() {
+    const customAttributeDecorators = this.getDecoratorsByIdentifier(this.node, 'CustomAttribute');
+    if (!customAttributeDecorators || !customAttributeDecorators.length) {
+      return [];
+    }
+
+    return getCustomAttributes(customAttributeDecorators);
   }
 
   private getCurrentLocation() {
