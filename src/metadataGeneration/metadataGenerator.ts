@@ -61,16 +61,20 @@ export class MetadataGenerator {
     this.circularDependencyResolvers.push(callback);
   }
 
-  private getInheritedMethods(controller: Tsoa.Controller, controllerList: Tsoa.Controller[]): Tsoa.Method[] {
-    const inheritedClasses = controllerList.filter(({ name }) => controller.inheritanceList.includes(name));
+  private checkForDuplicateMethods(controllers: Tsoa.Controller[]) {
+    const methodSet = new Set<string>();
 
-    // Crawl the inherited classes for decorated methods, filter out any that exist on the current controller
-    const currentMethodPaths = controller.methods.map(method => method.path);
-    const inheritedMethods: Tsoa.Method[] = inheritedClasses
-      .reduce((acc, item) => [...acc, ...item.methods], [])
-      .filter(method => !currentMethodPaths.includes(method.path));
+    controllers.forEach((controller) => {
+      controller.methods.forEach(({method, path}) => {
+        const methodIdentifier = `${method.toUpperCase()} /${controller.path}/${path}`;
 
-    return inheritedClasses.reduce((acc, item) => [...acc, ...this.getInheritedMethods(item, controllerList)], inheritedMethods);
+        if (methodSet.has(methodIdentifier)) {
+          throw new Error(`Duplicate method for path '${methodIdentifier}' was found`);
+        }
+
+        methodSet.add(methodIdentifier);
+      });
+    });
   }
 
   private buildControllers() {
@@ -78,15 +82,11 @@ export class MetadataGenerator {
       .filter((node) => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
       .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this));
 
-    // Need a list of all controllers with decorated methods for determining heritage on valid controllers.
-    const allControllers: Tsoa.Controller[] = controllerGenerators.map((generator) => generator.Generate());
-
     const validControllers: Tsoa.Controller[] = controllerGenerators
       .filter((controllerGenerator: ControllerGenerator) => controllerGenerator.IsValid())
       .map((generator) => generator.Generate());
 
-    // Attach all decorated methods, including those on parent classes, to the controller.
-    validControllers.forEach(controller => controller.methods.push(...this.getInheritedMethods(controller, allControllers)));
+    this.checkForDuplicateMethods(validControllers);
 
     return validControllers;
   }

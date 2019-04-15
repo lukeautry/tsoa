@@ -17,8 +17,8 @@ class SuperBaseController extends Controller {
 
 export class BaseController extends SuperBaseController{
   @Get('Get')
-  public async getMethod(): Promise<IncorrectResponseType> {
-    return { wrong: true}
+  public async getMethod(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 
   @Post('Post')
@@ -32,11 +32,7 @@ export class BaseController extends SuperBaseController{
   }
 
   @Put('OverwrittenMethod')
-  public async thisMethodShouldBeOverwritten(): Promise<IncorrectResponseType> {
-    return { wrong: true };
+  public async putMethod(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
-}
-interface IncorrectResponseType {
-  wrong?: boolean;
-  [index: string]: any;
 }

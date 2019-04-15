@@ -35,7 +35,6 @@ export class ControllerGenerator {
     const sourceFile = this.node.parent.getSourceFile();
 
     return {
-      inheritanceList: this.getInheritanceList(),
       location: sourceFile.fileName,
       methods: this.buildMethods(),
       name: this.node.name.text,
@@ -44,9 +43,13 @@ export class ControllerGenerator {
   }
 
   private buildMethods() {
-    return this.node.members
-      .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security))
+    const typeNode = this.current.typeChecker.getTypeAtLocation(this.node);
+    const genericTypeMap = this.getResolvedGenericTypeMap(typeNode);
+
+    // using ts.Type::getProperties() ensures all inherited methods are included
+    return typeNode.getProperties()
+      .filter((m) => m.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration)
+      .map(m => new MethodGenerator(m.valueDeclaration as ts.MethodDeclaration, this.current, this.tags, this.security, genericTypeMap))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
@@ -90,13 +93,67 @@ export class ControllerGenerator {
     return getSecurities(securityDecorators);
   }
 
-  private getInheritanceList(): string[] {
-    if (!this.node.heritageClauses || !this.node.heritageClauses.length) {
-      return [];
+  // given a type, traverses any base classes (recursively) and creates a map of any
+  // generic type parameters so that the TypeResolver can find them
+  private getResolvedGenericTypeMap(typeNode: ts.Type) {
+    // using a map of maps, where the top level keys represent the names of the base
+    // classes and whose values are maps in the form of `typeT->resolvedModel`.
+    // this will allow the TypeResolver to correctly find, for example, that a generic
+    // type parameter `T` defined on a nested base class method resolves to some model `Foo`, 
+    // because at the top of the inheritance chain the concrete class used `Foo` as `T`
+    const genericTypeMap: Tsoa.GenericTypeMap = new Map<string, Map<string, string>>();
+    
+    const baseTypes = typeNode.getBaseTypes();
+
+    if (baseTypes && baseTypes.length) {
+      baseTypes.forEach((baseType: ts.TypeReference) => {
+        const target = baseType.target;
+
+        if (baseType.typeArguments && baseType.typeArguments.length) {
+          const baseTypeName = target.symbol.name;
+
+          // ensure a top level map entry for this base type
+          if (!genericTypeMap.has(baseTypeName)) {
+            genericTypeMap.set(baseTypeName, new Map<string, string>());
+          }
+
+          const baseTypeMap = genericTypeMap.get(baseTypeName);
+
+          if (baseTypeMap) {
+            // correlate by index
+            baseType.typeArguments.forEach((baseArg: ts.TypeReference, index) => {
+              if (target.typeParameters) {
+                const targetParam = target.typeParameters[index] as ts.TypeReference;
+                const targetParamName = targetParam.symbol ? targetParam.symbol.name : ts.TypeFlags[targetParam.flags];
+                const baseArgName = baseArg.symbol ? baseArg.symbol.name : ts.TypeFlags[baseArg.flags];
+                
+                baseTypeMap.set(targetParamName, baseArgName);
+              }
+            })
+
+            // recurse down the inheritance chain and then make one flattened map
+            const baseGenericMap = this.getResolvedGenericTypeMap(target);
+            baseGenericMap.forEach((value, key) => {
+              if (!genericTypeMap.has(key)) {
+                genericTypeMap.set(key, new Map<string, string>());
+              }
+
+              const nestedBaseTypeMap = genericTypeMap.get(key);
+
+              if (nestedBaseTypeMap) {
+                value.forEach((resolvedTypeName, genericTypeName) => {
+                  // if type params (keys in the map) in the nested base types match a key
+                  // one level up, it ultimately means they should resolve to the same type
+                  const baseResolvedTypeName = baseTypeMap.get(genericTypeName) || resolvedTypeName;
+                  nestedBaseTypeMap.set(genericTypeName, baseResolvedTypeName);
+                })
+              }
+            })
+          }
+        }
+      })
     }
 
-    return this.node.heritageClauses
-      .reduce((acc, node) => [...acc, ...node.types], [])
-      .map((nodeType: any) => nodeType.expression.escapedText);
+    return genericTypeMap;
   }
 }

@@ -16,11 +16,8 @@ describe('Metadata generation', () => {
 
   describe('InheritedMethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController.ts').Generate();
+    const duplicateGenerator = new MetadataGenerator('./tests/fixtures/controllers/duplicateMethodController.ts');
     const controller = parameterMetadata.controllers[0];
-
-    it('should inherit from BaseController', () => {
-      expect(controller.inheritanceList[0]).to.equal('BaseController');
-    });
 
     it('should inherit postMethod from BaseController', () => {
       const method = controller.methods.find(m => m.name === 'postMethod');
@@ -44,6 +41,10 @@ describe('Metadata generation', () => {
       expect(method.method).to.equal('patch');
       expect(method.path).to.equal('SuperBasePatch');
       expect(method.name).to.equal('superBasePatch');
+    });
+
+    it('should error if a duplicate method is found', () => {
+      expect(() => duplicateGenerator.Generate()).to.throw(/Duplicate method for path '.*' was found/);
     });
   });
 

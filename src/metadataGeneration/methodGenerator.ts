@@ -18,6 +18,7 @@ export class MethodGenerator {
     private readonly current: MetadataGenerator,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
+    private readonly genericTypeMap?: Tsoa.GenericTypeMap,
     ) {
     this.processMethodDecorators();
   }
@@ -38,7 +39,7 @@ export class MethodGenerator {
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
     }
-    const type = new TypeResolver(nodeType, this.current).resolve();
+    const type = new TypeResolver(nodeType, this.current, undefined, true, this.genericTypeMap).resolve();
     const responses = this.getMethodResponses();
     responses.push(this.getMethodSuccessResponse(type));
 
