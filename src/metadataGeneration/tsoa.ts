@@ -12,7 +12,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
-    customAttributes: CustomAttribute[] | null;
+    customAttributes: CustomAttribute[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
