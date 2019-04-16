@@ -9,6 +9,7 @@ export * from './decorators/tags';
 export * from './decorators/operationid';
 export * from './decorators/route';
 export * from './decorators/security';
+export * from './decorators/customAttribute';
 export * from './interfaces/controller';
 export * from './decorators/response';
 export * from './routeGeneration/templateHelpers';
