@@ -195,10 +195,10 @@ describe('Metadata generation', () => {
       }
 
       const expectedCustomAttributes = [
-        { attKey: 'attValue' },
-        { attKey1: { test: 'testVal' } },
-        { attKey2: [ 'y0', 'y1' ] },
-        { attKey4: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+        { key: 'attKey', value: 'attValue' },
+        { key: 'attKey1', value: { test: 'testVal' } },
+        { key: 'attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'attKey4', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
       ];
 
       expect(method.customAttributes).to.deep.equal(expectedCustomAttributes)

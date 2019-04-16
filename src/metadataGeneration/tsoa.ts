@@ -53,7 +53,8 @@ export namespace Tsoa {
   }
 
   export interface CustomAttribute {
-    [key: string]: any;
+    key: string;
+    value: string | any[] | object;
   }
 
   export interface Response {

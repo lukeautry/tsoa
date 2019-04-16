@@ -114,6 +114,9 @@ export class SpecGenerator {
       pathMethod.security = method.security as any[];
     }
 
+    // Apply custom attributes
+    method.customAttributes.forEach((customAttr) => pathMethod[customAttr.key] = customAttr.value);
+
     pathMethod.parameters = method.parameters
       .filter(p => {
         return !(p.in === 'request' || p.in === 'body-prop');
