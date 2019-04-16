@@ -13,7 +13,7 @@ const getArgumentValue = (argument: ts.Expression) => {
     case ts.SyntaxKind.ObjectLiteralExpression: {
       const argumentValueProperties = (argument as any).properties;
 
-      const argumentValue: Tsoa.CustomAttribute = {};
+      const argumentValue = {};
 
       for (const property of argumentValueProperties) {
         const name = property.name.text;
@@ -56,7 +56,7 @@ export function getCustomAttributes(decorators: ts.Identifier[]): Tsoa.CustomAtt
 
     const attributeValue = getArgumentValue(decoratorValueArg);
 
-    return { [attributeKey]: attributeValue };
+    return { key: attributeKey, value: attributeValue };
   });
 
   return customAttributes;
