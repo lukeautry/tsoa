@@ -38,3 +38,30 @@ describe('Schema details generation', () => {
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultOptions().license));
 });
+
+describe('Custom Attribute schema generation', () => {
+  const metadata = new MetadataGenerator('./tests/fixtures/controllers/methodController').Generate();
+  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+
+  if (!spec.paths) { throw new Error('No spec info.'); }
+
+  const customAttributePath = spec.paths['/MethodTest/CustomAttribute'].get;
+
+  if (!customAttributePath) { throw new Error('customAttribute method was not rendered'); }
+
+  // Verify that custom properties are appened to the path
+  expect(customAttributePath).to.have.property('attKey');
+  expect(customAttributePath).to.have.property('attKey1');
+  expect(customAttributePath).to.have.property('attKey2');
+  expect(customAttributePath).to.have.property('attKey3');
+
+  // Verify that custom attributes have correct values
+  expect(customAttributePath.attKey).to.deep.equal('attValue');
+  expect(customAttributePath.attKey1).to.deep.equal({ test: 'testVal' });
+  expect(customAttributePath.attKey2).to.deep.equal(['y0', 'y1']);
+  expect(customAttributePath.attKey3).to.deep.equal([
+    { y0: 'yt0',  y1: 'yt1' },
+    { y2: 'yt2' },
+  ]);
+
+});
