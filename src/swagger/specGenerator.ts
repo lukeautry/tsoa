@@ -114,9 +114,6 @@ export class SpecGenerator {
       pathMethod.security = method.security as any[];
     }
 
-    // Apply custom attributes
-    method.customAttributes.forEach((customAttr) => pathMethod[customAttr.key] = customAttr.value);
-
     pathMethod.parameters = method.parameters
       .filter(p => {
         return !(p.in === 'request' || p.in === 'body-prop');
@@ -130,6 +127,9 @@ export class SpecGenerator {
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
+
+    // Apply custom attributes
+    method.customAttributes.forEach((customAttr) => pathMethod[customAttr.key] = customAttr.value);
   }
 
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
