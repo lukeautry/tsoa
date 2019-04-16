@@ -224,7 +224,7 @@ describe('Metadata generation', () => {
       if (!method) {
         throw new Error('Method customAttribute not defined!');
       }
-      if (!method.customAttributes) {
+      if (!method.customAttributes || method.customAttributes.length <= 0) {
         throw new Error('No custom attribute decorators defined!');
       }
 

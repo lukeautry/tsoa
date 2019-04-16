@@ -88,7 +88,7 @@ export class MethodGenerator {
   private getCustomAttributes() {
     const customAttributeDecorators = this.getDecoratorsByIdentifier(this.node, 'CustomAttribute');
     if (!customAttributeDecorators || !customAttributeDecorators.length) {
-      return null;
+      return [];
     }
 
     return getCustomAttributes(customAttributeDecorators);
