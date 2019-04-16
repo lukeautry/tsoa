@@ -12,7 +12,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
-    customAttributes: CustomAttribute[];
+    customAttributes: CustomAttribute[] | null;
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
@@ -26,7 +26,6 @@ export namespace Tsoa {
     summary?: string;
     isHidden: boolean;
     operationId?: string;
-
   }
 
   export interface Parameter {

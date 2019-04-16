@@ -1,15 +1,16 @@
 import {
-    Controller,
-    Delete,
-    Get,
-    Patch,
-    Post,
-    Put,
-    Response,
-    Route,
-    Security,
-    SuccessResponse,
-    Tags,
+  Controller,
+  CustomAttribute,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Put,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
@@ -97,6 +98,15 @@ export class MethodController extends Controller {
     @Get('OauthAndAPIkeySecurity')
     public async oauthAndAPIkeySecurity(): Promise<TestModel> {
         return new ModelService().getModel();
+    }
+
+    @CustomAttribute('attKey', 'attValue')
+    @CustomAttribute('attKey1', { test: 'testVal' })
+    @CustomAttribute('attKey2', ['y0', 'y1'])
+    @CustomAttribute('attKey4', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
+    @Get('CustomAttributeMethod')
+    public async customAttribute(): Promise<TestModel> {
+      return new ModelService().getModel();
     }
 
     /**

@@ -20,7 +20,7 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
-      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod',
+      'apiSecurity', 'oauthSecurity', 'customAttribute', 'deprecatedMethod', 'summaryMethod',
       'oauthAndAPIkeySecurity', 'returnAnyType'];
 
     it('should only generate the defined methods', () => {
@@ -183,6 +183,25 @@ describe('Metadata generation', () => {
       }
       expect(method.security[0].tsoa_auth).to.deep.equal(['write:pets', 'read:pets']);
       expect(method.security[0].api_key).to.deep.equal([]);
+    });
+
+    it('should generate all custom attributes', () => {
+      const method = controller.methods.find(m => m.name === 'customAttribute');
+      if (!method) {
+        throw new Error('Method customAttribute not defined!');
+      }
+      if (!method.customAttributes) {
+        throw new Error('No custom attribute decorators defined!');
+      }
+
+      const expectedCustomAttributes = [
+        { attKey: 'attValue' },
+        { attKey1: { test: 'testVal' } },
+        { attKey2: [ 'y0', 'y1' ] },
+        { attKey4: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+      ];
+
+      expect(method.customAttributes).to.deep.equal(expectedCustomAttributes)
     });
 
     it('should generate deprecated method true', () => {
