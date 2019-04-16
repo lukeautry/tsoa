@@ -12,6 +12,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
+    customAttributes: CustomAttribute[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
@@ -25,7 +26,6 @@ export namespace Tsoa {
     summary?: string;
     isHidden: boolean;
     operationId?: string;
-
   }
 
   export interface Parameter {
@@ -50,6 +50,11 @@ export namespace Tsoa {
 
   export interface Security {
     [key: string]: string[];
+  }
+
+  export interface CustomAttribute {
+    key: string;
+    value: string | any[] | object;
   }
 
   export interface Response {
