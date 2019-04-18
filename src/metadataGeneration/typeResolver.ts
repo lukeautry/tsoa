@@ -109,6 +109,9 @@ export class TypeResolver {
     const literalType = this.getLiteralType(typeReference.typeName);
     if (literalType) { return literalType; }
 
+    const primitiveFromGenericTypeName = this.resolvePrimitiveTypeFromMap(this.resolveFqTypeName(typeReference.typeName))
+    if (primitiveFromGenericTypeName) return primitiveFromGenericTypeName
+
     let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
       const typeT: ts.NodeArray<ts.TypeNode> = typeReference.typeArguments as ts.NodeArray<ts.TypeNode>;
@@ -254,7 +257,8 @@ export class TypeResolver {
         return existingType;
       }
 
-      const resolvedGenericType = this.resolveGenericTypeFromMap(refNameWithGenerics);
+      // check the cache for fully resolved types from the generic map
+      const resolvedGenericType = this.resolveGenericTypeFromMap(typeName);
       if (resolvedGenericType) {
         return resolvedGenericType;
       }
@@ -270,8 +274,14 @@ export class TypeResolver {
       }
 
       inProgressTypes[refNameWithGenerics] = true;
+      
+      // if there is a matching ts.EntityName entry in the generic map, use that
+      const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+      let modelTypeName = resolvedTypeName && typeof resolvedTypeName !== 'string'
+        ? resolvedTypeName as ts.EntityName
+        : type
 
-      const modelType = this.getModelTypeDeclaration(type);
+      const modelType = this.getModelTypeDeclaration(modelTypeName);
       const properties = this.getModelProperties(modelType, genericTypes);
       const additionalProperties = this.getModelAdditionalProperties(modelType);
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
@@ -299,7 +309,7 @@ export class TypeResolver {
     }
   }
 
-  private resolveGenericTypeFromMap(typeName: string, typeNode: ts.Node = this.typeNode) {
+  private resolveGenericTypeNameFromMap(typeName: string, typeNode: ts.Node = this.typeNode): string | ts.EntityName | undefined {
     if (!this.genericTypeMap) return undefined;
 
     // traverse the syntax tree upwards until we find a class declaration that has an entry in the
@@ -317,23 +327,41 @@ export class TypeResolver {
           const resolvedTypeName = baseClassMap.get(typeName);
 
           if (resolvedTypeName) {
-            const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase());
-
-            if (primitiveKind) {
-              return this.getPrimitiveTypeByString(primitiveKind);
-            }
-
-            return localReferenceTypeCache[resolvedTypeName];
+            return resolvedTypeName;
           }
         }
       }
     }
     
     if (typeNode.parent) {
-      return this.resolveGenericTypeFromMap(typeName, typeNode.parent);
+      return this.resolveGenericTypeNameFromMap(typeName, typeNode.parent);
     }
 
     return undefined;
+  }
+
+  private resolvePrimitiveTypeFromMap(typeName: string): Tsoa.Type | undefined {
+    const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+    if (!resolvedTypeName || typeof resolvedTypeName !== 'string') return undefined;
+
+    const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase());
+
+    if (primitiveKind) {
+      return this.getPrimitiveTypeByString(primitiveKind);
+    }
+
+    return undefined;
+  }
+
+  private resolveGenericTypeFromMap(typeName: string): Tsoa.ReferenceType | undefined {
+    const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+    if (!resolvedTypeName) return undefined;
+
+    const typeNameString = typeof resolvedTypeName === 'string'
+      ? resolvedTypeName
+      : (resolvedTypeName as ts.EntityName).getText()
+
+    return localReferenceTypeCache[typeNameString];
   }
 
   private resolveFqTypeName(type: ts.EntityName): string {
@@ -346,7 +374,15 @@ export class TypeResolver {
   }
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
-    if (!genericTypes || !genericTypes.length) { return typeName; }
+    if (!genericTypes || !genericTypes.length) { 
+      const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+      if (!resolvedTypeName) return typeName;
+
+      return typeof resolvedTypeName === 'string'
+        ? resolvedTypeName
+        : (resolvedTypeName as ts.EntityName).getText()
+    }
+
     return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
   }
 

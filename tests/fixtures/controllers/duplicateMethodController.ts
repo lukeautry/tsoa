@@ -9,7 +9,7 @@ import { TestModel } from '../testModel';
 import { BaseController } from './baseController';
 
 @Route('DuplicateMethodTest')
-export class DuplicateMethodController extends BaseController {
+export class DuplicateMethodController extends BaseController<TestModel> {
   @Get('Get')
   public async getMethod(): Promise<TestModel> {
       return new ModelService().getModel();
