@@ -15,12 +15,14 @@ describe('Metadata generation', () => {
   });
 
   describe('InheritedMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController.ts').Generate();
+    const inheritanceMetadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController.ts').Generate();
+    const emptySuperMetadata = new MetadataGenerator('./tests/fixtures/controllers/emptySuperClassGenericController.ts').Generate();
     const duplicateGenerator = new MetadataGenerator('./tests/fixtures/controllers/duplicateMethodController.ts');
-    const controller = parameterMetadata.controllers[0];
+    const inheritanceController = inheritanceMetadata.controllers[0];
+    const emptySuperController = emptySuperMetadata.controllers[0];
 
     it('should inherit postMethod from BaseController', () => {
-      const method = controller.methods.find(m => m.name === 'postMethod');
+      const method = inheritanceController.methods.find(m => m.name === 'postMethod');
 
       if (!method) {
         throw new Error('Method postMethod not defined!');
@@ -29,10 +31,11 @@ describe('Metadata generation', () => {
       expect(method.method).to.equal('post');
       expect(method.path).to.equal('Post');
       expect(method.name).to.equal('postMethod');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
     });
 
     it('should inherit superBasePatch from SuperBaseController', () => {
-      const method = controller.methods.find(m => m.name === 'superBasePatch');
+      const method = inheritanceController.methods.find(m => m.name === 'superBasePatch');
 
       if (!method) {
         throw new Error('Method superBasePatch not defined!');
@@ -41,6 +44,33 @@ describe('Metadata generation', () => {
       expect(method.method).to.equal('patch');
       expect(method.path).to.equal('SuperBasePatch');
       expect(method.name).to.equal('superBasePatch');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should inherit postMethod from BaseController when super class file is a stub', () => {
+      const method = emptySuperController.methods.find(m => m.name === 'postMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      expect(method.method).to.equal('post');
+      expect(method.path).to.equal('Post');
+      expect(method.name).to.equal('postMethod');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should inherit superBasePatch from SuperBaseController when super class file is a stub', () => {
+      const method = emptySuperController.methods.find(m => m.name === 'superBasePatch');
+
+      if (!method) {
+        throw new Error('Method superBasePatch not defined!');
+      }
+
+      expect(method.method).to.equal('patch');
+      expect(method.path).to.equal('SuperBasePatch');
+      expect(method.name).to.equal('superBasePatch');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
     });
 
     it('should error if a duplicate method is found', () => {

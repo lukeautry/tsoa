@@ -1,38 +1,31 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Put,
-} from '../../../src';
-import { ModelService } from '../services/modelService';
-import { TestModel } from '../testModel';
+import { Controller, Get, Patch, Post, Put } from '../../../src'
+import { ModelService } from '../services/modelService'
 
-class SuperBaseController extends Controller {
+class SuperBaseController<T> extends Controller {
   @Patch('SuperBasePatch')
-  public async superBasePatch(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async superBasePatch(): Promise<T> {
+    return (new ModelService().getModel() as unknown) as T
   }
 }
 
-export class BaseController extends SuperBaseController{
+export class BaseController<T> extends SuperBaseController<T> {
   @Get('Get')
-  public async getMethod(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async getMethod(): Promise<T> {
+    return (new ModelService().getModel() as unknown) as T
   }
 
   @Post('Post')
-  public async postMethod(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async postMethod(): Promise<T> {
+    return (new ModelService().getModel() as unknown) as T
   }
 
   @Get('Base')
-  public async baseMethod(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async baseMethod(): Promise<T> {
+    return (new ModelService().getModel() as unknown) as T
   }
 
   @Put('OverwrittenMethod')
-  public async putMethod(): Promise<TestModel> {
-    return new ModelService().getModel();
+  public async putMethod(): Promise<T> {
+    return (new ModelService().getModel() as unknown) as T
   }
 }

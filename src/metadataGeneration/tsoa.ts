@@ -1,3 +1,5 @@
+import * as ts from 'typescript';
+
 export namespace Tsoa {
   export interface Metadata {
     controllers: Controller[];
@@ -102,5 +104,5 @@ export namespace Tsoa {
     [refName: string]: Tsoa.ReferenceType;
   }
 
-  export type GenericTypeMap = Map<string, Map<string, string>>
+  export type GenericTypeMap = Map<string, Map<string, string | ts.EntityName>>
 }
