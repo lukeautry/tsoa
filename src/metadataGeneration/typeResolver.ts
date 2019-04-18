@@ -109,8 +109,8 @@ export class TypeResolver {
     const literalType = this.getLiteralType(typeReference.typeName);
     if (literalType) { return literalType; }
 
-    const primitiveFromGenericTypeName = this.resolvePrimitiveTypeFromMap(this.resolveFqTypeName(typeReference.typeName))
-    if (primitiveFromGenericTypeName) return primitiveFromGenericTypeName
+    const primitiveFromGenericTypeName = this.resolvePrimitiveTypeFromMap(this.resolveFqTypeName(typeReference.typeName));
+    if (primitiveFromGenericTypeName) return primitiveFromGenericTypeName;
 
     let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
@@ -279,7 +279,7 @@ export class TypeResolver {
       const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
       let modelTypeName = resolvedTypeName && typeof resolvedTypeName !== 'string'
         ? resolvedTypeName as ts.EntityName
-        : type
+        : type;
 
       const modelType = this.getModelTypeDeclaration(modelTypeName);
       const properties = this.getModelProperties(modelType, genericTypes);
@@ -359,7 +359,7 @@ export class TypeResolver {
 
     const typeNameString = typeof resolvedTypeName === 'string'
       ? resolvedTypeName
-      : (resolvedTypeName as ts.EntityName).getText()
+      : (resolvedTypeName as ts.EntityName).getText();
 
     return localReferenceTypeCache[typeNameString];
   }
@@ -380,7 +380,7 @@ export class TypeResolver {
 
       return typeof resolvedTypeName === 'string'
         ? resolvedTypeName
-        : (resolvedTypeName as ts.EntityName).getText()
+        : (resolvedTypeName as ts.EntityName).getText();
     }
 
     return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
