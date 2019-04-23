@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
+import { getCustomAttributes } from './customAttribute';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
@@ -10,6 +11,7 @@ export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
   private readonly security?: Tsoa.Security[];
+  private readonly customMethodAttributes: Tsoa.CustomAttribute[];
 
   constructor(
     private readonly node: ts.ClassDeclaration,
@@ -18,6 +20,7 @@ export class ControllerGenerator {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
+    this.customMethodAttributes = this.getCustomMethodAttributes();
   }
 
   public IsValid() {
@@ -47,11 +50,18 @@ export class ControllerGenerator {
     const genericTypeMap = this.getResolvedGenericTypeMap(typeNode);
 
     // using ts.Type::getProperties() ensures all inherited methods are included
-    return typeNode.getProperties()
+    const methods = typeNode.getProperties()
       .filter((m) => m.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration)
       .map(m => new MethodGenerator(m.valueDeclaration as ts.MethodDeclaration, this.current, this.tags, this.security, genericTypeMap))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
+
+    methods.forEach((method) => {
+      method.customAttributes.push(...this.customMethodAttributes);
+      method.customAttributes = this.resolveCustomAttributes(method.customAttributes, method.path, method.method);
+    });
+
+    return methods;
   }
 
   private getPath() {
@@ -91,6 +101,15 @@ export class ControllerGenerator {
     }
 
     return getSecurities(securityDecorators);
+  }
+
+  private getCustomMethodAttributes() {
+    const customAttributeDecorators = getDecorators(this.node, (identifier) => identifier.text === 'CustomMethodAttribute');
+    if (!customAttributeDecorators || !customAttributeDecorators.length) {
+      return [];
+    }
+
+    return getCustomAttributes(customAttributeDecorators);
   }
 
   // given a type, traverses any base classes (recursively) and creates a map of any
@@ -169,5 +188,16 @@ export class ControllerGenerator {
     }
 
     return genericTypeMap;
+  }
+
+  private resolveCustomAttributes(customAttributes: Tsoa.CustomAttribute[], path: string, method: string) {
+    return customAttributes.map((customAttr) => {
+      let attributeValue = JSON.stringify(customAttr.value);
+
+      attributeValue = attributeValue.replace(/\{\$PATH\}/g, path);
+      attributeValue = attributeValue.replace(/\{\$METHOD\}/g, method.toUpperCase());
+
+      return { key: customAttr.key, value: JSON.parse(attributeValue) };
+    });
   }
 }
