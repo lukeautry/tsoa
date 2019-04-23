@@ -33,7 +33,7 @@ export class ControllerGenerator {
     }
 
     const sourceFile = this.node.parent.getSourceFile();
-    
+
     return {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
@@ -99,10 +99,10 @@ export class ControllerGenerator {
     // using a map of maps, where the top level keys represent the names of the base
     // classes and whose values are maps in the form of `typeT->resolvedModel`.
     // this will allow the TypeResolver to correctly find, for example, that a generic
-    // type parameter `T` defined on a nested base class method resolves to some model `Foo`, 
+    // type parameter `T` defined on a nested base class method resolves to some model `Foo`,
     // because at the top of the inheritance chain the concrete class used `Foo` as `T`
     const genericTypeMap: Tsoa.GenericTypeMap = new Map<string, Map<string, string | ts.EntityName>>();
-    
+
     const baseTypes = typeNode.getBaseTypes();
 
     if (baseTypes && baseTypes.length) {
@@ -126,12 +126,12 @@ export class ControllerGenerator {
                 const targetParam = target.typeParameters[index] as ts.TypeReference;
                 const targetParamName = targetParam.symbol ? targetParam.symbol.name : ts.TypeFlags[targetParam.flags];
                 let baseArgName: string | ts.EntityName = baseArg.symbol ? baseArg.symbol.name : ts.TypeFlags[baseArg.flags];
-                
+
                 // use the source file locals to attempt pushing a ts.EntityName into the map, which
                 // will allow the type resolver to properly resolve the model even in inherited controllers
                 // (casting to any because for some reason the ts type does not include the `locals` map,
                 // which definitely exists at run time)
-                const sourceFile = this.node.parent.getSourceFile() as any
+                const sourceFile = this.node.parent.getSourceFile() as any;
                 if (sourceFile.locals) {
                   const locals = sourceFile.locals as Map<string, ts.Symbol>;
                   const local = locals.get(baseArgName);
@@ -140,10 +140,10 @@ export class ControllerGenerator {
                     baseArgName = (local.declarations[0] as ts.NamedDeclaration).name as ts.Identifier || baseArgName;
                   }
                 }
-                
+
                 baseTypeMap.set(targetParamName, baseArgName);
               }
-            })
+            });
 
             // recurse down the inheritance chain and then make one flattened map
             const baseGenericMap = this.getResolvedGenericTypeMap(target);
@@ -160,12 +160,12 @@ export class ControllerGenerator {
                   // one level up, it ultimately means they should resolve to the same type
                   const baseResolvedTypeName = baseTypeMap.get(genericTypeName) || resolvedTypeName;
                   nestedBaseTypeMap.set(genericTypeName, baseResolvedTypeName);
-                })
+                });
               }
-            })
+            });
           }
         }
-      })
+      });
     }
 
     return genericTypeMap;
