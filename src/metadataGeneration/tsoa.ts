@@ -100,9 +100,13 @@ export namespace Tsoa {
     example?: any;
   }
 
+  export type UsableDeclaration = ts.InterfaceDeclaration
+    | ts.ClassDeclaration
+    | ts.TypeAliasDeclaration;
+
   export interface ReferenceTypeMap {
     [refName: string]: Tsoa.ReferenceType;
   }
 
-  export type GenericTypeMap = Map<string, Map<string, string | ts.EntityName>>
+  export type GenericTypeMap = Map<string, Map<string, string | UsableDeclaration>>;
 }
