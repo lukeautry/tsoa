@@ -17,11 +17,18 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration
-  | ts.ClassDeclaration
-  | ts.TypeAliasDeclaration;
-
 export class TypeResolver {
+  static nodeIsUsable(node: ts.Node) {
+    switch (node.kind) {
+      case ts.SyntaxKind.InterfaceDeclaration:
+      case ts.SyntaxKind.ClassDeclaration:
+      case ts.SyntaxKind.TypeAliasDeclaration:
+      case ts.SyntaxKind.EnumDeclaration:
+        return true;
+      default: return false;
+    }
+  }
+
   constructor(
     private readonly typeNode: ts.TypeNode,
     private readonly current: MetadataGenerator,
@@ -275,13 +282,11 @@ export class TypeResolver {
 
       inProgressTypes[refNameWithGenerics] = true;
       
-      // if there is a matching ts.EntityName entry in the generic map, use that
-      const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
-      let modelTypeName = resolvedTypeName && typeof resolvedTypeName !== 'string'
-        ? resolvedTypeName as ts.EntityName
-        : type;
-
-      const modelType = this.getModelTypeDeclaration(modelTypeName);
+      // if there is a matching Tsoa.UsableDeclaration entry in the generic map, use that
+      const resolvedGenericDeclaration = this.resolveGenericDeclarationFromMap(typeName);
+      const modelType = !resolvedGenericDeclaration || typeof resolvedGenericDeclaration === 'string'
+        ? this.getModelTypeDeclaration(type)
+        : resolvedGenericDeclaration;
       const properties = this.getModelProperties(modelType, genericTypes);
       const additionalProperties = this.getModelAdditionalProperties(modelType);
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
@@ -309,7 +314,7 @@ export class TypeResolver {
     }
   }
 
-  private resolveGenericTypeNameFromMap(typeName: string, typeNode: ts.Node = this.typeNode): string | ts.EntityName | undefined {
+  private resolveGenericDeclarationFromMap(typeName: string, typeNode: ts.Node = this.typeNode): string | Tsoa.UsableDeclaration | undefined {
     if (!this.genericTypeMap) return undefined;
 
     // traverse the syntax tree upwards until we find a class declaration that has an entry in the
@@ -334,14 +339,14 @@ export class TypeResolver {
     }
     
     if (typeNode.parent) {
-      return this.resolveGenericTypeNameFromMap(typeName, typeNode.parent);
+      return this.resolveGenericDeclarationFromMap(typeName, typeNode.parent);
     }
 
     return undefined;
   }
 
   private resolvePrimitiveTypeFromMap(typeName: string): Tsoa.Type | undefined {
-    const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+    const resolvedTypeName = this.resolveGenericDeclarationFromMap(typeName);
     if (!resolvedTypeName || typeof resolvedTypeName !== 'string') return undefined;
 
     const primitiveKind = Object.values(syntaxKindMap).find(v => v.toLowerCase() === resolvedTypeName.toLowerCase());
@@ -354,18 +359,23 @@ export class TypeResolver {
   }
 
   private resolveGenericTypeFromMap(typeName: string): Tsoa.ReferenceType | undefined {
-    const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+    const resolvedTypeName = this.resolveGenericDeclarationFromMap(typeName);
     if (!resolvedTypeName) return undefined;
 
     const typeNameString = typeof resolvedTypeName === 'string'
       ? resolvedTypeName
-      : (resolvedTypeName as ts.EntityName).getText();
+      : ((resolvedTypeName as ts.NamedDeclaration).name as ts.Identifier).text;
 
     return localReferenceTypeCache[typeNameString];
   }
 
   private resolveFqTypeName(type: ts.EntityName): string {
     if (type.kind === ts.SyntaxKind.Identifier) {
+      const typeReference = type.parent as unknown as ts.TypeReference
+      if (typeReference && typeReference.symbol) {
+        return this.current.typeChecker.getFullyQualifiedName(typeReference.symbol).replace(/^("[^"]*"\.)?(.*)/, '$2')
+      }
+
       return (type as ts.Identifier).text;
     }
 
@@ -375,12 +385,12 @@ export class TypeResolver {
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
     if (!genericTypes || !genericTypes.length) { 
-      const resolvedTypeName = this.resolveGenericTypeNameFromMap(typeName);
+      const resolvedTypeName = this.resolveGenericDeclarationFromMap(typeName);
       if (!resolvedTypeName) return typeName;
 
       return typeof resolvedTypeName === 'string'
         ? resolvedTypeName
-        : (resolvedTypeName as ts.EntityName).getText();
+        : this.resolveFqTypeName((resolvedTypeName as ts.NamedDeclaration).name as ts.Identifier);
     }
 
     return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
@@ -436,14 +446,7 @@ export class TypeResolver {
   }
 
   private nodeIsUsable(node: ts.Node) {
-    switch (node.kind) {
-      case ts.SyntaxKind.InterfaceDeclaration:
-      case ts.SyntaxKind.ClassDeclaration:
-      case ts.SyntaxKind.TypeAliasDeclaration:
-      case ts.SyntaxKind.EnumDeclaration:
-        return true;
-      default: return false;
-    }
+    return TypeResolver.nodeIsUsable(node)
   }
 
   private resolveLeftmostIdentifier(type: ts.EntityName): ts.Identifier {
@@ -501,9 +504,10 @@ export class TypeResolver {
           return false;
         }
 
-        const modelTypeDeclaration = node as UsableDeclaration;
-        return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
-      }) as UsableDeclaration[];
+        const modelTypeDeclaration = node as Tsoa.UsableDeclaration;
+        const text = (modelTypeDeclaration.name as ts.Identifier).text
+        return text === typeName;
+      }) as Tsoa.UsableDeclaration[];
 
     if (!modelTypes.length) {
       throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
@@ -543,7 +547,7 @@ export class TypeResolver {
     return modelTypes[0];
   }
 
-  private getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
+  private getModelProperties(node: Tsoa.UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
     const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
       const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       return ignore;
@@ -682,7 +686,7 @@ export class TypeResolver {
       });
   }
 
-  private getModelAdditionalProperties(node: UsableDeclaration) {
+  private getModelAdditionalProperties(node: Tsoa.UsableDeclaration) {
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
       const interfaceDeclaration = node as ts.InterfaceDeclaration;
       const indexMember = interfaceDeclaration
@@ -704,7 +708,7 @@ export class TypeResolver {
     return undefined;
   }
 
-  private getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration): Tsoa.Property[] {
+  private getModelInheritedProperties(modelTypeDeclaration: Tsoa.UsableDeclaration): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       return [];
@@ -735,7 +739,7 @@ export class TypeResolver {
     });
   }
 
-  private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  private getNodeDescription(node: Tsoa.UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
     const symbol = this.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
     if (!symbol) {
       return undefined;
@@ -756,11 +760,11 @@ export class TypeResolver {
     return undefined;
   }
 
-  private getNodeFormat(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  private getNodeFormat(node: Tsoa.UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
     return getJSDocComment(node, 'format');
   }
 
-  private getNodeExample(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  private getNodeExample(node: Tsoa.UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
     const example = getJSDocComment(node, 'example');
 
     if (example) {
