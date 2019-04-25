@@ -5,6 +5,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { getSecurities } from './security';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver'
 
 export class ControllerGenerator {
   private readonly path?: string;
@@ -33,7 +34,7 @@ export class ControllerGenerator {
     }
 
     const sourceFile = this.node.parent.getSourceFile();
-    
+
     return {
       location: sourceFile.fileName,
       methods: this.buildMethods(),
@@ -101,7 +102,7 @@ export class ControllerGenerator {
     // this will allow the TypeResolver to correctly find, for example, that a generic
     // type parameter `T` defined on a nested base class method resolves to some model `Foo`, 
     // because at the top of the inheritance chain the concrete class used `Foo` as `T`
-    const genericTypeMap: Tsoa.GenericTypeMap = new Map<string, Map<string, string | ts.EntityName>>();
+    const genericTypeMap: Tsoa.GenericTypeMap = new Map<string, Map<string, string | Tsoa.UsableDeclaration>>();
     
     const baseTypes = typeNode.getBaseTypes();
 
@@ -114,7 +115,7 @@ export class ControllerGenerator {
 
           // ensure a top level map entry for this base type
           if (!genericTypeMap.has(baseTypeName)) {
-            genericTypeMap.set(baseTypeName, new Map<string, string | ts.EntityName>());
+            genericTypeMap.set(baseTypeName, new Map<string, string | Tsoa.UsableDeclaration>());
           }
 
           const baseTypeMap = genericTypeMap.get(baseTypeName);
@@ -125,23 +126,19 @@ export class ControllerGenerator {
               if (target.typeParameters) {
                 const targetParam = target.typeParameters[index] as ts.TypeReference;
                 const targetParamName = targetParam.symbol ? targetParam.symbol.name : ts.TypeFlags[targetParam.flags];
-                let baseArgName: string | ts.EntityName = baseArg.symbol ? baseArg.symbol.name : ts.TypeFlags[baseArg.flags];
+                let baseArgDeclaration: string | Tsoa.UsableDeclaration;
                 
-                // use the source file locals to attempt pushing a ts.EntityName into the map, which
-                // will allow the type resolver to properly resolve the model even in inherited controllers
-                // (casting to any because for some reason the ts type does not include the `locals` map,
-                // which definitely exists at run time)
-                const sourceFile = this.node.parent.getSourceFile() as any
-                if (sourceFile.locals) {
-                  const locals = sourceFile.locals as Map<string, ts.Symbol>;
-                  const local = locals.get(baseArgName);
-
-                  if (local && local.declarations.length) {
-                    baseArgName = (local.declarations[0] as ts.NamedDeclaration).name as ts.Identifier || baseArgName;
-                  }
+                if (
+                  baseArg.symbol &&
+                  baseArg.symbol.declarations.length &&
+                  TypeResolver.nodeIsUsable(baseArg.symbol.declarations[0])
+                ) {
+                  baseArgDeclaration = baseArg.symbol.declarations[0] as Tsoa.UsableDeclaration;
+                } else {
+                  baseArgDeclaration = ts.TypeFlags[baseArg.flags];
                 }
                 
-                baseTypeMap.set(targetParamName, baseArgName);
+                baseTypeMap.set(targetParamName, baseArgDeclaration);
               }
             })
 
@@ -149,7 +146,7 @@ export class ControllerGenerator {
             const baseGenericMap = this.getResolvedGenericTypeMap(target);
             baseGenericMap.forEach((value, key) => {
               if (!genericTypeMap.has(key)) {
-                genericTypeMap.set(key, new Map<string, string | ts.EntityName>());
+                genericTypeMap.set(key, new Map<string, string | Tsoa.UsableDeclaration>());
               }
 
               const nestedBaseTypeMap = genericTypeMap.get(key);
