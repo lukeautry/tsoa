@@ -78,6 +78,53 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('CustomMethodAttributeGenerator', () => {
+    const customMethodAttrMetadata = new MetadataGenerator('./tests/fixtures/controllers/customMethodAttributeController.ts').Generate();
+    const controller = customMethodAttrMetadata.controllers[0];
+
+    it('should generate all custom attributes for every method', () => {
+      expect(controller.methods.every(method => method.customAttributes.length > 0)).to.equal(true);
+
+      const expectedCustomAttributes = [
+        { key: 'attKey', value: 'attValue' },
+        { key: 'attKey1', value: { test: 'testVal' } },
+        { key: 'attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+      ];
+
+      controller.methods.forEach((method) => {
+        expectedCustomAttributes.forEach((attribute) => expect(method.customAttributes).to.deep.include(attribute));
+      });
+    });
+
+    it('should generate individual custom attributes along with controller custom attributes', () => {
+      const method = controller.methods.find(m => m.name === 'customAttributeMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      const expectedCustomAttributes = [
+        { key: 'additionalAttribute', value: 'value' },
+        { key: 'attKey', value: 'attValue' },
+        { key: 'attKey1', value: { test: 'testVal' } },
+        { key: 'attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+      ];
+
+      expectedCustomAttributes.forEach((attribute) => expect(method.customAttributes).to.deep.include(attribute));
+    });
+
+    it('should resolve custom attributes with {$PATH} and {$METHOD}', () => {
+      expect(controller.methods.every(method => method.customAttributes.length > 0)).to.equal(true);
+
+      controller.methods.forEach((method) => {
+        expect(method.customAttributes).to.deep.include({key: 'testPath', value: method.path});
+        expect(method.customAttributes).to.deep.include({key: 'testMethod', value: method.method.toUpperCase()});
+      });
+    });
+  });
+
   describe('MethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
@@ -265,7 +312,7 @@ describe('Metadata generation', () => {
         { key: 'attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
       ];
 
-      expect(method.customAttributes).to.deep.equal(expectedCustomAttributes)
+      expect(method.customAttributes).to.deep.equal(expectedCustomAttributes);
     });
 
     it('should generate deprecated method true', () => {
