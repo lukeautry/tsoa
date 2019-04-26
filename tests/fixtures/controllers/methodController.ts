@@ -110,6 +110,14 @@ export class MethodController extends Controller {
     }
 
     /**
+     * {$ROUTE} {$PATH} {$METHOD}
+     */
+    @Get('InterpolatedDescription')
+    public async interpolatedDescription(): Promise<TestModel> {
+      return new ModelService().getModel();
+    }
+
+    /**
      * @deprecated
      */
     @Get('DeprecatedMethod')

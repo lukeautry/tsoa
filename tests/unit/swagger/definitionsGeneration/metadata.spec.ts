@@ -131,7 +131,7 @@ describe('Metadata generation', () => {
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
-      'apiSecurity', 'oauthSecurity', 'customAttribute', 'deprecatedMethod', 'summaryMethod',
+      'apiSecurity', 'oauthSecurity', 'customAttribute', 'interpolatedDescription', 'deprecatedMethod', 'summaryMethod',
       'oauthAndAPIkeySecurity', 'returnAnyType'];
 
     it('should only generate the defined methods', () => {
@@ -315,8 +315,23 @@ describe('Metadata generation', () => {
       expect(method.customAttributes).to.deep.equal(expectedCustomAttributes);
     });
 
+    it('should interpolate controller variables into description', () => {
+      const method = controller.methods.find(m => m.name === 'interpolatedDescription');
+
+      if (!method) {
+        throw new Error('Method interpolatedDescription not defined!');
+      }
+
+      if (!method.description) {
+        throw new Error('No description was generated!');
+      }
+
+      expect(method.description).to.equal('MethodTest InterpolatedDescription GET');
+    });
+
     it('should generate deprecated method true', () => {
       const method = controller.methods.find(m => m.name === 'deprecatedMethod');
+
       if (!method) {
         throw new Error('Method deprecatedMethod not defined!');
       }
