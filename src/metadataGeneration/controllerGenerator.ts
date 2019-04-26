@@ -69,6 +69,10 @@ export class ControllerGenerator {
 
       method.customAttributes.push(...this.customMethodAttributes);
       method.customAttributes = this.resolveCustomAttributes(method.customAttributes, stringValueMap);
+
+      if (method.description) {
+        method.description = this.interpolateString(method.description, stringValueMap);
+      }
     });
 
     return methods;
