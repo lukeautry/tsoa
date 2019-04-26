@@ -58,11 +58,14 @@ export class ControllerGenerator {
       .map((generator) => generator.Generate());
 
     methods.forEach((method) => {
-      const stringValueMap = new Map<string, string | null>([
+      const stringValueMap = new Map<string, string>([
         ['PATH', method.path],
         ['METHOD', method.method.toUpperCase()],
-        ['ROUTE', this.path || null],
       ]);
+
+      if (this.path) {
+        stringValueMap.set('ROUTE', this.path);
+      }
 
       method.customAttributes.push(...this.customMethodAttributes);
       method.customAttributes = this.resolveCustomAttributes(method.customAttributes, stringValueMap);
@@ -193,7 +196,7 @@ export class ControllerGenerator {
     return genericTypeMap;
   }
 
-  private interpolateString(initialString: string, stringValueMap: Map<string, string | null>) {
+  private interpolateString(initialString: string, stringValueMap: Map<string, string>) {
     let resolvedString = initialString;
 
     stringValueMap.forEach((val: string, key: string) => {
@@ -205,7 +208,7 @@ export class ControllerGenerator {
     return resolvedString;
   }
 
-  private resolveCustomAttributes(customAttributes: Tsoa.CustomAttribute[], stringValueMap: Map<string, string | null>) {
+  private resolveCustomAttributes(customAttributes: Tsoa.CustomAttribute[], stringValueMap: Map<string, string>) {
     return customAttributes.map((customAttr) => {
       const customAttrString = JSON.stringify(customAttr.value);
 
