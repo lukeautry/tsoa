@@ -504,6 +504,12 @@ describe('Koa Server', () => {
         expect(model.id).to.equal(2);
       });
     });
+
+    it('should pass through error if controller method crashes', () => {
+      return verifyGetRequest(basePath + `/SecurityTest/ServerError?access_token=abc123456`, (err, res) => {
+        expect(res.status).to.equal(500);
+      }, 500);
+    });
   });
 
   describe('Parameter data', () => {
