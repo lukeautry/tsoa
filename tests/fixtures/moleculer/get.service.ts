@@ -4,7 +4,7 @@ import { Get, Ignore, Path, Route, Security } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestClassModel } from '../testModel';
 import { User } from './api.service';
-
+const moleculer = require('moleculer');
 interface ChatsActionParams {
   withUser: string;
 }
@@ -21,7 +21,7 @@ export interface AuthContext<P = GenericObject> extends Context<P, AuthMeta> {
 
 @Service()
 @Route('GetTest')
-class GetTest {
+class GetTest  extends moleculer.Service  {
   @Action({
     params: {
       withUser: 'string',

@@ -3,7 +3,7 @@ import { Context } from 'moleculer';
 import * as Moleculer from 'moleculer';
 import { Method, Service } from 'moleculer-decorators';
 import * as ApiGateway from 'moleculer-web';
-
+const moleculer = require('moleculer');
 export interface User {
   id: string;
 }
@@ -27,7 +27,7 @@ const { Errors } = ApiGateway;
     ],
   },
 })
-class ApiGateWay {
+class ApiGateWay extends moleculer.Service {
   @Method
   public async authenticate(ctx: Context, route: string, req: IncomingMessage, res: ServerResponse) {
     const accessToken = req.headers.authorization;

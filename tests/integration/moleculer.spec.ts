@@ -17,15 +17,16 @@ describe('Moleculer', () => {
     broker.createService(get);
     const apiService = broker.createService(api);
 
-    before(() => {
+    before(async () => {
       return broker.start();
     });
 
-    after(() => {
+    after(async () => {
       return broker.stop();
     });
 
     it('should pass auth', async () => {
+      broker.watchService(get);
       return request(apiService.server).get('/getTest/getModel/5')
         .set('Authorization', VALID_TOKEN)
         .expect(200)
