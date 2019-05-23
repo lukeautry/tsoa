@@ -14,6 +14,7 @@
     - [Generate](#generate)
       + [Using CLI](#using-cli)
       + [Programmatic](#programmatic)
+      + [Automating Regeneration](#automating-regeneration)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
     - [Consuming generated routes](#consuming-generated-routes)
@@ -156,6 +157,26 @@ import { generateRoutes, generateSwaggerSpec } from 'tsoa';
         outputDirectory: "./api/dist",
     });
 })();
+```
+
+#### Automating Regeneration
+
+You might find it convenient to automatically generate again. To do this, add a section to your package.json's script section with the following:
+```
+  "scripts": {
+    // ... other stuff (note that comments are not valid JSON, so please remove this)
+    "tsoa:gen": "yarn tsoa swagger -c ./api/tsoa.json && yarn tsoa routes -c ./api/tsoa.json"
+  },
+```
+
+Then when you've made a change to an API, you simply run "yarn tsoa:gen"
+
+Note: You can also integrate the swagger regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
+```
+  "scripts": {
+    // ... other stuff (note that comments are not valid JSON, so please remove this)
+    "build:api": "tsoa:gen && yarn tsc -p ./api/tsconfig.json",
+  },
 ```
 
 ### Dealing with duplicate model names
