@@ -103,11 +103,6 @@
     "@types/express-serve-static-core" "*"
     "@types/serve-static" "*"
 
-"@types/handlebars@^4.0.37":
-  version "4.0.37"
-  resolved "https://registry.yarnpkg.com/@types/handlebars/-/handlebars-4.0.37.tgz#a3bc3eba0c0f03f753cac00841a5b21e26a02c03"
-  integrity sha512-c/g99PQsJEFYdK3LT1qgPAZ61fu/oFOaEhov/6ZuUNMi1xQFbAOSThlX8fAQLf+QoGXtyv4S39OjIRXf3HkBtw==
-
 "@types/hapi@^17.6.1":
   version "17.6.1"
   resolved "https://registry.yarnpkg.com/@types/hapi/-/hapi-17.6.1.tgz#006590e92d82bb5b1e20af6d4bc46898a8d43db2"
