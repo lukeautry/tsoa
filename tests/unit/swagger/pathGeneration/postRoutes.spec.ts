@@ -1,14 +1,14 @@
 import * as chai from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 
 describe('POST route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
-  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
   const baseRoute = '/PostTest';
 
   const getValidatedParameters = (actionRoute: string) => {
@@ -47,7 +47,7 @@ describe('POST route generation', () => {
   it('should reject multiple body parameters', () => {
     chai.expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
-      new SpecGenerator(invalidMetadata, getDefaultOptions()).GetSpec();
+      new SpecGenerator2(invalidMetadata, getDefaultOptions()).GetSpec();
     }).to.throw('Only one body parameter allowed in \'InvalidPostTestController.postWithMultipleBodyParams\' method.');
   });
 

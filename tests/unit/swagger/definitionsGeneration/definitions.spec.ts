@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator } from '../../../../src/swagger/specGenerator';
+import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
 import { Swagger } from '../../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
-  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
 
   const getValidatedDefinition = (name: string) => {
     if (!spec.definitions) {
