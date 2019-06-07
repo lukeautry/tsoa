@@ -21,6 +21,9 @@ export namespace Swagger {
     | 'ws'
     | 'wss';
 
+  export type SupportedSpecMajorVersion = 2
+    | 3;
+
   export interface Spec {
     info: Info;
     tags?: Tag[];

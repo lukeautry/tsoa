@@ -1,13 +1,16 @@
 import { SwaggerConfig } from './../../src/config';
-export function getDefaultOptions(): SwaggerConfig {
+export function getDefaultOptions(
+  outputDirectory: string = '',
+  entryFile: string = ''): SwaggerConfig {
+
   return {
     basePath: '/v1',
     description: 'Description of a test API',
-    entryFile: '',
+    entryFile,
     host: 'localhost:3000',
     license: 'MIT',
     name: 'Test API',
-    outputDirectory: '',
+    outputDirectory,
     securityDefinitions: {
       basic: {
         type: 'basic',
