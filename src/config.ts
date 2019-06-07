@@ -48,8 +48,7 @@ export interface SwaggerConfig {
   version?: string;
 
   /**
-   * Major OpenAPI version to generate; defaults to version 2 if not specified or if any other
-   * version is specified other than the possible values.
+   * Major OpenAPI version to generate; defaults to version 2 when not specified
    * Possible values:
    *  - '2': generates OpenAPI version 2.
    *  - '3': generates OpenAPI version 3.
