@@ -50,8 +50,8 @@ export interface SwaggerConfig {
   /**
    * Major OpenAPI version to generate; defaults to version 2 when not specified
    * Possible values:
-   *  - '2': generates OpenAPI version 2.
-   *  - '3': generates OpenAPI version 3.
+   *  - 2: generates OpenAPI version 2.
+   *  - 3: generates OpenAPI version 3.
    */
   specVersion?: Swagger.SupportedSpecMajorVersion;
 
