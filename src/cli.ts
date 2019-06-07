@@ -61,7 +61,7 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
 };
 
 export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
-  if (!config.outputDirectory) { throw new Error('Missing outputDirectory: configuration most contain output directory.'); }
+  if (!config.outputDirectory) { throw new Error('Missing outputDirectory: configuration must contain output directory.'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
   if (!await fsExists(config.entryFile)) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);

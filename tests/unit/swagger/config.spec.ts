@@ -12,7 +12,7 @@ describe('Configuration', () => {
     validateSwaggerConfig(config).then((result) => {
       throw new Error('Should not get here, expecting error regarding outputDirectory');
     }, (err) => {
-      expect(err.message).to.equal('Missing outputDirectory: configuration most contain output directory.');
+      expect(err.message).to.equal('Missing outputDirectory: configuration must contain output directory.');
       done();
     });
 
