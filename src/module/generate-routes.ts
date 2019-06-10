@@ -30,17 +30,17 @@ export const generateRoutes = async (
 
   switch (routesConfig.middleware) {
     case 'express':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/express.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
       break;
     case 'hapi':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.hbs');
       pathTransformer = (path: string) => path;
       break;
     case 'koa':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/koa.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/koa.hbs');
       break;
     default:
-      template = path.join(__dirname, '..', 'routeGeneration/templates/express.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
   }
 
   if (routesConfig.middlewareTemplate) {
