@@ -60,13 +60,17 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
   return config || {};
 };
 
-const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
-  if (!config.outputDirectory) { throw new Error('Missing outputDirectory: onfiguration most contain output directory'); }
+export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
+  if (!config.outputDirectory) { throw new Error('Missing outputDirectory: configuration must contain output directory.'); }
   if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
   if (!await fsExists(config.entryFile)) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
   config.version = config.version || await versionDefault();
+
+  config.specVersion = config.specVersion || 2;
+  if (config.specVersion !== 2 && config.specVersion !== 3) { throw new Error('Unsupported Spec version.'); }
+
   config.name = config.name || await nameDefault();
   config.description = config.description || await descriptionDefault();
   config.license = config.license || await licenseDefault();
