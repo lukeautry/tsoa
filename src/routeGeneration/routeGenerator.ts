@@ -122,8 +122,13 @@ export class RouteGenerator {
   }
 
   private getRelativeImportPath(fileLocation: string) {
-    fileLocation = fileLocation.replace('.ts', '');
-    return `./${path.relative(path.dirname(this.options.routesDir), fileLocation).replace(/\\/g, '/')}`;
+    const outputDirectory =
+      path.extname(this.options.routesDir) === '' ? // routes dir is a directory
+      this.options.routesDir :
+      path.dirname(this.options.routesDir); // routes dir is a file, get parent
+
+    fileLocation = fileLocation.replace('.ts', ''); // no ts extension in import
+    return `./${path.relative(outputDirectory, fileLocation).replace(/\\/g, '/')}`;
   }
 
   private buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {
