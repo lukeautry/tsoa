@@ -36,7 +36,7 @@
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^7.0.1",
-    "handlebars": "^4.0.11",
+    "handlebars": "^4.1.2",
     "lodash.indexof": "^4.0.5",
     "lodash.map": "^4.6.0",
     "merge": "^1.2.1",
@@ -84,7 +84,7 @@
     "rimraf": "^2.6.2",
     "supertest": "^3.1.0",
     "ts-node": "^3.3.0",
-    "tslint": "^5.11.0"
+    "tslint": "^5.17.0"
   },
   "repository": {
     "type": "git",
