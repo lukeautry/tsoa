@@ -217,7 +217,7 @@ export class TypeResolver {
     }
   }
 
-  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumerateType | undefined {
+  private getLiteralType(typeName: ts.EntityName): Tsoa.Type | undefined {
     const literalName = (typeName as ts.Identifier).text;
     const literalTypes = this.current.nodes
       .filter((node) => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
@@ -232,10 +232,15 @@ export class TypeResolver {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${literalName}; please make enum names unique.`);
     }
 
-    const unionTypes = (literalTypes[0] as any).type.types;
+    const unionTypes = (literalTypes[0] as any).type.types as any[];
+    if (unionTypes.some(t => !t.literal || !t.literal.text)) {
+      // tagged union types can't be expressed in Swagger terms, probably
+      return { dataType: 'any' };
+    }
+
     return {
       dataType: 'enum',
-      enums: unionTypes.map((unionNode: any) => unionNode.literal.text as string),
+      enums: unionTypes.map((unionNode) => unionNode.literal.text as string),
     } as Tsoa.EnumerateType;
   }
 
