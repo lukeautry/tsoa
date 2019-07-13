@@ -1,4 +1,4 @@
-export function SuccessResponse(name: string | number, description?: string): Function {
+export function SuccessResponse<T>(name: string | number, description?: string): Function {
   return () => { return; };
 }
 

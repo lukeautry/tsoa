@@ -71,6 +71,13 @@ export class MethodController extends Controller {
         return Promise.resolve();
     }
 
+    @SuccessResponse<TestModel>('201', 'Created')
+    @Get('typedSuccessResponse')
+    public async typedSuccessResponse(): Promise<void> {
+        this.setStatus(201);
+        return Promise.resolve();
+    }
+
     @Security('api_key')
     @Get('ApiSecurity')
     public async apiSecurity(): Promise<TestModel> {

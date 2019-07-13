@@ -19,7 +19,7 @@ describe('Metadata generation', () => {
     const controller = parameterMetadata.controllers[0];
     const definedMethods = [
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
-      'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
+      'description', 'tags', 'multiResponse', 'successResponse', 'typedSuccessResponse', 'oauthOrAPIkeySecurity',
       'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod',
       'oauthAndAPIkeySecurity', 'returnAnyType'];
 
@@ -137,6 +137,20 @@ describe('Metadata generation', () => {
       const mainResponse = method.responses[0];
       expect(mainResponse.name).to.equal('201');
       expect(mainResponse.description).to.equal('Created');
+    });
+
+    it('should generate typed success response', () => {
+      const method = controller.methods.find(m => m.name === 'typedSuccessResponse');
+      if (!method) {
+        throw new Error('Method typedSuccessResponse not defined!');
+      }
+
+      expect(method.responses.length).to.equal(1);
+
+      const mainResponse = method.responses[0];
+      expect(mainResponse.name).to.equal('201');
+      expect(mainResponse.description).to.equal('Created');
+      expect((mainResponse.schema as any).refName).to.equal("TestModel");
     });
 
     it('should generate api security', () => {
