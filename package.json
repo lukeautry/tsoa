@@ -44,9 +44,9 @@
     "moment": "^2.22.1",
     "typescript": "^3.2.2",
     "typescript-formatter": "^7.2.2",
-    "validator": "^8.2.0",
+    "validator": "^11.1.0",
     "yamljs": "^0.3.0",
-    "yargs": "^8.0.2"
+    "yargs": "^13.2.4"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",
