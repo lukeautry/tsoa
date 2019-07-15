@@ -183,7 +183,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'param', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
