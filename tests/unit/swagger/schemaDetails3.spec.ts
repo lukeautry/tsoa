@@ -62,7 +62,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         if (!method.requestBody) { throw new Error('Request body not defined.'); }
 
         expect(method.requestBody.content['application/json'].schema).to.deep.equal({
-          '$ref': '#/components/schemas/TestModel'
+          $ref: '#/components/schemas/TestModel',
         });
       });
     });

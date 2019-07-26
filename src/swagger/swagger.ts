@@ -301,7 +301,7 @@ export namespace Swagger {
     description?: string;
     flow: 'password';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2ApplicationSecurity {
@@ -309,7 +309,7 @@ export namespace Swagger {
     description?: string;
     flow: 'application';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2AccessCodeSecurity {
@@ -318,11 +318,11 @@ export namespace Swagger {
     flow: 'accessCode';
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuthScope {
-    [name: string]: string;
+    [scopeName: string]: string;
   }
 
   export type Security = BasicSecurity
