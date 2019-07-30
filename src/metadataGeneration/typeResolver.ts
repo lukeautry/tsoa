@@ -70,6 +70,10 @@ export class TypeResolver {
       return { dataType: 'any' } as Tsoa.Type;
     }
 
+    if(this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
+      return { dataType: 'object' } as Tsoa.Type;
+    }
+
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`);
     }
