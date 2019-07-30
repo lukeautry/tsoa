@@ -37,6 +37,8 @@ export interface TestModel extends Model {
    */
   boolValue: boolean;
   boolArray: boolean[];
+  object: object;
+  objectArray: object[];
   enumValue?: EnumIndexValue;
   enumArray?: EnumIndexValue[];
   enumNumberValue?: EnumNumberValue;

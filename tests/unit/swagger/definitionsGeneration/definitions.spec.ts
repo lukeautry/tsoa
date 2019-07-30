@@ -39,6 +39,24 @@ describe('Definition generation', () => {
       expect(definition.properties.value.enum).to.deep.equal(['success', 'failure']);
     });
 
+    it('should generate a member of type object for object type', () => {
+      const definition = getValidatedDefinition('TestModel');
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+      if (!definition.properties.object) { throw new Error('There was no \'object\' property.'); }
+
+      expect(definition.properties.object.type).to.equal('object');
+    });
+
+    it('should generate a member of type array with items of type object for object array type', () => {
+      const definition = getValidatedDefinition('TestModel');
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+      if (!definition.properties.objectArray) { throw new Error('There was no \'objectArray\' property.'); }
+      if (!definition.properties.objectArray.items) { throw new Error('There was no \'items\' property.'); }
+
+      expect(definition.properties.objectArray.type).to.equal('array');
+      expect(definition.properties.objectArray.items.type).to.equal('object');
+    });
+
     it('should generate a definition description from a model jsdoc comment', () => {
       const definition = getValidatedDefinition('TestModel');
       expect(definition.description).to.equal('This is a description of a model');

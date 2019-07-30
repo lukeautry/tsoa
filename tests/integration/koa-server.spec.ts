@@ -702,6 +702,8 @@ describe('Koa Server', () => {
       id: 1,
       modelValue: { email: 'test@test.com', id: 2 },
       modelsArray: [{ email: 'test@test.com', id: 1 }],
+      object: { foo: 'bar' },
+      objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       numberArray: [1, 2],
       numberValue: 5,
       optionalString: 'test1234',
