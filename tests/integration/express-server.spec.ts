@@ -781,6 +781,8 @@ describe('Express Server', () => {
           testSubModel2: false,
         },
       },
+      object: { foo: 'bar' },
+      objectArray: [{ foo1: 'bar1'}, { foo2: 'bar2'}],
       numberArray: [1, 2],
       numberValue: 5,
       optionalString: 'test1234',
