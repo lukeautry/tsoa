@@ -129,7 +129,7 @@ Note that type aliases are only supported for string literal types like `type st
 ### Generate
 
 #### Using CLI
-```
+```typescript
 // generate swagger.json
 tsoa swagger
 
@@ -141,21 +141,23 @@ See [CLI documentation](#command-line-interface)
 
 #### Programmatic
 
-```
-import { generateRoutes, generateSwaggerSpec } from 'tsoa';
+```typescript
+import { generateRoutes, generateSwaggerSpec, SwaggerConfig } from 'tsoa';
 
 (async () => {
+    const swaggerOptions: SwaggerConfig = {
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        outputDirectory: "./api/dist",
+    }
+
+    await generateSwaggerSpec(swaggerOptions);
+
     await generateRoutes({
         basePath: "/api",
         entryFile: "./api/server.ts",
         routesDir: "./api",
-    });
-
-    await generateSwaggerSpec({
-        basePath: "/api",
-        entryFile: "./api/server.ts",
-        outputDirectory: "./api/dist",
-    });
+    }, swaggerOptions);
 })();
 ```
 

@@ -60,7 +60,7 @@ export namespace Swagger {
     parameters?: { [name: string]: Parameter };
     requestBodies?: { [name: string]: any };
     responses?: { [name: string]: Response };
-    schemas?: { [name: string]: any };
+    schemas?: { [name: string]: Schema };
     securitySchemes?: { [name: string]: Security };
   }
 
@@ -250,7 +250,7 @@ export namespace Swagger {
     format?: DataFormat;
     allOf?: Schema[];
     additionalProperties?: boolean | BaseSchema;
-    properties?: { [propertyName: string]: Schema };
+    properties?: { [propertyName: string]: Schema3 };
     discriminator?: string;
     readOnly?: boolean;
     xml?: XML;

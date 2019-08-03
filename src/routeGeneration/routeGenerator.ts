@@ -3,9 +3,13 @@ import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
-import { RoutesConfig } from './../config';
+import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
+
+interface ISwaggerConfigRelatedToRoutes {
+  noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
+}
 
 export class RouteGenerator {
   private tsfmtConfig = {
@@ -20,7 +24,7 @@ export class RouteGenerator {
     vscode: true,
   };
 
-  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig) { }
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: ISwaggerConfigRelatedToRoutes) { }
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
@@ -40,6 +44,18 @@ export class RouteGenerator {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
     });
+    const additionalPropsHelper = (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
+      if(additionalProperties){
+        // Then the model for this type explicitly allows additional properties and thus we should assign that
+        return JSON.stringify(additionalProperties);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {
+        return JSON.stringify(false);
+      } else {
+        // Since Swagger defaults to allowing additional properties, then that will be our default
+        return JSON.stringify(true);
+      }
+    };
+    handlebars.registerHelper('additionalPropsHelper', additionalPropsHelper);
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
@@ -97,7 +113,7 @@ export class RouteGenerator {
     });
   }
 
-  private buildModels(): TsoaRoute.Models {
+  public buildModels(): TsoaRoute.Models {
     const models = {} as TsoaRoute.Models;
 
     Object.keys(this.metadata.referenceTypeMap).forEach(name => {
@@ -115,6 +131,11 @@ export class RouteGenerator {
       } as TsoaRoute.ModelSchema;
       if (referenceType.additionalProperties) {
         modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
+        modelSchema.additionalProperties = false;
+      } else {
+        // Since Swagger allows "excess properties" (to use a TypeScript term) by default
+        modelSchema.additionalProperties = true;
       }
       models[name] = modelSchema;
     });
@@ -156,7 +177,7 @@ export class RouteGenerator {
 
   private buildProperty(type: Tsoa.Type): TsoaRoute.PropertySchema {
     const schema: TsoaRoute.PropertySchema = {
-      dataType: type.dataType as any,
+      dataType: type.dataType,
     };
 
     const referenceType = type as Tsoa.ReferenceType;

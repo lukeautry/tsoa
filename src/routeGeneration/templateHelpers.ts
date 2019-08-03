@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import * as validator from 'validator';
-import { TsoaRoute } from './tsoa-route';
+import { isDefaultForAdditionalPropertiesAllowed, TsoaRoute } from './tsoa-route';
 
 // for backwards compatability with custom templates
 export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '') {
@@ -368,10 +368,22 @@ export class ValidationService {
         const property = properties[key];
         value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent);
       });
+      const alreadyValidatedProperties = new Set(Object.keys(properties));
 
       const additionalProperties = modelDefinition.additionalProperties;
-      if (additionalProperties) {
-        const alreadyValidatedProperties = new Set(Object.keys(properties));
+
+      if (additionalProperties === true || isDefaultForAdditionalPropertiesAllowed(additionalProperties)) {
+        // then don't validate any of the additional properties
+      } else if (additionalProperties === false) {
+        Object.keys(value).forEach((key: string) => {
+          if (!alreadyValidatedProperties.has(key)) {
+            fieldErrors[parent + '.' + key] = {
+              message: `${key} is an excess property and therefore is not allowed`,
+              value: key,
+            };
+          }
+        });
+      } else {
         Object.keys(value).forEach((key: string) => {
           if (!alreadyValidatedProperties.has(key)) {
             const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent);

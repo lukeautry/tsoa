@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { ValidationService } from './../../../src/routeGeneration/templateHelpers';
+import { ValidationService, FieldErrors } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
 
@@ -17,6 +17,29 @@ describe('ValidationService', () => {
             const result = v.validateModel('', { a: 's' }, 'ExampleModel', error);
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: 's' });
+        });
+
+        it('should not allow additionalProperties if noImplicitAdditionalProperties is true', () => {
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const errorDictionary: FieldErrors = {};
+            v.validateModel(
+                '',
+                { a: 's', uhOh: 'something extra' },
+                refName,
+                errorDictionary,
+            );
+            const errorKeys = Object.keys(errorDictionary);
+            expect(errorKeys).to.have.lengthOf(1);
+            const firstAndOnlyErrorKey = errorKeys[0];
+            expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq('uhOh is an excess property and therefore is not allowed');
         });
 
         it('should not require optional properties', () => {

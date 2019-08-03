@@ -13,6 +13,12 @@ export class ModelService {
       modelsArray: new Array<TestSubModel>(),
       numberArray: [1, 2, 3],
       numberValue: 1,
+      object: {
+          a: 'a',
+      },
+      objectArray: [{
+          a: 'a',
+      }],
       optionalString: 'optional string',
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',

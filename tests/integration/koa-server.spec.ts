@@ -16,6 +16,7 @@ describe('Koa Server', () => {
 
   it('can handle get request to root controller`s method path', () => {
     return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (err, res) => {
+      expect(err).to.equal(false);
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -71,7 +72,7 @@ describe('Koa Server', () => {
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       const model = res.body as TestModel;
-      expect(model).to.deep.equal(model);
+      expect(model).to.deep.equal(data);
     });
   });
 
