@@ -15,6 +15,10 @@ import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
 import * as express from 'express';
 
+{{#if useRateLimiter}}
+const limiter = require('express-rate-limit');
+{{/if}}
+
 const models: TsoaRoute.Models = {
     {{#each models}}
     "{{@key}}": {
@@ -40,6 +44,12 @@ export function RegisterRoutes(app: express.Express) {
     {{#each controllers}}
     {{#each actions}}
         app.{{method}}('{{fullPath}}',
+            {{#if rateLimit}}
+            limiter({
+                windowMs: 1 * {{rateLimit.[1]}} * 1000,
+                max: {{rateLimit.[0]}}
+            }),
+            {{/if}}
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}

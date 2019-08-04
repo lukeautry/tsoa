@@ -53,6 +53,8 @@ export class RouteGenerator {
       canImportByAlias = false;
     }
 
+    let usesRateLimiter = false;
+
     const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
 
     return routesTemplate({
@@ -74,12 +76,17 @@ export class RouteGenerator {
               `${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false,
             );
 
+            if (method.rateLimit) {
+              usesRateLimiter = true;
+            }
+
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
               path: normalisedMethodPath,
+              rateLimit: method.rateLimit,
               security: method.security,
             };
           }),
@@ -91,6 +98,7 @@ export class RouteGenerator {
       environment: process.env,
       iocModule,
       models: this.buildModels(),
+      useRateLimiter: usesRateLimiter,
       useSecurity: this.metadata.controllers.some(
         controller => controller.methods.some(method => !!method.security.length),
       ),
