@@ -51,6 +51,7 @@ export class MethodGenerator {
       operationId: this.getOperationId(),
       parameters: this.buildParameters(),
       path: this.path,
+      rateLimit: this.getRateLimit(),
       responses,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
@@ -218,6 +219,21 @@ export class MethodGenerator {
     const expression = decorator.parent as ts.CallExpression;
     const ops = expression.arguments.map((a: any) => a.text as string);
     return ops[0];
+  }
+
+  private getRateLimit(): number[] | undefined {
+    const rateLimitDecorators = this.getDecoratorsByIdentifier(this.node, 'RateLimit');
+    if (!rateLimitDecorators || !rateLimitDecorators.length) {
+      return undefined;
+    }
+    if (rateLimitDecorators.length < 1) {
+      throw new GenerateMetadataError(`Only one RateLimit decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    const decorator = rateLimitDecorators[0];
+    const expression = decorator.parent as ts.CallExpression;
+
+    return expression.arguments.map<number>((e: any) => e.text as number);
   }
 
   private getTags() {
