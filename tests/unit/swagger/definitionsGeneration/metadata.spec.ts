@@ -21,10 +21,17 @@ describe('Metadata generation', () => {
       'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
       'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
       'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod',
-      'oauthAndAPIkeySecurity', 'returnAnyType'];
+      'oauthAndAPIkeySecurity', 'returnAnyType', 'getRateLimit'];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
+    });
+
+    it('should generate a RateLimiter', () => {
+      const method = controller.methods.find(m => m.name === 'getRateLimit');
+
+      expect(method!.rateLimit![0]).to.be.equal(5);
+      expect(method!.rateLimit![1]).to.be.equal(60);
     });
 
     it('should generate the defined methods', () => {
