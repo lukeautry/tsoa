@@ -10,6 +10,7 @@ import {
     Security,
     SuccessResponse,
     Tags,
+    RateLimit,
 } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
@@ -40,6 +41,12 @@ export class MethodController extends Controller {
     @Delete('Delete')
     public async deleteMethod(): Promise<TestModel> {
         return new ModelService().getModel();
+    }
+
+    @Get('RateLimit')
+    @RateLimit(5, 60)
+    public async getRateLimit(): Promise<void> {
+      return;
     }
 
     /**
