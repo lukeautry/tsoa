@@ -35,6 +35,7 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "express-rate-limit": "^5.0.0",
     "fs-extra": "^7.0.1",
     "handlebars": "^4.1.2",
     "lodash.indexof": "^4.0.5",
