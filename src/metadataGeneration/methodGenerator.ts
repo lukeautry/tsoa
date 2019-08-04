@@ -233,7 +233,7 @@ export class MethodGenerator {
     const decorator = rateLimitDecorators[0];
     const expression = decorator.parent as ts.CallExpression;
 
-    return expression.arguments.map<number>((e: any) => e.text as number);
+    return expression.arguments.map<number>((e: any) => parseInt(e.text, 10));
   }
 
   private getTags() {
