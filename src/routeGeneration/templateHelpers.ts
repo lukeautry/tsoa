@@ -363,6 +363,12 @@ export class ValidationService {
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
+
+      const enums = modelDefinition.enums;
+      if (enums) {
+        return this.validateEnum(name, value, fieldErrors, enums, parent);
+      }
+
       const properties = modelDefinition.properties || {};
       Object.keys(properties).forEach((key: string) => {
         const property = properties[key];
@@ -397,11 +403,6 @@ export class ValidationService {
             }
           }
         });
-      }
-
-      const enums = modelDefinition.enums;
-      if (enums) {
-        return this.validateEnum(name, value, fieldErrors, enums, parent);
       }
     }
 

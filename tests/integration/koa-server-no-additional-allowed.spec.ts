@@ -8,6 +8,14 @@ const basePath = '/v1';
 
 describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
+  // While the purpose of this file (koa-server-no-additional-allowed.spec.ts) is to test the validation of POST bodies, we should have at least one GET test
+  it('can handle get request to root controller`s path', () => {
+    return verifyGetRequest(basePath, (err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
   it('should call out any additionalProperties', () => {
     const data = Object.assign({}, getFakeModel(), {
         someExtraProperty: 'someExtraValue',
@@ -174,8 +182,9 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         zero: 0,
       };
       return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
-        expect(err.text).to.deep.eq({todo:"fixme"});
-      }, 400);
+        const response = res.body as any[];
+        expect(response.sort()).to.eql([ [], '', 0, false, null ]);
+      }, 200);
     });
   });
 
@@ -191,8 +200,14 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
-        expect(err.text).to.deep.eq({todo:"fixme"});
-      }, 400);
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
+      }, 200);
     });
 
     it('parses body props parameters', () => {
@@ -205,8 +220,14 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         weight: 82.1,
       };
       return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
-        expect(err.text).to.deep.eq({todo:"fixme"});
-      }, 400);
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
+      }, 200);
     });
 
     it('can post request with a generic body', () => {
@@ -223,6 +244,10 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
   });
 
   it('shutdown server', () => server.close());
+
+  function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+  }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);

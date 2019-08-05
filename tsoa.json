@@ -4,6 +4,7 @@
         "entryFile": "./tests/fixtures/express/server.ts",
         "host": "localhost:3000",
         "basePath": "/v1",
+        "noImplicitAdditionalProperties": true,
         "securityDefinitions": {
             "api_key": {
                 "type": "apiKey",
