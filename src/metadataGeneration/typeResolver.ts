@@ -432,7 +432,7 @@ export class TypeResolver {
       }) as UsableDeclaration[];
 
     if (!modelTypes.length) {
-      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
+      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}. If ${typeName} comes from a dependency, please create an interface in your own code that has the same structure. Tsoa can not utilize interfaces from external dependencies. Read more at https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD`);
     }
 
     if (modelTypes.length > 1) {

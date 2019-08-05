@@ -98,6 +98,8 @@ export class UsersController extends Controller {
     }
 }
 ```
+Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD)
+
 ### Create Models
 ```typescript
 // models/user.ts
