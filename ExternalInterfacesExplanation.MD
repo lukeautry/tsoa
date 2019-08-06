@@ -72,9 +72,11 @@ export class UsersController {
 }
 ```
 
-## But wait, but my code needs get data that the library can handle... will that work?
+## Does that solution have any negatives?
 
-Yes, this will work just fine due to TypeScript's "structural subtyping." Here's an example.
+While it may appear that having a duplicate interface may be a performance problem, the types are stripped out when TypeScript compiles. So there won't be a performance problem.
+
+And you also don't have to worry about the duplicate interface acting as a replacement for the external library's interface. This will work just fine due to TypeScript's "structural subtyping." Here's an example.
 
 Let's say you want to expose the `IHuman` interface because you need to call the `onlyAcceptsAHuman` function from a fictional NPM package called `HumanLogger`.
 
@@ -88,7 +90,7 @@ export function onlyAcceptsAHuman(human: IHuman){
     console.log(`I got a human with the name ${human.name}`
 }
 ```
-And here's your local code that has it's own interface that has a different name but the same structure. The fact that the following code compiles shows that the two interfaces can be substituted for each other due to structural subtyping:
+And here's your local code that has its own interface that has a different name but the same structure. The fact that the following code compiles shows that the two interfaces can be substituted for each other due to structural subtyping:
 ```ts
 import * as humanLogger from 'human-logger';
 
@@ -113,7 +115,7 @@ Abstraction layers are a valuable concept in programming. Here's a classic examp
 
 Let's say that `some-external-dependency` changes their method to take a different data structure.
 
-If tsoa were to update your swagger documentation to thew new type, then your API consumers would get 400 BAD REQUEST errors. See here:
+If tsoa were to update your swagger documentation to the new type, then your API consumers would get 400 BAD REQUEST errors. See here:
 
 ```ts
 // node_modules/someExternalDependency/index.d.ts
@@ -133,7 +135,7 @@ Now your swagger documentation has changed, but the API consumer hasn't been not
 ```ts
 const response = someHttpLib.post('/api/Users/', {
     name: "Bob Smith"
-}); // Throw 400 error: "firstName is a required parameter
+}); // Throw 400 error: "firstName is a required parameter"
 ```
 We don't want our API consumers to have a new error pop up in their production applications, so instead we handle our internal change without having to bother our consumers:
 ```ts
