@@ -73,7 +73,7 @@ export class SpecGenerator {
 
   protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
 
-    if (type.dataType === 'void'){
+    if (type.dataType === 'void') {
         return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
         return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
@@ -112,7 +112,7 @@ export class SpecGenerator {
     // Described here: https://swagger.io/docs/specification/describing-responses/#empty
     const voidSchema = {
         // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
-    }
+    };
     return voidSchema;
   }
 

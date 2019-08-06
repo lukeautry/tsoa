@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import 'mocha';
-import { RouteGenerator } from '../../../src/routeGeneration/routeGenerator';
 import { Tsoa } from '../../../src/metadataGeneration/tsoa';
+import { RouteGenerator } from '../../../src/routeGeneration/routeGenerator';
 
 describe('RouteGenerator', () => {
   describe('.buildModels', () => {
 
-    it('should produce models where no additionalProperties are allowed unless explicitly stated', ()=> {
+    it('should produce models where no additionalProperties are allowed unless explicitly stated', () => {
       // Arrange
       const stringType: Tsoa.Type = {
         dataType: 'string',
@@ -22,7 +22,7 @@ describe('RouteGenerator', () => {
               name: 'aStringOnTheObject',
               required: true,
               type: stringType,
-              validators: {}
+              validators: {},
             }],
             refName: refThatShouldNotAllowExtras,
           },

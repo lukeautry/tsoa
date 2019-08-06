@@ -94,7 +94,7 @@ export namespace Tsoa {
 
   export interface ReferenceType extends Type, RefTypeMinimal {
     description?: string;
-    dataType: 'refObject' | 'refEnum';
+    dataType: RefTypeLiteral;
     refName: string;
     properties?: Property[];
     additionalProperties?: Type;

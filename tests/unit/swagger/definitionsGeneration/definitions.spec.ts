@@ -88,7 +88,7 @@ describe('Definition generation', () => {
         allSpecs.forEach(currentSpec => {
             const definition = getValidatedDefinition(interfaceName, currentSpec);
 
-            it('should produce schemas for the properties and should make a choice about additionalProperties', ()=> {
+            it('should produce schemas for the properties and should make a choice about additionalProperties', () => {
                 if (!definition.properties) { throw new Error('Definition has no properties.'); }
 
                 if (currentSpec.specName === 'specWithNoImplicitExtras') {
@@ -330,7 +330,7 @@ describe('Definition generation', () => {
                 });
             });
 
-            expect(Object.keys(assertionsPerProperty)).to.length(Object.keys(definition.properties!).length, `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`)
+            expect(Object.keys(assertionsPerProperty)).to.length(Object.keys(definition.properties!).length, `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`);
         });
     });
 

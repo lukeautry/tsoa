@@ -35,6 +35,7 @@
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "test": "tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register",
+    "pre-commit": "npm run test",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
@@ -79,7 +80,7 @@
     "cross-env": "^5.1.6",
     "express": "^4.16.3",
     "hapi": "^17.0.19",
-    "husky": "^3.0.1",
+    "husky": "^3.0.2",
     "inversify": "^4.13.0",
     "koa": "^2.5.1",
     "koa-bodyparser": "^4.2.1",

@@ -7,7 +7,7 @@ import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
 
-interface ISwaggerConfigRelatedToRoutes {
+interface SwaggerConfigRelatedToRoutes {
   noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
 }
 
@@ -24,7 +24,7 @@ export class RouteGenerator {
     vscode: true,
   };
 
-  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: ISwaggerConfigRelatedToRoutes) { }
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) { }
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/routes.ts`;
@@ -45,7 +45,7 @@ export class RouteGenerator {
       return JSON.stringify(context);
     });
     const additionalPropsHelper = (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
-      if(additionalProperties){
+      if (additionalProperties) {
         // Then the model for this type explicitly allows additional properties and thus we should assign that
         return JSON.stringify(additionalProperties);
       } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {

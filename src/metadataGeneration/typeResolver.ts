@@ -70,7 +70,7 @@ export class TypeResolver {
       return { dataType: 'any' } as Tsoa.Type;
     }
 
-    if(this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
+    if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
       return { dataType: 'object' } as Tsoa.Type;
     }
 

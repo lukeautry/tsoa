@@ -118,7 +118,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         const testModel = specDefault.spec.components.schemas.TestModel;
 
-        if(!testModel.properties){
+        if (!testModel.properties) {
             throw new Error('testModel.properties should have been a truthy object');
         }
         expect(testModel.properties.optionalString).to.not.have.property('x-nullable');
@@ -129,16 +129,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   allSpecs.forEach(currentSpec => {
     describe(`for ${currentSpec.specName}`, () => {
-        it('should set additionalProperties to false if noImplicitAdditionalProperties is true (when there are no dictionary or any types)', () => {
+        describe('should set additionalProperties to false if noImplicitAdditionalProperties is true (when there are no dictionary or any types)', () => {
             // Arrange
             const options = getDefaultOptions();
             options.noImplicitAdditionalProperties = true;
 
-            // Act
-            const spec = new SpecGenerator3(metadata, options).GetSpec();
-
             // Assert
-            if (!spec.components.schemas) {
+            if (!currentSpec.spec.components.schemas) {
                 throw new Error('spec.components.schemas should have been truthy');
             }
 
@@ -220,55 +217,55 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 enumValue: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
-                    expect(propertySchema.$ref).to.eq('#/definitions/EnumIndexValue', `for property ${propertyName}.$ref`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/EnumIndexValue', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 enumArray: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
                     expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     if (!propertySchema.items) { throw new Error(`There was no 'items' property on ${propertyName}.`); }
-                    expect(propertySchema.items.$ref).to.eq('#/definitions/EnumIndexValue', `for property ${propertyName}.items.$ref`);
+                    expect(propertySchema.items.$ref).to.eq('#/components/schemas/EnumIndexValue', `for property ${propertyName}.items.$ref`);
                 },
                 enumNumberValue: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
-                    expect(propertySchema.$ref).to.eq('#/definitions/EnumNumberValue', `for property ${propertyName}.$ref`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/EnumNumberValue', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 enumNumberArray: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
                     expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     if (!propertySchema.items) { throw new Error(`There was no 'items' property on ${propertyName}.`); }
-                    expect(propertySchema.items.$ref).to.eq('#/definitions/EnumNumberValue', `for property ${propertyName}.items.$ref`);
+                    expect(propertySchema.items.$ref).to.eq('#/components/schemas/EnumNumberValue', `for property ${propertyName}.items.$ref`);
                 },
                 enumStringValue: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema.$ref).to.eq('#/definitions/EnumStringValue', `for property ${propertyName}.$ref`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringValue', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 enumStringArray: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
                     expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     if (!propertySchema.items) { throw new Error(`There was no 'items' property on ${propertyName}.`); }
-                    expect(propertySchema.items.$ref).to.eq('#/definitions/EnumStringValue', `for property ${propertyName}.items.$ref`);
+                    expect(propertySchema.items.$ref).to.eq('#/components/schemas/EnumStringValue', `for property ${propertyName}.items.$ref`);
                 },
                 modelValue: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModel', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModel', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 modelsArray: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     if (!propertySchema.items) { throw new Error(`There was no 'items' property on ${propertyName}.`); }
-                    expect(propertySchema.items.$ref).to.eq('#/definitions/TestSubModel', `for property ${propertyName}.items.$ref`);
+                    expect(propertySchema.items.$ref).to.eq('#/components/schemas/TestSubModel', `for property ${propertyName}.items.$ref`);
                 },
                 strLiteralVal: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
@@ -282,7 +279,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-                    expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
                     if (!propertySchema.items) { throw new Error(`There was no 'items' property on ${propertyName}.`); }
                     expect(propertySchema.items.type).to.eq('string', `for property ${propertyName}.items.type`);
                     if (!propertySchema.items.enum) { throw new Error(`There was no 'enum' property on ${propertyName}.items`); }
@@ -292,7 +289,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 unionPrimetiveType: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     if (!propertySchema.enum) { throw new Error(`There was no 'enum' property on ${propertyName}.`); }
                     expect(propertySchema.enum).to.have.length(5, `for property ${propertyName}.enum`);
                     expect(propertySchema.enum).to.include('String', `for property ${propertyName}.enum`);
@@ -303,85 +300,94 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 dateValue: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema.format).to.eq('date-time', `for property ${propertyName}.format`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 optionalString: (propertyName, propertySchema) => {
                     // should generate an optional property from an optional property
                     expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema).to.not.haveOwnProperty('format', `for property ${propertyName}`);
                 },
                 anyType: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
                 },
                 modelsObjectIndirect: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainer', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 modelsObjectIndirectNS: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 modelsObjectIndirectNS2: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 modelsObjectIndirectNS_Alias: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                     },
                 modelsObjectIndirectNS2_Alias: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 modelsArrayIndirect: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubArrayModelContainer', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubArrayModelContainer', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 modelsEnumIndirect: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TestSubEnumModelContainer', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubEnumModelContainer', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 typeAliasCase1: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
                 TypeAliasCase2: (propertyName, propertySchema) => {
-                    expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-                    expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
-                    throw new Error("pureposeful failure")
+                    expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
             };
 
-            const testModel = spec.components.schemas[interfaceModelName];
+            const testModel = currentSpec.spec.components.schemas[interfaceModelName];
             Object.keys(assertionsPerProperty).forEach(aPropertyName => {
                 if (!testModel) {
+                    throw new Error(`There was no schema generated for the ${currentSpec.specName}`);
+                }
+                const propertySchema = testModel.properties![aPropertyName];
+                if (!propertySchema) {
                     throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
                 }
                 it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceModelName} for the ${currentSpec.specName}`, () => {
-                    assertionsPerProperty[aPropertyName](aPropertyName, testModel);
+                    assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
                 });
             });
 
-            Object.keys(spec.components.schemas!).forEach(defKey => {
-                const entry = spec.components.schemas![defKey];
-                if (entry.additionalProperties !== false) {
-                    throw new Error(`Expect ${defKey} to have additionalProperties set to false, but got ${entry.additionalProperties}`);
+            it('should make a choice about additionalProperties', () => {
+
+                if (currentSpec.specName === 'specWithNoImplicitExtras') {
+                    expect(testModel.additionalProperties).to.eq(false, forSpec(currentSpec));
+                } else {
+                    expect(testModel.additionalProperties).to.eq(true, forSpec(currentSpec));
                 }
+            });
+
+            it('should have only created schemas for properties on the TypeScript interface', () => {
+                expect(Object.keys(assertionsPerProperty)).to.length(Object.keys(testModel.properties!).length, `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`);
             });
         });
     });
