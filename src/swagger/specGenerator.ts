@@ -104,7 +104,7 @@ export class SpecGenerator {
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return {
-        // Dont' set additionalProperties value here since it will be set within the modle of the $ref when it gets created
+        // Don't set additionalProperties value here since it will be set within the $ref's model when that $ref gets created
     };
   }
 
@@ -124,13 +124,13 @@ export class SpecGenerator {
       if (process.env.NODE_ENV !== 'tsoa_test') {
         // tslint:disable-next-line: no-console
         console.warn(`The type Object is discouraged. Please consider using an interface such as:
-              export interface IStringToStringDictionary {
-                  [key: string]: string;
-              }
-              // or
-              export interface IRecordOfAny {
-                [key: string]: any;
-              }
+          export interface IStringToStringDictionary {
+            [key: string]: string;
+          }
+          // or
+          export interface IRecordOfAny {
+            [key: string]: any;
+          }
         `);
       }
     }
