@@ -1,23 +1,46 @@
 import * as mm from 'minimatch';
 import * as ts from 'typescript';
+import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { Tsoa } from './tsoa';
 
 export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
-  public readonly typeChecker: ts.TypeChecker;
-  private readonly program: ts.Program;
+  public typeChecker: ts.TypeChecker;
+  private program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[]) {
+  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], private readonly controllers?: string[]) {
     this.program = ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
   public Generate(): Tsoa.Metadata {
+    if (this.controllers) {
+      this.setProgramToDaynamicControllersFiles(this.controllers);
+    }
+
+    this.extraceNodeFromProgramSourceFiles();
+
+    const controllers = this.buildControllers();
+
+    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
+
+    return {
+      controllers,
+      referenceTypeMap: this.referenceTypeMap,
+    };
+  }
+
+  private setProgramToDaynamicControllersFiles(controllers) {
+    this.program = ts.createProgram(importClassesFromDirectories(controllers), this.compilerOptions || {});
+    this.typeChecker = this.program.getTypeChecker();
+  }
+
+  private extraceNodeFromProgramSourceFiles() {
     this.program.getSourceFiles().forEach((sf) => {
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {
@@ -31,15 +54,6 @@ export class MetadataGenerator {
         this.nodes.push(node);
       });
     });
-
-    const controllers = this.buildControllers();
-
-    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
-
-    return {
-      controllers,
-      referenceTypeMap: this.referenceTypeMap,
-    };
   }
 
   public TypeChecker() {

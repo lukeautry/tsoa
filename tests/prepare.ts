@@ -50,6 +50,14 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       middleware: 'express',
       routesDir: './tests/fixtures/express',
     }, undefined, undefined, metadata)),
+    log('Express Dyanimc Route Generation', () => generateRoutes({
+      authenticationModule: './tests/fixtures/express/authentication.ts',
+      basePath: '/v1',
+      controllers: ['./tests/fixtures/controllers/*'],
+      entryFile: './tests/fixtures/express-dynamic-controllers/server.ts',
+      middleware: 'express',
+      routesDir: './tests/fixtures/express-dynamic-controllers',
+    }, undefined, undefined, metadata)),
     log('Koa Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/koa/authentication.ts',
       basePath: '/v1',
