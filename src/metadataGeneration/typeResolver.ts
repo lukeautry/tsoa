@@ -575,7 +575,7 @@ export class TypeResolver {
 
     if (classConstructor && classConstructor.parameters) {
       const constructorProperties = classConstructor.parameters
-        .filter((parameter) => this.hasPublicModifier(parameter));
+        .filter((parameter) => this.isPublicParameter(parameter));
 
       properties.push(...constructorProperties);
     }
@@ -659,6 +659,10 @@ export class TypeResolver {
     return !node.modifiers || node.modifiers.every((modifier) => {
       return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
     });
+  }
+
+  private isPublicParameter(node: ts.Node) {
+    return node.modifiers && node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword);
   }
 
   private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {

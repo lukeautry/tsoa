@@ -38,7 +38,7 @@ export class PostTestController {
 
   @Post('WithClassModel')
   public async postClassModel( @Body() model: TestClassModel): Promise<TestClassModel> {
-    const augmentedModel = new TestClassModel('test', 'test2', 'test3');
+    const augmentedModel = new TestClassModel('test', 'test2', 'test3', 'test4');
     augmentedModel.id = 700;
 
     return augmentedModel;

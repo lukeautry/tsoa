@@ -192,6 +192,13 @@ describe('Definition generation', () => {
       }
     });
 
+    it('should not generate a property for a non-public constructor var', () => {
+      const propertyName = 'defaultConstructorArgument';
+      if (properties[propertyName]) {
+        throw new Error(`Property '${propertyName}' was not expected to exist.`);
+      }
+    });
+
     it('should generate properties from a base class', () => {
       const property = properties.id;
       expect(property).to.exist;

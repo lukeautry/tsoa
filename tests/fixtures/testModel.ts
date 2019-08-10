@@ -328,6 +328,7 @@ export class TestClassModel extends TestClassBaseModel {
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,
+    defaultConstructorArgument: string,
     public optionalPublicConstructorVar?: string,
   ) {
     super();
