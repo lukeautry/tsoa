@@ -14,9 +14,9 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], private readonly controllers?: string[]) {
-    this.program = this.controllers ?
-      this.setProgramToDynamicControllersFiles(this.controllers) :
+  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
+    this.program = !!controllers ?
+      this.setProgramToDynamicControllersFiles(controllers) :
       ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
