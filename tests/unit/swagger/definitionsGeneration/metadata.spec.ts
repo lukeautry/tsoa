@@ -22,12 +22,6 @@ describe('Metadata generation', () => {
         new MetadataGenerator('./tests/fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB] ).Generate();
       }).to.throw(/globs found 0 controllers./);
     });
-
-    it('should generate one controller', () => {
-      expect(metadata.controllers.length).to.equal(1);
-      expect(metadata.controllers[0].name).to.equal('GetTestController');
-      expect(metadata.controllers[0].path).to.equal('GetTest');
-    });
   });
 
   describe('MethodGenerator', () => {

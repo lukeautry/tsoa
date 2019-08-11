@@ -242,7 +242,7 @@ The controllers globs pattern:
     "entryFile": "...",
     "routesDir": "...",
     "middleware": "...",
-    "controllerPathGlobs": ["./dir-with-controllers/*", "./recursive-dir/**/", "./custom-filerecursive-dir/**/*.routes.ts"]
+    "controllerPathGlobs": ["./dir-with-controllers/*", "./recursive-dir/**/", "./custom-filerecursive-dir/**/*.controller.ts"]
   }
 }
 ```
