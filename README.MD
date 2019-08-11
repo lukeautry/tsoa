@@ -213,6 +213,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 
 ### Consuming generated routes
 
+#### Using imports in app entry file
 ```typescript
 import * as methodOverride from 'method-override';
 import * as express from 'express';
@@ -231,6 +232,19 @@ RegisterRoutes(app);
 
 app.listen(3000);
 
+```
+#### Using automatic controllers discovery
+To tell `tsoa` to use your automatic controllers discovery you need to add to theconfig file (e.g. `tsoa.json`):
+The controllers globs pattern:
+```json
+{
+  "routes": {
+    "entryFile": "...",
+    "routesDir": "...",
+    "middleware": "...",
+    "controllerPathGlobs": ["./dir-with-controllers/*", "./recursive-dir/**/", "./custom-filerecursive-dir/**/*.controller.ts"]
+  }
+}
 ```
 
 ### Get access to the request object of express (or koa) in Controllers

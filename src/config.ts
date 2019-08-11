@@ -146,4 +146,9 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * Controllers glob path, contains directories with wild card to file names.
+   */
+  controllerPathGlobs?: string[];
 }
