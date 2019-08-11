@@ -68,8 +68,26 @@ export class TypeResolver {
           }),
         } as Tsoa.EnumerateType;
       } else {
-        return { dataType: 'object' } as Tsoa.Type;
+        const types = (this.typeNode as ts.UnionTypeNode).types.map((type) => {
+          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+        });
+
+        return {
+          dataType: 'union',
+          types,
+        } as Tsoa.UnionType;
       }
+    }
+
+    if (this.typeNode.kind === ts.SyntaxKind.IntersectionType) {
+      const types = (this.typeNode as ts.IntersectionTypeNode).types.map((type) => {
+        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+      });
+
+      return {
+        dataType: 'intersection',
+        types,
+      } as Tsoa.IntersectionType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {

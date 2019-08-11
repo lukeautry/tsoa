@@ -73,6 +73,12 @@ export interface TestModel extends Model {
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
 }
 
+export interface UnionTestModel {
+  or: TypeAliasModel1 | TypeAliasModel2;
+  and: TypeAliasModel1 & TypeAliasModel2;
+  referenceAnd: TypeAliasModelCase1;
+}
+
 export interface TypeAliasModel1 {
   value1: string;
 }

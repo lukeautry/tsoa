@@ -71,7 +71,7 @@ describe('Definition generation', () => {
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
         allSpecs.forEach(currentSpec => {
-            const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS'];
+            const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS', 'UnionTestModel'];
             expectedModels.forEach((modelName) => {
                 getValidatedDefinition(modelName, currentSpec);
             });
@@ -93,6 +93,26 @@ describe('Definition generation', () => {
                 expect(definition.additionalProperties).to.eq(true, forSpec(currentSpec));
             }
         });
+    });
+
+    it('should generate an member of type object for union type', () => {
+      allSpecs.forEach(currentSpec => {
+        const definition = getValidatedDefinition('UnionTestModel', currentSpec);
+        if (!definition.properties) { throw new Error('Definition has no properties.'); }
+        if (!definition.properties.or) { throw new Error('There was no \'or\' property.'); }
+
+        expect(definition.properties.or.type).to.equal('object');
+      });
+    });
+
+    it('should generate an member of type object for intersection type', () => {
+      allSpecs.forEach(currentSpec => {
+        const definition = getValidatedDefinition('UnionTestModel', currentSpec);
+        if (!definition.properties) { throw new Error('Definition has no properties.'); }
+        if (!definition.properties.and) { throw new Error('There was no \'and\' property.'); }
+
+        expect(definition.properties.and.type).to.equal('object');
+      });
     });
 
     describe('should generate a schema for every property on the TestModel interface', () => {

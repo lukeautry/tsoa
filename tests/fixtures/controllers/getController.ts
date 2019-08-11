@@ -15,6 +15,7 @@ import {
   TestClassModel,
   TestModel,
   TestSubModel,
+  UnionTestModel
 } from '../testModel';
 import {
   ModelService,
@@ -117,6 +118,11 @@ export class GetTestController extends Controller {
   @Get('UnionTypeResponse')
   public async getUnionTypeResponse(): Promise<string | boolean> {
     return '';
+  }
+
+  @Get('UnionTestModel')
+  public async getUnionModelResponse(): Promise<UnionTestModel> {
+    return { and: { value1: 'test', value2: 'test' }, or: { value1: 'test'}, referenceAnd: { value1: 'test', value2: 'test' }};
   }
 
   @Get('Request')

@@ -316,4 +316,12 @@ export class SpecGenerator3 extends SpecGenerator {
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return { $ref: `#/components/schemas/${referenceType.refName}` };
   }
+
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    return { oneOf: type.types.map(x => this.getSwaggerType(x))};
+  }
+
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
+    return { allOf: type.types.map(x => this.getSwaggerType(x))};
+  }
 }

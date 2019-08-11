@@ -283,6 +283,13 @@ export class SpecGenerator2 extends SpecGenerator {
     return properties;
   }
 
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    return { type: 'object' };
+  }
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
+    return { type: 'object' };
+  }
+
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return { $ref: `#/definitions/${referenceType.refName}` };
   }
