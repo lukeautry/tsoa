@@ -150,5 +150,5 @@ export interface RoutesConfig {
   /**
    * Controllers glob path, contains directories with wild card to file names.
    */
-  controllers?: string[];
+  controllerPathGlobs?: string[];
 }

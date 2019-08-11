@@ -53,7 +53,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Express Dyanimc Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/express/authentication.ts',
       basePath: '/v1',
-      controllers: ['./tests/fixtures/controllers/*'],
+      controllerPathGlobs: ['./tests/fixtures/controllers/*'],
       entryFile: './tests/fixtures/express-dynamic-controllers/server.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/express-dynamic-controllers',

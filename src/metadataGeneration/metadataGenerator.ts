@@ -2,6 +2,7 @@ import * as mm from 'minimatch';
 import * as ts from 'typescript';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
+import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from './tsoa';
 
 export class MetadataGenerator {
@@ -20,10 +21,10 @@ export class MetadataGenerator {
 
   public Generate(): Tsoa.Metadata {
     if (this.controllers) {
-      this.setProgramToDaynamicControllersFiles(this.controllers);
+      this.setProgramToDynamicControllersFiles(this.controllers);
     }
 
-    this.extraceNodeFromProgramSourceFiles();
+    this.extractNodeFromProgramSourceFiles();
 
     const controllers = this.buildControllers();
 
@@ -35,12 +36,17 @@ export class MetadataGenerator {
     };
   }
 
-  private setProgramToDaynamicControllersFiles(controllers) {
-    this.program = ts.createProgram(importClassesFromDirectories(controllers), this.compilerOptions || {});
+  private setProgramToDynamicControllersFiles(controllers) {
+    const allGlobFiles = importClassesFromDirectories(controllers);
+    if (allGlobFiles.length === 0) {
+      throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
+    }
+
+    this.program = ts.createProgram(allGlobFiles, this.compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
-  private extraceNodeFromProgramSourceFiles() {
+  private extractNodeFromProgramSourceFiles() {
     this.program.getSourceFiles().forEach((sf) => {
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {

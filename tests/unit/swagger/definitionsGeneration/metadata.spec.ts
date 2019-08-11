@@ -14,6 +14,22 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('DynamicControllerGenerator', () => {
+    it('should should throw \'globs found 0 controllers.\'', () => {
+      expect(() => {
+        // Non existing controllers folder to get 0 controllers found error
+        const NON_CONTROLLER_EXISTS_GLOB = './tests/unit/swagger';
+        new MetadataGenerator('./tests/fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB] ).Generate();
+      }).to.throw(/globs found 0 controllers./);
+    });
+
+    it('should generate one controller', () => {
+      expect(metadata.controllers.length).to.equal(1);
+      expect(metadata.controllers[0].name).to.equal('GetTestController');
+      expect(metadata.controllers[0].path).to.equal('GetTest');
+    });
+  });
+
   describe('MethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
