@@ -7,23 +7,21 @@ import { Tsoa } from './tsoa';
 
 export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
-  public typeChecker: ts.TypeChecker;
-  private program: ts.Program;
+  public readonly typeChecker: ts.TypeChecker;
+  private readonly program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
   public IsExportedNode(node: ts.Node) { return true; }
 
   constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], private readonly controllers?: string[]) {
-    this.program = ts.createProgram([entryFile], compilerOptions || {});
+    this.program = this.controllers ?
+      this.setProgramToDynamicControllersFiles(this.controllers) :
+      ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
   public Generate(): Tsoa.Metadata {
-    if (this.controllers) {
-      this.setProgramToDynamicControllersFiles(this.controllers);
-    }
-
     this.extractNodeFromProgramSourceFiles();
 
     const controllers = this.buildControllers();
@@ -42,8 +40,7 @@ export class MetadataGenerator {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    this.program = ts.createProgram(allGlobFiles, this.compilerOptions || {});
-    this.typeChecker = this.program.getTypeChecker();
+    return ts.createProgram(allGlobFiles, this.compilerOptions || {});
   }
 
   private extractNodeFromProgramSourceFiles() {
