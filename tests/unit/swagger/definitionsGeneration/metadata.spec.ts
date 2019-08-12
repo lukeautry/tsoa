@@ -12,6 +12,157 @@ describe('Metadata generation', () => {
       expect(metadata.controllers[0].name).to.equal('GetTestController');
       expect(metadata.controllers[0].path).to.equal('GetTest');
     });
+
+    it('should generate hidden controllers', () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+
+      expect(metadata.controllers.length).to.equal(1);
+      expect(metadata.controllers[0].name).to.equal('HiddenController');
+      expect(metadata.controllers[0].path).to.equal('HiddenController');
+      expect(metadata.controllers[0].isHidden).to.equal(true);
+    });
+  });
+
+  describe('InheritedMethodGenerator (with generics)', () => {
+    const inheritanceMetadata = new MetadataGenerator('./tests/fixtures/controllers/inheritanceMethodController.ts').Generate();
+    const emptySuperMetadata = new MetadataGenerator('./tests/fixtures/controllers/emptySuperClassGenericController.ts').Generate();
+    const duplicateGenerator = new MetadataGenerator('./tests/fixtures/controllers/duplicateMethodController.ts');
+    const inheritanceController = inheritanceMetadata.controllers[0];
+    const emptySuperController = emptySuperMetadata.controllers[0];
+
+    it('should inherit postMethod from BaseController', () => {
+      const method = inheritanceController.methods.find(m => m.name === 'postMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      expect(method.method).to.equal('post');
+      expect(method.path).to.equal('Post');
+      expect(method.name).to.equal('postMethod');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should inherit superBasePatch from SuperBaseController', () => {
+      const method = inheritanceController.methods.find(m => m.name === 'superBasePatch');
+
+      if (!method) {
+        throw new Error('Method superBasePatch not defined!');
+      }
+
+      expect(method.method).to.equal('patch');
+      expect(method.path).to.equal('SuperBasePatch');
+      expect(method.name).to.equal('superBasePatch');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should properly resolve generic parameter types within method signatures', () => {
+      const postMethod = inheritanceController.methods.find(m => m.name === 'postMethod');
+      const putMethod = inheritanceController.methods.find(m => m.name === 'putMethod');
+
+      if (!postMethod) {
+        throw new Error('Method postMethod not defined!');
+      }
+      if (!putMethod) {
+        throw new Error('Method putMethod not defined!');
+      }
+
+      expect(postMethod.parameters.length).to.equal(1);
+      expect((postMethod.parameters[0].type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+      expect(putMethod.parameters.length).to.equal(2);
+      expect((putMethod.parameters[0].type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+      expect((putMethod.parameters[1].type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should inherit postMethod from BaseController when super class file is a stub', () => {
+      const method = emptySuperController.methods.find(m => m.name === 'postMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      expect(method.method).to.equal('post');
+      expect(method.path).to.equal('Post');
+      expect(method.name).to.equal('postMethod');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should inherit superBasePatch from SuperBaseController when super class file is a stub', () => {
+      const method = emptySuperController.methods.find(m => m.name === 'superBasePatch');
+
+      if (!method) {
+        throw new Error('Method superBasePatch not defined!');
+      }
+
+      expect(method.method).to.equal('patch');
+      expect(method.path).to.equal('SuperBasePatch');
+      expect(method.name).to.equal('superBasePatch');
+      expect((method.type as Tsoa.ReferenceType).refName).to.equal('TestModel');
+    });
+
+    it('should error if a duplicate method is found', () => {
+      expect(() => duplicateGenerator.Generate()).to.throw(/Duplicate method for path '.*' was found/);
+    });
+  });
+
+  describe('CustomMethodAttributeGenerator', () => {
+    const customMethodAttrMetadata = new MetadataGenerator('./tests/fixtures/controllers/customMethodAttributeController.ts').Generate();
+    const controller = customMethodAttrMetadata.controllers[0];
+    const invalidGenerator = new MetadataGenerator('./tests/fixtures/controllers/invalidCustomMethodAttributeController');
+
+    it('should throw an Error when an attribute is not prefixed with "x-"', () => {
+      expect(() => invalidGenerator.Generate()).to.throw();
+    });
+
+    it('should ensure every attribute is prefixed with "x-"', () => {
+      const attributes: Tsoa.CustomAttribute[] = [];
+      controller.methods.forEach(method => method.customAttributes.forEach(att => attributes.push(att)));
+
+      expect(attributes.every(att => att.key.indexOf('x-') === 0)).to.equal(true);
+    });
+
+
+    it('should generate all custom attributes for every method', () => {
+      expect(controller.methods.every(method => method.customAttributes.length > 0)).to.equal(true);
+
+      const expectedCustomAttributes = [
+        { key: 'x-attKey', value: 'attValue' },
+        { key: 'x-attKey1', value: { test: 'testVal' } },
+        { key: 'x-attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'x-attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+      ];
+
+      controller.methods.forEach((method) => {
+        expectedCustomAttributes.forEach((attribute) => expect(method.customAttributes).to.deep.include(attribute));
+      });
+    });
+
+    it('should generate individual custom attributes along with controller custom attributes', () => {
+      const method = controller.methods.find(m => m.name === 'customAttributeMethod');
+
+      if (!method) {
+        throw new Error('Method postMethod not defined!');
+      }
+
+      const expectedCustomAttributes = [
+        { key: 'x-additionalAttribute', value: 'value' },
+        { key: 'x-attKey', value: 'attValue' },
+        { key: 'x-attKey1', value: { test: 'testVal' } },
+        { key: 'x-attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'x-attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+      ];
+
+      expectedCustomAttributes.forEach((attribute) => expect(method.customAttributes).to.deep.include(attribute));
+    });
+
+    it('should resolve custom attributes with {$PATH} and {$METHOD}', () => {
+      expect(controller.methods.every(method => method.customAttributes.length > 0)).to.equal(true);
+
+      controller.methods.forEach((method) => {
+        expect(method.customAttributes).to.deep.include({key: 'x-testPath', value: method.path});
+        expect(method.customAttributes).to.deep.include({key: 'x-testMethod', value: method.method.toUpperCase()});
+      });
+    });
   });
 
   describe('MethodGenerator', () => {
@@ -195,10 +346,10 @@ describe('Metadata generation', () => {
       }
 
       const expectedCustomAttributes = [
-        { key: 'attKey', value: 'attValue' },
-        { key: 'attKey1', value: { test: 'testVal' } },
-        { key: 'attKey2', value: [ 'y0', 'y1' ] },
-        { key: 'attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
+        { key: 'x-attKey', value: 'attValue' },
+        { key: 'x-attKey1', value: { test: 'testVal' } },
+        { key: 'x-attKey2', value: [ 'y0', 'y1' ] },
+        { key: 'x-attKey3', value: [ { y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' } ] },
       ];
 
       expect(method.customAttributes).to.deep.equal(expectedCustomAttributes)

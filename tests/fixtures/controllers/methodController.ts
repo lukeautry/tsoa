@@ -100,10 +100,10 @@ export class MethodController extends Controller {
         return new ModelService().getModel();
     }
 
-    @CustomAttribute('attKey', 'attValue')
-    @CustomAttribute('attKey1', { test: 'testVal' })
-    @CustomAttribute('attKey2', ['y0', 'y1'])
-    @CustomAttribute('attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
+    @CustomAttribute('x-attKey', 'attValue')
+    @CustomAttribute('x-attKey1', { test: 'testVal' })
+    @CustomAttribute('x-attKey2', ['y0', 'y1'])
+    @CustomAttribute('x-attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
     @Get('CustomAttribute')
     public async customAttribute(): Promise<TestModel> {
       return new ModelService().getModel();

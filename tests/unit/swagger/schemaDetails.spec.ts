@@ -50,16 +50,16 @@ describe('Custom Attribute schema generation', () => {
   if (!customAttributePath) { throw new Error('customAttribute method was not rendered'); }
 
   // Verify that custom properties are appened to the path
-  expect(customAttributePath).to.have.property('attKey');
-  expect(customAttributePath).to.have.property('attKey1');
-  expect(customAttributePath).to.have.property('attKey2');
-  expect(customAttributePath).to.have.property('attKey3');
+  expect(customAttributePath).to.have.property('x-attKey');
+  expect(customAttributePath).to.have.property('x-attKey1');
+  expect(customAttributePath).to.have.property('x-attKey2');
+  expect(customAttributePath).to.have.property('x-attKey3');
 
   // Verify that custom attributes have correct values
-  expect(customAttributePath.attKey).to.deep.equal('attValue');
-  expect(customAttributePath.attKey1).to.deep.equal({ test: 'testVal' });
-  expect(customAttributePath.attKey2).to.deep.equal(['y0', 'y1']);
-  expect(customAttributePath.attKey3).to.deep.equal([
+  expect(customAttributePath['x-attKey']).to.deep.equal('attValue');
+  expect(customAttributePath['x-attKey1']).to.deep.equal({ test: 'testVal' });
+  expect(customAttributePath['x-attKey2']).to.deep.equal(['y0', 'y1']);
+  expect(customAttributePath['x-attKey3']).to.deep.equal([
     { y0: 'yt0',  y1: 'yt1' },
     { y2: 'yt2' },
   ]);
