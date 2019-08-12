@@ -95,7 +95,6 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildSchema() {
     const schema: { [name: string]: Swagger.Schema } = {};
-    const config = this.config;
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -114,12 +113,7 @@ export class SpecGenerator3 extends SpecGenerator {
         } else {
             // Since additionalProperties was not explicitly set in the TypeScript interface for this model
             //      ...we need to make a decision
-            if (config.noImplicitAdditionalProperties) {
-                schema[referenceType.refName].additionalProperties = false;
-            } else {
-                // we'll explicitly set the default, which for swagger
-                schema[referenceType.refName].additionalProperties = true;
-            }
+            schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
         if (referenceType.example) {

@@ -2,12 +2,13 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { assertNever } from '../utils/assertNever';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
 import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
 
-interface SwaggerConfigRelatedToRoutes {
+export interface SwaggerConfigRelatedToRoutes {
   noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
 }
 
@@ -48,11 +49,15 @@ export class RouteGenerator {
       if (additionalProperties) {
         // Then the model for this type explicitly allows additional properties and thus we should assign that
         return JSON.stringify(additionalProperties);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
         return JSON.stringify(false);
-      } else {
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
+        return JSON.stringify(false);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === undefined) {
         // Since Swagger defaults to allowing additional properties, then that will be our default
         return JSON.stringify(true);
+      } else {
+        return assertNever(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
       }
     };
     handlebars.registerHelper('additionalPropsHelper', additionalPropsHelper);
@@ -106,6 +111,7 @@ export class RouteGenerator {
       }),
       environment: process.env,
       iocModule,
+      minimalSwaggerConfig: this.minimalSwaggerConfig,
       models: this.buildModels(),
       useSecurity: this.metadata.controllers.some(
         controller => controller.methods.some(method => !!method.security.length),

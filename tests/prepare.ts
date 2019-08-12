@@ -9,6 +9,7 @@ const defaultOptions: SwaggerConfig = {
     basePath: '/v1',
     entryFile: './tests/fixtures/express/server.ts',
     host: 'localhost:3000',
+    noImplicitAdditionalProperties: 'silently-remove-extras',
     outputDirectory: './dist',
     securityDefinitions: {
       api_key: {
@@ -29,7 +30,7 @@ const defaultOptions: SwaggerConfig = {
     yaml: true,
 };
 const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-  noImplicitAdditionalProperties: true,
+  noImplicitAdditionalProperties: 'throw-on-extras',
   outputDirectory: './distForNoAdditional',
 });
 
@@ -72,7 +73,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       middleware: 'koa',
       routesDir: './tests/fixtures/koa',
     }, defaultOptions, undefined, undefined, metadata)),
-    log('Koa Route Generation (but noImplicitAdditionalProperties is true)', () => generateRoutes({
+    log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () => generateRoutes({
         authenticationModule: './tests/fixtures/koaNoAdditional/authentication.ts',
         basePath: '/v1',
         entryFile: './tests/fixtures/server.ts',

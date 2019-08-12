@@ -1,16 +1,18 @@
 import * as moment from 'moment';
 import * as validator from 'validator';
+import { assertNever } from '../utils/assertNever';
+import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
 import { isDefaultForAdditionalPropertiesAllowed, TsoaRoute } from './tsoa-route';
 
-// for backwards compatability with custom templates
-export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '') {
-  return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent);
+// for backwards compatibility with custom templates
+export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: SwaggerConfigRelatedToRoutes) {
+  return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent, swaggerConfig);
 }
 
 export class ValidationService {
   constructor(private readonly models: TsoaRoute.Models) {}
 
-  public ValidateParam(property: TsoaRoute.PropertySchema, value: any, name = '', fieldErrors: FieldErrors, parent = '') {
+  public ValidateParam(property: TsoaRoute.PropertySchema, value: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {
     if (value === undefined || value === null) {
       if (property.required) {
         let message = `'${name}' is required`;
@@ -47,7 +49,7 @@ export class ValidationService {
       case 'enum':
         return this.validateEnum(name, value, fieldErrors, property.enums, parent);
       case 'array':
-        return this.validateArray(name, value, fieldErrors, property.array, property.validators, parent);
+        return this.validateArray(name, value, fieldErrors, minimalSwaggerConfig, property.array, property.validators, parent);
       case 'date':
         return this.validateDate(name, value, fieldErrors, property.validators, parent);
       case 'datetime':
@@ -58,7 +60,7 @@ export class ValidationService {
         return value;
       default:
         if (property.ref) {
-          return this.validateModel(name, value, property.ref, fieldErrors, parent);
+          return this.validateModel({ name, value, refName: property.ref, fieldErrors, parent, minimalSwaggerConfig });
         }
         return value;
     }
@@ -297,7 +299,7 @@ export class ValidationService {
     return;
   }
 
-  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
+  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
     if (!schema || value === undefined || value === null) {
       const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
@@ -310,11 +312,11 @@ export class ValidationService {
     let arrayValue = [] as any[];
     if (Array.isArray(value)) {
       arrayValue = value.map((elementValue, index) => {
-        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.');
+        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.', swaggerConfig);
       });
     } else {
       arrayValue = [
-        this.ValidateParam(schema, value, '$0', fieldErrors, name + '.'),
+        this.ValidateParam(schema, value, '$0', fieldErrors, name + '.', swaggerConfig),
       ];
     }
 
@@ -359,7 +361,16 @@ export class ValidationService {
     return new Buffer(value);
   }
 
-  public validateModel(name: string, value: any, refName: string, fieldErrors: FieldErrors, parent = ''): any {
+  public validateModel( input: {
+      name: string,
+      value: any,
+      refName: string,
+      fieldErrors: FieldErrors,
+      parent?: string,
+      minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+  }): any {
+    const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
+
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
@@ -372,7 +383,7 @@ export class ValidationService {
       const properties = modelDefinition.properties || {};
       Object.keys(properties).forEach((key: string) => {
         const property = properties[key];
-        value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent);
+        value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent, swaggerConfig);
       });
       const alreadyValidatedProperties = new Set(Object.keys(properties));
 
@@ -383,16 +394,27 @@ export class ValidationService {
       } else if (additionalProperties === false) {
         Object.keys(value).forEach((key: string) => {
           if (!alreadyValidatedProperties.has(key)) {
-            fieldErrors[parent + '.' + key] = {
-              message: `${key} is an excess property and therefore is not allowed`,
-              value: key,
-            };
+            if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
+              fieldErrors[parent + '.' + key] = {
+                message: `"${key}" is an excess property and therefore is not allowed`,
+                value: key,
+              };
+            } else if (
+              swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras' ||
+              swaggerConfig.noImplicitAdditionalProperties === true
+            ) {
+              delete value[key];
+            } else if (swaggerConfig.noImplicitAdditionalProperties === false || swaggerConfig.noImplicitAdditionalProperties === undefined) {
+              // then it's okay to have additionalProperties
+            } else {
+              assertNever(swaggerConfig.noImplicitAdditionalProperties);
+            }
           }
         });
       } else {
         Object.keys(value).forEach((key: string) => {
           if (!alreadyValidatedProperties.has(key)) {
-            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent);
+            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent, swaggerConfig);
             if (validatedValue !== undefined) {
               value[key] = validatedValue;
             } else {
