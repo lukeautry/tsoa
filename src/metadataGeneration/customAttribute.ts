@@ -54,7 +54,11 @@ export function getCustomAttributes(decorators: ts.Identifier[]): Tsoa.CustomAtt
       throw new Error(`Custom Attribute '${attributeKey}' must contain a value`);
     }
 
-    const attributeValue = getArgumentValue(decoratorValueArg);
+    if (attributeKey.indexOf('x-') !== 0) {
+      throw new Error('Custom attributes must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+    }
+
+    const attributeValue = getInitializerValue(decoratorValueArg);
 
     return { key: attributeKey, value: attributeValue };
   });
