@@ -37,7 +37,7 @@ export class ModelService {
       'private constructor var',
       '_default constructor var',
       'readonlyConstructorvar',
-      'optional constructor var'
+      'optional constructor var',
     );
     testClassModel.id = 1;
     testClassModel.publicStringProperty = 'public string property';
