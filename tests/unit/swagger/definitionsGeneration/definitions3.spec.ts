@@ -65,6 +65,35 @@ describe('Definition generation', () => {
         ]
       });
     });
+
+
+    it('should handle mixed unions correctly', () => {
+      const definition = getValidatedDefinition('UnionTestModel');
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+      if (!definition.properties.mixed) { throw new Error('There was no \'mixed\' property.'); }
+
+      expect(definition.properties.mixed).to.deep.include({
+        oneOf:
+          [
+            { '$ref': '#/components/schemas/TypeAliasModel1' },
+            { type: 'string' }
+          ]
+      });
+    });
+
+    it('should generate an member of type object for intersection type', () => {
+      const definition = getValidatedDefinition('UnionTestModel');
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+      if (!definition.properties.onTheFly) { throw new Error('There was no \'onTheFly\' property.'); }
+
+      expect(definition.properties.onTheFly).to.deep.include({
+        oneOf:
+          [
+            { additionalProperties: true, type: 'object' },
+            { type: 'number', format: 'double' }
+          ],
+        });
+    });
   });
 });
 

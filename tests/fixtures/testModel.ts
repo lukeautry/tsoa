@@ -77,6 +77,8 @@ export interface UnionTestModel {
   or: TypeAliasModel1 | TypeAliasModel2;
   and: TypeAliasModel1 & TypeAliasModel2;
   referenceAnd: TypeAliasModelCase1;
+  onTheFly: { apple: string } | number;
+  mixed: TypeAliasModel1 | string;
 }
 
 export interface TypeAliasModel1 {

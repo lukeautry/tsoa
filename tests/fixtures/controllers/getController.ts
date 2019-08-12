@@ -122,7 +122,13 @@ export class GetTestController extends Controller {
 
   @Get('UnionTestModel')
   public async getUnionModelResponse(): Promise<UnionTestModel> {
-    return { and: { value1: 'test', value2: 'test' }, or: { value1: 'test'}, referenceAnd: { value1: 'test', value2: 'test' }};
+    return {
+      and: { value1: 'test', value2: 'test' },
+      or: { value1: 'test'},
+      referenceAnd: { value1: 'test', value2: 'test' },
+      onTheFly: 3,
+      mixed: 'test'
+    };
   }
 
   @Get('Request')
