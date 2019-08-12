@@ -794,7 +794,7 @@ describe('Express Server', () => {
   }
 
   function getFakeClassModel() {
-    const model = new TestClassModel('test', 'test', 'test');
+    const model = new TestClassModel('test', 'test', 'test', 'test', 'test');
     model.id = 100;
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';
