@@ -42,7 +42,7 @@
 ## Goal
 
 - TypeScript controllers and models as the single source of truth for your API
-- A valid swagger spec (or [OpenAPI 3.0 if you choose](#Can-I-use-OpenAPI-3.0-instead-of-Swagger-v2) 😍) is generated from your controllers and models, including:
+- A valid swagger spec (or OpenAPI 3.0 if you choose 😍) is generated from your controllers and models, including:
     - Paths (e.g. GET /Users)
     - Definitions based on TypeScript interfaces (models)
     - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
