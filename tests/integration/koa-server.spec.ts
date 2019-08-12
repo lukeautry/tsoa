@@ -16,6 +16,7 @@ describe('Koa Server', () => {
 
   it('can handle get request to root controller`s method path', () => {
     return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (err, res) => {
+      expect(err).to.equal(false);
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -71,7 +72,7 @@ describe('Koa Server', () => {
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       const model = res.body as TestModel;
-      expect(model).to.deep.equal(model);
+      expect(model).to.deep.equal(data);
     });
   });
 
@@ -704,6 +705,8 @@ describe('Koa Server', () => {
       modelsArray: [{ email: 'test@test.com', id: 1 }],
       numberArray: [1, 2],
       numberValue: 5,
+      object: { foo: 'bar' },
+      objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
@@ -713,7 +716,7 @@ describe('Koa Server', () => {
   }
 
   function getFakeClassModel() {
-    const model = new TestClassModel('test', 'test', 'test');
+    const model = new TestClassModel('test', 'test', 'test', 'test', 'test');
     model.id = 100;
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';

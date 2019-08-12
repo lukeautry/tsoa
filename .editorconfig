@@ -7,3 +7,8 @@ insert_final_newline = true
 [*.ts]
 indent_style = space
 indent_size = 2
+trim_trailing_whitespace = true
+
+[*.hbs]
+indent_style = space
+indent_size = 2

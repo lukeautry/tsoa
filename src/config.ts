@@ -38,6 +38,11 @@ export interface SwaggerConfig {
   entryFile: string;
 
   /**
+   * Set this to true if you want to prevent requests from coming in with more properties than are known/allowed
+   */
+  noImplicitAdditionalProperties?: boolean;
+
+  /**
    * API host, expressTemplate.g. localhost:3000 or myapi.com
    */
   host?: string;
@@ -46,6 +51,14 @@ export interface SwaggerConfig {
    * API version number; defaults to npm package version
    */
   version?: string;
+
+  /**
+   * Major OpenAPI version to generate; defaults to version 2 when not specified
+   * Possible values:
+   *  - 2: generates OpenAPI version 2.
+   *  - 3: generates OpenAPI version 3.
+   */
+  specVersion?: Swagger.SupportedSpecMajorVersion;
 
   /**
    * API name; defaults to npm package name
@@ -138,4 +151,9 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * Controllers glob path, contains directories with wild card to file names.
+   */
+  controllerPathGlobs?: string[];
 }

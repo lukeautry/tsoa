@@ -1,13 +1,16 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { SwaggerConfig } from './../config';
-import { assertNever } from './../utils/assertNever';
+import { normalisePath } from './../utils/pathUtils';
+import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
 
-export class SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) { }
+export class SpecGenerator2 extends SpecGenerator {
+  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) {
+    super(metadata, config);
+  }
 
   public GetSpec() {
-    let spec: Swagger.Spec = {
+    let spec: Swagger.Spec2 = {
       basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
       consumes: ['application/json'],
       definitions: this.buildDefinitions(),
@@ -27,8 +30,8 @@ export class SpecGenerator {
     if (this.config.version) { spec.info.version = this.config.version; }
     if (this.config.host) { spec.host = this.config.host; }
     if (this.config.description) { spec.info.description = this.config.description; }
-    if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.tags) { spec.tags = this.config.tags; }
+    if (this.config.license) { spec.info.license = { name: this.config.license }; }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {
@@ -45,6 +48,7 @@ export class SpecGenerator {
 
   private buildDefinitions() {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
+    const config = this.config;
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -59,7 +63,16 @@ export class SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+            definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        } else {
+            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+            //      ...we need to make a decision
+            if (config.noImplicitAdditionalProperties) {
+                definitions[referenceType.refName].additionalProperties = false;
+            } else {
+                // we'll explicitly set the default, which for swagger
+                definitions[referenceType.refName].additionalProperties = true;
+            }
         }
 
         if (referenceType.example) {
@@ -127,13 +140,10 @@ export class SpecGenerator {
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
-
-    // Apply custom attributes
-    method.customAttributes.forEach((customAttr) => pathMethod[customAttr.key] = customAttr.value);
   }
 
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties = {} as { [name: string]: Swagger.Schema };
+    const properties = {} as { [name: string]: Swagger.Schema | Swagger.BaseSchema };
     const required: string[] = [];
 
     method.parameters
@@ -175,7 +185,9 @@ export class SpecGenerator {
     } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(source.type);
-    parameter.format = parameterType.format || undefined;
+    if (parameterType.format) {
+        parameter.format = this.throwIfNotDataFormat(parameterType.format);
+    }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
@@ -208,7 +220,9 @@ export class SpecGenerator {
           parameter.type = 'string';
         }
       } else {
-        parameter.type = parameterType.type;
+        if (parameterType.type) {
+            parameter.type = this.throwIfNotDataType(parameterType.type);
+        }
         parameter.items = parameterType.items;
         parameter.enum = parameterType.enum;
       }
@@ -253,169 +267,7 @@ export class SpecGenerator {
     return properties;
   }
 
-  protected buildAdditionalProperties(type: Tsoa.Type) {
-    return this.getSwaggerType(type);
-  }
-
-  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
-    const swaggerResponses: any = {};
-
-    method.responses.forEach((res: Tsoa.Response) => {
-      swaggerResponses[res.name] = {
-        description: res.description,
-      };
-      if (res.schema && res.schema.dataType !== 'void') {
-        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
-      }
-      if (res.examples) {
-        swaggerResponses[res.name].examples = { 'application/json': res.examples };
-      }
-    });
-
-    return {
-      operationId: this.getOperationId(method.name),
-      produces: ['application/json'],
-      responses: swaggerResponses,
-    };
-  }
-
-  protected getOperationId(methodName: string) {
-    return methodName.charAt(0).toUpperCase() + methodName.substr(1);
-  }
-
-  public throwIfNotDataFormat(strToTest: string): Swagger.DataFormat {
-    const guiltyUntilInnocent = strToTest as Swagger.DataFormat;
-    if (
-        guiltyUntilInnocent === 'int32' ||
-        guiltyUntilInnocent === 'int64' ||
-        guiltyUntilInnocent === 'float' ||
-        guiltyUntilInnocent === 'double' ||
-        guiltyUntilInnocent === 'byte' ||
-        guiltyUntilInnocent === 'binary' ||
-        guiltyUntilInnocent === 'date' ||
-        guiltyUntilInnocent === 'date-time' ||
-        guiltyUntilInnocent === 'password'
-    ) {
-        return guiltyUntilInnocent;
-    } else {
-        return assertNever(guiltyUntilInnocent);
-    }
-  }
-
-  public throwIfNotDataType(strToTest: string): Swagger.DataType {
-    const guiltyUntilInnocent = strToTest as Swagger.DataType;
-    if (
-        guiltyUntilInnocent === 'array' ||
-        guiltyUntilInnocent === 'boolean' ||
-        guiltyUntilInnocent === 'integer' ||
-        guiltyUntilInnocent === 'number' ||
-        guiltyUntilInnocent === 'object' ||
-        guiltyUntilInnocent === 'string'
-    ) {
-        return guiltyUntilInnocent;
-    } else {
-        return assertNever(guiltyUntilInnocent);
-    }
-  }
-
-  protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
-
-    if (type.dataType === 'void') {
-        return this.getSwaggerTypeForVoid(type.dataType);
-    } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
-        return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
-    } else if (
-        type.dataType === 'any' ||
-        type.dataType === 'binary' ||
-        type.dataType === 'boolean' ||
-        type.dataType === 'buffer' ||
-        type.dataType === 'byte' ||
-        type.dataType === 'date' ||
-        type.dataType === 'datetime' ||
-        type.dataType === 'double' ||
-        type.dataType === 'float' ||
-        type.dataType === 'integer' ||
-        type.dataType === 'long' ||
-        type.dataType === 'object' ||
-        type.dataType === 'string'
-    ) {
-        return this.getSwaggerTypeForPrimitiveType(type.dataType);
-    } else if (type.dataType === 'array') {
-        return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
-    } else if (type.dataType === 'enum') {
-        return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
-    } else {
-        return assertNever(type.dataType);
-    }
-  }
-
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
-    return {
-        // Don't set additionalProperties value here since it will be set within the $ref's model when that $ref gets created
-    };
-  }
-
-  protected getSwaggerTypeForVoid(dataType: 'void'): Swagger.BaseSchema {
-    // Described here: https://swagger.io/docs/specification/describing-responses/#empty
-    const voidSchema = {
-        // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
-    };
-    return voidSchema;
-  }
-
-  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
-
-    const defaultAdditionalPropertiesSetting = true;
-
-    if (dataType === 'object') {
-      if (process.env.NODE_ENV !== 'tsoa_test') {
-        // tslint:disable-next-line: no-console
-        console.warn(`The type Object is discouraged. Please consider using an interface such as:
-          export interface IStringToStringDictionary {
-            [key: string]: string;
-          }
-          // or
-          export interface IRecordOfAny {
-            [key: string]: any;
-          }
-        `);
-      }
-    }
-
-    const map: Record<Tsoa.PrimitiveTypeLiteral, Swagger.Schema> = {
-      any: {
-        // While the any type is discouraged, it does explicitly allows anything, so it should always allow additionalProperties
-        additionalProperties: true,
-        type: 'object',
-      },
-      binary: { type: 'string', format: 'binary' },
-      boolean: { type: 'boolean' },
-      buffer: { type: 'string', format: 'byte' },
-      byte: { type: 'string', format: 'byte' },
-      date: { type: 'string', format: 'date' },
-      datetime: { type: 'string', format: 'date-time' },
-      double: { type: 'number', format: 'double' },
-      float: { type: 'number', format: 'float' },
-      integer: { type: 'integer', format: 'int32' },
-      long: { type: 'integer', format: 'int64' },
-      object: {
-        additionalProperties: this.config.noImplicitAdditionalProperties ? false : defaultAdditionalPropertiesSetting,
-        type: 'object',
-      },
-      string: { type: 'string' },
-    };
-
-    return map[dataType];
-  }
-
-  protected getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType): Swagger.Schema {
-    return {
-      items: this.getSwaggerType(arrayType.elementType),
-      type: 'array',
-    };
-  }
-
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enums.map(member => String(member)) };
+    return { $ref: `#/definitions/${referenceType.refName}` };
   }
 }

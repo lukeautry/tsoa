@@ -37,6 +37,8 @@ export interface TestModel extends Model {
    */
   boolValue: boolean;
   boolArray: boolean[];
+  object: object;
+  objectArray: object[];
   enumValue?: EnumIndexValue;
   enumArray?: EnumIndexValue[];
   enumNumberValue?: EnumNumberValue;
@@ -326,6 +328,8 @@ export class TestClassModel extends TestClassBaseModel {
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,
+    defaultConstructorArgument: string,
+    readonly readonlyConstructorArgument: string,
     public optionalPublicConstructorVar?: string,
   ) {
     super();

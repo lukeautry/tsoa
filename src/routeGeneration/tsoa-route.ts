@@ -1,5 +1,13 @@
 import { Tsoa } from './../metadataGeneration/tsoa';
 
+/**
+ * For Swagger, additionalProperties is implicitly allowed. So use this function to clarify that undefined should be associated with allowing additional properties
+ * @param test if this is undefined then you should interpret it as a "yes"
+ */
+export function isDefaultForAdditionalPropertiesAllowed(test: TsoaRoute.ModelSchema['additionalProperties']): test is undefined {
+    return test === undefined;
+}
+
 export namespace TsoaRoute {
     export interface Models {
         [name: string]: ModelSchema;
@@ -8,13 +16,13 @@ export namespace TsoaRoute {
     export interface ModelSchema {
         enums?: string[];
         properties?: { [name: string]: PropertySchema };
-        additionalProperties?: PropertySchema;
+        additionalProperties?: boolean | PropertySchema;
     }
 
     export type ValidatorSchema = Tsoa.Validators;
 
     export interface PropertySchema {
-        dataType?: 'string' | 'boolean' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'any' | 'object';
+        dataType?: Tsoa.TypeStringLiteral;
         ref?: string;
         required?: boolean;
         array?: PropertySchema;

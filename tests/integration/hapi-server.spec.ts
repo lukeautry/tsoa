@@ -725,6 +725,8 @@ describe('Hapi Server', () => {
       },
       numberArray: [1, 2],
       numberValue: 5,
+      object: { foo: 'bar' },
+      objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
@@ -734,7 +736,7 @@ describe('Hapi Server', () => {
   }
 
   function getFakeClassModel() {
-    const model = new TestClassModel('test', 'test', 'test');
+    const model = new TestClassModel('test', 'test', 'test', 'test', 'test');
     model.id = 100;
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';

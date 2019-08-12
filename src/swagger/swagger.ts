@@ -21,9 +21,17 @@ export namespace Swagger {
     | 'ws'
     | 'wss';
 
+  export type SupportedSpecMajorVersion = 2
+    | 3;
+
   export interface Spec {
-    swagger: '2.0';
     info: Info;
+    tags?: Tag[];
+    externalDocs?: ExternalDocs;
+  }
+
+  export interface Spec2 extends Spec {
+    swagger: '2.0';
     host?: string;
     basePath?: string;
     schemes?: Protocol[];
@@ -35,8 +43,29 @@ export namespace Swagger {
     responses?: { [name: string]: Response };
     security?: Security[];
     securityDefinitions?: { [name: string]: Security };
-    tags?: Tag[];
-    externalDocs?: ExternalDocs;
+  }
+
+  export interface Spec3 extends Spec {
+    openapi: '3.0.0';
+    servers: Server[];
+    components: Components;
+    paths: { [name: string]: Path3 };
+  }
+
+  export interface Components {
+    callbacks?: { [name: string]: any };
+    examples?: { [name: string]: any };
+    headers?: { [name: string]: any };
+    links?: { [name: string]: any };
+    parameters?: { [name: string]: Parameter };
+    requestBodies?: { [name: string]: any };
+    responses?: { [name: string]: Response };
+    schemas?: { [name: string]: Schema };
+    securitySchemes?: { [name: string]: Security };
+  }
+
+  export interface Server {
+    url: string;
   }
 
   export interface Info {
@@ -125,6 +154,18 @@ export namespace Swagger {
     parameters?: Parameter[];
   }
 
+  export interface Path3 {
+    $ref?: string;
+    get?: Operation3;
+    put?: Operation3;
+    post?: Operation3;
+    delete?: Operation3;
+    options?: Operation3;
+    head?: Operation3;
+    patch?: Operation3;
+    parameters?: Parameter[];
+  }
+
   export interface Operation {
     tags?: string[];
     summary?: string;
@@ -140,6 +181,35 @@ export namespace Swagger {
     security?: Security[];
     // Used to apply custom attributes to paths
     [key: string]: any;
+  }
+
+  export interface Operation3 {
+    tags?: string[];
+    summary?: string;
+    description?: string;
+    externalDocs?: ExternalDocs;
+    operationId: string;
+    consumes?: string[];
+    produces?: string[];
+    parameters?: Parameter[];
+    responses: { [name: string]: Response };
+    schemes?: Protocol[];
+    deprecated?: boolean;
+    security?: Security[];
+    requestBody?: RequestBody;
+  }
+
+  export interface RequestBody {
+    content: { [name: string]: MediaType };
+    description?: string;
+    required?: boolean;
+  }
+
+  export interface MediaType {
+    schema?: Schema;
+    example?: { [name: string]: any };
+    examples?: { [name: string]: any };
+    encoding?: { [name: string]: any };
   }
 
   export interface Response {
@@ -173,12 +243,16 @@ export namespace Swagger {
     items?: BaseSchema;
   }
 
+  export interface Schema3 extends Schema {
+    nullable?: boolean;
+  }
+
   export interface Schema extends BaseSchema {
     type: DataType;
     format?: DataFormat;
     allOf?: Schema[];
     additionalProperties?: boolean | BaseSchema;
-    properties?: { [propertyName: string]: Schema };
+    properties?: { [propertyName: string]: Schema3 };
     discriminator?: string;
     readOnly?: boolean;
     xml?: XML;
@@ -197,6 +271,12 @@ export namespace Swagger {
     prefix?: string;
     attribute?: string;
     wrapped?: boolean;
+  }
+
+  export interface BasicSecurity3 {
+    type: 'http';
+    scheme: 'basic';
+    description?: string;
   }
 
   export interface BasicSecurity {
@@ -223,7 +303,7 @@ export namespace Swagger {
     description?: string;
     flow: 'password';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2ApplicationSecurity {
@@ -231,7 +311,7 @@ export namespace Swagger {
     description?: string;
     flow: 'application';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2AccessCodeSecurity {
@@ -240,14 +320,15 @@ export namespace Swagger {
     flow: 'accessCode';
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuthScope {
-    [name: string]: string;
+    [scopeName: string]: string;
   }
 
   export type Security = BasicSecurity
+    | BasicSecurity3
     | ApiKeySecurity
     | OAuth2AccessCodeSecurity
     | OAuth2ApplicationSecurity

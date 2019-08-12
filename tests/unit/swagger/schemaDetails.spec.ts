@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator } from '../../../src/swagger/specGenerator';
+import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 
 describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
-  const spec = new SpecGenerator(metadata, getDefaultOptions()).GetSpec();
+
+  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
 
   if (!spec.info) { throw new Error('No spec info.'); }
   if (!spec.info.title) { throw new Error('No spec info title.'); }

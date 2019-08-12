@@ -1,12 +1,13 @@
 import * as path from 'path';
 import * as ts from 'typescript';
-import { RoutesConfig } from '../config';
+import { RoutesConfig, SwaggerConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { RouteGenerator } from '../routeGeneration/routeGenerator';
 
 export const generateRoutes = async (
   routesConfig: RoutesConfig,
+  swaggerConfig: SwaggerConfig,
   compilerOptions?: ts.CompilerOptions,
   ignorePaths?: string[],
   /**
@@ -19,10 +20,11 @@ export const generateRoutes = async (
       routesConfig.entryFile,
       compilerOptions,
       ignorePaths,
+      routesConfig.controllerPathGlobs,
     ).Generate();
   }
 
-  const routeGenerator = new RouteGenerator(metadata, routesConfig);
+  const routeGenerator = new RouteGenerator(metadata, routesConfig, swaggerConfig);
 
   let pathTransformer;
   let template;
@@ -30,17 +32,17 @@ export const generateRoutes = async (
 
   switch (routesConfig.middleware) {
     case 'express':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/express.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
       break;
     case 'hapi':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.hbs');
       pathTransformer = (path: string) => path;
       break;
     case 'koa':
-      template = path.join(__dirname, '..', 'routeGeneration/templates/koa.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/koa.hbs');
       break;
     default:
-      template = path.join(__dirname, '..', 'routeGeneration/templates/express.ts');
+      template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
   }
 
   if (routesConfig.middlewareTemplate) {

@@ -4,7 +4,7 @@ import { Swagger } from '../../../src/swagger/swagger';
 export const defaultModelName = '#/definitions/TestModel';
 
 export function VerifyPath(
-  spec: Swagger.Spec,
+  spec: Swagger.Spec2,
   route: string,
   getOperation: ((path: Swagger.Path) => Swagger.Operation | undefined),
   isCollection?: boolean,
