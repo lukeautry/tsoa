@@ -428,6 +428,15 @@ describe('Definition generation', () => {
           }
         });
 
+        it('should generate a property from a readonly constructor argument', () => {
+          const propertyName = 'readonlyConstructorArgument';
+          if (!properties[propertyName]) {
+            throw new Error(`Property '${propertyName}' was expected to exist.`);
+          }
+
+          expect(definition.required).to.contain(propertyName);
+        });
+
         it('should generate properties from a base class', () => {
           const property = properties.id;
           expect(property).to.exist;

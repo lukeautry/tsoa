@@ -32,7 +32,13 @@ export class ModelService {
   }
 
   public getClassModel(): TestClassModel {
-    const testClassModel = new TestClassModel('constructor var', 'private constructor var', '_default constructor var', 'optional constructor var');
+    const testClassModel = new TestClassModel(
+      'constructor var',
+      'private constructor var',
+      '_default constructor var',
+      'readonlyConstructorvar',
+      'optional constructor var'
+    );
     testClassModel.id = 1;
     testClassModel.publicStringProperty = 'public string property';
 
