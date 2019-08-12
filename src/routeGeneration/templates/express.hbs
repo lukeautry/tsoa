@@ -28,9 +28,7 @@ const models: TsoaRoute.Models = {
             {{/each}}
         },
         {{/if}}
-        {{#if additionalProperties}}
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
+        "additionalProperties": {{additionalPropsHelper additionalProperties}},
     },
     {{/each}}
 };

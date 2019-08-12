@@ -6,6 +6,7 @@ import { getDefaultOptions } from '../../fixtures/defaultOptions';
 
 describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+
   const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
 
   if (!spec.info) { throw new Error('No spec info.'); }

@@ -2,6 +2,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha TS Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "env": {
+                "NODE_ENV": "tsoa_test"
+            },
+            "args": [
+                "**/*spec.ts",
+                "--debug",
+                "--debug-brk",
+                "--require",
+                "ts-node/register",
+                "--colors",
+            ],
+            "preLaunchTask": "prepareFiles",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "protocol": "inspector"
+        },
+        {
             "name": "Generate",
             "type": "node",
             "request": "launch",

@@ -185,8 +185,9 @@ async function routeGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config.routes);
+    const swaggerConfig = await validateSwaggerConfig(config.swagger);
 
-    await generateRoutes(routesConfig, compilerOptions, config.ignore);
+    await generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
