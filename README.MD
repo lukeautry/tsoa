@@ -15,7 +15,7 @@
       + [Using CLI](#using-cli)
       + [Programmatic](#programmatic)
       + [Automating Regeneration](#automating-regeneration)
-    - [Can I use OpenAPI 3.0 instead of Swagger v2?](#Can-I-use-OpenAPI-3.0-instead-of-Swagger-v2)
+    - [Can I use OpenAPI 3.0 instead of Swagger v2?](#can-i-use-openapi-30-instead-of-swagger-v2)
     - [How to ensure no additional properties come in at runtime](#how-to-ensure-no-additional-properties-come-in-at-runtime)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
