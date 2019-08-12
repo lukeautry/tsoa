@@ -20,6 +20,7 @@ export const generateRoutes = async (
       routesConfig.entryFile,
       compilerOptions,
       ignorePaths,
+      routesConfig.controllerPathGlobs,
     ).Generate();
   }
 

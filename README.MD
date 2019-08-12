@@ -98,6 +98,8 @@ export class UsersController extends Controller {
     }
 }
 ```
+Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD)
+
 ### Create Models
 ```typescript
 // models/user.ts
@@ -213,6 +215,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 
 ### Consuming generated routes
 
+#### Using imports in app entry file
 ```typescript
 import * as methodOverride from 'method-override';
 import * as express from 'express';
@@ -232,8 +235,21 @@ RegisterRoutes(app);
 app.listen(3000);
 
 ```
+#### Using automatic controllers discovery
+To tell `tsoa` to use your automatic controllers discovery you need to add to theconfig file (e.g. `tsoa.json`):
+The controllers globs pattern:
+```json
+{
+  "routes": {
+    "entryFile": "...",
+    "routesDir": "...",
+    "middleware": "...",
+    "controllerPathGlobs": ["./dir-with-controllers/*", "./recursive-dir/**/", "./custom-filerecursive-dir/**/*.controller.ts"]
+  }
+}
+```
 
-### Get access to the request object of express in Controllers
+### Get access to the request object of express (or koa) in Controllers
 
 To access the request object of express in a controller method use the `@Request`-decorator:
 ```typescript
@@ -247,10 +263,29 @@ import {User, UserCreationRequest} from '../models/user';
 export class UsersController {
     @Get('{id}')
     public async getUser(id: number, @Request() request: express.Request): Promise<User> {
-        // TODO: implement some code that uses request as well
+        // TODO: implement some code that uses the request as well
     }
 }
 ```
+
+To access Koa's request object (which has the ctx object) in a controller method use the `@Request`-decorator:
+```typescript
+// controllers/usersController.ts
+
+import * as koa from 'koa';
+import {Get, Route, Request} from 'tsoa';
+import {User, UserCreationRequest} from '../models/user';
+
+@Route('Users')
+export class UsersController {
+    @Get('{id}')
+    public async getUser(id: number, @Request() request: koa.Request): Promise<User> {
+        const ctx = request.ctx;
+        // TODO: implement some code that uses the request as well
+    }
+}
+```
+
 Note that the parameter `request` does not appear in your swagger definition file.
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call.

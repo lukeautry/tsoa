@@ -334,27 +334,27 @@ describe('Definition generation', () => {
         });
     });
 
-    // allSpecs.forEach(currentSpec => {
-    //     describe(`for spec ${currentSpec.specName}`, () => {
-    //         it('should generate a definition description from a model jsdoc comment', () => {
-    //             const definition = getValidatedDefinition('TestModel', currentSpec);
-    //             expect(definition.description).to.equal('This is a description of a model');
-    //         });
-    //     });
-    // });
+    allSpecs.forEach(currentSpec => {
+        describe(`for spec ${currentSpec.specName}`, () => {
+            it('should generate a definition description from a model jsdoc comment', () => {
+                const definition = getValidatedDefinition('TestModel', currentSpec);
+                expect(definition.description).to.equal('This is a description of a model');
+            });
+        });
+    });
 
-    // allSpecs.forEach(currentSpec => {
-    //     describe(`for spec ${currentSpec.specName}`, () => {
-    //         it('should generate a default value from jsdoc', () => {
-    //             const definition = getValidatedDefinition('TestModel', currentSpec);
-    //             if (!definition.properties) {
-    //               throw new Error('No definition properties.');
-    //             }
+    allSpecs.forEach(currentSpec => {
+        describe(`for spec ${currentSpec.specName}`, () => {
+            it('should generate a default value from jsdoc', () => {
+                const definition = getValidatedDefinition('TestModel', currentSpec);
+                if (!definition.properties) {
+                  throw new Error('No definition properties.');
+                }
 
-    //             expect(definition.properties.boolValue.default).to.equal('true');
-    //           });
-    //     });
-    // });
+                expect(definition.properties.boolValue.default).to.equal('true');
+              });
+        });
+    });
 
   });
 
@@ -501,7 +501,25 @@ describe('Definition generation', () => {
 
   describe('Generic-based generation', () => {
     allSpecs.forEach(currentSpec => {
+
+      const modelName = 'TestClassModel';
+      const definition = getValidatedDefinition(modelName, currentSpec);
+      if (!definition.properties) { throw new Error('Definition has no properties.'); }
+
+      const properties = definition.properties;
+
       describe(`for ${currentSpec}`, () => {
+        it('should not generate a property for a non-public constructor var', () => {
+          const propertyName = 'defaultConstructorArgument';
+          if (properties[propertyName]) {
+            throw new Error(`Property '${propertyName}' was not expected to exist.`);
+          }
+        });
+
+        it('should generate properties from a base class', () => {
+          const property = properties.id;
+          expect(property).to.exist;
+        });
 
         it('should generate different definitions for a generic model', () => {
           const definition = getValidatedDefinition('GenericModelTestModel', currentSpec).properties;

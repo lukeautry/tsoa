@@ -16,10 +16,10 @@ export class ManagedService {
       numberArray: [1, 2, 3],
       numberValue: 1,
       object: {
-          a: 'a',
+        a: 'a',
       },
       objectArray: [{
-          a: 'a',
+        a: 'a',
       }],
       optionalString: 'optional string',
       strLiteralArr: ['Foo', 'Bar'],

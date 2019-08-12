@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
-import { app } from '../fixtures/express/server';
+import { app } from '../fixtures/express-dynamic-controllers/server';
 import { Gender, GenericModel, GenericRequest, ParameterTestModel, TestClassModel, TestModel, UserResponseModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
@@ -794,7 +794,7 @@ describe('Express Server', () => {
   }
 
   function getFakeClassModel() {
-    const model = new TestClassModel('test', 'test', 'test', 'test');
+    const model = new TestClassModel('test', 'test', 'test');
     model.id = 100;
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';

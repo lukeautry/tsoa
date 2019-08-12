@@ -34,7 +34,7 @@
     "preversion": "npm test",
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
-    "test": "tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register",
+    "test": "tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 3000",
     "pre-commit": "npm run test",
     "tsc": "tsc"
   },
