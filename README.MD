@@ -94,9 +94,9 @@ export class UsersController extends Controller {
         return Promise.resolve();
     }
 
-    @Get('{id}')
-    public async getPrivateUser(@Path('id') ID: number, @Header('Authorization') authorization: string): Promise<User> {
-        return new UserService().get(id);
+    @Get('subResource/{subResourceId}')
+    public async getSubResource(@Path('subResourceId') aliasedPathId: number, @Header('Authorization') authorization: string): Promise<User> {
+        return new UserService().getSubResource(aliasedPathId);
     }
 }
 ```
