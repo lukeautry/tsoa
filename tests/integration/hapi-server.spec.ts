@@ -866,6 +866,9 @@ describe('Hapi Server', () => {
       },
       numberArray: [1, 2],
       numberValue: 5,
+      objLiteral: {
+        name: 'hello',
+      },
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',

@@ -214,6 +214,29 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          objLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.include({
+              properties: {
+                name: {
+                  type: 'string',
+                },
+                nested: {
+                  properties: {
+                    allOptional: {
+                      properties: { one: { type: 'string' }, two: { type: 'string' } },
+                      type: 'object',
+                    },
+                    bool: { type: 'boolean' },
+                    optional: { format: 'double', type: 'number' },
+                  },
+                  required: ['allOptional', 'bool'],
+                  type: 'object',
+                },
+              },
+              required: ['name'],
+              type: 'object',
+            });
+          },
           object: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             if (currentSpec.specName === 'specWithNoImplicitExtras') {
@@ -473,6 +496,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           } else {
             expect(testModel.additionalProperties).to.eq(true, forSpec(currentSpec));
           }
+        });
+
+        it('should have only created schemas for properties on the TypeScript interface', () => {
+          expect(Object.keys(assertionsPerProperty)).to.length(
+            Object.keys(testModel.properties!).length,
+            `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
+          );
         });
 
         it('should have only created schemas for properties on the TypeScript interface', () => {

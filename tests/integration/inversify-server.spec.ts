@@ -41,6 +41,9 @@ describe('Inversify Express Server', () => {
         },
         numberArray: [1, 2, 3],
         numberValue: 1,
+        objLiteral: {
+          name: 'hello',
+        },
         object: {
           a: 'a',
         },

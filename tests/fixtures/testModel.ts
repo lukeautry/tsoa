@@ -75,6 +75,18 @@ export interface TestModel extends Model {
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
   mixedUnion?: string | TypeAliasModel1;
+
+  objLiteral: {
+    name: string;
+    nested?: {
+      bool: boolean;
+      optional?: number;
+      allOptional: {
+        one?: string;
+        two?: string;
+      };
+    };
+  };
 }
 
 export interface TypeAliasModel1 {
@@ -332,12 +344,6 @@ export class TestClassModel extends TestClassBaseModel {
   /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
-
-  public static typeLiterals = {
-    booleanTypeLiteral: { $type: Boolean },
-    numberTypeLiteral: { $type: Number },
-    stringTypeLiteral: { $type: String },
-  };
 
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar

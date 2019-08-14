@@ -14,6 +14,9 @@ export class ModelService {
       modelsArray: new Array<TestSubModel>(),
       numberArray: [1, 2, 3],
       numberValue: 1,
+      objLiteral: {
+        name: 'hello',
+      },
       object: {
         a: 'a',
       },

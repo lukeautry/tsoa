@@ -355,6 +355,9 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       modelsArray: [{ email: 'test@test.com', id: 1 }],
       numberArray: [1, 2],
       numberValue: 5,
+      objLiteral: {
+        name: 'hello',
+      },
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',

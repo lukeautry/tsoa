@@ -79,6 +79,8 @@ export abstract class SpecGenerator {
       return this.getSwaggerTypeForUnionType(type as Tsoa.UnionType);
     } else if (type.dataType === 'intersection') {
       return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
+    } else if (type.dataType === 'objectLiteral') {
+      return this.getSwaggerTypeForObjectLiteral(type as Tsoa.ObjectLiteralType);
     } else {
       return assertNever(type.dataType);
     }
@@ -87,6 +89,24 @@ export abstract class SpecGenerator {
   protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType);
 
   protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
+  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.ObjectLiteralType): Swagger.Schema {
+    const properties = objectLiteral.properties.reduce((acc, property: Tsoa.Property) => {
+      return {
+        [property.name]: this.getSwaggerType(property.type),
+        ...acc,
+      };
+    }, {});
+
+    const required = objectLiteral.properties.filter(prop => prop.required).map(prop => prop.name);
+
+    // An empty list required: [] is not valid.
+    // If all properties are optional, do not specify the required keyword.
+    return {
+      properties,
+      ...(required && required.length && { required }),
+      type: 'object',
+    };
+  }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return {

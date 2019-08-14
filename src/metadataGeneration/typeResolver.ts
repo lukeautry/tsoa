@@ -90,7 +90,22 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.TypeLiteral) {
-      return { dataType: 'any' } as Tsoa.Type;
+      const properties = (this.typeNode as ts.TypeLiteralNode).members
+        .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
+        .reduce((res, propertySignature: ts.PropertySignature) => {
+          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, this.typeNode).resolve();
+
+          return [
+            {
+              name: (propertySignature.name as ts.Identifier).text,
+              required: !propertySignature.questionToken,
+              type,
+            } as Tsoa.Property,
+            ...res,
+          ];
+        }, []);
+
+      return { dataType: 'objectLiteral', properties } as Tsoa.ObjectLiteralType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
