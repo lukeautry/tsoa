@@ -22,6 +22,7 @@
  * }
  */
 export interface TestModel extends Model {
+  and: TypeAliasModel1 & TypeAliasModel2;
   /**
    * This is a description of this model property, numberValue
    */
@@ -62,6 +63,8 @@ export interface TestModel extends Model {
 
   modelsArrayIndirect?: TestSubArrayModelContainer;
   modelsEnumIndirect?: TestSubEnumModelContainer;
+  or: TypeAliasModel1 | TypeAliasModel2;
+  referenceAnd: TypeAliasModelCase1;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
@@ -71,14 +74,6 @@ export interface TestModel extends Model {
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
-}
-
-export interface UnionTestModel {
-  or: TypeAliasModel1 | TypeAliasModel2;
-  and: TypeAliasModel1 & TypeAliasModel2;
-  referenceAnd: TypeAliasModelCase1;
-  onTheFly: { apple: string } | number;
-  mixed: TypeAliasModel1 | string;
 }
 
 export interface TypeAliasModel1 {

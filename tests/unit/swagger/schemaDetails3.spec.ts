@@ -374,6 +374,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 genericNestedArrayCharacter2: (propertyName, propertySchema) => {
                     expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
                 },
+                and: (propertyName, propertySchema) => {
+                    expect(propertySchema).to.deep.include({
+                        allOf: [
+                            { '$ref': '#/components/schemas/TypeAliasModel1' },
+                            { '$ref': '#/components/schemas/TypeAliasModel2' },
+                        ]
+                    });
+                },
+                referenceAnd: (propertyName, propertySchema) => {
+                    expect(propertySchema).to.deep.include({
+                        '$ref': '#/components/schemas/TypeAliasModelCase1'
+                    });
+                },
+                or: (propertyName, propertySchema) => {
+                    expect(propertySchema).to.deep.include({
+                        oneOf: [
+                           { '$ref': '#/components/schemas/TypeAliasModel1' },
+                           { '$ref': '#/components/schemas/TypeAliasModel2' },
+                        ]
+                    });
+                },
             };
 
             const testModel = currentSpec.spec.components.schemas[interfaceModelName];

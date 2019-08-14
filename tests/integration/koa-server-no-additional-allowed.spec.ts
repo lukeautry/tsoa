@@ -288,6 +288,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
   function getFakeModel(): TestModel {
     return {
+      and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: false,
       id: 1,
@@ -298,6 +299,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',
+      or: { value1: 'Foo'},
+      referenceAnd: { value1: 'foo', value2: 'bar' },
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],

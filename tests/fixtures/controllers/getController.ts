@@ -15,7 +15,6 @@ import {
   TestClassModel,
   TestModel,
   TestSubModel,
-  UnionTestModel
 } from '../testModel';
 import {
   ModelService,
@@ -30,6 +29,7 @@ export class GetTestController extends Controller {
   @Get()
   @SuccessResponse('200', 'Returns TestModel')
   @Example<TestModel>({
+    and: { value1: 'foo', value2: 'bar' },
     boolArray: [true, false],
     boolValue: true,
     dateValue: new Date(),
@@ -48,6 +48,8 @@ export class GetTestController extends Controller {
         a: 'a',
     }],
     optionalString: 'optional string',
+    or: { value1: 'Foo'},
+    referenceAnd: { value1: 'foo', value2: 'bar' },
     strLiteralArr: ['Foo', 'Bar'],
     strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
@@ -118,17 +120,6 @@ export class GetTestController extends Controller {
   @Get('UnionTypeResponse')
   public async getUnionTypeResponse(): Promise<string | boolean> {
     return '';
-  }
-
-  @Get('UnionTestModel')
-  public async getUnionModelResponse(): Promise<UnionTestModel> {
-    return {
-      and: { value1: 'test', value2: 'test' },
-      or: { value1: 'test'},
-      referenceAnd: { value1: 'test', value2: 'test' },
-      onTheFly: 3,
-      mixed: 'test'
-    };
   }
 
   @Get('Request')

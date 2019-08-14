@@ -71,7 +71,7 @@ describe('Definition generation', () => {
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
         allSpecs.forEach(currentSpec => {
-            const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS', 'UnionTestModel'];
+            const expectedModels = ['TestModel', 'TestSubModel', 'Result', 'TestSubModelContainer', 'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', 'TestSubModel2', 'TestSubModelNamespace.TestSubModelNS'];
             expectedModels.forEach((modelName) => {
                 getValidatedDefinition(modelName, currentSpec);
             });
@@ -97,7 +97,7 @@ describe('Definition generation', () => {
 
     it('should generate an member of type object for union type', () => {
       allSpecs.forEach(currentSpec => {
-        const definition = getValidatedDefinition('UnionTestModel', currentSpec);
+        const definition = getValidatedDefinition('TestModel', currentSpec);
         if (!definition.properties) { throw new Error('Definition has no properties.'); }
         if (!definition.properties.or) { throw new Error('There was no \'or\' property.'); }
 
@@ -107,7 +107,7 @@ describe('Definition generation', () => {
 
     it('should generate an member of type object for intersection type', () => {
       allSpecs.forEach(currentSpec => {
-        const definition = getValidatedDefinition('UnionTestModel', currentSpec);
+        const definition = getValidatedDefinition('TestModel', currentSpec);
         if (!definition.properties) { throw new Error('Definition has no properties.'); }
         if (!definition.properties.and) { throw new Error('There was no \'and\' property.'); }
 
@@ -364,6 +364,15 @@ describe('Definition generation', () => {
                 },
                 genericNestedArrayCharacter2: (propertyName, propertySchema) => {
                     expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+                },
+                and: (propertyName, propertySchema) => {
+                  expect(propertySchema).to.deep.include({ type: 'object'});
+                },
+                referenceAnd: (propertyName, propertySchema) => {
+                  expect(propertySchema).to.deep.include({ '$ref': '#/definitions/TypeAliasModelCase1' })
+                },
+                or: (propertyName, propertySchema) => {
+                  expect(propertySchema).to.deep.include({ type: 'object'});
                 },
             };
 
