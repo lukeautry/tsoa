@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
 import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
@@ -55,6 +56,12 @@ export class RouteGenerator {
         return JSON.stringify(false);
       } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === undefined) {
         // Since Swagger defaults to allowing additional properties, then that will be our default
+        return JSON.stringify(true);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {
+        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+        return JSON.stringify(false);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === false) {
+        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
         return JSON.stringify(true);
       } else {
         return assertNever(this.minimalSwaggerConfig.noImplicitAdditionalProperties);

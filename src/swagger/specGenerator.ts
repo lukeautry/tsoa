@@ -1,4 +1,5 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { SwaggerConfig } from './../config';
 import { assertNever } from './../utils/assertNever';
 import { Swagger } from './swagger';
@@ -101,6 +102,12 @@ export class SpecGenerator {
       return false;
     } else if (this.config.noImplicitAdditionalProperties === undefined) {
       // Since Swagger defaults to allowing additional properties, then that will be our default
+      return true;
+    } else if (this.config.noImplicitAdditionalProperties === true) {
+      warnAdditionalPropertiesDeprecation(this.config.noImplicitAdditionalProperties);
+      return false;
+    } else if (this.config.noImplicitAdditionalProperties === false) {
+      warnAdditionalPropertiesDeprecation(this.config.noImplicitAdditionalProperties);
       return true;
     } else {
       return assertNever(this.config.noImplicitAdditionalProperties);

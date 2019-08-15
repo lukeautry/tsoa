@@ -108,6 +108,82 @@ describe('ValidationService', () => {
             expect(errorKeys).to.have.lengthOf(0);
         });
 
+        it('should not allow additionalProperties if noImplicitAdditionalProperties is set to true', () => {
+            // Arrange
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: true,
+            };
+            const errorDictionary: FieldErrors = {};
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
+                refName,
+                value: dataToValidate,
+            });
+
+            // Assert
+            const errorKeys = Object.keys(errorDictionary);
+            expect(errorKeys).to.have.lengthOf(1);
+            const firstAndOnlyErrorKey = errorKeys[0];
+            expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq(`"${nameOfAdditionalProperty}" is an excess property and therefore is not allowed`);
+            if (!dataToValidate[nameOfAdditionalProperty]) {
+                throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`);
+            }
+        });
+
+        it('should allow additionalProperties if noImplicitAdditionalProperties is set to false', () => {
+            // Arrange
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: false,
+            };
+            const errorDictionary: FieldErrors = {};
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            const result = v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
+                refName: 'ExampleModel',
+                value: dataToValidate,
+            });
+            expect(Object.keys(errorDictionary)).to.be.empty;
+            expect(result).to.eql({
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            });
+        });
+
         it('should not require optional properties', () => {
             const v = new ValidationService({
                 ExampleModel: {
@@ -133,7 +209,8 @@ describe('ValidationService', () => {
             });
             const error = {};
             const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-                noImplicitAdditionalProperties: undefined,
+                // we're setting this to the "throw" to demonstrate that explicit additionalProperties should always be allowed
+                noImplicitAdditionalProperties: 'throw-on-extras',
             };
             const result = v.validateModel({ name: '', value: { a: 's' }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
             expect(Object.keys(error)).to.be.empty;

@@ -4,6 +4,7 @@ import { RoutesConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { RouteGenerator, SwaggerConfigRelatedToRoutes } from '../routeGeneration/routeGenerator';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 
 export const generateRoutes = async (
   routesConfig: RoutesConfig,
@@ -56,7 +57,11 @@ export const generateRoutes = async (
 
 const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRoutes => {
   // Validate the config values first
-  if (
+  if (input.noImplicitAdditionalProperties === true) {
+    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
+  } else if (input.noImplicitAdditionalProperties === false) {
+    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
+  } else if (
     input.noImplicitAdditionalProperties === undefined ||
     input.noImplicitAdditionalProperties === 'throw-on-extras' ||
     input.noImplicitAdditionalProperties === 'silently-remove-extras'

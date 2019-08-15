@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import * as validator from 'validator';
 import { assertNever } from '../utils/assertNever';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
 import { isDefaultForAdditionalPropertiesAllowed, TsoaRoute } from './tsoa-route';
 
@@ -399,12 +400,20 @@ export class ValidationService {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
+            } else if (swaggerConfig.noImplicitAdditionalProperties === true) {
+              warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
+              fieldErrors[parent + '.' + key] = {
+                message: `"${key}" is an excess property and therefore is not allowed`,
+                value: key,
+              };
             } else if (
-              swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras' ||
-              swaggerConfig.noImplicitAdditionalProperties === true
+              swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras'
             ) {
               delete value[key];
-            } else if (swaggerConfig.noImplicitAdditionalProperties === false || swaggerConfig.noImplicitAdditionalProperties === undefined) {
+            } else if (swaggerConfig.noImplicitAdditionalProperties === false) {
+              warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
+              // then it's okay to have additionalProperties
+            } else if (swaggerConfig.noImplicitAdditionalProperties === undefined) {
               // then it's okay to have additionalProperties
             } else {
               assertNever(swaggerConfig.noImplicitAdditionalProperties);
