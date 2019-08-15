@@ -1,6 +1,7 @@
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 /* tslint:disable */
+/* eslint-disable */
 {{#if canImportByAlias}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
@@ -53,7 +54,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            async (context, next) => {
+            async (context: any, next: any) => {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},

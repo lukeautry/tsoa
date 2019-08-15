@@ -136,6 +136,28 @@ export class SpecGenerator2 extends SpecGenerator {
     }
   }
 
+  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
+    const swaggerResponses: any = {};
+
+    method.responses.forEach((res: Tsoa.Response) => {
+      swaggerResponses[res.name] = {
+        description: res.description,
+      };
+      if (res.schema && res.schema.dataType !== 'void') {
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
+      }
+      if (res.examples) {
+        swaggerResponses[res.name].examples = { 'application/json': res.examples };
+      }
+    });
+
+    return {
+      operationId: this.getOperationId(method.name),
+      produces: ['application/json'],
+      responses: swaggerResponses,
+    };
+  }
+
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
     const properties = {} as { [name: string]: Swagger.Schema | Swagger.BaseSchema };
     const required: string[] = [];

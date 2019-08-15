@@ -188,9 +188,8 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
     operationId: string;
     consumes?: string[];
-    produces?: string[];
     parameters?: Parameter[];
-    responses: { [name: string]: Response };
+    responses: { [name: string]: Response3 };
     schemes?: Protocol[];
     deprecated?: boolean;
     security?: Security[];
@@ -215,6 +214,12 @@ export namespace Swagger {
     schema?: Schema;
     headers?: { [name: string]: Header };
     examples?: { [name: string]: Example };
+  }
+
+  export interface Response3 {
+    description: string;
+    content?: { [name: string]: Schema | Example };
+    headers?: { [name: string]: Header };
   }
 
   export interface BaseSchema {
