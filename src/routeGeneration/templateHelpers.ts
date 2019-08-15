@@ -382,11 +382,18 @@ export class ValidationService {
       }
 
       const properties = modelDefinition.properties || {};
-      Object.keys(properties).forEach((key: string) => {
+      const keysOnPropertiesModelDefinition = new Set(Object.keys(properties));
+      const allPropertiesOnData = new Set(Object.keys(value));
+
+      keysOnPropertiesModelDefinition.forEach((key: string) => {
         const property = properties[key];
         value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent, swaggerConfig);
       });
-      const alreadyValidatedProperties = new Set(Object.keys(properties));
+
+      const isAnExcessProperty = (objectKeyThatMightBeExcess: string) => {
+        return allPropertiesOnData.has(objectKeyThatMightBeExcess) &&
+          !keysOnPropertiesModelDefinition.has(objectKeyThatMightBeExcess);
+      };
 
       const additionalProperties = modelDefinition.additionalProperties;
 
@@ -394,7 +401,7 @@ export class ValidationService {
         // then don't validate any of the additional properties
       } else if (additionalProperties === false) {
         Object.keys(value).forEach((key: string) => {
-          if (!alreadyValidatedProperties.has(key)) {
+          if (isAnExcessProperty(key)) {
             if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
               fieldErrors[parent + '.' + key] = {
                 message: `"${key}" is an excess property and therefore is not allowed`,
@@ -422,7 +429,7 @@ export class ValidationService {
         });
       } else {
         Object.keys(value).forEach((key: string) => {
-          if (!alreadyValidatedProperties.has(key)) {
+          if (isAnExcessProperty(key)) {
             const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent, swaggerConfig);
             if (validatedValue !== undefined) {
               value[key] = validatedValue;
