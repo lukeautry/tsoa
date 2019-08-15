@@ -369,7 +369,7 @@ describe('Definition generation', () => {
                   expect(propertySchema).to.deep.include({ type: 'object'});
                 },
                 referenceAnd: (propertyName, propertySchema) => {
-                  expect(propertySchema).to.deep.include({ '$ref': '#/definitions/TypeAliasModelCase1' })
+                  expect(propertySchema).to.deep.include({ $ref: '#/definitions/TypeAliasModelCase1' });
                 },
                 or: (propertyName, propertySchema) => {
                   expect(propertySchema).to.deep.include({ type: 'object'});
