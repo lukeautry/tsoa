@@ -219,6 +219,11 @@ export class RouteGenerator {
     if (type.dataType === 'enum') {
       schema.enums = (type as Tsoa.EnumerateType).enums;
     }
+
+    if (type.dataType === 'union' || type.dataType === 'intersection') {
+      schema.subSchemas = (type as Tsoa.IntersectionType | Tsoa.UnionType).types.map(type => this.buildProperty(type));
+    }
+
     return schema;
   }
 }

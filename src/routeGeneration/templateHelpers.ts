@@ -57,6 +57,10 @@ export class ValidationService {
         return this.validateDateTime(name, value, fieldErrors, property.validators, parent);
       case 'buffer':
         return this.validateBuffer(name, value);
+      case 'union':
+        return this.validateUnion(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
+      case 'intersection':
+        return this.validateIntersection(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
       case 'any':
         return value;
       default:
@@ -362,16 +366,87 @@ export class ValidationService {
     return new Buffer(value);
   }
 
+  public validateUnion(
+    name: string,
+    value: any,
+    fieldErrors: FieldErrors,
+    swaggerConfig: SwaggerConfigRelatedToRoutes,
+    subSchemas: TsoaRoute.PropertySchema[] | undefined,
+    parent = ''
+  ): any {
+    if (!subSchemas) { return; }
+
+    const subFieldErrors = subSchemas.map(subSchema => {
+      const subFieldErrors: FieldErrors = {};
+      this.validateModel({subSchema, value, name, subFieldErrors, parent, swaggerConfig});
+      return subFieldErrors;
+    });
+
+    if (!subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
+      fieldErrors[parent + name] = {
+        message: `Could not match the union against any of the items. Issues: ${subFieldErrors}`,
+        value,
+      };
+      return;
+    }
+
+    return value;
+  }
+
+  public validateIntersection (
+    name: string,
+    value: any,
+    fieldErrors: FieldErrors,
+    swaggerConfig: SwaggerConfigRelatedToRoutes,
+    subSchemas: TsoaRoute.PropertySchema[] | undefined,
+    parent = ''
+  ): any {
+    if (!subSchemas) { return; }
+
+    const subFieldErrors =
+      subSchemas
+        .filter(subSchema => subSchema.ref)
+        .map(subSchema => {
+          const subFieldErrors: FieldErrors = {};
+          this.validateModel({
+            value,
+            name,
+            refName: subSchema.ref as string,
+            fieldErrors: subFieldErrors,
+            parent,
+            minimalSwaggerConfig: { noImplicitAdditionalProperties: false }
+          });
+          return subFieldErrors;
+        });
+
+    subFieldErrors.forEach(subFieldError => {
+      (Object as any).entries(subFieldError).forEach(([key, value]) => {
+        if (value.message.includes('excess')) {
+          delete subFieldError[key];
+        }
+      });
+    });
+
+    if (subFieldErrors.some(subFieldError => Object.keys(subFieldError).length !== 0)) {
+      fieldErrors[parent + name] = {
+        message: `Could not match the intersection against every type. Issues: ${subFieldErrors}`,
+        value,
+      };
+      return;
+    }
+
+    return value;
+  }
+
   public validateModel( input: {
-      name: string,
-      value: any,
-      refName: string,
-      fieldErrors: FieldErrors,
-      parent?: string,
-      minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+    name: string,
+    value: any,
+    refName: string,
+    fieldErrors: FieldErrors,
+    parent?: string,
+    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
   }): any {
     const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
-
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
@@ -454,7 +529,6 @@ export class ValidationService {
 
     return value;
   }
-}
 
 export interface IntegerValidator {
   isInt?: { errorMsg?: string };
