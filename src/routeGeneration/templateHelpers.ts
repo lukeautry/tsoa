@@ -443,19 +443,21 @@ export class ValidationService {
       return value;
     }
 
-    const reportedExcess = refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
-      return new Set([...acc, ...this.getExcessPropertiesFor(subSchema, new Set(Object.keys(value)))]);
-    }, new Set());
+    const reportedExcess = new Set(refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
+      return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value))];
+    }, []));
 
     const allowedProperties = refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
       return new Set([...acc, ...this.getPropertiesFor(subSchema)]);
     }, new Set());
 
-    const actualExcess = new Set([...reportedExcess].filter(property => !allowedProperties.has(property)));
+    const actualExcess = [...reportedExcess].filter(property => !allowedProperties.has(property));
 
-    fieldErrors[parent + name] = {
-      message: `${[...actualExcess]} not allowed by any part of the Intersection`,
-      value,
+    if (actualExcess.length > 0) {
+      fieldErrors[parent + name] = {
+        message: `${actualExcess} not allowed by any part of the Intersection`,
+        value,
+      };
     };
 
     return value;
@@ -465,7 +467,7 @@ export class ValidationService {
     return new Set(Object.keys((modelDefinition && modelDefinition.properties) || {}));
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: Set<string>): Set<string> {
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: string[]): string[] {
     if (!modelDefinition || !modelDefinition.properties) {
       return properties;
     }
@@ -473,9 +475,9 @@ export class ValidationService {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
-      return new Set();
+      return [];
     } else {
-      return new Set([...properties].filter(property => !modelProperties.has(property)));
+      return [...properties].filter(property => !modelProperties.has(property));
     }
   }
 
