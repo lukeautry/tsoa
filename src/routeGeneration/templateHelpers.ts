@@ -384,7 +384,7 @@ export class ValidationService {
 
     if (!subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
       fieldErrors[parent + name] = {
-        message: `Could not match the union against any of the items. Issues: ${subFieldErrors}`,
+        message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
         value,
       };
       return;
@@ -420,16 +420,18 @@ export class ValidationService {
         });
 
     subFieldErrors.forEach(subFieldError => {
-      (Object as any).entries(subFieldError).forEach(([key, value]) => {
+      Object.entries(subFieldError).forEach(([key, value]) => {
         if (value.message.includes('excess')) {
           delete subFieldError[key];
         }
       });
     });
 
-    if (subFieldErrors.some(subFieldError => Object.keys(subFieldError).length !== 0)) {
+    const filtered = subFieldErrors.filter(subFieldError => Object.keys(subFieldError).length !== 0);
+
+    if (filtered.length > 0) {
       fieldErrors[parent + name] = {
-        message: `Could not match the intersection against every type. Issues: ${subFieldErrors}`,
+        message: `Could not match the intersection against every type. Issues: ${JSON.stringify(filtered)}`,
         value,
       };
       return;
@@ -571,6 +573,7 @@ export class ValidationService {
 
     return value;
   }
+}
 
 export interface IntegerValidator {
   isInt?: { errorMsg?: string };
