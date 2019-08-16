@@ -370,17 +370,30 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    swaggerConfig: SwaggerConfigRelatedToRoutes,
+    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
     subSchemas: TsoaRoute.PropertySchema[] | undefined,
-    parent = ''
+    parent = '',
   ): any {
     if (!subSchemas) { return; }
 
-    const subFieldErrors = subSchemas.map(subSchema => {
-      const subFieldErrors: FieldErrors = {};
-      this.validateModel({subSchema, value, name, subFieldErrors, parent, swaggerConfig});
-      return subFieldErrors;
-    });
+    const subFieldErrors: FieldErrors[] = [];
+    const values: any[] = [];
+
+    subSchemas
+      .filter(subSchema => subSchema.ref)
+      .forEach(subSchema => {
+        const subFieldError: FieldErrors = {};
+        const val = this.validateModel({
+          fieldErrors: subFieldError,
+          minimalSwaggerConfig,
+          name,
+          parent,
+          refName: subSchema.ref as string,
+          value: JSON.parse(JSON.stringify(value)),
+        });
+        subFieldErrors.push(subFieldError);
+        values.push(val);
+      });
 
     if (!subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
       fieldErrors[parent + name] = {
@@ -390,16 +403,19 @@ export class ValidationService {
       return;
     }
 
+    if (minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
+      return values.reduce((acc, obj) => ({...acc, ...obj}), {});
+    }
     return value;
   }
 
-  public validateIntersection (
+  public validateIntersection(
     name: string,
     value: any,
     fieldErrors: FieldErrors,
     swaggerConfig: SwaggerConfigRelatedToRoutes,
     subSchemas: TsoaRoute.PropertySchema[] | undefined,
-    parent = ''
+    parent = '',
   ): any {
     if (!subSchemas) { return; }
 
@@ -409,23 +425,15 @@ export class ValidationService {
         .map(subSchema => {
           const subFieldErrors: FieldErrors = {};
           this.validateModel({
-            value,
-            name,
-            refName: subSchema.ref as string,
             fieldErrors: subFieldErrors,
+            minimalSwaggerConfig: { noImplicitAdditionalProperties: undefined },
+            name,
             parent,
-            minimalSwaggerConfig: { noImplicitAdditionalProperties: false }
+            refName: subSchema.ref as string,
+            value,
           });
           return subFieldErrors;
         });
-
-    subFieldErrors.forEach(subFieldError => {
-      Object.entries(subFieldError).forEach(([key, value]) => {
-        if (value.message.includes('excess')) {
-          delete subFieldError[key];
-        }
-      });
-    });
 
     const filtered = subFieldErrors.filter(subFieldError => Object.keys(subFieldError).length !== 0);
 
@@ -458,7 +466,7 @@ export class ValidationService {
         message: `${actualExcess} not allowed by any part of the Intersection`,
         value,
       };
-    };
+    }
 
     return value;
   }
@@ -482,12 +490,12 @@ export class ValidationService {
   }
 
   public validateModel( input: {
-    name: string,
-    value: any,
-    refName: string,
-    fieldErrors: FieldErrors,
-    parent?: string,
-    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+      name: string,
+      value: any,
+      refName: string,
+      fieldErrors: FieldErrors,
+      parent?: string,
+      minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
   }): any {
     const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
 

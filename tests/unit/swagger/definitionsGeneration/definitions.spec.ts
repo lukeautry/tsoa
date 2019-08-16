@@ -366,13 +366,13 @@ describe('Definition generation', () => {
                     expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
                 },
                 and: (propertyName, propertySchema) => {
-                  expect(propertySchema).to.deep.include({ type: 'object'});
+                  expect(propertySchema.type).to.eq('object');
                 },
                 referenceAnd: (propertyName, propertySchema) => {
-                  expect(propertySchema).to.deep.include({ $ref: '#/definitions/TypeAliasModelCase1' });
+                  expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1');
                 },
                 or: (propertyName, propertySchema) => {
-                  expect(propertySchema).to.deep.include({ type: 'object'});
+                  expect(propertySchema.type).to.eq('object');
                 },
             };
 
