@@ -263,6 +263,8 @@ export class ValidateModel {
   public ignoredProperty: string;
 
   public model: TypeAliasModel1;
+  public intersection?: TypeAliasModel1 & TypeAliasModel2;
+  public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
 }
 
 export interface ValidateMapStringToNumber {

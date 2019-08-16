@@ -62,6 +62,13 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       middleware: 'express',
       routesDir: './tests/fixtures/express',
     }, defaultOptions, undefined, undefined, metadata)),
+    log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () => generateRoutes({
+        authenticationModule: './tests/fixtures/express-openapi3/authentication.ts',
+        basePath: '/v1',
+        entryFile: './tests/fixtures/server.ts',
+        middleware: 'express',
+        routesDir: './tests/fixtures/express-openapi3',
+      }, {...optionsWithNoAdditional, specVersion: 3 }, undefined, undefined, metadata)),
     log('Express Dynamic Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/express/authentication.ts',
       basePath: '/v1',
