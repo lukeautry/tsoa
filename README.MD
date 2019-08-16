@@ -251,7 +251,7 @@ As you can see from the the controllers globs patterns below, you can provide mu
     "middleware": "...",
     "controllerPathGlobs": [
       "./dir-with-controllers/*",
-      "./recursive-dir/**/",
+      "./recursive-dir/**/*",
       "./custom-filerecursive-dir/**/*.controller.ts"
     ]
   }

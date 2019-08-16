@@ -23,6 +23,7 @@ export const generateSwaggerSpec = async (
       config.entryFile,
       compilerOptions,
       ignorePaths,
+      config.controllerPathGlobs
     ).Generate();
   }
 

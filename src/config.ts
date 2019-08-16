@@ -38,6 +38,11 @@ export interface SwaggerConfig {
   entryFile: string;
 
   /**
+   * Controllers glob path, contains directories with wild card to file names.
+   */
+  controllerPathGlobs?: string[];
+
+  /**
    * Set this to true if you want to prevent requests from coming in with more properties than are known/allowed
    */
   noImplicitAdditionalProperties?: boolean;
@@ -116,7 +121,7 @@ export interface SwaggerConfig {
   schemes?: Swagger.Protocol[];
 }
 
-export interface RoutesConfig {
+export interface  RoutesConfig {
   /**
    * Routes directory; generated routes.ts (which contains the generated code wiring up routes using middleware of choice) will be dropped here
    */
