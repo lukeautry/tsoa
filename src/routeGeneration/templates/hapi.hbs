@@ -1,5 +1,7 @@
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 // TODO: Replace this with HAPI middleware stuff
 /* tslint:disable */
+/* eslint-disable */
 {{#if canImportByAlias}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
@@ -9,11 +11,14 @@
 import { iocContainer } from '{{iocModule}}';
 {{/if}}
 {{#each controllers}}
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
     {{#each models}}
@@ -28,15 +33,20 @@ const models: TsoaRoute.Models = {
             {{/each}}
         },
         {{/if}}
-        {{#if additionalProperties}}
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
+        "additionalProperties": {{additionalPropsHelper additionalProperties}},
     },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
 };
 const validationService = new ValidationService(models);
 
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
 export function RegisterRoutes(server: any) {
+    // ###########################################################################################################
+    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+    // ###########################################################################################################
     {{#each controllers}}
     {{#each actions}}
         server.route({
@@ -78,6 +88,7 @@ export function RegisterRoutes(server: any) {
                 }
             }
         });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
     {{/each}}
 
@@ -96,6 +107,8 @@ export function RegisterRoutes(server: any) {
                 return user;
             };
 
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
             const fail = function(error: any) {
                 responded++;
                 if (responded == security.length && !success) {
@@ -103,6 +116,8 @@ export function RegisterRoutes(server: any) {
                 }
                 return error;
             };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
@@ -128,6 +143,8 @@ export function RegisterRoutes(server: any) {
     }
     {{/if}}
 
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
     function isController(object: any): object is Controller {
         return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
     }
@@ -138,6 +155,8 @@ export function RegisterRoutes(server: any) {
                 const response = (data || data === false)
                     ? h.response(data).code(200)
                     : h.response("").code(204);
+
+                // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
                 if (isController(controllerObj)) {
                     const headers = controllerObj.getHeaders();
@@ -154,6 +173,8 @@ export function RegisterRoutes(server: any) {
             })
             .catch((error: any) => h.response(error).code(error.status || 500));
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
     function getValidatedArgs(args: any, request: any): any[] {
         const errorFields: FieldErrors = {};
@@ -179,4 +200,8 @@ export function RegisterRoutes(server: any) {
         }
         return values;
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

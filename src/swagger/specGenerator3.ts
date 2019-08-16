@@ -95,6 +95,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildSchema() {
     const schema: { [name: string]: Swagger.Schema } = {};
+    const config = this.config;
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -109,7 +110,16 @@ export class SpecGenerator3 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-          schema[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+            schema[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        } else {
+            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+            //      ...we need to make a decision
+            if (config.noImplicitAdditionalProperties) {
+                schema[referenceType.refName].additionalProperties = false;
+            } else {
+                // we'll explicitly set the default, which for swagger
+                schema[referenceType.refName].additionalProperties = true;
+            }
         }
 
         if (referenceType.example) {
@@ -181,6 +191,32 @@ export class SpecGenerator3 extends SpecGenerator {
     }
   }
 
+  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation3 {
+    const swaggerResponses: { [name: string]: Swagger.Response3 } = {};
+
+    method.responses.forEach((res: Tsoa.Response) => {
+      swaggerResponses[res.name] = {
+        content: {
+          'application/json': {} as Swagger.Schema3,
+        },
+        description: res.description,
+      };
+      if (res.schema && res.schema.dataType !== 'void') {
+        /* tslint:disable:no-string-literal */
+        (swaggerResponses[res.name].content || {})['application/json']['schema'] = this.getSwaggerType(res.schema);
+      }
+      if (res.examples) {
+        /* tslint:disable:no-string-literal */
+        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples}};
+      }
+    });
+
+    return {
+      operationId: this.getOperationId(method.name),
+      responses: swaggerResponses,
+    };
+  }
+
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
     const parameterType = this.getSwaggerType(parameter.type);
 
@@ -204,16 +240,21 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
-    let parameter = {
-      default: source.default,
+    const parameter = {
       description: source.description,
       in: source.in,
       name: source.name,
       required: source.required,
+      schema: {
+        default: source.default,
+        format: undefined,
+      },
     } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(source.type);
-    parameter.format = parameterType.format || undefined;
+    if (parameterType.format) {
+        parameter.schema.format = this.throwIfNotDataFormat(parameterType.format);
+    }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
@@ -234,18 +275,16 @@ export class SpecGenerator3 extends SpecGenerator {
       });
 
     if (source.type.dataType === 'any') {
-      parameter.type = 'string';
+      parameter.schema.type = 'string';
     } else {
-      parameter.type = parameterType.type;
-      parameter.items = parameterType.items;
-      parameter.enum = parameterType.enum;
+      if (parameterType.type) {
+        parameter.schema.type = this.throwIfNotDataType(parameterType.type);
+      }
+      parameter.schema.items = parameterType.items;
+      parameter.schema.enum = parameterType.enum;
     }
 
-    if (parameter.schema) {
-      parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
-    } else {
-      parameter = Object.assign({}, parameter, validatorObjs);
-    }
+    parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
 
     return parameter;
   }

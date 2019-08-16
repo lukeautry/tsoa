@@ -70,7 +70,7 @@ export class TypeResolver {
       return { dataType: 'any' } as Tsoa.Type;
     }
 
-    if(this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
+    if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
       return { dataType: 'object' } as Tsoa.Type;
     }
 
@@ -575,7 +575,7 @@ export class TypeResolver {
 
     if (classConstructor && classConstructor.parameters) {
       const constructorProperties = classConstructor.parameters
-        .filter((parameter) => this.hasPublicModifier(parameter));
+        .filter((parameter) => this.isAccessibleParameter(parameter));
 
       properties.push(...constructorProperties);
     }
@@ -659,6 +659,25 @@ export class TypeResolver {
     return !node.modifiers || node.modifiers.every((modifier) => {
       return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
     });
+  }
+
+  private isAccessibleParameter(node: ts.Node) {
+    // No modifiers
+    if (!node.modifiers) {
+      return false;
+    }
+
+    // public || public readonly
+    if (node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword)) {
+      return true;
+    }
+
+    // readonly, not private readonly, not public readonly
+    const isReadonly = node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword);
+    const isProtectedOrPrivate = node.modifiers.some(modifier => {
+      return modifier.kind === ts.SyntaxKind.ProtectedKeyword || modifier.kind === ts.SyntaxKind.PrivateKeyword;
+    });
+    return isReadonly && !isProtectedOrPrivate;
   }
 
   private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {

@@ -1,4 +1,7 @@
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
 /* tslint:disable */
+/* eslint-disable */
 {{#if canImportByAlias}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
@@ -8,12 +11,15 @@
 import { iocContainer } from '{{iocModule}}';
 {{/if}}
 {{#each controllers}}
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
 import * as KoaRouter from 'koa-router';
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
     {{#each models}}
@@ -28,22 +34,27 @@ const models: TsoaRoute.Models = {
             {{/each}}
         },
         {{/if}}
-        {{#if additionalProperties}}
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
+        "additionalProperties": {{additionalPropsHelper additionalProperties}},
     },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
 };
 const validationService = new ValidationService(models);
 
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
 export function RegisterRoutes(router: KoaRouter) {
+    // ###########################################################################################################
+    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+    // ###########################################################################################################
     {{#each controllers}}
     {{#each actions}}
         router.{{method}}('{{fullPath}}',
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            async (context, next) => {
+            async (context: any, next: any) => {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -67,6 +78,7 @@ export function RegisterRoutes(router: KoaRouter) {
             const promise = controller.{{name}}.apply(controller, validatedArgs as any);
             return promiseHandler(controller, promise, context, next);
         });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
     {{/each}}
 
@@ -85,6 +97,8 @@ export function RegisterRoutes(router: KoaRouter) {
               }
           };
 
+          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
           const fail = async (error: any) => {
               responded++;
               if (responded == security.length && !success) {
@@ -98,6 +112,8 @@ export function RegisterRoutes(router: KoaRouter) {
                   throw error;
               }
           };
+
+          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
           for (const secMethod of security) {
               if (Object.keys(secMethod).length > 1) {
@@ -122,6 +138,8 @@ export function RegisterRoutes(router: KoaRouter) {
   }
   {{/if}}
 
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
   function isController(object: any): object is Controller {
       return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
   }
@@ -135,6 +153,8 @@ export function RegisterRoutes(router: KoaRouter) {
             } else {
                 context.status = 204;
             }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             if (isController(controllerObj)) {
                 const headers = controllerObj.getHeaders();
@@ -154,6 +174,8 @@ export function RegisterRoutes(router: KoaRouter) {
             context.throw(context.status, error.message, error);
         });
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
     function getValidatedArgs(args: any, context: any): any[] {
         const errorFields: FieldErrors = {};
@@ -179,4 +201,8 @@ export function RegisterRoutes(router: KoaRouter) {
         }
         return values;
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

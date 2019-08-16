@@ -48,6 +48,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
   private buildDefinitions() {
     const definitions: { [definitionsName: string]: Swagger.Schema } = {};
+    const config = this.config;
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -62,7 +63,16 @@ export class SpecGenerator2 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+            definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        } else {
+            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+            //      ...we need to make a decision
+            if (config.noImplicitAdditionalProperties) {
+                definitions[referenceType.refName].additionalProperties = false;
+            } else {
+                // we'll explicitly set the default, which for swagger
+                definitions[referenceType.refName].additionalProperties = true;
+            }
         }
 
         if (referenceType.example) {
@@ -132,8 +142,30 @@ export class SpecGenerator2 extends SpecGenerator {
     }
   }
 
+  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
+    const swaggerResponses: any = {};
+
+    method.responses.forEach((res: Tsoa.Response) => {
+      swaggerResponses[res.name] = {
+        description: res.description,
+      };
+      if (res.schema && res.schema.dataType !== 'void') {
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
+      }
+      if (res.examples) {
+        swaggerResponses[res.name].examples = { 'application/json': res.examples };
+      }
+    });
+
+    return {
+      operationId: this.getOperationId(method.name),
+      produces: ['application/json'],
+      responses: swaggerResponses,
+    };
+  }
+
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties = {} as { [name: string]: Swagger.Schema };
+    const properties = {} as { [name: string]: Swagger.Schema | Swagger.BaseSchema };
     const required: string[] = [];
 
     method.parameters
@@ -175,7 +207,9 @@ export class SpecGenerator2 extends SpecGenerator {
     } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(source.type);
-    parameter.format = parameterType.format || undefined;
+    if (parameterType.format) {
+        parameter.format = this.throwIfNotDataFormat(parameterType.format);
+    }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
@@ -208,7 +242,9 @@ export class SpecGenerator2 extends SpecGenerator {
           parameter.type = 'string';
         }
       } else {
-        parameter.type = parameterType.type;
+        if (parameterType.type) {
+            parameter.type = this.throwIfNotDataType(parameterType.type);
+        }
         parameter.items = parameterType.items;
         parameter.enum = parameterType.enum;
       }

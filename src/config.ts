@@ -38,6 +38,11 @@ export interface SwaggerConfig {
   entryFile: string;
 
   /**
+   * Set this to true if you want to prevent requests from coming in with more properties than are known/allowed
+   */
+  noImplicitAdditionalProperties?: boolean;
+
+  /**
    * API host, expressTemplate.g. localhost:3000 or myapi.com
    */
   host?: string;
@@ -146,4 +151,9 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * Controllers glob path, contains directories with wild card to file names.
+   */
+  controllerPathGlobs?: string[];
 }

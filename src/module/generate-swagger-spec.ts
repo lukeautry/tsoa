@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import { SwaggerConfig } from '../config';
+export { SwaggerConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { SpecGenerator2 } from '../swagger/specGenerator2';
