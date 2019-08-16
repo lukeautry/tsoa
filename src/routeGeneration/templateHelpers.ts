@@ -453,12 +453,10 @@ export class ValidationService {
 
     const actualExcess = new Set([...reportedExcess].filter(property => !allowedProperties.has(property)));
 
-    actualExcess.forEach(excessProp => {
-      fieldErrors[parent + name] = {
-        message: `${excessProp} not allowed by any part of the Intersection`,
-        value,
-      };
-    });
+    fieldErrors[parent + name] = {
+      message: `${[...actualExcess]} not allowed by any part of the Intersection`,
+      value,
+    };
 
     return value;
   }

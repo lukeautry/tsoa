@@ -73,7 +73,7 @@ describe('OpenAPI3 Express Server', () => {
       bodyModel.arrayMin2Item = [0];
       bodyModel.arrayUniqueItem = [0, 0, 1, 1];
       bodyModel.intersection = { value1: '' } as any;
-      bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123 } as any;
+      bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123, value4: 123 } as any;
 
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const body = JSON.parse(err.text);
@@ -113,7 +113,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.fields['body.intersection'].message).to.deep.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
         expect(body.fields['body.intersection'].value).to.deep.equal(bodyModel.intersection);
-        expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('value3 not allowed by any part of the Intersection');
+        expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('value3,value4 not allowed by any part of the Intersection');
         expect(body.fields['body.intersectionNoAdditional'].value).to.deep.equal(bodyModel.intersectionNoAdditional);
       }, 400);
     });
