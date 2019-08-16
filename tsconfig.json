@@ -13,6 +13,7 @@
             "node_modules/@types",
             "./typings"
         ],
+        "downlevelIteration": true,
         "experimentalDecorators": true,
         "declaration": true,
         "noUnusedLocals": true,

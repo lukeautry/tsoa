@@ -435,7 +435,48 @@ export class ValidationService {
       return;
     }
 
+    // Only Model definitions make sense here right now
+    const refNames = subSchemas.filter(subschema => subschema.ref).map(subschema => subschema.ref) as string[];
+    if (!refNames.every(refName => this.models[refName])) {
+      return value;
+    }
+
+    const reportedExcess = refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
+      return new Set([...acc, ...this.getExcessPropertiesFor(subSchema, new Set(Object.keys(value)))]);
+    }, new Set());
+
+    const allowedProperties = refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
+      return new Set([...acc, ...this.getPropertiesFor(subSchema)]);
+    }, new Set());
+
+    const actualExcess = new Set([...reportedExcess].filter(property => !allowedProperties.has(property)));
+
+    actualExcess.forEach(excessProp => {
+      fieldErrors[parent + name] = {
+        message: `${excessProp} not allowed by any part of the Intersection`,
+        value,
+      };
+    });
+
     return value;
+  }
+
+  private getPropertiesFor(modelDefinition: TsoaRoute.ModelSchema) {
+    return new Set(Object.keys((modelDefinition && modelDefinition.properties) || {}));
+  }
+
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: Set<string>): Set<string> {
+    if (!modelDefinition || !modelDefinition.properties) {
+      return properties;
+    }
+
+    const modelProperties = new Set(Object.keys(modelDefinition.properties));
+
+    if (modelDefinition.additionalProperties) {
+      return new Set();
+    } else {
+      return new Set([...properties].filter(property => !modelProperties.has(property)));
+    }
   }
 
   public validateModel( input: {
@@ -447,6 +488,7 @@ export class ValidationService {
     minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
   }): any {
     const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
+
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
