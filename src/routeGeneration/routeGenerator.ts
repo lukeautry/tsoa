@@ -228,6 +228,16 @@ export class RouteGenerator {
       schema.subSchemas = (type as Tsoa.IntersectionType | Tsoa.UnionType).types.map(type => this.buildProperty(type));
     }
 
+    if (type.dataType === 'nestedObjectLiteral') {
+      const objLiteral = type as Tsoa.ObjectLiteralType;
+
+      schema.nestedProperties = objLiteral.properties.reduce((acc, prop) => {
+        return { ...acc, [prop.name]: this.buildPropertySchema(prop) };
+      }, {});
+
+      schema.additionalProperties = objLiteral.additionalProperties && this.buildProperty(objLiteral.additionalProperties);
+    }
+
     return schema;
   }
 }

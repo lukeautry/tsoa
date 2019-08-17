@@ -71,12 +71,60 @@ export class ValidationService {
         return this.validateIntersection(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
       case 'any':
         return value;
+      case 'nestedObjectLiteral':
+        return this.validateNestedObjectLiteral(name, value, fieldErrors, minimalSwaggerConfig, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
           return this.validateModel({ name, value, refName: property.ref, fieldErrors, parent, minimalSwaggerConfig });
         }
         return value;
     }
+  }
+
+  public validateNestedObjectLiteral(
+    name: string,
+    value: any,
+    fieldErrors: FieldErrors,
+    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+    nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
+    additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
+    parent: string,
+  ) {
+    if (!nestedProperties) {
+      return;
+    }
+
+    const propHandling = minimalSwaggerConfig.noImplicitAdditionalProperties;
+    if (propHandling) {
+      const excessProps = this.getExcessPropertiesFor({ properties: nestedProperties, additionalProperties }, Object.keys(value), minimalSwaggerConfig);
+      if (excessProps.length > 0) {
+        if (propHandling) {
+          excessProps.forEach(excessProp => {
+            delete value[excessProp];
+          });
+          if (propHandling === 'throw-on-extras') {
+            fieldErrors[parent + name] = {
+              message: `"${excessProps}" is an excess property and therefore is not allowed`,
+              value: excessProps,
+            };
+          }
+        }
+      }
+    }
+
+    Object.keys(value).forEach(key => {
+      if (!nestedProperties[key]) {
+        if (additionalProperties && additionalProperties !== true) {
+          return this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', minimalSwaggerConfig);
+        } else {
+          return key;
+        }
+      }
+
+      return this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', minimalSwaggerConfig);
+    });
+
+    return value;
   }
 
   public validateInt(name: string, value: any, fieldErrors: FieldErrors, validators?: IntegerValidator, parent = '') {

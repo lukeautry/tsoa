@@ -79,7 +79,7 @@ export abstract class SpecGenerator {
       return this.getSwaggerTypeForUnionType(type as Tsoa.UnionType);
     } else if (type.dataType === 'intersection') {
       return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
-    } else if (type.dataType === 'objectLiteral') {
+    } else if (type.dataType === 'nestedObjectLiteral') {
       return this.getSwaggerTypeForObjectLiteral(type as Tsoa.ObjectLiteralType);
     } else {
       return assertNever(type.dataType);

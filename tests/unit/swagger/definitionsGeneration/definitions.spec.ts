@@ -146,7 +146,6 @@ describe('Definition generation', () => {
             expect(definition.additionalProperties).to.eq(true, forSpec(currentSpec));
           }
         });
-
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
@@ -423,21 +422,23 @@ describe('Definition generation', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           objLiteral: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.include({
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
               properties: {
-                name: {
-                  type: 'string',
-                },
+                name: { type: 'string' },
                 nested: {
                   properties: {
-                    allOptional: {
+                    additionals: { properties: {}, type: 'object' },
+                    allNestedOptional: {
                       properties: { one: { type: 'string' }, two: { type: 'string' } },
                       type: 'object',
                     },
                     bool: { type: 'boolean' },
-                    optional: { format: 'double', type: 'number' },
+                    optional: { type: 'number', format: 'double' },
                   },
-                  required: ['allOptional', 'bool'],
+                  required: ['allNestedOptional', 'bool'],
                   type: 'object',
                 },
               },

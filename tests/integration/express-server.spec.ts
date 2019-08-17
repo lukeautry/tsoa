@@ -132,6 +132,26 @@ describe('Express Server', () => {
     });
   });
 
+  it('removes additional properties', () => {
+    const model = getFakeModel();
+    const data = {
+      ...model,
+      objLiteral: {
+        ...model.objLiteral,
+        extra: 123,
+        nested: {
+          anotherExtra: 123,
+        },
+      },
+    };
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      const resModel = res.body as TestModel;
+      expect(resModel).to.deep.equal({ ...model, objLiteral: { ...model.objLiteral, nested: {} } });
+      expect(res.status).to.eq(200);
+    });
+  });
+
   it('correctly returns status code', () => {
     const data = getFakeModel();
     const path = basePath + '/PostTest/WithDifferentReturnCode';

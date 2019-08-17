@@ -48,6 +48,51 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     );
   });
 
+  it('should call out any additionalProperties', () => {
+    const data = Object.assign({}, getFakeModel(), {
+      objLiteral: {
+        extra: 123,
+        nested: {
+          anotherExtra: 123,
+        },
+      },
+    });
+
+    return verifyPostRequest(
+      basePath + '/PostTest',
+      data,
+      (err: any, res: any) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['model.objLiteral'].message).to.eql('"extra" is an excess property and therefore is not allowed');
+        expect(body.fields['model.objLiteral.nested'].message).to.eql('"anotherExtra" is an excess property and therefore is not allowed');
+      },
+      400,
+    );
+  });
+
+  it('should respect additional props', () => {
+    const fakeModel = getFakeModel();
+    const data = {
+      ...fakeModel,
+      objLiteral: {
+        name: 'hello',
+        nested: {
+          additionals: {
+            one: { value1: '' },
+          },
+          allNestedOptional: {},
+          bool: true,
+        },
+      },
+    } as TestModel;
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      expect(err).to.equal(false);
+      const model = res.body as TestModel;
+      expect(model).to.deep.equal(data);
+    });
+  });
+
   it('should be okay if there are no additionalProperties', () => {
     const data = getFakeModel();
 

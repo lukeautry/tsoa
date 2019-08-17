@@ -222,14 +222,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 nested: {
                   properties: {
-                    allOptional: {
+                    additionals: {
+                      properties: {},
+                      type: 'object',
+                    },
+                    allNestedOptional: {
                       properties: { one: { type: 'string' }, two: { type: 'string' } },
                       type: 'object',
                     },
                     bool: { type: 'boolean' },
                     optional: { format: 'double', type: 'number' },
                   },
-                  required: ['allOptional', 'bool'],
+                  required: ['allNestedOptional', 'bool'],
                   type: 'object',
                 },
               },
@@ -496,13 +500,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           } else {
             expect(testModel.additionalProperties).to.eq(true, forSpec(currentSpec));
           }
-        });
-
-        it('should have only created schemas for properties on the TypeScript interface', () => {
-          expect(Object.keys(assertionsPerProperty)).to.length(
-            Object.keys(testModel.properties!).length,
-            `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
-          );
         });
 
         it('should have only created schemas for properties on the TypeScript interface', () => {

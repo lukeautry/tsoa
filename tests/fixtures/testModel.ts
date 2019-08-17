@@ -81,9 +81,12 @@ export interface TestModel extends Model {
     nested?: {
       bool: boolean;
       optional?: number;
-      allOptional: {
+      allNestedOptional: {
         one?: string;
         two?: string;
+      };
+      additionals?: {
+        [name: string]: TypeAliasModel1;
       };
     };
   };

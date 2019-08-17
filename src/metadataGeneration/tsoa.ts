@@ -87,13 +87,13 @@ export namespace Tsoa {
     | 'any'
     | 'refEnum'
     | 'refObject'
-    | 'objectLiteral'
+    | 'nestedObjectLiteral'
     | 'union'
     | 'intersection';
 
   export type RefTypeLiteral = 'refObject' | 'refEnum';
 
-  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'objectLiteral' | 'union' | 'intersection'>;
+  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
 
   export interface Type {
     dataType: TypeStringLiteral;
@@ -109,8 +109,9 @@ export namespace Tsoa {
   }
 
   export interface ObjectLiteralType extends Type {
-    dataType: 'objectLiteral';
+    dataType: 'nestedObjectLiteral';
     properties: Property[];
+    additionalProperties?: Type;
   }
 
   export interface ArrayType extends Type {
