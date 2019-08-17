@@ -6,7 +6,7 @@ import { RouteGenerator } from '../../../src/routeGeneration/routeGenerator';
 describe('RouteGenerator', () => {
   describe('.buildModels', () => {
 
-    it('should produce models where no additionalProperties are allowed unless explicitly stated', () => {
+    it('should produce models where additionalProperties are not allowed unless explicitly stated', () => {
       // Arrange
       const stringType: Tsoa.Type = {
         dataType: 'string',
@@ -37,7 +37,7 @@ describe('RouteGenerator', () => {
         entryFile: 'mockEntryFile',
         routesDir: 'mockRoutesDir',
       }, {
-        noImplicitAdditionalProperties: true,
+        noImplicitAdditionalProperties: 'silently-remove-extras',
       });
 
       // Act

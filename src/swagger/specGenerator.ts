@@ -1,4 +1,5 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { SwaggerConfig } from './../config';
 import { assertNever } from './../utils/assertNever';
 import { Swagger } from './swagger';
@@ -94,9 +95,26 @@ export class SpecGenerator {
     return voidSchema;
   }
 
-  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
+  protected determineImplicitAdditionalPropertiesValue = (): boolean => {
+    if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
+      return false;
+    } else if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
+      return false;
+    } else if (this.config.noImplicitAdditionalProperties === undefined) {
+      // Since Swagger defaults to allowing additional properties, then that will be our default
+      return true;
+    } else if (this.config.noImplicitAdditionalProperties === true) {
+      warnAdditionalPropertiesDeprecation(this.config.noImplicitAdditionalProperties);
+      return false;
+    } else if (this.config.noImplicitAdditionalProperties === false) {
+      warnAdditionalPropertiesDeprecation(this.config.noImplicitAdditionalProperties);
+      return true;
+    } else {
+      return assertNever(this.config.noImplicitAdditionalProperties);
+    }
+  }
 
-    const defaultAdditionalPropertiesSetting = true;
+  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
 
     if (dataType === 'object') {
       if (process.env.NODE_ENV !== 'tsoa_test') {
@@ -130,7 +148,7 @@ export class SpecGenerator {
       integer: { type: 'integer', format: 'int32' },
       long: { type: 'integer', format: 'int64' },
       object: {
-        additionalProperties: this.config.noImplicitAdditionalProperties ? false : defaultAdditionalPropertiesSetting,
+        additionalProperties: this.determineImplicitAdditionalPropertiesValue(),
         type: 'object',
       },
       string: { type: 'string' },

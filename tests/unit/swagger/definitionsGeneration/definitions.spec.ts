@@ -12,7 +12,7 @@ describe('Definition generation', () => {
   const dynamicMetadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts', undefined, undefined, ['./tests/fixtures/controllers/getController.ts'],).Generate();
   const defaultOptions = getDefaultOptions();
   const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-    noImplicitAdditionalProperties: true,
+    noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
   interface ISpecAndName {
