@@ -248,7 +248,7 @@ export namespace Swagger {
 
   export interface Schema3 extends Schema {
     nullable?: boolean;
-    oneOf?: BaseSchema[];
+    anyOf?: BaseSchema[];
     allOf?: BaseSchema[];
   }
 

@@ -318,7 +318,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    return { oneOf: type.types.map(x => this.getSwaggerType(x))};
+    return { anyOf: type.types.map(x => this.getSwaggerType(x))};
   }
 
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
