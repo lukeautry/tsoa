@@ -29,6 +29,16 @@ export class TypeResolver {
     private readonly extractEnum = true,
   ) { }
 
+  public static clearCache(){
+    Object.keys(localReferenceTypeCache).forEach(key => {
+      delete localReferenceTypeCache[key];
+    });
+
+    Object.keys(inProgressTypes).forEach(key => {
+      delete inProgressTypes[key];
+    });
+  }
+
   public resolve(): Tsoa.Type {
     const primitiveType = this.getPrimitiveType(this.typeNode, this.parentNode);
     if (primitiveType) {
