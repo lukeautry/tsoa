@@ -395,10 +395,7 @@ export class ValidationService {
         values.push(val);
       });
 
-    if (
-      !subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0) &&
-      !this.validateIntersection(name, JSON.parse(JSON.stringify(value)), {}, minimalSwaggerConfig, subSchemas, parent)
-    ) {
+    if (!subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
       fieldErrors[parent + name] = {
         message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
         value,

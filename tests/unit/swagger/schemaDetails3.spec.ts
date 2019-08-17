@@ -389,7 +389,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 or: (propertyName, propertySchema) => {
                     expect(propertySchema).to.deep.include({
-                        anyOf: [
+                        oneOf: [
                            { $ref: '#/components/schemas/TypeAliasModel1' },
                            { $ref: '#/components/schemas/TypeAliasModel2' },
                         ],
