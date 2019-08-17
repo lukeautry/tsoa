@@ -1,7 +1,6 @@
-// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
 /* tslint:disable */
 /* eslint-disable */
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 {{else}}
@@ -185,15 +184,15 @@ export function RegisterRoutes(router: KoaRouter) {
             case 'request':
                 return context.request;
             case 'query':
-                return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields);
+                return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'path':
-                return validationService.ValidateParam(args[key], context.params[name], name, errorFields);
+                return validationService.ValidateParam(args[key], context.params[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'header':
-                return validationService.ValidateParam(args[key], context.request.headers[name], name, errorFields);
+                return validationService.ValidateParam(args[key], context.request.headers[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body':
-                return validationService.ValidateParam(args[key], context.request.body, name, errorFields, name + '.');
+                return validationService.ValidateParam(args[key], context.request.body, name, errorFields, name + '.', {{{json minimalSwaggerConfig}}});
             case 'body-prop':
-                return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.');
+                return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
             }
         });
         if (Object.keys(errorFields).length > 0) {

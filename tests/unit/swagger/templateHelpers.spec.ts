@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
+import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
 import { FieldErrors, ValidationService } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
@@ -13,13 +14,23 @@ describe('ValidationService', () => {
                     },
                 },
             });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: undefined,
+            };
             const error = {};
-            const result = v.validateModel('', { a: 's' }, 'ExampleModel', error);
+            const result = v.validateModel({
+                fieldErrors: error,
+                minimalSwaggerConfig,
+                name: '',
+                refName: 'ExampleModel',
+                value: { a: 's' },
+            });
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: 's' });
         });
 
-        it('should not allow additionalProperties if noImplicitAdditionalProperties is true', () => {
+        it('should not allow additionalProperties if noImplicitAdditionalProperties is set to throw-on-extras', () => {
+            // Arrange
             const refName = 'ExampleModel';
             const v = new ValidationService({
                 [refName]: {
@@ -29,17 +40,148 @@ describe('ValidationService', () => {
                     },
                 },
             });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: 'throw-on-extras',
+            };
             const errorDictionary: FieldErrors = {};
-            v.validateModel(
-                '',
-                { a: 's', uhOh: 'something extra' },
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
                 refName,
-                errorDictionary,
-            );
+                value: dataToValidate,
+            });
+
+            // Assert
             const errorKeys = Object.keys(errorDictionary);
             expect(errorKeys).to.have.lengthOf(1);
             const firstAndOnlyErrorKey = errorKeys[0];
-            expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq('uhOh is an excess property and therefore is not allowed');
+            expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq(`"${nameOfAdditionalProperty}" is an excess property and therefore is not allowed`);
+            if (!dataToValidate[nameOfAdditionalProperty]) {
+                throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`);
+            }
+        });
+
+        it('should allow (but remove) additionalProperties if noImplicitAdditionalProperties is set to throw-on-extras', () => {
+            // Arrange
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: 'silently-remove-extras',
+            };
+            const errorDictionary: FieldErrors = {};
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
+                refName,
+                value: dataToValidate,
+            });
+
+            // Assert
+            if (dataToValidate[nameOfAdditionalProperty]) {
+                throw new Error(`dataToValidate.${nameOfAdditionalProperty} should NOT have been present because .validateModel should have removed it due to it being an excess property.`);
+            }
+            expect(dataToValidate).not.to.have.ownProperty(nameOfAdditionalProperty, '');
+            const errorKeys = Object.keys(errorDictionary);
+            expect(errorKeys).to.have.lengthOf(0);
+        });
+
+        it('should not allow additionalProperties if noImplicitAdditionalProperties is set to true', () => {
+            // Arrange
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: true,
+            };
+            const errorDictionary: FieldErrors = {};
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
+                refName,
+                value: dataToValidate,
+            });
+
+            // Assert
+            const errorKeys = Object.keys(errorDictionary);
+            expect(errorKeys).to.have.lengthOf(1);
+            const firstAndOnlyErrorKey = errorKeys[0];
+            expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq(`"${nameOfAdditionalProperty}" is an excess property and therefore is not allowed`);
+            if (!dataToValidate[nameOfAdditionalProperty]) {
+                throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`);
+            }
+        });
+
+        it('should allow additionalProperties if noImplicitAdditionalProperties is set to false', () => {
+            // Arrange
+            const refName = 'ExampleModel';
+            const v = new ValidationService({
+                [refName]: {
+                    additionalProperties: false,
+                    properties: {
+                        a: { dataType: 'string', required: true },
+                    },
+                },
+            });
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: false,
+            };
+            const errorDictionary: FieldErrors = {};
+            const nameOfAdditionalProperty = 'I am the bad key name';
+            const dataToValidate = {
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            };
+
+            // Act
+            const result = v.validateModel({
+                fieldErrors: errorDictionary,
+                minimalSwaggerConfig,
+                name: '',
+                refName: 'ExampleModel',
+                value: dataToValidate,
+            });
+            expect(Object.keys(errorDictionary)).to.be.empty;
+            expect(result).to.eql({
+                a: 's',
+                [nameOfAdditionalProperty]: 'something extra',
+            });
         });
 
         it('should not require optional properties', () => {
@@ -51,7 +193,10 @@ describe('ValidationService', () => {
                 },
             });
             const error = {};
-            const result = v.validateModel('', {}, 'ExampleModel', error);
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                noImplicitAdditionalProperties: undefined,
+            };
+            const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: undefined });
         });
@@ -63,7 +208,11 @@ describe('ValidationService', () => {
                 },
             });
             const error = {};
-            const result = v.validateModel('', { a: 's' }, 'ExampleModel', error);
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                // we're setting this to the "throw" to demonstrate that explicit additionalProperties should always be allowed
+                noImplicitAdditionalProperties: 'throw-on-extras',
+            };
+            const result = v.validateModel({ name: '', value: { a: 's' }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: 's' });
         });
@@ -78,7 +227,12 @@ describe('ValidationService', () => {
                 },
             });
             const error = {};
-            const result = v.validateModel('', {}, 'ExampleModel', error);
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                // This test should ignore this, otherwise there's a problem the code
+                //      when the model has additionalProperties, that should take precedence since it's explicit
+                noImplicitAdditionalProperties: 'throw-on-extras',
+            };
+            const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: undefined });
         });
@@ -96,7 +250,12 @@ describe('ValidationService', () => {
                 },
             });
             const error = {};
-            const result = v.validateModel('', { a: 9 }, 'ExampleModel', error);
+            const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+                // This test should ignore this, otherwise there's a problem the code
+                //      when the model has additionalProperties, that should take precedence since it's explicit
+                noImplicitAdditionalProperties: 'throw-on-extras',
+            };
+            const result = v.validateModel({ name: '', value: { a: 9 }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
             expect(Object.keys(error)).to.be.empty;
             expect(result).to.eql({ a: 9 });
         });
@@ -334,7 +493,7 @@ describe('ValidationService', () => {
     describe('Array validate', () => {
         it('should array value', () => {
             const value = ['A', 'B', 'C'];
-            const result = new ValidationService({}).validateArray('name', value, {}, { dataType: 'string' });
+            const result = new ValidationService({}).validateArray('name', value, {}, {}, { dataType: 'string' });
             expect(result).to.deep.equal(value);
         });
 
@@ -342,7 +501,7 @@ describe('ValidationService', () => {
             const name = 'name';
             const value = ['A', 10, true];
             const error = {};
-            const result = new ValidationService({}).validateArray(name, value, error, { dataType: 'integer' });
+            const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' });
             expect(result).to.deep.equal([undefined, 10, undefined]);
             expect(error[`${name}.$0`].message).to.equal('invalid integer number');
             expect(error[`${name}.$0`].value).to.equal('A');
@@ -354,7 +513,7 @@ describe('ValidationService', () => {
             const name = 'name';
             const value = [80, 10, 199];
             const error = {};
-            const result = new ValidationService({}).validateArray(name, value, error, { dataType: 'integer' }, { minItems: { value: 4 } });
+            const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { minItems: { value: 4 } });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`minItems 4`);
         });
@@ -363,7 +522,7 @@ describe('ValidationService', () => {
             const name = 'name';
             const value = [80, 10, 199];
             const error = {};
-            const result = new ValidationService({}).validateArray(name, value, error, { dataType: 'integer' }, { maxItems: { value: 2 } });
+            const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { maxItems: { value: 2 } });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`maxItems 2`);
         });
@@ -372,7 +531,7 @@ describe('ValidationService', () => {
             const name = 'name';
             const value = [10, 10, 20];
             const error = {};
-            const result = new ValidationService({}).validateArray(name, value, error, { dataType: 'integer' }, { uniqueItems: {} });
+            const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { uniqueItems: {} });
             expect(result).to.equal(undefined);
             expect(error[name].message).to.equal(`required unique array`);
         });
