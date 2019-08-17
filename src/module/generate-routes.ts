@@ -1,13 +1,14 @@
 import * as path from 'path';
 import * as ts from 'typescript';
-import { RoutesConfig, SwaggerConfig } from '../config';
+import { RoutesConfig } from '../config';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
-import { RouteGenerator } from '../routeGeneration/routeGenerator';
+import { RouteGenerator, SwaggerConfigRelatedToRoutes } from '../routeGeneration/routeGenerator';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 
 export const generateRoutes = async (
   routesConfig: RoutesConfig,
-  swaggerConfig: SwaggerConfig,
+  minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
   compilerOptions?: ts.CompilerOptions,
   ignorePaths?: string[],
   /**
@@ -24,7 +25,7 @@ export const generateRoutes = async (
     ).Generate();
   }
 
-  const routeGenerator = new RouteGenerator(metadata, routesConfig, swaggerConfig);
+  const routeGenerator = new RouteGenerator(metadata, routesConfig, exactly(minimalSwaggerConfig));
 
   let pathTransformer;
   let template;
@@ -52,4 +53,33 @@ export const generateRoutes = async (
   await routeGenerator.GenerateCustomRoutes(template, pathTransformer);
 
   return metadata;
+};
+
+const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRoutes => {
+  // Validate the config values first
+  if (input.noImplicitAdditionalProperties === true) {
+    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
+  } else if (input.noImplicitAdditionalProperties === false) {
+    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
+  } else if (
+    input.noImplicitAdditionalProperties === undefined ||
+    input.noImplicitAdditionalProperties === 'throw-on-extras' ||
+    input.noImplicitAdditionalProperties === 'silently-remove-extras'
+  ) {
+    // then it's good to go
+  } else {
+    throw new Error(`noImplicitAdditionalProperties is set to an invalid value. See https://github.com/lukeautry/tsoa/blob/master/src/config.ts for available options.`);
+  }
+
+  // Make an exact copy that doesn't have other properties
+  const recordOfProps: Record<keyof SwaggerConfigRelatedToRoutes, 'right side does not matter'> = {
+    noImplicitAdditionalProperties: 'right side does not matter',
+  };
+
+  const exactObj: SwaggerConfigRelatedToRoutes = {};
+  Object.keys(recordOfProps).forEach((key) => {
+    const strictKey = key as keyof SwaggerConfigRelatedToRoutes;
+    exactObj[strictKey] = input[strictKey];
+  });
+  return exactObj;
 };
