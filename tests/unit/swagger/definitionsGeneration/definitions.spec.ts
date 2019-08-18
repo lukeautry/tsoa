@@ -318,6 +318,12 @@ describe('Definition generation', () => {
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
                 },
+                genericNested: (propertyName, propertySchema) => {
+                  expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel1');
+                },
+                genericNested2: (propertyName, propertySchema) => {
+                  expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel2');
+                },
             };
 
             Object.keys(assertionsPerProperty).forEach(aPropertyName => {
