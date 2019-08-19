@@ -121,6 +121,20 @@ export class TypeResolver {
     }
 
     this.current.AddReferenceType(referenceType);
+
+    // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
+    //   The goal is to avoid producing these names before the code is ever merged to master (via extensive test coverage)
+    //   and therefore this validation does not have to run for the users
+    if (process.env.NODE_ENV === 'tsoa_test') {
+      // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
+      const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
+      if (symbolsRegex.test(referenceType.refName)) {
+        throw new Error(`Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
+          `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
+          `"ref values must be RFC3986-compliant percent-encoded URIs."`);
+      }
+    }
+
     return referenceType;
   }
 
@@ -312,13 +326,19 @@ export class TypeResolver {
 
     const resolvedName = genericTypes.reduce((acc, generic) => {
       if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-        return [...acc, this.getTypeName(generic.typeName.getText(), generic.typeArguments)];
+        const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+        acc.push(typeNameSection);
+        return acc;
       } else {
-        return [...acc, this.getAnyTypeName(generic)];
+        const typeNameSection = this.getAnyTypeName(generic);
+        acc.push(typeNameSection);
+        return acc;
       }
     }, [] as string[]);
 
-    return typeName + resolvedName.join('');
+    const finalName = typeName + resolvedName.join('');
+
+    return finalName;
   }
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
@@ -329,7 +349,7 @@ export class TypeResolver {
 
     if (typeNode.kind === ts.SyntaxKind.ArrayType) {
       const arrayType = typeNode as ts.ArrayTypeNode;
-      return this.getAnyTypeName(arrayType.elementType) + '[]';
+      return this.getAnyTypeName(arrayType.elementType) + 'Array';
     }
 
     if (typeNode.kind === ts.SyntaxKind.UnionType) {

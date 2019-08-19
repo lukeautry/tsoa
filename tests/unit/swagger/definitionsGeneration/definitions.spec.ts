@@ -318,11 +318,20 @@ describe('Definition generation', () => {
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
                 },
-                genericNested: (propertyName, propertySchema) => {
-                  expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel1');
+                genericMultiNested: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
                 },
-                genericNested2: (propertyName, propertySchema) => {
-                  expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel2');
+                genericNestedArrayKeyword1: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel1', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayCharacter1: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel1Array', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayKeyword2: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel2', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayCharacter2: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
                 },
             };
 
@@ -537,11 +546,11 @@ describe('Definition generation', () => {
         });
 
         it('should generate different definitions for a generic model', () => {
-          const definition = getValidatedDefinition('GenericModelTestModel', currentSpec).properties;
+          const genericDefinition = getValidatedDefinition('GenericModelTestModel', currentSpec).properties;
 
-          if (!definition) { throw new Error(`There were no properties on model.`); }
+          if (!genericDefinition) { throw new Error(`There were no properties on model.`); }
 
-          const property = definition.result;
+          const property = genericDefinition.result;
 
           expect(property).not.to.haveOwnProperty('additionalProperties', 'since swagger does not support setting that property on $refs');
 
@@ -549,7 +558,7 @@ describe('Definition generation', () => {
           expect(property.$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic model array', () => {
-          const definition = getValidatedDefinition('GenericModelTestModel[]', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
 
           if (!definition) { throw new Error(`There were no properties on model.`); }
 
@@ -576,7 +585,7 @@ describe('Definition generation', () => {
           expect(property.type).to.equal('string');
         });
         it('should generate different definitions for a generic primitive array', () => {
-          const definition = getValidatedDefinition('GenericModelstring[]', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModelstringArray', currentSpec).properties;
 
           if (!definition) { throw new Error(`There were no properties on model.`); }
 
