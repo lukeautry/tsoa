@@ -26,6 +26,11 @@ export interface Config {
   compilerOptions?: ts.CompilerOptions;
 }
 
+/**
+ * these options will be removed in a future version since we would prefer consumers to explicitly state their preference that the tsoa validation throws or removes additional properties
+ */
+export type DeprecatedOptionForAdditionalPropertiesHandling = true | false;
+
 export interface SwaggerConfig {
   /**
    * Generated SwaggerConfig.json will output here
@@ -38,9 +43,9 @@ export interface SwaggerConfig {
   entryFile: string;
 
   /**
-   * Set this to true if you want to prevent requests from coming in with more properties than are known/allowed
+   * Modes that allow you to prevent input data from entering into your API. This will document your decision in the swagger.yaml and it will turn on excess-property validation (at runtime) in your routes.
    */
-  noImplicitAdditionalProperties?: boolean;
+  noImplicitAdditionalProperties?: 'throw-on-extras' | 'silently-remove-extras' | DeprecatedOptionForAdditionalPropertiesHandling;
 
   /**
    * API host, expressTemplate.g. localhost:3000 or myapi.com

@@ -12,7 +12,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   const defaultOptions = getDefaultOptions();
   const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-    noImplicitAdditionalProperties: true,
+    noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
   interface ISpecAndName {
@@ -129,10 +129,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   allSpecs.forEach(currentSpec => {
     describe(`for ${currentSpec.specName}`, () => {
-        describe('should set additionalProperties to false if noImplicitAdditionalProperties is true (when there are no dictionary or any types)', () => {
+        describe('should set additionalProperties to false if noImplicitAdditionalProperties is set to "throw-on-extras" (when there are no dictionary or any types)', () => {
             // Arrange
-            const options = getDefaultOptions();
-            options.noImplicitAdditionalProperties = true;
 
             // Assert
             if (!currentSpec.spec.components.schemas) {
