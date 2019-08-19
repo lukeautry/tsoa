@@ -121,6 +121,16 @@ export class TypeResolver {
     }
 
     this.current.AddReferenceType(referenceType);
+
+    // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
+    // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
+    const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
+    if (symbolsRegex.test(referenceType.refName)) {
+      throw new Error(`Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
+        `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
+        `"ref values must be RFC3986-compliant percent-encoded URIs."`);
+    }
+
     return referenceType;
   }
 
@@ -322,7 +332,9 @@ export class TypeResolver {
       }
     }, [] as string[]);
 
-    return typeName + resolvedName.join('');
+    const finalName = typeName + resolvedName.join('');
+
+    return finalName;
   }
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
