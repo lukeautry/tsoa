@@ -359,6 +359,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
+                genericNested: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel1');
+                },
+                genericNested2: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel2');
+                },
             };
 
             const testModel = currentSpec.spec.components.schemas[interfaceModelName];

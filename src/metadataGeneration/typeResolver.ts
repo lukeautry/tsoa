@@ -309,7 +309,16 @@ export class TypeResolver {
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
     if (!genericTypes || !genericTypes.length) { return typeName; }
-    return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
+
+    const resolvedName = genericTypes.reduce((acc, generic) => {
+      if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+        return [...acc, this.getTypeName(generic.typeName.getText(), generic.typeArguments)];
+      } else {
+        return [...acc, this.getAnyTypeName(generic)];
+      }
+    }, [] as string[]);
+
+    return typeName + resolvedName.join('');
   }
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
