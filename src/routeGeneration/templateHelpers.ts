@@ -379,23 +379,14 @@ export class ValidationService {
     const subFieldErrors: FieldErrors[] = [];
     const values: any[] = [];
 
-    subSchemas
-      .filter(subSchema => subSchema.ref)
-      .forEach(subSchema => {
-        const subFieldError: FieldErrors = {};
-        const val = this.validateModel({
-          fieldErrors: subFieldError,
-          minimalSwaggerConfig,
-          name,
-          parent,
-          refName: subSchema.ref as string,
-          value: JSON.parse(JSON.stringify(value)),
-        });
-        subFieldErrors.push(subFieldError);
-        values.push(val);
-      });
+    subSchemas.forEach(subSchema => {
+      const subFieldError: FieldErrors = {};
+      const val = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, minimalSwaggerConfig);
+      subFieldErrors.push(subFieldError);
+      values.push(val);
+    });
 
-    if (!subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
+    if (subFieldErrors.length > 0 && !subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
       fieldErrors[parent + name] = {
         message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
         value,
@@ -403,7 +394,7 @@ export class ValidationService {
       return;
     }
 
-    if (minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
+    if (value instanceof Object && minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
       return values.reduce((acc, obj) => ({...acc, ...obj}), {});
     }
     return value;
@@ -452,12 +443,16 @@ export class ValidationService {
     }
 
     const reportedExcess = new Set(refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
-      return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value))];
+      return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
     }, []));
 
-    const allowedProperties = refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
-      return new Set([...acc, ...this.getPropertiesFor(subSchema)]);
-    }, new Set());
+    if (reportedExcess.size === 0) {
+      return value;
+    }
+
+    const allowedProperties = new Set(refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
+      return [...acc, ...this.getPropertiesFor(subSchema)];
+    }, []));
 
     const actualExcess = [...reportedExcess].filter(property => !allowedProperties.has(property));
 
@@ -475,7 +470,11 @@ export class ValidationService {
     return new Set(Object.keys((modelDefinition && modelDefinition.properties) || {}));
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: string[]): string[] {
+  private getExcessPropertiesFor(
+    modelDefinition: TsoaRoute.ModelSchema,
+    properties: string[],
+    config: SwaggerConfigRelatedToRoutes,
+  ): string[] {
     if (!modelDefinition || !modelDefinition.properties) {
       return properties;
     }
@@ -483,6 +482,8 @@ export class ValidationService {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
+      return [];
+    } else if (!config.noImplicitAdditionalProperties) {
       return [];
     } else {
       return [...properties].filter(property => !modelProperties.has(property));
