@@ -2,7 +2,7 @@
 import chalk from 'chalk';
 import { SwaggerConfig } from '../src/config';
 import { generateRoutes } from '../src/module/generate-routes';
-import { generateSwaggerSpec } from '../src/module/generate-swagger-spec';
+import { generateSwaggerSpec, RoutesConfigRelatedToSwagger } from '../src/module/generate-swagger-spec';
 import { Timer } from './utils/timer';
 
 const defaultOptions: SwaggerConfig = {
@@ -34,8 +34,12 @@ const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<Swagger
   outputDirectory: './distForNoAdditional',
 });
 
+const routesConfigRelatedToSwagger: RoutesConfigRelatedToSwagger = {
+    controllerPathGlobs: defaultOptions.controllerPathGlobs,
+};
+
 const spec = () => {
-  return generateSwaggerSpec(defaultOptions);
+  return generateSwaggerSpec(defaultOptions, routesConfigRelatedToSwagger);
 };
 
 const log = async <T>(label: string, fn: () => Promise<T>) => {

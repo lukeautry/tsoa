@@ -5,6 +5,7 @@ import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { RouteGenerator, SwaggerConfigRelatedToRoutes } from '../routeGeneration/routeGenerator';
 import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
+import { validateMutualConfigs } from '../utils/mutualConfigValidation';
 
 export const generateRoutes = async (
   routesConfig: RoutesConfig,
@@ -16,6 +17,15 @@ export const generateRoutes = async (
    */
   metadata?: Tsoa.Metadata,
 ) => {
+
+  // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
+  //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
+  //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
+  if (minimalSwaggerConfig.controllerPathGlobs && !routesConfig.controllerPathGlobs) {
+    routesConfig.controllerPathGlobs = minimalSwaggerConfig.controllerPathGlobs;
+  }
+  validateMutualConfigs(routesConfig, minimalSwaggerConfig);
+
   if (!metadata) {
     metadata = new MetadataGenerator(
       routesConfig.entryFile,
@@ -74,9 +84,11 @@ const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRou
   // Make an exact copy that doesn't have other properties
   const recordOfProps: Record<keyof SwaggerConfigRelatedToRoutes, 'right side does not matter'> = {
     noImplicitAdditionalProperties: 'right side does not matter',
+    // tslint:disable-next-line: object-literal-sort-keys
+    controllerPathGlobs: 'right side does not matter',
   };
 
-  const exactObj: SwaggerConfigRelatedToRoutes = {};
+  const exactObj: any = {};
   Object.keys(recordOfProps).forEach((key) => {
     const strictKey = key as keyof SwaggerConfigRelatedToRoutes;
     exactObj[strictKey] = input[strictKey];

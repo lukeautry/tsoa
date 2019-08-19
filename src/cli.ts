@@ -167,8 +167,9 @@ async function swaggerSpecGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = await validateSwaggerConfig(config.swagger);
+    const routesConfig = await validateRoutesConfig(config.routes);
 
-    await generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore);
+    await generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);

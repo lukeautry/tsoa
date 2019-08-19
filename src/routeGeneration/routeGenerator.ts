@@ -11,6 +11,7 @@ import { TsoaRoute } from './tsoa-route';
 
 export interface SwaggerConfigRelatedToRoutes {
   noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
+  controllerPathGlobs?: SwaggerConfig['controllerPathGlobs'];
 }
 
 export class RouteGenerator {

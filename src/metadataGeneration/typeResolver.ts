@@ -29,7 +29,7 @@ export class TypeResolver {
     private readonly extractEnum = true,
   ) { }
 
-  public static clearCache(){
+  public static clearCache() {
     Object.keys(localReferenceTypeCache).forEach(key => {
       delete localReferenceTypeCache[key];
     });

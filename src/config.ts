@@ -119,6 +119,11 @@ export interface SwaggerConfig {
   yaml?: boolean;
 
   schemes?: Swagger.Protocol[];
+
+  /**
+   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
+   */
+  controllerPathGlobs?: string[];
 }
 
 export interface RoutesConfig {
@@ -158,7 +163,7 @@ export interface RoutesConfig {
   authenticationModule?: string;
 
   /**
-   * Controllers glob path, contains directories with wild card to file names.
+   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
    */
   controllerPathGlobs?: string[];
 }

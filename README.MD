@@ -146,7 +146,7 @@ See [CLI documentation](#command-line-interface)
 #### Programmatic
 
 ```typescript
-import { generateRoutes, generateSwaggerSpec, SwaggerConfig } from 'tsoa';
+import { generateRoutes, generateSwaggerSpec, SwaggerConfig, RoutesConfig } from 'tsoa';
 
 (async () => {
     const swaggerOptions: SwaggerConfig = {
@@ -154,17 +154,24 @@ import { generateRoutes, generateSwaggerSpec, SwaggerConfig } from 'tsoa';
         entryFile: "./api/server.ts",
         specVersion: 3,
         outputDirectory: "./api/dist",
+        controllerPathGlobs: [
+            "./routeControllers/**/*Controller.ts"
+        ]
     }
 
-    await generateSwaggerSpec(swaggerOptions);
-
-    await generateRoutes({
+    const routeOptions: RoutesConfig = {
         basePath: "/api",
         entryFile: "./api/server.ts",
         routesDir: "./api",
-    }, swaggerOptions);
+    }
+
+    await generateSwaggerSpec(swaggerOptions, routeOptions);
+
+    await generateRoutes(routeOptions, swaggerOptions);
 })();
 ```
+
+**Note:** If you use tsoa programmatically, please be aware that tsoa's methods can change in minor and patch releases. But if you are using tsoa in a .ts file, then TypeScript will help you migrate to any changes. We reserve this right to change what are essentially our internal methods so that we can continue to provide incremental value to the majority user (our CLI users). The CLI however will only recieve breaking changes during a major release.
 
 #### Automating Regeneration
 
@@ -237,7 +244,7 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 You have two options for how to tell tsoa where it can find the controllers that it will use to create the auto-generated `routes.ts` file.
 
 #### (1) Using automatic controllers discovery
-You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`):
+You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`). It can be provided on `config.swagger` or `config.routes`.
 
 Pros:
   * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
