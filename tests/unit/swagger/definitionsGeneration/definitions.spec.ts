@@ -9,6 +9,7 @@ import { TestModel } from '../../../fixtures/testModel';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const dynamicMetadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts', undefined, undefined, ['./tests/fixtures/controllers/getController.ts'],).Generate();
   const defaultOptions = getDefaultOptions();
   const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -19,7 +20,7 @@ describe('Definition generation', () => {
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras';
+    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras';
   }
 
   const specDefault: ISpecAndName = {
@@ -31,12 +32,23 @@ describe('Definition generation', () => {
     specName: 'specWithNoImplicitExtras',
   };
 
+  const dynamicSpecDefault: ISpecAndName = {
+      spec: new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec(),
+      specName: 'dynamicSpecDefault',
+  };
+  const dynamicSpecWithNoImplicitExtras: ISpecAndName = {
+    spec: new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec(),
+    specName: 'dynamicSpecWithNoImplicitExtras',
+  };
+
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
    */
   const allSpecs: ISpecAndName[] = [
       specDefault,
       specWithNoImplicitExtras,
+      dynamicSpecDefault,
+      dynamicSpecWithNoImplicitExtras,
   ];
 
   const getValidatedDefinition = (name: string, chosenSpec: ISpecAndName) => {
@@ -75,7 +87,7 @@ describe('Definition generation', () => {
             expect(definition.properties.value.type).to.equal('string', forSpec(currentSpec));
             expect(definition.properties.value.enum).to.deep.equal(['success', 'failure'], forSpec(currentSpec));
 
-            if (currentSpec.specName === 'specWithNoImplicitExtras') {
+            if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
                 expect(definition.additionalProperties).to.eq(false, forSpec(currentSpec));
             } else {
                 expect(definition.additionalProperties).to.eq(true, forSpec(currentSpec));
@@ -91,7 +103,7 @@ describe('Definition generation', () => {
             it('should produce schemas for the properties and should make a choice about additionalProperties', () => {
                 if (!definition.properties) { throw new Error('Definition has no properties.'); }
 
-                if (currentSpec.specName === 'specWithNoImplicitExtras') {
+              if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
                     expect(definition.additionalProperties).to.eq(false, forSpec(currentSpec));
                 } else {
                     expect(definition.additionalProperties).to.eq(true, forSpec(currentSpec));
@@ -152,7 +164,7 @@ describe('Definition generation', () => {
                 },
                 object: (propertyName, propertySchema) => {
                     expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-                    if (currentSpec.specName === 'specWithNoImplicitExtras') {
+                  if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
                         expect(propertySchema.additionalProperties).to.eq(false, forSpec(currentSpec));
                     } else {
                         expect(propertySchema.additionalProperties).to.eq(true, forSpec(currentSpec));
@@ -166,7 +178,7 @@ describe('Definition generation', () => {
                     // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
                     //      So, let's convince TypeScript
                     const itemsAsSchema = propertySchema.items as Swagger.Schema;
-                    if (currentSpec.specName === 'specWithNoImplicitExtras') {
+                  if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
                         expect(itemsAsSchema.additionalProperties).to.eq(false, forSpec(currentSpec));
                     } else {
                         expect(itemsAsSchema.additionalProperties).to.eq(true, forSpec(currentSpec));

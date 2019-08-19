@@ -4,6 +4,7 @@ import { importClassesFromDirectories } from '../utils/importClassesFromDirector
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
@@ -15,6 +16,7 @@ export class MetadataGenerator {
   public IsExportedNode(node: ts.Node) { return true; }
 
   constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
+    TypeResolver.clearCache();
     this.program = !!controllers ?
       this.setProgramToDynamicControllersFiles(controllers) :
       ts.createProgram([entryFile], compilerOptions || {});
