@@ -361,6 +361,21 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                     expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
                 },
+                genericMultiNested: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayKeyword1: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel1', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayCharacter1: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel1Array', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayKeyword2: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel2', `for property ${propertyName}.$ref`);
+                },
+                genericNestedArrayCharacter2: (propertyName, propertySchema) => {
+                    expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+                },
             };
 
             const testModel = currentSpec.spec.components.schemas[interfaceModelName];

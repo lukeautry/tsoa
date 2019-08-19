@@ -309,7 +309,20 @@ export class TypeResolver {
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
     if (!genericTypes || !genericTypes.length) { return typeName; }
-    return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
+
+    const resolvedName = genericTypes.reduce((acc, generic) => {
+      if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+        const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+        acc.push(typeNameSection);
+        return acc;
+      } else {
+        const typeNameSection = this.getAnyTypeName(generic);
+        acc.push(typeNameSection);
+        return acc;
+      }
+    }, [] as string[]);
+
+    return typeName + resolvedName.join('');
   }
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
@@ -320,7 +333,7 @@ export class TypeResolver {
 
     if (typeNode.kind === ts.SyntaxKind.ArrayType) {
       const arrayType = typeNode as ts.ArrayTypeNode;
-      return this.getAnyTypeName(arrayType.elementType) + '[]';
+      return this.getAnyTypeName(arrayType.elementType) + 'Array';
     }
 
     if (typeNode.kind === ts.SyntaxKind.UnionType) {
@@ -557,55 +570,56 @@ export class TypeResolver {
         properties.push(...modelProps);
       }
       return properties;
+    } else {
+
+      // Class model
+      const classDeclaration = node as ts.ClassDeclaration;
+      const properties = classDeclaration.members
+        .filter(member => {
+          const ignore = isIgnored(member);
+          return !ignore;
+        })
+        .filter((member) => member.kind === ts.SyntaxKind.PropertyDeclaration)
+        .filter((member) => this.hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
+
+      const classConstructor = classDeclaration
+        .members
+        .find((member) => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
+
+      if (classConstructor && classConstructor.parameters) {
+        const constructorProperties = classConstructor.parameters
+          .filter((parameter) => this.isAccessibleParameter(parameter));
+
+        properties.push(...constructorProperties);
+      }
+
+      return properties
+        .map((property) => {
+          const identifier = property.name as ts.Identifier;
+          let typeNode = property.type;
+
+          if (!typeNode) {
+            const tsType = this.current.typeChecker.getTypeAtLocation(property);
+            typeNode = this.current.typeChecker.typeToTypeNode(tsType);
+          }
+
+          if (!typeNode) {
+            throw new GenerateMetadataError(`No valid type found for property declaration.`);
+          }
+
+          const type = new TypeResolver(typeNode, this.current, property).resolve();
+
+          return {
+            default: getInitializerValue(property.initializer, type),
+            description: this.getNodeDescription(property),
+            format: this.getNodeFormat(property),
+            name: identifier.text,
+            required: !property.questionToken && !property.initializer,
+            type,
+            validators: getPropertyValidators(property as ts.PropertyDeclaration),
+          } as Tsoa.Property;
+        });
     }
-
-    // Class model
-    const classDeclaration = node as ts.ClassDeclaration;
-    const properties = classDeclaration.members
-      .filter(member => {
-        const ignore = isIgnored(member);
-        return !ignore;
-      })
-      .filter((member) => member.kind === ts.SyntaxKind.PropertyDeclaration)
-      .filter((member) => this.hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
-
-    const classConstructor = classDeclaration
-      .members
-      .find((member) => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
-
-    if (classConstructor && classConstructor.parameters) {
-      const constructorProperties = classConstructor.parameters
-        .filter((parameter) => this.isAccessibleParameter(parameter));
-
-      properties.push(...constructorProperties);
-    }
-
-    return properties
-      .map((property) => {
-        const identifier = property.name as ts.Identifier;
-        let typeNode = property.type;
-
-        if (!typeNode) {
-          const tsType = this.current.typeChecker.getTypeAtLocation(property);
-          typeNode = this.current.typeChecker.typeToTypeNode(tsType);
-        }
-
-        if (!typeNode) {
-          throw new GenerateMetadataError(`No valid type found for property declaration.`);
-        }
-
-        const type = new TypeResolver(typeNode, this.current, property).resolve();
-
-        return {
-          default: getInitializerValue(property.initializer, type),
-          description: this.getNodeDescription(property),
-          format: this.getNodeFormat(property),
-          name: identifier.text,
-          required: !property.questionToken && !property.initializer,
-          type,
-          validators: getPropertyValidators(property as ts.PropertyDeclaration),
-        } as Tsoa.Property;
-      });
   }
 
   private getModelAdditionalProperties(node: UsableDeclaration) {

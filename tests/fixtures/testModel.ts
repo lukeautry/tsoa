@@ -64,6 +64,13 @@ export interface TestModel extends Model {
   modelsEnumIndirect?: TestSubEnumModelContainer;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
+  genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
+  // tslint:disable-next-line: array-type
+  genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
+  genericNestedArrayCharacter1?: GenericRequest<TypeAliasModel1[]>;
+  // tslint:disable-next-line: array-type
+  genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
+  genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
 }
 
 export interface TypeAliasModel1 {
