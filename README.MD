@@ -171,7 +171,7 @@ import { generateRoutes, generateSwaggerSpec, SwaggerConfig, RoutesConfig } from
 })();
 ```
 
-**Note:** If you use tsoa programmatically, please be aware that tsoa's methods can change in minor and patch releases. But if you are using tsoa in a .ts file, then TypeScript will help you migrate to any changes. We reserve this right to change what are essentially our internal methods so that we can continue to provide incremental value to the majority user (our CLI users). The CLI however will only recieve breaking changes during a major release.
+**Note:** If you use tsoa pragmatically, please be aware that tsoa's methods can (under rare circumstances) change in minor and patch releases. But if you are using tsoa in a .ts file, then TypeScript will help you migrate to any changes. We reserve this right to change what are essentially our internal methods so that we can continue to provide incremental value to the majority user (our CLI users). The CLI however will only receive breaking changes during a major release.
 
 #### Automating Regeneration
 
