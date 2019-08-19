@@ -127,6 +127,7 @@ describe('Definition generation', () => {
         }
 
         expect(definition.properties.and.type).to.equal('object');
+        expect(definition.properties.and.properties).to.deep.equal({ value1: { type: 'string' }, value2: { type: 'string' } });
       });
     });
 
@@ -362,12 +363,12 @@ describe('Definition generation', () => {
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS_Alias: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS2_Alias: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
@@ -382,13 +383,13 @@ describe('Definition generation', () => {
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           typeAliasCase1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.type).to.eq('object');
+            expect(propertySchema.properties).to.deep.equal({ value1: { type: 'string' }, value2: { type: 'string' } });
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           TypeAliasCase2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.type).to.eq('object');
+            expect(propertySchema.properties).to.deep.equal({ value3: { type: 'string' } });
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
@@ -407,12 +408,12 @@ describe('Definition generation', () => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
           },
           and: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.type).to.eq('object', `for property ${propertyName}.type`);
+            expect(propertySchema.properties).to.deep.equal({ value1: { type: 'string' }, value2: { type: 'string' } }, `for property ${propertyName}.properties`);
           },
           referenceAnd: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.type).to.eq('object', `for property ${propertyName}.type`);
+            expect(propertySchema.properties).to.deep.equal({ value1: { type: 'string' }, value2: { type: 'string' } }, `for property ${propertyName}.properties`);
           },
           or: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);

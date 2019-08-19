@@ -17,7 +17,7 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration;
 
 export class TypeResolver {
   constructor(private readonly typeNode: ts.TypeNode, private readonly current: MetadataGenerator, private readonly parentNode?: ts.Node, private readonly extractEnum = true) {}
@@ -137,6 +137,11 @@ export class TypeResolver {
     const literalType = this.getLiteralType(typeReference.typeName);
     if (literalType) {
       return literalType;
+    }
+
+    const possibleTypeAlias = this.getModelTypeDeclaration(typeReference.typeName);
+    if (ts.isTypeAliasDeclaration(possibleTypeAlias)) {
+      return new TypeResolver(possibleTypeAlias.type, this.current, this.typeNode, this.extractEnum).resolve();
     }
 
     let referenceType: Tsoa.ReferenceType;
@@ -602,33 +607,6 @@ export class TypeResolver {
         });
     }
 
-    // Type alias model
-    if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      const aliasDeclaration = node as ts.TypeAliasDeclaration;
-      const properties: Tsoa.Property[] = [];
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
-        const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
-
-        intersectionTypeNode.types.forEach(type => {
-          if (type.kind === ts.SyntaxKind.TypeReference) {
-            const typeReferenceNode = type as ts.TypeReferenceNode;
-            const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-            const modelProps = this.getModelProperties(modelType);
-            properties.push(...modelProps);
-          }
-        });
-      }
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.TypeReference) {
-        const typeReferenceNode = aliasDeclaration.type as ts.TypeReferenceNode;
-        const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-        const modelProps = this.getModelProperties(modelType);
-        properties.push(...modelProps);
-      }
-      return properties;
-    }
-
     // Class model
     const classDeclaration = node as ts.ClassDeclaration;
     const properties = classDeclaration.members
@@ -696,9 +674,6 @@ export class TypeResolver {
 
   private getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
-    if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      return [];
-    }
     const heritageClauses = modelTypeDeclaration.heritageClauses;
     if (!heritageClauses) {
       return properties;

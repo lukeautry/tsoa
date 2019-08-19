@@ -371,12 +371,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS_Alias: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS2_Alias: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
@@ -391,14 +391,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
           typeAliasCase1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.allOf).to.deep.eq([{ $ref: '#/components/schemas/TypeAliasModel1' }, { $ref: '#/components/schemas/TypeAliasModel2' }], `for property ${propertyName}.$ref`);
           },
           TypeAliasCase2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.allOf).to.deep.eq(
+              [{ allOf: [{ $ref: '#/components/schemas/TypeAliasModel1' }, { $ref: '#/components/schemas/TypeAliasModel2' }] }, { $ref: '#/components/schemas/TypeAliasModel3' }],
+              `for property ${propertyName}.$ref`,
+            );
           },
           genericMultiNested: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
@@ -425,13 +424,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           referenceAnd: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.include(
-              {
-                $ref: '#/components/schemas/TypeAliasModelCase1',
-              },
-              `for property ${propertyName}.$ref`,
-            );
-            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.allOf).to.deep.eq([{ $ref: '#/components/schemas/TypeAliasModel1' }, { $ref: '#/components/schemas/TypeAliasModel2' }], `for property ${propertyName}.$refs`);
           },
           or: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
