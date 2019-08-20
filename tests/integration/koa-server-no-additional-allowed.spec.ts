@@ -109,6 +109,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.arrayMax5Item = [0, 1, 2, 3];
       bodyModel.arrayMin2Item = [0, 1];
       bodyModel.arrayUniqueItem = [0, 1, 2, 3];
+      bodyModel.model = { value1: 'abcdef'};
 
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const { body } = res;
@@ -132,6 +133,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
         expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
         expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
+        expect(body.model).to.deep.equal(bodyModel.model);
       }, 200);
     });
 

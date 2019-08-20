@@ -381,6 +381,14 @@ export class ValidationService {
         return this.validateEnum(name, value, fieldErrors, enums, parent);
       }
 
+      if (!(value instanceof Object)) {
+        fieldErrors[parent + name] = {
+          message: `invalid object`,
+          value,
+        };
+        return;
+      }
+
       const properties = modelDefinition.properties || {};
       const keysOnPropertiesModelDefinition = new Set(Object.keys(properties));
       const allPropertiesOnData = new Set(Object.keys(value));
