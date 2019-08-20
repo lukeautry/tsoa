@@ -258,6 +258,8 @@ export class ValidateModel {
    * @ignore
    */
   public ignoredProperty: string;
+
+  public model: TypeAliasModel1;
 }
 
 export interface ValidateMapStringToNumber {
