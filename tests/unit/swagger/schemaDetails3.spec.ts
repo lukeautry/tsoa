@@ -395,6 +395,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                         ],
                     });
                 },
+                mixedUnion: (propertyName, propertySchema) => {
+                    expect(propertySchema).to.deep.include({
+                        oneOf: [
+                           { type: 'string' },
+                           { $ref: '#/components/schemas/TypeAliasModel1' },
+                        ],
+                    });
+                },
             };
 
             const testModel = currentSpec.spec.components.schemas[interfaceModelName];

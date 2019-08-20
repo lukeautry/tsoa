@@ -74,6 +74,7 @@ export interface TestModel extends Model {
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
+  mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface TypeAliasModel1 {
@@ -265,6 +266,7 @@ export class ValidateModel {
   public model: TypeAliasModel1;
   public intersection?: TypeAliasModel1 & TypeAliasModel2;
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
+  public mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface ValidateMapStringToNumber {

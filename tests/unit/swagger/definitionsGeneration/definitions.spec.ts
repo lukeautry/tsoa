@@ -374,6 +374,9 @@ describe('Definition generation', () => {
                 or: (propertyName, propertySchema) => {
                   expect(propertySchema.type).to.eq('object');
                 },
+                mixedUnion: (propertyName, propertySchema) => {
+                  expect(propertySchema.type).to.eq('object');
+                },
             };
 
             Object.keys(assertionsPerProperty).forEach(aPropertyName => {
