@@ -380,12 +380,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                             { $ref: '#/components/schemas/TypeAliasModel1' },
                             { $ref: '#/components/schemas/TypeAliasModel2' },
                         ],
-                    });
+                    }, `for property ${propertyName}.$ref`);
+                    expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 referenceAnd: (propertyName, propertySchema) => {
                     expect(propertySchema).to.deep.include({
                         $ref: '#/components/schemas/TypeAliasModelCase1',
-                    });
+                    }, `for property ${propertyName}.$ref`);
+                    expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 or: (propertyName, propertySchema) => {
                     expect(propertySchema).to.deep.include({
@@ -393,7 +395,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                            { $ref: '#/components/schemas/TypeAliasModel1' },
                            { $ref: '#/components/schemas/TypeAliasModel2' },
                         ],
-                    });
+                    }, `for property ${propertyName}.$ref`);
+                    expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 mixedUnion: (propertyName, propertySchema) => {
                     expect(propertySchema).to.deep.include({
@@ -401,7 +404,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                            { type: 'string' },
                            { $ref: '#/components/schemas/TypeAliasModel1' },
                         ],
-                    });
+                    }, `for property ${propertyName}.$ref`);
+                    expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
             };
 

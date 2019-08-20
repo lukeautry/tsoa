@@ -366,16 +366,20 @@ describe('Definition generation', () => {
                     expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
                 },
                 and: (propertyName, propertySchema) => {
-                  expect(propertySchema.type).to.eq('object');
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 referenceAnd: (propertyName, propertySchema) => {
-                  expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1');
+                  expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 or: (propertyName, propertySchema) => {
-                  expect(propertySchema.type).to.eq('object');
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
                 mixedUnion: (propertyName, propertySchema) => {
-                  expect(propertySchema.type).to.eq('object');
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
             };
 
