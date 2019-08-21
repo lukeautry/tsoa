@@ -119,7 +119,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.fields['body.intersection'].message).to.deep.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
         expect(body.fields['body.intersection'].value).to.deep.equal(bodyModel.intersection);
-        expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('value3,value4 not allowed by any part of the Intersection');
+        expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('The following properties are not allowed by any part of the intersection: value3,value4');
         expect(body.fields['body.intersectionNoAdditional'].value).to.deep.equal(bodyModel.intersectionNoAdditional);
         expect(body.fields['body.mixedUnion'].message).to.equal('Could not match the union against any of the items. ' +
           'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
