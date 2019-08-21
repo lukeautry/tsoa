@@ -370,20 +370,23 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+    swaggerConfig: SwaggerConfigRelatedToRoutes,
     subSchemas: TsoaRoute.PropertySchema[] | undefined,
     parent = '',
   ): any {
     if (!subSchemas) { return; }
 
     const subFieldErrors: FieldErrors[] = [];
-    const values: any[] = [];
+    let cleanValues = {};
 
     subSchemas.forEach(subSchema => {
       const subFieldError: FieldErrors = {};
-      const val = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, minimalSwaggerConfig);
+      const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, swaggerConfig);
       subFieldErrors.push(subFieldError);
-      values.push(val);
+      cleanValues = {
+        ...cleanValues,
+        ...cleanValue,
+      };
     });
 
     if (subFieldErrors.length > 0 && !subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
@@ -394,9 +397,10 @@ export class ValidationService {
       return;
     }
 
-    if (value instanceof Object && minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
-      return values.reduce((acc, obj) => ({...acc, ...obj}), {});
+    if (value instanceof Object && this.resolveAdditionalPropSetting(swaggerConfig) === 'silently-remove-extras') {
+      return cleanValues;
     }
+
     return value;
   }
 
@@ -410,21 +414,26 @@ export class ValidationService {
   ): any {
     if (!subSchemas) { return; }
 
-    const subFieldErrors =
-      subSchemas
-        .filter(subSchema => subSchema.ref)
-        .map(subSchema => {
-          const subFieldErrors: FieldErrors = {};
-          this.validateModel({
-            fieldErrors: subFieldErrors,
-            minimalSwaggerConfig: { noImplicitAdditionalProperties: undefined },
-            name,
-            parent,
-            refName: subSchema.ref as string,
-            value,
-          });
-          return subFieldErrors;
-        });
+    const subFieldErrors: FieldErrors[] = [];
+    let cleanValues = {};
+
+    subSchemas
+      .filter(subSchema => subSchema.ref)
+      .forEach(subSchema => {
+        const subFieldError: FieldErrors = {};
+        const cleanValue = this.ValidateParam(
+          subSchema,
+          JSON.parse(JSON.stringify(value)),
+          name, subFieldError,
+          parent,
+          { noImplicitAdditionalProperties: 'silently-remove-extras'},
+        );
+        cleanValues = {
+          ...cleanValues,
+          ...cleanValue,
+        };
+        subFieldErrors.push(subFieldError);
+      });
 
     const filtered = subFieldErrors.filter(subFieldError => Object.keys(subFieldError).length !== 0);
 
@@ -434,6 +443,10 @@ export class ValidationService {
         value,
       };
       return;
+    }
+
+    if (this.resolveAdditionalPropSetting(swaggerConfig) === 'silently-remove-extras') {
+      return cleanValues;
     }
 
     // Only Model definitions make sense here right now
@@ -458,12 +471,24 @@ export class ValidationService {
 
     if (actualExcess.length > 0) {
       fieldErrors[parent + name] = {
-        message: `${actualExcess} not allowed by any part of the Intersection`,
+        message: `The following properties are not allowed by any part of the intersection: ${actualExcess}`,
         value,
       };
     }
 
     return value;
+  }
+
+  private resolveAdditionalPropSetting(swaggerConfig: SwaggerConfigRelatedToRoutes): AdditionalPropSetting {
+    if (!swaggerConfig.noImplicitAdditionalProperties) {
+      return 'ignore';
+    } else if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras' || swaggerConfig.noImplicitAdditionalProperties === true) {
+      return 'throw-on-extras';
+    } else if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
+      return 'silently-remove-extras';
+    } else {
+      return assertNever(swaggerConfig.noImplicitAdditionalProperties);
+    }
   }
 
   private getPropertiesFor(modelDefinition: TsoaRoute.ModelSchema) {
@@ -635,6 +660,8 @@ export type Validator = IntegerValidator
   | StringValidator
   | BooleanValidator
   | ArrayValidator;
+
+type AdditionalPropSetting = 'ignore' | 'silently-remove-extras' | 'throw-on-extras';
 
 export interface FieldErrors {
   [name: string]: { message: string, value?: any };
