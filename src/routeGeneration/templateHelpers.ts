@@ -374,7 +374,13 @@ export class ValidationService {
     subSchemas: TsoaRoute.PropertySchema[] | undefined,
     parent = '',
   ): any {
-    if (!subSchemas) { return; }
+    if (!subSchemas) {
+      throw new Error(
+        'internal tsoa error: ' +
+        'the metadata that was generated should have had sub schemas since it’s for a union, however it did not. ' +
+        'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+      );
+    }
 
     const subFieldErrors: FieldErrors[] = [];
     let cleanValues = {};
@@ -412,7 +418,13 @@ export class ValidationService {
     subSchemas: TsoaRoute.PropertySchema[] | undefined,
     parent = '',
   ): any {
-    if (!subSchemas) { return; }
+    if (!subSchemas) {
+      throw new Error(
+        'internal tsoa error: ' +
+        'the metadata that was generated should have had sub schemas since it’s for a intersection, however it did not. ' +
+        'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+      );
+    }
 
     const subFieldErrors: FieldErrors[] = [];
     let cleanValues = {};
