@@ -15,6 +15,8 @@
       + [Using CLI](#using-cli)
       + [Programmatic](#programmatic)
       + [Automating Regeneration](#automating-regeneration)
+    - [Can I use OpenAPI 3.0 instead of Swagger v2?](#can-i-use-openapi-30-instead-of-swagger-v2)
+    - [How to ensure no additional properties come in at runtime](#how-to-ensure-no-additional-properties-come-in-at-runtime)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
     - [Consuming generated routes](#consuming-generated-routes)
@@ -40,7 +42,7 @@
 ## Goal
 
 - TypeScript controllers and models as the single source of truth for your API
-- A valid swagger spec is generated from your controllers and models, including:
+- A valid swagger spec (or OpenAPI 3.0 if you choose 😍) is generated from your controllers and models, including:
     - Paths (e.g. GET /Users)
     - Definitions based on TypeScript interfaces (models)
     - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
@@ -92,12 +94,14 @@ export class UsersController extends Controller {
         return Promise.resolve();
     }
 
-    @Get('{id}')
-    public async getPrivateUser(@Path('id') ID: number, @Header('Authorization') authorization: string): Promise<User> {
-        return new UserService().get(id);
+    @Get('subResource/{subResourceId}')
+    public async getSubResource(@Path('subResourceId') aliasedPathId: number, @Header('Authorization') authorization: string): Promise<User> {
+        return new UserService().getSubResource(aliasedPathId);
     }
 }
 ```
+Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD)
+
 ### Create Models
 ```typescript
 // models/user.ts
@@ -129,7 +133,7 @@ Note that type aliases are only supported for string literal types like `type st
 ### Generate
 
 #### Using CLI
-```
+```typescript
 // generate swagger.json
 tsoa swagger
 
@@ -141,28 +145,38 @@ See [CLI documentation](#command-line-interface)
 
 #### Programmatic
 
-```
-import { generateRoutes, generateSwaggerSpec } from 'tsoa';
+```typescript
+import { generateRoutes, generateSwaggerSpec, SwaggerConfig, RoutesConfig } from 'tsoa';
 
 (async () => {
-    await generateRoutes({
+    const swaggerOptions: SwaggerConfig = {
+        basePath: "/api",
+        entryFile: "./api/server.ts",
+        specVersion: 3,
+        outputDirectory: "./api/dist",
+        controllerPathGlobs: [
+            "./routeControllers/**/*Controller.ts"
+        ]
+    }
+
+    const routeOptions: RoutesConfig = {
         basePath: "/api",
         entryFile: "./api/server.ts",
         routesDir: "./api",
-    });
+    }
 
-    await generateSwaggerSpec({
-        basePath: "/api",
-        entryFile: "./api/server.ts",
-        outputDirectory: "./api/dist",
-    });
+    await generateSwaggerSpec(swaggerOptions, routeOptions);
+
+    await generateRoutes(routeOptions, swaggerOptions);
 })();
 ```
+
+**Note:** If you use tsoa pragmatically, please be aware that tsoa's methods can (under rare circumstances) change in minor and patch releases. But if you are using tsoa in a .ts file, then TypeScript will help you migrate to any changes. We reserve this right to change what are essentially our internal methods so that we can continue to provide incremental value to the majority user (our CLI users). The CLI however will only receive breaking changes during a major release.
 
 #### Automating Regeneration
 
 You might find it convenient to automatically generate again. To do this, add a section to your package.json's script section with the following:
-```
+```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
     "tsoa:gen": "yarn tsoa swagger -c ./api/tsoa.json && yarn tsoa routes -c ./api/tsoa.json"
@@ -172,17 +186,33 @@ You might find it convenient to automatically generate again. To do this, add a 
 Then when you've made a change to an API, you simply run "yarn tsoa:gen"
 
 Note: You can also integrate the swagger regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
-```
+```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
     "build:api": "tsoa:gen && yarn tsc -p ./api/tsconfig.json",
   },
 ```
 
+### Can I use OpenAPI 3.0 instead of Swagger v2?
+
+Yes, set `swagger.specVersion` to `3` in your `tsoa.json` file. See more config options by looking at [the config type definition](https://github.com/lukeautry/tsoa/blob/master/src/config.ts).
+
+### How to ensure no additional properties come in at runtime
+
+By default, Swagger allows for models to have [`additionalProperties`](https://swagger.io/docs/specification/data-models/dictionaries/). If you would like to ensure at runtime that the data has only the properties defined in your models, set the `noImplicitAdditionalProperties` [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) option to either `"silently-remove-extras"` or `"throw-on-extras"`.
+
+Caveats:
+  * The following types will always allow additional properties due to the nature of the way they work:
+    * The `any` type
+    * An indexed type (which explicitly allows additional properties) like `export interface IStringToStringDictionary { [key: string] : string }`
+  * If you are using tsoa for an existing service that has consumers...
+    * you will need to inform your consumers before setting `noImplicitAdditionalProperties` to `"throw-on-extras"` since it would be a breaking change (due to the fact that request bodies that previously worked would now get an error).
+  * Regardless, `"noImplicitAdditionalProperties" : "silently-remove-extras"` is a great choice for both legacy AND new APIs (since this mirrors the behavior of C# serializers and other popular JSON serializers).
+
 ### Dealing with duplicate model names
 If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
 
-```
+```ts
 /**
  * @tsoaModel
  */
@@ -194,7 +224,7 @@ export interface MyModel {
 ### Overriding route template
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
-```
+```json
 {
   "swagger": {
     ...
@@ -211,14 +241,50 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 
 ### Consuming generated routes
 
+You have two options for how to tell tsoa where it can find the controllers that it will use to create the auto-generated `routes.ts` file.
+
+#### (1) Using automatic controllers discovery
+You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`). It can be provided on `config.swagger` or `config.routes`.
+
+Pros:
+  * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
+Cons:
+  * It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
+
+As you can see from the the controllers globs patterns below, you can provide multiple globs of various patterns:
+```json
+{
+  "routes": {
+    "entryFile": "...",
+    "routesDir": "...",
+    "middleware": "...",
+    "controllerPathGlobs": [
+      "./dir-with-controllers/*",
+      "./recursive-dir/**/*",
+      "./custom-filerecursive-dir/**/*.controller.ts"
+    ]
+  }
+}
+```
+
+#### (2) Manually telling tsoa which controllers to use in the app entry file
+Tsoa can "crawl" the index file to look for controllers that have the `@Route` decorator.
+
+Pros:
+  * The tsoa route generation will be faster.
+Cons:
+  * New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the swagger generation. If this is a problem for you, please us the automatic controller discovery option described above.
+
 ```typescript
 import * as methodOverride from 'method-override';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import {RegisterRoutes} from './routes';
 
+// ########################################################################
 // controllers need to be referenced in order to get crawled by the generator
 import './controllers/usersController';
+// ########################################################################
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -228,10 +294,9 @@ app.use(methodOverride());
 RegisterRoutes(app);
 
 app.listen(3000);
-
 ```
 
-### Get access to the request object of express in Controllers
+### Get access to the request object of express (or koa) in Controllers
 
 To access the request object of express in a controller method use the `@Request`-decorator:
 ```typescript
@@ -245,10 +310,29 @@ import {User, UserCreationRequest} from '../models/user';
 export class UsersController {
     @Get('{id}')
     public async getUser(id: number, @Request() request: express.Request): Promise<User> {
-        // TODO: implement some code that uses request as well
+        // TODO: implement some code that uses the request as well
     }
 }
 ```
+
+To access Koa's request object (which has the ctx object) in a controller method use the `@Request`-decorator:
+```typescript
+// controllers/usersController.ts
+
+import * as koa from 'koa';
+import {Get, Route, Request} from 'tsoa';
+import {User, UserCreationRequest} from '../models/user';
+
+@Route('Users')
+export class UsersController {
+    @Get('{id}')
+    public async getUser(id: number, @Request() request: koa.Request): Promise<User> {
+        const ctx = request.ctx;
+        // TODO: implement some code that uses the request as well
+    }
+}
+```
+
 Note that the parameter `request` does not appear in your swagger definition file.
 Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call.
@@ -261,7 +345,7 @@ If you want to use dependency injection and let the DI-framework handle the crea
 #### InversifyJS
 
 
-To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the config file (e.g. `tsoa.json`):
+To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`):
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
 ```json
 {
@@ -369,7 +453,7 @@ import "./controllers/fooController.ts"
 
 ### Specify error response types for Swagger
 
-```
+```ts
 @Response('400', 'Bad request')
 @DefaultResponse<ErrorResponse>('Unexpected error')
 @Get('Response')
@@ -377,6 +461,8 @@ public async getResponse(): Promise<TestModel> {
     return new ModelService().getModel();
 }
 ```
+
+For information on how to return a specific error [see this example](https://github.com/lukeautry/tsoa/issues/382).
 
 ### Authentication
 

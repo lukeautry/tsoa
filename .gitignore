@@ -1,4 +1,6 @@
 dist
+distForNoAdditional
 node_modules
 routes.ts
 .idea/
+yarn-error.log

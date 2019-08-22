@@ -1,7 +1,10 @@
 import * as mm from 'minimatch';
 import * as ts from 'typescript';
+import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
+import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class MetadataGenerator {
   public readonly nodes = new Array<ts.Node>();
@@ -12,12 +15,37 @@ export class MetadataGenerator {
 
   public IsExportedNode(node: ts.Node) { return true; }
 
-  constructor(entryFile: string, compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[]) {
-    this.program = ts.createProgram([entryFile], compilerOptions || {});
+  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
+    TypeResolver.clearCache();
+    this.program = !!controllers ?
+      this.setProgramToDynamicControllersFiles(controllers) :
+      ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
   public Generate(): Tsoa.Metadata {
+    this.extractNodeFromProgramSourceFiles();
+
+    const controllers = this.buildControllers();
+
+    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
+
+    return {
+      controllers,
+      referenceTypeMap: this.referenceTypeMap,
+    };
+  }
+
+  private setProgramToDynamicControllersFiles(controllers) {
+    const allGlobFiles = importClassesFromDirectories(controllers);
+    if (allGlobFiles.length === 0) {
+      throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
+    }
+
+    return ts.createProgram(allGlobFiles, this.compilerOptions || {});
+  }
+
+  private extractNodeFromProgramSourceFiles() {
     this.program.getSourceFiles().forEach((sf) => {
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {
@@ -31,15 +59,6 @@ export class MetadataGenerator {
         this.nodes.push(node);
       });
     });
-
-    const controllers = this.buildControllers();
-
-    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
-
-    return {
-      controllers,
-      referenceTypeMap: this.referenceTypeMap,
-    };
   }
 
   public TypeChecker() {

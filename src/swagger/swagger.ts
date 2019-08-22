@@ -60,7 +60,7 @@ export namespace Swagger {
     parameters?: { [name: string]: Parameter };
     requestBodies?: { [name: string]: any };
     responses?: { [name: string]: Response };
-    schemas?: { [name: string]: any };
+    schemas?: { [name: string]: Schema };
     securitySchemes?: { [name: string]: Security };
   }
 
@@ -188,9 +188,8 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
     operationId: string;
     consumes?: string[];
-    produces?: string[];
     parameters?: Parameter[];
-    responses: { [name: string]: Response };
+    responses: { [name: string]: Response3 };
     schemes?: Protocol[];
     deprecated?: boolean;
     security?: Security[];
@@ -215,6 +214,12 @@ export namespace Swagger {
     schema?: Schema;
     headers?: { [name: string]: Header };
     examples?: { [name: string]: Example };
+  }
+
+  export interface Response3 {
+    description: string;
+    content?: { [name: string]: Schema | Example };
+    headers?: { [name: string]: Header };
   }
 
   export interface BaseSchema {
@@ -243,14 +248,15 @@ export namespace Swagger {
 
   export interface Schema3 extends Schema {
     nullable?: boolean;
+    oneOf?: BaseSchema[];
+    allOf?: BaseSchema[];
   }
 
   export interface Schema extends BaseSchema {
     type: DataType;
     format?: DataFormat;
-    allOf?: Schema[];
     additionalProperties?: boolean | BaseSchema;
-    properties?: { [propertyName: string]: Schema };
+    properties?: { [propertyName: string]: Schema3 };
     discriminator?: string;
     readOnly?: boolean;
     xml?: XML;
@@ -301,7 +307,7 @@ export namespace Swagger {
     description?: string;
     flow: 'password';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2ApplicationSecurity {
@@ -309,7 +315,7 @@ export namespace Swagger {
     description?: string;
     flow: 'application';
     tokenUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuth2AccessCodeSecurity {
@@ -318,11 +324,11 @@ export namespace Swagger {
     flow: 'accessCode';
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: OAuthScope[];
+    scopes?: OAuthScope;
   }
 
   export interface OAuthScope {
-    [name: string]: string;
+    [scopeName: string]: string;
   }
 
   export type Security = BasicSecurity

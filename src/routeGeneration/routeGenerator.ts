@@ -2,10 +2,18 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { assertNever } from '../utils/assertNever';
+import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
-import { RoutesConfig } from './../config';
+import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
+
+export interface SwaggerConfigRelatedToRoutes {
+  noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
+  controllerPathGlobs?: SwaggerConfig['controllerPathGlobs'];
+  specVersion?: SwaggerConfig['specVersion'];
+}
 
 export class RouteGenerator {
   private tsfmtConfig = {
@@ -20,7 +28,7 @@ export class RouteGenerator {
     vscode: true,
   };
 
-  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig) { }
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) { }
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/${this.options.routesFileName}`;
@@ -41,6 +49,28 @@ export class RouteGenerator {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
     });
+    const additionalPropsHelper = (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
+      if (additionalProperties) {
+        // Then the model for this type explicitly allows additional properties and thus we should assign that
+        return JSON.stringify(additionalProperties);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
+        return JSON.stringify(false);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
+        return JSON.stringify(false);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === undefined) {
+        // Since Swagger defaults to allowing additional properties, then that will be our default
+        return JSON.stringify(true);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {
+        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+        return JSON.stringify(false);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === false) {
+        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+        return JSON.stringify(true);
+      } else {
+        return assertNever(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+      }
+    };
+    handlebars.registerHelper('additionalPropsHelper', additionalPropsHelper);
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
@@ -91,6 +121,7 @@ export class RouteGenerator {
       }),
       environment: process.env,
       iocModule,
+      minimalSwaggerConfig: this.minimalSwaggerConfig,
       models: this.buildModels(),
       useSecurity: this.metadata.controllers.some(
         controller => controller.methods.some(method => !!method.security.length),
@@ -98,7 +129,7 @@ export class RouteGenerator {
     });
   }
 
-  private buildModels(): TsoaRoute.Models {
+  public buildModels(): TsoaRoute.Models {
     const models = {} as TsoaRoute.Models;
 
     Object.keys(this.metadata.referenceTypeMap).forEach(name => {
@@ -116,6 +147,11 @@ export class RouteGenerator {
       } as TsoaRoute.ModelSchema;
       if (referenceType.additionalProperties) {
         modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
+      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
+        modelSchema.additionalProperties = false;
+      } else {
+        // Since Swagger allows "excess properties" (to use a TypeScript term) by default
+        modelSchema.additionalProperties = true;
       }
       models[name] = modelSchema;
     });
@@ -157,7 +193,7 @@ export class RouteGenerator {
 
   private buildProperty(type: Tsoa.Type): TsoaRoute.PropertySchema {
     const schema: TsoaRoute.PropertySchema = {
-      dataType: type.dataType as any,
+      dataType: type.dataType,
     };
 
     const referenceType = type as Tsoa.ReferenceType;
@@ -185,6 +221,11 @@ export class RouteGenerator {
     if (type.dataType === 'enum') {
       schema.enums = (type as Tsoa.EnumerateType).enums;
     }
+
+    if (type.dataType === 'union' || type.dataType === 'intersection') {
+      schema.subSchemas = (type as Tsoa.IntersectionType | Tsoa.UnionType).types.map(type => this.buildProperty(type));
+    }
+
     return schema;
   }
 }

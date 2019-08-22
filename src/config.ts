@@ -26,6 +26,11 @@ export interface Config {
   compilerOptions?: ts.CompilerOptions;
 }
 
+/**
+ * these options will be removed in a future version since we would prefer consumers to explicitly state their preference that the tsoa validation throws or removes additional properties
+ */
+export type DeprecatedOptionForAdditionalPropertiesHandling = true | false;
+
 export interface SwaggerConfig {
   /**
    * Generated SwaggerConfig.json will output here
@@ -36,6 +41,11 @@ export interface SwaggerConfig {
    * The entry point to your API
    */
   entryFile: string;
+
+  /**
+   * Modes that allow you to prevent input data from entering into your API. This will document your decision in the swagger.yaml and it will turn on excess-property validation (at runtime) in your routes.
+   */
+  noImplicitAdditionalProperties?: 'throw-on-extras' | 'silently-remove-extras' | DeprecatedOptionForAdditionalPropertiesHandling;
 
   /**
    * API host, expressTemplate.g. localhost:3000 or myapi.com
@@ -109,6 +119,11 @@ export interface SwaggerConfig {
   yaml?: boolean;
 
   schemes?: Swagger.Protocol[];
+
+  /**
+   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
+   */
+  controllerPathGlobs?: string[];
 }
 
 export interface RoutesConfig {
@@ -151,4 +166,9 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
+   */
+  controllerPathGlobs?: string[];
 }

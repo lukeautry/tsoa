@@ -29,6 +29,16 @@ export class TypeResolver {
     private readonly extractEnum = true,
   ) { }
 
+  public static clearCache() {
+    Object.keys(localReferenceTypeCache).forEach(key => {
+      delete localReferenceTypeCache[key];
+    });
+
+    Object.keys(inProgressTypes).forEach(key => {
+      delete inProgressTypes[key];
+    });
+  }
+
   public resolve(): Tsoa.Type {
     const primitiveType = this.getPrimitiveType(this.typeNode, this.parentNode);
     if (primitiveType) {
@@ -42,24 +52,42 @@ export class TypeResolver {
       } as Tsoa.ArrayType;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.UnionType) {
-      const unionType = this.typeNode as ts.UnionTypeNode;
-      const supportType = unionType.types.some((type) => type.kind === ts.SyntaxKind.LiteralType);
+    if (ts.isUnionTypeNode(this.typeNode)) {
+      const supportType = this.typeNode.types.every((type) => ts.isLiteralTypeNode(type));
+
       if (supportType) {
         return {
           dataType: 'enum',
-          enums: unionType.types.map((type) => {
-            const literalType = (type as ts.LiteralTypeNode).literal;
-            switch (literalType.kind) {
+          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map((type) => {
+            switch (type.literal.kind) {
               case ts.SyntaxKind.TrueKeyword: return 'true';
               case ts.SyntaxKind.FalseKeyword: return 'false';
-              default: return String((literalType as any).text);
+              default: return String((type.literal as ts.LiteralExpression).text);
             }
           }),
         } as Tsoa.EnumerateType;
+
       } else {
-        return { dataType: 'object' } as Tsoa.Type;
+        const types = this.typeNode.types.map((type) => {
+          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+        });
+
+        return {
+          dataType: 'union',
+          types,
+        } as Tsoa.UnionType;
       }
+    }
+
+    if (ts.isIntersectionTypeNode(this.typeNode)) {
+      const types = this.typeNode.types.map((type) => {
+        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+      });
+
+      return {
+        dataType: 'intersection',
+        types,
+      } as Tsoa.IntersectionType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
@@ -68,6 +96,10 @@ export class TypeResolver {
 
     if (this.typeNode.kind === ts.SyntaxKind.TypeLiteral) {
       return { dataType: 'any' } as Tsoa.Type;
+    }
+
+    if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
+      return { dataType: 'object' } as Tsoa.Type;
     }
 
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
@@ -117,6 +149,20 @@ export class TypeResolver {
     }
 
     this.current.AddReferenceType(referenceType);
+
+    // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
+    //   The goal is to avoid producing these names before the code is ever merged to master (via extensive test coverage)
+    //   and therefore this validation does not have to run for the users
+    if (process.env.NODE_ENV === 'tsoa_test') {
+      // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
+      const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
+      if (symbolsRegex.test(referenceType.refName)) {
+        throw new Error(`Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
+          `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
+          `"ref values must be RFC3986-compliant percent-encoded URIs."`);
+      }
+    }
+
     return referenceType;
   }
 
@@ -217,7 +263,7 @@ export class TypeResolver {
     }
   }
 
-  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumerateType | undefined {
+  private getLiteralType(typeName: ts.EntityName): Tsoa.Type | undefined {
     const literalName = (typeName as ts.Identifier).text;
     const literalTypes = this.current.nodes
       .filter((node) => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
@@ -232,10 +278,15 @@ export class TypeResolver {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${literalName}; please make enum names unique.`);
     }
 
-    const unionTypes = (literalTypes[0] as any).type.types;
+    const unionTypes = (literalTypes[0] as any).type.types as any[];
+    if (unionTypes.some(t => !t.literal || !t.literal.text)) {
+      // tagged union types can't be expressed in Swagger terms, probably
+      return { dataType: 'any' };
+    }
+
     return {
       dataType: 'enum',
-      enums: unionTypes.map((unionNode: any) => unionNode.literal.text as string),
+      enums: unionTypes.map((unionNode) => unionNode.literal.text as string),
     } as Tsoa.EnumerateType;
   }
 
@@ -300,7 +351,22 @@ export class TypeResolver {
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
     if (!genericTypes || !genericTypes.length) { return typeName; }
-    return typeName + genericTypes.map((t) => this.getAnyTypeName(t)).join('');
+
+    const resolvedName = genericTypes.reduce((acc, generic) => {
+      if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+        const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+        acc.push(typeNameSection);
+        return acc;
+      } else {
+        const typeNameSection = this.getAnyTypeName(generic);
+        acc.push(typeNameSection);
+        return acc;
+      }
+    }, [] as string[]);
+
+    const finalName = typeName + resolvedName.join('');
+
+    return finalName;
   }
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
@@ -311,7 +377,7 @@ export class TypeResolver {
 
     if (typeNode.kind === ts.SyntaxKind.ArrayType) {
       const arrayType = typeNode as ts.ArrayTypeNode;
-      return this.getAnyTypeName(arrayType.elementType) + '[]';
+      return this.getAnyTypeName(arrayType.elementType) + 'Array';
     }
 
     if (typeNode.kind === ts.SyntaxKind.UnionType) {
@@ -423,7 +489,7 @@ export class TypeResolver {
       }) as UsableDeclaration[];
 
     if (!modelTypes.length) {
-      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
+      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}. If ${typeName} comes from a dependency, please create an interface in your own code that has the same structure. Tsoa can not utilize interfaces from external dependencies. Read more at https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD`);
     }
 
     if (modelTypes.length > 1) {
@@ -566,7 +632,7 @@ export class TypeResolver {
 
     if (classConstructor && classConstructor.parameters) {
       const constructorProperties = classConstructor.parameters
-        .filter((parameter) => this.hasPublicModifier(parameter));
+        .filter((parameter) => this.isAccessibleParameter(parameter));
 
       properties.push(...constructorProperties);
     }
@@ -650,6 +716,25 @@ export class TypeResolver {
     return !node.modifiers || node.modifiers.every((modifier) => {
       return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
     });
+  }
+
+  private isAccessibleParameter(node: ts.Node) {
+    // No modifiers
+    if (!node.modifiers) {
+      return false;
+    }
+
+    // public || public readonly
+    if (node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword)) {
+      return true;
+    }
+
+    // readonly, not private readonly, not public readonly
+    const isReadonly = node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword);
+    const isProtectedOrPrivate = node.modifiers.some(modifier => {
+      return modifier.kind === ts.SyntaxKind.ProtectedKeyword || modifier.kind === ts.SyntaxKind.PrivateKeyword;
+    });
+    return isReadonly && !isProtectedOrPrivate;
   }
 
   private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {

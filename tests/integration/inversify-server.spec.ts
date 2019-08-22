@@ -23,6 +23,7 @@ describe('Inversify Express Server', () => {
     // hook in a new getModel method returning id = 2
     managedService.getModel = () => {
       return {
+        and: { value1: 'foo', value2: 'bar' },
         boolArray: [true, false],
         boolValue: true,
         id: 2,
@@ -40,7 +41,15 @@ describe('Inversify Express Server', () => {
         },
         numberArray: [1, 2, 3],
         numberValue: 1,
+        object: {
+            a: 'a',
+        },
+        objectArray: [{
+            a: 'a',
+        }],
         optionalString: 'optional string',
+        or: { value1: 'Foo'},
+        referenceAnd: { value1: 'foo', value2: 'bar' },
         strLiteralArr: ['Foo', 'Bar'],
         strLiteralVal: 'Foo',
         stringArray: ['string one', 'string two'],

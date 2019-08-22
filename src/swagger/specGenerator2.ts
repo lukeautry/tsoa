@@ -62,7 +62,11 @@ export class SpecGenerator2 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+            definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+        } else {
+            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+            //      ...we need to make a decision
+            definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
         if (referenceType.example) {
@@ -132,8 +136,30 @@ export class SpecGenerator2 extends SpecGenerator {
     }
   }
 
+  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
+    const swaggerResponses: any = {};
+
+    method.responses.forEach((res: Tsoa.Response) => {
+      swaggerResponses[res.name] = {
+        description: res.description,
+      };
+      if (res.schema && res.schema.dataType !== 'void') {
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
+      }
+      if (res.examples) {
+        swaggerResponses[res.name].examples = { 'application/json': res.examples };
+      }
+    });
+
+    return {
+      operationId: this.getOperationId(method.name),
+      produces: ['application/json'],
+      responses: swaggerResponses,
+    };
+  }
+
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties = {} as { [name: string]: Swagger.Schema };
+    const properties = {} as { [name: string]: Swagger.Schema | Swagger.BaseSchema };
     const required: string[] = [];
 
     method.parameters
@@ -175,7 +201,9 @@ export class SpecGenerator2 extends SpecGenerator {
     } as Swagger.Parameter;
 
     const parameterType = this.getSwaggerType(source.type);
-    parameter.format = parameterType.format || undefined;
+    if (parameterType.format) {
+        parameter.format = this.throwIfNotDataFormat(parameterType.format);
+    }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
       (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
@@ -208,7 +236,9 @@ export class SpecGenerator2 extends SpecGenerator {
           parameter.type = 'string';
         }
       } else {
-        parameter.type = parameterType.type;
+        if (parameterType.type) {
+            parameter.type = this.throwIfNotDataType(parameterType.type);
+        }
         parameter.items = parameterType.items;
         parameter.enum = parameterType.enum;
       }
@@ -251,6 +281,23 @@ export class SpecGenerator2 extends SpecGenerator {
     });
 
     return properties;
+  }
+
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    // tslint:disable-next-line: no-console
+    process.env.NODE_ENV !== 'tsoa_test' && console.warn(
+      'Swagger 2.0 does not support union types beyond string literals.\n' +
+      'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.',
+    );
+    return { type: 'object' };
+  }
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
+    // tslint:disable-next-line: no-console
+    process.env.NODE_ENV !== 'tsoa_test' && console.warn(
+      'Swagger 2.0 does not support this kind of intersection types.\n' +
+      'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.',
+    );
+    return { type: 'object' };
   }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {

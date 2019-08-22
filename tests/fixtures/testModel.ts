@@ -22,6 +22,7 @@
  * }
  */
 export interface TestModel extends Model {
+  and: TypeAliasModel1 & TypeAliasModel2;
   /**
    * This is a description of this model property, numberValue
    */
@@ -37,6 +38,8 @@ export interface TestModel extends Model {
    */
   boolValue: boolean;
   boolArray: boolean[];
+  object: object;
+  objectArray: object[];
   enumValue?: EnumIndexValue;
   enumArray?: EnumIndexValue[];
   enumNumberValue?: EnumNumberValue;
@@ -60,8 +63,18 @@ export interface TestModel extends Model {
 
   modelsArrayIndirect?: TestSubArrayModelContainer;
   modelsEnumIndirect?: TestSubEnumModelContainer;
+  or: TypeAliasModel1 | TypeAliasModel2;
+  referenceAnd: TypeAliasModelCase1;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
+  genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
+  // tslint:disable-next-line: array-type
+  genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
+  genericNestedArrayCharacter1?: GenericRequest<TypeAliasModel1[]>;
+  // tslint:disable-next-line: array-type
+  genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
+  genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
+  mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface TypeAliasModel1 {
@@ -249,6 +262,11 @@ export class ValidateModel {
    * @ignore
    */
   public ignoredProperty: string;
+
+  public model: TypeAliasModel1;
+  public intersection?: TypeAliasModel1 & TypeAliasModel2;
+  public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
+  public mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface ValidateMapStringToNumber {
@@ -326,6 +344,8 @@ export class TestClassModel extends TestClassBaseModel {
   constructor(
     public publicConstructorVar: string,
     protected protectedConstructorVar: string,
+    defaultConstructorArgument: string,
+    readonly readonlyConstructorArgument: string,
     public optionalPublicConstructorVar?: string,
   ) {
     super();

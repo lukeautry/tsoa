@@ -173,8 +173,9 @@ async function swaggerSpecGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = await validateSwaggerConfig(config.swagger);
+    const routesConfig = await validateRoutesConfig(config.routes);
 
-    await generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore);
+    await generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
@@ -191,8 +192,9 @@ async function routeGenerator(args) {
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config.routes);
+    const swaggerConfig = await validateSwaggerConfig(config.swagger);
 
-    await generateRoutes(routesConfig, compilerOptions, config.ignore);
+    await generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
