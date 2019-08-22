@@ -68,11 +68,11 @@ export namespace Tsoa {
     validators: Validators;
   }
 
-  export type TypeStringLiteral = 'string' | 'boolean' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'binary' | 'buffer' | 'byte' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject';
+  export type TypeStringLiteral = 'string' | 'boolean' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'binary' | 'buffer' | 'byte' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject' | 'union' | 'intersection';
 
   export type RefTypeLiteral = 'refObject' | 'refEnum';
 
-  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void'>;
+  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'union' | 'intersection'>;
 
   export interface Type {
     dataType: TypeStringLiteral;
@@ -100,6 +100,16 @@ export namespace Tsoa {
     additionalProperties?: Type;
     enums?: string[];
     example?: any;
+  }
+
+  export interface UnionType extends Type {
+    dataType: 'union';
+    types: Type[];
+  }
+
+  export interface IntersectionType extends Type {
+    dataType: 'intersection';
+    types: Type[];
   }
 
   export interface ReferenceTypeMap {

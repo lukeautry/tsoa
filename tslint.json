@@ -4,6 +4,7 @@
   ],
   "rules": {
     "arrow-parens": false,
+    "object-literal-sort-keys": false,
     "trailing-comma": [
       true,
       {

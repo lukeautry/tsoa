@@ -4,7 +4,7 @@ import { SwaggerConfig } from './../config';
 import { assertNever } from './../utils/assertNever';
 import { Swagger } from './swagger';
 
-export class SpecGenerator {
+export abstract class SpecGenerator {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) { }
 
   protected buildAdditionalProperties(type: Tsoa.Type) {
@@ -76,10 +76,18 @@ export class SpecGenerator {
         return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
     } else if (type.dataType === 'enum') {
         return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
+    } else if (type.dataType === 'union') {
+      return this.getSwaggerTypeForUnionType(type as Tsoa.UnionType);
+    } else if (type.dataType === 'intersection') {
+      return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
     } else {
         return assertNever(type.dataType);
     }
   }
+
+  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType);
+
+  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return {

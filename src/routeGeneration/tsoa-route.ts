@@ -27,6 +27,7 @@ export namespace TsoaRoute {
         required?: boolean;
         array?: PropertySchema;
         enums?: string[];
+        subSchemas?: PropertySchema[];
         validators?: ValidatorSchema;
         default?: any;
     }

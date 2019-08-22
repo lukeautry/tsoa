@@ -29,6 +29,7 @@ export class GetTestController extends Controller {
   @Get()
   @SuccessResponse('200', 'Returns TestModel')
   @Example<TestModel>({
+    and: { value1: 'foo', value2: 'bar' },
     boolArray: [true, false],
     boolValue: true,
     dateValue: new Date(),
@@ -47,6 +48,8 @@ export class GetTestController extends Controller {
         a: 'a',
     }],
     optionalString: 'optional string',
+    or: { value1: 'Foo'},
+    referenceAnd: { value1: 'foo', value2: 'bar' },
     strLiteralArr: ['Foo', 'Bar'],
     strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],

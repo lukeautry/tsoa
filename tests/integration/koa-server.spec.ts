@@ -341,6 +341,7 @@ describe('Koa Server', () => {
       bodyModel.arrayMin2Item = [0, 1];
       bodyModel.arrayUniqueItem = [0, 1, 2, 3];
       bodyModel.model = { value1: 'abcdef'};
+      bodyModel.mixedUnion = { value1: '' };
 
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const { body } = res;
@@ -365,6 +366,7 @@ describe('Koa Server', () => {
         expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
         expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.model).to.deep.equal(bodyModel.model);
+        expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
       }, 200);
     });
 
@@ -388,6 +390,7 @@ describe('Koa Server', () => {
       bodyModel.arrayMin2Item = [0];
       bodyModel.arrayUniqueItem = [0, 0, 1, 1];
       bodyModel.model = 1 as any;
+      bodyModel.mixedUnion = 123 as any;
 
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const body = JSON.parse(err.text);
@@ -427,6 +430,10 @@ describe('Koa Server', () => {
         expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.fields['body.model'].message).to.equal('invalid object');
         expect(body.fields['body.model'].value).to.deep.equal(bodyModel.model);
+        expect(body.fields['body.mixedUnion'].message).to.equal('Could not match the union against any of the items. ' +
+          'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
+          '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
+        );
       }, 400);
     });
 
@@ -703,6 +710,7 @@ describe('Koa Server', () => {
 
   function getFakeModel(): TestModel {
     return {
+      and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: false,
       id: 1,
@@ -713,6 +721,8 @@ describe('Koa Server', () => {
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',
+      or: { value1: 'Foo'},
+      referenceAnd: { value1: 'foo', value2: 'bar' },
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],

@@ -5,6 +5,7 @@ import { TestModel, TestSubModel } from '../testModel';
 export class ManagedService {
   public getModel(): TestModel {
     return {
+      and: { value1: 'foo', value2: 'bar'},
       boolArray: [true, false],
       boolValue: true,
       id: 1,
@@ -22,6 +23,8 @@ export class ManagedService {
         a: 'a',
       }],
       optionalString: 'optional string',
+      or: { value1: 'foo', value2: 'bar'},
+      referenceAnd: { value1: 'foo', value2: 'bar'},
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['string one', 'string two'],
