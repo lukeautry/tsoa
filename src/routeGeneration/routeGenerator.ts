@@ -32,7 +32,6 @@ export class RouteGenerator {
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     const fileName = `${this.options.routesDir}/${this.options.routesFileName}`;
-    //console.log(this.options.routesFileName);
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     const formatted = await tsfmt.processString(fileName, content, this.tsfmtConfig as any);

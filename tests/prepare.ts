@@ -61,6 +61,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/express/server.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/express',
+      routesFileName: 'routes.ts',
     }, defaultOptions, undefined, undefined, metadata)),
     log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () => generateRoutes({
         authenticationModule: './tests/fixtures/express-openapi3/authentication.ts',
@@ -68,6 +69,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './tests/fixtures/server.ts',
         middleware: 'express',
         routesDir: './tests/fixtures/express-openapi3',
+        routesFileName: 'routes.ts',
       }, {...optionsWithNoAdditional, specVersion: 3 }, undefined, undefined, metadata)),
     log('Express Dynamic Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/express/authentication.ts',
@@ -76,6 +78,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/express-dynamic-controllers/server.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/express-dynamic-controllers',
+      routesFileName: 'routes.ts',
     }, defaultOptions, undefined, undefined, metadata)),
     log('Koa Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/koa/authentication.ts',
@@ -83,6 +86,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/koa/server.ts',
       middleware: 'koa',
       routesDir: './tests/fixtures/koa',
+      routesFileName: 'routes.ts',
     }, defaultOptions, undefined, undefined, metadata)),
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () => generateRoutes({
         authenticationModule: './tests/fixtures/koaNoAdditional/authentication.ts',
@@ -90,6 +94,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './tests/fixtures/server.ts',
         middleware: 'koa',
         routesDir: './tests/fixtures/koaNoAdditional',
+        routesFileName: 'routes.ts',
       }, optionsWithNoAdditional, undefined, undefined, metadata)),
     log('Hapi Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/hapi/authentication.ts',
@@ -97,6 +102,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/hapi/server.ts',
       middleware: 'hapi',
       routesDir: './tests/fixtures/hapi',
+      routesFileName: 'routes.ts',
     }, defaultOptions)),
     log('Custom Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/custom/authentication.ts',
@@ -105,6 +111,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       middleware: 'express',
       middlewareTemplate: './tests/fixtures/custom/custom-tsoa-template.ts.hbs',
       routesDir: './tests/fixtures/custom',
+      routesFileName: 'routes.ts',
     }, defaultOptions, undefined, undefined, metadata)),
     log('Inversify Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/inversify/authentication.ts',
@@ -113,6 +120,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       iocModule: './tests/fixtures/inversify/ioc.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/inversify',
+      routesFileName: 'routes.ts',
     }, defaultOptions)),
   ]);
 })();

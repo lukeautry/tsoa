@@ -85,9 +85,7 @@ const validateRoutesConfig = async (config: RoutesConfig): Promise<RoutesConfig>
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
   if (!config.routesDir) { throw new Error('Missing routesDir: Configuration must contain a routes file output directory.'); }
-  
-  console.log(config);
-  console.log(config.routesFileName);
+
   if (!config.routesFileName) {
     config.routesFileName = 'routes.ts';
   }

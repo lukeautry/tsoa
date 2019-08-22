@@ -36,6 +36,7 @@ describe('RouteGenerator', () => {
       }, {
         entryFile: 'mockEntryFile',
         routesDir: 'mockRoutesDir',
+        routesFileName: 'routes.ts',
       }, {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       });
