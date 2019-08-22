@@ -81,16 +81,21 @@ const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRou
     throw new Error(`noImplicitAdditionalProperties is set to an invalid value. See https://github.com/lukeautry/tsoa/blob/master/src/config.ts for available options.`);
   }
 
+  if (input.specVersion && input.specVersion !== 2 && input.specVersion !== 3) {
+      input.specVersion = 2;
+  }
+
   // Make an exact copy that doesn't have other properties
   const recordOfProps: Record<keyof SwaggerConfigRelatedToRoutes, 'right side does not matter'> = {
     noImplicitAdditionalProperties: 'right side does not matter',
     // tslint:disable-next-line: object-literal-sort-keys
     controllerPathGlobs: 'right side does not matter',
+    specVersion: 'right side does not matter',
   };
 
   const exactObj: any = {};
   Object.keys(recordOfProps).forEach((key) => {
-    const strictKey = key as keyof SwaggerConfigRelatedToRoutes;
+    const strictKey = key;
     exactObj[strictKey] = input[strictKey];
   });
   return exactObj;

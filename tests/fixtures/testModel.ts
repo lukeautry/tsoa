@@ -22,6 +22,7 @@
  * }
  */
 export interface TestModel extends Model {
+  and: TypeAliasModel1 & TypeAliasModel2;
   /**
    * This is a description of this model property, numberValue
    */
@@ -62,6 +63,8 @@ export interface TestModel extends Model {
 
   modelsArrayIndirect?: TestSubArrayModelContainer;
   modelsEnumIndirect?: TestSubEnumModelContainer;
+  or: TypeAliasModel1 | TypeAliasModel2;
+  referenceAnd: TypeAliasModelCase1;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
@@ -71,6 +74,7 @@ export interface TestModel extends Model {
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
+  mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface TypeAliasModel1 {
@@ -260,6 +264,9 @@ export class ValidateModel {
   public ignoredProperty: string;
 
   public model: TypeAliasModel1;
+  public intersection?: TypeAliasModel1 & TypeAliasModel2;
+  public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
+  public mixedUnion?: string | TypeAliasModel1;
 }
 
 export interface ValidateMapStringToNumber {

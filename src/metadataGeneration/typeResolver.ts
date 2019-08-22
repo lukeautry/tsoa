@@ -52,24 +52,42 @@ export class TypeResolver {
       } as Tsoa.ArrayType;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.UnionType) {
-      const unionType = this.typeNode as ts.UnionTypeNode;
-      const supportType = unionType.types.some((type) => type.kind === ts.SyntaxKind.LiteralType);
+    if (ts.isUnionTypeNode(this.typeNode)) {
+      const supportType = this.typeNode.types.every((type) => ts.isLiteralTypeNode(type));
+
       if (supportType) {
         return {
           dataType: 'enum',
-          enums: unionType.types.map((type) => {
-            const literalType = (type as ts.LiteralTypeNode).literal;
-            switch (literalType.kind) {
+          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map((type) => {
+            switch (type.literal.kind) {
               case ts.SyntaxKind.TrueKeyword: return 'true';
               case ts.SyntaxKind.FalseKeyword: return 'false';
-              default: return String((literalType as any).text);
+              default: return String((type.literal as ts.LiteralExpression).text);
             }
           }),
         } as Tsoa.EnumerateType;
+
       } else {
-        return { dataType: 'object' } as Tsoa.Type;
+        const types = this.typeNode.types.map((type) => {
+          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+        });
+
+        return {
+          dataType: 'union',
+          types,
+        } as Tsoa.UnionType;
       }
+    }
+
+    if (ts.isIntersectionTypeNode(this.typeNode)) {
+      const types = this.typeNode.types.map((type) => {
+        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+      });
+
+      return {
+        dataType: 'intersection',
+        types,
+      } as Tsoa.IntersectionType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {

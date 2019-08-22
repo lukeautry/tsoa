@@ -95,6 +95,26 @@ describe('Definition generation', () => {
         });
     });
 
+    it('should generate an member of type object for union type', () => {
+      allSpecs.forEach(currentSpec => {
+        const definition = getValidatedDefinition('TestModel', currentSpec);
+        if (!definition.properties) { throw new Error('Definition has no properties.'); }
+        if (!definition.properties.or) { throw new Error('There was no \'or\' property.'); }
+
+        expect(definition.properties.or.type).to.equal('object');
+      });
+    });
+
+    it('should generate an member of type object for intersection type', () => {
+      allSpecs.forEach(currentSpec => {
+        const definition = getValidatedDefinition('TestModel', currentSpec);
+        if (!definition.properties) { throw new Error('Definition has no properties.'); }
+        if (!definition.properties.and) { throw new Error('There was no \'and\' property.'); }
+
+        expect(definition.properties.and.type).to.equal('object');
+      });
+    });
+
     describe('should generate a schema for every property on the TestModel interface', () => {
         const interfaceName = 'TestModel';
         allSpecs.forEach(currentSpec => {
@@ -344,6 +364,22 @@ describe('Definition generation', () => {
                 },
                 genericNestedArrayCharacter2: (propertyName, propertySchema) => {
                     expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+                },
+                and: (propertyName, propertySchema) => {
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+                },
+                referenceAnd: (propertyName, propertySchema) => {
+                  expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+                },
+                or: (propertyName, propertySchema) => {
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+                },
+                mixedUnion: (propertyName, propertySchema) => {
+                  expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+                  expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
                 },
             };
 

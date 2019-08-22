@@ -27,6 +27,18 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     }, 400);
   });
 
+  it('should call out any additionalProperties on Unions', () => {
+    const data = {
+      ...getFakeModel(),
+      mixedUnion: { value1: 'hello', value2: 'extra' },
+    };
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      const body = JSON.parse(err.text);
+      expect(body.fields['model.mixedUnion'].message).to.include('Could not match the union against any of the items.');
+    }, 400);
+  });
+
   it('should be okay if there are no additionalProperties', () => {
     const data = getFakeModel();
 
@@ -110,6 +122,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.arrayMin2Item = [0, 1];
       bodyModel.arrayUniqueItem = [0, 1, 2, 3];
       bodyModel.model = { value1: 'abcdef'};
+      bodyModel.mixedUnion = { value1: '' };
 
       return verifyPostRequest(basePath + `/Validate/body`, bodyModel, (err, res) => {
         const { body } = res;
@@ -134,6 +147,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
         expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.model).to.deep.equal(bodyModel.model);
+        expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
       }, 200);
     });
 
@@ -288,6 +302,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
   function getFakeModel(): TestModel {
     return {
+      and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: false,
       id: 1,
@@ -298,6 +313,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',
+      or: { value1: 'Foo'},
+      referenceAnd: { value1: 'foo', value2: 'bar' },
       strLiteralArr: ['Foo', 'Bar'],
       strLiteralVal: 'Foo',
       stringArray: ['test', 'testtwo'],
