@@ -508,7 +508,7 @@ export class ValidationService {
 
     if (modelDefinition.additionalProperties) {
       return [];
-    } else if (!config.noImplicitAdditionalProperties) {
+    } else if (this.resolveAdditionalPropSetting(config) === 'ignore') {
       return [];
     } else {
       return [...properties].filter(property => !modelProperties.has(property));
