@@ -49,6 +49,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/express/server.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/express',
+      routesFileName: 'routes.ts',
     }, undefined, undefined, metadata)),
     log('Koa Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/koa/authentication.ts',
@@ -56,6 +57,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/koa/server.ts',
       middleware: 'koa',
       routesDir: './tests/fixtures/koa',
+      routesFileName: 'routes.ts',
     }, undefined, undefined, metadata)),
     log('Hapi Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/hapi/authentication.ts',
@@ -63,6 +65,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       entryFile: './tests/fixtures/hapi/server.ts',
       middleware: 'hapi',
       routesDir: './tests/fixtures/hapi',
+      routesFileName: 'routes.ts',
     })),
     log('Custom Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/custom/authentication.ts',
@@ -71,6 +74,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       middleware: 'express',
       middlewareTemplate: './tests/fixtures/custom/custom-tsoa-template.ts',
       routesDir: './tests/fixtures/custom',
+      routesFileName: 'routes.ts',
     }, undefined, undefined, metadata)),
     log('Inversify Route Generation', () => generateRoutes({
       authenticationModule: './tests/fixtures/inversify/authentication.ts',
@@ -79,6 +83,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       iocModule: './tests/fixtures/inversify/ioc.ts',
       middleware: 'express',
       routesDir: './tests/fixtures/inversify',
+      routesFileName: 'routes.ts',
     })),
   ]);
 })();

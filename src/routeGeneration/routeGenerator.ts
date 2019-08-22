@@ -23,7 +23,8 @@ export class RouteGenerator {
   constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig) { }
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
-    const fileName = path.extname(this.options.routesDir) !== '' ? this.options.routesDir : `${this.options.routesDir}/routes.ts`;
+    const fileName = `${this.options.routesDir}/${this.options.routesFileName}`;
+    //console.log(this.options.routesFileName);
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     const formatted = await tsfmt.processString(fileName, content, this.tsfmtConfig as any);
@@ -122,13 +123,8 @@ export class RouteGenerator {
   }
 
   private getRelativeImportPath(fileLocation: string) {
-    const outputDirectory =
-      path.extname(this.options.routesDir) === '' ? // routes dir is a directory
-      this.options.routesDir :
-      path.dirname(this.options.routesDir); // routes dir is a file, get parent
-
     fileLocation = fileLocation.replace('.ts', ''); // no ts extension in import
-    return `./${path.relative(outputDirectory, fileLocation).replace(/\\/g, '/')}`;
+    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 
   private buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {
