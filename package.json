@@ -18,8 +18,14 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint && npm run pre-commit"
+      "pre-commit": "lint-staged && npm run pre-commit"
     }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+        "prettier --write",
+        "git add"
+    ]
   },
   "scripts": {
     "start": "tsc -w",
@@ -34,8 +40,9 @@
     "preversion": "yarn test",
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
-    "test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
-    "pre-commit": "yarn test",
+    "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
+	"test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
+    "pre-commit": "yarn lint && yarn test",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
@@ -85,8 +92,10 @@
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
+    "lint-staged": "9.2.3",
     "method-override": "^3.0.0",
     "mocha": "^6.2.0",
+    "prettier": "1.18.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "supertest": "^4.0.2",
