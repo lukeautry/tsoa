@@ -104,6 +104,43 @@ export class UsersController extends Controller {
 ```
 Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
 
+### Default values 
+
+```typescript
+// controllers/usersController.ts
+
+import { Body, Controller, Get, Header, Path, Post, Query, Route, SuccessResponse } from 'tsoa';
+import { User, UserCreationRequest } from '../models/user';
+import { UserService } from '../services/userService';
+
+@Route('Users')
+export class UsersController extends Controller {
+  @Get('{id}')
+  public async getUser(id: number, @Query('name', 'Snake SuvacoDeCobra') name: string): Promise<User> {
+    return await new UserService().get(id);
+  }
+
+  @SuccessResponse('201', 'Created') // Custom success response
+  @Post()
+  public async createUser(@Body(
+    `{
+      "name": "John",
+      "age": 33,
+      "nickname": "falcon" 
+    }`
+    ) requestBody: UserCreationRequest): Promise<void> {
+    new UserService().create(request);
+    this.setStatus(201); // set return status 201
+    return Promise.resolve();
+  }
+
+  @Get('subResource/{subResourceId}')
+  public async getSubResource(@Path('subResourceId', '666') aliasedPathId: number, @Header('Authorization') authorization: string): Promise<User> {
+    return new UserService().getSubResource(aliasedPathId);
+  }
+}
+```
+
 ### Create Models
 ```typescript
 // models/user.ts

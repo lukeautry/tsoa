@@ -2,7 +2,7 @@
  * Inject http Body
  *  @param {string} [name] properties name in body object
  */
-export function Body(example?: any): Function {
+export function Body(example?: string): Function {
   return () => {
     return;
   };
@@ -33,7 +33,7 @@ export function Request(): Function {
  *
  * @param {string} [name] The name of the path parameter
  */
-export function Path(name?: string, example?: any): Function {
+export function Path(name?: string, example?: string): Function {
   return () => {
     return;
   };

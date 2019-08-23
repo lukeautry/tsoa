@@ -36,7 +36,7 @@ export namespace Tsoa {
     type: Type;
     default?: any;
     validators: Validators;
-    example?: any;
+    example?: string;
   }
 
   export interface ArrayParameter extends Parameter {
