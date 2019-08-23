@@ -15,7 +15,7 @@ describe('Definition generation', () => {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
-  interface ISpecAndName {
+  interface SpecAndName {
     spec: Swagger.Spec2;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
@@ -23,20 +23,20 @@ describe('Definition generation', () => {
     specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras';
   }
 
-  const specDefault: ISpecAndName = {
+  const specDefault: SpecAndName = {
       spec: new SpecGenerator2(metadata, defaultOptions).GetSpec(),
       specName: 'specDefault',
   };
-  const specWithNoImplicitExtras: ISpecAndName = {
+  const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator2(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
   };
 
-  const dynamicSpecDefault: ISpecAndName = {
+  const dynamicSpecDefault: SpecAndName = {
       spec: new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec(),
       specName: 'dynamicSpecDefault',
   };
-  const dynamicSpecWithNoImplicitExtras: ISpecAndName = {
+  const dynamicSpecWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec(),
     specName: 'dynamicSpecWithNoImplicitExtras',
   };
@@ -44,14 +44,14 @@ describe('Definition generation', () => {
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
    */
-  const allSpecs: ISpecAndName[] = [
+  const allSpecs: SpecAndName[] = [
       specDefault,
       specWithNoImplicitExtras,
       dynamicSpecDefault,
       dynamicSpecWithNoImplicitExtras,
   ];
 
-  const getValidatedDefinition = (name: string, chosenSpec: ISpecAndName) => {
+  const getValidatedDefinition = (name: string, chosenSpec: SpecAndName) => {
     if (!chosenSpec.spec.definitions) {
       throw new Error(`No definitions were generated for ${chosenSpec.specName}.`);
     }
@@ -64,7 +64,7 @@ describe('Definition generation', () => {
     return definition;
   };
 
-  function forSpec(chosenSpec: ISpecAndName): string {
+  function forSpec(chosenSpec: SpecAndName): string {
     return `for the ${chosenSpec.specName} spec`;
   }
 

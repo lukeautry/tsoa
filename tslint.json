@@ -5,31 +5,20 @@
   "rules": {
     "arrow-parens": false,
     "object-literal-sort-keys": false,
-    "trailing-comma": [
-      true,
-      {
-        "multiline": "always",
-        "singleline": "never"
-      }
-    ],
-    "quotemark": [
-      true,
-      "single"
-    ],
-    "max-line-length": [
-      200
-    ],
+    "semicolon": false,
+    "trailing-comma": false,
+    "quotemark": false,
+    "max-line-length": false,
     "no-unused-expression": false,
     "no-shadowed-variable": false,
     "interface-name": [
+      true,
       "never-prefix"
     ],
     "member-ordering": [
       false
     ],
-    "max-classes-per-file": [
-      false
-    ],
+    "max-classes-per-file": false,
     "no-reference": false,
     "no-namespace": [
       false

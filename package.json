@@ -21,6 +21,12 @@
       "pre-commit": "npm run lint && npm run pre-commit"
     }
   },
+  "lint-staged": {
+    "*.{js,ts}": [
+        "prettier --print-width 200 --tab-width 2 --single-quote true --no-semi true --trailing-comma all --write",
+        "git add"
+    ]
+  },
   "scripts": {
     "start": "tsc -w",
     "build": "yarn clean && yarn tsc && yarn copy-templates && yarn copy-types",
@@ -85,8 +91,10 @@
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
+    "lint-staged": "9.2.3",
     "method-override": "^3.0.0",
     "mocha": "^6.2.0",
+    "prettier": "1.18.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "supertest": "^4.0.2",

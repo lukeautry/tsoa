@@ -15,7 +15,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
-  interface ISpecAndName {
+  interface SpecAndName {
     spec: Swagger.Spec3;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
@@ -23,11 +23,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     specName: 'specDefault' | 'specWithNoImplicitExtras';
   }
 
-  const specDefault: ISpecAndName = {
+  const specDefault: SpecAndName = {
       spec: new SpecGenerator3(metadata, defaultOptions).GetSpec(),
       specName: 'specDefault',
   };
-  const specWithNoImplicitExtras: ISpecAndName = {
+  const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
   };
@@ -35,12 +35,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
    */
-  const allSpecs: ISpecAndName[] = [
+  const allSpecs: SpecAndName[] = [
     specDefault,
     specWithNoImplicitExtras,
   ];
 
-  function forSpec(chosenSpec: ISpecAndName): string {
+  function forSpec(chosenSpec: SpecAndName): string {
     return `for the ${chosenSpec.specName} spec`;
   }
 
