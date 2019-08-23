@@ -1,28 +1,11 @@
 export namespace Swagger {
-  export type DataType = 'integer'
-    | 'number'
-    | 'boolean'
-    | 'string'
-    | 'array'
-    | 'object';
+  export type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object';
 
-  export type DataFormat = 'int32'
-    | 'int64'
-    | 'float'
-    | 'double'
-    | 'byte'
-    | 'binary'
-    | 'date'
-    | 'date-time'
-    | 'password';
+  export type DataFormat = 'int32' | 'int64' | 'float' | 'double' | 'byte' | 'binary' | 'date' | 'date-time' | 'password';
 
-  export type Protocol = 'http'
-    | 'https'
-    | 'ws'
-    | 'wss';
+  export type Protocol = 'http' | 'https' | 'ws' | 'wss';
 
-  export type SupportedSpecMajorVersion = 2
-    | 3;
+  export type SupportedSpecMajorVersion = 2 | 3;
 
   export interface Spec {
     info: Info;
@@ -136,11 +119,7 @@ export namespace Swagger {
     collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
   }
 
-  export type Parameter = BodyParameter
-    | FormDataParameter
-    | QueryParameter
-    | PathParameter
-    | HeaderParameter;
+  export type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
 
   export interface Path {
     $ref?: string;
@@ -331,11 +310,5 @@ export namespace Swagger {
     [scopeName: string]: string;
   }
 
-  export type Security = BasicSecurity
-    | BasicSecurity3
-    | ApiKeySecurity
-    | OAuth2AccessCodeSecurity
-    | OAuth2ApplicationSecurity
-    | OAuth2ImplicitSecurity
-    | OAuth2PasswordSecurity;
+  export type Security = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity;
 }

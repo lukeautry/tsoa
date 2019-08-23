@@ -7,40 +7,37 @@ import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [
-      { ref: 'TypeAliasModel1' },
-      { ref: 'TypeAliasModel2' },
-  ];
+  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
-      [refName]: {
-          properties: {
-              or: {
-                  dataType: 'union',
-                  subSchemas,
-                  required: true,
-              },
-          },
+    [refName]: {
+      properties: {
+        or: {
+          dataType: 'union',
+          subSchemas,
+          required: true,
+        },
       },
-      TypeAliasModel1: {
-          properties: {
-            value1: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
       },
-      TypeAliasModel2: {
-          properties: {
-            value2: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+      additionalProperties: false,
+    },
+    TypeAliasModel2: {
+      properties: {
+        value2: { dataType: 'string', required: true },
       },
+      additionalProperties: false,
+    },
   };
   const v = new ValidationService(models);
   const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-      noImplicitAdditionalProperties: 'silently-remove-extras',
+    noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name';
-  const dataToValidate: TypeAliasModel1 =  {
+  const dataToValidate: TypeAliasModel1 = {
     value1: 'this is value 1',
   };
   (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
@@ -56,48 +53,45 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
     value2: undefined,
   });
   if (result[nameOfAdditionalProperty]) {
-      throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been removed because "silently-remove-extras" requires that excess properties be stripped.`);
+    throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been removed because "silently-remove-extras" requires that excess properties be stripped.`);
   }
 });
 
 it('should throw if the data has additionalProperties (on a union) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [
-      { ref: 'TypeAliasModel1' },
-      { ref: 'TypeAliasModel2' },
-  ];
+  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
-      [refName]: {
-          properties: {
-              or: {
-                  dataType: 'union',
-                  subSchemas,
-                  required: true,
-              },
-          },
+    [refName]: {
+      properties: {
+        or: {
+          dataType: 'union',
+          subSchemas,
+          required: true,
+        },
       },
-      TypeAliasModel1: {
-          properties: {
-            value1: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
       },
-      TypeAliasModel2: {
-          properties: {
-            value2: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+      additionalProperties: false,
+    },
+    TypeAliasModel2: {
+      properties: {
+        value2: { dataType: 'string', required: true },
       },
+      additionalProperties: false,
+    },
   };
   const v = new ValidationService(models);
   const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-      noImplicitAdditionalProperties: 'throw-on-extras',
+    noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name';
   const dataToValidate: TypeAliasModel1 = {
-      value1: 'valueOne',
+    value1: 'valueOne',
   };
   (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
 
@@ -113,50 +107,49 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
   expect(errorDictionary[firstAndOnlyErrorKey].message).to.include(nameOfAdditionalProperty);
   expect(errorDictionary[firstAndOnlyErrorKey].message).to.include(`is an excess property and therefore is not allowed`);
   if (!dataToValidate[nameOfAdditionalProperty]) {
-      throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`);
+    throw new Error(
+      `dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`,
+    );
   }
 });
 
 it('should throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [
-      { ref: 'TypeAliasModel1' },
-      { ref: 'TypeAliasModel2' },
-  ];
+  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
-      [refName]: {
-          properties: {
-              and: {
-                  dataType: 'intersection',
-                  subSchemas,
-                  required: true,
-              },
-          },
+    [refName]: {
+      properties: {
+        and: {
+          dataType: 'intersection',
+          subSchemas,
+          required: true,
+        },
       },
-      TypeAliasModel1: {
-          properties: {
-            value1: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
       },
-      TypeAliasModel2: {
-          properties: {
-            value2: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+      additionalProperties: false,
+    },
+    TypeAliasModel2: {
+      properties: {
+        value2: { dataType: 'string', required: true },
       },
+      additionalProperties: false,
+    },
   };
   const v = new ValidationService(models);
   const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-      noImplicitAdditionalProperties: 'throw-on-extras',
+    noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName';
   const expectedErrorMsg = `The following properties are not allowed by any part of the intersection: ${nameOfAdditionalProperty}`;
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
-      value1: 'this is value 1',
-      value2: 'this is value 2',
+    value1: 'this is value 1',
+    value2: 'this is value 2',
   };
   (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
 
@@ -170,49 +163,48 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
   const firstAndOnlyErrorKey = errorKeys[0];
   expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq(expectedErrorMsg);
   if (!dataToValidate[nameOfAdditionalProperty]) {
-      throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`);
+    throw new Error(
+      `dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`,
+    );
   }
 });
 
 it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [
-      { ref: 'TypeAliasModel1' },
-      { ref: 'TypeAliasModel2' },
-  ];
+  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
-      [refName]: {
-          properties: {
-              and: {
-                  dataType: 'intersection',
-                  subSchemas,
-                  required: true,
-              },
-          },
+    [refName]: {
+      properties: {
+        and: {
+          dataType: 'intersection',
+          subSchemas,
+          required: true,
+        },
       },
-      TypeAliasModel1: {
-          properties: {
-            value1: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
       },
-      TypeAliasModel2: {
-          properties: {
-            value2: { dataType: 'string', required: true },
-          },
-          additionalProperties: false,
+      additionalProperties: false,
+    },
+    TypeAliasModel2: {
+      properties: {
+        value2: { dataType: 'string', required: true },
       },
+      additionalProperties: false,
+    },
   };
   const v = new ValidationService(models);
   const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-      noImplicitAdditionalProperties: 'silently-remove-extras',
+    noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName';
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
-      value1: 'this is value 1',
-      value2: 'this is value 2',
+    value1: 'this is value 1',
+    value2: 'this is value 2',
   };
   (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
 
@@ -223,53 +215,50 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   // Assert
   expect(errorDictionary).to.deep.eq({});
   if (result[nameOfAdditionalProperty]) {
-      throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been removed because "silently-remove-extras" requires that excess properties be stripped.`);
+    throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been removed because "silently-remove-extras" requires that excess properties be stripped.`);
   }
   expect(result).to.eql({
-      value1: 'this is value 1',
-      value2: 'this is value 2',
+    value1: 'this is value 1',
+    value2: 'this is value 2',
   });
 });
 
 it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to false', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [
-      { ref: 'TypeAliasModel1' },
-      { ref: 'TypeAliasModel2' },
-  ];
+  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
-      [refName]: {
-          properties: {
-              and: {
-                  dataType: 'intersection',
-                  required: true,
-                  subSchemas,
-              },
-          },
-      },
-      TypeAliasModel1: {
-          properties: {
-              value1: { dataType: 'string', required: true },
-            },
-            additionalProperties: false,
-      },
-      TypeAliasModel2: {
-        properties: {
-          value2: { dataType: 'string', required: true },
+    [refName]: {
+      properties: {
+        and: {
+          dataType: 'intersection',
+          required: true,
+          subSchemas,
         },
-        additionalProperties: false,
       },
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
+      },
+      additionalProperties: false,
+    },
+    TypeAliasModel2: {
+      properties: {
+        value2: { dataType: 'string', required: true },
+      },
+      additionalProperties: false,
+    },
   };
   const v = new ValidationService(models);
   const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-      noImplicitAdditionalProperties: false,
+    noImplicitAdditionalProperties: false,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName';
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
-      value1: 'this is value 1',
-      value2: 'this is value 2',
+    value1: 'this is value 1',
+    value2: 'this is value 2',
   };
   (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
 
@@ -280,8 +269,8 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   // Assert
   expect(errorDictionary).to.deep.eq({});
   expect(result).to.eql({
-      value1: 'this is value 1',
-      value2: 'this is value 2',
-      [nameOfAdditionalProperty]: 'something extra',
+    value1: 'this is value 1',
+    value2: 'this is value 2',
+    [nameOfAdditionalProperty]: 'something extra',
   });
 });

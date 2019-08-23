@@ -9,11 +9,21 @@ describe('Schema details generation', () => {
 
   const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
 
-  if (!spec.info) { throw new Error('No spec info.'); }
-  if (!spec.info.title) { throw new Error('No spec info title.'); }
-  if (!spec.info.description) { throw new Error('No spec info description.'); }
-  if (!spec.info.version) { throw new Error('No spec info version.'); }
-  if (!spec.host) { throw new Error('No host'); }
+  if (!spec.info) {
+    throw new Error('No spec info.');
+  }
+  if (!spec.info.title) {
+    throw new Error('No spec info title.');
+  }
+  if (!spec.info.description) {
+    throw new Error('No spec info description.');
+  }
+  if (!spec.info.version) {
+    throw new Error('No spec info version.');
+  }
+  if (!spec.host) {
+    throw new Error('No host');
+  }
 
   it('should set API name if provided', () => {
     expect(spec.info.title).to.equal(getDefaultOptions().name);
@@ -32,10 +42,14 @@ describe('Schema details generation', () => {
   });
 
   const license = spec.info.license;
-  if (!license) { throw new Error('No license.'); }
+  if (!license) {
+    throw new Error('No license.');
+  }
 
   const licenseName = license.name;
-  if (!licenseName) { throw new Error('No license name.'); }
+  if (!licenseName) {
+    throw new Error('No license name.');
+  }
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultOptions().license));
 });

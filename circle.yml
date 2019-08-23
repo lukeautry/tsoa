@@ -1,6 +1,7 @@
 machine:
   pre:
     - mkdir ~/.yarn-cache
+    - npm update -g yarn@1.17.3
   node:
     version: 7.9
   environment:

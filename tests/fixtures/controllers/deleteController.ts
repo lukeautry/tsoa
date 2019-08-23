@@ -1,6 +1,4 @@
-import {
-  Delete, Query, Route,
-} from '../../../src';
+import { Delete, Query, Route } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 
@@ -23,7 +21,8 @@ export class DeleteTestController {
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
     @Query() stringParam: string,
-    @Query() numberParam: number): Promise<void> {
+    @Query() numberParam: number,
+  ): Promise<void> {
     return;
   }
 }

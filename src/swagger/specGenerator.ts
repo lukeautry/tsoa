@@ -5,7 +5,7 @@ import { assertNever } from './../utils/assertNever';
 import { Swagger } from './swagger';
 
 export abstract class SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) { }
+  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) {}
 
   protected buildAdditionalProperties(type: Tsoa.Type) {
     return this.getSwaggerType(type);
@@ -18,70 +18,69 @@ export abstract class SpecGenerator {
   public throwIfNotDataFormat(strToTest: string): Swagger.DataFormat {
     const guiltyUntilInnocent = strToTest as Swagger.DataFormat;
     if (
-        guiltyUntilInnocent === 'int32' ||
-        guiltyUntilInnocent === 'int64' ||
-        guiltyUntilInnocent === 'float' ||
-        guiltyUntilInnocent === 'double' ||
-        guiltyUntilInnocent === 'byte' ||
-        guiltyUntilInnocent === 'binary' ||
-        guiltyUntilInnocent === 'date' ||
-        guiltyUntilInnocent === 'date-time' ||
-        guiltyUntilInnocent === 'password'
+      guiltyUntilInnocent === 'int32' ||
+      guiltyUntilInnocent === 'int64' ||
+      guiltyUntilInnocent === 'float' ||
+      guiltyUntilInnocent === 'double' ||
+      guiltyUntilInnocent === 'byte' ||
+      guiltyUntilInnocent === 'binary' ||
+      guiltyUntilInnocent === 'date' ||
+      guiltyUntilInnocent === 'date-time' ||
+      guiltyUntilInnocent === 'password'
     ) {
-        return guiltyUntilInnocent;
+      return guiltyUntilInnocent;
     } else {
-        return assertNever(guiltyUntilInnocent);
+      return assertNever(guiltyUntilInnocent);
     }
   }
 
   public throwIfNotDataType(strToTest: string): Swagger.DataType {
     const guiltyUntilInnocent = strToTest as Swagger.DataType;
     if (
-        guiltyUntilInnocent === 'array' ||
-        guiltyUntilInnocent === 'boolean' ||
-        guiltyUntilInnocent === 'integer' ||
-        guiltyUntilInnocent === 'number' ||
-        guiltyUntilInnocent === 'object' ||
-        guiltyUntilInnocent === 'string'
+      guiltyUntilInnocent === 'array' ||
+      guiltyUntilInnocent === 'boolean' ||
+      guiltyUntilInnocent === 'integer' ||
+      guiltyUntilInnocent === 'number' ||
+      guiltyUntilInnocent === 'object' ||
+      guiltyUntilInnocent === 'string'
     ) {
-        return guiltyUntilInnocent;
+      return guiltyUntilInnocent;
     } else {
-        return assertNever(guiltyUntilInnocent);
+      return assertNever(guiltyUntilInnocent);
     }
   }
 
   protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
-
     if (type.dataType === 'void') {
-        return this.getSwaggerTypeForVoid(type.dataType);
+      return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
-        return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
+      return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
     } else if (
-        type.dataType === 'any' ||
-        type.dataType === 'binary' ||
-        type.dataType === 'boolean' ||
-        type.dataType === 'buffer' ||
-        type.dataType === 'byte' ||
-        type.dataType === 'date' ||
-        type.dataType === 'datetime' ||
-        type.dataType === 'double' ||
-        type.dataType === 'float' ||
-        type.dataType === 'integer' ||
-        type.dataType === 'long' ||
-        type.dataType === 'object' ||
-        type.dataType === 'string'
+      type.dataType === 'any' ||
+      type.dataType === 'binary' ||
+      type.dataType === 'boolean' ||
+      type.dataType === 'buffer' ||
+      type.dataType === 'byte' ||
+      type.dataType === 'date' ||
+      type.dataType === 'datetime' ||
+      type.dataType === 'double' ||
+      type.dataType === 'float' ||
+      type.dataType === 'integer' ||
+      type.dataType === 'long' ||
+      type.dataType === 'object' ||
+      type.dataType === 'string'
     ) {
-        return this.getSwaggerTypeForPrimitiveType(type.dataType);
+      return this.getSwaggerTypeForPrimitiveType(type.dataType);
     } else if (type.dataType === 'array') {
-        return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
+      return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
     } else if (type.dataType === 'enum') {
-        return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
+      return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
     } else if (type.dataType === 'union') {
       return this.getSwaggerTypeForUnionType(type as Tsoa.UnionType);
     } else if (type.dataType === 'intersection') {
       return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
     } else {
-        return assertNever(type.dataType);
+      return assertNever(type.dataType);
     }
   }
 
@@ -91,14 +90,14 @@ export abstract class SpecGenerator {
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return {
-        // Don't set additionalProperties value here since it will be set within the $ref's model when that $ref gets created
+      // Don't set additionalProperties value here since it will be set within the $ref's model when that $ref gets created
     };
   }
 
   protected getSwaggerTypeForVoid(dataType: 'void'): Swagger.BaseSchema {
     // Described here: https://swagger.io/docs/specification/describing-responses/#empty
     const voidSchema = {
-        // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
+      // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
     };
     return voidSchema;
   }
@@ -120,10 +119,9 @@ export abstract class SpecGenerator {
     } else {
       return assertNever(this.config.noImplicitAdditionalProperties);
     }
-  }
+  };
 
   protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
-
     if (dataType === 'object') {
       if (process.env.NODE_ENV !== 'tsoa_test') {
         // tslint:disable-next-line: no-console

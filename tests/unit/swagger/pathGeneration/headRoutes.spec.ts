@@ -43,8 +43,12 @@ describe('HEAD route generation', () => {
 
   function getVerifiedParameters(actionRoute: string) {
     const path = verifyPath(actionRoute, false, true);
-    if (!path.head) { throw new Error('No head operation.'); }
-    if (!path.head.parameters) { throw new Error('No operation parameters.'); }
+    if (!path.head) {
+      throw new Error('No head operation.');
+    }
+    if (!path.head.parameters) {
+      throw new Error('No operation parameters.');
+    }
 
     return path.head.parameters as any;
   }

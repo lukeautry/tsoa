@@ -6,7 +6,15 @@ import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
 import { isDefaultForAdditionalPropertiesAllowed, TsoaRoute } from './tsoa-route';
 
 // for backwards compatibility with custom templates
-export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: SwaggerConfigRelatedToRoutes) {
+export function ValidateParam(
+  property: TsoaRoute.PropertySchema,
+  value: any,
+  generatedModels: TsoaRoute.Models,
+  name = '',
+  fieldErrors: FieldErrors,
+  parent = '',
+  swaggerConfig: SwaggerConfigRelatedToRoutes,
+) {
   return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent, swaggerConfig);
 }
 
@@ -90,7 +98,9 @@ export class ValidationService {
     }
 
     const numberValue = validator.toInt(String(value), 10);
-    if (!validators) { return numberValue; }
+    if (!validators) {
+      return numberValue;
+    }
     if (validators.minimum && validators.minimum.value !== undefined) {
       if (validators.minimum.value > numberValue) {
         fieldErrors[parent + name] = {
@@ -131,7 +141,9 @@ export class ValidationService {
     }
 
     const numberValue = validator.toFloat(String(value));
-    if (!validators) { return numberValue; }
+    if (!validators) {
+      return numberValue;
+    }
     if (validators.minimum && validators.minimum.value !== undefined) {
       if (validators.minimum.value > numberValue) {
         fieldErrors[parent + name] = {
@@ -177,7 +189,7 @@ export class ValidationService {
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
     const momentDate = moment(String(value), moment.ISO_8601, true);
     if (!momentDate.isValid()) {
-      const message = (validators && validators.isDate && validators.isDate.errorMsg) ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
+      const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
         value,
@@ -186,7 +198,9 @@ export class ValidationService {
     }
 
     const dateValue = new Date(String(value));
-    if (!validators) { return dateValue; }
+    if (!validators) {
+      return dateValue;
+    }
     if (validators.minDate && validators.minDate.value) {
       const minDate = new Date(validators.minDate.value);
       if (minDate.getTime() > dateValue.getTime()) {
@@ -213,7 +227,7 @@ export class ValidationService {
   public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, validators?: DateTimeValidator, parent = '') {
     const momentDateTime = moment(String(value), moment.ISO_8601, true);
     if (!momentDateTime.isValid()) {
-      const message = (validators && validators.isDateTime && validators.isDateTime.errorMsg) ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
+      const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
         value,
@@ -222,7 +236,9 @@ export class ValidationService {
     }
 
     const datetimeValue = new Date(String(value));
-    if (!validators) { return datetimeValue; }
+    if (!validators) {
+      return datetimeValue;
+    }
     if (validators.minDate && validators.minDate.value) {
       const minDate = new Date(validators.minDate.value);
       if (minDate.getTime() > datetimeValue.getTime()) {
@@ -248,7 +264,7 @@ export class ValidationService {
 
   public validateString(name: string, value: any, fieldErrors: FieldErrors, validators?: StringValidator, parent = '') {
     if (typeof value !== 'string') {
-      const message = (validators && validators.isString && validators.isString.errorMsg) ? validators.isString.errorMsg : `invalid string value`;
+      const message = validators && validators.isString && validators.isString.errorMsg ? validators.isString.errorMsg : `invalid string value`;
       fieldErrors[parent + name] = {
         message,
         value,
@@ -257,7 +273,9 @@ export class ValidationService {
     }
 
     const stringValue = String(value);
-    if (!validators) { return stringValue; }
+    if (!validators) {
+      return stringValue;
+    }
     if (validators.minLength && validators.minLength.value !== undefined) {
       if (validators.minLength.value > stringValue.length) {
         fieldErrors[parent + name] = {
@@ -292,11 +310,17 @@ export class ValidationService {
     if (value === undefined || value === null) {
       return false;
     }
-    if (value === true || value === false) { return value; }
-    if (String(value).toLowerCase() === 'true') { return true; }
-    if (String(value).toLowerCase() === 'false') { return false; }
+    if (value === true || value === false) {
+      return value;
+    }
+    if (String(value).toLowerCase() === 'true') {
+      return true;
+    }
+    if (String(value).toLowerCase() === 'false') {
+      return false;
+    }
 
-    const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid boolean value`;
+    const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid boolean value`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -306,7 +330,7 @@ export class ValidationService {
 
   public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
     if (!schema || value === undefined || value === null) {
-      const message = (validators && validators.isArray && validators.isArray.errorMsg) ? validators.isArray.errorMsg : `invalid array`;
+      const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
         message,
         value,
@@ -320,9 +344,7 @@ export class ValidationService {
         return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.', swaggerConfig);
       });
     } else {
-      arrayValue = [
-        this.ValidateParam(schema, value, '$0', fieldErrors, name + '.', swaggerConfig),
-      ];
+      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, name + '.', swaggerConfig)];
     }
 
     if (!validators) {
@@ -366,19 +388,12 @@ export class ValidationService {
     return new Buffer(value);
   }
 
-  public validateUnion(
-    name: string,
-    value: any,
-    fieldErrors: FieldErrors,
-    swaggerConfig: SwaggerConfigRelatedToRoutes,
-    subSchemas: TsoaRoute.PropertySchema[] | undefined,
-    parent = '',
-  ): any {
+  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
-        'the metadata that was generated should have had sub schemas since it’s for a union, however it did not. ' +
-        'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          'the metadata that was generated should have had sub schemas since it’s for a union, however it did not. ' +
+          'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
       );
     }
 
@@ -410,19 +425,12 @@ export class ValidationService {
     return value;
   }
 
-  public validateIntersection(
-    name: string,
-    value: any,
-    fieldErrors: FieldErrors,
-    swaggerConfig: SwaggerConfigRelatedToRoutes,
-    subSchemas: TsoaRoute.PropertySchema[] | undefined,
-    parent = '',
-  ): any {
+  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
-        'the metadata that was generated should have had sub schemas since it’s for a intersection, however it did not. ' +
-        'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          'the metadata that was generated should have had sub schemas since it’s for a intersection, however it did not. ' +
+          'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
       );
     }
 
@@ -433,13 +441,7 @@ export class ValidationService {
       .filter(subSchema => subSchema.ref)
       .forEach(subSchema => {
         const subFieldError: FieldErrors = {};
-        const cleanValue = this.ValidateParam(
-          subSchema,
-          JSON.parse(JSON.stringify(value)),
-          name, subFieldError,
-          parent,
-          { noImplicitAdditionalProperties: 'silently-remove-extras'},
-        );
+        const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, { noImplicitAdditionalProperties: 'silently-remove-extras' });
         cleanValues = {
           ...cleanValues,
           ...cleanValue,
@@ -467,17 +469,25 @@ export class ValidationService {
       return value;
     }
 
-    const reportedExcess = new Set(refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
-      return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
-    }, []));
+    const reportedExcess = new Set(
+      refNames
+        .map(refName => this.models[refName])
+        .reduce((acc, subSchema) => {
+          return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
+        }, []),
+    );
 
     if (reportedExcess.size === 0) {
       return value;
     }
 
-    const allowedProperties = new Set(refNames.map(refName => this.models[refName]).reduce((acc, subSchema) => {
-      return [...acc, ...this.getPropertiesFor(subSchema)];
-    }, []));
+    const allowedProperties = new Set(
+      refNames
+        .map(refName => this.models[refName])
+        .reduce((acc, subSchema) => {
+          return [...acc, ...this.getPropertiesFor(subSchema)];
+        }, []),
+    );
 
     const actualExcess = [...reportedExcess].filter(property => !allowedProperties.has(property));
 
@@ -507,11 +517,7 @@ export class ValidationService {
     return new Set(Object.keys((modelDefinition && modelDefinition.properties) || {}));
   }
 
-  private getExcessPropertiesFor(
-    modelDefinition: TsoaRoute.ModelSchema,
-    properties: string[],
-    config: SwaggerConfigRelatedToRoutes,
-  ): string[] {
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: string[], config: SwaggerConfigRelatedToRoutes): string[] {
     if (!modelDefinition || !modelDefinition.properties) {
       return properties;
     }
@@ -527,20 +533,12 @@ export class ValidationService {
     }
   }
 
-  public validateModel( input: {
-      name: string,
-      value: any,
-      refName: string,
-      fieldErrors: FieldErrors,
-      parent?: string,
-      minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
-  }): any {
+  public validateModel(input: { name: string; value: any; refName: string; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: SwaggerConfigRelatedToRoutes }): any {
     const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
 
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
-
       const enums = modelDefinition.enums;
       if (enums) {
         return this.validateEnum(name, value, fieldErrors, enums, parent);
@@ -564,8 +562,7 @@ export class ValidationService {
       });
 
       const isAnExcessProperty = (objectKeyThatMightBeExcess: string) => {
-        return allPropertiesOnData.has(objectKeyThatMightBeExcess) &&
-          !keysOnPropertiesModelDefinition.has(objectKeyThatMightBeExcess);
+        return allPropertiesOnData.has(objectKeyThatMightBeExcess) && !keysOnPropertiesModelDefinition.has(objectKeyThatMightBeExcess);
       };
 
       const additionalProperties = modelDefinition.additionalProperties;
@@ -586,9 +583,7 @@ export class ValidationService {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
-            } else if (
-              swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras'
-            ) {
+            } else if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
               delete value[key];
             } else if (swaggerConfig.noImplicitAdditionalProperties === false) {
               warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
@@ -624,34 +619,34 @@ export class ValidationService {
 export interface IntegerValidator {
   isInt?: { errorMsg?: string };
   isLong?: { errorMsg?: string };
-  minimum?: { value: number, errorMsg?: string };
-  maximum?: { value: number, errorMsg?: string };
+  minimum?: { value: number; errorMsg?: string };
+  maximum?: { value: number; errorMsg?: string };
 }
 
 export interface FloatValidator {
   isFloat?: { errorMsg?: string };
   isDouble?: { errorMsg?: string };
-  minimum?: { value: number, errorMsg?: string };
-  maximum?: { value: number, errorMsg?: string };
+  minimum?: { value: number; errorMsg?: string };
+  maximum?: { value: number; errorMsg?: string };
 }
 
 export interface DateValidator {
   isDate?: { errorMsg?: string };
-  minDate?: { value: string, errorMsg?: string };
-  maxDate?: { value: string, errorMsg?: string };
+  minDate?: { value: string; errorMsg?: string };
+  maxDate?: { value: string; errorMsg?: string };
 }
 
 export interface DateTimeValidator {
   isDateTime?: { errorMsg?: string };
-  minDate?: { value: string, errorMsg?: string };
-  maxDate?: { value: string, errorMsg?: string };
+  minDate?: { value: string; errorMsg?: string };
+  maxDate?: { value: string; errorMsg?: string };
 }
 
 export interface StringValidator {
   isString?: { errorMsg?: string };
-  minLength?: { value: number, errorMsg?: string };
-  maxLength?: { value: number, errorMsg?: string };
-  pattern?: { value: string, errorMsg?: string };
+  minLength?: { value: number; errorMsg?: string };
+  maxLength?: { value: number; errorMsg?: string };
+  pattern?: { value: string; errorMsg?: string };
 }
 
 export interface BooleanValidator {
@@ -660,23 +655,17 @@ export interface BooleanValidator {
 
 export interface ArrayValidator {
   isArray?: { errorMsg?: string };
-  minItems?: { value: number; errorMsg?: string; };
-  maxItems?: { value: number; errorMsg?: string; };
-  uniqueItems?: { errorMsg?: string; };
+  minItems?: { value: number; errorMsg?: string };
+  maxItems?: { value: number; errorMsg?: string };
+  uniqueItems?: { errorMsg?: string };
 }
 
-export type Validator = IntegerValidator
-  | FloatValidator
-  | DateValidator
-  | DateTimeValidator
-  | StringValidator
-  | BooleanValidator
-  | ArrayValidator;
+export type Validator = IntegerValidator | FloatValidator | DateValidator | DateTimeValidator | StringValidator | BooleanValidator | ArrayValidator;
 
 type AdditionalPropSetting = 'ignore' | 'silently-remove-extras' | 'throw-on-extras';
 
 export interface FieldErrors {
-  [name: string]: { message: string, value?: any };
+  [name: string]: { message: string; value?: any };
 }
 
 export interface Exception extends Error {
@@ -687,6 +676,6 @@ export class ValidateError implements Exception {
   public status = 400;
   public name = 'ValidateError';
 
-  constructor(public fields: FieldErrors, public message: string) { }
+  constructor(public fields: FieldErrors, public message: string) {}
 }
 export * from './tsoa-route';

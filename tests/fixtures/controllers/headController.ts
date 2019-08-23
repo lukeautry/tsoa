@@ -1,6 +1,4 @@
-import {
-  Head, Query, Route,
-} from '../../../src';
+import { Head, Query, Route } from '../../../src';
 
 @Route('HeadTest')
 export class HeadTestController {
@@ -21,7 +19,8 @@ export class HeadTestController {
     booleanPathParam: boolean,
     @Query() booleanParam: boolean,
     @Query() stringParam: string,
-    @Query() numberParam: number): Promise<void> {
+    @Query() numberParam: number,
+  ): Promise<void> {
     return;
   }
 }

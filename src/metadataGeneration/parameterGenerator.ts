@@ -8,15 +8,10 @@ import { Tsoa } from './tsoa';
 import { TypeResolver } from './typeResolver';
 
 export class ParameterGenerator {
-  constructor(
-    private readonly parameter: ts.ParameterDeclaration,
-    private readonly method: string,
-    private readonly path: string,
-    private readonly current: MetadataGenerator,
-  ) { }
+  constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
 
   public Generate(): Tsoa.Parameter {
-    const decoratorName = getDecoratorName(this.parameter, (identifier) => this.supportParameterDecorator(identifier.text));
+    const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
       case 'Request':
@@ -61,7 +56,7 @@ export class ParameterGenerator {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
-      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'BodyProp') || parameterName,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -100,7 +95,7 @@ export class ParameterGenerator {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
       in: 'header',
-      name: getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Header') || parameterName,
+      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -147,7 +142,7 @@ export class ParameterGenerator {
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter, false);
-    const pathName = getDecoratorTextValue(this.parameter, (ident) => ident.text === 'Path') || parameterName;
+    const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -170,24 +165,28 @@ export class ParameterGenerator {
 
   private getParameterDescription(node: ts.ParameterDeclaration) {
     const symbol = this.current.typeChecker.getSymbolAtLocation(node.name);
-    if (!symbol) { return undefined; }
+    if (!symbol) {
+      return undefined;
+    }
 
     const comments = symbol.getDocumentationComment(this.current.typeChecker);
-    if (comments.length) { return ts.displayPartsToString(comments); }
+    if (comments.length) {
+      return ts.displayPartsToString(comments);
+    }
 
     return undefined;
   }
 
   private supportBodyMethod(method: string) {
-    return ['post', 'put', 'patch'].some((m) => m === method.toLowerCase());
+    return ['post', 'put', 'patch'].some(m => m === method.toLowerCase());
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some((d) => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'parem', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
-    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'any'].find((t) => t === parameterType.dataType);
+    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'any'].find(t => t === parameterType.dataType);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {

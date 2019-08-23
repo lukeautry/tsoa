@@ -5,7 +5,6 @@ import { RouteGenerator } from '../../../src/routeGeneration/routeGenerator';
 
 describe('RouteGenerator', () => {
   describe('.buildModels', () => {
-
     it('should produce models where additionalProperties are not allowed unless explicitly stated', () => {
       // Arrange
       const stringType: Tsoa.Type = {
@@ -13,32 +12,38 @@ describe('RouteGenerator', () => {
       };
       const refThatShouldNotAllowExtras = 'refThatShouldNotAllowExtras';
       const refWithExtraStrings = 'refWithExtraStrings';
-      const generator = new RouteGenerator({
-        controllers: [],
-        referenceTypeMap: {
-          [refThatShouldNotAllowExtras]: {
-            dataType: 'refObject',
-            properties: [{
-              name: 'aStringOnTheObject',
-              required: true,
-              type: stringType,
-              validators: {},
-            }],
-            refName: refThatShouldNotAllowExtras,
-          },
-          [refWithExtraStrings]: {
-            additionalProperties: stringType,
-            dataType: 'refObject',
-            properties: [],
-            refName: refThatShouldNotAllowExtras,
+      const generator = new RouteGenerator(
+        {
+          controllers: [],
+          referenceTypeMap: {
+            [refThatShouldNotAllowExtras]: {
+              dataType: 'refObject',
+              properties: [
+                {
+                  name: 'aStringOnTheObject',
+                  required: true,
+                  type: stringType,
+                  validators: {},
+                },
+              ],
+              refName: refThatShouldNotAllowExtras,
+            },
+            [refWithExtraStrings]: {
+              additionalProperties: stringType,
+              dataType: 'refObject',
+              properties: [],
+              refName: refThatShouldNotAllowExtras,
+            },
           },
         },
-      }, {
-        entryFile: 'mockEntryFile',
-        routesDir: 'mockRoutesDir',
-      }, {
-        noImplicitAdditionalProperties: 'silently-remove-extras',
-      });
+        {
+          entryFile: 'mockEntryFile',
+          routesDir: 'mockRoutesDir',
+        },
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+        },
+      );
 
       // Act
       const models = generator.buildModels();
@@ -57,6 +62,5 @@ describe('RouteGenerator', () => {
         dataType: stringType.dataType,
       });
     });
-
   });
 });

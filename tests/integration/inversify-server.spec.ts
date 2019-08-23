@@ -42,13 +42,15 @@ describe('Inversify Express Server', () => {
         numberArray: [1, 2, 3],
         numberValue: 1,
         object: {
-            a: 'a',
+          a: 'a',
         },
-        objectArray: [{
+        objectArray: [
+          {
             a: 'a',
-        }],
+          },
+        ],
         optionalString: 'optional string',
-        or: { value1: 'Foo'},
+        or: { value1: 'Foo' },
         referenceAnd: { value1: 'foo', value2: 'bar' },
         strLiteralArr: ['Foo', 'Bar'],
         strLiteralVal: 'Foo',
@@ -66,23 +68,19 @@ describe('Inversify Express Server', () => {
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
 
-  function verifyRequest(
-    verifyResponse: (err: any, res: request.Response) => any,
-    methodOperation: (request: request.SuperTest<any>) => request.Test,
-    expectedStatus = 200,
-  ) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
     return new Promise((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;
           try {
-            parsedError = JSON.parse((res.error as any));
+            parsedError = JSON.parse(res.error as any);
           } catch (err) {
-            parsedError = (res.error as any);
+            parsedError = res.error as any;
           }
 
           if (err) {

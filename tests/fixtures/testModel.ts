@@ -97,21 +97,24 @@ export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
  * EnumIndexValue.
  */
 export enum EnumIndexValue {
-  VALUE_1, VALUE_2,
+  VALUE_1,
+  VALUE_2,
 }
 
 /**
  * EnumNumberValue.
  */
 export enum EnumNumberValue {
-  VALUE_1 = 2, VALUE_2 = 5,
+  VALUE_1 = 2,
+  VALUE_2 = 5,
 }
 
 /**
  * EnumStringValue.
  */
 export enum EnumStringValue {
-  VALUE_1 = 'VALUE_1' as any, VALUE_2 = 'VALUE_2' as any,
+  VALUE_1 = 'VALUE_1' as any,
+  VALUE_2 = 'VALUE_2' as any,
 }
 
 // shortened from StringLiteral to make the tslint enforced
@@ -186,9 +189,7 @@ export class ParameterTestModel {
   public nicknames?: string[];
 }
 
-export class ValidateCustomErrorModel {
-
-}
+export class ValidateCustomErrorModel {}
 
 export class ValidateModel {
   /**
@@ -281,8 +282,8 @@ export interface ValidateMapStringToAny {
  * Gender msg
  */
 export enum Gender {
-   MALE = 'MALE' as any,
-   FEMALE = 'FEMALE' as any,
+  MALE = 'MALE' as any,
+  FEMALE = 'FEMALE' as any,
 }
 
 export interface ErrorResponseModel {

@@ -24,7 +24,6 @@ export const generateSwaggerSpec = async (
    */
   metadata?: Tsoa.Metadata,
 ) => {
-
   // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
   //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
   //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
@@ -34,12 +33,7 @@ export const generateSwaggerSpec = async (
   validateMutualConfigs(routesConfigRelatedToSwagger, swaggerConfig);
 
   if (!metadata) {
-    metadata = new MetadataGenerator(
-      swaggerConfig.entryFile,
-      compilerOptions,
-      ignorePaths,
-      swaggerConfig.controllerPathGlobs,
-    ).Generate();
+    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs).Generate();
   }
 
   let spec: Swagger.Spec;
@@ -60,11 +54,7 @@ export const generateSwaggerSpec = async (
   }
   const ext = swaggerConfig.yaml ? 'yaml' : 'json';
 
-  await fsWriteFile(
-    `${swaggerConfig.outputDirectory}/swagger.${ext}`,
-    data,
-    { encoding: 'utf8' },
-  );
+  await fsWriteFile(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
 
   return metadata;
 };

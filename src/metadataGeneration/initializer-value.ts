@@ -2,12 +2,14 @@ import * as ts from 'typescript';
 import { Tsoa } from './tsoa';
 
 export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.Type) => {
-  if (!initializer) { return; }
+  if (!initializer) {
+    return;
+  }
 
   switch (initializer.kind as ts.SyntaxKind) {
     case ts.SyntaxKind.ArrayLiteralExpression:
       const arrayLiteral = initializer as ts.ArrayLiteralExpression;
-      return arrayLiteral.elements.map((element) => getInitializerValue(element));
+      return arrayLiteral.elements.map(element => getInitializerValue(element));
     case ts.SyntaxKind.StringLiteral:
       return (initializer as ts.StringLiteral).text;
     case ts.SyntaxKind.TrueKeyword:

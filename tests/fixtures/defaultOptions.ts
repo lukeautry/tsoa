@@ -1,8 +1,5 @@
 import { SwaggerConfig } from './../../src/config';
-export function getDefaultOptions(
-  outputDirectory: string = '',
-  entryFile: string = ''): SwaggerConfig {
-
+export function getDefaultOptions(outputDirectory: string = '', entryFile: string = ''): SwaggerConfig {
   return {
     basePath: '/v1',
     description: 'Description of a test API',

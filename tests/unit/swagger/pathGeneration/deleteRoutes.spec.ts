@@ -43,8 +43,12 @@ describe('DELETE route generation', () => {
 
   function getVerifiedParameters(actionRoute: string) {
     const path = verifyPath(actionRoute, false, true);
-    if (!path.delete) { throw new Error('No delete operation.'); }
-    if (!path.delete.parameters) { throw new Error('No operation parameters.'); }
+    if (!path.delete) {
+      throw new Error('No delete operation.');
+    }
+    if (!path.delete.parameters) {
+      throw new Error('No operation parameters.');
+    }
 
     return path.delete.parameters as any;
   }

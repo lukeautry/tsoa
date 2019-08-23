@@ -61,36 +61,46 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
 };
 
 export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
-  if (!config.outputDirectory) { throw new Error('Missing outputDirectory: configuration must contain output directory.'); }
-  if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
-  if (!await fsExists(config.entryFile)) {
+  if (!config.outputDirectory) {
+    throw new Error('Missing outputDirectory: configuration must contain output directory.');
+  }
+  if (!config.entryFile) {
+    throw new Error('Missing entryFile: Configuration must contain an entry point file.');
+  }
+  if (!(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  config.version = config.version || await versionDefault();
+  config.version = config.version || (await versionDefault());
 
   config.specVersion = config.specVersion || 2;
-  if (config.specVersion !== 2 && config.specVersion !== 3) { throw new Error('Unsupported Spec version.'); }
+  if (config.specVersion !== 2 && config.specVersion !== 3) {
+    throw new Error('Unsupported Spec version.');
+  }
 
-  config.name = config.name || await nameDefault();
-  config.description = config.description || await descriptionDefault();
-  config.license = config.license || await licenseDefault();
+  config.name = config.name || (await nameDefault());
+  config.description = config.description || (await descriptionDefault());
+  config.license = config.license || (await licenseDefault());
   config.basePath = config.basePath || '/';
 
   return config;
 };
 
 const validateRoutesConfig = async (config: RoutesConfig): Promise<RoutesConfig> => {
-  if (!config.entryFile) { throw new Error('Missing entryFile: Configuration must contain an entry point file.'); }
-  if (!await fsExists(config.entryFile)) {
+  if (!config.entryFile) {
+    throw new Error('Missing entryFile: Configuration must contain an entry point file.');
+  }
+  if (!(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  if (!config.routesDir) { throw new Error('Missing routesDir: Configuration must contain a routes file output directory.'); }
+  if (!config.routesDir) {
+    throw new Error('Missing routesDir: Configuration must contain a routes file output directory.');
+  }
 
-  if (config.authenticationModule && !(await fsExists(config.authenticationModule) || await fsExists(config.authenticationModule + '.ts'))) {
+  if (config.authenticationModule && !((await fsExists(config.authenticationModule)) || (await fsExists(config.authenticationModule + '.ts')))) {
     throw new Error(`No authenticationModule file found at '${config.authenticationModule}'`);
   }
 
-  if (config.iocModule && !(await fsExists(config.iocModule) || await fsExists(config.iocModule + '.ts'))) {
+  if (config.iocModule && !((await fsExists(config.iocModule)) || (await fsExists(config.iocModule + '.ts')))) {
     throw new Error(`No iocModule file found at '${config.iocModule}'`);
   }
 
@@ -134,20 +144,29 @@ const jsonArgs: yargs.Options = {
 yargs
   .usage('Usage: $0 <command> [options]')
   .demand(1)
-  .command('swagger', 'Generate swagger spec', {
-    basePath: basePathArgs,
-    configuration: configurationArgs,
-    host: hostArgs,
-    json: jsonArgs,
-    yaml: yarmlArgs,
-  }, swaggerSpecGenerator)
-  .command('routes', 'Generate routes', {
-    basePath: basePathArgs,
-    configuration: configurationArgs,
-  }, routeGenerator)
+  .command(
+    'swagger',
+    'Generate swagger spec',
+    {
+      basePath: basePathArgs,
+      configuration: configurationArgs,
+      host: hostArgs,
+      json: jsonArgs,
+      yaml: yarmlArgs,
+    },
+    swaggerSpecGenerator,
+  )
+  .command(
+    'routes',
+    'Generate routes',
+    {
+      basePath: basePathArgs,
+      configuration: configurationArgs,
+    },
+    routeGenerator,
+  )
   .help('help')
-  .alias('help', 'h')
-  .argv;
+  .alias('help', 'h').argv;
 
 async function swaggerSpecGenerator(args) {
   try {
