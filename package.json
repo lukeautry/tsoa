@@ -23,7 +23,7 @@
   },
   "lint-staged": {
     "*.{js,ts}": [
-        "prettier --print-width 200 --tab-width 2 --single-quote true --no-semi false --trailing-comma all --write",
+        "prettier --write",
         "git add"
     ]
   },
