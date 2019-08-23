@@ -18,12 +18,12 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint && npm run pre-commit"
+      "pre-commit": "lint-staged && npm run pre-commit"
     }
   },
   "lint-staged": {
     "*.{js,ts}": [
-        "prettier --print-width 200 --tab-width 2 --single-quote true --no-semi true --trailing-comma all --write",
+        "prettier --print-width 200 --tab-width 2 --single-quote true --no-semi false --trailing-comma all --write",
         "git add"
     ]
   },
@@ -40,8 +40,9 @@
     "preversion": "yarn test",
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
-    "test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
-    "pre-commit": "yarn test",
+    "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
+	"test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
+    "pre-commit": "yarn lint && yarn test",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
