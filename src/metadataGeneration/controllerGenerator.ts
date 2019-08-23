@@ -11,10 +11,7 @@ export class ControllerGenerator {
   private readonly tags?: string[];
   private readonly security?: Tsoa.Security[];
 
-  constructor(
-    private readonly node: ts.ClassDeclaration,
-    private readonly current: MetadataGenerator,
-    ) {
+  constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
@@ -26,10 +23,10 @@ export class ControllerGenerator {
 
   public Generate(): Tsoa.Controller {
     if (!this.node.parent) {
-      throw new GenerateMetadataError('Controller node doesn\'t have a valid parent source file.');
+      throw new GenerateMetadataError("Controller node doesn't have a valid parent source file.");
     }
     if (!this.node.name) {
-      throw new GenerateMetadataError('Controller node doesn\'t have a valid name.');
+      throw new GenerateMetadataError("Controller node doesn't have a valid name.");
     }
 
     const sourceFile = this.node.parent.getSourceFile();
@@ -44,14 +41,14 @@ export class ControllerGenerator {
 
   private buildMethods() {
     return this.node.members
-      .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
+      .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
       .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security))
-      .filter((generator) => generator.IsValid())
-      .map((generator) => generator.Generate());
+      .filter(generator => generator.IsValid())
+      .map(generator => generator.Generate());
   }
 
   private getPath() {
-    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Route');
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'Route');
     if (!decorators || !decorators.length) {
       return;
     }
@@ -66,7 +63,7 @@ export class ControllerGenerator {
   }
 
   private getTags() {
-    const decorators = getDecorators(this.node, (identifier) => identifier.text === 'Tags');
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'Tags');
     if (!decorators || !decorators.length) {
       return;
     }
@@ -81,7 +78,7 @@ export class ControllerGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
-    const securityDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Security');
+    const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
     if (!securityDecorators || !securityDecorators.length) {
       return [];
     }

@@ -15,11 +15,11 @@ describe('Metadata generation', () => {
   });
 
   describe('DynamicControllerGenerator', () => {
-    it('should should throw \'globs found 0 controllers.\'', () => {
+    it("should should throw 'globs found 0 controllers.'", () => {
       expect(() => {
         // Non existing controllers folder to get 0 controllers found error
         const NON_CONTROLLER_EXISTS_GLOB = './tests/unit/swagger';
-        new MetadataGenerator('./tests/fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB] ).Generate();
+        new MetadataGenerator('./tests/fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB]).Generate();
       }).to.throw(/globs found 0 controllers./);
     });
   });
@@ -28,18 +28,30 @@ describe('Metadata generation', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
     const definedMethods = [
-      'getMethod', 'postMethod', 'patchMethod', 'putMethod', 'deleteMethod',
-      'description', 'tags', 'multiResponse', 'successResponse', 'oauthOrAPIkeySecurity',
-      'apiSecurity', 'oauthSecurity', 'deprecatedMethod', 'summaryMethod',
-      'oauthAndAPIkeySecurity', 'returnAnyType'];
+      'getMethod',
+      'postMethod',
+      'patchMethod',
+      'putMethod',
+      'deleteMethod',
+      'description',
+      'tags',
+      'multiResponse',
+      'successResponse',
+      'oauthOrAPIkeySecurity',
+      'apiSecurity',
+      'oauthSecurity',
+      'deprecatedMethod',
+      'summaryMethod',
+      'oauthAndAPIkeySecurity',
+      'returnAnyType',
+    ];
 
     it('should only generate the defined methods', () => {
       expect(controller.methods.filter(m => definedMethods.indexOf(m.name) === -1).length).to.equal(0);
     });
 
     it('should generate the defined methods', () => {
-      expect(definedMethods.filter(methodName =>
-        controller.methods.map(m => m.name).indexOf(methodName) === -1).length).to.equal(0);
+      expect(definedMethods.filter(methodName => controller.methods.map(m => m.name).indexOf(methodName) === -1).length).to.equal(0);
     });
 
     it('should generate get method', () => {

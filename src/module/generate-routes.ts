@@ -17,7 +17,6 @@ export const generateRoutes = async (
    */
   metadata?: Tsoa.Metadata,
 ) => {
-
   // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
   //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
   //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
@@ -27,12 +26,7 @@ export const generateRoutes = async (
   validateMutualConfigs(routesConfig, minimalSwaggerConfig);
 
   if (!metadata) {
-    metadata = new MetadataGenerator(
-      routesConfig.entryFile,
-      compilerOptions,
-      ignorePaths,
-      routesConfig.controllerPathGlobs,
-    ).Generate();
+    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs).Generate();
   }
 
   const routeGenerator = new RouteGenerator(metadata, routesConfig, exactly(minimalSwaggerConfig));
@@ -71,18 +65,14 @@ const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRou
     warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
   } else if (input.noImplicitAdditionalProperties === false) {
     warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
-  } else if (
-    input.noImplicitAdditionalProperties === undefined ||
-    input.noImplicitAdditionalProperties === 'throw-on-extras' ||
-    input.noImplicitAdditionalProperties === 'silently-remove-extras'
-  ) {
+  } else if (input.noImplicitAdditionalProperties === undefined || input.noImplicitAdditionalProperties === 'throw-on-extras' || input.noImplicitAdditionalProperties === 'silently-remove-extras') {
     // then it's good to go
   } else {
     throw new Error(`noImplicitAdditionalProperties is set to an invalid value. See https://github.com/lukeautry/tsoa/blob/master/src/config.ts for available options.`);
   }
 
   if (input.specVersion && input.specVersion !== 2 && input.specVersion !== 3) {
-      input.specVersion = 2;
+    input.specVersion = 2;
   }
 
   // Make an exact copy that doesn't have other properties
@@ -94,7 +84,7 @@ const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRou
   };
 
   const exactObj: any = {};
-  Object.keys(recordOfProps).forEach((key) => {
+  Object.keys(recordOfProps).forEach(key => {
     const strictKey = key;
     exactObj[strictKey] = input[strictKey];
   });

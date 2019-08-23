@@ -9,6 +9,7 @@
     "trailing-comma": false,
     "quotemark": false,
     "max-line-length": false,
+    "align": false,
     "no-unused-expression": false,
     "no-shadowed-variable": false,
     "interface-name": [
@@ -24,5 +25,10 @@
       false
     ],
     "ban-types": false
+  },
+  "linterOptions": {
+      "exclude": [
+        "./node_modules/**"
+      ]
   }
 }

@@ -1,24 +1,7 @@
-import {
-  Controller,
-  Example,
-  Get,
-  OperationId,
-  Query,
-  Request,
-  Route,
-  SuccessResponse,
-  Tags,
-} from '../../../src';
+import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
 import '../duplicateTestModel';
-import {
-  GenericModel,
-  TestClassModel,
-  TestModel,
-  TestSubModel,
-} from '../testModel';
-import {
-  ModelService,
-} from './../services/modelService';
+import { GenericModel, TestClassModel, TestModel, TestSubModel } from '../testModel';
+import { ModelService } from './../services/modelService';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -42,13 +25,15 @@ export class GetTestController extends Controller {
     numberArray: [1, 2, 3],
     numberValue: 1,
     object: {
-        a: 'a',
+      a: 'a',
     },
-    objectArray: [{
+    objectArray: [
+      {
         a: 'a',
-    }],
+      },
+    ],
     optionalString: 'optional string',
-    or: { value1: 'Foo'},
+    or: { value1: 'Foo' },
     referenceAnd: { value1: 'foo', value2: 'bar' },
     strLiteralArr: ['Foo', 'Bar'],
     strLiteralVal: 'Foo',
@@ -71,11 +56,7 @@ export class GetTestController extends Controller {
 
   @Get('Multi')
   public async getMultipleModels(): Promise<TestModel[]> {
-    return [
-      new ModelService().getModel(),
-      new ModelService().getModel(),
-      new ModelService().getModel(),
-    ];
+    return [new ModelService().getModel(), new ModelService().getModel(), new ModelService().getModel()];
   }
 
   /**
@@ -100,7 +81,8 @@ export class GetTestController extends Controller {
     @Query() booleanParam: boolean,
     @Query() stringParam: string,
     @Query() numberParam: number,
-    @Query() optionalStringParam = '') {
+    @Query() optionalStringParam = '',
+  ) {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
     model.numberValue = numberPathParam;
@@ -123,7 +105,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('Request')
-  public async getRequest( @Request() request: any): Promise<TestModel> {
+  public async getRequest(@Request() request: any): Promise<TestModel> {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
     model.stringValue = (request as any).stringValue;
@@ -131,7 +113,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('DateParam')
-  public async getByDataParam( @Query() date: Date): Promise<TestModel> {
+  public async getByDataParam(@Query() date: Date): Promise<TestModel> {
     const model = new ModelService().getModel();
     model.dateValue = date;
 
@@ -159,7 +141,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('HandleBufferType')
-  public async getBuffer( @Query() buffer: Buffer): Promise<Buffer> {
+  public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
   }
 
@@ -173,9 +155,7 @@ export class GetTestController extends Controller {
   @Get('GenericModelArray')
   public async getGenericModelArray(): Promise<GenericModel<TestModel[]>> {
     return {
-      result: [
-        new ModelService().getModel(),
-      ],
+      result: [new ModelService().getModel()],
     };
   }
 

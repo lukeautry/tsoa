@@ -1,6 +1,4 @@
-import {
-  Body, Patch, Post, Query, Route,
-} from '../../../src';
+import { Body, Patch, Post, Query, Route } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -21,23 +19,23 @@ export class PostTestController {
   }
 
   @Post()
-  public async postModel( @Body() model: TestModel): Promise<TestModel> {
+  public async postModel(@Body() model: TestModel): Promise<TestModel> {
     return model;
   }
 
   @Patch()
-  public async updateModel( @Body() model: TestModel): Promise<TestModel> {
+  public async updateModel(@Body() model: TestModel): Promise<TestModel> {
     return await new ModelService().getModel();
   }
 
   @Post('WithDifferentReturnCode')
-  public async postWithDifferentReturnCode( @Body() model: TestModel): Promise<TestModel> {
+  public async postWithDifferentReturnCode(@Body() model: TestModel): Promise<TestModel> {
     this.setStatus(201);
     return model;
   }
 
   @Post('WithClassModel')
-  public async postClassModel( @Body() model: TestClassModel): Promise<TestClassModel> {
+  public async postClassModel(@Body() model: TestClassModel): Promise<TestClassModel> {
     const augmentedModel = new TestClassModel('test', 'test2', 'test3', 'test4', 'test5');
     augmentedModel.id = 700;
 
@@ -53,10 +51,7 @@ export class PostTestController {
   public async postWithMultiReturn(): Promise<TestModel[]> {
     const model = new ModelService().getModel();
 
-    return [
-      model,
-      model,
-    ];
+    return [model, model];
   }
 
   @Post('WithId/{id}')
@@ -65,12 +60,12 @@ export class PostTestController {
   }
 
   @Post('WithBodyAndQueryParams')
-  public async postWithBodyAndQueryParams( @Body() model: TestModel, @Query() query: string): Promise<TestModel> {
+  public async postWithBodyAndQueryParams(@Body() model: TestModel, @Query() query: string): Promise<TestModel> {
     return new ModelService().getModel();
   }
 
   @Post('GenericBody')
-  public async getGenericRequest( @Body() genericReq: GenericRequest<TestModel>): Promise<TestModel> {
+  public async getGenericRequest(@Body() genericReq: GenericRequest<TestModel>): Promise<TestModel> {
     return genericReq.value;
   }
 }

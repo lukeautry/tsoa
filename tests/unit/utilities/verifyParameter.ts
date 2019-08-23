@@ -43,7 +43,7 @@ export function VerifyBodyParameter(params: Swagger.PathParameter[], paramValue:
 }
 
 function verifyParameter(params: Swagger.PathParameter[], paramValue: string, paramIn: string) {
-  const parameter = params.filter((p) => p.name === paramValue)[0];
+  const parameter = params.filter(p => p.name === paramValue)[0];
   expect(parameter, `Path parameter '${paramValue}' wasn't generated.`).to.exist;
   expect(parameter.in).to.equal(paramIn);
 

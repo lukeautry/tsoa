@@ -13,13 +13,13 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
-  public IsExportedNode(node: ts.Node) { return true; }
+  public IsExportedNode(node: ts.Node) {
+    return true;
+  }
 
   constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
     TypeResolver.clearCache();
-    this.program = !!controllers ?
-      this.setProgramToDynamicControllersFiles(controllers) :
-      ts.createProgram([entryFile], compilerOptions || {});
+    this.program = !!controllers ? this.setProgramToDynamicControllersFiles(controllers) : ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
@@ -28,7 +28,7 @@ export class MetadataGenerator {
 
     const controllers = this.buildControllers();
 
-    this.circularDependencyResolvers.forEach((c) => c(this.referenceTypeMap));
+    this.circularDependencyResolvers.forEach(c => c(this.referenceTypeMap));
 
     return {
       controllers,
@@ -46,7 +46,7 @@ export class MetadataGenerator {
   }
 
   private extractNodeFromProgramSourceFiles() {
-    this.program.getSourceFiles().forEach((sf) => {
+    this.program.getSourceFiles().forEach(sf => {
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {
           if (mm(sf.fileName, path)) {
@@ -55,7 +55,7 @@ export class MetadataGenerator {
         }
       }
 
-      ts.forEachChild(sf, (node) => {
+      ts.forEachChild(sf, node => {
         this.nodes.push(node);
       });
     });
@@ -82,9 +82,9 @@ export class MetadataGenerator {
 
   private buildControllers() {
     return this.nodes
-      .filter((node) => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
+      .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
       .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this))
-      .filter((generator) => generator.IsValid())
-      .map((generator) => generator.Generate());
+      .filter(generator => generator.IsValid())
+      .map(generator => generator.Generate());
   }
 }

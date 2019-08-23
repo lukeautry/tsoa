@@ -13,8 +13,12 @@ describe('POST route generation', () => {
 
   const getValidatedParameters = (actionRoute: string) => {
     const path = verifyPath(actionRoute);
-    if (!path.post) { throw new Error('No patch operation.'); }
-    if (!path.post.parameters) { throw new Error('No parameters'); }
+    if (!path.post) {
+      throw new Error('No patch operation.');
+    }
+    if (!path.post.parameters) {
+      throw new Error('No parameters');
+    }
 
     return path.post.parameters as any;
   };
@@ -45,10 +49,12 @@ describe('POST route generation', () => {
   });
 
   it('should reject multiple body parameters', () => {
-    chai.expect(() => {
-      const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultOptions()).GetSpec();
-    }).to.throw('Only one body parameter allowed in \'InvalidPostTestController.postWithMultipleBodyParams\' method.');
+    chai
+      .expect(() => {
+        const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidPostController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultOptions()).GetSpec();
+      })
+      .to.throw("Only one body parameter allowed in 'InvalidPostTestController.postWithMultipleBodyParams' method.");
   });
 
   it('should be able to parse body and query parameters together', () => {

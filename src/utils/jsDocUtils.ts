@@ -2,7 +2,9 @@ import * as ts from 'typescript';
 
 export function getJSDocDescription(node: ts.Node) {
   const jsDocs = (node as any).jsDoc as ts.JSDoc[];
-  if (!jsDocs || !jsDocs.length) { return undefined; }
+  if (!jsDocs || !jsDocs.length) {
+    return undefined;
+  }
 
   return jsDocs[0].comment || undefined;
 }
@@ -34,16 +36,22 @@ export function getJSDocTagNames(node: ts.Node) {
 
 export function getJSDocTags(node: ts.Node, isMatching: (tag: ts.JSDocTag) => boolean) {
   const jsDocs = (node as any).jsDoc as ts.JSDoc[];
-  if (!jsDocs || jsDocs.length === 0) { return []; }
+  if (!jsDocs || jsDocs.length === 0) {
+    return [];
+  }
 
   const jsDoc = jsDocs[0];
-  if (!jsDoc.tags) { return []; }
+  if (!jsDoc.tags) {
+    return [];
+  }
 
   return jsDoc.tags.filter(isMatching);
 }
 
 export function isExistJSDocTag(node: ts.Node, isMatching: (tag: ts.JSDocTag) => boolean) {
   const tags = getJSDocTags(node, isMatching);
-  if (tags.length === 0) { return false; }
+  if (tags.length === 0) {
+    return false;
+  }
   return true;
 }

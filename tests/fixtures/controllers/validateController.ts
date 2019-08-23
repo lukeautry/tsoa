@@ -1,9 +1,5 @@
-import {
-  Body, Get, Post, Query, Route,
-} from './../../../src';
-import {
-  ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel,
-} from './../testModel';
+import { Body, Get, Post, Query, Route } from './../../../src';
+import { ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from './../testModel';
 
 export interface ValidateDateResponse {
   minDateValue: Date;
@@ -24,7 +20,6 @@ export interface ValidateStringResponse {
 
 @Route('Validate')
 export class ValidateController {
-
   /**
    *
    * @param {Date} minDateValue
@@ -35,9 +30,7 @@ export class ValidateController {
    * @maxDate maxDateValue 2016-01-01
    */
   @Get('parameter/date')
-  public dateValidate(
-    @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+  public dateValidate(@Query() minDateValue: Date, @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -53,9 +46,7 @@ export class ValidateController {
    * @maxDate maxDateValue 2016-01-01T00:00:00
    */
   @Get('parameter/datetime')
-  public dateTimeValidate(
-    @Query() minDateValue: Date,
-    @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+  public dateTimeValidate(@Query() minDateValue: Date, @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -70,9 +61,7 @@ export class ValidateController {
    * @maximum maxValue 3
    */
   @Get('parameter/integer')
-  public longValidate(
-    @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+  public longValidate(@Query() minValue: number, @Query() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       maxValue,
       minValue,
@@ -87,9 +76,7 @@ export class ValidateController {
    * @maximum maxValue 3.5
    */
   @Get('parameter/float')
-  public doubleValidate(
-    @Query() minValue: number,
-    @Query() maxValue: number): Promise<ValidateNumberResponse> {
+  public doubleValidate(@Query() minValue: number, @Query() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       maxValue,
       minValue,
@@ -100,8 +87,7 @@ export class ValidateController {
    * @isBoolean boolValue
    */
   @Get('parameter/boolean')
-  public booleanValidate(
-    @Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
+  public booleanValidate(@Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
     return Promise.resolve({
       boolValue,
     });
@@ -115,10 +101,7 @@ export class ValidateController {
    * @pattern patternValue ^[a-zA-Z]+$
    */
   @Get('parameter/string')
-  public stringValidate(
-    @Query() minLength: string,
-    @Query() maxLength: string,
-    @Query() patternValue: string): Promise<ValidateStringResponse> {
+  public stringValidate(@Query() minLength: string, @Query() maxLength: string, @Query() patternValue: string): Promise<ValidateStringResponse> {
     return Promise.resolve({
       maxLength,
       minLength,
@@ -130,7 +113,7 @@ export class ValidateController {
    * @isLong longValue Required long number.
    */
   @Get('parameter/customRequiredErrorMsg')
-  public customRequiredErrorMsg( @Query() longValue: number): Promise<void> {
+  public customRequiredErrorMsg(@Query() longValue: number): Promise<void> {
     return Promise.resolve();
   }
   /**
@@ -138,22 +121,22 @@ export class ValidateController {
    * @isLong longValue Invalid long number.
    */
   @Get('parameter/customInvalidErrorMsg')
-  public customInvalidErrorMsg( @Query() longValue: number): Promise<void> {
+  public customInvalidErrorMsg(@Query() longValue: number): Promise<void> {
     return Promise.resolve();
   }
 
   @Post('body')
-  public bodyValidate( @Body() body: ValidateModel): Promise<ValidateModel> {
+  public bodyValidate(@Body() body: ValidateModel): Promise<ValidateModel> {
     return Promise.resolve(body);
   }
 
   @Post('map')
   public async getNumberBodyRequest(@Body() map: ValidateMapStringToNumber): Promise<number[]> {
-    return Object.keys(map).map((key) => map[key]);
+    return Object.keys(map).map(key => map[key]);
   }
 
   @Post('mapAny')
   public async getDictionaryRequest(@Body() map: ValidateMapStringToAny): Promise<any[]> {
-    return Object.keys(map).map((key) => map[key]);
+    return Object.keys(map).map(key => map[key]);
   }
 }

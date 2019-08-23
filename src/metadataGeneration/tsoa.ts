@@ -40,11 +40,11 @@ export namespace Tsoa {
 
   export interface ArrayParameter extends Parameter {
     type: ArrayType;
-    collectionFormat?: 'csv' | 'multi'| 'pipes' | 'ssv' | 'tsv' ;
+    collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv';
   }
 
   export interface Validators {
-    [key: string]: { value?: any, errorMsg?: string };
+    [key: string]: { value?: any; errorMsg?: string };
   }
 
   export interface Security {
@@ -68,7 +68,27 @@ export namespace Tsoa {
     validators: Validators;
   }
 
-  export type TypeStringLiteral = 'string' | 'boolean' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'binary' | 'buffer' | 'byte' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject' | 'union' | 'intersection';
+  export type TypeStringLiteral =
+    | 'string'
+    | 'boolean'
+    | 'double'
+    | 'float'
+    | 'integer'
+    | 'long'
+    | 'enum'
+    | 'array'
+    | 'datetime'
+    | 'date'
+    | 'binary'
+    | 'buffer'
+    | 'byte'
+    | 'void'
+    | 'object'
+    | 'any'
+    | 'refEnum'
+    | 'refObject'
+    | 'union'
+    | 'intersection';
 
   export type RefTypeLiteral = 'refObject' | 'refEnum';
 
