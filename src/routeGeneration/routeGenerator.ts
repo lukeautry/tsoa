@@ -52,10 +52,9 @@ export class RouteGenerator {
   }
 
   private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
-    handlebars.registerHelper('json', (context: any) => {
-      return JSON.stringify(context);
-    });
-    const additionalPropsHelper = (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
+    handlebars.registerHelper('json', (context: any) => JSON.stringify(context));
+
+    handlebars.registerHelper('additionalPropsHelper', (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
       if (additionalProperties) {
         // Then the model for this type explicitly allows additional properties and thus we should assign that
         return JSON.stringify(additionalProperties);
@@ -75,8 +74,7 @@ export class RouteGenerator {
       } else {
         return assertNever(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
       }
-    };
-    handlebars.registerHelper('additionalPropsHelper', additionalPropsHelper);
+    });
 
     const routesTemplate = handlebars.compile(middlewareTemplate, { noEscape: true });
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
@@ -178,12 +176,12 @@ export class RouteGenerator {
 
   private buildParameterSchema(source: Tsoa.Parameter): TsoaRoute.ParameterSchema {
     const property = this.buildProperty(source.type);
-    const parameter = {
+    const parameter: TsoaRoute.ParameterSchema = {
       default: source.default,
       in: source.in,
       name: source.name,
       required: source.required ? true : undefined,
-    } as TsoaRoute.ParameterSchema;
+    };
     const parameterSchema = Object.assign(parameter, property);
 
     if (Object.keys(source.validators).length > 0) {

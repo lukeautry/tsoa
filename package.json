@@ -23,8 +23,8 @@
   },
   "lint-staged": {
     "*.{js,ts}": [
-        "prettier --write",
-        "git add"
+      "prettier --write",
+      "git add"
     ]
   },
   "scripts": {
@@ -41,7 +41,7 @@
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
-	"test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
+    "test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
     "pre-commit": "yarn lint && yarn test",
     "tsc": "tsc"
   },
