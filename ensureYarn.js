@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 function ensureYarn() {
-  if (process.env.npm_execpath.indexOf('yarn') === -1 || npmStyleLockFileExists()) {
+  if (npmStyleLockFileExists()) {
     console.log(
       red(
         'This project uses yarn for package management.\n' +
@@ -10,10 +10,24 @@ function ensureYarn() {
     );
     process.exit(1);
   }
+
+  if(!yarnStyleLockFileExists()){
+    console.log(
+      red(
+        'Could not find yarn.lock which we need to ensure proper versions of dependencies.\n' +
+        'Please run yarn install.'),
+      '\n'
+    );
+    process.exit(1);
+  }
 }
 
 function npmStyleLockFileExists(){
   return fs.existsSync('package-lock.json')
+}
+
+function yarnStyleLockFileExists(){
+  return fs.existsSync('yarn.lock')
 }
 
 // Color formatting libraries may not be available when this script is run.

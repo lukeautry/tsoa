@@ -546,7 +546,7 @@ export function expressAuthentication(request: express.Request, securityName: st
     }
 };
 
-import * as hapi from 'hapi';
+import * as hapi from '@hapi/hapi';
 export function hapiAuthentication(request: hapi.Request, securityName: string, scopes?: string[]): Promise<any> {
     // See above
 }
