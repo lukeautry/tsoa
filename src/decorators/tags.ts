@@ -1,5 +1,5 @@
 export function Tags(...values: string[]): Function {
-  return () => {
-    return;
-  };
+    return () => {
+        return;
+    };
 }

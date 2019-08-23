@@ -11,50 +11,50 @@ import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
 import { validateMutualConfigs } from '../utils/mutualConfigValidation';
 
 export interface RoutesConfigRelatedToSwagger {
-  controllerPathGlobs?: RoutesConfig['controllerPathGlobs'];
+    controllerPathGlobs?: RoutesConfig['controllerPathGlobs'];
 }
 
 export const generateSwaggerSpec = async (
-  swaggerConfig: SwaggerConfig,
-  routesConfigRelatedToSwagger: RoutesConfigRelatedToSwagger,
-  compilerOptions?: ts.CompilerOptions,
-  ignorePaths?: string[],
-  /**
-   * pass in cached metadata returned in a previous step to speed things up
-   */
-  metadata?: Tsoa.Metadata,
+    swaggerConfig: SwaggerConfig,
+    routesConfigRelatedToSwagger: RoutesConfigRelatedToSwagger,
+    compilerOptions?: ts.CompilerOptions,
+    ignorePaths?: string[],
+    /**
+     * pass in cached metadata returned in a previous step to speed things up
+     */
+    metadata?: Tsoa.Metadata,
 ) => {
-  // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
-  //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
-  //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
-  if (routesConfigRelatedToSwagger.controllerPathGlobs && !swaggerConfig.controllerPathGlobs) {
-    swaggerConfig.controllerPathGlobs = routesConfigRelatedToSwagger.controllerPathGlobs;
-  }
-  validateMutualConfigs(routesConfigRelatedToSwagger, swaggerConfig);
+    // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
+    //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
+    //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
+    if (routesConfigRelatedToSwagger.controllerPathGlobs && !swaggerConfig.controllerPathGlobs) {
+        swaggerConfig.controllerPathGlobs = routesConfigRelatedToSwagger.controllerPathGlobs;
+    }
+    validateMutualConfigs(routesConfigRelatedToSwagger, swaggerConfig);
 
-  if (!metadata) {
-    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs).Generate();
-  }
+    if (!metadata) {
+        metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs).Generate();
+    }
 
-  let spec: Swagger.Spec;
-  if (swaggerConfig.specVersion && swaggerConfig.specVersion === 3) {
-    spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
-  } else {
-    spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
-  }
+    let spec: Swagger.Spec;
+    if (swaggerConfig.specVersion && swaggerConfig.specVersion === 3) {
+        spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
+    } else {
+        spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
+    }
 
-  const exists = await fsExists(swaggerConfig.outputDirectory);
-  if (!exists) {
-    await fsMkDir(swaggerConfig.outputDirectory);
-  }
+    const exists = await fsExists(swaggerConfig.outputDirectory);
+    if (!exists) {
+        await fsMkDir(swaggerConfig.outputDirectory);
+    }
 
-  let data = JSON.stringify(spec, null, '\t');
-  if (swaggerConfig.yaml) {
-    data = YAML.stringify(JSON.parse(data), 10);
-  }
-  const ext = swaggerConfig.yaml ? 'yaml' : 'json';
+    let data = JSON.stringify(spec, null, '\t');
+    if (swaggerConfig.yaml) {
+        data = YAML.stringify(JSON.parse(data), 10);
+    }
+    const ext = swaggerConfig.yaml ? 'yaml' : 'json';
 
-  await fsWriteFile(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
+    await fsWriteFile(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
 
-  return metadata;
+    return metadata;
 };

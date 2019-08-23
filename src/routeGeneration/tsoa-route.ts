@@ -5,39 +5,39 @@ import { Tsoa } from './../metadataGeneration/tsoa';
  * @param test if this is undefined then you should interpret it as a "yes"
  */
 export function isDefaultForAdditionalPropertiesAllowed(test: TsoaRoute.ModelSchema['additionalProperties']): test is undefined {
-  return test === undefined;
+    return test === undefined;
 }
 
 export namespace TsoaRoute {
-  export interface Models {
-    [name: string]: ModelSchema;
-  }
+    export interface Models {
+        [name: string]: ModelSchema;
+    }
 
-  export interface ModelSchema {
-    enums?: string[];
-    properties?: { [name: string]: PropertySchema };
-    additionalProperties?: boolean | PropertySchema;
-  }
+    export interface ModelSchema {
+        enums?: string[];
+        properties?: { [name: string]: PropertySchema };
+        additionalProperties?: boolean | PropertySchema;
+    }
 
-  export type ValidatorSchema = Tsoa.Validators;
+    export type ValidatorSchema = Tsoa.Validators;
 
-  export interface PropertySchema {
-    dataType?: Tsoa.TypeStringLiteral;
-    ref?: string;
-    required?: boolean;
-    array?: PropertySchema;
-    enums?: string[];
-    subSchemas?: PropertySchema[];
-    validators?: ValidatorSchema;
-    default?: any;
-  }
+    export interface PropertySchema {
+        dataType?: Tsoa.TypeStringLiteral;
+        ref?: string;
+        required?: boolean;
+        array?: PropertySchema;
+        enums?: string[];
+        subSchemas?: PropertySchema[];
+        validators?: ValidatorSchema;
+        default?: any;
+    }
 
-  export interface ParameterSchema extends PropertySchema {
-    name: string;
-    in: string;
-  }
+    export interface ParameterSchema extends PropertySchema {
+        name: string;
+        in: string;
+    }
 
-  export interface Security {
-    [key: string]: string[];
-  }
+    export interface Security {
+        [key: string]: string[];
+    }
 }
