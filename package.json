@@ -23,19 +23,19 @@
   },
   "scripts": {
     "start": "tsc -w",
-    "build": "npm run clean && npm run tsc && npm run copy-templates && npm run copy-types",
+    "build": "yarn clean && yarn tsc && yarn copy-templates && yarn copy-types",
     "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist && rimraf tests/fixtures/*/routes.ts",
     "lint": "tslint --exclude ./node_modules/** ./src/**/*.ts ./tests/**/*.ts",
     "format": "tsfmt -r",
-    "prepare": "npm run build",
-    "deploy": "npm version patch -m \"Release v%s\" && npm publish",
-    "preversion": "npm test",
+    "prepare": "yarn build",
+    "deploy": "yarn version patch -m \"Release v%s\" && yarn publish",
+    "preversion": "yarn test",
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "test": "tsc -p ./tests/tsconfig.json --noEmit && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
-    "pre-commit": "npm run test",
+    "pre-commit": "node ensureYarn.js && yarn test",
     "tsc": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
@@ -101,6 +101,7 @@
     "tsoa": "dist/cli.js"
   },
   "engines": {
+    "yarn": ">=1.17.3",
     "node": ">=6.0.0"
   },
   "engineStrict": true
