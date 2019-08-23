@@ -29,7 +29,7 @@ export class RouteGenerator {
     vscode: true,
   };
 
-  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) { }
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {}
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
@@ -105,9 +105,7 @@ export class RouteGenerator {
             });
             const normalisedMethodPath = pathTransformer(normalisePath(method.path, '/'));
 
-            const normalisedFullPath = normalisePath(
-              `${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false,
-            );
+            const normalisedFullPath = normalisePath(`${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
 
             return {
               fullPath: normalisedFullPath,
@@ -127,9 +125,7 @@ export class RouteGenerator {
       iocModule,
       minimalSwaggerConfig: this.minimalSwaggerConfig,
       models: this.buildModels(),
-      useSecurity: this.metadata.controllers.some(
-        controller => controller.methods.some(method => !!method.security.length),
-      ),
+      useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
     });
   }
 

@@ -1,5 +1,5 @@
-import 'hapi';
-declare module 'hapi' {
+import '@hapi/hapi';
+declare module '@hapi/hapi' {
   interface Request {
     user?: any;
   }

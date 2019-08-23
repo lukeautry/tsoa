@@ -1,14 +1,4 @@
-import {
-  Body,
-  BodyProp,
-  Get,
-  Header,
-  Path,
-  Post,
-  Query,
-  Request,
-  Route,
-} from '../../../src';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route } from '../../../src';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -164,7 +154,8 @@ export class ParameterController {
     @BodyProp('age') age: number,
     @BodyProp('weight') weight: number,
     @BodyProp('human') human: boolean,
-    @BodyProp('gender') gender: Gender): Promise<ParameterTestModel> {
+    @BodyProp('gender') gender: Gender,
+  ): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age,
       firstname,
@@ -232,5 +223,4 @@ export class ParameterController {
   public async implicitDate(@Query() date = new Date(2018, 1, 15)): Promise<void> {
     //
   }
-
 }

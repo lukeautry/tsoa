@@ -13,7 +13,9 @@ describe('GET route generation', () => {
 
   const getValidatedGetOperation = (actionRoute: string) => {
     const path = verifyPath(actionRoute);
-    if (!path.get) { throw new Error('No get operation.'); }
+    if (!path.get) {
+      throw new Error('No get operation.');
+    }
 
     return path.get;
   };
@@ -22,17 +24,23 @@ describe('GET route generation', () => {
     const get = getValidatedGetOperation(route);
 
     const responses = get.responses;
-    if (!responses) { throw new Error('No responses.'); }
+    if (!responses) {
+      throw new Error('No responses.');
+    }
 
     const successResponse = responses['200'];
-    if (!successResponse) { throw new Error('No success response.'); }
+    if (!successResponse) {
+      throw new Error('No success response.');
+    }
 
     return successResponse;
   };
 
   const getValidatedParameters = (actionRoute: string) => {
     const get = getValidatedGetOperation(actionRoute);
-    if (!get.parameters) { throw new Error('No operation parameters.'); }
+    if (!get.parameters) {
+      throw new Error('No operation parameters.');
+    }
 
     return get.parameters as any;
   };
@@ -45,7 +53,9 @@ describe('GET route generation', () => {
     const parameters = getValidatedParameters(`${baseRoute}/DateParam`);
 
     const parameter = parameters[0];
-    if (!parameter) { throw new Error('Should have one parameter.'); }
+    if (!parameter) {
+      throw new Error('Should have one parameter.');
+    }
 
     expect(parameter.type).to.equal('string');
     expect(parameter.format).to.equal('date-time');
@@ -64,7 +74,7 @@ describe('GET route generation', () => {
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultOptions()).GetSpec();
-    VerifyPath(pathlessSpec, '/Current', (path) => path.get, false);
+    VerifyPath(pathlessSpec, '/Current', path => path.get, false);
   });
 
   it('should generate a path for a GET route with a path argument', () => {
@@ -117,22 +127,36 @@ describe('GET route generation', () => {
     const actionRoute = `${baseRoute}/UnionTypeResponse`;
 
     const paths = spec.paths;
-    if (!paths) { throw new Error('No paths.'); }
+    if (!paths) {
+      throw new Error('No paths.');
+    }
 
     const path = paths[actionRoute];
-    if (!path) { throw new Error('No path.'); }
+    if (!path) {
+      throw new Error('No path.');
+    }
 
     const getOperation = path.get;
-    if (!getOperation) { throw new Error('No get operation.'); }
+    if (!getOperation) {
+      throw new Error('No get operation.');
+    }
 
     const responses = getOperation.responses;
-    if (!responses) { throw new Error('No responses.'); }
+    if (!responses) {
+      throw new Error('No responses.');
+    }
 
     const successResponse = responses['200'];
-    if (!successResponse) { throw new Error('No success response.'); }
+    if (!successResponse) {
+      throw new Error('No success response.');
+    }
 
-    if (!successResponse.schema) { throw new Error('No response schema.'); }
-    if (!successResponse.schema.type) { throw new Error('No response schema type.'); }
+    if (!successResponse.schema) {
+      throw new Error('No response schema.');
+    }
+    if (!successResponse.schema.type) {
+      throw new Error('No response schema type.');
+    }
 
     expect(successResponse.schema.type).to.equal('object');
   });
@@ -141,12 +165,14 @@ describe('GET route generation', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultOptions()).GetSpec();
-    }).to.throw('@Query(\'myModel\') Can\'t support \'refObject\' type. \n in \'InvalidGetTestController.getModelWithComplex\'');
+    }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });
 
   it('should generate a path description from jsdoc comment', () => {
     const get = getValidatedGetOperation(baseRoute);
-    if (!get.description) { throw new Error('No description.'); }
+    if (!get.description) {
+      throw new Error('No description.');
+    }
 
     expect(get.description).to.contain('This is a description of the getModel method');
   });
@@ -170,10 +196,14 @@ describe('GET route generation', () => {
 
   it('should generate example from example decorator', () => {
     const response = getValidatedSuccessResponse(baseRoute);
-    if (!response.examples) { throw new Error('No examples.'); }
+    if (!response.examples) {
+      throw new Error('No examples.');
+    }
 
     const jsonExample = response.examples['application/json'] as any;
-    if (!jsonExample) { throw new Error('No json example.'); }
+    if (!jsonExample) {
+      throw new Error('No json example.');
+    }
 
     expect(response.description).to.equal('Returns TestModel');
     expect(jsonExample.id).to.equal(1);
@@ -199,6 +229,6 @@ describe('GET route generation', () => {
   }
 
   function verifyPath(route: string, isCollection?: boolean) {
-    return VerifyPath(spec, route, (path) => path.get, isCollection);
+    return VerifyPath(spec, route, path => path.get, isCollection);
   }
 });

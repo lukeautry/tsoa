@@ -17,17 +17,10 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration
-  | ts.ClassDeclaration
-  | ts.TypeAliasDeclaration;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
 
 export class TypeResolver {
-  constructor(
-    private readonly typeNode: ts.TypeNode,
-    private readonly current: MetadataGenerator,
-    private readonly parentNode?: ts.Node,
-    private readonly extractEnum = true,
-  ) { }
+  constructor(private readonly typeNode: ts.TypeNode, private readonly current: MetadataGenerator, private readonly parentNode?: ts.Node, private readonly extractEnum = true) {}
 
   public static clearCache() {
     Object.keys(localReferenceTypeCache).forEach(key => {
@@ -53,22 +46,24 @@ export class TypeResolver {
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
-      const supportType = this.typeNode.types.every((type) => ts.isLiteralTypeNode(type));
+      const supportType = this.typeNode.types.every(type => ts.isLiteralTypeNode(type));
 
       if (supportType) {
         return {
           dataType: 'enum',
-          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map((type) => {
+          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => {
             switch (type.literal.kind) {
-              case ts.SyntaxKind.TrueKeyword: return 'true';
-              case ts.SyntaxKind.FalseKeyword: return 'false';
-              default: return String((type.literal as ts.LiteralExpression).text);
+              case ts.SyntaxKind.TrueKeyword:
+                return 'true';
+              case ts.SyntaxKind.FalseKeyword:
+                return 'false';
+              default:
+                return String((type.literal as ts.LiteralExpression).text);
             }
           }),
         } as Tsoa.EnumerateType;
-
       } else {
-        const types = this.typeNode.types.map((type) => {
+        const types = this.typeNode.types.map(type => {
           return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
         });
 
@@ -80,7 +75,7 @@ export class TypeResolver {
     }
 
     if (ts.isIntersectionTypeNode(this.typeNode)) {
-      const types = this.typeNode.types.map((type) => {
+      const types = this.typeNode.types.map(type => {
         return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
       });
 
@@ -134,11 +129,15 @@ export class TypeResolver {
 
     if (!this.extractEnum) {
       const enumType = this.getEnumerateType(typeReference.typeName, this.extractEnum);
-      if (enumType) { return enumType; }
+      if (enumType) {
+        return enumType;
+      }
     }
 
     const literalType = this.getLiteralType(typeReference.typeName);
-    if (literalType) { return literalType; }
+    if (literalType) {
+      return literalType;
+    }
 
     let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
@@ -157,9 +156,11 @@ export class TypeResolver {
       // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
       const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
       if (symbolsRegex.test(referenceType.refName)) {
-        throw new Error(`Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
-          `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
-          `"ref values must be RFC3986-compliant percent-encoded URIs."`);
+        throw new Error(
+          `Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
+            `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
+            `"ref values must be RFC3986-compliant percent-encoded URIs."`,
+        );
       }
     }
 
@@ -168,15 +169,17 @@ export class TypeResolver {
 
   private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.Type | undefined {
     const primitiveType = syntaxKindMap[typeNode.kind];
-    if (!primitiveType) { return; }
+    if (!primitiveType) {
+      return;
+    }
 
     if (primitiveType === 'number') {
       if (!parentNode) {
         return { dataType: 'double' };
       }
 
-      const tags = getJSDocTagNames(parentNode).filter((name) => {
-        return ['isInt', 'isLong', 'isFloat', 'isDouble'].some((m) => m === name);
+      const tags = getJSDocTagNames(parentNode).filter(name => {
+        return ['isInt', 'isLong', 'isFloat', 'isDouble'].some(m => m === name);
       });
       if (tags.length === 0) {
         return { dataType: 'double' };
@@ -202,8 +205,8 @@ export class TypeResolver {
     if (!parentNode) {
       return { dataType: 'datetime' };
     }
-    const tags = getJSDocTagNames(parentNode).filter((name) => {
-      return ['isDate', 'isDateTime'].some((m) => m === name);
+    const tags = getJSDocTagNames(parentNode).filter(name => {
+      return ['isDate', 'isDateTime'].some(m => m === name);
     });
 
     if (tags.length === 0) {
@@ -221,11 +224,11 @@ export class TypeResolver {
 
   private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.Type | undefined {
     const enumName = (typeName as ts.Identifier).text;
-    const enumNodes = this.current.nodes
-      .filter((node) => node.kind === ts.SyntaxKind.EnumDeclaration)
-      .filter((node) => (node as any).name.text === enumName);
+    const enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
 
-    if (!enumNodes.length) { return; }
+    if (!enumNodes.length) {
+      return;
+    }
     if (enumNodes.length > 1) {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${enumName}; please make enum names unique.`);
     }
@@ -266,14 +269,16 @@ export class TypeResolver {
   private getLiteralType(typeName: ts.EntityName): Tsoa.Type | undefined {
     const literalName = (typeName as ts.Identifier).text;
     const literalTypes = this.current.nodes
-      .filter((node) => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
-      .filter((node) => {
+      .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
+      .filter(node => {
         const innerType = (node as any).type;
         return innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types;
       })
-      .filter((node) => (node as any).name.text === literalName);
+      .filter(node => (node as any).name.text === literalName);
 
-    if (!literalTypes.length) { return; }
+    if (!literalTypes.length) {
+      return;
+    }
     if (literalTypes.length > 1) {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${literalName}; please make enum names unique.`);
     }
@@ -286,7 +291,7 @@ export class TypeResolver {
 
     return {
       dataType: 'enum',
-      enums: unionTypes.map((unionNode) => unionNode.literal.text as string),
+      enums: unionTypes.map(unionNode => unionNode.literal.text as string),
     } as Tsoa.EnumerateType;
   }
 
@@ -350,19 +355,24 @@ export class TypeResolver {
   }
 
   private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
-    if (!genericTypes || !genericTypes.length) { return typeName; }
+    if (!genericTypes || !genericTypes.length) {
+      return typeName;
+    }
 
-    const resolvedName = genericTypes.reduce((acc, generic) => {
-      if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-        const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
-        acc.push(typeNameSection);
-        return acc;
-      } else {
-        const typeNameSection = this.getAnyTypeName(generic);
-        acc.push(typeNameSection);
-        return acc;
-      }
-    }, [] as string[]);
+    const resolvedName = genericTypes.reduce(
+      (acc, generic) => {
+        if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+          const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+          acc.push(typeNameSection);
+          return acc;
+        } else {
+          const typeNameSection = this.getAnyTypeName(generic);
+          acc.push(typeNameSection);
+          return acc;
+        }
+      },
+      [] as string[],
+    );
 
     const finalName = typeName + resolvedName.join('');
 
@@ -397,7 +407,6 @@ export class TypeResolver {
       console.error(e);
       return typeNode.toString();
     }
-
   }
 
   private createCircularDependencyResolver(refName: string) {
@@ -406,9 +415,11 @@ export class TypeResolver {
       refName,
     } as Tsoa.ReferenceType;
 
-    this.current.OnFinish((referenceTypes) => {
+    this.current.OnFinish(referenceTypes => {
       const realReferenceType = referenceTypes[refName];
-      if (!realReferenceType) { return; }
+      if (!realReferenceType) {
+        return;
+      }
       referenceType.description = realReferenceType.description;
       referenceType.properties = realReferenceType.properties;
       referenceType.dataType = realReferenceType.dataType;
@@ -425,7 +436,8 @@ export class TypeResolver {
       case ts.SyntaxKind.TypeAliasDeclaration:
       case ts.SyntaxKind.EnumDeclaration:
         return true;
-      default: return false;
+      default:
+        return false;
     }
   }
 
@@ -438,18 +450,15 @@ export class TypeResolver {
 
   private resolveModelTypeScope(leftmost: ts.EntityName, statements: any): any[] {
     while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
-      const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier
-        ? (leftmost as ts.Identifier).text
-        : (leftmost as ts.QualifiedName).right.text;
-      const moduleDeclarations = statements
-        .filter((node) => {
-          if (node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) {
-            return false;
-          }
+      const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier ? (leftmost as ts.Identifier).text : (leftmost as ts.QualifiedName).right.text;
+      const moduleDeclarations = statements.filter(node => {
+        if (node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) {
+          return false;
+        }
 
-          const moduleDeclaration = node as ts.ModuleDeclaration;
-          return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
-        }) as ts.ModuleDeclaration[];
+        const moduleDeclaration = node as ts.ModuleDeclaration;
+        return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
+      }) as ts.ModuleDeclaration[];
 
       if (!moduleDeclarations.length) {
         throw new GenerateMetadataError(`No matching module declarations found for ${leftmostName}.`);
@@ -474,28 +483,33 @@ export class TypeResolver {
     const leftmostIdentifier = this.resolveLeftmostIdentifier(type);
     const statements: any[] = this.resolveModelTypeScope(leftmostIdentifier, this.current.nodes);
 
-    const typeName = type.kind === ts.SyntaxKind.Identifier
-      ? (type as ts.Identifier).text
-      : (type as ts.QualifiedName).right.text;
+    const typeName = type.kind === ts.SyntaxKind.Identifier ? (type as ts.Identifier).text : (type as ts.QualifiedName).right.text;
 
-    let modelTypes = statements
-      .filter((node) => {
-        if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
-          return false;
-        }
+    let modelTypes = statements.filter(node => {
+      if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
+        return false;
+      }
 
-        const modelTypeDeclaration = node as UsableDeclaration;
-        return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
-      }) as UsableDeclaration[];
+      const modelTypeDeclaration = node as UsableDeclaration;
+      return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
+    }) as UsableDeclaration[];
 
     if (!modelTypes.length) {
-      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}. If ${typeName} comes from a dependency, please create an interface in your own code that has the same structure. Tsoa can not utilize interfaces from external dependencies. Read more at https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD`);
+      throw new GenerateMetadataError(
+        `No matching model found for referenced type ${typeName}. If ${typeName} comes from a dependency, please create an interface in your own code that has the same structure. Tsoa can not utilize interfaces from external dependencies. Read more at https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD`,
+      );
     }
 
     if (modelTypes.length > 1) {
       // remove types that are from typescript e.g. 'Account'
-      modelTypes = modelTypes.filter((modelType) => {
-        if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
+      modelTypes = modelTypes.filter(modelType => {
+        if (
+          modelType
+            .getSourceFile()
+            .fileName.replace(/\\/g, '/')
+            .toLowerCase()
+            .indexOf('node_modules/typescript') > -1
+        ) {
           return false;
         }
 
@@ -553,7 +567,6 @@ export class TypeResolver {
 
           // aType.kind will always be a TypeReference when the property of Interface<T> is of type T
           if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
-
             // The type definitions are conviently located on the object which allow us to map -> to the genericTypes
             const typeParams = map(node.typeParameters, (typeParam: ts.TypeParameterDeclaration) => {
               return typeParam.name.text;
@@ -597,7 +610,7 @@ export class TypeResolver {
       if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
         const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
 
-        intersectionTypeNode.types.forEach((type) => {
+        intersectionTypeNode.types.forEach(type => {
           if (type.kind === ts.SyntaxKind.TypeReference) {
             const typeReferenceNode = type as ts.TypeReferenceNode;
             const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
@@ -623,54 +636,48 @@ export class TypeResolver {
         const ignore = isIgnored(member);
         return !ignore;
       })
-      .filter((member) => member.kind === ts.SyntaxKind.PropertyDeclaration)
-      .filter((member) => this.hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
+      .filter(member => member.kind === ts.SyntaxKind.PropertyDeclaration)
+      .filter(member => this.hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
 
-    const classConstructor = classDeclaration
-      .members
-      .find((member) => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
+    const classConstructor = classDeclaration.members.find(member => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
 
     if (classConstructor && classConstructor.parameters) {
-      const constructorProperties = classConstructor.parameters
-        .filter((parameter) => this.isAccessibleParameter(parameter));
+      const constructorProperties = classConstructor.parameters.filter(parameter => this.isAccessibleParameter(parameter));
 
       properties.push(...constructorProperties);
     }
 
-    return properties
-      .map((property) => {
-        const identifier = property.name as ts.Identifier;
-        let typeNode = property.type;
+    return properties.map(property => {
+      const identifier = property.name as ts.Identifier;
+      let typeNode = property.type;
 
-        if (!typeNode) {
-          const tsType = this.current.typeChecker.getTypeAtLocation(property);
-          typeNode = this.current.typeChecker.typeToTypeNode(tsType);
-        }
+      if (!typeNode) {
+        const tsType = this.current.typeChecker.getTypeAtLocation(property);
+        typeNode = this.current.typeChecker.typeToTypeNode(tsType);
+      }
 
-        if (!typeNode) {
-          throw new GenerateMetadataError(`No valid type found for property declaration.`);
-        }
+      if (!typeNode) {
+        throw new GenerateMetadataError(`No valid type found for property declaration.`);
+      }
 
-        const type = new TypeResolver(typeNode, this.current, property).resolve();
+      const type = new TypeResolver(typeNode, this.current, property).resolve();
 
-        return {
-          default: getInitializerValue(property.initializer, type),
-          description: this.getNodeDescription(property),
-          format: this.getNodeFormat(property),
-          name: identifier.text,
-          required: !property.questionToken && !property.initializer,
-          type,
-          validators: getPropertyValidators(property as ts.PropertyDeclaration),
-        } as Tsoa.Property;
-      });
+      return {
+        default: getInitializerValue(property.initializer, type),
+        description: this.getNodeDescription(property),
+        format: this.getNodeFormat(property),
+        name: identifier.text,
+        required: !property.questionToken && !property.initializer,
+        type,
+        validators: getPropertyValidators(property as ts.PropertyDeclaration),
+      } as Tsoa.Property;
+    });
   }
 
   private getModelAdditionalProperties(node: UsableDeclaration) {
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
       const interfaceDeclaration = node as ts.InterfaceDeclaration;
-      const indexMember = interfaceDeclaration
-        .members
-        .find((member) => member.kind === ts.SyntaxKind.IndexSignature);
+      const indexMember = interfaceDeclaration.members.find(member => member.kind === ts.SyntaxKind.IndexSignature);
       if (!indexMember) {
         return undefined;
       }
@@ -697,14 +704,16 @@ export class TypeResolver {
       return properties;
     }
 
-    heritageClauses.forEach((clause) => {
-      if (!clause.types) { return; }
+    heritageClauses.forEach(clause => {
+      if (!clause.types) {
+        return;
+      }
 
-      clause.types.forEach((t) => {
+      clause.types.forEach(t => {
         const baseEntityName = t.expression as ts.EntityName;
         const referenceType = this.getReferenceType(baseEntityName);
         if (referenceType.properties) {
-          referenceType.properties.forEach((property) => properties.push(property));
+          referenceType.properties.forEach(property => properties.push(property));
         }
       });
     });
@@ -713,9 +722,12 @@ export class TypeResolver {
   }
 
   private hasPublicModifier(node: ts.Node) {
-    return !node.modifiers || node.modifiers.every((modifier) => {
-      return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
-    });
+    return (
+      !node.modifiers ||
+      node.modifiers.every(modifier => {
+        return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
+      })
+    );
   }
 
   private isAccessibleParameter(node: ts.Node) {
@@ -753,7 +765,9 @@ export class TypeResolver {
     }
 
     const comments = symbol.getDocumentationComment(this.current.typeChecker);
-    if (comments.length) { return ts.displayPartsToString(comments); }
+    if (comments.length) {
+      return ts.displayPartsToString(comments);
+    }
 
     return undefined;
   }

@@ -45,9 +45,15 @@ export class SpecGenerator3 extends SpecGenerator {
     const info: Swagger.Info = {
       title: this.config.name || '',
     };
-    if (this.config.version) { info.version = this.config.version; }
-    if (this.config.description) { info.description = this.config.description; }
-    if (this.config.license) { info.license = { name: this.config.license }; }
+    if (this.config.version) {
+      info.version = this.config.version;
+    }
+    if (this.config.description) {
+      info.description = this.config.description;
+    }
+    if (this.config.license) {
+      info.license = { name: this.config.license };
+    }
     return info;
   }
 
@@ -88,9 +94,11 @@ export class SpecGenerator3 extends SpecGenerator {
     const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
     const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
     const host = this.config.host || 'localhost:3000';
-    return [{
-      url: `${scheme}://${host}${basePath}`,
-    } as Swagger.Server];
+    return [
+      {
+        url: `${scheme}://${host}${basePath}`,
+      } as Swagger.Server,
+    ];
   }
 
   private buildSchema() {
@@ -109,11 +117,11 @@ export class SpecGenerator3 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-            schema[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+          schema[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
         } else {
-            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
-            //      ...we need to make a decision
-            schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
+          // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+          //      ...we need to make a decision
+          schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
         if (referenceType.example) {
@@ -140,19 +148,21 @@ export class SpecGenerator3 extends SpecGenerator {
     this.metadata.controllers.forEach(controller => {
       const normalisedControllerPath = normalisePath(controller.path, '/');
       // construct documentation using all methods except @Hidden
-      controller.methods.filter(method => !method.isHidden).forEach(method => {
-        const normalisedMethodPath = normalisePath(method.path, '/');
-        const path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
-        paths[path] = paths[path] || {};
-        this.buildMethod(controller.name, method, paths[path]);
-      });
+      controller.methods
+        .filter(method => !method.isHidden)
+        .forEach(method => {
+          const normalisedMethodPath = normalisePath(method.path, '/');
+          const path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
+          paths[path] = paths[path] || {};
+          this.buildMethod(controller.name, method, paths[path]);
+        });
     });
 
     return paths;
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation3 = pathObject[method.method] = this.buildOperation(controllerName, method);
+    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -201,7 +211,7 @@ export class SpecGenerator3 extends SpecGenerator {
       }
       if (res.examples) {
         /* tslint:disable:no-string-literal */
-        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples}};
+        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples } };
       }
     });
 
@@ -228,7 +238,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     return {
       content: {
-        'application/json': {schema} as Swagger.MediaType,
+        'application/json': { schema } as Swagger.MediaType,
       },
     } as Swagger.RequestBody;
   }
@@ -247,7 +257,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     const parameterType = this.getSwaggerType(source.type);
     if (parameterType.format) {
-        parameter.schema.format = this.throwIfNotDataFormat(parameterType.format);
+      parameter.schema.format = this.throwIfNotDataFormat(parameterType.format);
     }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
@@ -318,10 +328,10 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    return { oneOf: type.types.map(x => this.getSwaggerType(x))};
+    return { oneOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
-    return { allOf: type.types.map(x => this.getSwaggerType(x))};
+    return { allOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 }

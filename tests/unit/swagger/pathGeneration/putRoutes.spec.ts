@@ -12,8 +12,12 @@ describe('PUT route generation', () => {
 
   const getValidatedParameters = (actionRoute: string) => {
     const path = verifyPath(actionRoute);
-    if (!path.put) { throw new Error('No patch operation.'); }
-    if (!path.put.parameters) { throw new Error('No parameters'); }
+    if (!path.put) {
+      throw new Error('No patch operation.');
+    }
+    if (!path.put.parameters) {
+      throw new Error('No parameters');
+    }
 
     return path.put.parameters as any;
   };

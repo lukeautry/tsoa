@@ -1,9 +1,7 @@
+import * as hapi from '@hapi/hapi';
 import * as express from 'express';
-import * as hapi from 'hapi';
 import * as koa from 'koa';
-import {
-  Get, Request, Response, Route, Security,
-} from '../../../src';
+import { Get, Request, Response, Route, Security } from '../../../src';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 @Route('SecurityTest')

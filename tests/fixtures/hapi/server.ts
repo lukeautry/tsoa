@@ -1,4 +1,4 @@
-import { Server } from 'hapi';
+import { Server } from '@hapi/hapi';
 import '../controllers/rootController';
 
 import '../controllers/deleteController';
@@ -17,11 +17,12 @@ import { RegisterRoutes } from './routes';
 
 export const server = new Server({
   port: 3003,
- });
+});
 
 RegisterRoutes(server);
 
-server.start()
-  .catch(err => {
-    if (err) { throw err; }
-  });
+server.start().catch(err => {
+  if (err) {
+    throw err;
+  }
+});

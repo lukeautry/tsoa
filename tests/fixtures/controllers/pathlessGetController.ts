@@ -1,6 +1,4 @@
-import {
-  Get, Route,
-} from '../../../src';
+import { Get, Route } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

@@ -22,16 +22,26 @@ export class SpecGenerator2 extends SpecGenerator {
       swagger: '2.0',
     };
 
-    spec.securityDefinitions = this.config.securityDefinitions
-      ? this.config.securityDefinitions
-      : {};
+    spec.securityDefinitions = this.config.securityDefinitions ? this.config.securityDefinitions : {};
 
-    if (this.config.name) { spec.info.title = this.config.name; }
-    if (this.config.version) { spec.info.version = this.config.version; }
-    if (this.config.host) { spec.host = this.config.host; }
-    if (this.config.description) { spec.info.description = this.config.description; }
-    if (this.config.tags) { spec.tags = this.config.tags; }
-    if (this.config.license) { spec.info.license = { name: this.config.license }; }
+    if (this.config.name) {
+      spec.info.title = this.config.name;
+    }
+    if (this.config.version) {
+      spec.info.version = this.config.version;
+    }
+    if (this.config.host) {
+      spec.host = this.config.host;
+    }
+    if (this.config.description) {
+      spec.info.description = this.config.description;
+    }
+    if (this.config.tags) {
+      spec.tags = this.config.tags;
+    }
+    if (this.config.license) {
+      spec.info.license = { name: this.config.license };
+    }
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {
@@ -41,7 +51,9 @@ export class SpecGenerator2 extends SpecGenerator {
 
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
     }
-    if (this.config.schemes) { spec.schemes = this.config.schemes; }
+    if (this.config.schemes) {
+      spec.schemes = this.config.schemes;
+    }
 
     return spec;
   }
@@ -62,11 +74,11 @@ export class SpecGenerator2 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-            definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
         } else {
-            // Since additionalProperties was not explicitly set in the TypeScript interface for this model
-            //      ...we need to make a decision
-            definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
+          // Since additionalProperties was not explicitly set in the TypeScript interface for this model
+          //      ...we need to make a decision
+          definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
         if (referenceType.example) {
@@ -93,19 +105,21 @@ export class SpecGenerator2 extends SpecGenerator {
     this.metadata.controllers.forEach(controller => {
       const normalisedControllerPath = normalisePath(controller.path, '/');
       // construct documentation using all methods except @Hidden
-      controller.methods.filter(method => !method.isHidden).forEach(method => {
-        const normalisedMethodPath = normalisePath(method.path, '/');
-        const path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
-        paths[path] = paths[path] || {};
-        this.buildMethod(controller.name, method, paths[path]);
-      });
+      controller.methods
+        .filter(method => !method.isHidden)
+        .forEach(method => {
+          const normalisedMethodPath = normalisePath(method.path, '/');
+          const path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
+          paths[path] = paths[path] || {};
+          this.buildMethod(controller.name, method, paths[path]);
+        });
     });
 
     return paths;
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation = pathObject[method.method] = this.buildOperation(controllerName, method);
+    const pathMethod: Swagger.Operation = (pathObject[method.method] = this.buildOperation(controllerName, method));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -174,7 +188,9 @@ export class SpecGenerator2 extends SpecGenerator {
         }
       });
 
-    if (!Object.keys(properties).length) { return; }
+    if (!Object.keys(properties).length) {
+      return;
+    }
 
     const parameter = {
       in: 'body',
@@ -202,7 +218,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     const parameterType = this.getSwaggerType(source.type);
     if (parameterType.format) {
-        parameter.format = this.throwIfNotDataFormat(parameterType.format);
+      parameter.format = this.throwIfNotDataFormat(parameterType.format);
     }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
@@ -237,7 +253,7 @@ export class SpecGenerator2 extends SpecGenerator {
         }
       } else {
         if (parameterType.type) {
-            parameter.type = this.throwIfNotDataType(parameterType.type);
+          parameter.type = this.throwIfNotDataType(parameterType.type);
         }
         parameter.items = parameterType.items;
         parameter.enum = parameterType.enum;
@@ -284,19 +300,17 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    // tslint:disable-next-line: no-console
-    process.env.NODE_ENV !== 'tsoa_test' && console.warn(
-      'Swagger 2.0 does not support union types beyond string literals.\n' +
-      'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.',
-    );
+    if (process.env.NODE_ENV !== 'tsoa_test') {
+      // tslint:disable-next-line: no-console
+      console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+    }
     return { type: 'object' };
   }
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
-    // tslint:disable-next-line: no-console
-    process.env.NODE_ENV !== 'tsoa_test' && console.warn(
-      'Swagger 2.0 does not support this kind of intersection types.\n' +
-      'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.',
-    );
+    if (process.env.NODE_ENV !== 'tsoa_test') {
+      // tslint:disable-next-line: no-console
+      console.warn('Swagger 2.0 does not support this kind of intersection types.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+    }
     return { type: 'object' };
   }
 

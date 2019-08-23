@@ -10,13 +10,17 @@ describe('Paths normalisation', () => {
     expect(normalisePath(` ${path} `)).to.equal(path);
     expect(normalisePath(` / ${path} / `)).to.equal(path);
     expect(normalisePath(` /\\${path}\\/ `)).to.equal(path);
-    expect(normalisePath(` /
+    expect(
+      normalisePath(` /
                                   /\\${path}\\/ /
-                                  / `)).to.equal(path);
+                                  / `),
+    ).to.equal(path);
 
-    expect(normalisePath(` /
+    expect(
+      normalisePath(` /
                                   /\\\\/ /
-                                  / `)).to.equal('');
+                                  / `),
+    ).to.equal('');
   });
 
   it('should replace all redundant symbols in the middle of the path with single "/"', () => {
