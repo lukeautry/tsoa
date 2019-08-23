@@ -135,7 +135,7 @@ export interface RoutesConfig {
   /**
    * Routes filename; the filename of the generated route file ('routes.ts' by default)
    */
-  routesFileName: string;
+  routesFileName?: string;
 
   /**
    * The entry point to your API
