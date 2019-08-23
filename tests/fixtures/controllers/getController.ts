@@ -1,6 +1,6 @@
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
 import '../duplicateTestModel';
-import { GenericModel, TestClassModel, TestModel, TestSubModel } from '../testModel';
+import { GenericTypeModel, TestClassModel, TestModel, TestSubModel } from '../testModel';
 import { ModelService } from './../services/modelService';
 
 @Route('GetTest')
@@ -146,28 +146,28 @@ export class GetTestController extends Controller {
   }
 
   @Get('GenericModel')
-  public async getGenericModel(): Promise<GenericModel<TestModel>> {
+  public async getGenericModel(): Promise<GenericTypeModel<TestModel>> {
     return {
       result: new ModelService().getModel(),
     };
   }
 
   @Get('GenericModelArray')
-  public async getGenericModelArray(): Promise<GenericModel<TestModel[]>> {
+  public async getGenericModelArray(): Promise<GenericTypeModel<TestModel[]>> {
     return {
       result: [new ModelService().getModel()],
     };
   }
 
   @Get('GenericPrimitive')
-  public async getGenericPrimitive(): Promise<GenericModel<string>> {
+  public async getGenericPrimitive(): Promise<GenericTypeModel<string>> {
     return {
       result: new ModelService().getModel().stringValue,
     };
   }
 
   @Get('GenericPrimitiveArray')
-  public async getGenericPrimitiveArray(): Promise<GenericModel<string[]>> {
+  public async getGenericPrimitiveArray(): Promise<GenericTypeModel<string[]>> {
     return {
       result: new ModelService().getModel().stringArray,
     };

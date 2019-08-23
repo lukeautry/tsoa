@@ -139,9 +139,14 @@ export class TypeResolver {
       return literalType;
     }
 
-    const possibleTypeAlias = this.getModelTypeDeclaration(typeReference.typeName);
-    if (ts.isTypeAliasDeclaration(possibleTypeAlias)) {
-      return new TypeResolver(possibleTypeAlias.type, this.current, this.typeNode, this.extractEnum).resolve();
+    const typeAlias = this.getModelTypeDeclaration(typeReference.typeName);
+    if (ts.isTypeAliasDeclaration(typeAlias)) {
+      if (typeAlias.typeParameters && ts.isTypeReferenceNode(typeAlias.type)) {
+        // A typeAlias is the type of the reference. The reference holds the arguments.
+        // We need to capture this and pass it on.
+        typeAlias.type.typeArguments = typeReference.typeArguments;
+      }
+      return new TypeResolver(typeAlias.type, this.current, this.typeNode, this.extractEnum).resolve();
     }
 
     let referenceType: Tsoa.ReferenceType;

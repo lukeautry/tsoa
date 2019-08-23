@@ -5,8 +5,8 @@ import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
 import {
   Gender,
-  GenericModel,
   GenericRequest,
+  GenericTypeModel,
   ParameterTestModel,
   TestClassModel,
   TestModel,
@@ -848,28 +848,28 @@ describe('Express Server', () => {
 
     it('can get request with generic type', () => {
       return verifyGetRequest(basePath + '/GetTest/GenericModel', (err, res) => {
-        const model = res.body as GenericModel<TestModel>;
+        const model = res.body as GenericTypeModel<TestModel>;
         expect(model.result.id).to.equal(1);
       });
     });
 
     it('can get request with generic array', () => {
       return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (err, res) => {
-        const model = res.body as GenericModel<TestModel[]>;
+        const model = res.body as GenericTypeModel<TestModel[]>;
         expect(model.result[0].id).to.equal(1);
       });
     });
 
     it('can get request with generic primative type', () => {
       return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (err, res) => {
-        const model = res.body as GenericModel<string>;
+        const model = res.body as GenericTypeModel<string>;
         expect(model.result).to.equal('a string');
       });
     });
 
     it('can get request with generic primative array', () => {
       return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (err, res) => {
-        const model = res.body as GenericModel<string[]>;
+        const model = res.body as GenericTypeModel<string[]>;
         expect(model.result[0]).to.equal('string one');
       });
     });

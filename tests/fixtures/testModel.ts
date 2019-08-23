@@ -353,6 +353,8 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
+export type GenericTypeModel<T> = GenericModel<T>;
+
 export interface GenericModel<T> {
   result: T;
 }
