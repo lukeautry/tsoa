@@ -1,4 +1,4 @@
-import { Server } from 'hapi';
+import { Server } from '@hapi/hapi';
 import '../controllers/rootController';
 
 import '../controllers/deleteController';
