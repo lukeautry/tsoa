@@ -101,7 +101,7 @@
     "tsoa": "dist/cli.js"
   },
   "engines": {
-    "yarn": ">=1.17.3",
+    "yarn": ">=1.9.4",
     "node": ">=6.0.0"
   },
   "engineStrict": true
