@@ -85,7 +85,7 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+    swaggerConfig: SwaggerConfigRelatedToRoutes,
     nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
@@ -94,20 +94,20 @@ export class ValidationService {
       return;
     }
 
-    const propHandling = minimalSwaggerConfig.noImplicitAdditionalProperties;
-    if (propHandling) {
-      const excessProps = this.getExcessPropertiesFor({ properties: nestedProperties, additionalProperties }, Object.keys(value), minimalSwaggerConfig);
+    const propHandling = this.resolveAdditionalPropSetting(swaggerConfig);
+    if (propHandling !== 'ignore') {
+      const excessProps = this.getExcessPropertiesFor({ properties: nestedProperties, additionalProperties }, Object.keys(value), swaggerConfig);
       if (excessProps.length > 0) {
-        if (propHandling) {
+        if (propHandling === 'silently-remove-extras') {
           excessProps.forEach(excessProp => {
             delete value[excessProp];
           });
-          if (propHandling === 'throw-on-extras') {
-            fieldErrors[parent + name] = {
-              message: `"${excessProps}" is an excess property and therefore is not allowed`,
-              value: excessProps,
-            };
-          }
+        }
+        if (propHandling === 'throw-on-extras') {
+          fieldErrors[parent + name] = {
+            message: `"${excessProps}" is an excess property and therefore is not allowed`,
+            value: excessProps,
+          };
         }
       }
     }
@@ -115,13 +115,13 @@ export class ValidationService {
     Object.keys(value).forEach(key => {
       if (!nestedProperties[key]) {
         if (additionalProperties && additionalProperties !== true) {
-          return this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', minimalSwaggerConfig);
+          return this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
         } else {
           return key;
         }
       }
 
-      return this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', minimalSwaggerConfig);
+      return this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
     });
 
     return value;
