@@ -1,4 +1,4 @@
-import * as fs from 'fs'
+import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
@@ -141,19 +141,20 @@ export class RouteGenerator {
           properties[property.name] = this.buildPropertySchema(property);
         });
       }
-      const modelSchema = {
+
+      models[name] = {
         enums: referenceType.enums,
         properties: Object.keys(properties).length === 0 ? undefined : properties,
-      } as TsoaRoute.ModelSchema;
+      };
+
       if (referenceType.additionalProperties) {
-        modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
+        models[name].additionalProperties = this.buildProperty(referenceType.additionalProperties);
       } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
-        modelSchema.additionalProperties = false;
+        models[name].additionalProperties = false;
       } else {
         // Since Swagger allows "excess properties" (to use a TypeScript term) by default
-        modelSchema.additionalProperties = true;
+        models[name].additionalProperties = true;
       }
-      models[name] = modelSchema;
     });
     return models;
   }
