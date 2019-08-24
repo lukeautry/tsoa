@@ -89,12 +89,11 @@ export class TypeResolver {
       return { dataType: 'any' } as Tsoa.Type;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.TypeLiteral) {
-      const typeLiteralNode = this.typeNode as ts.TypeLiteralNode;
-      const properties = typeLiteralNode.members
-        .filter(member => member.kind === ts.SyntaxKind.PropertySignature)
+    if (ts.isTypeLiteralNode(this.typeNode)) {
+      const properties = this.typeNode.members
+        .filter(member => ts.isPropertySignature(member))
         .reduce((res, propertySignature: ts.PropertySignature) => {
-          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, this.typeNode).resolve();
+          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature).resolve();
 
           return [
             {
@@ -110,7 +109,7 @@ export class TypeResolver {
           ];
         }, []);
 
-      const indexMember = typeLiteralNode.members.find(member => member.kind === ts.SyntaxKind.IndexSignature);
+      const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
       let additionalType: Tsoa.Type | undefined;
 
       if (indexMember) {
