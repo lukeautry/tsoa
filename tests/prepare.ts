@@ -152,6 +152,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           middlewareTemplate: './tests/fixtures/custom/custom-tsoa-template.ts.hbs',
           routesDir: './tests/fixtures/custom',
+          routesFileName: 'customRoutes.ts',
         },
         defaultOptions,
         undefined,

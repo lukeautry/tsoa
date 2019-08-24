@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
@@ -31,7 +32,13 @@ export class RouteGenerator {
   constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {}
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
-    const fileName = `${this.options.routesDir}/routes.ts`;
+    if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
+      throw new Error(`routesDir should be a directory`);
+    } else if (this.options.routesFileName !== undefined && this.options.routesFileName.endsWith('.ts')) {
+      throw new Error(`routesFileName should have a '.ts' extension`);
+    }
+
+    const fileName = `${this.options.routesDir}/${this.options.routesFileName || 'routes.ts'}`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
     const formatted = await tsfmt.processString(fileName, content, this.tsfmtConfig as any);
@@ -154,7 +161,7 @@ export class RouteGenerator {
   }
 
   private getRelativeImportPath(fileLocation: string) {
-    fileLocation = fileLocation.replace('.ts', '');
+    fileLocation = fileLocation.replace('.ts', ''); // no ts extension in import
     return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 

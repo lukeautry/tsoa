@@ -12,7 +12,7 @@ import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
 
-import { RegisterRoutes } from './routes';
+import { RegisterRoutes } from './customRoutes';
 
 export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
