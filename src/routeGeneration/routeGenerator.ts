@@ -34,6 +34,8 @@ export class RouteGenerator {
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
       throw new Error(`routesDir should be a directory`);
+    } else if (this.options.routesFileName !== undefined && this.options.routesFileName.endsWith('.ts')) {
+      throw new Error(`routesFileName should have a '.ts' extension`);
     }
 
     const fileName = `${this.options.routesDir}/${this.options.routesFileName || 'routes.ts'}`;
