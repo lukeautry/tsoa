@@ -90,8 +90,21 @@ export class ValidationService {
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
   ) {
-    if (!nestedProperties) {
+    if (!(value instanceof Object)) {
+      fieldErrors[parent + name] = {
+        message: `invalid object`,
+        value,
+      };
       return;
+    }
+
+    if (!nestedProperties) {
+      throw new Error(
+        'internal tsoa error: ' +
+          'the metadata that was generated should have had nested property schemas since it’s for a nested object,' +
+          'however it did not. ' +
+          'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+      );
     }
 
     const propHandling = this.resolveAdditionalPropSetting(swaggerConfig);
@@ -106,7 +119,7 @@ export class ValidationService {
         if (propHandling === 'throw-on-extras') {
           fieldErrors[parent + name] = {
             message: `"${excessProps}" is an excess property and therefore is not allowed`,
-            value: excessProps,
+            value: excessProps.reduce((acc, propName) => ({ [propName]: value[propName], ...acc }), {}),
           };
         }
       }
