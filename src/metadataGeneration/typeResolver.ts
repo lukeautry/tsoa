@@ -93,7 +93,7 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
-      return { dataType: 'any' } as Tsoa.Type;
+      return { dataType: 'any' };
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
@@ -133,6 +133,13 @@ export class TypeResolver {
         properties,
       };
       return objLiteral;
+    }
+
+    if (this.typeNode.kind === ts.SyntaxKind.TupleType) {
+      return {
+        dataType: 'tuple',
+        elementTypes: (this.typeNode as ts.TupleTypeNode).elementTypes.map(type => new TypeResolver(type, this.current).resolve()),
+      } as Tsoa.TupleType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {

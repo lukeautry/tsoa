@@ -236,6 +236,8 @@ export class SpecGenerator3 extends SpecGenerator {
       };
     }
 
+    // FIXME how to implement tuple schema
+
     return {
       content: {
         'application/json': { schema } as Swagger.MediaType,

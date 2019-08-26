@@ -25,7 +25,7 @@ export namespace TsoaRoute {
     dataType?: Tsoa.TypeStringLiteral;
     ref?: string;
     required?: boolean;
-    array?: PropertySchema;
+    array?: PropertySchema; // FIXME how to implement tuple schema's?
     enums?: string[];
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;

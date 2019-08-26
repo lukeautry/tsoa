@@ -81,6 +81,8 @@ export abstract class SpecGenerator {
       return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
     } else if (type.dataType === 'nestedObjectLiteral') {
       return this.getSwaggerTypeForObjectLiteral(type as Tsoa.ObjectLiteralType);
+    } else if (type.dataType === 'tuple') {
+      return this.getSwaggerTypeForTupleType(type as Tsoa.TupleType);
     } else {
       return assertNever(type.dataType);
     }
@@ -192,6 +194,16 @@ export abstract class SpecGenerator {
       items: this.getSwaggerType(arrayType.elementType),
       type: 'array',
     };
+  }
+
+  protected getSwaggerTypeForTupleType(tupleType: Tsoa.TupleType): Swagger.Schema {
+    // FIXME how to implement tuple schema
+    return {} as any;
+
+    /* return {
+      items: this.getSwaggerType(arrayType.elementType),
+      type: 'array',
+    }; */
   }
 
   protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.Schema {

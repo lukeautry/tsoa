@@ -59,6 +59,9 @@ export class ValidationService {
         return this.validateEnum(name, value, fieldErrors, property.enums, parent);
       case 'array':
         return this.validateArray(name, value, fieldErrors, minimalSwaggerConfig, property.array, property.validators, parent);
+      case 'tuple':
+        // FIXME what to pass as schema here?
+        return this.validateTuple(name, value, fieldErrors, property.array, property.validators, parent);
       case 'date':
         return this.validateDate(name, value, fieldErrors, property.validators, parent);
       case 'datetime':
@@ -446,6 +449,10 @@ export class ValidationService {
       }
     }
     return arrayValue;
+  }
+
+  public validateTuple(name: string, value: any[], fieldErrors: FieldErrors, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
+    // FIXME how to validate tuples?
   }
 
   public validateBuffer(name: string, value: string) {

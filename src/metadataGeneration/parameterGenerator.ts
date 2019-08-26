@@ -122,11 +122,26 @@ export class ParameterGenerator {
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
+
       return {
         ...commonProperties,
-        collectionFormat: 'multi',
+        collectionFormat: 'multi', // XXX what is this used for?
         type: arrayType,
       } as Tsoa.ArrayParameter;
+    }
+
+    if (type.dataType === 'tuple') {
+      // CHECK test tuple handling
+      const tupleType = type as Tsoa.TupleType;
+      if (tupleType.elementTypes.some(type => !this.supportPathDataType(type))) {
+        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support tuple '${tupleType.elementTypes.find(t => !this.supportPathDataType(t))!.dataType}' element type`);
+      }
+
+      return {
+        ...commonProperties,
+        collectionFormat: 'multi', // XXX what is this used for?
+        type: tupleType,
+      } as Tsoa.TupleParameter;
     }
 
     if (!this.supportPathDataType(type)) {

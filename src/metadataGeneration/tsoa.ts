@@ -43,6 +43,11 @@ export namespace Tsoa {
     collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv';
   }
 
+  export interface TupleParameter extends Parameter {
+    type: TupleType;
+    collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv';
+  }
+
   export interface Validators {
     [key: string]: { value?: any; errorMsg?: string };
   }
@@ -77,6 +82,7 @@ export namespace Tsoa {
     | 'long'
     | 'enum'
     | 'array'
+    | 'tuple'
     | 'datetime'
     | 'date'
     | 'binary'
@@ -93,7 +99,7 @@ export namespace Tsoa {
 
   export type RefTypeLiteral = 'refObject' | 'refEnum';
 
-  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
+  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'tuple' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
 
   export interface Type {
     dataType: TypeStringLiteral;
@@ -117,6 +123,11 @@ export namespace Tsoa {
   export interface ArrayType extends Type {
     dataType: 'array';
     elementType: Type;
+  }
+
+  export interface TupleType extends Type {
+    dataType: 'tuple';
+    elementTypes: Type[];
   }
 
   export interface ReferenceType extends Type, RefTypeMinimal {
