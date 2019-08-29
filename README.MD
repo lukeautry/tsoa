@@ -58,7 +58,8 @@
 - Use jsdoc for pure text metadata (e.g. endpoint descriptions)
 - Minimize boilerplate
 - Models are best represented by interfaces (pure data structures), but can also be represented by classes
-
+- Runtime validation of tsoa should behave as closely as possible to the specifications that the generated Swagger/OpenAPI schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the swagger document and/or the routes.
+    - Please note that by [enabling OpenAPI 3+](#can-i-use-openapi-30-instead-of-swagger-v2) you minimize the chances of divergent validation logic since OpenAPI has a more expressive schema syntax.
 
 ## How it works
 
@@ -100,7 +101,7 @@ export class UsersController extends Controller {
     }
 }
 ```
-Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/ExternalInterfacesExplanation.MD)
+Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
 
 ### Create Models
 ```typescript
@@ -817,4 +818,4 @@ See example controllers in [the tests](tests/fixtures/controllers)
 
 tsoa wants additional maintainers! The library has increased in popularity and has quite a lot of pull requests and issues. [Please post in this issue](https://github.com/lukeautry/tsoa/issues/236) if you're willing to take on the role of a maintainer.
 
-All merged changes that touch 'real' code should include unit tests and pass linting/type checking.
+To contribute (via a PR), please first see the [Contributing Guide](https://github.com/lukeautry/tsoa/tree/master/docs/CONTRIBUTING.md)
