@@ -64,6 +64,10 @@ describe('Definition generation', () => {
   }
 
   describe('Interface-based generation', () => {
+    it('fail on purpose to test github actions', () => {
+      expect(true).to.eq(false);
+    });
+
     it('should generate a definition for referenced models', () => {
       allSpecs.forEach(currentSpec => {
         const expectedModels = [
