@@ -8,9 +8,9 @@
 
 **Closing issues**
 
-Put `closes #XXXX` in your comment to auto-close the issue that your PR fixes.
+Put `closes #XXXX`  (where XXXX is the issue number) in your comment to auto-close the issue that your PR fixes.
 
-### New Feature Submissions:
+### If this is a new feature submission:
 
 * [ ] Has the issue had a maintainer respond to the issue and clarify that the feature is something that aligns with the [goals](https://github.com/lukeautry/tsoa#goal) and [philosophy](https://github.com/lukeautry/tsoa#philosophy) of the project?
 
