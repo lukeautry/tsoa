@@ -1,13 +1,16 @@
-name: CI
-
-on: [push]
-
+on: push
+name: Build and Test
 jobs:
   build:
-
+    name: Build
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v1
-    - name: Runs the tests
-      run: yarn test
+    - uses: actions/checkout@master
+    - name: Build
+      uses: Borales/actions-yarn@master
+      with:
+        args: install
+    - name: Test
+      uses: Borales/actions-yarn@master
+      with:
+        args: test
