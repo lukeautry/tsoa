@@ -1,4 +1,5 @@
 # tsoa
+Pronounced so·uh
 
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
 [![npm version](https://badge.fury.io/js/tsoa.svg)](https://badge.fury.io/js/tsoa)
@@ -76,29 +77,29 @@ npm install lukeautry/tsoa#[VERSION]
 ```typescript
 // controllers/usersController.ts
 
-import {Get, Post, Route, Body, Query, Header, Path, SuccessResponse, Controller } from 'tsoa';
-import {UserService} from '../services/userService';
-import {User, UserCreationRequest} from '../models/user';
+import { Body, Controller, Get, Header, Path, Post, Query, Route, SuccessResponse } from 'tsoa';
+import { User, UserCreationRequest } from '../models/user';
+import { UserService } from '../services/userService';
 
 @Route('Users')
 export class UsersController extends Controller {
-    @Get('{id}')
-    public async getUser(id: number, @Query() name: string): Promise<User> {
-        return await new UserService().get(id);
-    }
+  @Get('{id}')
+  public async getUser(id: number, @Query() name: string): Promise<User> {
+    return await new UserService().get(id);
+  }
 
-    @SuccessResponse('201', 'Created') // Custom success response
-    @Post()
-    public async createUser(@Body() requestBody: UserCreationRequest): Promise<void> {
-        new UserService().create(request);
-        this.setStatus(201); // set return status 201
-        return Promise.resolve();
-    }
+  @SuccessResponse('201', 'Created') // Custom success response
+  @Post()
+  public async createUser(@Body() requestBody: UserCreationRequest): Promise<void> {
+    new UserService().create(request);
+    this.setStatus(201); // set return status 201
+    return Promise.resolve();
+  }
 
-    @Get('subResource/{subResourceId}')
-    public async getSubResource(@Path('subResourceId') aliasedPathId: number, @Header('Authorization') authorization: string): Promise<User> {
-        return new UserService().getSubResource(aliasedPathId);
-    }
+  @Get('subResource/{subResourceId}')
+  public async getSubResource(@Path('subResourceId') aliasedPathId: number, @Header('Authorization') authorization: string): Promise<User> {
+    return new UserService().getSubResource(aliasedPathId);
+  }
 }
 ```
 Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
@@ -108,24 +109,24 @@ Note: tsoa can not create swagger documents from interfaces that are defined in 
 // models/user.ts
 
 export interface User {
-    id: number;
-    email: string;
-    name: Name;
-    status?: status;
-    phoneNumbers: string[];
+  id: number;
+  email: string;
+  name: Name;
+  status?: status;
+  phoneNumbers: string[];
 }
 
 export type status = 'Happy' | 'Sad';
 
 export interface Name {
-    first: string;
-    last?: string;
+  first: string;
+  last?: string;
 }
 
 export interface UserCreationRequest {
-    email: string;
-    name: Name;
-    phoneNumbers: string[];
+  email: string;
+  name: Name;
+  phoneNumbers: string[];
 }
 ```
 
@@ -147,28 +148,26 @@ See [CLI documentation](#command-line-interface)
 #### Programmatic
 
 ```typescript
-import { generateRoutes, generateSwaggerSpec, SwaggerConfig, RoutesConfig } from 'tsoa';
+import { generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig } from 'tsoa';
 
 (async () => {
-    const swaggerOptions: SwaggerConfig = {
-        basePath: "/api",
-        entryFile: "./api/server.ts",
-        specVersion: 3,
-        outputDirectory: "./api/dist",
-        controllerPathGlobs: [
-            "./routeControllers/**/*Controller.ts"
-        ]
-    }
+  const swaggerOptions: SwaggerConfig = {
+    basePath: '/api',
+    entryFile: './api/server.ts',
+    specVersion: 3,
+    outputDirectory: './api/dist',
+    controllerPathGlobs: ['./routeControllers/**/*Controller.ts'],
+  };
 
-    const routeOptions: RoutesConfig = {
-        basePath: "/api",
-        entryFile: "./api/server.ts",
-        routesDir: "./api",
-    }
+  const routeOptions: RoutesConfig = {
+    basePath: '/api',
+    entryFile: './api/server.ts',
+    routesDir: './api',
+  };
 
-    await generateSwaggerSpec(swaggerOptions, routeOptions);
+  await generateSwaggerSpec(swaggerOptions, routeOptions);
 
-    await generateRoutes(routeOptions, swaggerOptions);
+  await generateRoutes(routeOptions, swaggerOptions);
 })();
 ```
 
@@ -218,7 +217,7 @@ If you have multiple models with the same name, you may get errors indicating th
  * @tsoaModel
  */
 export interface MyModel {
-    ...
+  ...
 }
 ```
 
@@ -309,10 +308,10 @@ import {User, UserCreationRequest} from '../models/user';
 
 @Route('Users')
 export class UsersController {
-    @Get('{id}')
-    public async getUser(id: number, @Request() request: express.Request): Promise<User> {
-        // TODO: implement some code that uses the request as well
-    }
+  @Get('{id}')
+  public async getUser(id: number, @Request() request: express.Request): Promise<User> {
+    // TODO: implement some code that uses the request as well
+  }
 }
 ```
 
@@ -326,11 +325,11 @@ import {User, UserCreationRequest} from '../models/user';
 
 @Route('Users')
 export class UsersController {
-    @Get('{id}')
-    public async getUser(id: number, @Request() request: koa.Request): Promise<User> {
-        const ctx = request.ctx;
-        // TODO: implement some code that uses the request as well
-    }
+  @Get('{id}')
+  public async getUser(id: number, @Request() request: koa.Request): Promise<User> {
+    const ctx = request.ctx;
+      // TODO: implement some code that uses the request as well
+  }
 }
 ```
 
@@ -380,17 +379,17 @@ let provideNamed = function(
   identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>,
   name: string
 ) {
-    return fluentProvider(identifier)
-      .whenTargetNamed(name)
-      .done();
+  return fluentProvider(identifier)
+    .whenTargetNamed(name)
+    .done();
 };
 
 let provideSingleton = function(
   identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>
 ) {
-    return fluentProvider(identifier)
-      .inSingletonScope()
-      .done();
+  return fluentProvider(identifier)
+    .inSingletonScope()
+    .done();
 };
 
 export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inject };
@@ -404,7 +403,6 @@ import { provideSingleton, inject } from '../inversify/ioc';
 @Route('foo')
 @provideSingleton(FooController)
 export class FooController {
-
   constructor(
     @inject(FooService) private fooService: FooService
   ) { }
@@ -413,9 +411,9 @@ export class FooController {
 
 @provideSingleton(FooService)
 export class FooService {
-    constructor(
-        // maybe even more dependencies to be injected...
-    )
+  constructor(
+    // maybe even more dependencies to be injected...
+  )
 }
 ```
 
@@ -459,7 +457,7 @@ import "./controllers/fooController.ts"
 @DefaultResponse<ErrorResponse>('Unexpected error')
 @Get('Response')
 public async getResponse(): Promise<TestModel> {
-    return new ModelService().getModel();
+  return new ModelService().getModel();
 }
 ```
 
@@ -507,44 +505,44 @@ import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
 
 export function expressAuthentication(request: express.Request, securityName: string, scopes?: string[]): Promise<any> {
-    if (securityName === 'api_token') {
-        let token;
-        if (request.query && request.query.access_token) {
-            token = request.query.access_token;
-        }
+  if (securityName === 'api_token') {
+    let token;
+    if (request.query && request.query.access_token) {
+      token = request.query.access_token;
+    }
 
-        if (token === 'abc123456') {
-            return Promise.resolve({
-                id: 1,
-                name: 'Ironman'
-            });
+    if (token === 'abc123456') {
+      return Promise.resolve({
+        id: 1,
+        name: 'Ironman'
+      });
+    } else {
+      return Promise.reject({});
+    }
+  }
+
+  if (securityName === 'jwt') {
+    const token = request.body.token || request.query.token || request.headers['x-access-token'];
+
+    return new Promise((resolve, reject) => {
+      if (!token) {
+        reject(new Error("No token provided"))
+      }
+      jwt.verify(token, "[secret]", function (err: any, decoded: any) {
+        if (err) {
+          reject(err)
         } else {
-            return Promise.reject({});
-        }
-    }
-
-    if (securityName === 'jwt') {
-        const token = request.body.token || request.query.token || request.headers['x-access-token'];
-
-        return new Promise((resolve, reject) => {
-            if (!token) {
-                reject(new Error("No token provided"))
+          // Check if JWT contains all required scopes
+          for (let scope of scopes) {
+            if (!decoded.scopes.includes(scope)) {
+              reject(new Error("JWT does not contain required scope."));
             }
-            jwt.verify(token, "[secret]", function (err: any, decoded: any) {
-                if (err) {
-                    reject(err)
-                } else {
-                    // Check if JWT contains all required scopes
-                    for (let scope of scopes) {
-                        if (!decoded.scopes.includes(scope)) {
-                            reject(new Error("JWT does not contain required scope."));
-                        }
-                    }
-                    resolve(decoded)
-                }
-            });
-        });
-    }
+          }
+          resolve(decoded)
+        }
+      });
+    });
+  }
 };
 
 import * as hapi from '@hapi/hapi';
@@ -563,18 +561,18 @@ import { Get, Route, Security, Response } from 'tsoa';
 
 @Route('secure')
 export class SecureController {
-    @Response<ErrorResponseModel>('Unexpected error')
-    @Security('api_token')
-    @Get("UserInfo")
-    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
-        return Promise.resolve(request.user);
-    }
+  @Response<ErrorResponseModel>('Unexpected error')
+  @Security('api_token')
+  @Get("UserInfo")
+  public async userInfo(@Request() request: any): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
 
-    @Security('jwt', ['admin'])
-    @Get("EditUser")
-    public async userInfo(@Request() request: any): Promise<string> {
-        // Do something here
-    }
+  @Security('jwt', ['admin'])
+  @Get("EditUser")
+  public async userInfo(@Request() request: any): Promise<string> {
+    // Do something here
+  }
 }
 ```
 
@@ -631,24 +629,24 @@ import * as multer from 'multer';
 @Route('files')
 export class FilesController {
 
-    @Post('uploadFile')
-    public async uploadFile(@Request() request: express.Request): Promise<any> {
-        await this.handleFile(request);
-        // file will be in request.randomFileIsHere, it is a buffer
-        return {};
-    }
+  @Post('uploadFile')
+  public async uploadFile(@Request() request: express.Request): Promise<any> {
+    await this.handleFile(request);
+    // file will be in request.randomFileIsHere, it is a buffer
+    return {};
+  }
 
-    private handleFile(request: express.Request): Promise<any> {
-        const multerSingle = multer().single('randomFileIsHere');
-        return new Promise((resolve, reject) => {
-            multerSingle(request, undefined, async (error) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-        });
-    }
+  private handleFile(request: express.Request): Promise<any> {
+    const multerSingle = multer().single('randomFileIsHere');
+    return new Promise((resolve, reject) => {
+      multerSingle(request, undefined, async (error) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+  }
 }
 ```
 
@@ -750,18 +748,18 @@ import { Get, Route, Response, Tags } from 'tsoa';
 @Route('user')
 @Tags('User')
 export class UserController {
-    @Response<ErrorResponseModel>('Unexpected error')
-    @Get('UserInfo')
-    @Tags('Info', 'Get')
-    public async userInfo(@Request() request: any): Promise<UserResponseModel> {
-        return Promise.resolve(request.user);
-    }
+  @Response<ErrorResponseModel>('Unexpected error')
+  @Get('UserInfo')
+  @Tags('Info', 'Get')
+  public async userInfo(@Request() request: any): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
 
-    @Get('EditUser')
-    @Tags('Edit')
-    public async userInfo(@Request() request: any): Promise<string> {
-        // Do something here
-    }
+  @Get('EditUser')
+  @Tags('Edit')
+  public async userInfo(@Request() request: any): Promise<string> {
+    // Do something here
+  }
 }
 ```
 
