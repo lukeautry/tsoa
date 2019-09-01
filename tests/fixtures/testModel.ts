@@ -75,6 +75,21 @@ export interface TestModel extends Model {
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
   mixedUnion?: string | TypeAliasModel1;
+
+  objLiteral: {
+    name: string;
+    nested?: {
+      bool: boolean;
+      optional?: number;
+      allNestedOptional: {
+        one?: string;
+        two?: string;
+      };
+      additionals?: {
+        [name: string]: TypeAliasModel1;
+      };
+    };
+  };
 }
 
 export interface TypeAliasModel1 {
@@ -268,6 +283,80 @@ export class ValidateModel {
   public intersection?: TypeAliasModel1 & TypeAliasModel2;
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
+
+  public nestedObject: {
+    /**
+     * @isFloat Invalid float error message.
+     */
+    floatValue: number;
+    /**
+     * @isDouble Invalid double error message.
+     */
+    doubleValue: number;
+    /**
+     * @isInt invalid integer number
+     */
+    intValue: number;
+    /**
+     * @isLong Custom Required long number.
+     */
+    longValue: number;
+    /**
+     * @isBoolean
+     */
+    booleanValue: boolean;
+    /**
+     * @isArray
+     */
+    arrayValue: number[];
+    /**
+     * @isDate invalid ISO 8601 date format, i.e. YYYY-MM-DD
+     */
+    dateValue: Date;
+    /**
+     * @isDateTime
+     */
+    datetimeValue: Date;
+
+    /**
+     * @maximum 10
+     */
+    numberMax10: number;
+    /**
+     * @minimum 5
+     */
+    numberMin5: number;
+    /**
+     * @maxLength 10
+     */
+    stringMax10Lenght: string;
+    /**
+     * @minLength 5
+     */
+    stringMin5Lenght: string;
+    /**
+     *  @pattern ^[a-zA-Z]+$
+     */
+    stringPatternAZaz: string;
+
+    /**
+     * @maxItems 5
+     */
+    arrayMax5Item: number[];
+    /**
+     * @minItems 2
+     */
+    arrayMin2Item: number[];
+    /**
+     * @uniqueItems
+     */
+    arrayUniqueItem: number[];
+
+    model: TypeAliasModel1;
+    intersection?: TypeAliasModel1 & TypeAliasModel2;
+    intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
+    mixedUnion?: string | TypeAliasModel1;
+  };
 }
 
 export interface ValidateMapStringToNumber {
@@ -332,12 +421,6 @@ export class TestClassModel extends TestClassBaseModel {
   /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
-
-  public static typeLiterals = {
-    booleanTypeLiteral: { $type: Boolean },
-    numberTypeLiteral: { $type: Number },
-    stringTypeLiteral: { $type: String },
-  };
 
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar

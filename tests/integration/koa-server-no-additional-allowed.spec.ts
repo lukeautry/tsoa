@@ -48,6 +48,51 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     );
   });
 
+  it('should call out any additionalProperties', () => {
+    const data = Object.assign({}, getFakeModel(), {
+      objLiteral: {
+        extra: 123,
+        nested: {
+          anotherExtra: 123,
+        },
+      },
+    });
+
+    return verifyPostRequest(
+      basePath + '/PostTest',
+      data,
+      (err: any, res: any) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['model.objLiteral'].message).to.eql('"extra" is an excess property and therefore is not allowed');
+        expect(body.fields['model.objLiteral.nested'].message).to.eql('"anotherExtra" is an excess property and therefore is not allowed');
+      },
+      400,
+    );
+  });
+
+  it('should respect additional props', () => {
+    const fakeModel = getFakeModel();
+    const data = {
+      ...fakeModel,
+      objLiteral: {
+        name: 'hello',
+        nested: {
+          additionals: {
+            one: { value1: '' },
+          },
+          allNestedOptional: {},
+          bool: true,
+        },
+      },
+    } as TestModel;
+
+    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+      expect(err).to.equal(false);
+      const model = res.body as TestModel;
+      expect(model).to.deep.equal(data);
+    });
+  });
+
   it('should be okay if there are no additionalProperties', () => {
     const data = getFakeModel();
 
@@ -149,6 +194,31 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.arrayUniqueItem = [0, 1, 2, 3];
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
+      bodyModel.intersection = { value1: 'one', value2: 'two' };
+
+      bodyModel.nestedObject = {
+        floatValue: 1.2,
+        doubleValue: 1.2,
+        intValue: 120,
+        longValue: 120,
+        booleanValue: true,
+        arrayValue: [0, 2],
+        dateValue: new Date('2017-01-01'),
+        datetimeValue: new Date('2017-01-01T00:00:00'),
+
+        numberMax10: 10,
+        numberMin5: 5,
+        stringMax10Lenght: 'abcdef',
+        stringMin5Lenght: 'abcdef',
+        stringPatternAZaz: 'aBcD',
+
+        arrayMax5Item: [0, 1, 2, 3],
+        arrayMin2Item: [0, 1],
+        arrayUniqueItem: [0, 1, 2, 3],
+        model: { value1: 'abcdef' },
+        mixedUnion: { value1: '' },
+        intersection: { value1: 'one', value2: 'two' },
+      };
 
       return verifyPostRequest(
         basePath + `/Validate/body`,
@@ -177,6 +247,30 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
           expect(body.model).to.deep.equal(bodyModel.model);
           expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
+          expect(body.intersection).to.deep.equal(bodyModel.intersection);
+
+          expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
+          expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
+          expect(body.nestedObject.intValue).to.equal(bodyModel.nestedObject.intValue);
+          expect(body.nestedObject.longValue).to.equal(bodyModel.nestedObject.longValue);
+          expect(body.nestedObject.booleanValue).to.equal(bodyModel.nestedObject.booleanValue);
+          expect(body.nestedObject.arrayValue).to.deep.equal(bodyModel.nestedObject.arrayValue);
+
+          expect(new Date(body.nestedObject.dateValue)).to.deep.equal(new Date(bodyModel.nestedObject.dateValue));
+          expect(new Date(body.nestedObject.datetimeValue)).to.deep.equal(new Date(bodyModel.nestedObject.datetimeValue));
+
+          expect(body.nestedObject.numberMax10).to.equal(bodyModel.nestedObject.numberMax10);
+          expect(body.nestedObject.numberMin5).to.equal(bodyModel.nestedObject.numberMin5);
+          expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
+          expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
+          expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);
+
+          expect(body.nestedObject.arrayMax5Item).to.deep.equal(bodyModel.nestedObject.arrayMax5Item);
+          expect(body.nestedObject.arrayMin2Item).to.deep.equal(bodyModel.nestedObject.arrayMin2Item);
+          expect(body.nestedObject.arrayUniqueItem).to.deep.equal(bodyModel.nestedObject.arrayUniqueItem);
+          expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
+          expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
+          expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
         },
         200,
       );
@@ -355,6 +449,9 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       modelsArray: [{ email: 'test@test.com', id: 1 }],
       numberArray: [1, 2],
       numberValue: 5,
+      objLiteral: {
+        name: 'hello',
+      },
       object: { foo: 'bar' },
       objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
       optionalString: 'test1234',

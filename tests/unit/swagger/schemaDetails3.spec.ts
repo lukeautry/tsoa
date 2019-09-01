@@ -214,6 +214,33 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          objLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.include({
+              properties: {
+                name: {
+                  type: 'string',
+                },
+                nested: {
+                  properties: {
+                    additionals: {
+                      properties: {},
+                      type: 'object',
+                    },
+                    allNestedOptional: {
+                      properties: { one: { type: 'string' }, two: { type: 'string' } },
+                      type: 'object',
+                    },
+                    bool: { type: 'boolean' },
+                    optional: { format: 'double', type: 'number' },
+                  },
+                  required: ['allNestedOptional', 'bool'],
+                  type: 'object',
+                },
+              },
+              required: ['name'],
+              type: 'object',
+            });
+          },
           object: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             if (currentSpec.specName === 'specWithNoImplicitExtras') {

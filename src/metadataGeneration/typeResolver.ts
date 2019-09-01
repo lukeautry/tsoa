@@ -17,7 +17,7 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature;
 
 export class TypeResolver {
   constructor(private readonly typeNode: ts.TypeNode, private readonly current: MetadataGenerator, private readonly parentNode?: ts.Node, private readonly extractEnum = true) {}
@@ -89,8 +89,43 @@ export class TypeResolver {
       return { dataType: 'any' } as Tsoa.Type;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.TypeLiteral) {
-      return { dataType: 'any' } as Tsoa.Type;
+    if (ts.isTypeLiteralNode(this.typeNode)) {
+      const properties = this.typeNode.members
+        .filter(member => ts.isPropertySignature(member))
+        .reduce((res, propertySignature: ts.PropertySignature) => {
+          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature).resolve();
+          const property: Tsoa.Property = {
+            default: getJSDocComment(propertySignature, 'default'),
+            description: this.getNodeDescription(propertySignature),
+            format: this.getNodeFormat(propertySignature),
+            name: (propertySignature.name as ts.Identifier).text,
+            required: !propertySignature.questionToken,
+            type,
+            validators: getPropertyValidators(propertySignature) || {},
+          };
+
+          return [property, ...res];
+        }, []);
+
+      const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
+      let additionalType: Tsoa.Type | undefined;
+
+      if (indexMember) {
+        const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
+        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current).resolve();
+        if (indexType.dataType !== 'string') {
+          throw new GenerateMetadataError(`Only string indexers are supported.`);
+        }
+
+        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current).resolve();
+      }
+
+      const objLiteral: Tsoa.ObjectLiteralType = {
+        additionalProperties: indexMember && additionalType,
+        dataType: 'nestedObjectLiteral',
+        properties,
+      };
+      return objLiteral;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
@@ -492,7 +527,7 @@ export class TypeResolver {
 
       const modelTypeDeclaration = node as UsableDeclaration;
       return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
-    }) as UsableDeclaration[];
+    }) as Array<Exclude<UsableDeclaration, ts.PropertySignature>>;
 
     if (!modelTypes.length) {
       throw new GenerateMetadataError(
@@ -694,7 +729,7 @@ export class TypeResolver {
     return undefined;
   }
 
-  private getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration): Tsoa.Property[] {
+  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       return [];

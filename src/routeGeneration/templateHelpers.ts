@@ -71,12 +71,73 @@ export class ValidationService {
         return this.validateIntersection(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
       case 'any':
         return value;
+      case 'nestedObjectLiteral':
+        return this.validateNestedObjectLiteral(name, value, fieldErrors, minimalSwaggerConfig, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
           return this.validateModel({ name, value, refName: property.ref, fieldErrors, parent, minimalSwaggerConfig });
         }
         return value;
     }
+  }
+
+  public validateNestedObjectLiteral(
+    name: string,
+    value: any,
+    fieldErrors: FieldErrors,
+    swaggerConfig: SwaggerConfigRelatedToRoutes,
+    nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
+    additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
+    parent: string,
+  ) {
+    if (!(value instanceof Object)) {
+      fieldErrors[parent + name] = {
+        message: `invalid object`,
+        value,
+      };
+      return;
+    }
+
+    if (!nestedProperties) {
+      throw new Error(
+        'internal tsoa error: ' +
+          'the metadata that was generated should have had nested property schemas since it’s for a nested object,' +
+          'however it did not. ' +
+          'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+      );
+    }
+
+    const propHandling = this.resolveAdditionalPropSetting(swaggerConfig);
+    if (propHandling !== 'ignore') {
+      const excessProps = this.getExcessPropertiesFor({ properties: nestedProperties, additionalProperties }, Object.keys(value), swaggerConfig);
+      if (excessProps.length > 0) {
+        if (propHandling === 'silently-remove-extras') {
+          excessProps.forEach(excessProp => {
+            delete value[excessProp];
+          });
+        }
+        if (propHandling === 'throw-on-extras') {
+          fieldErrors[parent + name] = {
+            message: `"${excessProps}" is an excess property and therefore is not allowed`,
+            value: excessProps.reduce((acc, propName) => ({ [propName]: value[propName], ...acc }), {}),
+          };
+        }
+      }
+    }
+
+    Object.keys(value).forEach(key => {
+      if (!nestedProperties[key]) {
+        if (additionalProperties && additionalProperties !== true) {
+          return this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
+        } else {
+          return key;
+        }
+      }
+
+      return this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
+    });
+
+    return value;
   }
 
   public validateInt(name: string, value: any, fieldErrors: FieldErrors, validators?: IntegerValidator, parent = '') {

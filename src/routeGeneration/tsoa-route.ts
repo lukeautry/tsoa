@@ -30,6 +30,8 @@ export namespace TsoaRoute {
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
     default?: any;
+    additionalProperties?: boolean | PropertySchema;
+    nestedProperties?: { [name: string]: PropertySchema };
   }
 
   export interface ParameterSchema extends PropertySchema {

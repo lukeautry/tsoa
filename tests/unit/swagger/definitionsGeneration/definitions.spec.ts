@@ -146,7 +146,6 @@ describe('Definition generation', () => {
             expect(definition.additionalProperties).to.eq(true, forSpec(currentSpec));
           }
         });
-
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
@@ -422,6 +421,31 @@ describe('Definition generation', () => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          objLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                name: { type: 'string' },
+                nested: {
+                  properties: {
+                    additionals: { properties: {}, type: 'object' },
+                    allNestedOptional: {
+                      properties: { one: { type: 'string' }, two: { type: 'string' } },
+                      type: 'object',
+                    },
+                    bool: { type: 'boolean' },
+                    optional: { type: 'number', format: 'double' },
+                  },
+                  required: ['allNestedOptional', 'bool'],
+                  type: 'object',
+                },
+              },
+              required: ['name'],
+              type: 'object',
+            });
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
@@ -433,6 +457,11 @@ describe('Definition generation', () => {
             assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
           });
         });
+
+        expect(Object.keys(assertionsPerProperty)).to.length(
+          Object.keys(definition.properties!).length,
+          `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
+        );
 
         expect(Object.keys(assertionsPerProperty)).to.length(
           Object.keys(definition.properties!).length,

@@ -169,6 +169,113 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
   }
 });
 
+it('should throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
+  // Arrange
+  const refName = 'ExampleModel';
+  const models: TsoaRoute.Models = {
+    [refName]: {
+      properties: {
+        objLiteral: {
+          dataType: 'nestedObjectLiteral',
+          nestedProperties: {
+            nested: {
+              dataType: 'nestedObjectLiteral',
+              nestedProperties: {
+                additionals: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {},
+                  additionalProperties: {
+                    ref: 'TypeAliasModel1',
+                  },
+                },
+                allNestedOptional: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {
+                    two: {
+                      dataType: 'string',
+                    },
+                    one: {
+                      dataType: 'string',
+                    },
+                  },
+                  required: true,
+                },
+                optional: {
+                  dataType: 'double',
+                },
+                bool: {
+                  dataType: 'boolean',
+                  required: true,
+                },
+              },
+            },
+            name: { dataType: 'string', required: true },
+          },
+          required: true,
+        },
+      },
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
+      },
+      additionalProperties: false,
+    },
+  };
+  const v = new ValidationService(models);
+  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+    noImplicitAdditionalProperties: true,
+  };
+  const errorDictionary: FieldErrors = {};
+  const dataToValidate = {
+    name: '',
+    // extra
+    extra: 123,
+    nested: {
+      bool: true,
+      allNestedOptional: {
+        // extra
+        removed: '123',
+      },
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
+  };
+
+  // Act
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties!.objLiteral.nestedProperties, false, refName + '.');
+
+  // Assert
+  expect(errorDictionary).to.deep.eq({
+    'ExampleModel.objLiteral': {
+      message: '"extra" is an excess property and therefore is not allowed',
+      value: { extra: 123 },
+    },
+    'ExampleModel.objLiteral.nested.allNestedOptional': {
+      message: '"removed" is an excess property and therefore is not allowed',
+      value: { removed: '123' },
+    },
+  });
+  expect(result).to.eql({
+    name: '',
+    // extra
+    extra: 123,
+    nested: {
+      bool: true,
+      allNestedOptional: {
+        // extra
+        removed: '123',
+      },
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
+  });
+});
+
 it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
@@ -272,5 +379,189 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     value1: 'this is value 1',
     value2: 'this is value 2',
     [nameOfAdditionalProperty]: 'something extra',
+  });
+});
+
+it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
+  // Arrange
+  const refName = 'ExampleModel';
+  const models: TsoaRoute.Models = {
+    [refName]: {
+      properties: {
+        objLiteral: {
+          dataType: 'nestedObjectLiteral',
+          nestedProperties: {
+            nested: {
+              dataType: 'nestedObjectLiteral',
+              nestedProperties: {
+                additionals: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {},
+                  additionalProperties: {
+                    ref: 'TypeAliasModel1',
+                  },
+                },
+                allNestedOptional: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {
+                    two: { dataType: 'string' },
+                    one: {
+                      dataType: 'string',
+                    },
+                  },
+                  required: true,
+                },
+                optional: { dataType: 'double' },
+                bool: { dataType: 'boolean', required: true },
+              },
+            },
+            name: { dataType: 'string', required: true },
+          },
+          required: true,
+        },
+      },
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
+      },
+      additionalProperties: false,
+    },
+  };
+  const v = new ValidationService(models);
+  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+    noImplicitAdditionalProperties: 'silently-remove-extras',
+  };
+  const errorDictionary: FieldErrors = {};
+  const dataToValidate = {
+    name: '',
+    // extra
+    extra: 123,
+    nested: {
+      bool: true,
+      allNestedOptional: {
+        // extra
+        removed: '123',
+      },
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
+  };
+
+  // Act
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties!.objLiteral.nestedProperties, false, refName + '.');
+
+  // Assert
+  expect(errorDictionary).to.deep.eq({});
+  expect(result).to.eql({
+    name: '',
+    nested: {
+      bool: true,
+      allNestedOptional: {},
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
+  });
+});
+
+it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to false', () => {
+  // Arrange
+  const refName = 'ExampleModel';
+  const models: TsoaRoute.Models = {
+    [refName]: {
+      properties: {
+        objLiteral: {
+          dataType: 'nestedObjectLiteral',
+          nestedProperties: {
+            nested: {
+              dataType: 'nestedObjectLiteral',
+              nestedProperties: {
+                additionals: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {},
+                  additionalProperties: {
+                    ref: 'TypeAliasModel1',
+                  },
+                },
+                allNestedOptional: {
+                  dataType: 'nestedObjectLiteral',
+                  nestedProperties: {
+                    two: {
+                      dataType: 'string',
+                    },
+                    one: {
+                      dataType: 'string',
+                    },
+                  },
+                  required: true,
+                },
+                optional: {
+                  dataType: 'double',
+                },
+                bool: {
+                  dataType: 'boolean',
+                  required: true,
+                },
+              },
+            },
+            name: { dataType: 'string', required: true },
+          },
+          required: true,
+        },
+      },
+    },
+    TypeAliasModel1: {
+      properties: {
+        value1: { dataType: 'string', required: true },
+      },
+      additionalProperties: false,
+    },
+  };
+  const v = new ValidationService(models);
+  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+    noImplicitAdditionalProperties: false,
+  };
+  const errorDictionary: FieldErrors = {};
+  const dataToValidate = {
+    name: '',
+    // extra
+    extra: 123,
+    nested: {
+      bool: true,
+      allNestedOptional: {
+        // extra
+        removed: '123',
+      },
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
+  };
+
+  // Act
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties!.objLiteral.nestedProperties, false, refName + '.');
+
+  // Assert
+  expect(errorDictionary).to.deep.eq({});
+  expect(result).to.eql({
+    name: '',
+    // extra
+    extra: 123,
+    nested: {
+      bool: true,
+      allNestedOptional: {
+        // extra
+        removed: '123',
+      },
+      additionals: {
+        one: { value1: 'one' },
+        two: { value1: 'two' },
+      },
+    },
   });
 });
