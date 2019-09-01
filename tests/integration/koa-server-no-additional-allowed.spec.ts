@@ -194,6 +194,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.arrayUniqueItem = [0, 1, 2, 3];
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
+      bodyModel.intersection = { value1: 'one', value2: 'two' };
 
       bodyModel.nestedObject = {
         floatValue: 1.2,
@@ -216,6 +217,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         arrayUniqueItem: [0, 1, 2, 3],
         model: { value1: 'abcdef' },
         mixedUnion: { value1: '' },
+        intersection: { value1: 'one', value2: 'two' },
       };
 
       return verifyPostRequest(
@@ -245,6 +247,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
           expect(body.model).to.deep.equal(bodyModel.model);
           expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
+          expect(body.intersection).to.deep.equal(bodyModel.intersection);
 
           expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
           expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
@@ -267,6 +270,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.nestedObject.arrayUniqueItem).to.deep.equal(bodyModel.nestedObject.arrayUniqueItem);
           expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
+          expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
         },
         200,
       );

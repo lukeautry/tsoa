@@ -29,6 +29,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.arrayUniqueItem = [0, 1, 2, 3];
     bodyModel.model = { value1: 'abcdef' };
     bodyModel.mixedUnion = { value1: '' };
+    bodyModel.intersection = { value1: 'one', value2: 'two' };
 
     bodyModel.nestedObject = {
       floatValue: 1.2,
@@ -51,6 +52,7 @@ describe('OpenAPI3 Express Server', () => {
       arrayUniqueItem: [0, 1, 2, 3],
       model: { value1: 'abcdef' },
       mixedUnion: { value1: '' },
+      intersection: { value1: 'one', value2: 'two' },
     };
 
     return verifyPostRequest(
@@ -80,6 +82,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
         expect(body.model).to.deep.equal(bodyModel.model);
         expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
+        expect(body.intersection).to.deep.equal(bodyModel.intersection);
 
         expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
         expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
@@ -102,6 +105,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.nestedObject.arrayUniqueItem).to.deep.equal(bodyModel.nestedObject.arrayUniqueItem);
         expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
         expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
+        expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
       },
       200,
     );
@@ -130,6 +134,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123, value4: 123 } as any;
     bodyModel.model = 1 as any;
     bodyModel.mixedUnion = 123 as any;
+    bodyModel.intersection = { value1: 'one' } as any;
 
     bodyModel.nestedObject = {
       floatValue: '120a' as any,
@@ -151,6 +156,7 @@ describe('OpenAPI3 Express Server', () => {
       arrayUniqueItem: [0, 0, 1, 1],
       model: 1 as any,
       mixedUnion: 123 as any,
+      intersection: { value1: 'one' } as any,
     } as any;
 
     return verifyPostRequest(
@@ -201,6 +207,7 @@ describe('OpenAPI3 Express Server', () => {
             'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
             '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
         );
+        expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
 
         expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
         expect(body.fields['body.nestedObject.floatValue'].value).to.equal(bodyModel.floatValue);
@@ -241,6 +248,9 @@ describe('OpenAPI3 Express Server', () => {
           'Could not match the union against any of the items. ' +
             'Issues: [{"body.nestedObject.mixedUnion":{"message":"invalid string value","value":123}},' +
             '{"body.nestedObject.mixedUnion":{"message":"invalid object","value":123}}]',
+        );
+        expect(body.fields['body.nestedObject.intersection'].message).to.equal(
+          'Could not match the intersection against every type. Issues: [{"body.nestedObject.value2":{"message":"\'value2\' is required"}}]',
         );
       },
       400,
