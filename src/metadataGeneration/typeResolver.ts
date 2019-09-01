@@ -94,19 +94,17 @@ export class TypeResolver {
         .filter(member => ts.isPropertySignature(member))
         .reduce((res, propertySignature: ts.PropertySignature) => {
           const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature).resolve();
+          const property: Tsoa.Property = {
+            default: getJSDocComment(propertySignature, 'default'),
+            description: this.getNodeDescription(propertySignature),
+            format: this.getNodeFormat(propertySignature),
+            name: (propertySignature.name as ts.Identifier).text,
+            required: !propertySignature.questionToken,
+            type,
+            validators: getPropertyValidators(propertySignature) || {},
+          };
 
-          return [
-            {
-              default: getJSDocComment(propertySignature, 'default'),
-              description: this.getNodeDescription(propertySignature),
-              format: this.getNodeFormat(propertySignature),
-              name: (propertySignature.name as ts.Identifier).text,
-              required: !propertySignature.questionToken,
-              type,
-              validators: getPropertyValidators(propertySignature),
-            } as Tsoa.Property,
-            ...res,
-          ];
+          return [property, ...res];
         }, []);
 
       const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
@@ -122,11 +120,12 @@ export class TypeResolver {
         additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current).resolve();
       }
 
-      return {
+      const objLiteral: Tsoa.ObjectLiteralType = {
         additionalProperties: indexMember && additionalType,
         dataType: 'nestedObjectLiteral',
         properties,
-      } as Tsoa.ObjectLiteralType;
+      };
+      return objLiteral;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
