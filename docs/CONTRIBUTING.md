@@ -31,7 +31,7 @@ If you have a bugfix or new feature that you would like to contribute to tsoa, p
 
 We enjoy working with contributors to get their code accepted. There are many approaches to fixing a problem and it is important to find the best approach before writing too much code.
 
-Note that it is unlikely the project will merge refactors for the sake of refactoring. These types of pull requests have a high cost to maintainers in reviewing and testing with little to no tangible benefit.
+In situations where the code is very hard to extend, we may want to refactor modules or redesign certain aspects of the project. The new design should be proposed and agreed upon in the attached issue. While we strongly value enhancements to code quality, significant refactoring should usually be reserved for situations where the non-refactored version of code would be too difficult to work with.
 
 ## Contributing bug fixes
 
