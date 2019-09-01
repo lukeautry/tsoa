@@ -235,12 +235,20 @@ export class SpecGenerator3 extends SpecGenerator {
         type: 'array',
       };
     }
-
-    return {
-      content: {
-        'application/json': { schema } as Swagger.MediaType,
-      },
-    } as Swagger.RequestBody;
+    if (parameter.example) {
+      let example = JSON.parse(parameter.example);
+      return {
+        content: {
+          'application/json': { schema, example } as Swagger.MediaType,
+        },
+      } as Swagger.RequestBody;
+    } else {
+      return {
+        content: {
+          'application/json': { schema } as Swagger.MediaType,
+        },
+      } as Swagger.RequestBody;
+    }
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
@@ -290,6 +298,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
 
+    parameter.example = source.example;
     return parameter;
   }
 

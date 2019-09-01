@@ -1,7 +1,7 @@
 {
-  "name": "tsoa",
+  "name": "tsoa-zeroerro",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "2.4.11",
+  "version": "2.5.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
@@ -23,8 +23,8 @@
   },
   "lint-staged": {
     "*.{js,ts}": [
-        "prettier --write",
-        "git add"
+      "prettier --write",
+      "git add"
     ]
   },
   "scripts": {
@@ -41,7 +41,7 @@
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
-	"test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
+    "test": "node ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
     "pre-commit": "yarn lint && yarn test",
     "tsc": "tsc"
   },
@@ -59,7 +59,8 @@
     "typescript-formatter": "^7.2.2",
     "validator": "^11.1.0",
     "yamljs": "^0.3.0",
-    "yargs": "^14.0.0"
+    "yargs": "^14.0.0",
+    "yarn": "^1.17.3"
   },
   "devDependencies": {
     "@hapi/hapi": "^18.3.2",
@@ -101,6 +102,9 @@
     "supertest": "^4.0.2",
     "ts-node": "^8.3.0",
     "tslint": "^5.19.0"
+  },
+  "publishConfig": {
+    "registry": "https://devops.zeroerro.com.br/nexus/repository/zeroerro-private/"
   },
   "repository": {
     "type": "git",

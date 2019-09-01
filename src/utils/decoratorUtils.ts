@@ -41,6 +41,20 @@ export function getDecoratorTextValue(node: ts.Node, isMatching: (identifier: ts
   return (expArguments[0] as ts.StringLiteral).text;
 }
 
+export function getDecoratorTextValueIndex(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean, index: number) {
+  const decorators = getDecorators(node, isMatching);
+  if (!decorators || !decorators.length) {
+    return;
+  }
+
+  const expression = decorators[0].parent as ts.CallExpression;
+  const expArguments = expression.arguments;
+  if (!expArguments || !expArguments.length) {
+    return;
+  }
+  return (expArguments[index] as ts.StringLiteral).text;
+}
+
 export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {

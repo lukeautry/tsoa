@@ -30,12 +30,13 @@ export namespace Tsoa {
   export interface Parameter {
     parameterName: string;
     description?: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
+    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'example';
     name: string;
     required?: boolean;
     type: Type;
     default?: any;
     validators: Validators;
+    example?: any;
   }
 
   export interface ArrayParameter extends Parameter {

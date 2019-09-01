@@ -94,6 +94,7 @@ export namespace Swagger {
     schema: Schema;
     type: DataType;
     format?: DataFormat;
+    example?: any;
   }
 
   export interface BodyParameter extends BaseParameter {

@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import { getDecoratorName, getDecoratorTextValue, getDecoratorTextValueIndex } from './../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -33,6 +33,7 @@ export class ParameterGenerator {
 
   private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
+    
     return {
       description: this.getParameterDescription(parameter),
       in: 'request',
@@ -71,12 +72,13 @@ export class ParameterGenerator {
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@Body('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
     }
-
+    
     return {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
       parameterName,
+      example: getDecoratorTextValueIndex(this.parameter, ident => ident.text === 'Body', 0) || "",
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -112,9 +114,10 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'query' as 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
+      example: getDecoratorTextValueIndex(this.parameter, ident => ident.text === 'Query', 1) || "",
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
-      validators: getParameterValidators(this.parameter, parameterName),
+      validators: getParameterValidators(this.parameter, parameterName)
     };
 
     if (type.dataType === 'array') {
@@ -142,8 +145,8 @@ export class ParameterGenerator {
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter, false);
-    const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
-
+    const pathName = getDecoratorTextValueIndex(this.parameter, ident => ident.text === 'Path', 0) || parameterName;
+    const example = getDecoratorTextValueIndex(this.parameter, ident => ident.text === 'Path', 1) || "";
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
     }
@@ -159,6 +162,7 @@ export class ParameterGenerator {
       parameterName,
       required: true,
       type,
+      example: example,
       validators: getParameterValidators(this.parameter, parameterName),
     };
   }
