@@ -750,6 +750,17 @@ describe('Definition generation', () => {
           }
           expect((property.items as Swagger.Schema).type).to.equal('string');
         });
+        it('should propagate generics', () => {
+          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+
+          expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
+          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, 'x-nullable': true });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequestTestModelArray', description: undefined, format: undefined, 'x-nullable': true });
+
+          const ref = getValidatedDefinition('GenericRequestTestModelArray', currentSpec).properties;
+          expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
+        });
       });
     });
   });

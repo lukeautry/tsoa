@@ -438,6 +438,8 @@ export class TestClassModel extends TestClassBaseModel {
 
 export interface GenericModel<T> {
   result: T;
+  union?: T | string;
+  nested?: GenericRequest<T>;
 }
 
 export interface GenericRequest<T> {
