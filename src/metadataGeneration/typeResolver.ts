@@ -409,20 +409,22 @@ export class TypeResolver {
       return typeName;
     }
 
-    const resolvedName = genericTypes.reduce(
-      (acc, generic) => {
-        if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-          const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
-          acc.push(typeNameSection);
-          return acc;
-        } else {
-          const typeNameSection = this.getAnyTypeName(generic);
-          acc.push(typeNameSection);
-          return acc;
-        }
-      },
-      [] as string[],
-    );
+    const resolvedName = genericTypes
+      .map(genericType => this.context[genericType.getText()] || genericType)
+      .reduce(
+        (acc, generic) => {
+          if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+            const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+            acc.push(typeNameSection);
+            return acc;
+          } else {
+            const typeNameSection = this.getAnyTypeName(generic);
+            acc.push(typeNameSection);
+            return acc;
+          }
+        },
+        [] as string[],
+      );
 
     const finalName = typeName + resolvedName.join('');
 
