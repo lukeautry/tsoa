@@ -191,6 +191,8 @@ export class TypeResolver {
           this.context = { [typeParameter.name.text]: typeReference.typeArguments[index], ...this.context };
         }
       }
+    } else {
+      this.context = {};
     }
 
     referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
