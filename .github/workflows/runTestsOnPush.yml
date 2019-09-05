@@ -10,6 +10,10 @@ jobs:
       uses: Borales/actions-yarn@master
       with:
         args: install
+    - name: Lint
+      uses: Borales/actions-yarn@master
+      with:
+        args: lint
     - name: Test
       uses: Borales/actions-yarn@master
       with:
