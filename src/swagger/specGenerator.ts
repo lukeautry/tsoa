@@ -89,6 +89,7 @@ export abstract class SpecGenerator {
   protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType);
 
   protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
+
   public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.ObjectLiteralType): Swagger.Schema {
     const properties = objectLiteral.properties.reduce((acc, property: Tsoa.Property) => {
       return {
@@ -97,12 +98,15 @@ export abstract class SpecGenerator {
       };
     }, {});
 
+    const additionalProperties = objectLiteral.additionalProperties && this.getSwaggerType(objectLiteral.additionalProperties);
+
     const required = objectLiteral.properties.filter(prop => prop.required).map(prop => prop.name);
 
     // An empty list required: [] is not valid.
     // If all properties are optional, do not specify the required keyword.
     return {
       properties,
+      ...(additionalProperties && { additionalProperties }),
       ...(required && required.length && { required }),
       type: 'object',
     };

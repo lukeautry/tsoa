@@ -225,6 +225,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     additionals: {
                       properties: {},
                       type: 'object',
+                      additionalProperties: {
+                        $ref: '#/components/schemas/TypeAliasModel1',
+                      },
                     },
                     allNestedOptional: {
                       properties: { one: { type: 'string' }, two: { type: 'string' } },

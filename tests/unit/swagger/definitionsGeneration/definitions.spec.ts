@@ -430,7 +430,13 @@ describe('Definition generation', () => {
                 name: { type: 'string' },
                 nested: {
                   properties: {
-                    additionals: { properties: {}, type: 'object' },
+                    additionals: {
+                      properties: {},
+                      type: 'object',
+                      additionalProperties: {
+                        $ref: '#/definitions/TypeAliasModel1',
+                      },
+                    },
                     allNestedOptional: {
                       properties: { one: { type: 'string' }, two: { type: 'string' } },
                       type: 'object',
@@ -457,11 +463,6 @@ describe('Definition generation', () => {
             assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
           });
         });
-
-        expect(Object.keys(assertionsPerProperty)).to.length(
-          Object.keys(definition.properties!).length,
-          `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
-        );
 
         expect(Object.keys(assertionsPerProperty)).to.length(
           Object.keys(definition.properties!).length,
