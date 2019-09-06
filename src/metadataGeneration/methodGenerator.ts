@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
-import { getJSDocComment, getJSDocDescription } from './../utils/jsDocUtils';
+import {getJSDocComment, getJSDocDescription, isExistJSDocTag} from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
@@ -201,6 +201,9 @@ export class MethodGenerator {
   }
 
   private getIsDeprecated() {
+    if (isExistJSDocTag(this.node, tag => tag.tagName.text === 'deprecated')) {
+      return true;
+    }
     const depDecorators = this.getDecoratorsByIdentifier(this.node, 'Deprecated');
     if (!depDecorators || !depDecorators.length) {
       return false;
