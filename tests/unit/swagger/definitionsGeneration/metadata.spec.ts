@@ -502,4 +502,31 @@ describe('Metadata generation', () => {
       expect(method.isHidden).to.equal(true);
     });
   });
+
+  describe('DeprecatedMethodGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/deprecatedController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should generate normal method', () => {
+      const method = controller.methods.find(m => m.name === 'normalGetMethod');
+      if (!method) {
+        throw new Error('Method normalGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('normalGetMethod');
+      expect(method.deprecated).to.equal(false);
+    });
+
+    it('should generate deprecated method', () => {
+      const method = controller.methods.find(m => m.name === 'deprecatedGetMethod');
+      if (!method) {
+        throw new Error('Method deprecatedGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('deprecatedGetMethod');
+      expect(method.deprecated).to.equal(true);
+    });
+  });
 });

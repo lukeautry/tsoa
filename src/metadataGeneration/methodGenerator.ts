@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators } from './../utils/decoratorUtils';
-import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getJSDocComment, getJSDocDescription } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
@@ -38,7 +38,7 @@ export class MethodGenerator {
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
-      deprecated: isExistJSDocTag(this.node, tag => tag.tagName.text === 'deprecated'),
+      deprecated: this.getIsDeprecated(),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
       method: this.method,
@@ -198,6 +198,18 @@ export class MethodGenerator {
       example[p.name.text] = getInitializerValue(p.initializer);
     });
     return example;
+  }
+
+  private getIsDeprecated() {
+    const depDecorators = this.getDecoratorsByIdentifier(this.node, 'Deprecated');
+    if (!depDecorators || !depDecorators.length) {
+      return false;
+    }
+    if (depDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Deprecated decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    return true;
   }
 
   private getOperationId() {
