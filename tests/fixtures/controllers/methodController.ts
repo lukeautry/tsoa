@@ -1,4 +1,5 @@
 import { Controller, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
+import {Deprecated} from "../../../src/decorators/deprecated";
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
@@ -85,11 +86,8 @@ export class MethodController extends Controller {
   public async oauthAndAPIkeySecurity(): Promise<TestModel> {
     return new ModelService().getModel();
   }
-
-  /**
-   * @deprecated
-   */
   @Get('DeprecatedMethod')
+  @Deprecated()
   public async deprecatedMethod(): Promise<TestModel> {
     return new ModelService().getModel();
   }
