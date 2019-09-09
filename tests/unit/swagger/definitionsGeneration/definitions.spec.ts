@@ -761,6 +761,12 @@ describe('Definition generation', () => {
           expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
           expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
         });
+        it('should not propagate dangling context', () => {
+          const definition = getValidatedDefinition('DanglingContextnumber', currentSpec).properties;
+
+          expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined });
+          expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
+        });
         it('should check heritage clauses for type args', () => {
           const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
 

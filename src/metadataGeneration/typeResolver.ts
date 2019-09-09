@@ -187,9 +187,7 @@ export class TypeResolver {
 
     let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
-      this.typeArgumentsToContext(typeReference, typeReference.typeName);
-    } else {
-      this.context = {};
+      this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
     }
 
     referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
@@ -715,8 +713,9 @@ export class TypeResolver {
     return undefined;
   }
 
-  private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName): Context {
-    const resetCtx = { ...this.context };
+  private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName, context: Context): Context {
+    this.context = {};
+
     if (type.typeArguments && type.typeArguments.length > 0) {
       const typeParameters = this.getModelTypeDeclaration(targetEntitiy).typeParameters;
 
@@ -727,8 +726,8 @@ export class TypeResolver {
           let resolvedType: ts.TypeNode;
 
           // Argument may be a forward reference from context
-          if (ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && this.context[typeArg.typeName.text]) {
-            resolvedType = this.context[typeParameter.name.text];
+          if (ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && context[typeArg.typeName.text]) {
+            resolvedType = context[typeParameter.name.text];
           } else {
             resolvedType = type.typeArguments[index];
           }
@@ -740,7 +739,7 @@ export class TypeResolver {
         }
       }
     }
-    return resetCtx;
+    return context;
   }
 
   private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
@@ -764,7 +763,7 @@ export class TypeResolver {
         // create subContext
         let resetCtx = this.context;
         if (t.typeArguments && t.typeArguments.length > 0) {
-          resetCtx = this.typeArgumentsToContext(t, baseEntityName);
+          resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
         }
 
         const referenceType = this.getReferenceType(baseEntityName);
