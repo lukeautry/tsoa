@@ -16,6 +16,9 @@ const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature;
+interface Context {
+  [name: string]: ts.TypeReferenceNode | ts.TypeNode;
+}
 
 export class TypeResolver {
   constructor(
@@ -23,7 +26,7 @@ export class TypeResolver {
     private readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
     private readonly extractEnum = true,
-    private context: { [name: string]: ts.TypeReferenceNode | ts.TypeNode } = {},
+    private context: Context = {},
   ) {}
 
   public static clearCache() {
@@ -184,13 +187,7 @@ export class TypeResolver {
 
     let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
-      const typeParameters = this.getModelTypeDeclaration(typeReference.typeName).typeParameters;
-      if (typeParameters) {
-        for (let index = 0; index < typeParameters.length; index++) {
-          const typeParameter = typeParameters[index];
-          this.context = { [typeParameter.name.text]: typeReference.typeArguments[index], ...this.context };
-        }
-      }
+      this.typeArgumentsToContext(typeReference, typeReference.typeName);
     } else {
       this.context = {};
     }
@@ -718,6 +715,34 @@ export class TypeResolver {
     return undefined;
   }
 
+  private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName): Context {
+    const resetCtx = { ...this.context };
+    if (type.typeArguments && type.typeArguments.length > 0) {
+      const typeParameters = this.getModelTypeDeclaration(targetEntitiy).typeParameters;
+
+      if (typeParameters) {
+        for (let index = 0; index < typeParameters.length; index++) {
+          const typeParameter = typeParameters[index];
+          const typeArg = type.typeArguments[index];
+          let resolvedType: ts.TypeNode;
+
+          // Argument may be a forward reference from context
+          if (ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && this.context[typeArg.typeName.text]) {
+            resolvedType = this.context[typeParameter.name.text];
+          } else {
+            resolvedType = type.typeArguments[index];
+          }
+
+          this.context = {
+            ...this.context,
+            [typeParameter.name.text]: resolvedType,
+          };
+        }
+      }
+    }
+    return resetCtx;
+  }
+
   private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
@@ -735,10 +760,20 @@ export class TypeResolver {
 
       clause.types.forEach(t => {
         const baseEntityName = t.expression as ts.EntityName;
+
+        // create subContext
+        let resetCtx = this.context;
+        if (t.typeArguments && t.typeArguments.length > 0) {
+          resetCtx = this.typeArgumentsToContext(t, baseEntityName);
+        }
+
         const referenceType = this.getReferenceType(baseEntityName);
         if (referenceType.properties) {
           referenceType.properties.forEach(property => properties.push(property));
         }
+
+        // reset subContext
+        this.context = resetCtx;
       });
     });
 

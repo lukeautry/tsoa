@@ -440,9 +440,22 @@ export interface GenericModel<T> {
   result: T;
   union?: T | string;
   nested?: GenericRequest<T>;
+  heritageCheck?: ThingContainerWithTitle<T>;
 }
 
 export interface GenericRequest<T> {
   name: string;
   value: T;
+}
+
+export interface ThingContainerWithTitle<T> extends GenericContainer<number> {
+  // T is TestModel[] here
+  t: T;
+  title: string;
+}
+
+export interface GenericContainer<T> {
+  id: string;
+  // T is number here
+  list: T[];
 }
