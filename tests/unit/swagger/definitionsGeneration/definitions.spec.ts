@@ -430,7 +430,13 @@ describe('Definition generation', () => {
                 name: { type: 'string' },
                 nested: {
                   properties: {
-                    additionals: { properties: {}, type: 'object' },
+                    additionals: {
+                      properties: {},
+                      type: 'object',
+                      additionalProperties: {
+                        $ref: '#/definitions/TypeAliasModel1',
+                      },
+                    },
                     allNestedOptional: {
                       properties: { one: { type: 'string' }, two: { type: 'string' } },
                       type: 'object',
@@ -457,11 +463,6 @@ describe('Definition generation', () => {
             assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
           });
         });
-
-        expect(Object.keys(assertionsPerProperty)).to.length(
-          Object.keys(definition.properties!).length,
-          `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
-        );
 
         expect(Object.keys(assertionsPerProperty)).to.length(
           Object.keys(definition.properties!).length,
@@ -749,6 +750,17 @@ describe('Definition generation', () => {
             throw new Error(`There were no items on the property model.`);
           }
           expect((property.items as Swagger.Schema).type).to.equal('string');
+        });
+        it('should propagate generics', () => {
+          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+
+          expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
+          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, 'x-nullable': true });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequestTestModelArray', description: undefined, format: undefined, 'x-nullable': true });
+
+          const ref = getValidatedDefinition('GenericRequestTestModelArray', currentSpec).properties;
+          expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
         });
       });
     });

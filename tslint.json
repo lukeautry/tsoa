@@ -24,6 +24,7 @@
     "no-namespace": [
       false
     ],
+    "object-literal-key-quotes": false,
     "ban-types": false
   },
   "linterOptions": {

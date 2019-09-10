@@ -1,5 +1,3 @@
-import * as indexOf from 'lodash.indexof';
-import * as map from 'lodash.map';
 import * as ts from 'typescript';
 import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
@@ -20,7 +18,13 @@ const inProgressTypes: { [typeName: string]: boolean } = {};
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature;
 
 export class TypeResolver {
-  constructor(private readonly typeNode: ts.TypeNode, private readonly current: MetadataGenerator, private readonly parentNode?: ts.Node, private readonly extractEnum = true) {}
+  constructor(
+    private readonly typeNode: ts.TypeNode,
+    private readonly current: MetadataGenerator,
+    private readonly parentNode?: ts.Node,
+    private readonly extractEnum = true,
+    private context: { [name: string]: ts.TypeReferenceNode | ts.TypeNode } = {},
+  ) {}
 
   public static clearCache() {
     Object.keys(localReferenceTypeCache).forEach(key => {
@@ -41,7 +45,7 @@ export class TypeResolver {
     if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
       return {
         dataType: 'array',
-        elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current).resolve(),
+        elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.extractEnum, this.context).resolve(),
       } as Tsoa.ArrayType;
     }
 
@@ -64,7 +68,7 @@ export class TypeResolver {
         } as Tsoa.EnumerateType;
       } else {
         const types = this.typeNode.types.map(type => {
-          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
         });
 
         return {
@@ -76,7 +80,7 @@ export class TypeResolver {
 
     if (ts.isIntersectionTypeNode(this.typeNode)) {
       const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum).resolve();
+        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       });
 
       return {
@@ -93,7 +97,7 @@ export class TypeResolver {
       const properties = this.typeNode.members
         .filter(member => ts.isPropertySignature(member))
         .reduce((res, propertySignature: ts.PropertySignature) => {
-          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature).resolve();
+          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.extractEnum, this.context).resolve();
           const property: Tsoa.Property = {
             default: getJSDocComment(propertySignature, 'default'),
             description: this.getNodeDescription(propertySignature),
@@ -112,12 +116,12 @@ export class TypeResolver {
 
       if (indexMember) {
         const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current).resolve();
+        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
         if (indexType.dataType !== 'string') {
           throw new GenerateMetadataError(`Only string indexers are supported.`);
         }
 
-        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current).resolve();
+        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       }
 
       const objLiteral: Tsoa.ObjectLiteralType = {
@@ -149,16 +153,20 @@ export class TypeResolver {
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
         return {
           dataType: 'array',
-          elementType: new TypeResolver(typeReference.typeArguments[0], this.current).resolve(),
+          elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve(),
         } as Tsoa.ArrayType;
       }
 
       if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        return new TypeResolver(typeReference.typeArguments[0], this.current).resolve();
+        return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve();
       }
 
       if (typeReference.typeName.text === 'String') {
         return { dataType: 'string' } as Tsoa.Type;
+      }
+
+      if (this.context[typeReference.typeName.text]) {
+        return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.extractEnum, this.context).resolve();
       }
     }
 
@@ -175,12 +183,19 @@ export class TypeResolver {
     }
 
     let referenceType: Tsoa.ReferenceType;
-    if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-      const typeT: ts.NodeArray<ts.TypeNode> = typeReference.typeArguments as ts.NodeArray<ts.TypeNode>;
-      referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeT);
+    if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
+      const typeParameters = this.getModelTypeDeclaration(typeReference.typeName).typeParameters;
+      if (typeParameters) {
+        for (let index = 0; index < typeParameters.length; index++) {
+          const typeParameter = typeParameters[index];
+          this.context = { [typeParameter.name.text]: typeReference.typeArguments[index], ...this.context };
+        }
+      }
     } else {
-      referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum);
+      this.context = {};
     }
+
+    referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
 
     this.current.AddReferenceType(referenceType);
 
@@ -395,20 +410,22 @@ export class TypeResolver {
       return typeName;
     }
 
-    const resolvedName = genericTypes.reduce(
-      (acc, generic) => {
-        if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-          const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
-          acc.push(typeNameSection);
-          return acc;
-        } else {
-          const typeNameSection = this.getAnyTypeName(generic);
-          acc.push(typeNameSection);
-          return acc;
-        }
-      },
-      [] as string[],
-    );
+    const resolvedName = genericTypes
+      .map(genericType => this.context[genericType.getText()] || genericType)
+      .reduce(
+        (acc, generic) => {
+          if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
+            const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
+            acc.push(typeNameSection);
+            return acc;
+          } else {
+            const typeNameSection = this.getAnyTypeName(generic);
+            acc.push(typeNameSection);
+            return acc;
+          }
+        },
+        [] as string[],
+      );
 
     const finalName = typeName + resolvedName.join('');
 
@@ -598,41 +615,13 @@ export class TypeResolver {
             throw new GenerateMetadataError(`No valid type found for property declaration.`);
           }
 
-          // Declare a variable that can be overridden if needed
-          let aType = propertyDeclaration.type;
-
-          // aType.kind will always be a TypeReference when the property of Interface<T> is of type T
-          if (aType.kind === ts.SyntaxKind.TypeReference && genericTypes && genericTypes.length && node.typeParameters) {
-            // The type definitions are conviently located on the object which allow us to map -> to the genericTypes
-            const typeParams = map(node.typeParameters, (typeParam: ts.TypeParameterDeclaration) => {
-              return typeParam.name.text;
-            });
-
-            // I am not sure in what cases
-            const typeIdentifier = (aType as ts.TypeReferenceNode).typeName;
-            let typeIdentifierName: string;
-
-            // typeIdentifier can either be a Identifier or a QualifiedName
-            if ((typeIdentifier as ts.Identifier).text) {
-              typeIdentifierName = (typeIdentifier as ts.Identifier).text;
-            } else {
-              typeIdentifierName = (typeIdentifier as ts.QualifiedName).right.text;
-            }
-
-            // I could not produce a situation where this did not find it so its possible this check is irrelevant
-            const indexOfType = indexOf(typeParams, typeIdentifierName);
-            if (indexOfType >= 0) {
-              aType = genericTypes[indexOfType] as ts.TypeNode;
-            }
-          }
-
           return {
             default: getJSDocComment(propertyDeclaration, 'default'),
             description: this.getNodeDescription(propertyDeclaration),
             format: this.getNodeFormat(propertyDeclaration),
             name: identifier.text,
             required: !propertyDeclaration.questionToken,
-            type: new TypeResolver(aType, this.current, aType.parent).resolve(),
+            type: new TypeResolver(propertyDeclaration.type, this.current, propertyDeclaration.type.parent, this.extractEnum, this.context).resolve(),
             validators: getPropertyValidators(propertyDeclaration),
           } as Tsoa.Property;
         });
@@ -696,7 +685,7 @@ export class TypeResolver {
         throw new GenerateMetadataError(`No valid type found for property declaration.`);
       }
 
-      const type = new TypeResolver(typeNode, this.current, property).resolve();
+      const type = new TypeResolver(typeNode, this.current, property, this.extractEnum, this.context).resolve();
 
       return {
         default: getInitializerValue(property.initializer, type),
@@ -719,12 +708,12 @@ export class TypeResolver {
       }
 
       const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-      const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current).resolve();
+      const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       if (indexType.dataType !== 'string') {
         throw new GenerateMetadataError(`Only string indexers are supported.`);
       }
 
-      return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current).resolve();
+      return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
     }
 
     return undefined;
