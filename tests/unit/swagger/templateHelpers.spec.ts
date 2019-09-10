@@ -363,6 +363,21 @@ describe('ValidationService', () => {
       expect(result).to.equal(value);
     });
 
+    it('should enum empty string value', () => {
+      const value = '';
+      const result = new ValidationService({}).validateEnum('name', value, {}, [''] as any);
+      expect(result).to.equal(value);
+    });
+
+    it('should enum null is not empty string value', () => {
+      const value = null;
+      const error: any = {};
+      const name = 'name';
+      const result = new ValidationService({}).validateEnum(name, value, error, [''] as any);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['']`);
+    });
+
     it('should enum string value', () => {
       const value = 'HELLO';
       const result = new ValidationService({}).validateEnum('name', value, {}, ['HELLO'] as any);
