@@ -249,6 +249,10 @@ describe('Definition generation', () => {
             expect(propertySchema.$ref).to.eq('#/definitions/EnumNumberValue', `for property ${propertyName}.$ref`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+
+            const validatedDefinition = getValidatedDefinition('EnumNumberValue', currentSpec);
+            const expectedEnumValues = ['0', '2', '5'];
+            expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
           },
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
@@ -265,6 +269,10 @@ describe('Definition generation', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.$ref).to.eq('#/definitions/EnumStringValue', `for property ${propertyName}.$ref`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+
+            const validatedDefinition = getValidatedDefinition('EnumStringValue', currentSpec);
+            const expectedEnumValues = ['', 'VALUE_1', 'VALUE_2'];
+            expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
           },
           enumStringArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);

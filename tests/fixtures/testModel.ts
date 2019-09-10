@@ -120,6 +120,7 @@ export enum EnumIndexValue {
  * EnumNumberValue.
  */
 export enum EnumNumberValue {
+  VALUE_0 = 0,
   VALUE_1 = 2,
   VALUE_2 = 5,
 }
@@ -128,6 +129,7 @@ export enum EnumNumberValue {
  * EnumStringValue.
  */
 export enum EnumStringValue {
+  EMPTY = '' as any,
   VALUE_1 = 'VALUE_1' as any,
   VALUE_2 = 'VALUE_2' as any,
 }
