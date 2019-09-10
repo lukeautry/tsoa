@@ -283,7 +283,8 @@ export class TypeResolver {
 
     if (extractEnum) {
       const enums = enumDeclaration.members.map((member: any, index) => {
-        return getEnumValue(member) || String(index);
+        const enumValue = getEnumValue(member);
+        return !!enumValue || enumValue === '' ? enumValue : String(index);
       });
       return {
         dataType: 'refEnum',

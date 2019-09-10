@@ -237,7 +237,7 @@ export class ValidationService {
     const enumValue = members.find(member => {
       return member === String(value);
     });
-    if (!enumValue) {
+    if (enumValue === undefined) {
       fieldErrors[parent + name] = {
         message: `should be one of the following; ['${members.join(`', '`)}']`,
         value,
