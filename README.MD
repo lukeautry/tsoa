@@ -34,6 +34,7 @@ Pronounced so·uh
     - [Security](#security)
     - [Tags](#tags)
     - [OperationId](#operationid)
+    - [Deprecated](#deprecated)
   * [Command Line Interface](#command-line-interface)
     - [Swagger spec generation](#swagger-spec-generation)
     - [Route generation](#route-generation)
@@ -771,6 +772,19 @@ Useful for use with Swagger code generation tool since this parameter is used to
 ```ts
 @Get()
 @OperationId('findDomain')
+public async find(): Promise<any> {
+
+}
+```
+
+### Deprecated
+
+Declares this endpoint to be deprecated. Useful for when you are migrating endpoints and wants to keep a outdated
+version live until all consumers migrate to use the new endpoint version. 
+
+```ts
+@Get()
+@Deprecated()
 public async find(): Promise<any> {
 
 }
