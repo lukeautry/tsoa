@@ -32,6 +32,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     specName: 'specWithNoImplicitExtras',
   };
 
+  const getComponentSchema = (name: string, chosenSpec: SpecAndName) => {
+    if (!chosenSpec.spec.components.schemas) {
+      throw new Error(`No schemas were generated for ${chosenSpec.specName}.`);
+    }
+
+    const schema = chosenSpec.spec.components.schemas[name];
+
+    if (!schema) {
+      throw new Error(`${name} should have been automatically generated in ${chosenSpec.specName}.`);
+    }
+
+    return schema;
+  };
+
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
    */
@@ -289,6 +303,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumNumberValue', `for property ${propertyName}.$ref`);
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+
+            const schema = getComponentSchema('EnumNumberValue', currentSpec);
+            expect(schema.enum).to.eql(['0', '2', '5']);
           },
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
@@ -305,6 +322,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringValue', `for property ${propertyName}.$ref`);
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+
+            const schema = getComponentSchema('EnumStringValue', currentSpec);
+            expect(schema.enum).to.eql(['', 'VALUE_1', 'VALUE_2']);
           },
           enumStringArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
