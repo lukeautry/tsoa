@@ -440,9 +440,37 @@ export interface GenericModel<T> {
   result: T;
   union?: T | string;
   nested?: GenericRequest<T>;
+  heritageCheck?: ThingContainerWithTitle<T>;
 }
 
 export interface GenericRequest<T> {
   name: string;
   value: T;
+}
+
+interface ThingContainerWithTitle<T> extends GenericContainer<number, number> {
+  // T is TestModel[] here
+  t: T;
+  title: string;
+}
+
+interface GenericContainer<T, TSameNameDifferentValue> {
+  id: string;
+  // T is number here
+  list: T[];
+  dangling: DanglingContext<T>;
+}
+
+/**
+ * This should only be used inside GenericContainer to check it's
+ * type argument T gets propagated while TSameNameDifferentValue does not
+ * and instead, the interface {@link TSameNameDifferentValue} is used.
+ */
+interface DanglingContext<T> {
+  number: T;
+  shouldBeString: TSameNameDifferentValue;
+}
+
+interface TSameNameDifferentValue {
+  str: string;
 }

@@ -762,6 +762,43 @@ describe('Definition generation', () => {
           expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
           expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
         });
+        it('should not propagate dangling context', () => {
+          const definition = getValidatedDefinition('DanglingContextnumber', currentSpec).properties;
+
+          expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined });
+          expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
+        });
+        it('should check heritage clauses for type args', () => {
+          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+
+          expect(definition!.heritageCheck).to.deep.equal({
+            $ref: '#/definitions/ThingContainerWithTitleTestModelArray',
+            description: undefined,
+            format: undefined,
+            'x-nullable': true,
+          });
+
+          const ref = getValidatedDefinition('ThingContainerWithTitleTestModelArray', currentSpec).properties;
+          expect(ref!.title).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.t).to.deep.equal({
+            default: undefined,
+            description: undefined,
+            format: undefined,
+            items: {
+              $ref: '#/definitions/TestModel',
+            },
+            type: 'array',
+          });
+
+          expect(ref!.id).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.list).to.deep.equal({
+            items: { type: 'number', format: 'double' },
+            type: 'array',
+            description: undefined,
+            format: undefined,
+            default: undefined,
+          });
+        });
       });
     });
   });
