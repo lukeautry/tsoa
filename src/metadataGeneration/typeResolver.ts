@@ -190,24 +190,9 @@ export class TypeResolver {
       this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
     }
 
-    referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
+    referenceType = this.getReferenceType(typeReference);
 
     this.current.AddReferenceType(referenceType);
-
-    // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
-    //   The goal is to avoid producing these names before the code is ever merged to master (via extensive test coverage)
-    //   and therefore this validation does not have to run for the users
-    if (process.env.NODE_ENV === 'tsoa_test') {
-      // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
-      const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
-      if (symbolsRegex.test(referenceType.refName)) {
-        throw new Error(
-          `Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
-            `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
-            `"ref values must be RFC3986-compliant percent-encoded URIs."`,
-        );
-      }
-    }
 
     return referenceType;
   }
@@ -340,30 +325,38 @@ export class TypeResolver {
     } as Tsoa.EnumerateType;
   }
 
-  private getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.ReferenceType {
-    const typeName = this.resolveFqTypeName(type);
-    const refNameWithGenerics = this.getTypeName(typeName, genericTypes);
+  private getReferenceType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.ReferenceType {
+    let type: ts.EntityName;
+    if (ts.isTypeReferenceNode(node)) {
+      type = node.typeName;
+    } else if (ts.isExpressionWithTypeArguments(node)) {
+      type = node.expression as ts.EntityName;
+    } else {
+      throw new GenerateMetadataError(`Can't resolve Reference type.`);
+    }
+
+    const name = this.contextualizedName(node.getText());
 
     try {
-      const existingType = localReferenceTypeCache[refNameWithGenerics];
+      const existingType = localReferenceTypeCache[name];
       if (existingType) {
         return existingType;
       }
 
       const referenceEnumType = this.getEnumerateType(type, true) as Tsoa.ReferenceType;
       if (referenceEnumType) {
-        localReferenceTypeCache[refNameWithGenerics] = referenceEnumType;
+        localReferenceTypeCache[name] = referenceEnumType;
         return referenceEnumType;
       }
 
-      if (inProgressTypes[refNameWithGenerics]) {
-        return this.createCircularDependencyResolver(refNameWithGenerics);
+      if (inProgressTypes[name]) {
+        return this.createCircularDependencyResolver(name);
       }
 
-      inProgressTypes[refNameWithGenerics] = true;
+      inProgressTypes[name] = true;
 
       const modelType = this.getModelTypeDeclaration(type);
-      const properties = this.getModelProperties(modelType, genericTypes);
+      const properties = this.getModelProperties(modelType);
       const additionalProperties = this.getModelAdditionalProperties(modelType);
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
       const example = this.getNodeExample(modelType);
@@ -373,11 +366,11 @@ export class TypeResolver {
         dataType: 'refObject',
         description: this.getNodeDescription(modelType),
         properties: inheritedProperties,
-        refName: refNameWithGenerics,
+        refName: this.getRefTypeName(name),
       } as Tsoa.ReferenceType;
 
       referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
-      localReferenceTypeCache[refNameWithGenerics] = referenceType;
+      localReferenceTypeCache[name] = referenceType;
 
       if (example) {
         referenceType.example = example;
@@ -385,75 +378,31 @@ export class TypeResolver {
       return referenceType;
     } catch (err) {
       // tslint:disable-next-line:no-console
-      console.error(`There was a problem resolving type of '${this.getTypeName(typeName, genericTypes)}'.`);
+      console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
   }
 
-  private resolveFqTypeName(type: ts.EntityName): string {
-    if (type.kind === ts.SyntaxKind.Identifier) {
-      return (type as ts.Identifier).text;
-    }
-
-    const qualifiedType = type as ts.QualifiedName;
-    return this.resolveFqTypeName(qualifiedType.left) + '.' + (qualifiedType.right as ts.Identifier).text;
+  private getRefTypeName(name: string): string {
+    return encodeURIComponent(
+      name
+        .replace(/<|>/g, '_')
+        .replace(/ /g, '')
+        .replace(/,/g, '.')
+        .replace(/\'(.*)\'|\"(.*)\'/g, '$1')
+        .replace(/&/g, '~AND')
+        .replace(/\[\]/g, 'Array'),
+    );
   }
 
-  private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
-    if (!genericTypes || !genericTypes.length) {
-      return typeName;
-    }
-
-    const resolvedName = genericTypes
-      .map(genericType => this.context[genericType.getText()] || genericType)
-      .reduce(
-        (acc, generic) => {
-          if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-            const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
-            acc.push(typeNameSection);
-            return acc;
-          } else {
-            const typeNameSection = this.getAnyTypeName(generic);
-            acc.push(typeNameSection);
-            return acc;
-          }
-        },
-        [] as string[],
-      );
-
-    const finalName = typeName + resolvedName.join('');
-
-    return finalName;
-  }
-
-  private getAnyTypeName(typeNode: ts.TypeNode): string {
-    const primitiveType = syntaxKindMap[typeNode.kind];
-    if (primitiveType) {
-      return primitiveType;
-    }
-
-    if (typeNode.kind === ts.SyntaxKind.ArrayType) {
-      const arrayType = typeNode as ts.ArrayTypeNode;
-      return this.getAnyTypeName(arrayType.elementType) + 'Array';
-    }
-
-    if (typeNode.kind === ts.SyntaxKind.UnionType) {
-      return 'object';
-    }
-
-    if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
-      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`);
-    }
-
-    const typeReference = typeNode as ts.TypeReferenceNode;
-    try {
-      return (typeReference.typeName as ts.Identifier).text;
-    } catch (e) {
-      // idk what would hit this? probably needs more testing
-      // tslint:disable-next-line:no-console
-      console.error(e);
-      return typeNode.toString();
-    }
+  private contextualizedName(name: string): string {
+    return Object.entries(this.context).reduce((acc, [key, entry]) => {
+      return acc
+        .replace(new RegExp(`<\s*${key}\s*>`, 'g'), `<${entry.getText()}>`)
+        .replace(new RegExp(`<\s*${key}\s*,`, 'g'), `<${entry.getText()},`)
+        .replace(new RegExp(`,\s*${key}\s*>`, 'g'), `,${entry.getText()}>`)
+        .replace(new RegExp(`<\s*${key}\s*<`, 'g'), `<${entry.getText()}<`);
+    }, name);
   }
 
   private createCircularDependencyResolver(refName: string) {
@@ -587,7 +536,7 @@ export class TypeResolver {
     return modelTypes[0];
   }
 
-  private getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
+  private getModelProperties(node: UsableDeclaration): Tsoa.Property[] {
     const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
       const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       return ignore;
@@ -766,7 +715,7 @@ export class TypeResolver {
           resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
         }
 
-        const referenceType = this.getReferenceType(baseEntityName);
+        const referenceType = this.getReferenceType(t);
         if (referenceType.properties) {
           referenceType.properties.forEach(property => properties.push(property));
         }

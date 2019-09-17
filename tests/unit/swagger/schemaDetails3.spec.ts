@@ -428,19 +428,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel1Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel2', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
           },
           and: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
