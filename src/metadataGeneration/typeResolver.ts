@@ -299,7 +299,7 @@ export class TypeResolver {
     if (extractEnum) {
       const enums = enumDeclaration.members.map((member: any, index) => {
         const enumValue = getEnumValue(member);
-        if (enumValue !== 0 && !enumValue) {
+        if (enumValue !== 0 && enumValue !== '' && !enumValue) {
           return String(index);
         }
         return enumValue;

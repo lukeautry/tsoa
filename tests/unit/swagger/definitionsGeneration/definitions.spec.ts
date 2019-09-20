@@ -251,8 +251,28 @@ describe('Definition generation', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const validatedDefinition = getValidatedDefinition('EnumNumberValue', currentSpec);
+            const expectedEnumValues = [0, 2, 5];
+            expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
+          },
+          enumStringNumberValue: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
+            expect(propertySchema.$ref).to.eq('#/definitions/EnumStringNumberValue', `for property ${propertyName}.$ref`);
+            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+
+            const validatedDefinition = getValidatedDefinition('EnumStringNumberValue', currentSpec);
             const expectedEnumValues = ['0', '2', '5'];
             expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
+          },
+          enumStringNumberArray: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.$ref).to.eq('#/definitions/EnumStringNumberValue', `for property ${propertyName}.items.$ref`);
           },
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);

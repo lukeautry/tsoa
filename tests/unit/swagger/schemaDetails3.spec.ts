@@ -305,8 +305,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumNumberValue', currentSpec);
-            expect(schema.enum).to.eql(['0', '2', '5']);
+            expect(schema.enum).to.eql([0, 2, 5]);
           },
+          enumStringNumberValue: (propertyName, propertySchema) => {},
+          enumStringNumberArray: (propertyName, propertySchema) => {},
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);

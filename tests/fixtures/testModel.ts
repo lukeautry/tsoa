@@ -131,7 +131,9 @@ export enum EnumNumberValue {
  * EnumStringNumberValue.
  */
 export enum EnumStringNumberValue {
-  VALUE_1 = '2', VALUE_2 = '5',
+  VALUE_0 = '0',
+  VALUE_1 = '2',
+  VALUE_2 = '5',
 }
 
 /**
