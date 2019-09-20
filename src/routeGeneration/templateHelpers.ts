@@ -226,7 +226,7 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateEnum(name: string, value: any, fieldErrors: FieldErrors, members?: string[] | number[], parent = ''): any {
+  public validateEnum(name: string, value: any, fieldErrors: FieldErrors, members?: Array<string | number>, parent = ''): any {
     if (!members || members.length === 0) {
       fieldErrors[parent + name] = {
         message: 'no member',
@@ -234,10 +234,15 @@ export class ValidationService {
       };
       return;
     }
-    const enumValue = (members as any[]).find((member) => String(member) === String(value));
+    const enumValue = (members as any[]).find(member => String(member) === String(value));
     if (enumValue === undefined) {
+      const membersCommaSeparated = members
+        .map(member => {
+          return typeof member === 'string' ? `'${member}'` : member;
+        })
+        .join(`, `);
       fieldErrors[parent + name] = {
-        message: `should be one of the following; ['${members.join(`', '`)}']`,
+        message: `should be one of the following; [${membersCommaSeparated}]`,
         value,
       };
       return;

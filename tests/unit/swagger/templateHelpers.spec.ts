@@ -322,6 +322,16 @@ describe('ValidationService', () => {
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
     });
+
+    it('should fail if the value is a non-numeric string for a numeric enum', () => {
+      const name = 'name';
+      const value = 'foo';
+      const error: any = {};
+      const enumeration: Enumeration = [1, 2];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [1, 2]`);
+    });
   });
 
   describe('Integer validate', () => {
