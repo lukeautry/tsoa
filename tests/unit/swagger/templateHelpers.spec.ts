@@ -305,7 +305,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`should be one of the following; ['HELLO', 'HI']`);
     });
 
-    it('accept a string value of a numeric enum', () => {
+    it('accepts a string value of a numeric enum', () => {
       const name = 'name';
       const value = '1';
       const error: any = {};
@@ -314,7 +314,7 @@ describe('ValidationService', () => {
       expect(result).to.equal(value);
     });
 
-    it('accept a numeric value of a string-numeric enum', () => {
+    it('accepts a numeric value of a string-numeric enum', () => {
       const name = 'name';
       const value = 1;
       const error: any = {};
@@ -340,7 +340,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`invalid integer number`);
     });
 
-    it('should interger validate', () => {
+    it('should integer validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
@@ -349,7 +349,7 @@ describe('ValidationService', () => {
       expect(result).to.equal(Number(value));
     });
 
-    it('should invalid interger min validate', () => {
+    it('should invalid integer min validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
@@ -359,7 +359,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`min 12`);
     });
 
-    it('should invalid interger max validate', () => {
+    it('should invalid integer max validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
