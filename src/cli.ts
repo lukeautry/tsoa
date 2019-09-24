@@ -4,9 +4,11 @@ import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
 import { Config, RoutesConfig, SwaggerConfig } from './config';
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSwaggerSpec } from './module/generate-swagger-spec';
 import { fsExists, fsReadFile } from './utils/fs';
+// import { validateMutualConfigs } from './utils/mutualConfigValidation';
 
 const workingDir: string = process.cwd();
 
@@ -165,6 +167,18 @@ yargs
     },
     routeGenerator,
   )
+  .command(
+    'swagger-and-routes',
+    'Generate swagger and routes',
+    {
+      basePath: basePathArgs,
+      configuration: configurationArgs,
+      host: hostArgs,
+      json: jsonArgs,
+      yaml: yarmlArgs,
+    },
+    generateSwaggerAndRoutes,
+  )
   .help('help')
   .alias('help', 'h').argv;
 
@@ -208,6 +222,44 @@ async function routeGenerator(args) {
     const swaggerConfig = await validateSwaggerConfig(config.swagger);
 
     await generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore);
+  } catch (err) {
+    // tslint:disable-next-line:no-console
+    console.error('Generate routes error.\n', err);
+    process.exit(1);
+  }
+}
+
+async function generateSwaggerAndRoutes(args) {
+  try {
+    const config = await getConfig(args.configuration);
+    if (args.basePath) {
+      config.swagger.basePath = args.basePath;
+    }
+    if (args.host) {
+      config.swagger.host = args.host;
+    }
+    if (args.yaml) {
+      config.swagger.yaml = args.yaml;
+    }
+    if (args.json) {
+      config.swagger.yaml = false;
+    }
+
+    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const routesConfig = await validateRoutesConfig(config.routes);
+    const swaggerConfig = await validateSwaggerConfig(config.swagger);
+
+    // if (swaggerConfig.controllerPathGlobs && !routesConfig.controllerPathGlobs) {
+    //   routesConfig.controllerPathGlobs = swaggerConfig.controllerPathGlobs;
+    // }
+    // validateMutualConfigs(routesConfig, swaggerConfig);
+
+    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
+
+    await Promise.all([
+      generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore, metadata),
+      generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore, metadata),
+    ]);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
