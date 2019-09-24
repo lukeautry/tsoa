@@ -2,6 +2,7 @@
 /// <reference path="hapi.d.ts" />
 /// <reference path="koa.d.ts" />
 
+export * from './config';
 export * from './decorators/example';
 export * from './decorators/parameter';
 export * from './decorators/methods';
@@ -12,5 +13,7 @@ export * from './decorators/security';
 export * from './interfaces/controller';
 export * from './decorators/response';
 export * from './routeGeneration/templateHelpers';
+export * from './metadataGeneration/metadataGenerator';
 export * from './module/generate-swagger-spec';
 export * from './module/generate-routes';
+export * from './utils/mutualConfigValidation';
