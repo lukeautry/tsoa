@@ -8,7 +8,6 @@ import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSwaggerSpec } from './module/generate-swagger-spec';
 import { fsExists, fsReadFile } from './utils/fs';
-// import { validateMutualConfigs } from './utils/mutualConfigValidation';
 
 const workingDir: string = process.cwd();
 
@@ -248,11 +247,6 @@ async function generateSwaggerAndRoutes(args) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config.routes);
     const swaggerConfig = await validateSwaggerConfig(config.swagger);
-
-    // if (swaggerConfig.controllerPathGlobs && !routesConfig.controllerPathGlobs) {
-    //   routesConfig.controllerPathGlobs = swaggerConfig.controllerPathGlobs;
-    // }
-    // validateMutualConfigs(routesConfig, swaggerConfig);
 
     const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
 
