@@ -146,6 +146,7 @@ export class RouteGenerator {
       const modelSchema = {
         enums: referenceType.enums,
         properties: Object.keys(properties).length === 0 ? undefined : properties,
+        ...(referenceType.dataType === 'refType' && { type: this.buildProperty(referenceType.type) }),
       } as TsoaRoute.ModelSchema;
       if (referenceType.additionalProperties) {
         modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);

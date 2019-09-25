@@ -15,7 +15,7 @@ syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration;
 interface Context {
   [name: string]: ts.TypeReferenceNode | ts.TypeNode;
 }
@@ -355,32 +355,56 @@ export class TypeResolver {
 
       inProgressTypes[name] = true;
 
-      const modelType = this.getModelTypeDeclaration(type);
-      const properties = this.getModelProperties(modelType);
-      const additionalProperties = this.getModelAdditionalProperties(modelType);
-      const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
-      const example = this.getNodeExample(modelType);
+      const declaration = this.getModelTypeDeclaration(type);
 
-      const referenceType = {
-        additionalProperties,
-        dataType: 'refObject',
-        description: this.getNodeDescription(modelType),
-        properties: inheritedProperties,
-        refName: this.getRefTypeName(name),
-      } as Tsoa.ReferenceType;
+      let referenceType: Tsoa.ReferenceType;
+      if (ts.isTypeAliasDeclaration(declaration)) {
+        referenceType = this.getTypeAliasReference(declaration, name);
+      } else {
+        referenceType = this.getModelReference(declaration, name);
+      }
 
-      referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
       localReferenceTypeCache[name] = referenceType;
 
-      if (example) {
-        referenceType.example = example;
-      }
       return referenceType;
     } catch (err) {
       // tslint:disable-next-line:no-console
       console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
+  }
+
+  private getTypeAliasReference(declaration: ts.TypeAliasDeclaration, name: string): Tsoa.ReferenceType {
+    const example = this.getNodeExample(declaration);
+
+    return {
+      dataType: 'refType',
+      description: this.getNodeDescription(declaration),
+      refName: this.getRefTypeName(name),
+      type: new TypeResolver(declaration.type, this.current, this.typeNode, this.extractEnum, this.context).resolve(),
+      validators: getPropertyValidators(declaration) || {},
+      ...(example && { example }),
+    };
+  }
+
+  private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, name: string) {
+    const properties = this.getModelProperties(modelType);
+    const additionalProperties = this.getModelAdditionalProperties(modelType);
+    const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
+    const example = this.getNodeExample(modelType);
+
+    const referenceType = {
+      additionalProperties,
+      dataType: 'refObject',
+      description: this.getNodeDescription(modelType),
+      properties: inheritedProperties,
+      refName: this.getRefTypeName(name),
+      ...(example && { example }),
+    } as Tsoa.ReferenceType;
+
+    referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
+
+    return referenceType;
   }
 
   private getRefTypeName(name: string): string {
@@ -570,33 +594,6 @@ export class TypeResolver {
         });
     }
 
-    // Type alias model
-    if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      const aliasDeclaration = node as ts.TypeAliasDeclaration;
-      const properties: Tsoa.Property[] = [];
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
-        const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
-
-        intersectionTypeNode.types.forEach(type => {
-          if (type.kind === ts.SyntaxKind.TypeReference) {
-            const typeReferenceNode = type as ts.TypeReferenceNode;
-            const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-            const modelProps = this.getModelProperties(modelType);
-            properties.push(...modelProps);
-          }
-        });
-      }
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.TypeReference) {
-        const typeReferenceNode = aliasDeclaration.type as ts.TypeReferenceNode;
-        const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-        const modelProps = this.getModelProperties(modelType);
-        properties.push(...modelProps);
-      }
-      return properties;
-    }
-
     // Class model
     const classDeclaration = node as ts.ClassDeclaration;
     const properties = classDeclaration.members
@@ -691,11 +688,9 @@ export class TypeResolver {
     return context;
   }
 
-  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
+  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature | ts.TypeAliasDeclaration>): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
-    if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      return [];
-    }
+
     const heritageClauses = modelTypeDeclaration.heritageClauses;
     if (!heritageClauses) {
       return properties;

@@ -605,6 +605,10 @@ export class ValidationService {
         return this.validateEnum(name, value, fieldErrors, enums, parent);
       }
 
+      if (modelDefinition.type) {
+        return this.ValidateParam(this.models[refName].type || {}, value, refName, fieldErrors, parent, swaggerConfig);
+      }
+
       if (!(value instanceof Object)) {
         fieldErrors[parent + name] = {
           message: `invalid object`,

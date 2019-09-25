@@ -137,6 +137,17 @@ export class SpecGenerator3 extends SpecGenerator {
           type: 'string',
         };
       }
+
+      // type aliases
+      if (referenceType.dataType === 'refType') {
+        const swaggerType = this.getSwaggerType(referenceType.type);
+
+        schema[referenceType.refName] = {
+          ...(swaggerType as Swagger.Schema),
+          description: referenceType.description,
+          example: referenceType.example,
+        };
+      }
     });
 
     return schema;
