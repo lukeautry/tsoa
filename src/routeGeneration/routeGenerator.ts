@@ -213,10 +213,7 @@ export class RouteGenerator {
           ref: arrayRefType.refName,
         };
       } else {
-        schema.array = {
-          dataType: arrayType.elementType.dataType,
-          enums: (arrayType.elementType as Tsoa.EnumerateType).enums,
-        } as TsoaRoute.PropertySchema;
+        schema.array = this.buildProperty(arrayType.elementType);
       }
     }
 
