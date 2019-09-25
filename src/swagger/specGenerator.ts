@@ -53,7 +53,7 @@ export abstract class SpecGenerator {
   protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
     if (type.dataType === 'void') {
       return this.getSwaggerTypeForVoid(type.dataType);
-    } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
+    } else if (type.dataType === 'refEnum' || type.dataType === 'refObject' || type.dataType === 'refAlias') {
       return this.getSwaggerTypeForReferenceType(type);
     } else if (
       type.dataType === 'any' ||

@@ -10,7 +10,7 @@ import { Tsoa } from './tsoa';
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration;
 interface Context {
   [name: string]: ts.TypeReferenceNode | ts.TypeNode;
 }
@@ -197,7 +197,7 @@ export class TypeResolver {
 
     const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference);
 
-    if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject') {
+    if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject' || enumOrReferenceType.dataType === 'refAlias') {
       this.current.AddReferenceType(enumOrReferenceType);
       return enumOrReferenceType;
     } else if (enumOrReferenceType.dataType === 'enum') {
@@ -363,7 +363,7 @@ export class TypeResolver {
     } as Tsoa.EnumType;
   }
 
-  private getReferenceTypeOrEnumType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
+  private getReferenceTypeOrEnumType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.ReferenceType | Tsoa.EnumType {
     let type: ts.EntityName;
     if (ts.isTypeReferenceNode(node)) {
       type = node.typeName;
@@ -403,32 +403,56 @@ export class TypeResolver {
 
       inProgressTypes[name] = true;
 
-      const modelType = this.getModelTypeDeclaration(type);
-      const properties = this.getModelProperties(modelType);
-      const additionalProperties = this.getModelAdditionalProperties(modelType);
-      const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
-      const example = this.getNodeExample(modelType);
+      const declaration = this.getModelTypeDeclaration(type);
 
-      const referenceType: Tsoa.RefObjectType = {
-        additionalProperties,
-        dataType: 'refObject',
-        description: this.getNodeDescription(modelType),
-        properties: inheritedProperties,
-        refName: this.getRefTypeName(name),
-      };
+      let referenceType: Tsoa.ReferenceType;
+      if (ts.isTypeAliasDeclaration(declaration)) {
+        referenceType = this.getTypeAliasReference(declaration, name);
+      } else {
+        referenceType = this.getModelReference(declaration, name);
+      }
 
-      referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
       localReferenceTypeCache[name] = referenceType;
 
-      if (example) {
-        referenceType.example = example;
-      }
       return referenceType;
     } catch (err) {
       // tslint:disable-next-line:no-console
       console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
+  }
+
+  private getTypeAliasReference(declaration: ts.TypeAliasDeclaration, name: string): Tsoa.ReferenceType {
+    const example = this.getNodeExample(declaration);
+
+    return {
+      dataType: 'refAlias',
+      description: this.getNodeDescription(declaration),
+      refName: this.getRefTypeName(name),
+      type: new TypeResolver(declaration.type, this.current, this.typeNode, this.extractEnum, this.context).resolve(),
+      validators: getPropertyValidators(declaration) || {},
+      ...(example && { example }),
+    };
+  }
+
+  private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, name: string) {
+    const properties = this.getModelProperties(modelType);
+    const additionalProperties = this.getModelAdditionalProperties(modelType);
+    const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
+    const example = this.getNodeExample(modelType);
+
+    const referenceType: Tsoa.ReferenceType = {
+      additionalProperties,
+      dataType: 'refObject',
+      description: this.getNodeDescription(modelType),
+      properties: inheritedProperties,
+      refName: this.getRefTypeName(name),
+      ...(example && { example }),
+    };
+
+    referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
+
+    return referenceType;
   }
 
   private getRefTypeName(name: string): string {
@@ -648,33 +672,6 @@ export class TypeResolver {
         });
     }
 
-    // Type alias model
-    if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      const aliasDeclaration = node as ts.TypeAliasDeclaration;
-      const properties: Tsoa.Property[] = [];
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.IntersectionType) {
-        const intersectionTypeNode = aliasDeclaration.type as ts.IntersectionTypeNode;
-
-        intersectionTypeNode.types.forEach(type => {
-          if (type.kind === ts.SyntaxKind.TypeReference) {
-            const typeReferenceNode = type as ts.TypeReferenceNode;
-            const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-            const modelProps = this.getModelProperties(modelType);
-            properties.push(...modelProps);
-          }
-        });
-      }
-
-      if (aliasDeclaration.type.kind === ts.SyntaxKind.TypeReference) {
-        const typeReferenceNode = aliasDeclaration.type as ts.TypeReferenceNode;
-        const modelType = this.getModelTypeDeclaration(typeReferenceNode.typeName);
-        const modelProps = this.getModelProperties(modelType);
-        properties.push(...modelProps);
-      }
-      return properties;
-    }
-
     // Class model
     const classDeclaration = node as ts.ClassDeclaration;
     const properties = classDeclaration.members
@@ -769,11 +766,9 @@ export class TypeResolver {
     return context;
   }
 
-  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
+  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature | ts.TypeAliasDeclaration>): Tsoa.Property[] {
     const properties = [] as Tsoa.Property[];
-    if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      return [];
-    }
+
     const heritageClauses = modelTypeDeclaration.heritageClauses;
     if (!heritageClauses) {
       return properties;
@@ -795,7 +790,7 @@ export class TypeResolver {
 
         const referenceType = this.getReferenceTypeOrEnumType(t);
         if (referenceType) {
-          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
+          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'refAlias' || referenceType.dataType === 'enum') {
             // since it doesn't have properties to iterate over, then we don't do anything with it
           } else if (referenceType.dataType === 'refObject') {
             referenceType.properties.forEach(property => properties.push(property));

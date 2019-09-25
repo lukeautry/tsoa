@@ -31,7 +31,12 @@ export namespace TsoaRoute {
     additionalProperties?: boolean | PropertySchema;
   }
 
-  export type ModelSchema = RefEnumModelSchema | RefObjectModelSchema;
+  export interface RefTypeAliasModelSchema {
+    dataType: 'refAlias';
+    type: PropertySchema;
+  }
+
+  export type ModelSchema = RefEnumModelSchema | RefObjectModelSchema | RefTypeAliasModelSchema;
 
   export type ValidatorSchema = Tsoa.Validators;
 
@@ -41,6 +46,7 @@ export namespace TsoaRoute {
     required?: boolean;
     array?: PropertySchema;
     enums?: Array<string | number>;
+    type?: PropertySchema;
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
     default?: any;

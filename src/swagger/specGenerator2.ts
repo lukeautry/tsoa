@@ -90,6 +90,14 @@ export class SpecGenerator2 extends SpecGenerator {
           enum: referenceType.enums,
           type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
+      } else if (referenceType.dataType === 'refAlias') {
+        const swaggerType = this.getSwaggerType(referenceType.type);
+
+        definitions[referenceType.refName] = {
+          ...(swaggerType as Swagger.Schema),
+          description: referenceType.description,
+          example: referenceType.example,
+        };
       } else {
         assertNever(referenceType);
       }
@@ -306,11 +314,29 @@ export class SpecGenerator2 extends SpecGenerator {
     return { type: 'object' };
   }
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
-    if (process.env.NODE_ENV !== 'tsoa_test') {
-      // tslint:disable-next-line: no-console
-      console.warn('Swagger 2.0 does not support this kind of intersection types.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
-    }
-    return { type: 'object' };
+    const properties = type.types.reduce((acc, type) => {
+      if (type.dataType === 'refObject') {
+        let refType = type;
+        refType = this.metadata.referenceTypeMap[refType.refName] as Tsoa.RefObjectType;
+
+        const props =
+          refType &&
+          refType.properties &&
+          refType.properties.reduce((acc, prop) => {
+            return {
+              ...acc,
+              [prop.name]: this.getSwaggerType(prop.type),
+            };
+          }, {});
+        return { ...acc, ...props };
+      } else {
+        process.env.NODE_ENV !== 'tsoa_test' &&
+          // tslint:disable-next-line: no-console
+          console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+        return { ...acc };
+      }
+    }, {});
+    return { type: 'object', properties };
   }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {

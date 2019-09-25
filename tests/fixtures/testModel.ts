@@ -475,7 +475,7 @@ interface GenericContainer<T, TSameNameDifferentValue> {
 }
 
 /**
- * This should only be used inside GenericContainer to check it's
+ * This should only be used inside GenericContainer to check it\'s
  * type argument T gets propagated while TSameNameDifferentValue does not
  * and instead, the interface {@link TSameNameDifferentValue} is used.
  */

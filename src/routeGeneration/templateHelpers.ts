@@ -611,6 +611,10 @@ export class ValidationService {
         return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent);
       }
 
+      if (modelDefinition.dataType === 'refAlias') {
+        return this.ValidateParam((this.models[refName] as TsoaRoute.RefTypeAliasModelSchema).type || {}, value, refName, fieldErrors, parent, swaggerConfig);
+      }
+
       if (!(value instanceof Object)) {
         fieldErrors[parent + name] = {
           message: `invalid object`,
