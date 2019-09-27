@@ -91,7 +91,7 @@ export class SpecGenerator2 extends SpecGenerator {
         definitions[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
-          type: 'string',
+          type: 'integer',
         };
       }
     });

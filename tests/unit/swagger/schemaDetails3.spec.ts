@@ -305,7 +305,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumNumberValue', currentSpec);
+            expect(schema.enum).to.eql([0, 2, 5]);
+          },
+          enumStringNumberValue: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringNumberValue', `for property ${propertyName}.$ref`);
+            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+
+            const schema = getComponentSchema('EnumStringNumberValue', currentSpec);
             expect(schema.enum).to.eql(['0', '2', '5']);
+          },
+          enumStringNumberArray: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.$ref).to.eq('#/components/schemas/EnumStringNumberValue', `for property ${propertyName}.items.$ref`);
           },
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);

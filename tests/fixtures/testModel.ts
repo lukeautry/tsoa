@@ -43,6 +43,8 @@ export interface TestModel extends Model {
   enumValue?: EnumIndexValue;
   enumArray?: EnumIndexValue[];
   enumNumberValue?: EnumNumberValue;
+  enumStringNumberValue?: EnumStringNumberValue;
+  enumStringNumberArray?: EnumStringNumberValue[];
   enumNumberArray?: EnumNumberValue[];
   enumStringValue?: EnumStringValue;
   enumStringArray?: EnumStringValue[];
@@ -123,6 +125,15 @@ export enum EnumNumberValue {
   VALUE_0 = 0,
   VALUE_1 = 2,
   VALUE_2 = 5,
+}
+
+/**
+ * EnumStringNumberValue.
+ */
+export enum EnumStringNumberValue {
+  VALUE_0 = '0',
+  VALUE_1 = '2',
+  VALUE_2 = '5',
 }
 
 /**

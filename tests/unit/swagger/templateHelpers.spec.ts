@@ -280,7 +280,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`invalid integer number`);
     });
 
-    it('should interger validate', () => {
+    it('should integer validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
@@ -289,7 +289,7 @@ describe('ValidationService', () => {
       expect(result).to.equal(Number(value));
     });
 
-    it('should invalid interger min validate', () => {
+    it('should invalid integer min validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
@@ -299,7 +299,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`min 12`);
     });
 
-    it('should invalid interger max validate', () => {
+    it('should invalid integer max validate', () => {
       const name = 'name';
       const value = '11';
       const error = {};
@@ -357,9 +357,14 @@ describe('ValidationService', () => {
   });
 
   describe('Enum validate', () => {
+    type Enumeration = string[] | number[];
+
     it('should enum number value', () => {
+      const name = 'name';
       const value = 1;
-      const result = new ValidationService({}).validateEnum('name', value, {}, ['0', '1'] as any);
+      const error = {};
+      const enumeration: Enumeration = [0, 1];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
     });
 
@@ -379,27 +384,62 @@ describe('ValidationService', () => {
     });
 
     it('should enum string value', () => {
+      const name = 'name';
       const value = 'HELLO';
-      const result = new ValidationService({}).validateEnum('name', value, {}, ['HELLO'] as any);
+      const error = {};
+      const enumeration: Enumeration = ['HELLO'];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
     });
 
     it('should enum no member', () => {
-      const error: any = {};
       const name = 'name';
       const value = 'HI';
-      const result = new ValidationService({}).validateEnum(name, value, error, [] as any);
+      const error: any = {};
+      const enumeration: Enumeration = [];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`no member`);
     });
 
     it('should enum out of member', () => {
-      const error: any = {};
       const name = 'name';
       const value = 'SAY';
-      const result = new ValidationService({}).validateEnum(name, value, error, ['HELLO', 'HI'] as any);
+      const error: any = {};
+      const enumeration: Enumeration = ['HELLO', 'HI'];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`should be one of the following; ['HELLO', 'HI']`);
+    });
+
+    it('does not accepts a string value for a numeric enum', () => {
+      const name = 'name';
+      const value = '1';
+      const error: any = {};
+      const enumeration: Enumeration = [0, 1];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [0, 1]`);
+    });
+
+    it('does not accepts a numeric value for a string-numeric enum', () => {
+      const name = 'name';
+      const value = 1;
+      const error: any = {};
+      const enumeration: Enumeration = ['0', '1'];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['0', '1']`);
+    });
+
+    it('should fail if the value is a non-numeric string for a numeric enum', () => {
+      const name = 'name';
+      const value = 'foo';
+      const error: any = {};
+      const enumeration: Enumeration = [1, 2];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [1, 2]`);
     });
   });
 

@@ -280,7 +280,12 @@ export class TypeResolver {
 
     const enumDeclaration = enumNodes[0] as ts.EnumDeclaration;
 
+    const typeChecker = this.current.typeChecker;
     function getEnumValue(member: any) {
+      const constantValue = typeChecker.getConstantValue(member);
+      if (constantValue != null) {
+        return constantValue;
+      }
       const initializer = member.initializer;
       if (initializer) {
         if (initializer.expression) {
@@ -294,7 +299,10 @@ export class TypeResolver {
     if (extractEnum) {
       const enums = enumDeclaration.members.map((member: any, index) => {
         const enumValue = getEnumValue(member);
-        return !!enumValue || enumValue === '' ? enumValue : String(index);
+        if (enumValue !== 0 && enumValue !== '' && !enumValue) {
+          return String(index);
+        }
+        return enumValue;
       });
       return {
         dataType: 'refEnum',
