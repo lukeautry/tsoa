@@ -4,6 +4,24 @@ import * as koa from 'koa';
 import { Get, Request, Response, Route, Security } from '../../../src';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
+declare module 'express' {
+  interface Request {
+    user?: any;
+  }
+}
+
+declare module '@hapi/hapi' {
+  interface Request {
+    user?: any;
+  }
+}
+
+declare module 'koa' {
+  interface Request {
+    user?: any;
+  }
+}
+
 @Route('SecurityTest')
 export class SecurityTestController {
   @Response<ErrorResponseModel>('default', 'Unexpected error')
