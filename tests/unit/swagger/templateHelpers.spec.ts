@@ -426,53 +426,6 @@ describe('ValidationService', () => {
     });
   });
 
-  describe('Enum validate', () => {
-    it('should enum number value', () => {
-      const value = 1;
-      const result = new ValidationService({}).validateEnum('name', value, {}, ['0', '1'] as any);
-      expect(result).to.equal(value);
-    });
-
-    it('should enum empty string value', () => {
-      const value = '';
-      const result = new ValidationService({}).validateEnum('name', value, {}, [''] as any);
-      expect(result).to.equal(value);
-    });
-
-    it('should enum null is not empty string value', () => {
-      const value = null;
-      const error: any = {};
-      const name = 'name';
-      const result = new ValidationService({}).validateEnum(name, value, error, [''] as any);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; ['']`);
-    });
-
-    it('should enum string value', () => {
-      const value = 'HELLO';
-      const result = new ValidationService({}).validateEnum('name', value, {}, ['HELLO'] as any);
-      expect(result).to.equal(value);
-    });
-
-    it('should enum no member', () => {
-      const error: any = {};
-      const name = 'name';
-      const value = 'HI';
-      const result = new ValidationService({}).validateEnum(name, value, error, [] as any);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`no member`);
-    });
-
-    it('should enum out of member', () => {
-      const error: any = {};
-      const name = 'name';
-      const value = 'SAY';
-      const result = new ValidationService({}).validateEnum(name, value, error, ['HELLO', 'HI'] as any);
-      expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; ['HELLO', 'HI']`);
-    });
-  });
-
   describe('String validate', () => {
     it('should string value', () => {
       const value = 'Hello';
