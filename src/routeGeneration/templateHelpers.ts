@@ -234,7 +234,7 @@ export class ValidationService {
       };
       return;
     }
-    const enumValue = (members as any[]).find(member => String(member) === String(value));
+    const enumValue = members.find(member => member === value);
     if (enumValue === undefined) {
       const membersCommaSeparated = members
         .map(member => {

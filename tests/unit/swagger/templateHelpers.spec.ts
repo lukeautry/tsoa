@@ -269,9 +269,9 @@ describe('ValidationService', () => {
 
     it('should enum number value', () => {
       const name = 'name';
-      const value = '1';
+      const value = 1;
       const error = {};
-      const enumeration: Enumeration = ['0', '1'];
+      const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
     });
@@ -305,22 +305,24 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`should be one of the following; ['HELLO', 'HI']`);
     });
 
-    it('accepts a string value of a numeric enum', () => {
+    it('does not accepts a string value for a numeric enum', () => {
       const name = 'name';
       const value = '1';
       const error: any = {};
       const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
-      expect(result).to.equal(value);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [0, 1]`);
     });
 
-    it('accepts a numeric value of a string-numeric enum', () => {
+    it('does not accepts a numeric value for a string-numeric enum', () => {
       const name = 'name';
       const value = 1;
       const error: any = {};
       const enumeration: Enumeration = ['0', '1'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
-      expect(result).to.equal(value);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['0', '1']`);
     });
 
     it('should fail if the value is a non-numeric string for a numeric enum', () => {
