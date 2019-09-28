@@ -147,7 +147,7 @@ export class RouteGenerator {
       const modelSchema = {
         ...(referenceType.dataType === 'refEnum' && { enums: referenceType.enums }),
         ...(referenceType.dataType === 'refObject' && Object.keys(properties).length > 0 && { properties }),
-        ...(referenceType.dataType === 'refType' && { type: this.buildProperty(referenceType.type) }),
+        ...(referenceType.dataType === 'refType' && { type: { ...this.buildProperty(referenceType.type), validators: referenceType.validators } }),
       } as TsoaRoute.ModelSchema;
 
       if (referenceType.dataType === 'refObject') {

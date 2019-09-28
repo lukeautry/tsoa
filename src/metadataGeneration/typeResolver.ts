@@ -381,7 +381,7 @@ export class TypeResolver {
       dataType: 'refType',
       description: this.getNodeDescription(declaration),
       refName: this.getRefTypeName(name),
-      type: new TypeResolver(declaration.type, this.current, this.typeNode, this.extractEnum, this.context).resolve(),
+      type: new TypeResolver(declaration.type, this.current, declaration, this.extractEnum, this.context).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
     };
