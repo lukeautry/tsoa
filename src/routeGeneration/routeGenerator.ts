@@ -167,7 +167,7 @@ export class RouteGenerator {
       } else if (referenceType.dataType === 'refAlias') {
         const refType: TsoaRoute.RefTypeAliasModelSchema = {
           dataType: 'refAlias',
-          type: this.buildProperty(referenceType.type),
+          type: { ...this.buildProperty(referenceType.type), validators: referenceType.validators },
         };
         model = refType;
       } else {
