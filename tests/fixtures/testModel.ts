@@ -284,6 +284,13 @@ export class ValidateModel {
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
 
+  /**
+   * @minLength 4
+   */
+  public aliasWord?: Word;
+
+  public approximatelyFourtyTwo?: ApproximatelyFourtyTwo;
+
   public nestedObject: {
     /**
      * @isFloat Invalid float error message.
@@ -358,6 +365,19 @@ export class ValidateModel {
     mixedUnion?: string | TypeAliasModel1;
   };
 }
+
+/**
+ * This is the typeAliasWord description
+ * @minLength 2
+ */
+type Word = string;
+
+/**
+ * @isInt invalid integer number
+ * @minimum 1
+ * @maximum 100
+ */
+type ApproximatelyFourtyTwo = number;
 
 export interface ValidateMapStringToNumber {
   [key: string]: number;
