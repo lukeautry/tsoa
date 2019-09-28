@@ -64,7 +64,7 @@ export class SpecGenerator2 extends SpecGenerator {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       // Object definition
-      if (referenceType.properties) {
+      if (referenceType.dataType === 'refObject') {
         const required = referenceType.properties.filter(p => p.required).map(p => p.name);
         definitions[referenceType.refName] = {
           description: referenceType.description,
@@ -87,7 +87,7 @@ export class SpecGenerator2 extends SpecGenerator {
       }
 
       // Enum definition
-      if (referenceType.enums) {
+      if (referenceType.dataType === 'refEnum') {
         definitions[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
@@ -321,7 +321,7 @@ export class SpecGenerator2 extends SpecGenerator {
     const properties = type.types.reduce((acc, type) => {
       if (type.dataType === 'refObject') {
         let refType = type as Tsoa.ReferenceType;
-        refType = this.metadata.referenceTypeMap[refType.refName];
+        refType = this.metadata.referenceTypeMap[refType.refName] as Tsoa.ReferenceObject;
 
         const props =
           refType &&

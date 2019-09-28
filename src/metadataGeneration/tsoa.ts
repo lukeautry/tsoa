@@ -124,9 +124,6 @@ export namespace Tsoa {
     description?: string;
     dataType: RefTypeLiteral;
     refName: string;
-    properties?: Property[];
-    additionalProperties?: Type;
-    enums?: string[];
     example?: any;
   }
 
@@ -134,10 +131,13 @@ export namespace Tsoa {
 
   export interface ReferenceObject extends ReferenceTypeBase {
     dataType: 'refObject';
+    properties: Property[];
+    additionalProperties?: Type;
   }
 
   export interface ReferenceEnum extends ReferenceTypeBase {
     dataType: 'refEnum';
+    enums: string[];
   }
 
   export interface ReferenceTypeAlias extends Omit<Property, 'name' | 'required'>, ReferenceTypeBase {

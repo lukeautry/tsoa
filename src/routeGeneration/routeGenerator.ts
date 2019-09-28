@@ -138,24 +138,29 @@ export class RouteGenerator {
       const referenceType = this.metadata.referenceTypeMap[name];
 
       const properties: { [name: string]: TsoaRoute.PropertySchema } = {};
-      if (referenceType.properties) {
+      if (referenceType.dataType === 'refObject') {
         referenceType.properties.map(property => {
           properties[property.name] = this.buildPropertySchema(property);
         });
       }
+
       const modelSchema = {
-        enums: referenceType.enums,
-        properties: Object.keys(properties).length === 0 ? undefined : properties,
+        ...(referenceType.dataType === 'refEnum' && { enums: referenceType.enums }),
+        ...(referenceType.dataType === 'refObject' && Object.keys(properties).length > 0 && { properties }),
         ...(referenceType.dataType === 'refType' && { type: this.buildProperty(referenceType.type) }),
       } as TsoaRoute.ModelSchema;
-      if (referenceType.additionalProperties) {
-        modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
-        modelSchema.additionalProperties = false;
-      } else {
-        // Since Swagger allows "excess properties" (to use a TypeScript term) by default
-        modelSchema.additionalProperties = true;
+
+      if (referenceType.dataType === 'refObject') {
+        if (referenceType.additionalProperties) {
+          modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
+        } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
+          modelSchema.additionalProperties = false;
+        } else {
+          // Since Swagger allows "excess properties" (to use a TypeScript term) by default
+          modelSchema.additionalProperties = true;
+        }
       }
+
       models[name] = modelSchema;
     });
     return models;

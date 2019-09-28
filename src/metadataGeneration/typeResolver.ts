@@ -393,14 +393,14 @@ export class TypeResolver {
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
     const example = this.getNodeExample(modelType);
 
-    const referenceType = {
+    const referenceType: Tsoa.ReferenceObject = {
       additionalProperties,
       dataType: 'refObject',
       description: this.getNodeDescription(modelType),
       properties: inheritedProperties,
       refName: this.getRefTypeName(name),
       ...(example && { example }),
-    } as Tsoa.ReferenceType;
+    };
 
     referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
 
@@ -430,7 +430,7 @@ export class TypeResolver {
   }
 
   private createCircularDependencyResolver(refName: string) {
-    const referenceType = {
+    let referenceType = {
       dataType: 'refObject',
       refName,
     } as Tsoa.ReferenceType;
@@ -440,10 +440,10 @@ export class TypeResolver {
       if (!realReferenceType) {
         return;
       }
-      referenceType.description = realReferenceType.description;
-      referenceType.properties = realReferenceType.properties;
-      referenceType.dataType = realReferenceType.dataType;
-      referenceType.refName = referenceType.refName;
+      referenceType = {
+        ...referenceType,
+        ...realReferenceType,
+      };
     });
 
     return referenceType;
@@ -711,7 +711,7 @@ export class TypeResolver {
         }
 
         const referenceType = this.getReferenceType(t);
-        if (referenceType.properties) {
+        if (referenceType.dataType === 'refObject') {
           referenceType.properties.forEach(property => properties.push(property));
         }
 
