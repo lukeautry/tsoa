@@ -1,25 +1,8 @@
-import * as hapi from '@hapi/hapi';
-import * as express from 'express';
-import * as koa from 'koa';
 import { Get, Request, Response, Route, Security } from '../../../src';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
-declare module 'express' {
-  interface Request {
-    user?: any;
-  }
-}
-
-declare module '@hapi/hapi' {
-  interface Request {
-    user?: any;
-  }
-}
-
-declare module 'koa' {
-  interface Request {
-    user?: any;
-  }
+interface RequestWithUser {
+  user?: any;
 }
 
 @Route('SecurityTest')
@@ -27,28 +10,28 @@ export class SecurityTestController {
   @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get()
-  public async GetWithApi(@Request() request: express.Request): Promise<UserResponseModel> {
+  public async GetWithApi(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('Hapi')
-  public async GetWithApiForHapi(@Request() request: hapi.Request): Promise<UserResponseModel> {
+  public async GetWithApiForHapi(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('Koa')
-  public async GetWithApiForKoa(@Request() request: koa.Request): Promise<UserResponseModel> {
+  public async GetWithApiForKoa(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Get('Oauth')
-  public async GetWithSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
+  public async GetWithSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
@@ -56,7 +39,7 @@ export class SecurityTestController {
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Security('api_key')
   @Get('OauthOrAPIkey')
-  public async GetWithOrSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
+  public async GetWithOrSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
@@ -66,14 +49,14 @@ export class SecurityTestController {
     tsoa_auth: ['write:pets', 'read:pets'],
   })
   @Get('OauthAndAPIkey')
-  public async GetWithAndSecurity(@Request() request: express.Request): Promise<UserResponseModel> {
+  public async GetWithAndSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('ServerError')
-  public async GetServerError(@Request() request: express.Request): Promise<UserResponseModel> {
+  public async GetServerError(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.reject(new Error('Unexpected'));
   }
 }
