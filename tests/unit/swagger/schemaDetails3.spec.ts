@@ -1,11 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
+import sinon = require('sinon');
 import { SwaggerConfig } from '../../../src/config';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
+import { Tsoa } from '../../../src/metadataGeneration/tsoa';
 import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
+
+import assert = require('assert');
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -305,6 +309,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumNumberValue', currentSpec);
+            expect(schema.type).to.eq('integer');
             expect(schema.enum).to.eql([0, 2, 5]);
           },
           enumStringNumberValue: (propertyName, propertySchema) => {
@@ -314,6 +319,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumStringNumberValue', currentSpec);
+            expect(schema.type).to.eq('string');
             expect(schema.enum).to.eql(['0', '2', '5']);
           },
           enumStringNumberArray: (propertyName, propertySchema) => {
@@ -343,6 +349,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
 
             const schema = getComponentSchema('EnumStringValue', currentSpec);
+            expect(schema.type).to.eq('string');
             expect(schema.enum).to.eql(['', 'VALUE_1', 'VALUE_2']);
           },
           enumStringArray: (propertyName, propertySchema) => {
@@ -551,6 +558,50 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           );
         });
       });
+    });
+  });
+
+  describe('illegal input values', () => {
+    it('should not allow an enum that has anything other than string | number', () => {
+      // Arrange
+      const schemaName = 'tooManyTypesEnum';
+      const metadataForEnums: Tsoa.Metadata = {
+        controllers: [],
+        referenceTypeMap: {
+          [schemaName]: {
+            refName: schemaName,
+            dataType: 'refEnum',
+            enums: [1, 'two', 3, 'four', ({} as unknown) as number],
+          },
+        },
+      };
+      const swaggerConfig: SwaggerConfig = {
+        outputDirectory: 'mockOutputDirectory',
+        entryFile: 'mockEntryFile',
+      };
+
+      // Act
+      let errToTest: Error | null = null;
+      try {
+        new SpecGenerator3(metadataForEnums, swaggerConfig).GetSpec();
+      } catch (err) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.eq(`Enums can only have string or number values, but enum ${schemaName} had number,string,object`);
+    });
+
+    it('should warn if an enum is mixed with numbers and strings', () => {
+      // Arrange
+      const spyOfConsoleWarn = sinon.spy(console, 'warn');
+      const mixedEnumMetadata = new MetadataGenerator('./tests/fixtures/controllers/mixedEnumController.ts').Generate();
+
+      // Act
+      new SpecGenerator3(mixedEnumMetadata, defaultOptions).GetSpec();
+
+      // Assert
+      assert(spyOfConsoleWarn.calledWithExactly('Swagger/OpenAPI does not support enums with both strings and numbers but found that for enum MixedStringAndNumberEnum'));
     });
   });
 });
