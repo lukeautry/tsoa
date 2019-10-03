@@ -18,7 +18,7 @@ export namespace Tsoa {
     name: string;
     parameters: Parameter[];
     path: string;
-    type: Type;
+    type: MetaType;
     tags?: string[];
     responses: Response[];
     security: Security[];
@@ -33,13 +33,13 @@ export namespace Tsoa {
     in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
     name: string;
     required?: boolean;
-    type: Type;
+    type: MetaType;
     default?: any;
     validators: Validators;
   }
 
   export interface ArrayParameter extends Parameter {
-    type: ArrayType;
+    type: ArrayMetaType;
     collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv';
   }
 
@@ -54,7 +54,7 @@ export namespace Tsoa {
   export interface Response {
     description: string;
     name: string;
-    schema?: Type;
+    schema?: MetaType;
     examples?: any;
   }
 
@@ -63,7 +63,7 @@ export namespace Tsoa {
     description?: string;
     format?: string;
     name: string;
-    type: Type;
+    type: MetaType;
     required: boolean;
     validators: Validators;
   }
@@ -95,48 +95,121 @@ export namespace Tsoa {
 
   export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
 
-  export interface Type {
+  export interface MetaTypeMinimal {
     dataType: TypeStringLiteral;
   }
 
-  export interface RefTypeMinimal {
-    dataType: RefTypeLiteral;
+  export type PrimitiveMetaType = StringMeta | BooleanMeta | DoubleMeta | FloatMeta | IntegerMeta | LongMeta | VoidMeta;
+
+  /**
+   * This is one of the possible objects that tsoa creates that helps the code store information about the type it found in the code. So since it's type information about types, that seems pretty meta. Hence, we call it MetaType.
+   */
+  export type MetaType = PrimitiveMetaType | ObjectNoPropsMeta | EnumMeta | ArrayMetaType | DateTimeMeta | DateMeta | BinaryMeta | BufferMeta | ByteMeta | AnyMetaType | RefEnumMetaType | RefObjectMetaType | NestedObjectMetaType | UnionMetaType | IntersectionMetaType;
+
+  export interface StringMeta extends MetaTypeMinimal {
+      dataType: 'string'
   }
 
-  export interface EnumerateType extends Type {
+  export interface BooleanMeta extends MetaTypeMinimal {
+    dataType: 'boolean'
+  }
+
+  /**
+   * This is the type that occurs when a developer writes `const foo: object = {}` since it can no longer have any properties added to it.
+   */
+  export interface ObjectNoPropsMeta extends MetaTypeMinimal {
+    dataType: 'object'
+  }
+
+  export interface DoubleMeta extends MetaTypeMinimal {
+    dataType: 'double'
+  }
+
+  export interface FloatMeta extends MetaTypeMinimal {
+    dataType: 'float'
+  }
+
+  export interface IntegerMeta extends MetaTypeMinimal {
+    dataType: 'integer'
+  }
+
+  export interface LongMeta extends MetaTypeMinimal {
+    dataType: 'long'
+  }
+
+  export interface EnumMeta extends MetaTypeMinimal {
     dataType: 'enum';
     enums: string[];
   }
 
-  export interface ObjectLiteralType extends Type {
+  export interface ArrayMetaType extends MetaTypeMinimal {
+    dataType: 'array';
+
+    elementType: MetaType;
+  }
+
+  export interface DateMeta extends MetaTypeMinimal {
+    dataType: 'date'
+  }
+
+  export interface DateTimeMeta extends MetaTypeMinimal {
+    dataType: 'datetime'
+  }
+
+  export interface BinaryMeta extends MetaTypeMinimal {
+    dataType: 'binary'
+  }
+
+  export interface BufferMeta extends MetaTypeMinimal {
+    dataType: 'buffer'
+  }
+
+  export interface ByteMeta extends MetaTypeMinimal {
+    dataType: 'byte'
+  }
+
+  export interface VoidMeta extends MetaTypeMinimal {
+    dataType: 'void'
+  }
+
+  export interface AnyMetaType extends MetaTypeMinimal {
+    dataType: 'any'
+  }
+
+  export interface NestedObjectMetaType extends MetaTypeMinimal {
     dataType: 'nestedObjectLiteral';
     properties: Property[];
-    additionalProperties?: Type;
+    additionalProperties?: MetaType;
   }
 
-  export interface ArrayType extends Type {
-    dataType: 'array';
-    elementType: Type;
+  export interface RefEnumMetaType extends ReferenceTypeMinimal {
+    dataType: 'refEnum';
+    enums: string[] | number[];
   }
 
-  export interface ReferenceType extends Type, RefTypeMinimal {
+  export interface RefObjectMetaType extends ReferenceTypeMinimal {
+    dataType: 'refObject';
+    properties: Property[];
+    additionalProperties?: MetaType;
+  }
+
+  export type ReferenceType = RefEnumMetaType | RefObjectMetaType;
+
+  export interface ReferenceTypeMinimal extends MetaTypeMinimal {
     description?: string;
     dataType: RefTypeLiteral;
     refName: string;
-    properties?: Property[];
-    additionalProperties?: Type;
-    enums?: string[] | number[];
     example?: any;
   }
 
-  export interface UnionType extends Type {
+  export interface UnionMetaType extends MetaTypeMinimal {
     dataType: 'union';
-    types: Type[];
+    types: MetaType[];
   }
 
-  export interface IntersectionType extends Type {
+  export interface IntersectionMetaType extends MetaTypeMinimal {
     dataType: 'intersection';
-    types: Type[];
+    types: MetaType[];
   }
 
   export interface ReferenceTypeMap {

@@ -3,6 +3,7 @@ import { SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
+import { assertNever } from '../utils/assertNever';
 
 export class SpecGenerator2 extends SpecGenerator {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) {
@@ -63,8 +64,7 @@ export class SpecGenerator2 extends SpecGenerator {
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
-      // Object definition
-      if (referenceType.properties) {
+      if (referenceType.dataType === "refObject") {
         const required = referenceType.properties.filter(p => p.required).map(p => p.name);
         definitions[referenceType.refName] = {
           description: referenceType.description,
@@ -84,15 +84,14 @@ export class SpecGenerator2 extends SpecGenerator {
         if (referenceType.example) {
           definitions[referenceType.refName].example = referenceType.example;
         }
-      }
-
-      // Enum definition
-      if (referenceType.enums) {
+      } else if (referenceType.dataType === "refEnum") {
         definitions[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
           type: 'integer',
         };
+      } else {
+        assertNever(referenceType)
       }
     });
 
@@ -299,14 +298,14 @@ export class SpecGenerator2 extends SpecGenerator {
     return properties;
   }
 
-  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionMetaType) {
     if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
     }
     return { type: 'object' };
   }
-  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionMetaType) {
     if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support this kind of intersection types.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');

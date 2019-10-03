@@ -3,6 +3,7 @@ import { SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
+import { assertNever } from '../utils/assertNever';
 
 /**
  * TODO:
@@ -106,8 +107,7 @@ export class SpecGenerator3 extends SpecGenerator {
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
-      // Object definition
-      if (referenceType.properties) {
+      if (referenceType.dataType === "refObject") {
         const required = referenceType.properties.filter(p => p.required).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
@@ -127,15 +127,14 @@ export class SpecGenerator3 extends SpecGenerator {
         if (referenceType.example) {
           schema[referenceType.refName].example = referenceType.example;
         }
-      }
-
-      // Enum definition
-      if (referenceType.enums) {
+      } else if (referenceType.dataType === "refEnum") {
         schema[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
           type: 'string',
         };
+      } else {
+        assertNever(referenceType)
       }
     });
 
@@ -327,11 +326,11 @@ export class SpecGenerator3 extends SpecGenerator {
     return { $ref: `#/components/schemas/${referenceType.refName}` };
   }
 
-  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionMetaType) {
     return { oneOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 
-  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionMetaType) {
     return { allOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 }

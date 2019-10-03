@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { Tsoa } from './tsoa';
 
-export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.Type) => {
+export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.MetaType) => {
   if (!initializer) {
     return;
   }

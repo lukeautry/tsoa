@@ -118,7 +118,7 @@ export class ParameterGenerator {
     };
 
     if (type.dataType === 'array') {
-      const arrayType = type as Tsoa.ArrayType;
+      const arrayType = type as Tsoa.ArrayMetaType;
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
@@ -185,8 +185,9 @@ export class ParameterGenerator {
     return ['header', 'query', 'path', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
-  private supportPathDataType(parameterType: Tsoa.Type) {
-    return ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'any'].find(t => t === parameterType.dataType);
+  private supportPathDataType(parameterType: Tsoa.MetaType) {
+    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'any'];
+    return supportedPathDataTypes.find(t => t === parameterType.dataType);
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {

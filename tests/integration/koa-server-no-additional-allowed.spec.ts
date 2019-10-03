@@ -48,7 +48,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     );
   });
 
-  it('should call out any additionalProperties', () => {
+  it('should call out any additionalProperties for nested literals', () => {
     const data = Object.assign({}, getFakeModel(), {
       objLiteral: {
         extra: 123,

@@ -55,7 +55,7 @@ export class RouteGenerator {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
     });
-    const additionalPropsHelper = (additionalProperties: TsoaRoute.ModelSchema['additionalProperties']) => {
+    const additionalPropsHelper = (additionalProperties: TsoaRoute.RefObjectModelSchema['additionalProperties']) => {
       if (additionalProperties) {
         // Then the model for this type explicitly allows additional properties and thus we should assign that
         return JSON.stringify(additionalProperties);
@@ -137,25 +137,39 @@ export class RouteGenerator {
     Object.keys(this.metadata.referenceTypeMap).forEach(name => {
       const referenceType = this.metadata.referenceTypeMap[name];
 
-      const properties: { [name: string]: TsoaRoute.PropertySchema } = {};
-      if (referenceType.properties) {
-        referenceType.properties.map(property => {
-          properties[property.name] = this.buildPropertySchema(property);
+      let model: TsoaRoute.ModelSchema;
+      if (referenceType.dataType === "refEnum") {
+        const refEnumModel: TsoaRoute.RefEnumModelSchema = {
+          dataType: "refEnum",
+          enums: referenceType.enums
+        }
+        model = refEnumModel;
+      } else if (referenceType.dataType === "refObject") {
+
+        const propertySchemaDictionary: TsoaRoute.RefObjectModelSchema["properties"] = {};
+        referenceType.properties.forEach(property => {
+          propertySchemaDictionary[property.name] = this.buildPropertySchema(property);
         });
-      }
-      const modelSchema = {
-        enums: referenceType.enums,
-        properties: Object.keys(properties).length === 0 ? undefined : properties,
-      } as TsoaRoute.ModelSchema;
-      if (referenceType.additionalProperties) {
-        modelSchema.additionalProperties = this.buildProperty(referenceType.additionalProperties);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
-        modelSchema.additionalProperties = false;
+
+        const refObjModel: TsoaRoute.RefObjectModelSchema = {
+          dataType: "refObject",
+          properties: propertySchemaDictionary
+        }
+        if (referenceType.additionalProperties) {
+          refObjModel.additionalProperties = this.buildProperty(referenceType.additionalProperties);
+        } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
+          refObjModel.additionalProperties = false;
+        } else {
+          // Since Swagger allows "excess properties" (to use a TypeScript term) by default
+          refObjModel.additionalProperties = true;
+        }
+        model = refObjModel;
+
       } else {
-        // Since Swagger allows "excess properties" (to use a TypeScript term) by default
-        modelSchema.additionalProperties = true;
+        model = assertNever(referenceType)
       }
-      models[name] = modelSchema;
+
+      models[name] = model;
     });
     return models;
   }
@@ -193,40 +207,51 @@ export class RouteGenerator {
     return parameterSchema;
   }
 
-  private buildProperty(type: Tsoa.Type): TsoaRoute.PropertySchema {
+  private buildProperty(type: Tsoa.MetaType): TsoaRoute.PropertySchema {
     const schema: TsoaRoute.PropertySchema = {
       dataType: type.dataType,
     };
 
-    const referenceType = type as Tsoa.ReferenceType;
-    if (referenceType.refName) {
+    if (isRefType(type)) {
       schema.dataType = undefined;
-      schema.ref = referenceType.refName;
+      schema.ref = type.refName;
     }
 
     if (type.dataType === 'array') {
-      const arrayType = type as Tsoa.ArrayType;
+      const arrayType = type;
 
-      const arrayRefType = arrayType.elementType as Tsoa.ReferenceType;
-      if (arrayRefType.refName) {
-        schema.array = {
-          ref: arrayRefType.refName,
-        };
+      if (isRefType(arrayType.elementType)) {
+        switch (arrayType.elementType.dataType) {
+          case "refObject": {
+            schema.array = {
+              ref: arrayType.elementType.refName,
+            };
+            break;
+          }
+          case "refEnum": {
+            schema.array = {
+              dataType: arrayType.elementType.dataType,
+              enums: arrayType.elementType.enums,
+            }
+            break;
+          }
+          default: assertNever(arrayType.elementType)
+        }
       } else {
         schema.array = this.buildProperty(arrayType.elementType);
       }
     }
 
     if (type.dataType === 'enum') {
-      schema.enums = (type as Tsoa.EnumerateType).enums;
+      schema.enums = type.enums;
     }
 
     if (type.dataType === 'union' || type.dataType === 'intersection') {
-      schema.subSchemas = (type as Tsoa.IntersectionType | Tsoa.UnionType).types.map(type => this.buildProperty(type));
+      schema.subSchemas = type.types.map(type => this.buildProperty(type));
     }
 
     if (type.dataType === 'nestedObjectLiteral') {
-      const objLiteral = type as Tsoa.ObjectLiteralType;
+      const objLiteral = type;
 
       schema.nestedProperties = objLiteral.properties.reduce((acc, prop) => {
         return { ...acc, [prop.name]: this.buildPropertySchema(prop) };
@@ -236,5 +261,37 @@ export class RouteGenerator {
     }
 
     return schema;
+  }
+}
+
+/**
+ * This will help us do exhaustive matching against only reference types
+ */
+export function isRefType(metaType: Tsoa.MetaType): metaType is Tsoa.ReferenceType {
+  switch (metaType.dataType) {
+      case "any" : return false;
+      case "array": return false;
+      case "binary": return false;
+      case "boolean": return false;
+      case "buffer": return false;
+      case "byte": return false;
+      case "date": return false;
+      case "datetime": return false;
+      case "double": return false;
+      case "enum" : return false;
+      case "float" : return false;
+      case "integer": return false;
+      case "intersection": return false;
+      case "long": return false;
+      case "nestedObjectLiteral": return false;
+      case "object": return false;
+      case "refEnum": return true;
+      case "refObject": return true;
+      case "string": return false;
+      case "union": return false;
+      case "void": return false;
+      default: {
+          return assertNever(metaType)
+      }
   }
 }
