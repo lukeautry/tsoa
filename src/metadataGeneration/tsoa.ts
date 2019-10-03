@@ -104,37 +104,52 @@ export namespace Tsoa {
   /**
    * This is one of the possible objects that tsoa creates that helps the code store information about the type it found in the code.
    */
-  export type Type = PrimitiveType | ObjectsNoPropsType | EnumType | ArrayType | DateTimeType | DateType | BinaryType | BufferType | ByteType | AnyType | RefEnumType | RefObjectType | NestedObjectLiteralType | UnionType | IntersectionType;
+  export type Type =
+    | PrimitiveType
+    | ObjectsNoPropsType
+    | EnumType
+    | ArrayType
+    | DateTimeType
+    | DateType
+    | BinaryType
+    | BufferType
+    | ByteType
+    | AnyType
+    | RefEnumType
+    | RefObjectType
+    | NestedObjectLiteralType
+    | UnionType
+    | IntersectionType;
 
   export interface StringType extends TypeBase {
-      dataType: 'string'
+    dataType: 'string';
   }
 
   export interface BooleanType extends TypeBase {
-    dataType: 'boolean'
+    dataType: 'boolean';
   }
 
   /**
    * This is the type that occurs when a developer writes `const foo: object = {}` since it can no longer have any properties added to it.
    */
   export interface ObjectsNoPropsType extends TypeBase {
-    dataType: 'object'
+    dataType: 'object';
   }
 
   export interface DoubleType extends TypeBase {
-    dataType: 'double'
+    dataType: 'double';
   }
 
   export interface FloatType extends TypeBase {
-    dataType: 'float'
+    dataType: 'float';
   }
 
   export interface IntegerType extends TypeBase {
-    dataType: 'integer'
+    dataType: 'integer';
   }
 
   export interface LongType extends TypeBase {
-    dataType: 'long'
+    dataType: 'long';
   }
 
   /**
@@ -152,31 +167,31 @@ export namespace Tsoa {
   }
 
   export interface DateType extends TypeBase {
-    dataType: 'date'
+    dataType: 'date';
   }
 
   export interface DateTimeType extends TypeBase {
-    dataType: 'datetime'
+    dataType: 'datetime';
   }
 
   export interface BinaryType extends TypeBase {
-    dataType: 'binary'
+    dataType: 'binary';
   }
 
   export interface BufferType extends TypeBase {
-    dataType: 'buffer'
+    dataType: 'buffer';
   }
 
   export interface ByteType extends TypeBase {
-    dataType: 'byte'
+    dataType: 'byte';
   }
 
   export interface VoidType extends TypeBase {
-    dataType: 'void'
+    dataType: 'void';
   }
 
   export interface AnyType extends TypeBase {
-    dataType: 'any'
+    dataType: 'any';
   }
 
   export interface NestedObjectLiteralType extends TypeBase {

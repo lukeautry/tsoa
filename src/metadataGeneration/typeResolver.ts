@@ -44,8 +44,8 @@ export class TypeResolver {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
         elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.extractEnum, this.context).resolve(),
-      }
-      return arrayMetaType
+      };
+      return arrayMetaType;
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
@@ -94,8 +94,8 @@ export class TypeResolver {
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
       const literallyAny: Tsoa.AnyType = {
-        dataType: 'any'
-      }
+        dataType: 'any',
+      };
       return literallyAny;
     }
 
@@ -197,14 +197,11 @@ export class TypeResolver {
 
     const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
 
-    if (
-      enumOrReferenceType.dataType === "refEnum" ||
-      enumOrReferenceType.dataType === "refObject"
-    ) {
+    if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject') {
       this.checkRefNameForBadCharacters(enumOrReferenceType);
       this.current.AddReferenceType(enumOrReferenceType);
       return enumOrReferenceType;
-    } else if (enumOrReferenceType.dataType === "enum") {
+    } else if (enumOrReferenceType.dataType === 'enum') {
       // then there is no reference to add to the reference type map
       // but we should still return it (if they want it)
       if (!this.extractEnum) {
@@ -266,18 +263,18 @@ export class TypeResolver {
       }
     } else if (resolution.resolvedType === 'string') {
       return {
-        dataType: 'string'
-      }
+        dataType: 'string',
+      };
     } else if (resolution.resolvedType === 'boolean') {
       return {
-        dataType: 'boolean'
-      }
+        dataType: 'boolean',
+      };
     } else if (resolution.resolvedType === 'void') {
       return {
-        dataType: 'void'
-      }
+        dataType: 'void',
+      };
     } else {
-      return assertNever(resolution.resolvedType)
+      return assertNever(resolution.resolvedType);
     }
   }
 
@@ -384,9 +381,7 @@ export class TypeResolver {
     } as Tsoa.EnumType;
   }
 
-  private getReferenceTypeOrEnumType(
-      type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>
-  ): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
+  private getReferenceTypeOrEnumType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
     const typeName = this.resolveFqTypeName(type);
     const refNameWithGenerics = this.getTypeName(typeName, genericTypes);
 
@@ -398,10 +393,10 @@ export class TypeResolver {
 
       const enumOrRefEnum = this.getEnumerateType(type, true);
       if (enumOrRefEnum) {
-        if (enumOrRefEnum.dataType === "refEnum") {
+        if (enumOrRefEnum.dataType === 'refEnum') {
           localReferenceTypeCache[refNameWithGenerics] = enumOrRefEnum;
           return enumOrRefEnum;
-        } else if (enumOrRefEnum.dataType === "enum") {
+        } else if (enumOrRefEnum.dataType === 'enum') {
           // Since an enum that is not reusable can't be referenced, we don't put it in the cache.
           // Also it doesn't qualify as a ref type, so might want to return it (if they've asked for it)
           if (!extractEnum) {
@@ -486,29 +481,29 @@ export class TypeResolver {
     if (syntaxKind === ts.SyntaxKind.NumberKeyword) {
       return {
         foundMatch: true,
-        resolvedType: 'number'
+        resolvedType: 'number',
       };
     } else if (syntaxKind === ts.SyntaxKind.StringKeyword) {
       return {
         foundMatch: true,
-        resolvedType: 'string'
+        resolvedType: 'string',
       };
     } else if (syntaxKind === ts.SyntaxKind.BooleanKeyword) {
       return {
         foundMatch: true,
-        resolvedType: 'boolean'
+        resolvedType: 'boolean',
       };
     } else if (syntaxKind === ts.SyntaxKind.VoidKeyword) {
       return {
         foundMatch: true,
-        resolvedType: 'void'
+        resolvedType: 'void',
       };
     } else {
       return {
-        foundMatch: false
-      }
+        foundMatch: false,
+      };
     }
-  }
+  };
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
     const primitiveType = this.attemptToResolveKindToPrimitive(typeNode.kind);
@@ -552,7 +547,7 @@ export class TypeResolver {
         return;
       }
       referenceType.description = realReferenceType.description;
-      if (realReferenceType.dataType === "refObject" && referenceType.dataType === "refObject") {
+      if (realReferenceType.dataType === 'refObject' && referenceType.dataType === 'refObject') {
         referenceType.properties = realReferenceType.properties;
       }
       referenceType.dataType = realReferenceType.dataType;
@@ -854,9 +849,9 @@ export class TypeResolver {
 
         const referenceType = this.getReferenceTypeOrEnumType(baseEntityName);
         if (referenceType) {
-          if (referenceType.dataType === "refEnum" || referenceType.dataType === "enum") {
+          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
             // since it doesn't have properties to iterate over, then we don't do anything with it
-          } else if (referenceType.dataType === "refObject") {
+          } else if (referenceType.dataType === 'refObject') {
             referenceType.properties.forEach(property => properties.push(property));
           } else {
             assertNever(referenceType);
@@ -938,9 +933,9 @@ export class TypeResolver {
 }
 
 interface ResolvesToPrimitive {
-  foundMatch: true,
-  resolvedType: 'number' | 'string' | 'boolean' | 'void'
+  foundMatch: true;
+  resolvedType: 'number' | 'string' | 'boolean' | 'void';
 }
 interface DoesNotResolveToPrimitive {
-  foundMatch: false
+  foundMatch: false;
 }

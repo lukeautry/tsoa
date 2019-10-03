@@ -109,7 +109,7 @@ export class ValidationService {
 
     const propHandling = this.resolveAdditionalPropSetting(swaggerConfig);
     if (propHandling !== 'ignore') {
-      const excessProps = this.getExcessPropertiesFor({ dataType: "refObject", properties: nestedProperties, additionalProperties }, Object.keys(value), swaggerConfig);
+      const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value), swaggerConfig);
       if (excessProps.length > 0) {
         if (propHandling === 'silently-remove-extras') {
           excessProps.forEach(excessProp => {
@@ -578,12 +578,12 @@ export class ValidationService {
   }
 
   private getPropertiesFor(modelDefinition: TsoaRoute.ModelSchema) {
-    const properties = !!modelDefinition && modelDefinition.dataType === "refObject" ? modelDefinition.properties : {};
+    const properties = !!modelDefinition && modelDefinition.dataType === 'refObject' ? modelDefinition.properties : {};
     return new Set(Object.keys(properties));
   }
 
   private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: string[], config: SwaggerConfigRelatedToRoutes): string[] {
-    if (!modelDefinition || modelDefinition.dataType !== "refObject") {
+    if (!modelDefinition || modelDefinition.dataType !== 'refObject') {
       return properties;
     }
 
@@ -604,7 +604,7 @@ export class ValidationService {
     const modelDefinition = this.models[refName];
 
     if (modelDefinition) {
-      if (modelDefinition.dataType === "refEnum") {
+      if (modelDefinition.dataType === 'refEnum') {
         return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent);
       }
 

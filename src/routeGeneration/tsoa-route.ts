@@ -14,12 +14,12 @@ export namespace TsoaRoute {
   }
 
   export interface RefEnumModelSchema {
-    dataType: "refEnum",
-    enums: string[] | number[]
+    dataType: 'refEnum';
+    enums: string[] | number[];
   }
 
   export interface RefObjectModelSchema {
-    dataType: "refObject",
+    dataType: 'refObject';
     properties: { [name: string]: PropertySchema };
     additionalProperties?: boolean | PropertySchema;
   }

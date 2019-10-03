@@ -107,7 +107,7 @@ export class SpecGenerator3 extends SpecGenerator {
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
-      if (referenceType.dataType === "refObject") {
+      if (referenceType.dataType === 'refObject') {
         const required = referenceType.properties.filter(p => p.required).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
@@ -127,14 +127,14 @@ export class SpecGenerator3 extends SpecGenerator {
         if (referenceType.example) {
           schema[referenceType.refName].example = referenceType.example;
         }
-      } else if (referenceType.dataType === "refEnum") {
+      } else if (referenceType.dataType === 'refEnum') {
         schema[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
           type: 'string',
         };
       } else {
-        assertNever(referenceType)
+        assertNever(referenceType);
       }
     });
 
