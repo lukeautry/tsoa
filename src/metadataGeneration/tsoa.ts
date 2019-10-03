@@ -125,7 +125,7 @@ export namespace Tsoa {
     refName: string;
     properties?: Property[];
     additionalProperties?: Type;
-    enums?: string[] | number[];
+    enums?: Array<string | number>;
     example?: any;
   }
 

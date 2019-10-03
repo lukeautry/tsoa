@@ -14,7 +14,7 @@ export namespace TsoaRoute {
   }
 
   export interface ModelSchema {
-    enums?: string[] | number[];
+    enums?: Array<string | number>;
     properties?: { [name: string]: PropertySchema };
     additionalProperties?: boolean | PropertySchema;
   }
