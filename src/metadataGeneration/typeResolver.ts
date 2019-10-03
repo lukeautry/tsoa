@@ -34,14 +34,14 @@ export class TypeResolver {
     });
   }
 
-  public resolve(): Tsoa.MetaType {
+  public resolve(): Tsoa.Type {
     const primitiveType = this.getPrimitiveType(this.typeNode, this.parentNode);
     if (primitiveType) {
       return primitiveType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
-      const arrayMetaType: Tsoa.ArrayMetaType = {
+      const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
         elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.extractEnum, this.context).resolve(),
       }
@@ -52,7 +52,7 @@ export class TypeResolver {
       const supportType = this.typeNode.types.every(type => ts.isLiteralTypeNode(type));
 
       if (supportType) {
-        const enumMetaType: Tsoa.EnumMeta = {
+        const enumMetaType: Tsoa.EnumType = {
           dataType: 'enum',
           enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => {
             switch (type.literal.kind) {
@@ -71,7 +71,7 @@ export class TypeResolver {
           return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
         });
 
-        const unionMetaType: Tsoa.UnionMetaType = {
+        const unionMetaType: Tsoa.UnionType = {
           dataType: 'union',
           types,
         };
@@ -84,7 +84,7 @@ export class TypeResolver {
         return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       });
 
-      const intersectionMetaType: Tsoa.IntersectionMetaType = {
+      const intersectionMetaType: Tsoa.IntersectionType = {
         dataType: 'intersection',
         types,
       };
@@ -93,7 +93,7 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
-      const literallyAny: Tsoa.AnyMetaType = {
+      const literallyAny: Tsoa.AnyType = {
         dataType: 'any'
       }
       return literallyAny;
@@ -118,7 +118,7 @@ export class TypeResolver {
         }, []);
 
       const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
-      let additionalType: Tsoa.MetaType | undefined;
+      let additionalType: Tsoa.Type | undefined;
 
       if (indexMember) {
         const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
@@ -130,7 +130,7 @@ export class TypeResolver {
         additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       }
 
-      const objLiteral: Tsoa.NestedObjectMetaType = {
+      const objLiteral: Tsoa.NestedObjectLiteralType = {
         additionalProperties: indexMember && additionalType,
         dataType: 'nestedObjectLiteral',
         properties,
@@ -153,12 +153,12 @@ export class TypeResolver {
       }
 
       if (typeReference.typeName.text === 'Buffer') {
-        const bufferMetaType: Tsoa.BufferMeta = { dataType: 'buffer' };
+        const bufferMetaType: Tsoa.BufferType = { dataType: 'buffer' };
         return bufferMetaType;
       }
 
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        const arrayMetaType: Tsoa.ArrayMetaType = {
+        const arrayMetaType: Tsoa.ArrayType = {
           dataType: 'array',
           elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve(),
         };
@@ -170,7 +170,7 @@ export class TypeResolver {
       }
 
       if (typeReference.typeName.text === 'String') {
-        const stringMetaType: Tsoa.StringMeta = { dataType: 'string' };
+        const stringMetaType: Tsoa.StringType = { dataType: 'string' };
         return stringMetaType;
       }
 
@@ -234,7 +234,7 @@ export class TypeResolver {
     }
   }
 
-  private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveMetaType | undefined {
+  private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
     const resolution = this.attemptToResolveKindToPrimitive(typeNode.kind);
     if (!resolution.foundMatch) {
       return;
@@ -281,7 +281,7 @@ export class TypeResolver {
     }
   }
 
-  private getDateType(parentNode?: ts.Node): Tsoa.DateMeta | Tsoa.DateTimeMeta {
+  private getDateType(parentNode?: ts.Node): Tsoa.DateType | Tsoa.DateTimeType {
     if (!parentNode) {
       return { dataType: 'datetime' };
     }
@@ -302,7 +302,7 @@ export class TypeResolver {
     }
   }
 
-  private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.EnumMeta | Tsoa.RefEnumMetaType | undefined {
+  private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.EnumType | Tsoa.RefEnumType | undefined {
     const enumName = (typeName as ts.Identifier).text;
     const enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
 
@@ -355,7 +355,7 @@ export class TypeResolver {
     }
   }
 
-  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumMeta | Tsoa.AnyMetaType | undefined {
+  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumType | Tsoa.AnyType | undefined {
     const literalName = (typeName as ts.Identifier).text;
     const literalTypes = this.current.nodes
       .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
@@ -381,12 +381,12 @@ export class TypeResolver {
     return {
       dataType: 'enum',
       enums: unionTypes.map(unionNode => unionNode.literal.text as string),
-    } as Tsoa.EnumMeta;
+    } as Tsoa.EnumType;
   }
 
   private getReferenceTypeOrEnumType(
       type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>
-  ): Tsoa.RefEnumMetaType | Tsoa.RefObjectMetaType | Tsoa.EnumMeta {
+  ): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
     const typeName = this.resolveFqTypeName(type);
     const refNameWithGenerics = this.getTypeName(typeName, genericTypes);
 
@@ -424,7 +424,7 @@ export class TypeResolver {
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
       const example = this.getNodeExample(modelType);
 
-      const referenceType: Tsoa.RefObjectMetaType = {
+      const referenceType: Tsoa.RefObjectType = {
         additionalProperties,
         dataType: 'refObject',
         description: this.getNodeDescription(modelType),

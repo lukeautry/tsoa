@@ -136,7 +136,7 @@ export class MethodGenerator {
     });
   }
 
-  private getMethodSuccessResponse(type: Tsoa.MetaType): Tsoa.Response {
+  private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
     if (!decorators || !decorators.length) {
       return {

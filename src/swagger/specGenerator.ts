@@ -7,7 +7,7 @@ import { Swagger } from './swagger';
 export abstract class SpecGenerator {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) {}
 
-  protected buildAdditionalProperties(type: Tsoa.MetaType) {
+  protected buildAdditionalProperties(type: Tsoa.Type) {
     return this.getSwaggerType(type);
   }
 
@@ -50,7 +50,7 @@ export abstract class SpecGenerator {
     }
   }
 
-  protected getSwaggerType(type: Tsoa.MetaType): Swagger.Schema | Swagger.BaseSchema {
+  protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
     if (type.dataType === 'void') {
       return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
@@ -86,11 +86,11 @@ export abstract class SpecGenerator {
     }
   }
 
-  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionMetaType);
+  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType);
 
-  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionMetaType);
+  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
 
-  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectMetaType): Swagger.Schema {
+  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectLiteralType): Swagger.Schema {
     const properties = objectLiteral.properties.reduce((acc, property: Tsoa.Property) => {
       return {
         [property.name]: this.getSwaggerType(property.type),
@@ -187,14 +187,14 @@ export abstract class SpecGenerator {
     return map[dataType];
   }
 
-  protected getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayMetaType): Swagger.Schema {
+  protected getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType): Swagger.Schema {
     return {
       items: this.getSwaggerType(arrayType.elementType),
       type: 'array',
     };
   }
 
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumMeta): Swagger.Schema {
+  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema {
     return { type: 'string', enum: enumType.enums.map(member => String(member)) };
   }
 }

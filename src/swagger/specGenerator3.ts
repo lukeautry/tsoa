@@ -1,9 +1,9 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { assertNever } from '../utils/assertNever';
 import { SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
-import { assertNever } from '../utils/assertNever';
 
 /**
  * TODO:
@@ -326,11 +326,11 @@ export class SpecGenerator3 extends SpecGenerator {
     return { $ref: `#/components/schemas/${referenceType.refName}` };
   }
 
-  protected getSwaggerTypeForUnionType(type: Tsoa.UnionMetaType) {
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
     return { oneOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 
-  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionMetaType) {
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
     return { allOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 }

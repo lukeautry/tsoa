@@ -207,7 +207,7 @@ export class RouteGenerator {
     return parameterSchema;
   }
 
-  private buildProperty(type: Tsoa.MetaType): TsoaRoute.PropertySchema {
+  private buildProperty(type: Tsoa.Type): TsoaRoute.PropertySchema {
     const schema: TsoaRoute.PropertySchema = {
       dataType: type.dataType,
     };
@@ -267,7 +267,7 @@ export class RouteGenerator {
 /**
  * This will help us do exhaustive matching against only reference types
  */
-export function isRefType(metaType: Tsoa.MetaType): metaType is Tsoa.ReferenceType {
+export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
   switch (metaType.dataType) {
       case "any" : return false;
       case "array": return false;

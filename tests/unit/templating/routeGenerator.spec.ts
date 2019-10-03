@@ -7,7 +7,7 @@ describe('RouteGenerator', () => {
   describe('.buildModels', () => {
     it('should produce models where additionalProperties are not allowed unless explicitly stated', () => {
       // Arrange
-      const stringType: Tsoa.MetaType = {
+      const stringType: Tsoa.Type = {
         dataType: 'string',
       };
       const refThatShouldNotAllowExtras = 'refThatShouldNotAllowExtras';

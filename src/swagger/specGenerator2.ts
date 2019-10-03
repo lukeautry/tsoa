@@ -1,9 +1,9 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { assertNever } from '../utils/assertNever';
 import { SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
-import { assertNever } from '../utils/assertNever';
 
 export class SpecGenerator2 extends SpecGenerator {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: SwaggerConfig) {
@@ -298,14 +298,14 @@ export class SpecGenerator2 extends SpecGenerator {
     return properties;
   }
 
-  protected getSwaggerTypeForUnionType(type: Tsoa.UnionMetaType) {
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
     if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
     }
     return { type: 'object' };
   }
-  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionMetaType) {
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
     if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support this kind of intersection types.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
