@@ -4,7 +4,7 @@ import { Tsoa } from './../metadataGeneration/tsoa';
  * For Swagger, additionalProperties is implicitly allowed. So use this function to clarify that undefined should be associated with allowing additional properties
  * @param test if this is undefined then you should interpret it as a "yes"
  */
-export function isDefaultForAdditionalPropertiesAllowed(test: TsoaRoute.ModelSchema['additionalProperties']): test is undefined {
+export function isDefaultForAdditionalPropertiesAllowed(test: TsoaRoute.RefObjectModelSchema['additionalProperties']): test is undefined {
   return test === undefined;
 }
 
@@ -13,11 +13,25 @@ export namespace TsoaRoute {
     [name: string]: ModelSchema;
   }
 
-  export interface ModelSchema {
-    enums?: Array<string | number>;
-    properties?: { [name: string]: PropertySchema };
+  /**
+   * This is a convenience type so you can check .properties on the items in the Record without having TypeScript throw a compiler error. That's because this Record can't have enums in it. If you want that, then just use the base interface
+   */
+  export interface RefObjectModels extends TsoaRoute.Models {
+    [refNames: string]: TsoaRoute.RefObjectModelSchema;
+  }
+
+  export interface RefEnumModelSchema {
+    dataType: 'refEnum';
+    enums: Array<string | number>;
+  }
+
+  export interface RefObjectModelSchema {
+    dataType: 'refObject';
+    properties: { [name: string]: PropertySchema };
     additionalProperties?: boolean | PropertySchema;
   }
+
+  export type ModelSchema = RefEnumModelSchema | RefObjectModelSchema;
 
   export type ValidatorSchema = Tsoa.Validators;
 
@@ -26,7 +40,7 @@ export namespace TsoaRoute {
     ref?: string;
     required?: boolean;
     array?: PropertySchema;
-    enums?: string[];
+    enums?: Array<string | number>;
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
     default?: any;

@@ -8,6 +8,7 @@ describe('ValidationService', () => {
     it('should validate a model with declared properties', () => {
       const v = new ValidationService({
         ExampleModel: {
+          dataType: "refObject",
           properties: {
             a: { dataType: 'string', required: true },
           },
@@ -33,6 +34,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
+          dataType: "refObject",
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -75,6 +77,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
+          dataType: "refObject",
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -114,6 +117,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
+          dataType: "refObject",
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -156,6 +160,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
+          dataType: "refObject",
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -190,6 +195,7 @@ describe('ValidationService', () => {
     it('should not require optional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
+          dataType: "refObject",
           properties: {
             a: { dataType: 'string' },
           },
@@ -207,6 +213,8 @@ describe('ValidationService', () => {
     it('should validate a model with additional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
+          dataType: "refObject",
+          properties: {},
           additionalProperties: { dataType: 'any' },
         },
       });
@@ -223,6 +231,7 @@ describe('ValidationService', () => {
     it('should validate a model with optional and additional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
+          dataType: "refObject",
           additionalProperties: { dataType: 'any' },
           properties: {
             a: { dataType: 'string' },
@@ -243,6 +252,7 @@ describe('ValidationService', () => {
     it('should validate additional properties only against non-explicitly stated properties', () => {
       const v = new ValidationService({
         ExampleModel: {
+          dataType: "refObject",
           additionalProperties: {
             dataType: 'integer',
             validators: { minimum: { value: 10 } },

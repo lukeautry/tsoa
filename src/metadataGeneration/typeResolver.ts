@@ -1,16 +1,11 @@
 import * as ts from 'typescript';
+import { assertNever } from '../utils/assertNever';
 import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from './tsoa';
-
-const syntaxKindMap: { [kind: number]: string } = {};
-syntaxKindMap[ts.SyntaxKind.NumberKeyword] = 'number';
-syntaxKindMap[ts.SyntaxKind.StringKeyword] = 'string';
-syntaxKindMap[ts.SyntaxKind.BooleanKeyword] = 'boolean';
-syntaxKindMap[ts.SyntaxKind.VoidKeyword] = 'void';
 
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
@@ -46,17 +41,18 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
-      return {
+      const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
         elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.extractEnum, this.context).resolve(),
-      } as Tsoa.ArrayType;
+      };
+      return arrayMetaType;
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
       const supportType = this.typeNode.types.every(type => ts.isLiteralTypeNode(type));
 
       if (supportType) {
-        return {
+        const enumMetaType: Tsoa.EnumType = {
           dataType: 'enum',
           enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => {
             switch (type.literal.kind) {
@@ -68,16 +64,18 @@ export class TypeResolver {
                 return String((type.literal as ts.LiteralExpression).text);
             }
           }),
-        } as Tsoa.EnumerateType;
+        };
+        return enumMetaType;
       } else {
         const types = this.typeNode.types.map(type => {
           return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
         });
 
-        return {
+        const unionMetaType: Tsoa.UnionType = {
           dataType: 'union',
           types,
-        } as Tsoa.UnionType;
+        };
+        return unionMetaType;
       }
     }
 
@@ -86,14 +84,19 @@ export class TypeResolver {
         return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       });
 
-      return {
+      const intersectionMetaType: Tsoa.IntersectionType = {
         dataType: 'intersection',
         types,
-      } as Tsoa.IntersectionType;
+      };
+
+      return intersectionMetaType;
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
-      return { dataType: 'any' } as Tsoa.Type;
+      const literallyAny: Tsoa.AnyType = {
+        dataType: 'any',
+      };
+      return literallyAny;
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
@@ -127,7 +130,7 @@ export class TypeResolver {
         additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       }
 
-      const objLiteral: Tsoa.ObjectLiteralType = {
+      const objLiteral: Tsoa.NestedObjectLiteralType = {
         additionalProperties: indexMember && additionalType,
         dataType: 'nestedObjectLiteral',
         properties,
@@ -136,7 +139,7 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.ObjectKeyword) {
-      return { dataType: 'object' } as Tsoa.Type;
+      return { dataType: 'object' };
     }
 
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
@@ -150,14 +153,16 @@ export class TypeResolver {
       }
 
       if (typeReference.typeName.text === 'Buffer') {
-        return { dataType: 'buffer' } as Tsoa.Type;
+        const bufferMetaType: Tsoa.BufferType = { dataType: 'buffer' };
+        return bufferMetaType;
       }
 
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        return {
+        const arrayMetaType: Tsoa.ArrayType = {
           dataType: 'array',
           elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve(),
-        } as Tsoa.ArrayType;
+        };
+        return arrayMetaType;
       }
 
       if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
@@ -165,7 +170,8 @@ export class TypeResolver {
       }
 
       if (typeReference.typeName.text === 'String') {
-        return { dataType: 'string' } as Tsoa.Type;
+        const stringMetaType: Tsoa.StringType = { dataType: 'string' };
+        return stringMetaType;
       }
 
       if (this.context[typeReference.typeName.text]) {
@@ -185,40 +191,53 @@ export class TypeResolver {
       return literalType;
     }
 
-    let referenceType: Tsoa.ReferenceType;
     if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
       this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
     }
 
-    referenceType = this.getReferenceType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
+    const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
 
-    this.current.AddReferenceType(referenceType);
+    if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject') {
+      this.checkRefNameForBadCharacters(enumOrReferenceType);
+      this.current.AddReferenceType(enumOrReferenceType);
+      return enumOrReferenceType;
+    } else if (enumOrReferenceType.dataType === 'enum') {
+      // then there is no reference to add to the reference type map
+      // but we should still return it (if they want it)
+      if (!this.extractEnum) {
+        return enumOrReferenceType;
+      }
+    } else {
+      assertNever(enumOrReferenceType);
+    }
 
+    return enumOrReferenceType;
+  }
+
+  private checkRefNameForBadCharacters(ref: Tsoa.ReferenceType) {
     // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
     //   The goal is to avoid producing these names before the code is ever merged to master (via extensive test coverage)
     //   and therefore this validation does not have to run for the users
     if (process.env.NODE_ENV === 'tsoa_test') {
       // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
       const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
-      if (symbolsRegex.test(referenceType.refName)) {
+      if (symbolsRegex.test(ref.refName)) {
         throw new Error(
-          `Problem with creating refName ${referenceType.refName} since we should not allow symbols in ref names ` +
+          `Problem with creating refName ${ref.refName} since we should not allow symbols in ref names ` +
             `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
             `"ref values must be RFC3986-compliant percent-encoded URIs."`,
         );
       }
     }
-
-    return referenceType;
   }
 
-  private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.Type | undefined {
-    const primitiveType = syntaxKindMap[typeNode.kind];
-    if (!primitiveType) {
+  private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
+    const resolution = this.attemptToResolveKindToPrimitive(typeNode.kind);
+    if (!resolution.foundMatch) {
       return;
     }
 
-    if (primitiveType === 'number') {
+    if (resolution.resolvedType === 'number') {
       if (!parentNode) {
         return { dataType: 'double' };
       }
@@ -242,11 +261,24 @@ export class TypeResolver {
         default:
           return { dataType: 'double' };
       }
+    } else if (resolution.resolvedType === 'string') {
+      return {
+        dataType: 'string',
+      };
+    } else if (resolution.resolvedType === 'boolean') {
+      return {
+        dataType: 'boolean',
+      };
+    } else if (resolution.resolvedType === 'void') {
+      return {
+        dataType: 'void',
+      };
+    } else {
+      return assertNever(resolution.resolvedType);
     }
-    return { dataType: primitiveType } as Tsoa.Type;
   }
 
-  private getDateType(parentNode?: ts.Node): Tsoa.Type {
+  private getDateType(parentNode?: ts.Node): Tsoa.DateType | Tsoa.DateTimeType {
     if (!parentNode) {
       return { dataType: 'datetime' };
     }
@@ -267,7 +299,7 @@ export class TypeResolver {
     }
   }
 
-  private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.Type | undefined {
+  private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.EnumType | Tsoa.RefEnumType | undefined {
     const enumName = (typeName as ts.Identifier).text;
     const enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
 
@@ -309,18 +341,18 @@ export class TypeResolver {
         description: this.getNodeDescription(enumDeclaration),
         enums,
         refName: enumName,
-      } as Tsoa.ReferenceType;
+      };
     } else {
       return {
         dataType: 'enum',
         enums: enumDeclaration.members.map((member: any, index) => {
           return getEnumValue(member) || String(index);
         }),
-      } as Tsoa.EnumerateType;
+      };
     }
   }
 
-  private getLiteralType(typeName: ts.EntityName): Tsoa.Type | undefined {
+  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumType | Tsoa.AnyType | undefined {
     const literalName = (typeName as ts.Identifier).text;
     const literalTypes = this.current.nodes
       .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
@@ -346,10 +378,10 @@ export class TypeResolver {
     return {
       dataType: 'enum',
       enums: unionTypes.map(unionNode => unionNode.literal.text as string),
-    } as Tsoa.EnumerateType;
+    } as Tsoa.EnumType;
   }
 
-  private getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.ReferenceType {
+  private getReferenceTypeOrEnumType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
     const typeName = this.resolveFqTypeName(type);
     const refNameWithGenerics = this.getTypeName(typeName, genericTypes);
 
@@ -359,10 +391,20 @@ export class TypeResolver {
         return existingType;
       }
 
-      const referenceEnumType = this.getEnumerateType(type, true) as Tsoa.ReferenceType;
-      if (referenceEnumType) {
-        localReferenceTypeCache[refNameWithGenerics] = referenceEnumType;
-        return referenceEnumType;
+      const enumOrRefEnum = this.getEnumerateType(type, true);
+      if (enumOrRefEnum) {
+        if (enumOrRefEnum.dataType === 'refEnum') {
+          localReferenceTypeCache[refNameWithGenerics] = enumOrRefEnum;
+          return enumOrRefEnum;
+        } else if (enumOrRefEnum.dataType === 'enum') {
+          // Since an enum that is not reusable can't be referenced, we don't put it in the cache.
+          // Also it doesn't qualify as a ref type, so might want to return it (if they've asked for it)
+          if (!extractEnum) {
+            return enumOrRefEnum;
+          }
+        } else {
+          assertNever(enumOrRefEnum);
+        }
       }
 
       if (inProgressTypes[refNameWithGenerics]) {
@@ -377,15 +419,15 @@ export class TypeResolver {
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
       const example = this.getNodeExample(modelType);
 
-      const referenceType = {
+      const referenceType: Tsoa.RefObjectType = {
         additionalProperties,
         dataType: 'refObject',
         description: this.getNodeDescription(modelType),
         properties: inheritedProperties,
         refName: refNameWithGenerics,
-      } as Tsoa.ReferenceType;
+      };
 
-      referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
+      referenceType.properties = referenceType.properties.concat(properties);
       localReferenceTypeCache[refNameWithGenerics] = referenceType;
 
       if (example) {
@@ -435,10 +477,38 @@ export class TypeResolver {
     return finalName;
   }
 
+  private attemptToResolveKindToPrimitive = (syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive => {
+    if (syntaxKind === ts.SyntaxKind.NumberKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'number',
+      };
+    } else if (syntaxKind === ts.SyntaxKind.StringKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'string',
+      };
+    } else if (syntaxKind === ts.SyntaxKind.BooleanKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'boolean',
+      };
+    } else if (syntaxKind === ts.SyntaxKind.VoidKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'void',
+      };
+    } else {
+      return {
+        foundMatch: false,
+      };
+    }
+  };
+
   private getAnyTypeName(typeNode: ts.TypeNode): string {
-    const primitiveType = syntaxKindMap[typeNode.kind];
-    if (primitiveType) {
-      return primitiveType;
+    const primitiveType = this.attemptToResolveKindToPrimitive(typeNode.kind);
+    if (primitiveType.foundMatch) {
+      return primitiveType.resolvedType;
     }
 
     if (typeNode.kind === ts.SyntaxKind.ArrayType) {
@@ -477,7 +547,9 @@ export class TypeResolver {
         return;
       }
       referenceType.description = realReferenceType.description;
-      referenceType.properties = realReferenceType.properties;
+      if (realReferenceType.dataType === 'refObject' && referenceType.dataType === 'refObject') {
+        referenceType.properties = realReferenceType.properties;
+      }
       referenceType.dataType = realReferenceType.dataType;
       referenceType.refName = referenceType.refName;
     });
@@ -775,9 +847,15 @@ export class TypeResolver {
           resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
         }
 
-        const referenceType = this.getReferenceType(baseEntityName);
-        if (referenceType.properties) {
-          referenceType.properties.forEach(property => properties.push(property));
+        const referenceType = this.getReferenceTypeOrEnumType(baseEntityName);
+        if (referenceType) {
+          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
+            // since it doesn't have properties to iterate over, then we don't do anything with it
+          } else if (referenceType.dataType === 'refObject') {
+            referenceType.properties.forEach(property => properties.push(property));
+          } else {
+            assertNever(referenceType);
+          }
         }
 
         // reset subContext
@@ -852,4 +930,12 @@ export class TypeResolver {
       return undefined;
     }
   }
+}
+
+interface ResolvesToPrimitive {
+  foundMatch: true;
+  resolvedType: 'number' | 'string' | 'boolean' | 'void';
+}
+interface DoesNotResolveToPrimitive {
+  foundMatch: false;
 }

@@ -1,4 +1,5 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
+import { assertNever } from '../utils/assertNever';
 import { SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
@@ -63,8 +64,7 @@ export class SpecGenerator2 extends SpecGenerator {
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
-      // Object definition
-      if (referenceType.properties) {
+      if (referenceType.dataType === 'refObject') {
         const required = referenceType.properties.filter(p => p.required).map(p => p.name);
         definitions[referenceType.refName] = {
           description: referenceType.description,
@@ -84,15 +84,14 @@ export class SpecGenerator2 extends SpecGenerator {
         if (referenceType.example) {
           definitions[referenceType.refName].example = referenceType.example;
         }
-      }
-
-      // Enum definition
-      if (referenceType.enums) {
+      } else if (referenceType.dataType === 'refEnum') {
         definitions[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
           type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
+      } else {
+        assertNever(referenceType);
       }
     });
 

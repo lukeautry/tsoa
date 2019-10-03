@@ -18,16 +18,16 @@ const models: TsoaRoute.Models = {
     {{#each models}}
     "{{@key}}": {
         {{#if enums}}
+        "dataType": "refEnum",
         "enums": {{{json enums}}},
         {{/if}}
         {{#if properties}}
+        "dataType": "refObject",
         "properties": {
             {{#each properties}}
             "{{@key}}": {{{json this}}},
             {{/each}}
         },
-        {{/if}}
-        {{#if additionalProperties}}
         "additionalProperties": {{{json additionalProperties}}},
         {{/if}}
     },

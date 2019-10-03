@@ -95,46 +95,137 @@ export namespace Tsoa {
 
   export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
 
-  export interface Type {
+  export interface TypeBase {
     dataType: TypeStringLiteral;
   }
 
-  export interface RefTypeMinimal {
-    dataType: RefTypeLiteral;
+  export type PrimitiveType = StringType | BooleanType | DoubleType | FloatType | IntegerType | LongType | VoidType;
+
+  /**
+   * This is one of the possible objects that tsoa creates that helps the code store information about the type it found in the code.
+   */
+  export type Type =
+    | PrimitiveType
+    | ObjectsNoPropsType
+    | EnumType
+    | ArrayType
+    | DateTimeType
+    | DateType
+    | BinaryType
+    | BufferType
+    | ByteType
+    | AnyType
+    | RefEnumType
+    | RefObjectType
+    | NestedObjectLiteralType
+    | UnionType
+    | IntersectionType;
+
+  export interface StringType extends TypeBase {
+    dataType: 'string';
   }
 
-  export interface EnumerateType extends Type {
+  export interface BooleanType extends TypeBase {
+    dataType: 'boolean';
+  }
+
+  /**
+   * This is the type that occurs when a developer writes `const foo: object = {}` since it can no longer have any properties added to it.
+   */
+  export interface ObjectsNoPropsType extends TypeBase {
+    dataType: 'object';
+  }
+
+  export interface DoubleType extends TypeBase {
+    dataType: 'double';
+  }
+
+  export interface FloatType extends TypeBase {
+    dataType: 'float';
+  }
+
+  export interface IntegerType extends TypeBase {
+    dataType: 'integer';
+  }
+
+  export interface LongType extends TypeBase {
+    dataType: 'long';
+  }
+
+  /**
+   * Not to be confused with `RefEnumType` which is a reusable enum which has a $ref name generated for it. This however, is an inline enum.
+   */
+  export interface EnumType extends TypeBase {
     dataType: 'enum';
-    enums: string[];
+    enums: Array<string | number>;
   }
 
-  export interface ObjectLiteralType extends Type {
+  export interface ArrayType extends TypeBase {
+    dataType: 'array';
+
+    elementType: Type;
+  }
+
+  export interface DateType extends TypeBase {
+    dataType: 'date';
+  }
+
+  export interface DateTimeType extends TypeBase {
+    dataType: 'datetime';
+  }
+
+  export interface BinaryType extends TypeBase {
+    dataType: 'binary';
+  }
+
+  export interface BufferType extends TypeBase {
+    dataType: 'buffer';
+  }
+
+  export interface ByteType extends TypeBase {
+    dataType: 'byte';
+  }
+
+  export interface VoidType extends TypeBase {
+    dataType: 'void';
+  }
+
+  export interface AnyType extends TypeBase {
+    dataType: 'any';
+  }
+
+  export interface NestedObjectLiteralType extends TypeBase {
     dataType: 'nestedObjectLiteral';
     properties: Property[];
     additionalProperties?: Type;
   }
 
-  export interface ArrayType extends Type {
-    dataType: 'array';
-    elementType: Type;
+  export interface RefEnumType extends ReferenceTypeBase {
+    dataType: 'refEnum';
+    enums: Array<string | number>;
   }
 
-  export interface ReferenceType extends Type, RefTypeMinimal {
+  export interface RefObjectType extends ReferenceTypeBase {
+    dataType: 'refObject';
+    properties: Property[];
+    additionalProperties?: Type;
+  }
+
+  export type ReferenceType = RefEnumType | RefObjectType;
+
+  export interface ReferenceTypeBase extends TypeBase {
     description?: string;
     dataType: RefTypeLiteral;
     refName: string;
-    properties?: Property[];
-    additionalProperties?: Type;
-    enums?: Array<string | number>;
     example?: any;
   }
 
-  export interface UnionType extends Type {
+  export interface UnionType extends TypeBase {
     dataType: 'union';
     types: Type[];
   }
 
-  export interface IntersectionType extends Type {
+  export interface IntersectionType extends TypeBase {
     dataType: 'intersection';
     types: Type[];
   }

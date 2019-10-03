@@ -54,7 +54,7 @@ export abstract class SpecGenerator {
     if (type.dataType === 'void') {
       return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject') {
-      return this.getSwaggerTypeForReferenceType(type as Tsoa.ReferenceType);
+      return this.getSwaggerTypeForReferenceType(type);
     } else if (
       type.dataType === 'any' ||
       type.dataType === 'binary' ||
@@ -72,17 +72,17 @@ export abstract class SpecGenerator {
     ) {
       return this.getSwaggerTypeForPrimitiveType(type.dataType);
     } else if (type.dataType === 'array') {
-      return this.getSwaggerTypeForArrayType(type as Tsoa.ArrayType);
+      return this.getSwaggerTypeForArrayType(type);
     } else if (type.dataType === 'enum') {
-      return this.getSwaggerTypeForEnumType(type as Tsoa.EnumerateType);
+      return this.getSwaggerTypeForEnumType(type);
     } else if (type.dataType === 'union') {
-      return this.getSwaggerTypeForUnionType(type as Tsoa.UnionType);
+      return this.getSwaggerTypeForUnionType(type);
     } else if (type.dataType === 'intersection') {
-      return this.getSwaggerTypeForIntersectionType(type as Tsoa.IntersectionType);
+      return this.getSwaggerTypeForIntersectionType(type);
     } else if (type.dataType === 'nestedObjectLiteral') {
-      return this.getSwaggerTypeForObjectLiteral(type as Tsoa.ObjectLiteralType);
+      return this.getSwaggerTypeForObjectLiteral(type);
     } else {
-      return assertNever(type.dataType);
+      return assertNever(type);
     }
   }
 
@@ -90,7 +90,7 @@ export abstract class SpecGenerator {
 
   protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
 
-  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.ObjectLiteralType): Swagger.Schema {
+  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectLiteralType): Swagger.Schema {
     const properties = objectLiteral.properties.reduce((acc, property: Tsoa.Property) => {
       return {
         [property.name]: this.getSwaggerType(property.type),
@@ -233,7 +233,7 @@ export abstract class SpecGenerator {
     return enumTypeForSwagger;
   }
 
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumerateType): Swagger.Schema {
+  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema {
     return { type: 'string', enum: enumType.enums.map(member => String(member)) };
   }
 }

@@ -24,16 +24,18 @@ const models: TsoaRoute.Models = {
     {{#each models}}
     "{{@key}}": {
         {{#if enums}}
+        "dataType": "refEnum",
         "enums": {{{json enums}}},
         {{/if}}
         {{#if properties}}
+        "dataType": "refObject",
         "properties": {
             {{#each properties}}
             "{{@key}}": {{{json this}}},
             {{/each}}
         },
+        "additionalProperties": {{{json additionalProperties}}},
         {{/if}}
-        "additionalProperties": {{additionalPropsHelper additionalProperties}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
