@@ -503,6 +503,22 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('HiddenControllerGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should generate hidden methods', () => {
+      const method = controller.methods.find(m => m.name === 'hiddenGetMethod');
+      if (!method) {
+        throw new Error('Method hiddenGetMethod not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('hiddenGetMethod');
+      expect(method.isHidden).to.equal(true);
+    });
+  });
+
   describe('DeprecatedMethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/deprecatedController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
