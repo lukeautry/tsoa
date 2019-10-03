@@ -4,20 +4,13 @@ import { FieldErrors, TsoaRoute, ValidationService } from '../../../src';
 import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
-/**
- * This is a convenience type so you can check .properties on the items in the Record without having TypeScript throw a compiler error. That's because this Record can't have enums in it. If you want that, then just use the base interface
- */
-interface ModelsButOnlyRefObjects extends TsoaRoute.Models {
-  [refNames: string]: TsoaRoute.RefObjectModelSchema
-}
-
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         or: {
           dataType: 'union',
@@ -27,14 +20,14 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
       additionalProperties: false,
     },
     TypeAliasModel2: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value2: { dataType: 'string', required: true },
       },
@@ -73,7 +66,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         or: {
           dataType: 'union',
@@ -83,14 +76,14 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
       additionalProperties: false,
     },
     TypeAliasModel2: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value2: { dataType: 'string', required: true },
       },
@@ -132,7 +125,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         and: {
           dataType: 'intersection',
@@ -142,14 +135,14 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
       additionalProperties: false,
     },
     TypeAliasModel2: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value2: { dataType: 'string', required: true },
       },
@@ -188,9 +181,9 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
 it('should throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const models: ModelsButOnlyRefObjects = {
+  const models: TsoaRoute.RefObjectModels = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         objLiteral: {
           dataType: 'nestedObjectLiteral',
@@ -233,7 +226,7 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
@@ -300,7 +293,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         and: {
           dataType: 'intersection',
@@ -310,14 +303,14 @@ it('should not throw if the data has additionalProperties (on a intersection) if
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
       additionalProperties: false,
     },
     TypeAliasModel2: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value2: { dataType: 'string', required: true },
       },
@@ -357,7 +350,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
   const models: TsoaRoute.Models = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         and: {
           dataType: 'intersection',
@@ -367,14 +360,14 @@ it('should not throw if the data has additionalProperties (on a intersection) if
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
       additionalProperties: false,
     },
     TypeAliasModel2: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value2: { dataType: 'string', required: true },
       },
@@ -409,9 +402,9 @@ it('should not throw if the data has additionalProperties (on a intersection) if
 it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const models: ModelsButOnlyRefObjects = {
+  const models: TsoaRoute.RefObjectModels = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         objLiteral: {
           dataType: 'nestedObjectLiteral',
@@ -447,7 +440,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },
@@ -497,9 +490,9 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
 it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to false', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const models: ModelsButOnlyRefObjects = {
+  const models: TsoaRoute.RefObjectModels = {
     [refName]: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         objLiteral: {
           dataType: 'nestedObjectLiteral',
@@ -542,7 +535,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
       },
     },
     TypeAliasModel1: {
-      dataType: "refObject",
+      dataType: 'refObject',
       properties: {
         value1: { dataType: 'string', required: true },
       },

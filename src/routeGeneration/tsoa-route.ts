@@ -13,6 +13,13 @@ export namespace TsoaRoute {
     [name: string]: ModelSchema;
   }
 
+  /**
+   * This is a convenience type so you can check .properties on the items in the Record without having TypeScript throw a compiler error. That's because this Record can't have enums in it. If you want that, then just use the base interface
+   */
+  export interface RefObjectModels extends TsoaRoute.Models {
+    [refNames: string]: TsoaRoute.RefObjectModelSchema;
+  }
+
   export interface RefEnumModelSchema {
     dataType: 'refEnum';
     enums: string[] | number[];

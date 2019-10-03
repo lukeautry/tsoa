@@ -6,6 +6,7 @@ import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
 import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
+import { isRefType } from '../utils/internalTypeGuards';
 import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
@@ -260,58 +261,5 @@ export class RouteGenerator {
     }
 
     return schema;
-  }
-}
-
-/**
- * This will help us do exhaustive matching against only reference types
- */
-export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
-  switch (metaType.dataType) {
-    case 'any':
-      return false;
-    case 'array':
-      return false;
-    case 'binary':
-      return false;
-    case 'boolean':
-      return false;
-    case 'buffer':
-      return false;
-    case 'byte':
-      return false;
-    case 'date':
-      return false;
-    case 'datetime':
-      return false;
-    case 'double':
-      return false;
-    case 'enum':
-      return false;
-    case 'float':
-      return false;
-    case 'integer':
-      return false;
-    case 'intersection':
-      return false;
-    case 'long':
-      return false;
-    case 'nestedObjectLiteral':
-      return false;
-    case 'object':
-      return false;
-    case 'refEnum':
-      return true;
-    case 'refObject':
-      return true;
-    case 'string':
-      return false;
-    case 'union':
-      return false;
-    case 'void':
-      return false;
-    default: {
-      return assertNever(metaType);
-    }
   }
 }
