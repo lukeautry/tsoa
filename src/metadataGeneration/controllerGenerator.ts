@@ -16,7 +16,7 @@ export class ControllerGenerator {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
-    this.isHidden = this.getHidden();
+    this.isHidden = this.getIsHidden();
   }
 
   public IsValid() {
@@ -88,7 +88,7 @@ export class ControllerGenerator {
     return getSecurities(securityDecorators);
   }
 
-  private getHidden(): boolean {
+  private getIsHidden(): boolean {
     const hiddenDecorators = getDecorators(this.node, identifier => identifier.text === 'Hidden');
     if (!hiddenDecorators || !hiddenDecorators.length) {
       return false;

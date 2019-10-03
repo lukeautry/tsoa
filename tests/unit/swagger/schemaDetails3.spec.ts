@@ -126,6 +126,21 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
     });
+    describe('hidden paths', () => {
+      it('should not contain hidden paths', () => {
+        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, getDefaultOptions()).GetSpec();
+
+        expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
+      });
+
+      it('should not contain paths for hidden controller', () => {
+        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const specHiddenController = new SpecGenerator3(metadataHiddenController, getDefaultOptions()).GetSpec();
+
+        expect(specHiddenController.paths).to.be.empty;
+      });
+    });
   });
 
   describe('components', () => {
