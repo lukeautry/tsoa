@@ -131,7 +131,7 @@ export class SpecGenerator3 extends SpecGenerator {
         schema[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
-          type: 'string',
+          type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
       } else {
         assertNever(referenceType);

@@ -88,7 +88,7 @@ export class SpecGenerator2 extends SpecGenerator {
         definitions[referenceType.refName] = {
           description: referenceType.description,
           enum: referenceType.enums,
-          type: 'integer',
+          type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
       } else {
         assertNever(referenceType);

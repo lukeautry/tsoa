@@ -194,6 +194,45 @@ export abstract class SpecGenerator {
     };
   }
 
+  private determineTypesUsedInEnum(anEnum: Array<string | number>) {
+    const typesUsedInEnum = anEnum.reduce((theSet, curr) => {
+      const typeUsed = typeof curr;
+      theSet.add(typeUsed);
+      return theSet;
+    }, new Set<'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'>());
+
+    return typesUsedInEnum;
+  }
+
+  protected decideEnumType(anEnum: Array<string | number>, nameOfEnum: string): 'string' | 'integer' {
+    const typesUsedInEnum = this.determineTypesUsedInEnum(anEnum);
+
+    const badEnumErrorMessage = () => {
+      const valuesDelimited = Array.from(typesUsedInEnum).join(',');
+      return `Enums can only have string or number values, but enum ${nameOfEnum} had ${valuesDelimited}`;
+    };
+
+    let enumTypeForSwagger: 'string' | 'integer';
+    if (typesUsedInEnum.has('string') && typesUsedInEnum.has('number')) {
+      if (typesUsedInEnum.size !== 2) {
+        throw new Error(badEnumErrorMessage());
+      }
+      // TODO: It would be great to throw here, but without knowing how our users have been using tsoa, we can't make a breaking change until version 3.0
+      // tslint:disable-next-line: no-console
+      console.warn(`Swagger/OpenAPI does not support enums with both strings and numbers but found that for enum ${nameOfEnum}`);
+      const weHaveToPickOneSinceWeCantThrow = 'string';
+      enumTypeForSwagger = weHaveToPickOneSinceWeCantThrow;
+      // End of TODO
+    } else if (typesUsedInEnum.has('string') && typesUsedInEnum.size === 1) {
+      enumTypeForSwagger = 'string';
+    } else if (typesUsedInEnum.has('number') && typesUsedInEnum.size === 1) {
+      enumTypeForSwagger = 'integer';
+    } else {
+      throw new Error(badEnumErrorMessage());
+    }
+    return enumTypeForSwagger;
+  }
+
   protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema {
     return { type: 'string', enum: enumType.enums.map(member => String(member)) };
   }

@@ -22,7 +22,7 @@ export namespace TsoaRoute {
 
   export interface RefEnumModelSchema {
     dataType: 'refEnum';
-    enums: string[] | number[];
+    enums: Array<string | number>;
   }
 
   export interface RefObjectModelSchema {
@@ -40,7 +40,7 @@ export namespace TsoaRoute {
     ref?: string;
     required?: boolean;
     array?: PropertySchema;
-    enums?: string[] | number[];
+    enums?: Array<string | number>;
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
     default?: any;

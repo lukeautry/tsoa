@@ -157,7 +157,7 @@ export namespace Tsoa {
    */
   export interface EnumType extends TypeBase {
     dataType: 'enum';
-    enums: string[];
+    enums: Array<string | number>;
   }
 
   export interface ArrayType extends TypeBase {
@@ -202,7 +202,7 @@ export namespace Tsoa {
 
   export interface RefEnumType extends ReferenceTypeBase {
     dataType: 'refEnum';
-    enums: string[] | number[];
+    enums: Array<string | number>;
   }
 
   export interface RefObjectType extends ReferenceTypeBase {
