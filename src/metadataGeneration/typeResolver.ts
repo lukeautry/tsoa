@@ -450,7 +450,7 @@ export class TypeResolver {
       ...(example && { example }),
     };
 
-    referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
+    referenceType.properties = referenceType.properties.concat(properties);
 
     return referenceType;
   }
