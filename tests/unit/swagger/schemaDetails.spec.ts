@@ -1,5 +1,7 @@
-import { expect } from 'chai';
 import 'mocha';
+
+import { expect } from 'chai';
+
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
@@ -52,4 +54,22 @@ describe('Schema details generation', () => {
   }
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultOptions().license));
+
+  describe('paths', () => {
+    describe('hidden paths', () => {
+      it('should not contain hidden paths', () => {
+        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const specHiddenMethod = new SpecGenerator2(metadataHiddenMethod, getDefaultOptions()).GetSpec();
+
+        expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
+      });
+
+      it('should not contain paths for hidden controller', () => {
+        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultOptions()).GetSpec();
+
+        expect(specHiddenController.paths).to.be.empty;
+      });
+    });
+  });
 });
