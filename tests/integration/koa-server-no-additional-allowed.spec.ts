@@ -220,6 +220,19 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         intersection: { value1: 'one', value2: 'two' },
       };
 
+      bodyModel.typeAliases = {
+        word: 'word',
+        fourtyTwo: 42,
+        intersectionAlias: { value1: 'value1', value2: 'value2' },
+        unionAlias: { value2: 'value2' },
+        nOLAlias: { value1: 'value1', value2: 'value2' },
+        genericAlias: 'genericString',
+        genericAlias2: {
+          id: 1,
+        },
+        forwardGenericAlias: { value1: 'value1' },
+      };
+
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
@@ -271,6 +284,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
           expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
+          expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
         },
         200,
       );

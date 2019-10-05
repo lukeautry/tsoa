@@ -338,6 +338,17 @@ export class ValidateModel {
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
 
+  public typeAliases?: {
+    word: Word;
+    fourtyTwo: FourtyTwo;
+    unionAlias: UnionAlias;
+    intersectionAlias: IntersectionAlias;
+    nOLAlias: NolAlias;
+    genericAlias: GenericAlias<string>;
+    genericAlias2: GenericAlias<Model>;
+    forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
+  };
+
   public nestedObject: {
     /**
      * @isFloat Invalid float error message.
