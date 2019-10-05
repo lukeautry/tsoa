@@ -69,6 +69,19 @@ export interface TestModel extends Model {
   referenceAnd: TypeAliasModelCase1;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
+
+  typeAliases?: {
+    word: Word;
+    fourtyTwo: FourtyTwo;
+    dateAlias?: DateAlias;
+    unionAlias: UnionAlias;
+    intersectionAlias: IntersectionAlias;
+    nOLAlias: NolAlias;
+    genericAlias: GenericAlias<string>;
+    genericAlias2: GenericAlias<Model>;
+    forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
+  };
+
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
@@ -109,6 +122,34 @@ export class TypeAliasModel3 {
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
+
+/**
+ * A Word shall be a non-empty sting
+ * @minLength 1
+ */
+type Word = string;
+
+/**
+ * The number 42 expressed through OpenAPI
+ * @isInt
+ * @default 42
+ * @minimum 42
+ * @maximum 42
+ * @example 42
+ */
+type FourtyTwo = number;
+
+/**
+ * @isDate invalid ISO 8601 date format, i.e. YYYY-MM-DD
+ */
+type DateAlias = Date;
+
+type UnionAlias = TypeAliasModelCase2 | TypeAliasModel2;
+type IntersectionAlias = { value1: string; value2: string } & TypeAliasModel1;
+/* tslint:disable-next-line */
+type NolAlias = { value1: string; value2: string };
+type GenericAlias<T> = T;
+type ForwardGenericAlias<T, U> = GenericAlias<U> | T;
 
 /**
  * EnumIndexValue.

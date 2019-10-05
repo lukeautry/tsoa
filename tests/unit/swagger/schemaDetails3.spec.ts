@@ -640,6 +640,99 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          typeAliases: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('typeAliases');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                word: { $ref: '#/components/schemas/Word' },
+                fourtyTwo: { $ref: '#/components/schemas/FourtyTwo' },
+                dateAlias: { $ref: '#/components/schemas/DateAlias' },
+                unionAlias: { $ref: '#/components/schemas/UnionAlias' },
+                intersectionAlias: { $ref: '#/components/schemas/IntersectionAlias' },
+                nOLAlias: { $ref: '#/components/schemas/NolAlias' },
+                genericAlias: { $ref: '#/components/schemas/GenericAlias_string_' },
+                genericAlias2: { $ref: '#/components/schemas/GenericAlias_Model_' },
+                forwardGenericAlias: { $ref: '#/components/schemas/ForwardGenericAlias_boolean.TypeAliasModel1_' },
+              },
+              required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
+              type: 'object',
+              nullable: true,
+            });
+
+            const wordSchema = getComponentSchema('Word', currentSpec);
+            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1 });
+
+            const fourtyTwoSchema = getComponentSchema('FourtyTwo', currentSpec);
+            expect(fourtyTwoSchema).to.deep.eq({
+              type: 'number',
+              format: 'double',
+              description: 'The number 42 expressed through OpenAPI',
+              example: 42,
+              minimum: 42,
+              maximum: 42,
+              default: '42',
+            });
+
+            const dateAliasSchema = getComponentSchema('DateAlias', currentSpec);
+            expect(dateAliasSchema).to.deep.eq({ type: 'string', format: 'date', description: undefined, example: undefined, default: undefined });
+
+            const unionAliasSchema = getComponentSchema('UnionAlias', currentSpec);
+            expect(unionAliasSchema).to.deep.eq({
+              oneOf: [{ $ref: '#/components/schemas/TypeAliasModelCase2' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const intersectionAliasSchema = getComponentSchema('IntersectionAlias', currentSpec);
+            expect(intersectionAliasSchema).to.deep.eq({
+              allOf: [
+                {
+                  properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+                  required: ['value2', 'value1'],
+                  type: 'object',
+                },
+                { $ref: '#/components/schemas/TypeAliasModel1' },
+              ],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const nolAliasSchema = getComponentSchema('NolAlias', currentSpec);
+            expect(nolAliasSchema).to.deep.eq({
+              properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+              required: ['value2', 'value1'],
+              type: 'object',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const genericAliasStringSchema = getComponentSchema('GenericAlias_string_', currentSpec);
+            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', default: undefined, description: undefined, example: undefined });
+
+            const genericAliasModelSchema = getComponentSchema('GenericAlias_Model_', currentSpec);
+            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/components/schemas/Model', default: undefined, description: undefined, example: undefined });
+
+            const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getComponentSchema('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
+            expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
+              oneOf: [{ $ref: '#/components/schemas/GenericAlias_TypeAliasModel1_' }, { type: 'boolean' }],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            expect(getComponentSchema('GenericAlias_TypeAliasModel1_', currentSpec)).to.deep.eq({
+              $ref: '#/components/schemas/TypeAliasModel1',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];

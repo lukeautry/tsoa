@@ -485,6 +485,97 @@ describe('Definition generation', () => {
               type: 'object',
             });
           },
+          typeAliases: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('typeAliases');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                word: { $ref: '#/definitions/Word' },
+                fourtyTwo: { $ref: '#/definitions/FourtyTwo' },
+                dateAlias: { $ref: '#/definitions/DateAlias' },
+                unionAlias: { $ref: '#/definitions/UnionAlias' },
+                intersectionAlias: { $ref: '#/definitions/IntersectionAlias' },
+                nOLAlias: { $ref: '#/definitions/NolAlias' },
+                genericAlias: { $ref: '#/definitions/GenericAlias_string_' },
+                genericAlias2: { $ref: '#/definitions/GenericAlias_Model_' },
+                forwardGenericAlias: { $ref: '#/definitions/ForwardGenericAlias_boolean.TypeAliasModel1_' },
+              },
+              required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
+              type: 'object',
+              'x-nullable': true,
+            });
+
+            const wordSchema = getValidatedDefinition('Word', currentSpec);
+            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1 });
+
+            const fourtyTwoSchema = getValidatedDefinition('FourtyTwo', currentSpec);
+            expect(fourtyTwoSchema).to.deep.eq({
+              type: 'number',
+              format: 'double',
+              description: 'The number 42 expressed through OpenAPI',
+              example: 42,
+              minimum: 42,
+              maximum: 42,
+              default: '42',
+            });
+
+            const dateAliasSchema = getValidatedDefinition('DateAlias', currentSpec);
+            expect(dateAliasSchema).to.deep.eq({ type: 'string', format: 'date', description: undefined, example: undefined, default: undefined });
+
+            const unionAliasSchema = getValidatedDefinition('UnionAlias', currentSpec);
+            expect(unionAliasSchema).to.deep.eq({
+              type: 'object',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const intersectionAliasSchema = getValidatedDefinition('IntersectionAlias', currentSpec);
+            expect(intersectionAliasSchema).to.deep.eq({
+              type: 'object',
+              properties: {
+                value1: {
+                  type: 'string',
+                },
+              },
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const nolAliasSchema = getValidatedDefinition('NolAlias', currentSpec);
+            expect(nolAliasSchema).to.deep.eq({
+              properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+              required: ['value2', 'value1'],
+              type: 'object',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const genericAliasStringSchema = getValidatedDefinition('GenericAlias_string_', currentSpec);
+            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined });
+
+            const genericAliasModelSchema = getValidatedDefinition('GenericAlias_Model_', currentSpec);
+            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/definitions/Model', description: undefined, example: undefined, default: undefined });
+
+            const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getValidatedDefinition('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
+            expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
+              type: 'object',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            expect(getValidatedDefinition('GenericAlias_TypeAliasModel1_', currentSpec)).to.deep.eq({
+              $ref: '#/definitions/TypeAliasModel1',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
