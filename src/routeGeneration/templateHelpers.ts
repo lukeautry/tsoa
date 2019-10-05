@@ -504,17 +504,15 @@ export class ValidationService {
     const subFieldErrors: FieldErrors[] = [];
     let cleanValues = {};
 
-    subSchemas
-      .filter(subSchema => subSchema.ref)
-      .forEach(subSchema => {
-        const subFieldError: FieldErrors = {};
-        const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, { noImplicitAdditionalProperties: 'silently-remove-extras' });
-        cleanValues = {
-          ...cleanValues,
-          ...cleanValue,
-        };
-        subFieldErrors.push(subFieldError);
-      });
+    subSchemas.forEach(subSchema => {
+      const subFieldError: FieldErrors = {};
+      const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, { noImplicitAdditionalProperties: 'silently-remove-extras' });
+      cleanValues = {
+        ...cleanValues,
+        ...cleanValue,
+      };
+      subFieldErrors.push(subFieldError);
+    });
 
     const filtered = subFieldErrors.filter(subFieldError => Object.keys(subFieldError).length !== 0);
 
@@ -530,18 +528,22 @@ export class ValidationService {
       return cleanValues;
     }
 
-    // Only Model definitions make sense here right now
-    const refNames = subSchemas.filter(subschema => subschema.ref).map(subschema => subschema.ref) as string[];
-    if (!refNames.every(refName => this.models[refName])) {
-      return value;
-    }
+    const schemas: TsoaRoute.RefObjectModelSchema[] = subSchemas.map(subschema => {
+      if (subschema.ref && this.models[subschema.ref].dataType === 'refObject') {
+        // Not sure why I even have to cast here
+        return this.models[subschema.ref] as TsoaRoute.RefObjectModelSchema;
+      } else if (subschema.nestedProperties) {
+        return { dataType: 'refObject', properties: subschema.nestedProperties, additionalProperties: subschema.additionalProperties };
+      } else {
+        // There are no properties to check for excess here.
+        return { dataType: 'refObject', properties: {}, additionalProperties: true };
+      }
+    });
 
     const reportedExcess = new Set(
-      refNames
-        .map(refName => this.models[refName])
-        .reduce((acc, subSchema) => {
-          return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
-        }, []),
+      schemas.reduce((acc, subSchema) => {
+        return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
+      }, []),
     );
 
     if (reportedExcess.size === 0) {
@@ -549,11 +551,9 @@ export class ValidationService {
     }
 
     const allowedProperties = new Set(
-      refNames
-        .map(refName => this.models[refName])
-        .reduce((acc, subSchema) => {
-          return [...acc, ...this.getPropertiesFor(subSchema)];
-        }, []),
+      schemas.reduce((acc, subSchema) => {
+        return [...acc, ...this.getPropertiesFor(subSchema)];
+      }, []),
     );
 
     const actualExcess = [...reportedExcess].filter(property => !allowedProperties.has(property));
