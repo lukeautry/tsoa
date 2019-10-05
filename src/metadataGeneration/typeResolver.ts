@@ -191,10 +191,6 @@ export class TypeResolver {
       return literalType;
     }
 
-    if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
-      this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
-    }
-
     const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference);
 
     if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject' || enumOrReferenceType.dataType === 'refAlias') {
@@ -374,6 +370,10 @@ export class TypeResolver {
     }
 
     const name = this.contextualizedName(node.getText());
+
+    if (node.typeArguments && node.typeArguments.length > 0) {
+      this.typeArgumentsToContext(node, type, this.context);
+    }
 
     try {
       const existingType = localReferenceTypeCache[name];
@@ -751,7 +751,7 @@ export class TypeResolver {
 
           // Argument may be a forward reference from context
           if (ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && context[typeArg.typeName.text]) {
-            resolvedType = context[typeParameter.name.text];
+            resolvedType = context[typeArg.typeName.text];
           } else {
             resolvedType = type.typeArguments[index];
           }
