@@ -158,11 +158,23 @@ export class SpecGenerator3 extends SpecGenerator {
         };
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
+        const validators = Object.keys(referenceType.validators)
+          .filter(key => {
+            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+          })
+          .reduce((acc, key) => {
+            return {
+              ...acc,
+              [key]: referenceType.validators[key].value,
+            };
+          }, {});
 
         schema[referenceType.refName] = {
-          ...(swaggerType as Swagger.Schema),
-          description: referenceType.description,
+          ...(swaggerType as Swagger.Schema3),
+          default: referenceType.default || swaggerType.default,
           example: referenceType.example,
+          description: referenceType.description,
+          ...validators,
         };
       } else {
         assertNever(referenceType);

@@ -427,6 +427,7 @@ export class TypeResolver {
 
     return {
       dataType: 'refAlias',
+      default: getJSDocComment(declaration, 'default'),
       description: this.getNodeDescription(declaration),
       refName: this.getRefTypeName(name),
       type: new TypeResolver(declaration.type, this.current, declaration, this.extractEnum, this.context).resolve(),
