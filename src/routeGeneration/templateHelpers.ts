@@ -612,7 +612,18 @@ export class ValidationService {
       }
 
       if (modelDefinition.dataType === 'refAlias') {
-        return this.ValidateParam((this.models[refName] as TsoaRoute.RefTypeAliasModelSchema).type || {}, value, refName, fieldErrors, parent, swaggerConfig);
+        const aliasSchema = this.models[refName];
+        if (aliasSchema.dataType !== 'refAlias') {
+          throw new Error(
+            'internal tsoa error: ' +
+              'the metadata that was generated should have been a typealias,' +
+              'however it was not. Instead we found ' +
+              JSON.stringify(aliasSchema) +
+              'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          );
+        }
+        const parentName = aliasSchema.type.ref ? parent + name + '.' : parent;
+        return this.ValidateParam(aliasSchema.type, value, name, fieldErrors, parentName, swaggerConfig);
       }
 
       if (!(value instanceof Object)) {
