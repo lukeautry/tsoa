@@ -800,6 +800,35 @@ public async find(): Promise<any> {
 }
 ```
 
+### Hidden
+
+Excludes this endpoint from the generated swagger document.
+
+```ts
+  @Get()
+  @Hidden()
+  public async find(): Promise<any> {
+
+  }
+```
+
+It can also be set at the controller level to exclude all of its endpoints from the swagger document.
+
+```ts
+@Hidden()
+export class HiddenController {
+  @Get()
+  public async find(): Promise<any> {
+
+  }
+
+  @Post()
+  public async create(): Promise<any> {
+
+  }
+}
+```
+
 ## Command Line Interface
 
 For information on the configuration object (tsoa.json), check out the following:

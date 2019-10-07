@@ -10,11 +10,13 @@ export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
   private readonly security?: Tsoa.Security[];
+  private readonly isHidden?: boolean;
 
   constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
+    this.isHidden = this.getIsHidden();
   }
 
   public IsValid() {
@@ -42,7 +44,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
@@ -84,5 +86,17 @@ export class ControllerGenerator {
     }
 
     return getSecurities(securityDecorators);
+  }
+
+  private getIsHidden(): boolean {
+    const hiddenDecorators = getDecorators(this.node, identifier => identifier.text === 'Hidden');
+    if (!hiddenDecorators || !hiddenDecorators.length) {
+      return false;
+    }
+    if (hiddenDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.node.name!.text}' class.`);
+    }
+
+    return true;
   }
 }

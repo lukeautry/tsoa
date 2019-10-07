@@ -13,7 +13,13 @@ export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
 
-  constructor(private readonly node: ts.MethodDeclaration, private readonly current: MetadataGenerator, private readonly parentTags?: string[], private readonly parentSecurity?: Tsoa.Security[]) {
+  constructor(
+    private readonly node: ts.MethodDeclaration,
+    private readonly current: MetadataGenerator,
+    private readonly parentTags?: string[],
+    private readonly parentSecurity?: Tsoa.Security[],
+    private readonly isParentHidden?: boolean,
+  ) {
     this.processMethodDecorators();
   }
 
@@ -251,8 +257,13 @@ export class MethodGenerator {
   private getIsHidden() {
     const hiddenDecorators = this.getDecoratorsByIdentifier(this.node, 'Hidden');
     if (!hiddenDecorators || !hiddenDecorators.length) {
-      return false;
+      return !!this.isParentHidden;
     }
+
+    if (this.isParentHidden) {
+      throw new GenerateMetadataError(`Hidden decorator cannot be set on '${this.getCurrentLocation()}' it is already defined on the controller`);
+    }
+
     if (hiddenDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.getCurrentLocation}' method.`);
     }

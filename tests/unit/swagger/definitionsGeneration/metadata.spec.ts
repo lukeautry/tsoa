@@ -480,7 +480,7 @@ describe('Metadata generation', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
-    it('should generate methods visible by default', () => {
+    it('should mark methods as visible by default', () => {
       const method = controller.methods.find(m => m.name === 'normalGetMethod');
       if (!method) {
         throw new Error('Method normalGetMethod not defined!');
@@ -491,7 +491,7 @@ describe('Metadata generation', () => {
       expect(method.isHidden).to.equal(false);
     });
 
-    it('should generate hidden methods', () => {
+    it('should mark methods as hidden', () => {
       const method = controller.methods.find(m => m.name === 'hiddenGetMethod');
       if (!method) {
         throw new Error('Method hiddenGetMethod not defined!');
@@ -500,6 +500,18 @@ describe('Metadata generation', () => {
       expect(method.method).to.equal('get');
       expect(method.path).to.equal('hiddenGetMethod');
       expect(method.isHidden).to.equal(true);
+    });
+  });
+
+  describe('HiddenControllerGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should mark all methods as hidden', () => {
+      expect(controller.methods).to.have.lengthOf(2);
+      controller.methods.forEach(method => {
+        expect(method.isHidden).to.equal(true);
+      });
     });
   });
 
