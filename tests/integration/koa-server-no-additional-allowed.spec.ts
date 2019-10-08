@@ -195,6 +195,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
       bodyModel.intersection = { value1: 'one', value2: 'two' };
+      bodyModel.singleBooleanEnum = true;
 
       bodyModel.nestedObject = {
         floatValue: 1.2,
@@ -261,6 +262,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.model).to.deep.equal(bodyModel.model);
           expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
           expect(body.intersection).to.deep.equal(bodyModel.intersection);
+          expect(body.singleBooleanEnum).to.deep.equal(bodyModel.singleBooleanEnum);
 
           expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
           expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);

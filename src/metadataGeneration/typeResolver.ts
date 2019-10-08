@@ -54,16 +54,7 @@ export class TypeResolver {
       if (supportType) {
         const enumMetaType: Tsoa.EnumType = {
           dataType: 'enum',
-          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => {
-            switch (type.literal.kind) {
-              case ts.SyntaxKind.TrueKeyword:
-                return 'true';
-              case ts.SyntaxKind.FalseKeyword:
-                return 'false';
-              default:
-                return String((type.literal as ts.LiteralExpression).text);
-            }
-          }),
+          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => this.resolveLiteralValue(type)),
         };
         return enumMetaType;
       } else {
@@ -97,6 +88,14 @@ export class TypeResolver {
         dataType: 'any',
       };
       return literallyAny;
+    }
+
+    if (ts.isLiteralTypeNode(this.typeNode)) {
+      const enumType: Tsoa.EnumType = {
+        dataType: 'enum',
+        enums: [this.resolveLiteralValue(this.typeNode)],
+      };
+      return enumType;
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
@@ -207,6 +206,31 @@ export class TypeResolver {
     }
 
     return enumOrReferenceType;
+  }
+
+  private resolveLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
+    let value: boolean | number | string;
+    switch (typeNode.literal.kind) {
+      case ts.SyntaxKind.TrueKeyword:
+        value = true;
+        break;
+      case ts.SyntaxKind.FalseKeyword:
+        value = false;
+        break;
+      case ts.SyntaxKind.StringLiteral:
+        value = typeNode.literal.text;
+        break;
+      case ts.SyntaxKind.NumericLiteral:
+        value = parseFloat(typeNode.literal.text);
+        break;
+      default:
+        if (typeNode.literal.hasOwnProperty('text')) {
+          value = (typeNode.literal as ts.LiteralExpression).text;
+        } else {
+          throw new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`);
+        }
+    }
+    return value;
   }
 
   private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {

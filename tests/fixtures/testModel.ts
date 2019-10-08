@@ -53,6 +53,7 @@ export interface TestModel extends Model {
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
   unionPrimetiveType?: 'String' | 1 | 20.0 | true | false;
+  singleFloatLiteralType?: 3.1415;
   dateValue?: Date;
   optionalString?: string;
   anyType?: any;
@@ -344,6 +345,7 @@ export class ValidateModel {
   public intersection?: TypeAliasModel1 & TypeAliasModel2;
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
+  public singleBooleanEnum?: true;
 
   public typeAliases?: {
     word: Word;
