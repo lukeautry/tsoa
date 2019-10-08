@@ -226,7 +226,7 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateEnum(name: string, value: any, fieldErrors: FieldErrors, members?: Array<string | number>, parent = ''): any {
+  public validateEnum(name: string, value: any, fieldErrors: FieldErrors, members?: Array<string | number | boolean>, parent = ''): any {
     if (!members || members.length === 0) {
       fieldErrors[parent + name] = {
         message: 'no member',
