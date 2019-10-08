@@ -247,7 +247,7 @@ export class RouteGenerator {
           case 'refAlias': {
             schema.array = {
               dataType: arrayType.elementType.dataType,
-              type: arrayType.elementType.type,
+              ref: arrayType.elementType.refName,
             };
             break;
           }
