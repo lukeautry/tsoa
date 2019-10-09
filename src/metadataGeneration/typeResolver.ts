@@ -479,10 +479,10 @@ export class TypeResolver {
   private contextualizedName(name: string): string {
     return Object.entries(this.context).reduce((acc, [key, entry]) => {
       return acc
-        .replace(new RegExp(`<\s*${key}\s*>`, 'g'), `<${entry.getText()}>`)
-        .replace(new RegExp(`<\s*${key}\s*,`, 'g'), `<${entry.getText()},`)
-        .replace(new RegExp(`,\s*${key}\s*>`, 'g'), `,${entry.getText()}>`)
-        .replace(new RegExp(`<\s*${key}\s*<`, 'g'), `<${entry.getText()}<`);
+        .replace(new RegExp(`<\\s*([^>]*\\s)*\\s*(${key})(\\s[^>]*)*\\s*>`, 'g'), `<$1${entry.getText()}$3>`)
+        .replace(new RegExp(`<\\s*([^,]*\\s)*\\s*(${key})(\\s[^,]*)*\\s*,`, 'g'), `<$1${entry.getText()}$3,`)
+        .replace(new RegExp(`,\\s*([^>]*\\s)*\\s*(${key})(\\s[^>]*)*\\s*>`, 'g'), `,$1${entry.getText()}$3>`)
+        .replace(new RegExp(`<\\s*([^<]*\\s)*\\s*(${key})(\\s[^<]*)*\\s*<`, 'g'), `<$1${entry.getText()}$3<`);
     }, name);
   }
 
