@@ -92,6 +92,8 @@ export interface TestModel extends Model {
       };
     };
   };
+
+  defaultGenericModel?: GenericModel;
 }
 
 export interface TypeAliasModel1 {
@@ -449,7 +451,7 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
-export interface GenericModel<T> {
+export interface GenericModel<T = string> {
   result: T;
   union?: T | string;
   nested?: GenericRequest<T>;
