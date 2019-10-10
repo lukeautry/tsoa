@@ -213,20 +213,20 @@ export class TypeResolver {
     return enumOrReferenceType;
   }
 
-  private resolveLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
+  private resolveLiteralValue(typeNode: ts.LiteralTypeNode): string {
     let value: boolean | number | string;
     switch (typeNode.literal.kind) {
       case ts.SyntaxKind.TrueKeyword:
-        value = true;
+        value = 'true';
         break;
       case ts.SyntaxKind.FalseKeyword:
-        value = false;
+        value = 'false';
         break;
       case ts.SyntaxKind.StringLiteral:
         value = typeNode.literal.text;
         break;
       case ts.SyntaxKind.NumericLiteral:
-        value = parseFloat(typeNode.literal.text);
+        value = typeNode.literal.text;
         break;
       default:
         if (typeNode.literal.hasOwnProperty('text')) {

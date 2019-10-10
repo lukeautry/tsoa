@@ -40,7 +40,7 @@ export namespace TsoaRoute {
     ref?: string;
     required?: boolean;
     array?: PropertySchema;
-    enums?: Array<string | number | boolean>;
+    enums?: Array<string | number>;
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
     default?: any;
