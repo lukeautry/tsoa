@@ -191,9 +191,7 @@ export class TypeResolver {
       return literalType;
     }
 
-    if (typeReference.typeArguments && typeReference.typeArguments.length > 0) {
-      this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
-    }
+    this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
 
     const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
 
@@ -797,34 +795,37 @@ export class TypeResolver {
   private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName, context: Context): Context {
     this.context = {};
 
-    if (type.typeArguments && type.typeArguments.length > 0) {
-      const typeParameters = this.getModelTypeDeclaration(targetEntitiy).typeParameters;
+    const typeParameters = this.getModelTypeDeclaration(targetEntitiy).typeParameters;
 
-      if (typeParameters) {
-        for (let index = 0; index < typeParameters.length; index++) {
-          const typeParameter = typeParameters[index];
-          const typeArg = type.typeArguments[index];
-          let resolvedType: ts.TypeNode;
+    if (typeParameters) {
+      for (let index = 0; index < typeParameters.length; index++) {
+        const typeParameter = typeParameters[index];
+        const typeArg = type.typeArguments && type.typeArguments[index];
+        let resolvedType: ts.TypeNode;
 
-          // Argument may be a forward reference from context
-          if (ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && context[typeArg.typeName.text]) {
-            resolvedType = context[typeParameter.name.text];
-          } else {
-            resolvedType = type.typeArguments[index];
-          }
-
-          this.context = {
-            ...this.context,
-            [typeParameter.name.text]: resolvedType,
-          };
+        // Argument may be a forward reference from context
+        if (typeArg && ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) && context[typeArg.typeName.text]) {
+          resolvedType = context[typeArg.typeName.text];
+        } else if (typeArg) {
+          resolvedType = typeArg;
+        } else if (typeParameter.default) {
+          resolvedType = typeParameter.default;
+        } else {
+          throw new GenerateMetadataError(`Could not find a value for type parameter ${typeParameter.name.text}`, type);
         }
+
+        this.context = {
+          ...this.context,
+          [typeParameter.name.text]: resolvedType,
+        };
       }
     }
     return context;
   }
 
   private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature>): Tsoa.Property[] {
-    const properties = [] as Tsoa.Property[];
+    const properties: Tsoa.Property[] = [];
+
     if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       return [];
     }
@@ -842,10 +843,7 @@ export class TypeResolver {
         const baseEntityName = t.expression as ts.EntityName;
 
         // create subContext
-        let resetCtx = this.context;
-        if (t.typeArguments && t.typeArguments.length > 0) {
-          resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
-        }
+        const resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
 
         const referenceType = this.getReferenceTypeOrEnumType(baseEntityName);
         if (referenceType) {
