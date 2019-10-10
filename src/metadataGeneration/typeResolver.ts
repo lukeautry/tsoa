@@ -339,7 +339,7 @@ export class TypeResolver {
     }
   }
 
-  private getReferenceTypeOrEnumType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.ReferenceType | Tsoa.EnumType {
+  private getReferenceTypeOrEnumType(node: ts.TypeReferenceType): Tsoa.ReferenceType | Tsoa.EnumType {
     let type: ts.EntityName;
     if (ts.isTypeReferenceNode(node)) {
       type = node.typeName;
@@ -349,7 +349,10 @@ export class TypeResolver {
       throw new GenerateMetadataError(`Can't resolve Reference type.`);
     }
 
-    const name = this.contextualizedName(node.getText());
+    // Can't invoke getText on Synthetic Nodes
+    const resolvableName = node.pos !== -1 ? node.getText() : (type as ts.Identifier).text;
+
+    const name = this.contextualizedName(resolvableName);
 
     this.typeArgumentsToContext(node, type, this.context);
 
@@ -748,7 +751,7 @@ export class TypeResolver {
   }
 
   private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature | ts.TypeAliasDeclaration>): Tsoa.Property[] {
-    const properties: Tsoa.Property[] = [];
+    let properties: Tsoa.Property[] = [];
 
     const heritageClauses = modelTypeDeclaration.heritageClauses;
     if (!heritageClauses) {
@@ -768,8 +771,19 @@ export class TypeResolver {
 
         const referenceType = this.getReferenceTypeOrEnumType(t);
         if (referenceType) {
-          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'refAlias' || referenceType.dataType === 'enum') {
+          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
             // since it doesn't have properties to iterate over, then we don't do anything with it
+          } else if (referenceType.dataType === 'refAlias') {
+            let type: Tsoa.Type = referenceType;
+            while (type.dataType === 'refAlias') {
+              type = type.type;
+            }
+
+            if (type.dataType === 'refObject') {
+              properties = [...properties, ...type.properties];
+            } else if (type.dataType === 'nestedObjectLiteral') {
+              properties = [...properties, ...type.properties];
+            }
           } else if (referenceType.dataType === 'refObject') {
             referenceType.properties.forEach(property => properties.push(property));
           } else {
