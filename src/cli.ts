@@ -142,6 +142,17 @@ const jsonArgs: yargs.Options = {
   type: 'boolean',
 };
 
+export interface ConfigArgs {
+  basePath?: string;
+  configuration?: string;
+}
+
+export interface SwaggerArgs extends ConfigArgs {
+  host?: string;
+  json?: boolean;
+  yaml?: boolean;
+}
+
 yargs
   .usage('Usage: $0 <command> [options]')
   .demand(1)
@@ -181,7 +192,7 @@ yargs
   .help('help')
   .alias('help', 'h').argv;
 
-async function swaggerSpecGenerator(args) {
+async function swaggerSpecGenerator(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
@@ -209,7 +220,7 @@ async function swaggerSpecGenerator(args) {
   }
 }
 
-async function routeGenerator(args) {
+async function routeGenerator(args: ConfigArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
@@ -228,7 +239,7 @@ async function routeGenerator(args) {
   }
 }
 
-async function generateSwaggerAndRoutes(args) {
+async function generateSwaggerAndRoutes(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
