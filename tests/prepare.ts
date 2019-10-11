@@ -1,8 +1,8 @@
 // tslint:disable:no-console
 import chalk from 'chalk';
+import { generateSwaggerAndRoutes } from '../src/cli';
 import { SwaggerConfig } from '../src/config';
 import { generateRoutes } from '../src/module/generate-routes';
-import { generateSwaggerSpec, RoutesConfigRelatedToSwagger } from '../src/module/generate-swagger-spec';
 import { Timer } from './utils/timer';
 
 const defaultOptions: SwaggerConfig = {
@@ -34,12 +34,11 @@ const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<Swagger
   outputDirectory: './distForNoAdditional',
 });
 
-const routesConfigRelatedToSwagger: RoutesConfigRelatedToSwagger = {
-  controllerPathGlobs: defaultOptions.controllerPathGlobs,
-};
-
-const spec = () => {
-  return generateSwaggerSpec(defaultOptions, routesConfigRelatedToSwagger);
+const spec = async () => {
+  const result = await generateSwaggerAndRoutes({
+    configuration: 'tsoa.json',
+  });
+  return result[0];
 };
 
 const log = async <T>(label: string, fn: () => Promise<T>) => {

@@ -4,6 +4,7 @@ import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
 import { Config, RoutesConfig, SwaggerConfig } from './config';
+import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSwaggerSpec } from './module/generate-swagger-spec';
 import { fsExists, fsReadFile } from './utils/fs';
@@ -141,34 +142,59 @@ const jsonArgs: yargs.Options = {
   type: 'boolean',
 };
 
-yargs
-  .usage('Usage: $0 <command> [options]')
-  .demand(1)
-  .command(
-    'swagger',
-    'Generate swagger spec',
-    {
-      basePath: basePathArgs,
-      configuration: configurationArgs,
-      host: hostArgs,
-      json: jsonArgs,
-      yaml: yarmlArgs,
-    },
-    swaggerSpecGenerator,
-  )
-  .command(
-    'routes',
-    'Generate routes',
-    {
-      basePath: basePathArgs,
-      configuration: configurationArgs,
-    },
-    routeGenerator,
-  )
-  .help('help')
-  .alias('help', 'h').argv;
+export interface ConfigArgs {
+  basePath?: string;
+  configuration?: string;
+}
 
-async function swaggerSpecGenerator(args) {
+export interface SwaggerArgs extends ConfigArgs {
+  host?: string;
+  json?: boolean;
+  yaml?: boolean;
+}
+
+if (!module.parent) {
+  yargs
+    .usage('Usage: $0 <command> [options]')
+    .demand(1)
+    .command(
+      'swagger',
+      'Generate swagger spec',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      swaggerSpecGenerator as any,
+    )
+    .command(
+      'routes',
+      'Generate routes',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+      },
+      routeGenerator as any,
+    )
+    .command(
+      'swagger-and-routes',
+      'Generate swagger and routes',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      generateSwaggerAndRoutes as any,
+    )
+    .help('help')
+    .alias('help', 'h').argv;
+}
+
+async function swaggerSpecGenerator(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
@@ -196,7 +222,7 @@ async function swaggerSpecGenerator(args) {
   }
 }
 
-async function routeGenerator(args) {
+async function routeGenerator(args: ConfigArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
@@ -212,5 +238,39 @@ async function routeGenerator(args) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
     process.exit(1);
+  }
+}
+
+export async function generateSwaggerAndRoutes(args: SwaggerArgs) {
+  try {
+    const config = await getConfig(args.configuration);
+    if (args.basePath) {
+      config.swagger.basePath = args.basePath;
+    }
+    if (args.host) {
+      config.swagger.host = args.host;
+    }
+    if (args.yaml) {
+      config.swagger.yaml = args.yaml;
+    }
+    if (args.json) {
+      config.swagger.yaml = false;
+    }
+
+    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const routesConfig = await validateRoutesConfig(config.routes);
+    const swaggerConfig = await validateSwaggerConfig(config.swagger);
+
+    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
+
+    return await Promise.all([
+      generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore, metadata),
+      generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore, metadata),
+    ]);
+  } catch (err) {
+    // tslint:disable-next-line:no-console
+    console.error('Generate routes error.\n', err);
+    process.exit(1);
+    throw err;
   }
 }
