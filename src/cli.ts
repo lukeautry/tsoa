@@ -153,44 +153,46 @@ export interface SwaggerArgs extends ConfigArgs {
   yaml?: boolean;
 }
 
-yargs
-  .usage('Usage: $0 <command> [options]')
-  .demand(1)
-  .command(
-    'swagger',
-    'Generate swagger spec',
-    {
-      basePath: basePathArgs,
-      configuration: configurationArgs,
-      host: hostArgs,
-      json: jsonArgs,
-      yaml: yarmlArgs,
-    },
-    swaggerSpecGenerator,
-  )
-  .command(
-    'routes',
-    'Generate routes',
-    {
-      basePath: basePathArgs,
-      configuration: configurationArgs,
-    },
-    routeGenerator,
-  )
-  .command(
-    'swagger-and-routes',
-    'Generate swagger and routes',
-    {
-      basePath: basePathArgs,
-      configuration: configurationArgs,
-      host: hostArgs,
-      json: jsonArgs,
-      yaml: yarmlArgs,
-    },
-    generateSwaggerAndRoutes,
-  )
-  .help('help')
-  .alias('help', 'h').argv;
+if (!module.parent) {
+  yargs
+    .usage('Usage: $0 <command> [options]')
+    .demand(1)
+    .command(
+      'swagger',
+      'Generate swagger spec',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      swaggerSpecGenerator as any,
+    )
+    .command(
+      'routes',
+      'Generate routes',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+      },
+      routeGenerator as any,
+    )
+    .command(
+      'swagger-and-routes',
+      'Generate swagger and routes',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      generateSwaggerAndRoutes as any,
+    )
+    .help('help')
+    .alias('help', 'h').argv;
+}
 
 async function swaggerSpecGenerator(args: SwaggerArgs) {
   try {
@@ -239,7 +241,7 @@ async function routeGenerator(args: ConfigArgs) {
   }
 }
 
-async function generateSwaggerAndRoutes(args: SwaggerArgs) {
+export async function generateSwaggerAndRoutes(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
@@ -261,7 +263,7 @@ async function generateSwaggerAndRoutes(args: SwaggerArgs) {
 
     const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
 
-    await Promise.all([
+    return await Promise.all([
       generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore, metadata),
       generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore, metadata),
     ]);
@@ -269,5 +271,6 @@ async function generateSwaggerAndRoutes(args: SwaggerArgs) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
     process.exit(1);
+    throw err;
   }
 }
