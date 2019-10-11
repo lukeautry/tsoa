@@ -358,6 +358,15 @@ describe('Definition generation', () => {
             expect(propertySchema.enum).to.include('true', `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
           },
+          singleFloatLiteralType: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            if (!propertySchema.enum) {
+              throw new Error(`There was no 'enum' property on ${propertyName}.`);
+            }
+            expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('3.1415', `for property ${propertyName}.enum`);
+          },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
