@@ -123,7 +123,7 @@ export class TypeResolver {
         const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
         const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
         if (indexType.dataType !== 'string') {
-          throw new GenerateMetadataError(`Only string indexers are supported.`);
+          throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
         }
 
         additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
@@ -142,7 +142,7 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
-      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`);
+      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode);
     }
 
     const typeReference = this.typeNode as ts.TypeReferenceNode;
@@ -545,7 +545,7 @@ export class TypeResolver {
     }
 
     if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
-      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`);
+      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`, this.typeNode);
     }
 
     const typeReference = typeNode as ts.TypeReferenceNode;
@@ -809,7 +809,7 @@ export class TypeResolver {
       const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
       const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
       if (indexType.dataType !== 'string') {
-        throw new GenerateMetadataError(`Only string indexers are supported.`);
+        throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
       }
 
       return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
