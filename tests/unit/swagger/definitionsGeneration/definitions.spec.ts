@@ -588,6 +588,227 @@ describe('Definition generation', () => {
               default: undefined,
             });
           },
+          advancedTypeAliases: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                properties: {
+                  omit: { $ref: '#/definitions/Omit_ErrorResponseModel.status_' },
+                  partial: { $ref: '#/definitions/Partial_Account_' },
+                  excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_' },
+                  excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_' },
+                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account_' },
+                  excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_' },
+                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number%7Cnull_' },
+                  pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_' },
+                  readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_' },
+                  defaultArgs: { $ref: '#/definitions/DefaultTestModel' },
+                  heritageCheck: { $ref: '#/definitions/HeritageTestModel' },
+                },
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                'x-nullable': true,
+              },
+              `for property ${propertyName}`,
+            );
+
+            const omit = getValidatedDefinition('Omit_ErrorResponseModel.status_', currentSpec);
+            expect(omit).to.deep.eq(
+              {
+                $ref: '#/definitions/Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__',
+                description: 'Construct a type with the properties of T except for those in type K.',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const omitReference = getValidatedDefinition('Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__', currentSpec);
+            expect(omitReference).to.deep.eq(
+              {
+                properties: { message: { type: 'string' } },
+                required: ['message'],
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const partial = getValidatedDefinition('Partial_Account_', currentSpec);
+            expect(partial).to.deep.eq(
+              {
+                properties: { id: { type: 'number', format: 'double' } },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeToEnum = getValidatedDefinition('Exclude_EnumUnion.EnumNumberValue_', currentSpec);
+            expect(excludeToEnum).to.deep.eq(
+              {
+                $ref: '#/definitions/EnumIndexValue',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeToAlias = getValidatedDefinition('Exclude_ThreeOrFour.TypeAliasModel3_', currentSpec);
+            expect(excludeToAlias).to.deep.eq(
+              {
+                $ref: '#/definitions/TypeAlias4',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeToAliasTypeAlias4 = getValidatedDefinition('TypeAlias4', currentSpec);
+            expect(excludeToAliasTypeAlias4).to.deep.eq(
+              {
+                properties: { value4: { type: 'string' } },
+                required: ['value4'],
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account_', currentSpec);
+            expect(excludeLiteral).to.deep.eq(
+              {
+                type: 'string',
+                enum: [
+                  'id',
+                  'defaultValue2',
+                  'publicStringProperty',
+                  'optionalPublicStringProperty',
+                  'emailPattern',
+                  'stringProperty',
+                  'publicConstructorVar',
+                  'readonlyConstructorArgument',
+                  'optionalPublicConstructorVar',
+                  'defaultValue1',
+                ],
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeToInterface = getValidatedDefinition('Exclude_OneOrTwo.TypeAliasModel1_', currentSpec);
+            expect(excludeToInterface).to.deep.eq(
+              {
+                $ref: '#/definitions/TypeAliasModel2',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number%7Cnull_', currentSpec);
+            expect(excludeTypeToPrimitive).to.deep.eq(
+              {
+                type: 'number',
+                format: 'double',
+                default: undefined,
+                example: undefined,
+                description: 'Exclude null and undefined from T',
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const pick = getValidatedDefinition('Pick_ThingContainerWithTitle_string_.list_', currentSpec);
+            expect(pick).to.deep.eq(
+              {
+                properties: { list: { items: { $ref: '#/definitions/ThingContainerWithTitle_string_' }, type: 'array' } },
+                required: ['list'],
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
+            expect(readonlyClassSchema).to.deep.eq(
+              {
+                properties: {
+                  defaultValue1: { type: 'string' },
+                  id: { type: 'number', format: 'double' },
+                  optionalPublicConstructorVar: { type: 'string' },
+                  readonlyConstructorArgument: { type: 'string' },
+                  publicConstructorVar: { type: 'string' },
+                  stringProperty: { type: 'string' },
+                  emailPattern: { type: 'string' },
+                  optionalPublicStringProperty: { type: 'string' },
+                  publicStringProperty: { type: 'string' },
+                  defaultValue2: { type: 'string' },
+                  account: { $ref: '#/definitions/Account' },
+                },
+                required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+                type: 'object',
+                description: 'Make all properties in T readonly',
+                default: undefined,
+                example: undefined,
+              },
+              `for definition linked by ${propertyName}`,
+            );
+
+            const defaultArgs = getValidatedDefinition('DefaultTestModel', currentSpec);
+            expect(defaultArgs).to.deep.eq(
+              {
+                description: undefined,
+                properties: {
+                  t: { $ref: '#/definitions/GenericRequest_Word_', description: undefined, format: undefined },
+                  u: { $ref: '#/definitions/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined },
+                },
+                required: ['t', 'u'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const heritageCheck = getValidatedDefinition('HeritageTestModel', currentSpec);
+            expect(heritageCheck).to.deep.eq(
+              {
+                properties: {
+                  name: {
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    type: 'string',
+                    'x-nullable': true,
+                  },
+                  value4: {
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    type: 'string',
+                  },
+                },
+                required: ['value4'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
+                description: undefined,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {

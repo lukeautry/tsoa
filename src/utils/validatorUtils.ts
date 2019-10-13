@@ -108,7 +108,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
   );
 }
 
-export function getPropertyValidators(property: ts.PropertyDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature): Tsoa.Validators | undefined {
+export function getPropertyValidators(property: ts.PropertyDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature | ts.ParameterDeclaration): Tsoa.Validators | undefined {
   const tags = getJSDocTags(property, tag => {
     return getParameterTagSupport().some(value => value === tag.tagName.text);
   });

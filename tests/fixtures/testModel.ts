@@ -83,6 +83,23 @@ export interface TestModel extends Model {
     forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
   };
 
+  advancedTypeAliases?: {
+    omit?: Omit<ErrorResponseModel, 'status'>;
+    partial?: Partial<Account>;
+    excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
+    excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
+    excludeLiteral?: Exclude<keyof TestClassModel, 'account'>;
+    excludeToInterface?: Exclude<OneOrTwo, TypeAliasModel1>;
+    excludeTypeToPrimitive?: NonNullable<number | null>;
+
+    pick?: Pick<ThingContainerWithTitle<string>, 'list'>;
+
+    readonlyClass?: Readonly<TestClassModel>;
+
+    defaultArgs?: DefaultTestModel;
+    heritageCheck?: HeritageTestModel;
+  };
+
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
@@ -161,6 +178,8 @@ type NolAlias = { value1: string; value2: string };
 type GenericAlias<T> = T;
 type ForwardGenericAlias<T, U> = GenericAlias<U> | T;
 
+type EnumUnion = EnumIndexValue | EnumNumberValue;
+
 /**
  * EnumIndexValue.
  */
@@ -233,6 +252,13 @@ export interface TestSubModel extends Model {
 
 export interface TestSubModel2 extends TestSubModel {
   testSubModel2: boolean;
+}
+
+export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> {}
+
+export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status'>> {
+  t: GenericRequest<T>;
+  u: DefaultArgs<U>;
 }
 
 export namespace TestSubModelNamespace {
@@ -522,6 +548,9 @@ export interface GenericModel<T = string> {
   union?: T | string;
   nested?: GenericRequest<T>;
   heritageCheck?: ThingContainerWithTitle<T>;
+}
+export interface DefaultArgs<T = Word> {
+  name: T;
 }
 
 export interface GenericRequest<T> {
