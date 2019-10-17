@@ -1,3 +1,4 @@
+import { normalize } from 'path';
 import { Node } from 'typescript';
 
 export class GenerateMetadataError extends Error {
@@ -14,7 +15,8 @@ export function prettyLocationOfNode(node: Node) {
   const token = node.getFirstToken() || node.parent.getFirstToken();
   const start = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getStart()).line + 1}` : '';
   const end = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getEnd()).line + 1}` : '';
-  return `At: ${sourceFile.fileName}${start}${end}.`;
+  const normalizedPath = normalize(`${sourceFile.fileName}${start}${end}`);
+  return `At: ${normalizedPath}.`;
 }
 
 export function prettyTroubleCause(node: Node, onlyCurrent = false) {

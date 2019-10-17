@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import 'mocha';
-import { join } from 'path';
+import { join, normalize } from 'path';
 import { createProgram, InterfaceDeclaration, isInterfaceDeclaration, PropertySignature } from 'typescript';
 import { GenerateMetadataError } from '../../../src/metadataGeneration/exceptions';
 
-const path = join(__dirname, '../../fixtures/program.ts');
+const path = normalize(join(__dirname, '../../fixtures/program.ts'));
 const program = createProgram([path], {});
 program.getTypeChecker();
-const sourceFile = program.getSourceFiles().filter(sourceFile => sourceFile.fileName === path)[0];
+const sourceFile = program.getSourceFiles().filter(sourceFile => normalize(sourceFile.fileName) === path)[0];
 
 const iface = sourceFile
   .getChildren()[0]

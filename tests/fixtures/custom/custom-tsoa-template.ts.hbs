@@ -87,7 +87,7 @@ export function RegisterRoutes(app: any) {
                   .catch((error: any) => {
                     responded++;
                     if (responded==securities.length&&!success) {
-                      _response.status(401);
+                      _response.status(error.status || 401);
                       next(error)
                     }
                   })
