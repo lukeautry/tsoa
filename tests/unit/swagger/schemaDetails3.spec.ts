@@ -430,7 +430,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema[`nullable`]).to.eq(true, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }

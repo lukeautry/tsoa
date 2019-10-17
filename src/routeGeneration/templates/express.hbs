@@ -110,7 +110,7 @@ export function RegisterRoutes(app: express.Express) {
             const fail = function(error: any) {
                 responded++;
                 if (responded == security.length && !success) {
-                    error.status = 401;
+                    error.status = error.status || 401;
                     next(error)
                 }
             }
