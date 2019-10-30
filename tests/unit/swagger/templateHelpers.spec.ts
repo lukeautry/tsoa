@@ -8,7 +8,7 @@ describe('ValidationService', () => {
     it('should validate a model with declared properties', () => {
       const v = new ValidationService({
         ExampleModel: {
-          dataType: "refObject",
+          dataType: 'refObject',
           properties: {
             a: { dataType: 'string', required: true },
           },
@@ -34,7 +34,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -77,7 +77,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -117,7 +117,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -160,7 +160,7 @@ describe('ValidationService', () => {
       const refName = 'ExampleModel';
       const v = new ValidationService({
         [refName]: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: false,
           properties: {
             a: { dataType: 'string', required: true },
@@ -195,7 +195,7 @@ describe('ValidationService', () => {
     it('should not require optional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
-          dataType: "refObject",
+          dataType: 'refObject',
           properties: {
             a: { dataType: 'string' },
           },
@@ -213,7 +213,7 @@ describe('ValidationService', () => {
     it('should validate a model with additional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
-          dataType: "refObject",
+          dataType: 'refObject',
           properties: {},
           additionalProperties: { dataType: 'any' },
         },
@@ -231,7 +231,7 @@ describe('ValidationService', () => {
     it('should validate a model with optional and additional properties', () => {
       const v = new ValidationService({
         ExampleModel: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: { dataType: 'any' },
           properties: {
             a: { dataType: 'string' },
@@ -252,7 +252,7 @@ describe('ValidationService', () => {
     it('should validate additional properties only against non-explicitly stated properties', () => {
       const v = new ValidationService({
         ExampleModel: {
-          dataType: "refObject",
+          dataType: 'refObject',
           additionalProperties: {
             dataType: 'integer',
             validators: { minimum: { value: 10 } },
@@ -602,6 +602,37 @@ describe('ValidationService', () => {
       const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { uniqueItems: {} });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`required unique array`);
+    });
+  });
+
+  describe('Union validate', () => {
+    it('should validate discriminated union with silently-remove-extras on', () => {
+      const v = new ValidationService({
+        TypeA: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'enum', enums: ['A'], required: true },
+            a: { dataType: 'double', required: true },
+          },
+        },
+        TypeB: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'enum', enums: ['B'], required: true },
+            b: { dataType: 'double', required: true },
+          },
+        },
+      });
+      const name = 'name';
+      const error = {};
+      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+      };
+      const subSchemas = [{ ref: 'TypeA' }, { ref: 'TypeB' }];
+      const resultA = v.validateUnion(name, { type: 'A', a: 100 }, error, minimalSwaggerConfig, subSchemas);
+      const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, minimalSwaggerConfig, subSchemas);
+      expect(resultA).to.deep.equal({ type: 'A', a: 100 });
+      expect(resultB).to.deep.equal({ type: 'B', b: 20 });
     });
   });
 });

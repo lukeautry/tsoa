@@ -51,10 +51,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
-  expect(result).to.eql({
-    value1: 'this is value 1',
-    value2: undefined,
-  });
+  expect(result).to.eql({ value1: 'this is value 1' });
   if (result[nameOfAdditionalProperty]) {
     throw new Error(`dataToValidate.${nameOfAdditionalProperty} should have been removed because "silently-remove-extras" requires that excess properties be stripped.`);
   }
