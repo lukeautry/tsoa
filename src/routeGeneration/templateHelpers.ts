@@ -468,10 +468,10 @@ export class ValidationService {
       const subFieldError: FieldErrors = {};
       const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, swaggerConfig);
       subFieldErrors.push(subFieldError);
-      cleanValues = {
-        ...cleanValues,
-        ...cleanValue,
-      };
+
+      if (Object.keys(subFieldError).length === 0) {
+        cleanValues = { ...cleanValues, ...cleanValue };
+      }
     });
 
     if (subFieldErrors.length > 0 && !subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
