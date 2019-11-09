@@ -207,7 +207,7 @@ describe('ValidationService', () => {
       };
       const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
-      expect(result).to.eql({ a: undefined });
+      expect(result).to.eql({});
     });
 
     it('should validate a model with additional properties', () => {
@@ -246,7 +246,7 @@ describe('ValidationService', () => {
       };
       const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
-      expect(result).to.eql({ a: undefined });
+      expect(result).to.eql({});
     });
 
     it('should validate additional properties only against non-explicitly stated properties', () => {
@@ -271,6 +271,71 @@ describe('ValidationService', () => {
       const result = v.validateModel({ name: '', value: { a: 9 }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({ a: 9 });
+    });
+
+    it('non provided parameters should not result in undefined', () => {
+      const v = new ValidationService({
+        BEnum: {
+          dataType: 'refEnum',
+          enums: ['X', 'Y'],
+        },
+        General: {
+          dataType: 'refObject',
+          properties: {
+            a: { dataType: 'string' },
+            b: { ref: 'BEnum' },
+            c: { dataType: 'string' },
+          },
+          additionalProperties: false,
+        },
+      });
+
+      const error = {};
+
+      const result = v.ValidateParam(
+        { required: true, ref: 'General' },
+        {
+          a: 'value',
+          b: undefined,
+        },
+        'body',
+        error,
+        undefined,
+        {},
+      );
+
+      expect(result).to.deep.equal({ a: 'value', b: undefined });
+      expect(Object.keys(error)).to.be.empty;
+      expect('a' in result).to.be.true; // provided
+      expect('b' in result).to.be.true; // provided, but empty
+      expect('c' in result).to.be.false; // not provided
+    });
+
+    it('required provided parameters should result in required errors', () => {
+      const v = new ValidationService({
+        General: {
+          dataType: 'refObject',
+          properties: {
+            a: { dataType: 'string', required: true },
+          },
+          additionalProperties: false,
+        },
+      });
+
+      const error: any = {};
+
+      v.ValidateParam(
+        { required: true, ref: 'General' },
+        {
+          c: 'value',
+        },
+        'body',
+        error,
+        undefined,
+        {},
+      );
+
+      expect(error.a.message).to.equal(`'a' is required`);
     });
   });
 
