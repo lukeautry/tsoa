@@ -256,54 +256,53 @@ export namespace Swagger {
     wrapped?: boolean;
   }
 
-  export interface BasicSecurity3 {
+  interface BaseSecurity {
+    description?: string;
+  }
+
+  interface BaseOAuthSecurity extends BaseSecurity {
+    scopes?: OAuthScope;
+  }
+
+  export interface BasicSecurity3 extends BaseSecurity {
     type: 'http';
     scheme: 'basic';
-    description?: string;
   }
 
-  export interface BasicSecurity {
+  export interface BasicSecurity extends BaseSecurity {
     type: 'basic';
-    description?: string;
   }
 
-  export interface ApiKeySecurity {
+  export interface ApiKeySecurity extends BaseSecurity {
     type: 'apiKey';
     name: string;
     in: 'query' | 'header';
-    description?: string;
   }
 
-  export interface OAuth2ImplicitSecurity {
+  export interface OAuth2ImplicitSecurity extends BaseOAuthSecurity {
     type: 'oauth2';
     description?: string;
     flow: 'implicit';
     authorizationUrl: string;
   }
 
-  export interface OAuth2PasswordSecurity {
+  export interface OAuth2PasswordSecurity extends BaseOAuthSecurity {
     type: 'oauth2';
-    description?: string;
     flow: 'password';
     tokenUrl: string;
-    scopes?: OAuthScope;
   }
 
-  export interface OAuth2ApplicationSecurity {
+  export interface OAuth2ApplicationSecurity extends BaseOAuthSecurity {
     type: 'oauth2';
-    description?: string;
     flow: 'application';
     tokenUrl: string;
-    scopes?: OAuthScope;
   }
 
-  export interface OAuth2AccessCodeSecurity {
+  export interface OAuth2AccessCodeSecurity extends BaseOAuthSecurity {
     type: 'oauth2';
-    description?: string;
     flow: 'accessCode';
     tokenUrl: string;
     authorizationUrl: string;
-    scopes?: OAuthScope;
   }
 
   export interface OAuthScope {
