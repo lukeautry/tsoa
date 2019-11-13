@@ -622,7 +622,11 @@ export class ValidationService {
 
       keysOnPropertiesModelDefinition.forEach((key: string) => {
         const property = properties[key];
-        value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent, swaggerConfig);
+
+        // process value only if it exists inside of value or if it is required
+        if (key in value || property.required) {
+          value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent, swaggerConfig);
+        }
       });
 
       const isAnExcessProperty = (objectKeyThatMightBeExcess: string) => {
