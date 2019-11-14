@@ -395,7 +395,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
-            expect(propertySchema.enum).to.have.length(2, `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.have.length(3, `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include('Foo', `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include('Bar', `for property ${propertyName}.enum`);
           },
@@ -411,7 +411,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             if (!propertySchema.items.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.items`);
             }
-            expect(propertySchema.items.enum).to.have.length(2, `for property ${propertyName}.items.enum`);
+            expect(propertySchema.items.enum).to.have.length(3, `for property ${propertyName}.items.enum`);
             expect(propertySchema.items.enum).to.include('Foo', `for property ${propertyName}.items.enum`);
             expect(propertySchema.items.enum).to.include('Bar', `for property ${propertyName}.items.enum`);
           },
