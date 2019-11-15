@@ -148,7 +148,7 @@ export enum EnumStringValue {
 
 // shortened from StringLiteral to make the tslint enforced
 // alphabetical sorting cleaner
-export type StrLiteral = 'Foo' | 'Bar';
+export type StrLiteral = '' | 'Foo' | 'Bar';
 
 export interface TestSubModelContainer {
   [key: string]: TestSubModel2;
