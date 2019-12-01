@@ -93,6 +93,8 @@ export interface TestModel extends Model {
       };
     };
   };
+
+  bigInt?: bigint;
 }
 
 export interface TypeAliasModel1 {
@@ -237,6 +239,9 @@ export class ValidateModel {
    * @isLong Custom Required long number.
    */
   public longValue: number;
+
+  public bigIntValue: bigint;
+
   /**
    * @isBoolean
    */

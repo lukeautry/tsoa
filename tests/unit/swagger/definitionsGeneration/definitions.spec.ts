@@ -494,6 +494,10 @@ describe('Definition generation', () => {
               type: 'object',
             });
           },
+          bigInt: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('integer', `for property ${propertyName}.type`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {

@@ -178,6 +178,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.doubleValue = 1.2;
       bodyModel.intValue = 120;
       bodyModel.longValue = 120;
+      // supertest can't serialize BigInts, so we send the string representation
+      bodyModel.bigIntValue = '9007199254740993' as any;
       bodyModel.booleanValue = true;
       bodyModel.arrayValue = [0, 2];
       bodyModel.dateValue = new Date('2017-01-01');
@@ -231,6 +233,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.doubleValue).to.equal(bodyModel.doubleValue);
           expect(body.intValue).to.equal(bodyModel.intValue);
           expect(body.longValue).to.equal(bodyModel.longValue);
+          expect(body.bigIntValue).to.equal(bodyModel.bigIntValue);
           expect(body.booleanValue).to.equal(bodyModel.booleanValue);
           expect(body.arrayValue).to.deep.equal(bodyModel.arrayValue);
 

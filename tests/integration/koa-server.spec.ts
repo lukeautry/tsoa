@@ -434,6 +434,8 @@ describe('Koa Server', () => {
       bodyModel.doubleValue = 1.2;
       bodyModel.intValue = 120;
       bodyModel.longValue = 120;
+      // supertest can't serialize BigInts, so we send the string representation
+      bodyModel.bigIntValue = '9007199254740993' as any;
       bodyModel.booleanValue = true;
       bodyModel.arrayValue = [0, 2];
       bodyModel.dateValue = new Date('2017-01-01');
@@ -487,6 +489,7 @@ describe('Koa Server', () => {
           expect(body.doubleValue).to.equal(bodyModel.doubleValue);
           expect(body.intValue).to.equal(bodyModel.intValue);
           expect(body.longValue).to.equal(bodyModel.longValue);
+          expect(body.bigIntValue).to.equal(bodyModel.bigIntValue);
           expect(body.booleanValue).to.equal(bodyModel.booleanValue);
           expect(body.arrayValue).to.deep.equal(bodyModel.arrayValue);
 
@@ -540,6 +543,7 @@ describe('Koa Server', () => {
       bodyModel.doubleValue = '120a' as any;
       bodyModel.intValue = 1.2;
       bodyModel.longValue = 1.2;
+      bodyModel.bigIntValue = 'zasd' as any;
       bodyModel.booleanValue = 'abc' as any;
       bodyModel.dateValue = 'abc' as any;
       bodyModel.datetimeValue = 'abc' as any;
@@ -595,6 +599,8 @@ describe('Koa Server', () => {
           expect(body.fields['body.intValue'].value).to.equal(bodyModel.intValue);
           expect(body.fields['body.longValue'].message).to.equal('Custom Required long number.');
           expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
+          expect(body.fields['body.bigIntValue'].message).to.equal('invalid bigint number');
+          expect(body.fields['body.bigIntValue'].value).to.equal(bodyModel.bigIntValue);
           expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
           expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
 

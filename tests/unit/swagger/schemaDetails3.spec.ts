@@ -553,6 +553,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          bigInt: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('integer', `for property ${propertyName}.type`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];

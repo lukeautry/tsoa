@@ -35,6 +35,8 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
       return false;
     case 'long':
       return false;
+    case 'bigint':
+      return false;
     case 'nestedObjectLiteral':
       return false;
     case 'object':

@@ -75,6 +75,7 @@ export namespace Tsoa {
     | 'float'
     | 'integer'
     | 'long'
+    | 'bigint'
     | 'enum'
     | 'array'
     | 'datetime'
@@ -99,7 +100,7 @@ export namespace Tsoa {
     dataType: TypeStringLiteral;
   }
 
-  export type PrimitiveType = StringType | BooleanType | DoubleType | FloatType | IntegerType | LongType | VoidType;
+  export type PrimitiveType = StringType | BooleanType | DoubleType | FloatType | IntegerType | LongType | BigIntType | VoidType;
 
   /**
    * This is one of the possible objects that tsoa creates that helps the code store information about the type it found in the code.
@@ -150,6 +151,10 @@ export namespace Tsoa {
 
   export interface LongType extends TypeBase {
     dataType: 'long';
+  }
+
+  export interface BigIntType extends TypeBase {
+    dataType: 'bigint';
   }
 
   /**

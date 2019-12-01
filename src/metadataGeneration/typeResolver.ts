@@ -285,6 +285,10 @@ export class TypeResolver {
         default:
           return { dataType: 'double' };
       }
+    } else if (resolution.resolvedType === 'bigint') {
+      return {
+        dataType: 'bigint',
+      };
     } else if (resolution.resolvedType === 'string') {
       return {
         dataType: 'string',
@@ -521,6 +525,11 @@ export class TypeResolver {
       return {
         foundMatch: true,
         resolvedType: 'void',
+      };
+    } else if (syntaxKind === ts.SyntaxKind.BigIntKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'bigint',
       };
     } else {
       return {
@@ -958,7 +967,7 @@ export class TypeResolver {
 
 interface ResolvesToPrimitive {
   foundMatch: true;
-  resolvedType: 'number' | 'string' | 'boolean' | 'void';
+  resolvedType: 'number' | 'string' | 'boolean' | 'void' | 'bigint';
 }
 interface DoesNotResolveToPrimitive {
   foundMatch: false;

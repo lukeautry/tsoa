@@ -52,6 +52,8 @@ export class ValidationService {
       case 'integer':
       case 'long':
         return this.validateInt(name, value, fieldErrors, property.validators, parent);
+      case 'bigint':
+        return this.validateBigInt(name, value, fieldErrors, property.validators, parent);
       case 'float':
       case 'double':
         return this.validateFloat(name, value, fieldErrors, property.validators, parent);
@@ -159,6 +161,40 @@ export class ValidationService {
     }
 
     const numberValue = validator.toInt(String(value), 10);
+    if (!validators) {
+      return numberValue;
+    }
+    if (validators.minimum && validators.minimum.value !== undefined) {
+      if (validators.minimum.value > numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.minimum.errorMsg || `min ${validators.minimum.value}`,
+          value,
+        };
+        return;
+      }
+    }
+    if (validators.maximum && validators.maximum.value !== undefined) {
+      if (validators.maximum.value < numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
+          value,
+        };
+        return;
+      }
+    }
+    return numberValue;
+  }
+
+  public validateBigInt(name: string, value: any, fieldErrors: FieldErrors, validators?: IntegerValidator, parent = ''): bigint | undefined {
+    if (!validator.isInt(String(value))) {
+      fieldErrors[parent + name] = {
+        message: `invalid bigint number`,
+        value,
+      };
+      return;
+    }
+
+    const numberValue = BigInt(String(value));
     if (!validators) {
       return numberValue;
     }

@@ -67,6 +67,7 @@ export abstract class SpecGenerator {
       type.dataType === 'float' ||
       type.dataType === 'integer' ||
       type.dataType === 'long' ||
+      type.dataType === 'bigint' ||
       type.dataType === 'object' ||
       type.dataType === 'string'
     ) {
@@ -177,6 +178,7 @@ export abstract class SpecGenerator {
       float: { type: 'number', format: 'float' },
       integer: { type: 'integer', format: 'int32' },
       long: { type: 'integer', format: 'int64' },
+      bigint: { type: 'integer' },
       object: {
         additionalProperties: this.determineImplicitAdditionalPropertiesValue(),
         type: 'object',
