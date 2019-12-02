@@ -469,7 +469,7 @@ describe('Definition generation', () => {
               description: undefined,
               format: undefined,
               properties: {
-                name: { type: 'string' },
+                name: { type: 'string', description: 'Nested property description' },
                 nested: {
                   properties: {
                     additionals: {

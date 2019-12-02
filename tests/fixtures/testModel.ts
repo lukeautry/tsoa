@@ -80,6 +80,9 @@ export interface TestModel extends Model {
   mixedUnion?: string | TypeAliasModel1;
 
   objLiteral: {
+    /**
+     * Nested property description
+     */
     name: string;
     nested?: {
       bool: boolean;
