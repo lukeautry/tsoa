@@ -21,9 +21,12 @@ export function ValidateParam(
 export class ValidationService {
   constructor(private readonly models: TsoaRoute.Models) {}
 
-  public ValidateParam(property: TsoaRoute.PropertySchema, value: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {
+  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {
+    let value = rawValue;
     if (value === undefined || value === null) {
-      if (property.required) {
+      if (property.default !== undefined) {
+        value = property.default;
+      } else if (property.required) {
         let message = `'${name}' is required`;
         if (property.validators) {
           const validators = property.validators;
@@ -40,7 +43,7 @@ export class ValidationService {
         };
         return;
       } else {
-        return property.default !== undefined ? property.default : value;
+        return value;
       }
     }
 
