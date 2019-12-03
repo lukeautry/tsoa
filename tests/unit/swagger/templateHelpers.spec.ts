@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
-import { FieldErrors, ValidationService } from './../../../src/routeGeneration/templateHelpers';
+import { FieldErrors, ValidationService, TsoaRoute } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
   describe('Model validate', () => {
@@ -336,6 +336,38 @@ describe('ValidationService', () => {
       );
 
       expect(error.a.message).to.equal(`'a' is required`);
+    });
+  });
+
+  describe('Param validate', () => {
+    it('Should apply defaults for optional properties', () => {
+      const value = undefined;
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
+      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+        noImplicitAdditionalProperties: undefined,
+      };
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      expect(result).to.equal(666);
+    });
+
+    it('Should not override values with defaults', () => {
+      const value = 123;
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
+      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+        noImplicitAdditionalProperties: undefined,
+      };
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      expect(result).to.equal(123);
+    });
+
+    it('Should apply defaults for required properties', () => {
+      const value = undefined;
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: true, validators: {} };
+      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+        noImplicitAdditionalProperties: undefined,
+      };
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      expect(result).to.equal(666);
     });
   });
 
