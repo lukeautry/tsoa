@@ -49,7 +49,7 @@
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^8.1.0",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.5.3",
     "merge": "^1.2.1",
     "minimatch": "^3.0.4",
     "moment": "^2.24.0",
