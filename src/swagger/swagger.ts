@@ -279,6 +279,17 @@ export namespace Swagger {
     in: 'query' | 'header';
   }
 
+  export interface OAuth2Security3 extends BaseSecurity {
+    type: 'oauth2';
+    flows: OAuthFlow;
+  }
+
+  export interface OAuth2SecurityFlow3 extends BaseSecurity {
+    tokenUrl?: string;
+    authorizationUrl?: string;
+    scopes?: OAuthScope;
+  }
+
   export interface OAuth2ImplicitSecurity extends BaseOAuthSecurity {
     type: 'oauth2';
     description?: string;
@@ -309,5 +320,9 @@ export namespace Swagger {
     [scopeName: string]: string;
   }
 
-  export type Security = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity;
+  export type OAuthFlow = {
+    [flowName in OAuth2FlowTypes]: OAuth2SecurityFlow3;
+  };
+  export type OAuth2FlowTypes = 'authorizationCode' | 'implicit' | 'password' | 'clientCredentials';
+  export type Security = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity | OAuth2Security3;
 }
