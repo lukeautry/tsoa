@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
-import { FieldErrors, ValidationService, TsoaRoute } from './../../../src/routeGeneration/templateHelpers';
+import { FieldErrors, TsoaRoute, ValidationService } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
   describe('Model validate', () => {
