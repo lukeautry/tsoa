@@ -1,3 +1,4 @@
+export * from './decorators/deprecated';
 export * from './decorators/example';
 export * from './decorators/parameter';
 export * from './decorators/methods';
