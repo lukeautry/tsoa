@@ -60,6 +60,7 @@ export abstract class SpecGenerator {
       type.dataType === 'binary' ||
       type.dataType === 'boolean' ||
       type.dataType === 'buffer' ||
+      type.dataType === 'stream' ||
       type.dataType === 'byte' ||
       type.dataType === 'date' ||
       type.dataType === 'datetime' ||
@@ -170,6 +171,7 @@ export abstract class SpecGenerator {
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
       buffer: { type: 'string', format: 'byte' },
+      stream: { type: 'string', format: 'byte' },
       byte: { type: 'string', format: 'byte' },
       date: { type: 'string', format: 'date' },
       datetime: { type: 'string', format: 'date-time' },

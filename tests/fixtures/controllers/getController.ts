@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
 import '../duplicateTestModel';
 import { GenericModel, TestClassModel, TestModel, TestSubModel } from '../testModel';
@@ -146,6 +147,15 @@ export class GetTestController extends Controller {
   @Get('HandleBufferType')
   public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
     return new Buffer('testbuffer');
+  }
+
+  @Get('HandleStreamType')
+  public async getStream(): Promise<Readable> {
+    const readable = new Readable();
+    readable._read = () => ({});
+    readable.push(new Buffer('testbuffer'));
+    readable.push(null);
+    return readable;
   }
 
   @Get('GenericModel')

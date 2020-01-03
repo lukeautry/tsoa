@@ -81,6 +81,7 @@ export namespace Tsoa {
     | 'date'
     | 'binary'
     | 'buffer'
+    | 'stream'
     | 'byte'
     | 'void'
     | 'object'
@@ -113,6 +114,7 @@ export namespace Tsoa {
     | DateType
     | BinaryType
     | BufferType
+    | StreamType
     | ByteType
     | AnyType
     | RefEnumType
@@ -180,6 +182,10 @@ export namespace Tsoa {
 
   export interface BufferType extends TypeBase {
     dataType: 'buffer';
+  }
+
+  export interface StreamType extends TypeBase {
+    dataType: 'stream';
   }
 
   export interface ByteType extends TypeBase {

@@ -156,6 +156,11 @@ export class TypeResolver {
         return bufferMetaType;
       }
 
+      if (typeReference.typeName.text === 'Readable') {
+        const streamMetaType: Tsoa.StreamType = { dataType: 'stream' };
+        return streamMetaType;
+      }
+
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
         const arrayMetaType: Tsoa.ArrayType = {
           dataType: 'array',
