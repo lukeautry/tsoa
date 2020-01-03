@@ -84,6 +84,29 @@ export class SpecGenerator3 extends SpecGenerator {
           scheme: 'basic',
           type: 'http',
         } as Swagger.BasicSecurity3;
+      } else if (definitions[key].type === 'oauth2') {
+        const definition = definitions[key] as Swagger.OAuth2PasswordSecurity &
+          Swagger.OAuth2ApplicationSecurity &
+          Swagger.OAuth2ImplicitSecurity &
+          Swagger.OAuth2AccessCodeSecurity &
+          Swagger.OAuth2Security3;
+        const oauth = (defs[key] || {
+          type: 'oauth2',
+          description: definitions[key].description,
+          flows: definition.flows || {},
+        }) as Swagger.OAuth2Security3;
+
+        if (definition.flow === 'password') {
+          oauth.flows.password = { tokenUrl: definition.tokenUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
+        } else if (definition.flow === 'accessCode') {
+          oauth.flows.authorizationCode = { tokenUrl: definition.tokenUrl, authorizationUrl: definition.authorizationUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
+        } else if (definition.flow === 'application') {
+          oauth.flows.clientCredentials = { tokenUrl: definition.tokenUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
+        } else if (definition.flow === 'implicit') {
+          oauth.flows.implicit = { authorizationUrl: definition.authorizationUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
+        }
+
+        defs[key] = oauth;
       } else {
         defs[key] = definitions[key];
       }

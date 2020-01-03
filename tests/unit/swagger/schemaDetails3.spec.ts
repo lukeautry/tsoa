@@ -95,6 +95,102 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(basic.type).to.equal('http');
       expect(basic.scheme).to.equal('basic');
     });
+
+    it('should replace type: oauth2 with type password: oauth2 and flows with password', () => {
+      if (!specDefault.spec.components.securitySchemes) {
+        throw new Error('No security schemes.');
+      }
+      if (!specDefault.spec.components.securitySchemes.password) {
+        throw new Error('No basic security scheme.');
+      }
+
+      const password = specDefault.spec.components.securitySchemes.password as Swagger.OAuth2Security3;
+
+      expect(password.type).to.equal('oauth2');
+      expect(password.flows.password).exist;
+
+      const flow = password.flows.password;
+
+      expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
+      expect(flow.authorizationUrl).to.be.undefined;
+
+      expect(flow.scopes).to.eql({
+        user_read: 'user read',
+        user_write: 'user_write',
+      });
+    });
+
+    it('should replace type: oauth2 with type application: oauth2 and flows with clientCredentials', () => {
+      if (!specDefault.spec.components.securitySchemes) {
+        throw new Error('No security schemes.');
+      }
+      if (!specDefault.spec.components.securitySchemes.application) {
+        throw new Error('No basic security scheme.');
+      }
+
+      const app = specDefault.spec.components.securitySchemes.application as Swagger.OAuth2Security3;
+
+      expect(app.type).to.equal('oauth2');
+      expect(app.flows.clientCredentials).exist;
+
+      const flow = app.flows.clientCredentials;
+
+      expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
+      expect(flow.authorizationUrl).to.be.undefined;
+
+      expect(flow.scopes).to.eql({
+        user_read: 'user read',
+        user_write: 'user_write',
+      });
+    });
+
+    it('should replace type: oauth2 with type accessCode: oauth2 and flows with authorizationCode', () => {
+      if (!specDefault.spec.components.securitySchemes) {
+        throw new Error('No security schemes.');
+      }
+      if (!specDefault.spec.components.securitySchemes.accessCode) {
+        throw new Error('No basic security scheme.');
+      }
+
+      const authCode = specDefault.spec.components.securitySchemes.accessCode as Swagger.OAuth2Security3;
+
+      expect(authCode.type).to.equal('oauth2');
+      expect(authCode.flows.authorizationCode).exist;
+
+      const flow = authCode.flows.authorizationCode;
+
+      expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
+      expect(flow.authorizationUrl).to.equal('/ats-api/auth/authorization');
+
+      expect(flow.scopes).to.eql({
+        user_read: 'user read',
+        user_write: 'user_write',
+      });
+    });
+
+    it('should replace type: oauth2 with type implicit: oauth2 and flows with implicit', () => {
+      if (!specDefault.spec.components.securitySchemes) {
+        throw new Error('No security schemes.');
+      }
+      if (!specDefault.spec.components.securitySchemes.implicit) {
+        throw new Error('No basic security scheme.');
+      }
+
+      const imp = specDefault.spec.components.securitySchemes.implicit as Swagger.OAuth2Security3;
+
+      expect(imp.type).to.equal('oauth2');
+      expect(imp.flows.implicit).exist;
+
+      const flow = imp.flows.implicit;
+
+      expect(flow.tokenUrl).to.be.undefined;
+      expect(flow.authorizationUrl).to.equal('/ats-api/auth/authorization');
+
+      expect(flow.scopes).to.eql({
+        user_read: 'user read',
+        user_write: 'user_write',
+      });
+    });
   });
 
   describe('paths', () => {
