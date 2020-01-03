@@ -73,7 +73,7 @@ export function RegisterRoutes(app: express.Express) {
 
             {{#if ../../iocModule}}
             const controller = iocContainer.get<{{../name}}>({{../name}});
-            if (typeof controller['setStatus'] === 'function') {
+            if (typeof (<any>controller).setStatus === 'function') {
                 (<any>controller).setStatus(undefined);
             }
             {{else}}
