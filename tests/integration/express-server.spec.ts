@@ -123,6 +123,13 @@ describe('Express Server', () => {
     });
   });
 
+  it('returns streamed responses', () => {
+    return verifyGetRequest(`${basePath}/GetTest/HandleStreamType`, (err, res) => {
+      expect(res.text).to.equal('testbuffer');
+      return;
+    });
+  });
+
   it('parsed body parameters', () => {
     const data = getFakeModel();
 

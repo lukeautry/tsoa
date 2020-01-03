@@ -153,7 +153,7 @@ export class GetTestController extends Controller {
   public async getStream(): Promise<Readable> {
     const readable = new Readable();
     readable._read = () => ({});
-    readable.push(new Buffer('testbuffer'));
+    readable.push(Buffer.from('testbuffer'));
     readable.push(null);
     return readable;
   }
