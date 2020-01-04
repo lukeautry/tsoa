@@ -71,7 +71,10 @@ export function RegisterRoutes(router: KoaRouter) {
             }
 
             {{#if ../../iocModule}}
-            const controller = iocContainer.get<{{../name}}>({{../name}});
+            const controller: any = iocContainer.get<{{../name}}>({{../name}});
+            if (typeof controller['setStatus'] === 'function') {
+                controller.setStatus(undefined);
+            }
             {{else}}
             const controller = new {{../name}}();
             {{/if}}
