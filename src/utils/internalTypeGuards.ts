@@ -17,8 +17,6 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
       return false;
     case 'buffer':
       return false;
-    case 'stream':
-      return false;
     case 'byte':
       return false;
     case 'date':
