@@ -18,16 +18,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
-  const optionsWithHostIsNull = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-    host: null,
-  });
 
   interface SpecAndName {
     spec: Swagger.Spec3;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'specWithHostIsNull';
+    specName: 'specDefault' | 'specWithNoImplicitExtras';
   }
 
   const specDefault: SpecAndName = {
@@ -37,10 +34,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
-  };
-  const specWithHostIsNull: SpecAndName = {
-    spec: new SpecGenerator3(metadata, optionsWithHostIsNull).GetSpec(),
-    specName: 'specWithHostIsNull',
   };
 
   const getComponentSchema = (name: string, chosenSpec: SpecAndName) => {
@@ -83,7 +76,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('setting host to null should result in relative URL', () => {
-      expect(specWithHostIsNull.spec.servers[0].url).to.equal('/v1');
+      const optionsWithHostIsNull = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
+        host: null,
+      });
+      const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithHostIsNull).GetSpec();
+
+      expect(spec.servers[0].url).to.equal('/v1');
     });
   });
 
