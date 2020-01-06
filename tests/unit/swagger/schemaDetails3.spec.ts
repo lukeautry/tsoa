@@ -486,45 +486,33 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.items.$ref).to.eq('#/components/schemas/TestSubModel', `for property ${propertyName}.items.$ref`);
           },
           strLiteralVal: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            if (!propertySchema.enum) {
-              throw new Error(`There was no 'enum' property on ${propertyName}.`);
-            }
-            expect(propertySchema.enum).to.have.length(3, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('Foo', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('Bar', `for property ${propertyName}.enum`);
+            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+
+            const componentSchema = getComponentSchema('StrLiteral', currentSpec);
+            expect(componentSchema).to.deep.eq({
+              oneOf: [{ type: 'string', enum: [''] }, { type: 'string', enum: ['Foo'] }, { type: 'string', enum: ['Bar'] }],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+            });
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            expect(propertySchema!.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            if (!propertySchema.items) {
-              throw new Error(`There was no 'items' property on ${propertyName}.`);
-            }
-            expect(propertySchema.items.type).to.eq('string', `for property ${propertyName}.items.type`);
-            if (!propertySchema.items.enum) {
-              throw new Error(`There was no 'enum' property on ${propertyName}.items`);
-            }
-            expect(propertySchema.items.enum).to.have.length(3, `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('', `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('Foo', `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('Bar', `for property ${propertyName}.items.enum`);
+
+            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
-            if (!propertySchema.enum) {
-              throw new Error(`There was no 'enum' property on ${propertyName}.`);
-            }
-            expect(propertySchema.enum).to.have.length(5, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('String', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('1', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('20', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('true', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
+            expect(propertySchema).to.deep.eq({
+              oneOf: [{ type: 'string', enum: ['String'] }, { type: 'string', enum: ['1'] }, { type: 'string', enum: ['20'] }, { type: 'string', enum: ['true'] }, { type: 'string', enum: ['false'] }],
+              nullable: true,
+              default: undefined,
+              description: undefined,
+              format: undefined,
+            });
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);

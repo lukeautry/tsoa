@@ -49,25 +49,15 @@ export class TypeResolver {
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
-      const supportType = this.typeNode.types.every(type => ts.isLiteralTypeNode(type));
+      const types = this.typeNode.types.map(type => {
+        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+      });
 
-      if (supportType) {
-        const enumMetaType: Tsoa.EnumType = {
-          dataType: 'enum',
-          enums: (this.typeNode.types as ts.NodeArray<ts.LiteralTypeNode>).map(type => this.resolveLiteralValue(type)),
-        };
-        return enumMetaType;
-      } else {
-        const types = this.typeNode.types.map(type => {
-          return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
-        });
-
-        const unionMetaType: Tsoa.UnionType = {
-          dataType: 'union',
-          types,
-        };
-        return unionMetaType;
-      }
+      const unionMetaType: Tsoa.UnionType = {
+        dataType: 'union',
+        types,
+      };
+      return unionMetaType;
     }
 
     if (ts.isIntersectionTypeNode(this.typeNode)) {
@@ -93,7 +83,7 @@ export class TypeResolver {
     if (ts.isLiteralTypeNode(this.typeNode)) {
       const enumType: Tsoa.EnumType = {
         dataType: 'enum',
-        enums: [this.resolveLiteralValue(this.typeNode)],
+        enums: [this.getLiteralValue(this.typeNode)],
       };
       return enumType;
     }
@@ -185,11 +175,6 @@ export class TypeResolver {
       }
     }
 
-    const literalType = this.getLiteralType(typeReference.typeName);
-    if (literalType) {
-      return literalType;
-    }
-
     const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference);
 
     if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject' || enumOrReferenceType.dataType === 'refAlias') {
@@ -208,7 +193,7 @@ export class TypeResolver {
     return enumOrReferenceType;
   }
 
-  private resolveLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
+  private getLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
     let value: boolean | number | string;
     switch (typeNode.literal.kind) {
       case ts.SyntaxKind.TrueKeyword:
@@ -352,35 +337,6 @@ export class TypeResolver {
         }),
       };
     }
-  }
-
-  private getLiteralType(typeName: ts.EntityName): Tsoa.EnumType | Tsoa.AnyType | undefined {
-    const literalName = (typeName as ts.Identifier).text;
-    const literalTypes = this.current.nodes
-      .filter(node => node.kind === ts.SyntaxKind.TypeAliasDeclaration)
-      .filter(node => {
-        const innerType = (node as any).type;
-        return innerType.kind === ts.SyntaxKind.UnionType && (innerType as any).types;
-      })
-      .filter(node => (node as any).name.text === literalName);
-
-    if (!literalTypes.length) {
-      return;
-    }
-    if (literalTypes.length > 1) {
-      throw new GenerateMetadataError(`Multiple matching enum found for enum ${literalName}; please make enum names unique.`);
-    }
-
-    const unionTypes = (literalTypes[0] as any).type.types as any[];
-    if (unionTypes.some(t => !t.literal || t.literal.text === null || t.literal.text === undefined)) {
-      // resolve the union
-      return;
-    }
-
-    return {
-      dataType: 'enum',
-      enums: unionTypes.map(unionNode => unionNode.literal.text as string),
-    } as Tsoa.EnumType;
   }
 
   private getReferenceTypeOrEnumType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.ReferenceType | Tsoa.EnumType {

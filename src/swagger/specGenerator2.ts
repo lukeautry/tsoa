@@ -319,7 +319,13 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    if (process.env.NODE_ENV !== 'tsoa_test') {
+    if (type.types.every(subType => subType.dataType === 'enum')) {
+      const mergedEnum: Tsoa.EnumType = { dataType: 'enum', enums: [] };
+      type.types.forEach(t => {
+        mergedEnum.enums = [...mergedEnum.enums, ...(t as Tsoa.EnumType).enums];
+      });
+      return this.getSwaggerTypeForEnumType(mergedEnum);
+    } else if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
     }
