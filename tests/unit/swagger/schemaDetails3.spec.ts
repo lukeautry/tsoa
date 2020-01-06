@@ -604,13 +604,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
           },
-          defaultGenericModel: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericModel', `for property ${propertyName}.$ref`);
-
-            const definition = getComponentSchema('GenericModel', currentSpec);
-            expect(definition.properties!.result.type).to.deep.equal('string');
-            expect(definition.properties!.nested.$ref).to.deep.equal('#/components/schemas/GenericRequeststring');
-          },
           and: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
               {

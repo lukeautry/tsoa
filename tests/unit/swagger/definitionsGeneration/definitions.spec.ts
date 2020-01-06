@@ -438,13 +438,6 @@ describe('Definition generation', () => {
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
           },
-          defaultGenericModel: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericModel', `for property ${propertyName}.$ref`);
-
-            const definition = getValidatedDefinition('GenericModel', currentSpec);
-            expect(definition.properties!.result.type).to.deep.equal('string');
-            expect(definition.properties!.nested.$ref).to.deep.equal('#/definitions/GenericRequeststring');
-          },
           and: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
