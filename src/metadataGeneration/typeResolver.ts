@@ -349,8 +349,8 @@ export class TypeResolver {
 
     const unionTypes = (literalTypes[0] as any).type.types as any[];
     if (unionTypes.some(t => !t.literal || t.literal.text === null || t.literal.text === undefined)) {
-      // tagged union types can't be expressed in Swagger terms, probably
-      return { dataType: 'any' };
+      // resolve the union
+      return;
     }
 
     return {
