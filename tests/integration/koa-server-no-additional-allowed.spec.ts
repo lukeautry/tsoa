@@ -195,7 +195,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
       bodyModel.intersection = { value1: 'one', value2: 'two' };
-      bodyModel.singleBooleanEnum = ('true' as unknown) as true;
+      bodyModel.singleBooleanEnum = true;
 
       bodyModel.nestedObject = {
         floatValue: 1.2,

@@ -30,7 +30,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.model = { value1: 'abcdef' };
     bodyModel.mixedUnion = { value1: '' };
     bodyModel.intersection = { value1: 'one', value2: 'two' };
-    bodyModel.singleBooleanEnum = ('true' as unknown) as true;
+    bodyModel.singleBooleanEnum = true;
 
     bodyModel.nestedObject = {
       floatValue: 1.2,
@@ -136,7 +136,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123, value4: 123 } as any;
     bodyModel.model = 1 as any;
     bodyModel.mixedUnion = 123 as any;
-    bodyModel.singleBooleanEnum = ('false' as unknown) as true;
+    bodyModel.singleBooleanEnum = false as true;
 
     bodyModel.nestedObject = {
       floatValue: '120a' as any,
@@ -210,7 +210,7 @@ describe('OpenAPI3 Express Server', () => {
             '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
         );
         expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
-        expect(body.fields['body.singleBooleanEnum'].message).to.equal("should be one of the following; ['true']");
+        expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
 
         expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
         expect(body.fields['body.nestedObject.floatValue'].value).to.equal(bodyModel.floatValue);
