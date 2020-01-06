@@ -119,9 +119,16 @@ export class TypeAliasModel3 {
   public value3: string;
 }
 
+// tslint:disable-next-line:interface-over-type-literal
+export type TypeAlias4 = { value4: string };
+
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
+
+type UnionAndIntersectionAlias = OneOrTwo & ThreeOrFour;
+type OneOrTwo = TypeAliasModel1 | TypeAliasModel2;
+type ThreeOrFour = TypeAliasModel3 | TypeAlias4;
 
 /**
  * A Word shall be a non-empty sting
@@ -343,6 +350,11 @@ export class ValidateModel {
     fourtyTwo: FourtyTwo;
     unionAlias: UnionAlias;
     intersectionAlias: IntersectionAlias;
+    intersectionAlias2?: TypeAliasModelCase2;
+    unionIntersectionAlias1?: UnionAndIntersectionAlias;
+    unionIntersectionAlias2?: UnionAndIntersectionAlias;
+    unionIntersectionAlias3?: UnionAndIntersectionAlias;
+    unionIntersectionAlias4?: UnionAndIntersectionAlias;
     nOLAlias: NolAlias;
     genericAlias: GenericAlias<string>;
     genericAlias2: GenericAlias<Model>;

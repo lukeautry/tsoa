@@ -78,7 +78,7 @@ export class ValidationService {
         return this.validateNestedObjectLiteral(name, value, fieldErrors, minimalSwaggerConfig, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
-          return this.validateModel({ name, value, refName: property.ref, fieldErrors, parent, minimalSwaggerConfig });
+          return this.validateModel({ name, value, modelDefinition: this.models[property.ref], fieldErrors, parent, minimalSwaggerConfig });
         }
         return value;
     }
@@ -524,48 +524,45 @@ export class ValidationService {
       return;
     }
 
+    const schemas = this.selfIntersectionExcludingCombinations(subSchemas.map(subSchema => this.toModelLike(subSchema)));
+
+    const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
+      const requiredPropError = {};
+      this.validateModel({
+        name,
+        value: JSON.parse(JSON.stringify(value)),
+        modelDefinition: schema,
+        fieldErrors: requiredPropError,
+        minimalSwaggerConfig: {
+          noImplicitAdditionalProperties: false,
+        },
+      });
+      return requiredPropError;
+    };
+
+    const schemasWithRequiredProps = schemas.filter(schema => Object.keys(getRequiredPropError(schema)).length === 0);
+
     if (this.resolveAdditionalPropSetting(swaggerConfig) === 'silently-remove-extras') {
-      return cleanValues;
-    }
-
-    const schemas: TsoaRoute.RefObjectModelSchema[] = subSchemas.map(subschema => {
-      if (subschema.ref && this.models[subschema.ref].dataType === 'refObject') {
-        // Not sure why I even have to cast here
-        return this.models[subschema.ref] as TsoaRoute.RefObjectModelSchema;
-      } else if (subschema.nestedProperties) {
-        return { dataType: 'refObject', properties: subschema.nestedProperties, additionalProperties: subschema.additionalProperties };
+      if (schemasWithRequiredProps.length > 0) {
+        return cleanValues;
       } else {
-        // There are no properties to check for excess here.
-        return { dataType: 'refObject', properties: {}, additionalProperties: true };
+        fieldErrors[parent + name] = {
+          message: `Could not match intersection against any of the possible combinations: ${JSON.stringify(schemas.map(s => Object.keys(s.properties)))}`,
+          value,
+        };
+        return;
       }
-    });
-
-    const reportedExcess = new Set(
-      schemas.reduce((acc, subSchema) => {
-        return [...acc, ...this.getExcessPropertiesFor(subSchema, Object.keys(value), swaggerConfig)];
-      }, []),
-    );
-
-    if (reportedExcess.size === 0) {
-      return value;
     }
 
-    const allowedProperties = new Set(
-      schemas.reduce((acc, subSchema) => {
-        return [...acc, ...this.getPropertiesFor(subSchema)];
-      }, []),
-    );
-
-    const actualExcess = [...reportedExcess].filter(property => !allowedProperties.has(property));
-
-    if (actualExcess.length > 0) {
+    if (schemasWithRequiredProps.length > 0 && schemasWithRequiredProps.some(schema => this.getExcessPropertiesFor(schema, Object.keys(value), swaggerConfig).length === 0)) {
+      return value;
+    } else {
       fieldErrors[parent + name] = {
-        message: `The following properties are not allowed by any part of the intersection: ${actualExcess}`,
+        message: `Could not match intersection against any of the possible combinations: ${JSON.stringify(schemas.map(s => Object.keys(s.properties)))}`,
         value,
       };
+      return;
     }
-
-    return value;
   }
 
   private resolveAdditionalPropSetting(swaggerConfig: SwaggerConfigRelatedToRoutes): AdditionalPropSetting {
@@ -580,16 +577,54 @@ export class ValidationService {
     }
   }
 
-  private getPropertiesFor(modelDefinition: TsoaRoute.ModelSchema) {
-    const properties = !!modelDefinition && modelDefinition.dataType === 'refObject' ? modelDefinition.properties : {};
-    return new Set(Object.keys(properties));
+  private toModelLike(schema: TsoaRoute.PropertySchema): TsoaRoute.RefObjectModelSchema[] {
+    if (schema.ref) {
+      const model = this.models[schema.ref];
+      if (model.dataType === 'refObject') {
+        return [model];
+      } else if (model.dataType === 'refAlias') {
+        return [...this.toModelLike(model.type)];
+      } else if (model.dataType === 'refEnum') {
+        throw new Error(`Can't transform an enum into a model like structure because it does not have properties.`);
+      } else {
+        return assertNever(model);
+      }
+    } else if (schema.nestedProperties) {
+      return [{ dataType: 'refObject', properties: schema.nestedProperties, additionalProperties: schema.additionalProperties }];
+    } else if (schema.subSchemas && schema.dataType === 'intersection') {
+      const modelss: TsoaRoute.RefObjectModelSchema[][] = schema.subSchemas.map(subSchema => this.toModelLike(subSchema));
+
+      return this.selfIntersectionExcludingCombinations(modelss);
+    } else if (schema.subSchemas && schema.dataType === 'union') {
+      const modelss: TsoaRoute.RefObjectModelSchema[][] = schema.subSchemas.map(subSchema => this.toModelLike(subSchema));
+      return modelss.reduce((acc, models) => [...acc, ...models], []);
+    } else {
+      // There are no properties to check for excess here.
+      return [{ dataType: 'refObject', properties: {}, additionalProperties: false }];
+    }
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.ModelSchema, properties: string[], config: SwaggerConfigRelatedToRoutes): string[] {
-    if (!modelDefinition || modelDefinition.dataType !== 'refObject') {
-      return properties;
+  private selfIntersectionExcludingCombinations(modelSchemass: TsoaRoute.RefObjectModelSchema[][]) {
+    const res: TsoaRoute.RefObjectModelSchema[] = [];
+
+    for (let outerIndex = 0; outerIndex < modelSchemass.length; outerIndex++) {
+      for (let innerIndex = outerIndex + 1; innerIndex < modelSchemass.length; innerIndex++) {
+        res.push(...this.intersectRefObjectModelSchemas(modelSchemass[outerIndex], modelSchemass[innerIndex]));
+      }
     }
 
+    return res;
+  }
+
+  private intersectRefObjectModelSchemas(a: TsoaRoute.RefObjectModelSchema[], b: TsoaRoute.RefObjectModelSchema[]): TsoaRoute.RefObjectModelSchema[] {
+    return a.reduce((acc, aModel) => [...acc, ...b.reduce((acc, bModel) => [...acc, this.combineProperties(aModel, bModel)], [])], []);
+  }
+
+  private combineProperties(a: TsoaRoute.RefObjectModelSchema, b: TsoaRoute.RefObjectModelSchema): TsoaRoute.RefObjectModelSchema {
+    return { dataType: 'refObject', properties: { ...a.properties, ...b.properties }, additionalProperties: a.additionalProperties || b.additionalProperties || false };
+  }
+
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: SwaggerConfigRelatedToRoutes): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
@@ -601,10 +636,15 @@ export class ValidationService {
     }
   }
 
-  public validateModel(input: { name: string; value: any; refName: string; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: SwaggerConfigRelatedToRoutes }): any {
-    const { name, value, refName, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
-
-    const modelDefinition = this.models[refName];
+  public validateModel(input: {
+    name: string;
+    value: any;
+    modelDefinition: TsoaRoute.ModelSchema;
+    fieldErrors: FieldErrors;
+    parent?: string;
+    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes;
+  }): any {
+    const { name, value, modelDefinition, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
 
     if (modelDefinition) {
       if (modelDefinition.dataType === 'refEnum') {
@@ -612,18 +652,8 @@ export class ValidationService {
       }
 
       if (modelDefinition.dataType === 'refAlias') {
-        const aliasSchema = this.models[refName];
-        if (aliasSchema.dataType !== 'refAlias') {
-          throw new Error(
-            'internal tsoa error: ' +
-              'the metadata that was generated should have been a typealias,' +
-              'however it was not. Instead we found ' +
-              JSON.stringify(aliasSchema) +
-              'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
-          );
-        }
-        const parentName = aliasSchema.type.ref ? parent + name + '.' : parent;
-        return this.ValidateParam(aliasSchema.type, value, name, fieldErrors, parentName, swaggerConfig);
+        const parentName = modelDefinition.type.ref ? parent + name + '.' : parent;
+        return this.ValidateParam(modelDefinition.type, value, name, fieldErrors, parentName, swaggerConfig);
       }
 
       if (!(value instanceof Object)) {
