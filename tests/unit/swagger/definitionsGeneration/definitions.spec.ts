@@ -424,19 +424,19 @@ describe('Definition generation', () => {
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel1Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestArrayTypeAliasModel2', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
           },
           and: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
@@ -713,7 +713,7 @@ describe('Definition generation', () => {
         });
 
         it('should generate different definitions for a generic model', () => {
-          const genericDefinition = getValidatedDefinition('GenericModelTestModel', currentSpec).properties;
+          const genericDefinition = getValidatedDefinition('GenericModel_TestModel_', currentSpec).properties;
 
           if (!genericDefinition) {
             throw new Error(`There were no properties on model.`);
@@ -727,7 +727,7 @@ describe('Definition generation', () => {
           expect(property.$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic model array', () => {
-          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
 
           if (!definition) {
             throw new Error(`There were no properties on model.`);
@@ -749,7 +749,7 @@ describe('Definition generation', () => {
           expect((property.items as Swagger.Schema).$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic primitive', () => {
-          const definition = getValidatedDefinition('GenericModelstring', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_string_', currentSpec).properties;
 
           if (!definition) {
             throw new Error(`There were no properties on model.`);
@@ -763,7 +763,7 @@ describe('Definition generation', () => {
           expect(property.type).to.equal('string');
         });
         it('should generate different definitions for a generic primitive array', () => {
-          const definition = getValidatedDefinition('GenericModelstringArray', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_stringArray_', currentSpec).properties;
 
           if (!definition) {
             throw new Error(`There were no properties on model.`);
@@ -785,33 +785,33 @@ describe('Definition generation', () => {
           expect((property.items as Swagger.Schema).type).to.equal('string');
         });
         it('should propagate generics', () => {
-          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
 
           expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
           expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, 'x-nullable': true });
-          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequestTestModelArray', description: undefined, format: undefined, 'x-nullable': true });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined, 'x-nullable': true });
 
-          const ref = getValidatedDefinition('GenericRequestTestModelArray', currentSpec).properties;
+          const ref = getValidatedDefinition('GenericRequest_TestModelArray_', currentSpec).properties;
           expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
           expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
         });
         it('should not propagate dangling context', () => {
-          const definition = getValidatedDefinition('DanglingContextnumber', currentSpec).properties;
+          const definition = getValidatedDefinition('DanglingContext_number_', currentSpec).properties;
 
           expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined });
           expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
         });
         it('should check heritage clauses for type args', () => {
-          const definition = getValidatedDefinition('GenericModelTestModelArray', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
 
           expect(definition!.heritageCheck).to.deep.equal({
-            $ref: '#/definitions/ThingContainerWithTitleTestModelArray',
+            $ref: '#/definitions/ThingContainerWithTitle_TestModelArray_',
             description: undefined,
             format: undefined,
             'x-nullable': true,
           });
 
-          const ref = getValidatedDefinition('ThingContainerWithTitleTestModelArray', currentSpec).properties;
+          const ref = getValidatedDefinition('ThingContainerWithTitle_TestModelArray_', currentSpec).properties;
           expect(ref!.title).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
           expect(ref!.t).to.deep.equal({
             default: undefined,

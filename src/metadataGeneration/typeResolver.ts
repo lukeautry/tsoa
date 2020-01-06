@@ -195,10 +195,9 @@ export class TypeResolver {
       this.typeArgumentsToContext(typeReference, typeReference.typeName, this.context);
     }
 
-    const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference.typeName as ts.EntityName, this.extractEnum, typeReference.typeArguments);
+    const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference);
 
     if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject') {
-      this.checkRefNameForBadCharacters(enumOrReferenceType);
       this.current.AddReferenceType(enumOrReferenceType);
       return enumOrReferenceType;
     } else if (enumOrReferenceType.dataType === 'enum') {
@@ -212,23 +211,6 @@ export class TypeResolver {
     }
 
     return enumOrReferenceType;
-  }
-
-  private checkRefNameForBadCharacters(ref: Tsoa.ReferenceType) {
-    // We do a hard assert in the test mode so we can catch bad ref names (https://github.com/lukeautry/tsoa/issues/398).
-    //   The goal is to avoid producing these names before the code is ever merged to master (via extensive test coverage)
-    //   and therefore this validation does not have to run for the users
-    if (process.env.NODE_ENV === 'tsoa_test') {
-      // This regex allows underscore, hyphen, and period since those are valid in SwaggerEditor
-      const symbolsRegex = /[!$%^&*()+|~=`{}\[\]:";'<>?,\/]/;
-      if (symbolsRegex.test(ref.refName)) {
-        throw new Error(
-          `Problem with creating refName ${ref.refName} since we should not allow symbols in ref names ` +
-            `because it would cause invalid swagger.yaml to be created. This is due to the swagger rule ` +
-            `"ref values must be RFC3986-compliant percent-encoded URIs."`,
-        );
-      }
-    }
   }
 
   private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
@@ -381,12 +363,20 @@ export class TypeResolver {
     } as Tsoa.EnumType;
   }
 
-  private getReferenceTypeOrEnumType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
-    const typeName = this.resolveFqTypeName(type);
-    const refNameWithGenerics = this.getTypeName(typeName, genericTypes);
+  private getReferenceTypeOrEnumType(node: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments): Tsoa.RefEnumType | Tsoa.RefObjectType | Tsoa.EnumType {
+    let type: ts.EntityName;
+    if (ts.isTypeReferenceNode(node)) {
+      type = node.typeName;
+    } else if (ts.isExpressionWithTypeArguments(node)) {
+      type = node.expression as ts.EntityName;
+    } else {
+      throw new GenerateMetadataError(`Can't resolve Reference type.`);
+    }
+
+    const name = this.contextualizedName(node.getText());
 
     try {
-      const existingType = localReferenceTypeCache[refNameWithGenerics];
+      const existingType = localReferenceTypeCache[name];
       if (existingType) {
         return existingType;
       }
@@ -394,12 +384,12 @@ export class TypeResolver {
       const enumOrRefEnum = this.getEnumerateType(type, true);
       if (enumOrRefEnum) {
         if (enumOrRefEnum.dataType === 'refEnum') {
-          localReferenceTypeCache[refNameWithGenerics] = enumOrRefEnum;
+          localReferenceTypeCache[name] = enumOrRefEnum;
           return enumOrRefEnum;
         } else if (enumOrRefEnum.dataType === 'enum') {
           // Since an enum that is not reusable can't be referenced, we don't put it in the cache.
           // Also it doesn't qualify as a ref type, so might want to return it (if they've asked for it)
-          if (!extractEnum) {
+          if (!this.extractEnum) {
             return enumOrRefEnum;
           }
         } else {
@@ -407,14 +397,14 @@ export class TypeResolver {
         }
       }
 
-      if (inProgressTypes[refNameWithGenerics]) {
-        return this.createCircularDependencyResolver(refNameWithGenerics);
+      if (inProgressTypes[name]) {
+        return this.createCircularDependencyResolver(name);
       }
 
-      inProgressTypes[refNameWithGenerics] = true;
+      inProgressTypes[name] = true;
 
       const modelType = this.getModelTypeDeclaration(type);
-      const properties = this.getModelProperties(modelType, genericTypes);
+      const properties = this.getModelProperties(modelType);
       const additionalProperties = this.getModelAdditionalProperties(modelType);
       const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
       const example = this.getNodeExample(modelType);
@@ -424,11 +414,11 @@ export class TypeResolver {
         dataType: 'refObject',
         description: this.getNodeDescription(modelType),
         properties: inheritedProperties,
-        refName: refNameWithGenerics,
+        refName: this.getRefTypeName(name),
       };
 
-      referenceType.properties = referenceType.properties.concat(properties);
-      localReferenceTypeCache[refNameWithGenerics] = referenceType;
+      referenceType.properties = (referenceType.properties as Tsoa.Property[]).concat(properties);
+      localReferenceTypeCache[name] = referenceType;
 
       if (example) {
         referenceType.example = example;
@@ -436,45 +426,21 @@ export class TypeResolver {
       return referenceType;
     } catch (err) {
       // tslint:disable-next-line:no-console
-      console.error(`There was a problem resolving type of '${this.getTypeName(typeName, genericTypes)}'.`);
+      console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
   }
 
-  private resolveFqTypeName(type: ts.EntityName): string {
-    if (type.kind === ts.SyntaxKind.Identifier) {
-      return (type as ts.Identifier).text;
-    }
-
-    const qualifiedType = type as ts.QualifiedName;
-    return this.resolveFqTypeName(qualifiedType.left) + '.' + (qualifiedType.right as ts.Identifier).text;
-  }
-
-  private getTypeName(typeName: string, genericTypes?: ts.NodeArray<ts.TypeNode>): string {
-    if (!genericTypes || !genericTypes.length) {
-      return typeName;
-    }
-
-    const resolvedName = genericTypes
-      .map(genericType => this.context[genericType.getText()] || genericType)
-      .reduce(
-        (acc, generic) => {
-          if (ts.isTypeReferenceNode(generic) && generic.typeArguments && generic.typeArguments.length > 0) {
-            const typeNameSection = this.getTypeName(generic.typeName.getText(), generic.typeArguments);
-            acc.push(typeNameSection);
-            return acc;
-          } else {
-            const typeNameSection = this.getAnyTypeName(generic);
-            acc.push(typeNameSection);
-            return acc;
-          }
-        },
-        [] as string[],
-      );
-
-    const finalName = typeName + resolvedName.join('');
-
-    return finalName;
+  private getRefTypeName(name: string): string {
+    return encodeURIComponent(
+      name
+        .replace(/<|>/g, '_')
+        .replace(/ /g, '')
+        .replace(/,/g, '.')
+        .replace(/\'(.*)\'|\"(.*)\'/g, '$1')
+        .replace(/&/g, '~AND')
+        .replace(/\[\]/g, 'Array'),
+    );
   }
 
   private attemptToResolveKindToPrimitive = (syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive => {
@@ -505,34 +471,14 @@ export class TypeResolver {
     }
   };
 
-  private getAnyTypeName(typeNode: ts.TypeNode): string {
-    const primitiveType = this.attemptToResolveKindToPrimitive(typeNode.kind);
-    if (primitiveType.foundMatch) {
-      return primitiveType.resolvedType;
-    }
-
-    if (typeNode.kind === ts.SyntaxKind.ArrayType) {
-      const arrayType = typeNode as ts.ArrayTypeNode;
-      return this.getAnyTypeName(arrayType.elementType) + 'Array';
-    }
-
-    if (typeNode.kind === ts.SyntaxKind.UnionType) {
-      return 'object';
-    }
-
-    if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
-      throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`, this.typeNode);
-    }
-
-    const typeReference = typeNode as ts.TypeReferenceNode;
-    try {
-      return (typeReference.typeName as ts.Identifier).text;
-    } catch (e) {
-      // idk what would hit this? probably needs more testing
-      // tslint:disable-next-line:no-console
-      console.error(e);
-      return typeNode.toString();
-    }
+  private contextualizedName(name: string): string {
+    return Object.entries(this.context).reduce((acc, [key, entry]) => {
+      return acc
+        .replace(new RegExp(`<\s*${key}\s*>`, 'g'), `<${entry.getText()}>`)
+        .replace(new RegExp(`<\s*${key}\s*,`, 'g'), `<${entry.getText()},`)
+        .replace(new RegExp(`,\s*${key}\s*>`, 'g'), `,${entry.getText()}>`)
+        .replace(new RegExp(`<\s*${key}\s*<`, 'g'), `<${entry.getText()}<`);
+    }, name);
   }
 
   private createCircularDependencyResolver(refName: string) {
@@ -668,7 +614,7 @@ export class TypeResolver {
     return modelTypes[0];
   }
 
-  private getModelProperties(node: UsableDeclaration, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.Property[] {
+  private getModelProperties(node: UsableDeclaration): Tsoa.Property[] {
     const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
       const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       return ignore;
@@ -847,7 +793,7 @@ export class TypeResolver {
           resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
         }
 
-        const referenceType = this.getReferenceTypeOrEnumType(baseEntityName);
+        const referenceType = this.getReferenceTypeOrEnumType(t);
         if (referenceType) {
           if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
             // since it doesn't have properties to iterate over, then we don't do anything with it
