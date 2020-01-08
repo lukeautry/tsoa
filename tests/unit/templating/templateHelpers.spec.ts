@@ -152,7 +152,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName';
-  const expectedErrorMsg = `The following properties are not allowed by any part of the intersection: ${nameOfAdditionalProperty}`;
+  const expectedErrorMsg = `Could not match intersection against any of the possible combinations: [["value1","value2"]]`;
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
     value1: 'this is value 1',
     value2: 'this is value 2',

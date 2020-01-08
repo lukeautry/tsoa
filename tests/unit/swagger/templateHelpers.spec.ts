@@ -1,19 +1,18 @@
 import { expect } from 'chai';
 import 'mocha';
 import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
-import { FieldErrors, TsoaRoute, ValidationService } from './../../../src/routeGeneration/templateHelpers';
+import { FieldErrors, ValidationService, TsoaRoute } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
   describe('Model validate', () => {
     it('should validate a model with declared properties', () => {
-      const v = new ValidationService({
-        ExampleModel: {
-          dataType: 'refObject',
-          properties: {
-            a: { dataType: 'string', required: true },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        properties: {
+          a: { dataType: 'string', required: true },
         },
-      });
+      };
+      const v = new ValidationService({});
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: undefined,
       };
@@ -22,7 +21,7 @@ describe('ValidationService', () => {
         fieldErrors: error,
         minimalSwaggerConfig,
         name: '',
-        refName: 'ExampleModel',
+        modelDefinition,
         value: { a: 's' },
       });
       expect(Object.keys(error)).to.be.empty;
@@ -31,16 +30,14 @@ describe('ValidationService', () => {
 
     it('should not allow additionalProperties if noImplicitAdditionalProperties is set to throw-on-extras', () => {
       // Arrange
-      const refName = 'ExampleModel';
-      const v = new ValidationService({
-        [refName]: {
-          dataType: 'refObject',
-          additionalProperties: false,
-          properties: {
-            a: { dataType: 'string', required: true },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: false,
+        properties: {
+          a: { dataType: 'string', required: true },
         },
-      });
+      };
+      const v = new ValidationService({});
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
@@ -56,7 +53,7 @@ describe('ValidationService', () => {
         fieldErrors: errorDictionary,
         minimalSwaggerConfig,
         name: '',
-        refName,
+        modelDefinition,
         value: dataToValidate,
       });
 
@@ -74,16 +71,14 @@ describe('ValidationService', () => {
 
     it('should allow (but remove) additionalProperties if noImplicitAdditionalProperties is set to throw-on-extras', () => {
       // Arrange
-      const refName = 'ExampleModel';
-      const v = new ValidationService({
-        [refName]: {
-          dataType: 'refObject',
-          additionalProperties: false,
-          properties: {
-            a: { dataType: 'string', required: true },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: false,
+        properties: {
+          a: { dataType: 'string', required: true },
         },
-      });
+      };
+      const v = new ValidationService({});
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       };
@@ -99,7 +94,7 @@ describe('ValidationService', () => {
         fieldErrors: errorDictionary,
         minimalSwaggerConfig,
         name: '',
-        refName,
+        modelDefinition,
         value: dataToValidate,
       });
 
@@ -114,16 +109,14 @@ describe('ValidationService', () => {
 
     it('should not allow additionalProperties if noImplicitAdditionalProperties is set to true', () => {
       // Arrange
-      const refName = 'ExampleModel';
-      const v = new ValidationService({
-        [refName]: {
-          dataType: 'refObject',
-          additionalProperties: false,
-          properties: {
-            a: { dataType: 'string', required: true },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: false,
+        properties: {
+          a: { dataType: 'string', required: true },
         },
-      });
+      };
+      const v = new ValidationService({});
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: true,
       };
@@ -139,7 +132,7 @@ describe('ValidationService', () => {
         fieldErrors: errorDictionary,
         minimalSwaggerConfig,
         name: '',
-        refName,
+        modelDefinition,
         value: dataToValidate,
       });
 
@@ -157,16 +150,14 @@ describe('ValidationService', () => {
 
     it('should allow additionalProperties if noImplicitAdditionalProperties is set to false', () => {
       // Arrange
-      const refName = 'ExampleModel';
-      const v = new ValidationService({
-        [refName]: {
-          dataType: 'refObject',
-          additionalProperties: false,
-          properties: {
-            a: { dataType: 'string', required: true },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: false,
+        properties: {
+          a: { dataType: 'string', required: true },
         },
-      });
+      };
+      const v = new ValidationService({});
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: false,
       };
@@ -182,7 +173,7 @@ describe('ValidationService', () => {
         fieldErrors: errorDictionary,
         minimalSwaggerConfig,
         name: '',
-        refName: 'ExampleModel',
+        modelDefinition,
         value: dataToValidate,
       });
       expect(Object.keys(errorDictionary)).to.be.empty;
@@ -193,82 +184,78 @@ describe('ValidationService', () => {
     });
 
     it('should not require optional properties', () => {
-      const v = new ValidationService({
-        ExampleModel: {
-          dataType: 'refObject',
-          properties: {
-            a: { dataType: 'string' },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        properties: {
+          a: { dataType: 'string' },
         },
-      });
+      };
+      const v = new ValidationService({});
       const error = {};
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         noImplicitAdditionalProperties: undefined,
       };
-      const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({});
     });
 
     it('should validate a model with additional properties', () => {
-      const v = new ValidationService({
-        ExampleModel: {
-          dataType: 'refObject',
-          properties: {},
-          additionalProperties: { dataType: 'any' },
-        },
-      });
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        properties: {},
+        additionalProperties: { dataType: 'any' },
+      };
+      const v = new ValidationService({});
       const error = {};
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         // we're setting this to the "throw" to demonstrate that explicit additionalProperties should always be allowed
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
-      const result = v.validateModel({ name: '', value: { a: 's' }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: { a: 's' }, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({ a: 's' });
     });
 
     it('should validate a model with optional and additional properties', () => {
-      const v = new ValidationService({
-        ExampleModel: {
-          dataType: 'refObject',
-          additionalProperties: { dataType: 'any' },
-          properties: {
-            a: { dataType: 'string' },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: { dataType: 'any' },
+        properties: {
+          a: { dataType: 'string' },
         },
-      });
+      };
+      const v = new ValidationService({});
       const error = {};
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
-      const result = v.validateModel({ name: '', value: {}, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({});
     });
 
     it('should validate additional properties only against non-explicitly stated properties', () => {
-      const v = new ValidationService({
-        ExampleModel: {
-          dataType: 'refObject',
-          additionalProperties: {
-            dataType: 'integer',
-            validators: { minimum: { value: 10 } },
-          },
-          properties: {
-            a: { dataType: 'integer' },
-          },
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        additionalProperties: {
+          dataType: 'integer',
+          validators: { minimum: { value: 10 } },
         },
-      });
+        properties: {
+          a: { dataType: 'integer' },
+        },
+      };
+      const v = new ValidationService({});
       const error = {};
       const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
-      const result = v.validateModel({ name: '', value: { a: 9 }, refName: 'ExampleModel', fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: { a: 9 }, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({ a: 9 });
     });

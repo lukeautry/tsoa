@@ -195,6 +195,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
       bodyModel.intersection = { value1: 'one', value2: 'two' };
+      bodyModel.singleBooleanEnum = true;
 
       bodyModel.nestedObject = {
         floatValue: 1.2,
@@ -218,6 +219,19 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         model: { value1: 'abcdef' },
         mixedUnion: { value1: '' },
         intersection: { value1: 'one', value2: 'two' },
+      };
+
+      bodyModel.typeAliases = {
+        word: 'word',
+        fourtyTwo: 42,
+        intersectionAlias: { value1: 'value1', value2: 'value2' },
+        unionAlias: { value2: 'value2' },
+        nOLAlias: { value1: 'value1', value2: 'value2' },
+        genericAlias: 'genericString',
+        genericAlias2: {
+          id: 1,
+        },
+        forwardGenericAlias: { value1: 'value1' },
       };
 
       return verifyPostRequest(
@@ -248,6 +262,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.model).to.deep.equal(bodyModel.model);
           expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
           expect(body.intersection).to.deep.equal(bodyModel.intersection);
+          expect(body.singleBooleanEnum).to.deep.equal(bodyModel.singleBooleanEnum);
 
           expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
           expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
@@ -271,6 +286,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
           expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
+          expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
         },
         200,
       );

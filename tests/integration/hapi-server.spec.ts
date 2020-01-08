@@ -473,6 +473,7 @@ describe('Hapi Server', () => {
       bodyModel.model = { value1: 'abcdef' };
       bodyModel.mixedUnion = { value1: '' };
       bodyModel.intersection = { value1: 'one', value2: 'two' };
+      bodyModel.singleBooleanEnum = true;
 
       bodyModel.nestedObject = {
         floatValue: 1.2,
@@ -496,6 +497,19 @@ describe('Hapi Server', () => {
         model: { value1: 'abcdef' },
         mixedUnion: { value1: '' },
         intersection: { value1: 'one', value2: 'two' },
+      };
+
+      bodyModel.typeAliases = {
+        word: 'word',
+        fourtyTwo: 42,
+        intersectionAlias: { value1: 'value1', value2: 'value2' },
+        unionAlias: { value2: 'value2' },
+        nOLAlias: { value1: 'value1', value2: 'value2' },
+        genericAlias: 'genericString',
+        genericAlias2: {
+          id: 1,
+        },
+        forwardGenericAlias: { value1: 'value1' },
       };
 
       return verifyPostRequest(
@@ -526,6 +540,7 @@ describe('Hapi Server', () => {
           expect(body.model).to.deep.equal(bodyModel.model);
           expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
           expect(body.intersection).to.deep.equal(bodyModel.intersection);
+          expect(body.singleBooleanEnum).to.deep.equal(bodyModel.singleBooleanEnum);
 
           expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
           expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
@@ -549,6 +564,7 @@ describe('Hapi Server', () => {
           expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
           expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
+          expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
         },
         200,
       );
@@ -576,6 +592,7 @@ describe('Hapi Server', () => {
       bodyModel.model = 1 as any;
       bodyModel.mixedUnion = 123 as any;
       bodyModel.intersection = { value1: 'one' } as any;
+      bodyModel.singleBooleanEnum = false as true;
 
       bodyModel.nestedObject = {
         floatValue: '120a' as any,
@@ -598,6 +615,19 @@ describe('Hapi Server', () => {
         model: 1 as any,
         mixedUnion: 123 as any,
         intersection: { value1: 'one' } as any,
+      } as any;
+
+      bodyModel.typeAliases = {
+        word: '',
+        fourtyTwo: 41,
+        intersectionAlias: { value2: 'value2' },
+        unionAlias: {},
+        nOLAlias: true,
+        genericAlias: new ValidateModel(),
+        genericAlias2: {
+          id2: 2,
+        },
+        forwardGenericAlias: 123,
       } as any;
 
       return verifyPostRequest(
@@ -647,6 +677,7 @@ describe('Hapi Server', () => {
               '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
           );
           expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
+          expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
 
           expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
           expect(body.fields['body.nestedObject.floatValue'].value).to.equal(bodyModel.floatValue);
@@ -691,6 +722,16 @@ describe('Hapi Server', () => {
           expect(body.fields['body.nestedObject.intersection'].message).to.equal(
             'Could not match the intersection against every type. Issues: [{"body.nestedObject.value2":{"message":"\'value2\' is required"}}]',
           );
+          expect(body.fields['body.typeAliases.word'].message).to.equal('minLength 1');
+          expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
+          expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
+          expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+          );
+          expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
+          expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
+          expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
+          expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
         },
         400,
       );

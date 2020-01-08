@@ -164,6 +164,16 @@ export class RouteGenerator {
           refObjModel.additionalProperties = true;
         }
         model = refObjModel;
+      } else if (referenceType.dataType === 'refAlias') {
+        const refType: TsoaRoute.RefTypeAliasModelSchema = {
+          dataType: 'refAlias',
+          type: {
+            ...this.buildProperty(referenceType.type),
+            validators: referenceType.validators,
+            default: referenceType.default,
+          },
+        };
+        model = refType;
       } else {
         model = assertNever(referenceType);
       }
@@ -231,6 +241,13 @@ export class RouteGenerator {
             schema.array = {
               dataType: arrayType.elementType.dataType,
               enums: arrayType.elementType.enums,
+            };
+            break;
+          }
+          case 'refAlias': {
+            schema.array = {
+              dataType: arrayType.elementType.dataType,
+              ref: arrayType.elementType.refName,
             };
             break;
           }

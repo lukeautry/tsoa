@@ -30,6 +30,10 @@ const models: TsoaRoute.Models = {
         },
         "additionalProperties": {{{json additionalProperties}}},
         {{/if}}
+        {{#if type}}
+        "dataType": "refAlias",
+        "type": {{{json type}}},
+        {{/if}}
     },
     {{/each}}
 };

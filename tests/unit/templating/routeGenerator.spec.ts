@@ -53,15 +53,15 @@ describe('RouteGenerator', () => {
       if (!strictModel) {
         throw new Error(`.buildModels should have created a model for ${refThatShouldNotAllowExtras}`);
       }
-      if (strictModel.dataType !== "refObject") {
-          throw new Error(`Expected strictModel.dataType to be refObject`);
+      if (strictModel.dataType !== 'refObject') {
+        throw new Error(`Expected strictModel.dataType to be refObject`);
       }
       expect(strictModel.additionalProperties).to.equal(false);
       const stringDictionaryModel = models[refWithExtraStrings];
       if (!stringDictionaryModel) {
         throw new Error(`.buildModels should have created a model for ${refWithExtraStrings}`);
       }
-      if (stringDictionaryModel.dataType !== "refObject") {
+      if (stringDictionaryModel.dataType !== 'refObject') {
         throw new Error(`.buildModels should have created a model for ${refThatShouldNotAllowExtras}`);
       }
       expect(stringDictionaryModel.additionalProperties).to.deep.equal({

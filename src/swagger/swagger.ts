@@ -203,7 +203,7 @@ export namespace Swagger {
 
   export interface BaseSchema {
     type?: string;
-    format?: string;
+    format?: DataFormat;
     $ref?: string;
     title?: string;
     description?: string;

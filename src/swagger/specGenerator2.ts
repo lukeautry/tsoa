@@ -90,6 +90,26 @@ export class SpecGenerator2 extends SpecGenerator {
           enum: referenceType.enums,
           type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
+      } else if (referenceType.dataType === 'refAlias') {
+        const swaggerType = this.getSwaggerType(referenceType.type);
+        const validators = Object.keys(referenceType.validators)
+          .filter(key => {
+            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+          })
+          .reduce((acc, key) => {
+            return {
+              ...acc,
+              [key]: referenceType.validators[key].value,
+            };
+          }, {});
+
+        definitions[referenceType.refName] = {
+          ...(swaggerType as Swagger.Schema),
+          default: referenceType.default || swaggerType.default,
+          example: referenceType.example,
+          description: referenceType.description,
+          ...validators,
+        };
       } else {
         assertNever(referenceType);
       }
@@ -299,18 +319,42 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    if (process.env.NODE_ENV !== 'tsoa_test') {
+    if (type.types.every(subType => subType.dataType === 'enum')) {
+      const mergedEnum: Tsoa.EnumType = { dataType: 'enum', enums: [] };
+      type.types.forEach(t => {
+        mergedEnum.enums = [...mergedEnum.enums, ...(t as Tsoa.EnumType).enums];
+      });
+      return this.getSwaggerTypeForEnumType(mergedEnum);
+    } else if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
     }
     return { type: 'object' };
   }
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
-    if (process.env.NODE_ENV !== 'tsoa_test') {
-      // tslint:disable-next-line: no-console
-      console.warn('Swagger 2.0 does not support this kind of intersection types.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
-    }
-    return { type: 'object' };
+    const properties = type.types.reduce((acc, type) => {
+      if (type.dataType === 'refObject') {
+        let refType = type;
+        refType = this.metadata.referenceTypeMap[refType.refName] as Tsoa.RefObjectType;
+
+        const props =
+          refType &&
+          refType.properties &&
+          refType.properties.reduce((acc, prop) => {
+            return {
+              ...acc,
+              [prop.name]: this.getSwaggerType(prop.type),
+            };
+          }, {});
+        return { ...acc, ...props };
+      } else {
+        process.env.NODE_ENV !== 'tsoa_test' &&
+          // tslint:disable-next-line: no-console
+          console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+        return { ...acc };
+      }
+    }, {});
+    return { type: 'object', properties };
   }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {

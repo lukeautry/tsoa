@@ -486,45 +486,42 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.items.$ref).to.eq('#/components/schemas/TestSubModel', `for property ${propertyName}.items.$ref`);
           },
           strLiteralVal: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            if (!propertySchema.enum) {
-              throw new Error(`There was no 'enum' property on ${propertyName}.`);
-            }
-            expect(propertySchema.enum).to.have.length(3, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('Foo', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('Bar', `for property ${propertyName}.enum`);
+            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+
+            const componentSchema = getComponentSchema('StrLiteral', currentSpec);
+            expect(componentSchema).to.deep.eq({
+              oneOf: [{ type: 'string', enum: [''] }, { type: 'string', enum: ['Foo'] }, { type: 'string', enum: ['Bar'] }],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+            });
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            expect(propertySchema!.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            if (!propertySchema.items) {
-              throw new Error(`There was no 'items' property on ${propertyName}.`);
-            }
-            expect(propertySchema.items.type).to.eq('string', `for property ${propertyName}.items.type`);
-            if (!propertySchema.items.enum) {
-              throw new Error(`There was no 'enum' property on ${propertyName}.items`);
-            }
-            expect(propertySchema.items.enum).to.have.length(3, `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('', `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('Foo', `for property ${propertyName}.items.enum`);
-            expect(propertySchema.items.enum).to.include('Bar', `for property ${propertyName}.items.enum`);
+
+            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({
+              oneOf: [{ type: 'string', enum: ['String'] }, { type: 'string', enum: ['1'] }, { type: 'string', enum: ['20'] }, { type: 'string', enum: ['true'] }, { type: 'string', enum: ['false'] }],
+              nullable: true,
+              default: undefined,
+              description: undefined,
+              format: undefined,
+            });
+          },
+          singleFloatLiteralType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema['nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
-            expect(propertySchema.enum).to.have.length(5, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('String', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('1', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('20', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('true', `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('3.1415', `for property ${propertyName}.enum`);
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
@@ -590,19 +587,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestGenericRequestTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel1', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel1Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestArrayTypeAliasModel2', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequestTypeAliasModel2Array', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
+          },
+          defaultGenericModel: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericModel', `for property ${propertyName}.$ref`);
+
+            const definition = getComponentSchema('GenericModel', currentSpec);
+            expect(definition.properties!.result.type).to.deep.equal('string');
+            expect(definition.properties!.nested.$ref).to.deep.equal('#/components/schemas/GenericRequest_string_');
           },
           and: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
@@ -639,6 +643,308 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for property ${propertyName}.$ref`,
             );
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
+          typeAliases: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('typeAliases');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                word: { $ref: '#/components/schemas/Word' },
+                fourtyTwo: { $ref: '#/components/schemas/FourtyTwo' },
+                dateAlias: { $ref: '#/components/schemas/DateAlias' },
+                unionAlias: { $ref: '#/components/schemas/UnionAlias' },
+                intersectionAlias: { $ref: '#/components/schemas/IntersectionAlias' },
+                nOLAlias: { $ref: '#/components/schemas/NolAlias' },
+                genericAlias: { $ref: '#/components/schemas/GenericAlias_string_' },
+                genericAlias2: { $ref: '#/components/schemas/GenericAlias_Model_' },
+                forwardGenericAlias: { $ref: '#/components/schemas/ForwardGenericAlias_boolean.TypeAliasModel1_' },
+              },
+              required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
+              type: 'object',
+              nullable: true,
+            });
+
+            const wordSchema = getComponentSchema('Word', currentSpec);
+            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1 });
+
+            const fourtyTwoSchema = getComponentSchema('FourtyTwo', currentSpec);
+            expect(fourtyTwoSchema).to.deep.eq({
+              type: 'number',
+              format: 'double',
+              description: 'The number 42 expressed through OpenAPI',
+              example: 42,
+              minimum: 42,
+              maximum: 42,
+              default: '42',
+            });
+
+            const dateAliasSchema = getComponentSchema('DateAlias', currentSpec);
+            expect(dateAliasSchema).to.deep.eq({ type: 'string', format: 'date', description: undefined, example: undefined, default: undefined });
+
+            const unionAliasSchema = getComponentSchema('UnionAlias', currentSpec);
+            expect(unionAliasSchema).to.deep.eq({
+              oneOf: [{ $ref: '#/components/schemas/TypeAliasModelCase2' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const intersectionAliasSchema = getComponentSchema('IntersectionAlias', currentSpec);
+            expect(intersectionAliasSchema).to.deep.eq({
+              allOf: [
+                {
+                  properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+                  required: ['value2', 'value1'],
+                  type: 'object',
+                },
+                { $ref: '#/components/schemas/TypeAliasModel1' },
+              ],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const nolAliasSchema = getComponentSchema('NolAlias', currentSpec);
+            expect(nolAliasSchema).to.deep.eq({
+              properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+              required: ['value2', 'value1'],
+              type: 'object',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            const genericAliasStringSchema = getComponentSchema('GenericAlias_string_', currentSpec);
+            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', default: undefined, description: undefined, example: undefined });
+
+            const genericAliasModelSchema = getComponentSchema('GenericAlias_Model_', currentSpec);
+            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/components/schemas/Model', default: undefined, description: undefined, example: undefined });
+
+            const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getComponentSchema('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
+            expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
+              oneOf: [{ $ref: '#/components/schemas/GenericAlias_TypeAliasModel1_' }, { type: 'boolean' }],
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+
+            expect(getComponentSchema('GenericAlias_TypeAliasModel1_', currentSpec)).to.deep.eq({
+              $ref: '#/components/schemas/TypeAliasModel1',
+              description: undefined,
+              example: undefined,
+              default: undefined,
+            });
+          },
+          advancedTypeAliases: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                properties: {
+                  omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_' },
+                  partial: { $ref: '#/components/schemas/Partial_Account_' },
+                  excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_' },
+                  excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_' },
+                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account_' },
+                  excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_' },
+                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number%7Cnull_' },
+                  pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_' },
+                  readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_' },
+                  defaultArgs: { $ref: '#/components/schemas/DefaultTestModel' },
+                  heritageCheck: { $ref: '#/components/schemas/HeritageTestModel' },
+                },
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                nullable: true,
+              },
+              `for property ${propertyName}`,
+            );
+
+            const omit = getComponentSchema('Omit_ErrorResponseModel.status_', currentSpec);
+            expect(omit).to.deep.eq(
+              {
+                $ref: '#/components/schemas/Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__',
+                description: 'Construct a type with the properties of T except for those in type K.',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const omitReference = getComponentSchema('Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__', currentSpec);
+            expect(omitReference).to.deep.eq(
+              {
+                properties: { message: { type: 'string' } },
+                required: ['message'],
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const partial = getComponentSchema('Partial_Account_', currentSpec);
+            expect(partial).to.deep.eq(
+              {
+                properties: { id: { type: 'number', format: 'double' } },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeToEnum = getComponentSchema('Exclude_EnumUnion.EnumNumberValue_', currentSpec);
+            expect(excludeToEnum).to.deep.eq(
+              {
+                $ref: '#/components/schemas/EnumIndexValue',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeToAlias = getComponentSchema('Exclude_ThreeOrFour.TypeAliasModel3_', currentSpec);
+            expect(excludeToAlias).to.deep.eq(
+              {
+                $ref: '#/components/schemas/TypeAlias4',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeToAliasTypeAlias4 = getComponentSchema('TypeAlias4', currentSpec);
+            expect(excludeToAliasTypeAlias4).to.deep.eq(
+              {
+                properties: { value4: { type: 'string' } },
+                required: ['value4'],
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account_', currentSpec);
+            expect(excludeLiteral).to.deep.eq(
+              {
+                oneOf: [
+                  { type: 'string', enum: ['id'] },
+                  { type: 'string', enum: ['defaultValue2'] },
+                  { type: 'string', enum: ['publicStringProperty'] },
+                  { type: 'string', enum: ['optionalPublicStringProperty'] },
+                  { type: 'string', enum: ['emailPattern'] },
+                  { type: 'string', enum: ['stringProperty'] },
+                  { type: 'string', enum: ['publicConstructorVar'] },
+                  { type: 'string', enum: ['readonlyConstructorArgument'] },
+                  { type: 'string', enum: ['optionalPublicConstructorVar'] },
+                  { type: 'string', enum: ['defaultValue1'] },
+                ],
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeToInterface = getComponentSchema('Exclude_OneOrTwo.TypeAliasModel1_', currentSpec);
+            expect(excludeToInterface).to.deep.eq(
+              {
+                $ref: '#/components/schemas/TypeAliasModel2',
+                description: 'Exclude from T those types that are assignable to U',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const excludeTypeToPrimitive = getComponentSchema('NonNullable_number%7Cnull_', currentSpec);
+            expect(excludeTypeToPrimitive).to.deep.eq(
+              {
+                type: 'number',
+                format: 'double',
+                default: undefined,
+                example: undefined,
+                description: 'Exclude null and undefined from T',
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const pick = getComponentSchema('Pick_ThingContainerWithTitle_string_.list_', currentSpec);
+            expect(pick).to.deep.eq(
+              {
+                properties: { list: { items: { $ref: '#/components/schemas/ThingContainerWithTitle_string_' }, type: 'array' } },
+                required: ['list'],
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
+            expect(readonlyClassSchema).to.deep.eq(
+              {
+                properties: {
+                  defaultValue1: { type: 'string' },
+                  id: { type: 'number', format: 'double' },
+                  optionalPublicConstructorVar: { type: 'string' },
+                  readonlyConstructorArgument: { type: 'string' },
+                  publicConstructorVar: { type: 'string' },
+                  stringProperty: { type: 'string' },
+                  emailPattern: { type: 'string' },
+                  optionalPublicStringProperty: { type: 'string' },
+                  publicStringProperty: { type: 'string' },
+                  defaultValue2: { type: 'string' },
+                  account: { $ref: '#/components/schemas/Account' },
+                },
+                required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+                type: 'object',
+                description: 'Make all properties in T readonly',
+                default: undefined,
+                example: undefined,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const defaultArgs = getComponentSchema('DefaultTestModel', currentSpec);
+            expect(defaultArgs).to.deep.eq(
+              {
+                description: undefined,
+                properties: {
+                  t: { $ref: '#/components/schemas/GenericRequest_Word_', description: undefined, format: undefined },
+                  u: { $ref: '#/components/schemas/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined },
+                },
+                required: ['t', 'u'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const heritageCheck = getComponentSchema('HeritageTestModel', currentSpec);
+            expect(heritageCheck).to.deep.eq(
+              {
+                properties: {
+                  value4: { type: 'string', description: undefined, format: undefined, default: undefined },
+                  name: { type: 'string', description: undefined, format: undefined, default: undefined, nullable: true },
+                },
+                required: ['value4'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
+                description: undefined,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
           },
         };
 

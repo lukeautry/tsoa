@@ -53,6 +53,7 @@ export interface TestModel extends Model {
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
   unionPrimetiveType?: 'String' | 1 | 20.0 | true | false;
+  singleFloatLiteralType?: 3.1415;
   dateValue?: Date;
   optionalString?: string;
   anyType?: any;
@@ -69,6 +70,36 @@ export interface TestModel extends Model {
   referenceAnd: TypeAliasModelCase1;
   typeAliasCase1?: TypeAliasModelCase1;
   TypeAliasCase2?: TypeAliasModelCase2;
+
+  typeAliases?: {
+    word: Word;
+    fourtyTwo: FourtyTwo;
+    dateAlias?: DateAlias;
+    unionAlias: UnionAlias;
+    intersectionAlias: IntersectionAlias;
+    nOLAlias: NolAlias;
+    genericAlias: GenericAlias<string>;
+    genericAlias2: GenericAlias<Model>;
+    forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
+  };
+
+  advancedTypeAliases?: {
+    omit?: Omit<ErrorResponseModel, 'status'>;
+    partial?: Partial<Account>;
+    excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
+    excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
+    excludeLiteral?: Exclude<keyof TestClassModel, 'account'>;
+    excludeToInterface?: Exclude<OneOrTwo, TypeAliasModel1>;
+    excludeTypeToPrimitive?: NonNullable<number | null>;
+
+    pick?: Pick<ThingContainerWithTitle<string>, 'list'>;
+
+    readonlyClass?: Readonly<TestClassModel>;
+
+    defaultArgs?: DefaultTestModel;
+    heritageCheck?: HeritageTestModel;
+  };
+
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
   // tslint:disable-next-line: array-type
   genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
@@ -92,6 +123,8 @@ export interface TestModel extends Model {
       };
     };
   };
+
+  defaultGenericModel?: GenericModel;
 }
 
 export interface TypeAliasModel1 {
@@ -106,9 +139,46 @@ export class TypeAliasModel3 {
   public value3: string;
 }
 
+// tslint:disable-next-line:interface-over-type-literal
+export type TypeAlias4 = { value4: string };
+
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
 export type TypeAliasModelCase2 = TypeAliasModelCase1 & TypeAliasModel3;
+
+type UnionAndIntersectionAlias = OneOrTwo & ThreeOrFour;
+type OneOrTwo = TypeAliasModel1 | TypeAliasModel2;
+type ThreeOrFour = TypeAliasModel3 | TypeAlias4;
+
+/**
+ * A Word shall be a non-empty sting
+ * @minLength 1
+ */
+type Word = string;
+
+/**
+ * The number 42 expressed through OpenAPI
+ * @isInt
+ * @default 42
+ * @minimum 42
+ * @maximum 42
+ * @example 42
+ */
+type FourtyTwo = number;
+
+/**
+ * @isDate invalid ISO 8601 date format, i.e. YYYY-MM-DD
+ */
+type DateAlias = Date;
+
+type UnionAlias = TypeAliasModelCase2 | TypeAliasModel2;
+type IntersectionAlias = { value1: string; value2: string } & TypeAliasModel1;
+/* tslint:disable-next-line */
+type NolAlias = { value1: string; value2: string };
+type GenericAlias<T> = T;
+type ForwardGenericAlias<T, U> = GenericAlias<U> | T;
+
+type EnumUnion = EnumIndexValue | EnumNumberValue;
 
 /**
  * EnumIndexValue.
@@ -182,6 +252,13 @@ export interface TestSubModel extends Model {
 
 export interface TestSubModel2 extends TestSubModel {
   testSubModel2: boolean;
+}
+
+export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> {}
+
+export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status'>> {
+  t: GenericRequest<T>;
+  u: DefaultArgs<U>;
 }
 
 export namespace TestSubModelNamespace {
@@ -296,6 +373,23 @@ export class ValidateModel {
   public intersection?: TypeAliasModel1 & TypeAliasModel2;
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
+  public singleBooleanEnum?: true;
+
+  public typeAliases?: {
+    word: Word;
+    fourtyTwo: FourtyTwo;
+    unionAlias: UnionAlias;
+    intersectionAlias: IntersectionAlias;
+    intersectionAlias2?: TypeAliasModelCase2;
+    unionIntersectionAlias1?: UnionAndIntersectionAlias;
+    unionIntersectionAlias2?: UnionAndIntersectionAlias;
+    unionIntersectionAlias3?: UnionAndIntersectionAlias;
+    unionIntersectionAlias4?: UnionAndIntersectionAlias;
+    nOLAlias: NolAlias;
+    genericAlias: GenericAlias<string>;
+    genericAlias2: GenericAlias<Model>;
+    forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
+  };
 
   public nestedObject: {
     /**
@@ -449,11 +543,14 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
-export interface GenericModel<T> {
+export interface GenericModel<T = string> {
   result: T;
   union?: T | string;
   nested?: GenericRequest<T>;
   heritageCheck?: ThingContainerWithTitle<T>;
+}
+export interface DefaultArgs<T = Word> {
+  name: T;
 }
 
 export interface GenericRequest<T> {
@@ -475,7 +572,7 @@ interface GenericContainer<T, TSameNameDifferentValue> {
 }
 
 /**
- * This should only be used inside GenericContainer to check it's
+ * This should only be used inside GenericContainer to check it\'s
  * type argument T gets propagated while TSameNameDifferentValue does not
  * and instead, the interface {@link TSameNameDifferentValue} is used.
  */
