@@ -57,6 +57,7 @@ export interface TestModel extends Model {
   dateValue?: Date;
   optionalString?: string;
   anyType?: any;
+  unknownType?: unknown;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;

@@ -541,6 +541,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
+          unknownType: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
