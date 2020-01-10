@@ -385,6 +385,11 @@ describe('Definition generation', () => {
           anyType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
+          },
+          unknownType: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
+            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
