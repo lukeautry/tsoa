@@ -83,7 +83,7 @@ export class TypeResolver {
       return intersectionMetaType;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword) {
+    if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword || this.typeNode.kind === ts.SyntaxKind.UnknownKeyword) {
       const literallyAny: Tsoa.AnyType = {
         dataType: 'any',
       };
