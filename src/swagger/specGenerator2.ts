@@ -235,7 +235,19 @@ export class SpecGenerator2 extends SpecGenerator {
       required: source.required,
     } as Swagger.Parameter;
 
-    const parameterType = this.getSwaggerType(source.type);
+    let type = source.type;
+
+    if (source.in !== 'body' && source.type.dataType === 'refEnum') {
+      // swagger does not support referencing enums
+      // (exept for body parameters), so we have to inline it
+
+      type = {
+        dataType: 'enum',
+        enums: source.type.enums,
+      };
+    }
+
+    const parameterType = this.getSwaggerType(type);
     if (parameterType.format) {
       parameter.format = this.throwIfNotDataFormat(parameterType.format);
     }

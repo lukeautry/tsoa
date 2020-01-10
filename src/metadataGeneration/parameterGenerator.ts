@@ -85,7 +85,7 @@ export class ParameterGenerator {
 
   private getHeaderParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter, false);
+    const type = this.getValidatedType(parameter);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Header('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -105,7 +105,7 @@ export class ParameterGenerator {
 
   private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter, false);
+    const type = this.getValidatedType(parameter);
 
     const commonProperties = {
       default: getInitializerValue(parameter.initializer, type),
@@ -141,7 +141,7 @@ export class ParameterGenerator {
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter, false);
+    const type = this.getValidatedType(parameter);
     const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
 
     if (!this.supportPathDataType(type)) {
@@ -190,12 +190,12 @@ export class ParameterGenerator {
     return supportedPathDataTypes.find(t => t === parameterType.dataType);
   }
 
-  private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
+  private getValidatedType(parameter: ts.ParameterDeclaration) {
     let typeNode = parameter.type;
     if (!typeNode) {
       const type = this.current.typeChecker.getTypeAtLocation(parameter);
       typeNode = this.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
     }
-    return new TypeResolver(typeNode, this.current, parameter, extractEnum).resolve();
+    return new TypeResolver(typeNode, this.current, parameter).resolve();
   }
 }

@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
+import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -293,7 +295,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.dataType).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('refEnum');
 
       const nicknamesParam = method.parameters[6] as Tsoa.ArrayParameter;
       expect(nicknamesParam.in).to.equal('query');
@@ -360,7 +362,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.dataType).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
     it('should generate an header parameter', () => {
@@ -417,7 +419,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.dataType).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
     it('should generate an request parameter', () => {
@@ -473,6 +475,27 @@ describe('Metadata generation', () => {
       expect(parameter.name).to.equal('firstname');
       expect(parameter.parameterName).to.equal('firstname');
       expect(parameter.required).to.be.true;
+    });
+
+    it('Should inline enums for TS Enums in path, query and header when using Swagger', () => {
+      const spec = new SpecGenerator2(parameterMetadata, getDefaultOptions()).GetSpec();
+      const method = spec.paths['/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}']['get'];
+
+      if (!method || !method.parameters) {
+        throw new Error("Method or it's parameters are not defined!");
+      }
+
+      const genderParam = method.parameters.find(p => p.name === 'gender');
+
+      if (!genderParam) {
+        throw new Error('genderParam not defined!');
+      }
+
+      expect(genderParam.in).to.equal('path');
+      expect(genderParam.name).to.equal('gender');
+      expect(genderParam.description).to.equal('Gender description');
+      expect(genderParam.required).to.be.true;
+      expect(genderParam.enum).to.deep.equal(['MALE', 'FEMALE']);
     });
   });
 

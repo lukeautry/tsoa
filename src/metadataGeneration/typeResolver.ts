@@ -21,7 +21,6 @@ export class TypeResolver {
     private readonly typeNode: ts.TypeNode,
     private readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
-    private readonly extractEnum = true,
     private context: Context = {},
     private readonly referencer?: ts.TypeReferenceType,
   ) {}
@@ -45,14 +44,14 @@ export class TypeResolver {
     if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
-        elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.extractEnum, this.context).resolve(),
+        elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.context).resolve(),
       };
       return arrayMetaType;
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
       const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
       });
 
       const unionMetaType: Tsoa.UnionType = {
@@ -64,7 +63,7 @@ export class TypeResolver {
 
     if (ts.isIntersectionTypeNode(this.typeNode)) {
       const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
       });
 
       const intersectionMetaType: Tsoa.IntersectionType = {
@@ -94,7 +93,7 @@ export class TypeResolver {
       const properties = this.typeNode.members
         .filter(member => ts.isPropertySignature(member))
         .reduce((res, propertySignature: ts.PropertySignature) => {
-          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.extractEnum, this.context).resolve();
+          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
           const property: Tsoa.Property = {
             default: getJSDocComment(propertySignature, 'default'),
             description: this.getNodeDescription(propertySignature),
@@ -113,12 +112,12 @@ export class TypeResolver {
 
       if (indexMember) {
         const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
         if (indexType.dataType !== 'string') {
           throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
         }
 
-        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
       }
 
       const objLiteral: Tsoa.NestedObjectLiteralType = {
@@ -167,7 +166,7 @@ export class TypeResolver {
           if (ts.isTypeAliasDeclaration(declaration)) {
             return this.getTypeAliasReference(declaration, name, this.referencer!);
           } else if (ts.isEnumDeclaration(declaration)) {
-            return this.getEnumerateType(declaration.name, this.extractEnum) as Tsoa.RefEnumType;
+            return this.getEnumerateType(declaration.name) as Tsoa.RefEnumType;
           } else {
             throw new GenerateMetadataError(
               `Couldn't resolve Conditional to TypeNode. If you think this should be resolvable, please file an Issue. We found an aliasSymbol and it's declaration was of kind ${declaration.kind}`,
@@ -184,7 +183,7 @@ export class TypeResolver {
         return this.handleCachingAndCircularReferences(name, () => this.getModelReference(declaration, name));
       } else {
         try {
-          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.extractEnum, this.context, this.referencer).resolve();
+          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
         } catch {
           throw new GenerateMetadataError(
             `Couldn't resolve Conditional to TypeNode. If you think this should be resolvable, please file an Issue. The flags on the result of the ConditionalType was ${type.flags}`,
@@ -212,13 +211,13 @@ export class TypeResolver {
       if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
         const arrayMetaType: Tsoa.ArrayType = {
           dataType: 'array',
-          elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve(),
+          elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve(),
         };
         return arrayMetaType;
       }
 
       if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
       }
 
       if (typeReference.typeName.text === 'String') {
@@ -227,33 +226,14 @@ export class TypeResolver {
       }
 
       if (this.context[typeReference.typeName.text]) {
-        return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.extractEnum, this.context).resolve();
+        return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.context).resolve();
       }
     }
 
-    if (!this.extractEnum) {
-      const enumType = this.getEnumerateType(typeReference.typeName, this.extractEnum);
-      if (enumType) {
-        return enumType;
-      }
-    }
+    const referenceType = this.getReferenceType(typeReference);
 
-    const enumOrReferenceType = this.getReferenceTypeOrEnumType(typeReference);
-
-    if (enumOrReferenceType.dataType === 'refEnum' || enumOrReferenceType.dataType === 'refObject' || enumOrReferenceType.dataType === 'refAlias') {
-      this.current.AddReferenceType(enumOrReferenceType);
-      return enumOrReferenceType;
-    } else if (enumOrReferenceType.dataType === 'enum') {
-      // then there is no reference to add to the reference type map
-      // but we should still return it (if they want it)
-      if (!this.extractEnum) {
-        return enumOrReferenceType;
-      }
-    } else {
-      assertNever(enumOrReferenceType);
-    }
-
-    return enumOrReferenceType;
+    this.current.AddReferenceType(referenceType);
+    return referenceType;
   }
 
   private getLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
@@ -349,7 +329,7 @@ export class TypeResolver {
     }
   }
 
-  private getEnumerateType(typeName: ts.EntityName, extractEnum = true): Tsoa.EnumType | Tsoa.RefEnumType | undefined {
+  private getEnumerateType(typeName: ts.EntityName): Tsoa.RefEnumType | undefined {
     const enumName = (typeName as ts.Identifier).text;
     const enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
 
@@ -378,31 +358,22 @@ export class TypeResolver {
       return;
     }
 
-    if (extractEnum) {
-      const enums = enumDeclaration.members.map((member: any, index) => {
-        const enumValue = getEnumValue(member);
-        if (enumValue !== 0 && enumValue !== '' && !enumValue) {
-          return String(index);
-        }
-        return enumValue;
-      });
-      return {
-        dataType: 'refEnum',
-        description: this.getNodeDescription(enumDeclaration),
-        enums,
-        refName: enumName,
-      };
-    } else {
-      return {
-        dataType: 'enum',
-        enums: enumDeclaration.members.map((member: any, index) => {
-          return getEnumValue(member) || String(index);
-        }),
-      };
-    }
+    const enums = enumDeclaration.members.map((member: any, index) => {
+      const enumValue = getEnumValue(member);
+      if (enumValue !== 0 && enumValue !== '' && !enumValue) {
+        return String(index);
+      }
+      return enumValue;
+    });
+    return {
+      dataType: 'refEnum',
+      description: this.getNodeDescription(enumDeclaration),
+      enums,
+      refName: enumName,
+    };
   }
 
-  private getReferenceTypeOrEnumType(node: ts.TypeReferenceType): Tsoa.ReferenceType | Tsoa.EnumType {
+  private getReferenceType(node: ts.TypeReferenceType): Tsoa.ReferenceType {
     let type: ts.EntityName;
     if (ts.isTypeReferenceNode(node)) {
       type = node.typeName;
@@ -425,20 +396,10 @@ export class TypeResolver {
         return existingType;
       }
 
-      const enumOrRefEnum = this.getEnumerateType(type, true);
-      if (enumOrRefEnum) {
-        if (enumOrRefEnum.dataType === 'refEnum') {
-          localReferenceTypeCache[name] = enumOrRefEnum;
-          return enumOrRefEnum;
-        } else if (enumOrRefEnum.dataType === 'enum') {
-          // Since an enum that is not reusable can't be referenced, we don't put it in the cache.
-          // Also it doesn't qualify as a ref type, so might want to return it (if they've asked for it)
-          if (!this.extractEnum) {
-            return enumOrRefEnum;
-          }
-        } else {
-          assertNever(enumOrRefEnum);
-        }
+      const refEnumType = this.getEnumerateType(type);
+      if (refEnumType) {
+        localReferenceTypeCache[name] = refEnumType;
+        return refEnumType;
       }
 
       if (inProgressTypes[name]) {
@@ -474,7 +435,7 @@ export class TypeResolver {
       default: getJSDocComment(declaration, 'default'),
       description: this.getNodeDescription(declaration),
       refName: this.getRefTypeName(name),
-      type: new TypeResolver(declaration.type, this.current, declaration, this.extractEnum, this.context, this.referencer || referencer).resolve(),
+      type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
     };
@@ -758,7 +719,7 @@ export class TypeResolver {
       format: this.getNodeFormat(propertySignature),
       name: identifier.text,
       required,
-      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.extractEnum, this.context).resolve(),
+      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
     };
     return property;
@@ -777,7 +738,7 @@ export class TypeResolver {
       throw new GenerateMetadataError(`No valid type found for property declaration.`);
     }
 
-    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.extractEnum, this.context).resolve();
+    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context).resolve();
 
     let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
@@ -807,12 +768,12 @@ export class TypeResolver {
       }
 
       const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-      const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+      const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
       if (indexType.dataType !== 'string') {
         throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
       }
 
-      return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.extractEnum, this.context).resolve();
+      return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
     }
 
     return undefined;
@@ -868,9 +829,9 @@ export class TypeResolver {
         // create subContext
         const resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
 
-        const referenceType = this.getReferenceTypeOrEnumType(t);
+        const referenceType = this.getReferenceType(t);
         if (referenceType) {
-          if (referenceType.dataType === 'refEnum' || referenceType.dataType === 'enum') {
+          if (referenceType.dataType === 'refEnum') {
             // since it doesn't have properties to iterate over, then we don't do anything with it
           } else if (referenceType.dataType === 'refAlias') {
             let type: Tsoa.Type = referenceType;
