@@ -187,7 +187,19 @@ export class ParameterGenerator {
 
   private supportPathDataType(parameterType: Tsoa.Type) {
     const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'any'];
-    return supportedPathDataTypes.find(t => t === parameterType.dataType);
+    if (supportedPathDataTypes.find(t => t === parameterType.dataType)) {
+      return true;
+    }
+
+    if (parameterType.dataType === 'refAlias') {
+      return this.supportPathDataType(parameterType.type);
+    }
+
+    if (parameterType.dataType === 'union') {
+      return !parameterType.types.map(t => this.supportPathDataType(t)).some(t => t === false);
+    }
+
+    return false;
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration, extractEnum = true) {
