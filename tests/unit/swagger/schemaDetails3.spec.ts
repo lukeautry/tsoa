@@ -488,7 +488,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           strLiteralVal: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
@@ -503,7 +503,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema!.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
-            expect(propertySchema['nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
@@ -516,7 +516,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
