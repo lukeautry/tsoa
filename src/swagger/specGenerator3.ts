@@ -302,10 +302,6 @@ export class SpecGenerator3 extends SpecGenerator {
       parameter.schema.format = this.throwIfNotDataFormat(parameterType.format);
     }
 
-    if (parameter.in === 'query' && parameterType.type === 'array') {
-      (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
-    }
-
     if (parameterType.$ref) {
       parameter.schema = parameterType as Swagger.Schema;
       return parameter;
