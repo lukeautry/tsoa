@@ -473,7 +473,8 @@ export class TypeResolver {
         .replace(/ /g, '')
         .replace(/,/g, '.')
         .replace(/\'([^']*)\'|\"(^"*)\"/g, '$1')
-        .replace(/&/g, '~AND')
+        .replace(/&/g, '~AND~')
+        .replace(/\|/g, '~OR~')
         .replace(/\[\]/g, 'Array'),
     );
   }

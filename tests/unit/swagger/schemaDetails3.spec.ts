@@ -750,9 +750,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   partial: { $ref: '#/components/schemas/Partial_Account_' },
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_' },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_' },
-                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account%7CdefaultValue2_' },
+                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_' },
                   excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_' },
-                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number%7Cnull_' },
+                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_' },
                   pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_' },
                   readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_' },
                   defaultArgs: { $ref: '#/components/schemas/DefaultTestModel' },
@@ -838,7 +838,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account%7CdefaultValue2_', currentSpec);
+            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account~OR~defaultValue2_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
@@ -870,7 +870,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeTypeToPrimitive = getComponentSchema('NonNullable_number%7Cnull_', currentSpec);
+            const excludeTypeToPrimitive = getComponentSchema('NonNullable_number~OR~null_', currentSpec);
             expect(excludeTypeToPrimitive).to.deep.eq(
               {
                 type: 'number',

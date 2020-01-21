@@ -601,9 +601,9 @@ describe('Definition generation', () => {
                   partial: { $ref: '#/definitions/Partial_Account_' },
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_' },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_' },
-                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account%7CdefaultValue2_' },
+                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_' },
                   excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_' },
-                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number%7Cnull_' },
+                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_' },
                   pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_' },
                   readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_' },
                   defaultArgs: { $ref: '#/definitions/DefaultTestModel' },
@@ -689,7 +689,7 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account%7CdefaultValue2_', currentSpec);
+            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account~OR~defaultValue2_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
@@ -722,7 +722,7 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number%7Cnull_', currentSpec);
+            const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number~OR~null_', currentSpec);
             expect(excludeTypeToPrimitive).to.deep.eq(
               {
                 type: 'number',
