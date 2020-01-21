@@ -25,7 +25,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       data,
       (err: any, res: any) => {
         const body = JSON.parse(err.text);
-        expect(body.fields['model..someExtraProperty'].message).to.eql('"someExtraProperty" is an excess property and therefore is not allowed');
+        expect(body.fields['model.someExtraProperty'].message).to.eql('"someExtraProperty" is an excess property and therefore is not allowed');
       },
       400,
     );
@@ -317,8 +317,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           // Although dictionaries/records allow additionalProperties they are still subject to their own validation
           const excessPropertyErrMessage = `"key1" is an excess property and therefore is not allowed`;
           const expectedErrorMessage = 'No matching model found in additionalProperties to validate key1';
-          expect(body.fields['map..key1'].message).not.to.eql(excessPropertyErrMessage);
-          expect(body.fields['map..key1'].message).to.eql(expectedErrorMessage);
+          expect(body.fields['map.key1'].message).not.to.eql(excessPropertyErrMessage);
+          expect(body.fields['map.key1'].message).to.eql(expectedErrorMessage);
         },
         400,
       );

@@ -302,7 +302,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
         expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
         expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
-        expect(body.fields['body.typeAliases.genericAlias2..id2'].message).to.equal('"id2" is an excess property and therefore is not allowed');
+        expect(body.fields['body.typeAliases.genericAlias2.id2'].message).to.equal('"id2" is an excess property and therefore is not allowed');
         expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
         expect(body.fields['body.typeAliases.intersectionAlias2'].message).to.equal(
           `Could not match the intersection against every type. Issues: [{"body.typeAliases.value3":{"message":"'value3' is required"}}]`,

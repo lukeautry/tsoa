@@ -782,7 +782,7 @@ describe('Hapi Server', () => {
         data,
         (err, res) => {
           const body = JSON.parse(err.text);
-          expect(body.fields['map..key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
+          expect(body.fields['map.key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
         },
         400,
       );

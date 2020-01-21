@@ -689,13 +689,13 @@ export class ValidationService {
         Object.keys(value).forEach((key: string) => {
           if (isAnExcessProperty(key)) {
             if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
-              fieldErrors[parent + '.' + key] = {
+              fieldErrors[parent + key] = {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
             } else if (swaggerConfig.noImplicitAdditionalProperties === true) {
               warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
-              fieldErrors[parent + '.' + key] = {
+              fieldErrors[parent + key] = {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
@@ -718,7 +718,7 @@ export class ValidationService {
             if (validatedValue !== undefined) {
               value[key] = validatedValue;
             } else {
-              fieldErrors[parent + '.' + key] = {
+              fieldErrors[parent + key] = {
                 message: `No matching model found in additionalProperties to validate ${key}`,
                 value: key,
               };
