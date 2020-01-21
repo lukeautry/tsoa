@@ -601,7 +601,7 @@ describe('Definition generation', () => {
                   partial: { $ref: '#/definitions/Partial_Account_' },
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_' },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_' },
-                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account_' },
+                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account%7CdefaultValue2_' },
                   excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_' },
                   excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number%7Cnull_' },
                   pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_' },
@@ -689,13 +689,12 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account_', currentSpec);
+            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account%7CdefaultValue2_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
                 enum: [
                   'id',
-                  'defaultValue2',
                   'publicStringProperty',
                   'optionalPublicStringProperty',
                   'emailPattern',

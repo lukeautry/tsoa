@@ -750,7 +750,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   partial: { $ref: '#/components/schemas/Partial_Account_' },
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_' },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_' },
-                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account_' },
+                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account%7CdefaultValue2_' },
                   excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_' },
                   excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number%7Cnull_' },
                   pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_' },
@@ -838,12 +838,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account_', currentSpec);
+            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account%7CdefaultValue2_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
                   { type: 'string', enum: ['id'] },
-                  { type: 'string', enum: ['defaultValue2'] },
                   { type: 'string', enum: ['publicStringProperty'] },
                   { type: 'string', enum: ['optionalPublicStringProperty'] },
                   { type: 'string', enum: ['emailPattern'] },

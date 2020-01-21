@@ -472,7 +472,7 @@ export class TypeResolver {
         .replace(/<|>/g, '_')
         .replace(/ /g, '')
         .replace(/,/g, '.')
-        .replace(/\'(.*)\'|\"(.*)\'/g, '$1')
+        .replace(/\'([^']*)\'|\"(^"*)\"/g, '$1')
         .replace(/&/g, '~AND')
         .replace(/\[\]/g, 'Array'),
     );
