@@ -74,6 +74,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(specDefault.spec).to.not.have.property('basePath');
       expect(specDefault.spec.servers[0].url).to.match(/\/v1/);
     });
+
+    it('should have relative URL when no host is defined', () => {
+      const optionsWithNoHost = Object.assign<{}, SwaggerConfig>({}, defaultOptions);
+      delete optionsWithNoHost.host;
+
+      const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithNoHost).GetSpec();
+      expect(spec.servers[0].url).to.equal('/v1');
+    });
   });
 
   describe('security', () => {
