@@ -128,17 +128,16 @@ export class ValidationService {
       }
     }
 
-    Object.keys(value).forEach(key => {
-      if (!nestedProperties[key]) {
-        if (additionalProperties && additionalProperties !== true) {
-          return this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
-        } else {
-          return key;
-        }
+    Object.keys(nestedProperties).forEach(key => {
+      const validatedProp = this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
+      if (validatedProp) {
+        value[key] = validatedProp;
       }
-
-      return this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
     });
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return;
+    }
 
     return value;
   }

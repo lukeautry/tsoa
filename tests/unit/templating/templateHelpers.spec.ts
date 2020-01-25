@@ -266,22 +266,7 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
       value: { removed: '123' },
     },
   });
-  expect(result).to.eql({
-    name: '',
-    // extra
-    extra: 123,
-    nested: {
-      bool: true,
-      allNestedOptional: {
-        // extra
-        removed: '123',
-      },
-      additionals: {
-        one: { value1: 'one' },
-        two: { value1: 'two' },
-      },
-    },
-  });
+  expect(result).to.eql(undefined);
 });
 
 it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
@@ -580,6 +565,51 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
         one: { value1: 'one' },
         two: { value1: 'two' },
       },
+    },
+  });
+});
+
+it('should throw if properties on nOl are missing', () => {
+  const schema: { [name: string]: TsoaRoute.PropertySchema } = {
+    country: { dataType: 'string', required: true },
+    street: {
+      dataType: 'nestedObjectLiteral',
+      nestedProperties: {
+        streetName: { dataType: 'string', required: true },
+      },
+      required: true,
+      additionalProperties: true,
+    },
+  };
+
+  const v = new ValidationService({});
+
+  const errors = {};
+  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+    noImplicitAdditionalProperties: 'silently-remove-extras',
+  };
+
+  v.validateNestedObjectLiteral('nested', {}, errors, minimalSwaggerConfig, schema, true, 'Model.');
+
+  expect(Object.keys(errors).length).to.equal(2);
+
+  expect(errors).to.deep.eq({
+    'Model.nested.country': { message: "'country' is required", value: undefined },
+    'Model.nested.street': { message: "'street' is required", value: undefined },
+  });
+
+  const nestedErrors = {};
+
+  v.validateNestedObjectLiteral('nested', { street: {} }, nestedErrors, minimalSwaggerConfig, schema, true, 'Model.');
+
+  expect(nestedErrors).to.deep.eq({
+    'Model.nested.country': {
+      message: "'country' is required",
+      value: undefined,
+    },
+    'Model.nested.street.streetName': {
+      message: "'streetName' is required",
+      value: undefined,
     },
   });
 });

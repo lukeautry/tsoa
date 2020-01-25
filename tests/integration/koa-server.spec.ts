@@ -704,7 +704,7 @@ describe('Koa Server', () => {
           expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
           expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
           expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
-            `Could not match the intersection against every type. Issues: [{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
           );
           expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');

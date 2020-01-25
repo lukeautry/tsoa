@@ -188,7 +188,7 @@ describe('OpenAPI3 Express Server', () => {
       intersectionAlias2: { value1: 'value1', value2: 'value2', value4: 'test' },
       unionIntersectionAlias1: { value1: 'one', value2: 'two', value3: 'three' },
       unionIntersectionAlias2: { value1: 'one' },
-      unionIntersectionAlias3: { value1: 'one', value2: 'two' },
+      unionIntersectionAlias3: { value1: 'one', value2: 'two', value3: 'three' },
       unionIntersectionAlias4: { value2: 2, value4: 'four' },
       unionAlias: {},
       nOLAlias: true,
@@ -297,7 +297,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
         expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
         expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
-          `Could not match the intersection against every type. Issues: [{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
         );
         expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
         expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
@@ -314,7 +314,7 @@ describe('OpenAPI3 Express Server', () => {
           'Could not match intersection against any of the possible combinations: [["value1","value3"],["value1","value4"],["value2","value3"],["value2","value4"]]',
         );
         expect(body.fields['body.typeAliases.unionIntersectionAlias2'].message).to.equal(
-          'Could not match intersection against any of the possible combinations: [["value1","value3"],["value1","value4"],["value2","value3"],["value2","value4"]]',
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.unionIntersectionAlias2":{"message":"Could not match the union against any of the items. Issues: [{\\"body.typeAliases.value3\\":{\\"message\\":\\"'value3' is required\\"}},{\\"body.typeAliases.unionIntersectionAlias2.value4\\":{\\"message\\":\\"'value4' is required\\"}}]","value":{"value1":"one"}}}]`,
         );
         expect(body.fields['body.typeAliases.unionIntersectionAlias3'].message).to.equal(
           'Could not match intersection against any of the possible combinations: [["value1","value3"],["value1","value4"],["value2","value3"],["value2","value4"]]',
