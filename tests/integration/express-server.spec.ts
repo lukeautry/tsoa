@@ -147,6 +147,8 @@ describe('Express Server', () => {
         ...model.objLiteral,
         extra: 123,
         nested: {
+          bool: true,
+          allNestedOptional: {},
           anotherExtra: 123,
         },
       },
@@ -154,7 +156,16 @@ describe('Express Server', () => {
 
     return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
       const resModel = res.body as TestModel;
-      expect(resModel).to.deep.equal({ ...model, objLiteral: { ...model.objLiteral, nested: {} } });
+      expect(resModel).to.deep.equal({
+        ...model,
+        objLiteral: {
+          ...model.objLiteral,
+          nested: {
+            bool: true,
+            allNestedOptional: {},
+          },
+        },
+      });
       expect(res.status).to.eq(200);
     });
   });
@@ -780,7 +791,7 @@ describe('Express Server', () => {
           expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
           expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
           expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
-            `Could not match the intersection against every type. Issues: [{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
           );
           expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
