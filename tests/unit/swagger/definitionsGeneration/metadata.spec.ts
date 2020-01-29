@@ -479,7 +479,7 @@ describe('Metadata generation', () => {
 
     it('Should inline enums for TS Enums in path, query and header when using Swagger', () => {
       const spec = new SpecGenerator2(parameterMetadata, getDefaultOptions()).GetSpec();
-      const method = spec.paths['/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}']['get'];
+      const method = spec.paths['/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}'].get;
 
       if (!method || !method.parameters) {
         throw new Error("Method or it's parameters are not defined!");

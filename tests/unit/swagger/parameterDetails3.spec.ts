@@ -1,5 +1,5 @@
-import 'mocha';
 import { expect } from 'chai';
+import 'mocha';
 import { SwaggerConfig } from '../../../src/config';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
