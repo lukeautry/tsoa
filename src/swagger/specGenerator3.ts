@@ -264,25 +264,33 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
-    const parameterType = this.getSwaggerType(parameter.type);
+    const validators = Object.keys(parameter.validators)
+      .filter(key => {
+        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+      })
+      .reduce((acc, key) => {
+        return {
+          ...acc,
+          [key]: validators[key].value,
+        };
+      }, {});
 
-    let schema: Swagger.Schema = { type: 'object' };
-    if (parameterType.$ref) {
-      schema = parameterType as Swagger.Schema;
-    }
-
-    if (parameter.type.dataType === 'array') {
-      schema = {
-        items: parameterType.items,
-        type: 'array',
-      };
-    }
-
-    return {
-      content: {
-        'application/json': { schema } as Swagger.MediaType,
+    const mediaType: Swagger.MediaType = {
+      schema: {
+        ...this.getSwaggerType(parameter.type),
+        ...validators,
       },
-    } as Swagger.RequestBody;
+    };
+
+    const requestBody: Swagger.RequestBody = {
+      description: parameter.description,
+      required: parameter.required,
+      content: {
+        'application/json': mediaType,
+      },
+    };
+
+    return requestBody;
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {

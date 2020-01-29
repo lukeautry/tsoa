@@ -182,7 +182,7 @@ export namespace Swagger {
   }
 
   export interface MediaType {
-    schema?: Schema;
+    schema?: Schema3;
     example?: { [name: string]: any };
     examples?: { [name: string]: any };
     encoding?: { [name: string]: any };

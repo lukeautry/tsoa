@@ -137,6 +137,18 @@ export class ParameterController {
   }
 
   /**
+   * Body test paramater
+   *
+   * @param {object} body Body description
+   */
+  @Post('Bodies')
+  public async getBodies(@Body() body: ParameterTestModel | ParameterTestModel[]): Promise<ParameterTestModel[]> {
+    const bodies = [...body];
+
+    return Promise.resolve<ParameterTestModel[]>(bodies);
+  }
+
+  /**
    * @param {string} firstname firstname description
    * @param {string} lastname lastname description
    * @param {number} age age description
