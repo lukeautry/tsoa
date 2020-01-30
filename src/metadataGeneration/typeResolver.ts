@@ -470,7 +470,7 @@ export class TypeResolver {
     return encodeURIComponent(
       name
         .replace(/<|>/g, '_')
-        .replace(/ /g, '')
+        .replace(/\s+/g, '')
         .replace(/,/g, '.')
         .replace(/\'([^']*)\'|\"(^"*)\"/g, '$1')
         .replace(/&/g, '~AND~')
