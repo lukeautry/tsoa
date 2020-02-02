@@ -90,13 +90,10 @@ export abstract class SpecGenerator {
 
   protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType);
 
+  protected abstract buildProperties(properties: Tsoa.Property[]): { [propertyName: string]: Swagger.Schema | Swagger.Schema3 };
+
   public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectLiteralType): Swagger.Schema {
-    const properties = objectLiteral.properties.reduce((acc, property: Tsoa.Property) => {
-      return {
-        [property.name]: this.getSwaggerType(property.type),
-        ...acc,
-      };
-    }, {});
+    const properties = this.buildProperties(objectLiteral.properties);
 
     const additionalProperties = objectLiteral.additionalProperties && this.getSwaggerType(objectLiteral.additionalProperties);
 

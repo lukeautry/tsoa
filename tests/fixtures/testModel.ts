@@ -486,6 +486,10 @@ export enum Gender {
 
 export interface ErrorResponseModel {
   status: number;
+
+  /**
+   * @minLength 2
+   */
   message: string;
 
   /**
@@ -510,6 +514,10 @@ export class Account {
 
 export class PrivateModel {
   public stringPropDec1: string;
+
+  /**
+   * @minLength 2
+   */
   public stringPropDec2: string;
 
   /**

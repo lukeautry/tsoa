@@ -356,25 +356,42 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               properties: {
                 name: {
                   type: 'string',
+                  default: undefined,
+                  description: undefined,
+                  format: undefined,
                 },
                 nested: {
                   properties: {
                     additionals: {
                       properties: {},
                       type: 'object',
+                      default: undefined,
+                      description: undefined,
+                      format: undefined,
+                      nullable: true,
                       additionalProperties: {
                         $ref: '#/components/schemas/TypeAliasModel1',
                       },
                     },
                     allNestedOptional: {
-                      properties: { one: { type: 'string' }, two: { type: 'string' } },
+                      properties: {
+                        one: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
+                        two: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
+                      },
                       type: 'object',
+                      default: undefined,
+                      description: undefined,
+                      format: undefined,
                     },
-                    bool: { type: 'boolean' },
-                    optional: { format: 'double', type: 'number' },
+                    bool: { type: 'boolean', default: undefined, description: undefined, format: undefined },
+                    optional: { format: 'double', type: 'number', default: undefined, description: undefined, nullable: true },
                   },
                   required: ['allNestedOptional', 'bool'],
                   type: 'object',
+                  default: undefined,
+                  description: undefined,
+                  format: undefined,
+                  nullable: true,
                 },
               },
               required: ['name'],
@@ -664,15 +681,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
               format: undefined,
               properties: {
-                word: { $ref: '#/components/schemas/Word' },
-                fourtyTwo: { $ref: '#/components/schemas/FourtyTwo' },
-                dateAlias: { $ref: '#/components/schemas/DateAlias' },
-                unionAlias: { $ref: '#/components/schemas/UnionAlias' },
-                intersectionAlias: { $ref: '#/components/schemas/IntersectionAlias' },
-                nOLAlias: { $ref: '#/components/schemas/NolAlias' },
-                genericAlias: { $ref: '#/components/schemas/GenericAlias_string_' },
-                genericAlias2: { $ref: '#/components/schemas/GenericAlias_Model_' },
-                forwardGenericAlias: { $ref: '#/components/schemas/ForwardGenericAlias_boolean.TypeAliasModel1_' },
+                word: { $ref: '#/components/schemas/Word', description: undefined, format: undefined },
+                fourtyTwo: { $ref: '#/components/schemas/FourtyTwo', description: undefined, format: undefined },
+                dateAlias: { $ref: '#/components/schemas/DateAlias', description: undefined, format: undefined, nullable: true },
+                unionAlias: { $ref: '#/components/schemas/UnionAlias', description: undefined, format: undefined },
+                intersectionAlias: { $ref: '#/components/schemas/IntersectionAlias', description: undefined, format: undefined },
+                nOLAlias: { $ref: '#/components/schemas/NolAlias', description: undefined, format: undefined },
+                genericAlias: { $ref: '#/components/schemas/GenericAlias_string_', description: undefined, format: undefined },
+                genericAlias2: { $ref: '#/components/schemas/GenericAlias_Model_', description: undefined, format: undefined },
+                forwardGenericAlias: { $ref: '#/components/schemas/ForwardGenericAlias_boolean.TypeAliasModel1_', description: undefined, format: undefined },
               },
               required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
               type: 'object',
@@ -708,7 +725,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(intersectionAliasSchema).to.deep.eq({
               allOf: [
                 {
-                  properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+                  properties: {
+                    value1: { type: 'string', default: undefined, description: undefined, format: undefined },
+                    value2: { type: 'string', default: undefined, description: undefined, format: undefined },
+                  },
                   required: ['value2', 'value1'],
                   type: 'object',
                 },
@@ -721,7 +741,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const nolAliasSchema = getComponentSchema('NolAlias', currentSpec);
             expect(nolAliasSchema).to.deep.eq({
-              properties: { value1: { type: 'string' }, value2: { type: 'string' } },
+              properties: {
+                value1: { type: 'string', default: undefined, description: undefined, format: undefined },
+                value2: { type: 'string', default: undefined, description: undefined, format: undefined },
+              },
               required: ['value2', 'value1'],
               type: 'object',
               description: undefined,
@@ -754,18 +777,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq(
               {
                 properties: {
-                  omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_' },
-                  omitHidden: { $ref: '#/components/schemas/Omit_PrivateModel.stringPropDec1_' },
-                  partial: { $ref: '#/components/schemas/Partial_Account_' },
-                  excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_' },
-                  excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_' },
-                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_' },
-                  excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_' },
-                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_' },
-                  pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_' },
-                  readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_' },
-                  defaultArgs: { $ref: '#/components/schemas/DefaultTestModel' },
-                  heritageCheck: { $ref: '#/components/schemas/HeritageTestModel' },
+                  omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_', description: undefined, format: undefined, nullable: true },
+                  omitHidden: { $ref: '#/components/schemas/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined, nullable: true },
+                  partial: { $ref: '#/components/schemas/Partial_Account_', description: undefined, format: undefined, nullable: true },
+                  excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, nullable: true },
+                  excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, nullable: true },
+                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, nullable: true },
+                  excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, nullable: true },
+                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_', description: undefined, format: undefined, nullable: true },
+                  pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, nullable: true },
+                  readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_', description: undefined, format: undefined, nullable: true },
+                  defaultArgs: { $ref: '#/components/schemas/DefaultTestModel', description: undefined, format: undefined, nullable: true },
+                  heritageCheck: { $ref: '#/components/schemas/HeritageTestModel', description: undefined, format: undefined, nullable: true },
                 },
                 type: 'object',
                 default: undefined,
@@ -790,7 +813,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const omitReference = getComponentSchema('Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__', currentSpec);
             expect(omitReference).to.deep.eq(
               {
-                properties: { message: { type: 'string' } },
+                properties: { message: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2 } },
                 required: ['message'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
@@ -814,7 +837,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const omitHiddenReference = getComponentSchema('Pick_PrivateModel.Exclude_keyofPrivateModel.stringPropDec1__', currentSpec);
             expect(omitHiddenReference).to.deep.eq(
               {
-                properties: { id: { type: 'number', format: 'double' }, stringPropDec2: { type: 'string' } },
+                properties: {
+                  id: { type: 'number', format: 'double', default: undefined, description: undefined },
+                  stringPropDec2: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2 },
+                },
                 required: ['stringPropDec2', 'id'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
@@ -827,7 +853,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const partial = getComponentSchema('Partial_Account_', currentSpec);
             expect(partial).to.deep.eq(
               {
-                properties: { id: { type: 'number', format: 'double' } },
+                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined, nullable: true } },
                 type: 'object',
                 description: 'Make all properties in T optional',
                 default: undefined,
@@ -861,7 +887,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const excludeToAliasTypeAlias4 = getComponentSchema('TypeAlias4', currentSpec);
             expect(excludeToAliasTypeAlias4).to.deep.eq(
               {
-                properties: { value4: { type: 'string' } },
+                properties: { value4: { type: 'string', default: undefined, description: undefined, format: undefined } },
                 required: ['value4'],
                 type: 'object',
                 default: undefined,
@@ -918,7 +944,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const pick = getComponentSchema('Pick_ThingContainerWithTitle_string_.list_', currentSpec);
             expect(pick).to.deep.eq(
               {
-                properties: { list: { items: { $ref: '#/components/schemas/ThingContainerWithTitle_string_' }, type: 'array' } },
+                properties: {
+                  list: {
+                    items: { $ref: '#/components/schemas/ThingContainerWithTitle_string_' },
+                    type: 'array',
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                  },
+                },
                 required: ['list'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
@@ -932,17 +966,25 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(readonlyClassSchema).to.deep.eq(
               {
                 properties: {
-                  defaultValue1: { type: 'string' },
-                  id: { type: 'number', format: 'double' },
-                  optionalPublicConstructorVar: { type: 'string' },
-                  readonlyConstructorArgument: { type: 'string' },
-                  publicConstructorVar: { type: 'string' },
-                  stringProperty: { type: 'string' },
-                  emailPattern: { type: 'string' },
-                  optionalPublicStringProperty: { type: 'string' },
-                  publicStringProperty: { type: 'string' },
-                  defaultValue2: { type: 'string' },
-                  account: { $ref: '#/components/schemas/Account' },
+                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, nullable: true },
+                  id: { type: 'number', format: 'double', default: undefined, description: undefined },
+                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
+                  readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
+                  publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
+                  stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+', nullable: true },
+                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, nullable: true },
+                  publicStringProperty: {
+                    type: 'string',
+                    minLength: 3,
+                    maxLength: 20,
+                    pattern: '^[a-zA-Z]+$',
+                    default: undefined,
+                    description: 'This is a description of a public string property',
+                    format: undefined,
+                  },
+                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, nullable: true },
+                  account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined },
                 },
                 required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',

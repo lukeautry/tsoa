@@ -300,7 +300,7 @@ export class SpecGenerator2 extends SpecGenerator {
     return parameter;
   }
 
-  private buildProperties(source: Tsoa.Property[]) {
+  protected buildProperties(source: Tsoa.Property[]) {
     const properties: { [propertyName: string]: Swagger.Schema } = {};
 
     source.forEach(property => {
