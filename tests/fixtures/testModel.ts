@@ -86,6 +86,7 @@ export interface TestModel extends Model {
 
   advancedTypeAliases?: {
     omit?: Omit<ErrorResponseModel, 'status'>;
+    omitHidden?: Omit<PrivateModel, 'stringPropDec1'>;
     partial?: Partial<Account>;
     excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
     excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
@@ -486,6 +487,11 @@ export enum Gender {
 export interface ErrorResponseModel {
   status: number;
   message: string;
+
+  /**
+   * @ignore
+   */
+  hidden?: string;
 }
 
 export interface Model {
@@ -500,6 +506,22 @@ export class TestClassBaseModel {
 // bug #158
 export class Account {
   public id: number;
+}
+
+export class PrivateModel {
+  public stringPropDec1: string;
+  public stringPropDec2: string;
+
+  /**
+   * @ignore
+   */
+  public stringPropDec3: string;
+
+  private hidden: string;
+
+  constructor(public id: number, arg: boolean, private privArg: boolean) {
+    this.hidden && this.privArg ? '' : '';
+  }
 }
 
 /**

@@ -133,10 +133,15 @@ export class TypeResolver {
     }
 
     if (ts.isMappedTypeNode(this.typeNode) && this.referencer) {
+      const isNotIgnored = (e: ts.Declaration) => {
+        const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
+        return !ignore;
+      };
+
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
       const tsProperties = this.current.typeChecker.getPropertiesOfType(type).map(symbol => symbol.declarations[0]);
       const mappedTypeNode = this.typeNode;
-      const properties = tsProperties.map(property => {
+      const properties = tsProperties.filter(isNotIgnored).map(property => {
         if (ts.isPropertySignature(property)) {
           return this.propertyFromSignature(property, mappedTypeNode.questionToken);
         } else if (ts.isPropertyDeclaration(property) || ts.isParameter(property)) {

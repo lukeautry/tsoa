@@ -755,6 +755,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_' },
+                  omitHidden: { $ref: '#/components/schemas/Omit_PrivateModel.stringPropDec1_' },
                   partial: { $ref: '#/components/schemas/Partial_Account_' },
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_' },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_' },
@@ -791,6 +792,30 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: { message: { type: 'string' } },
                 required: ['message'],
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const omitHidden = getComponentSchema('Omit_PrivateModel.stringPropDec1_', currentSpec);
+            expect(omitHidden).to.deep.eq(
+              {
+                $ref: '#/components/schemas/Pick_PrivateModel.Exclude_keyofPrivateModel.stringPropDec1__',
+                description: 'Construct a type with the properties of T except for those in type K.',
+                default: undefined,
+                example: undefined,
+              },
+              `for a schema linked by property ${propertyName}`,
+            );
+
+            const omitHiddenReference = getComponentSchema('Pick_PrivateModel.Exclude_keyofPrivateModel.stringPropDec1__', currentSpec);
+            expect(omitHiddenReference).to.deep.eq(
+              {
+                properties: { id: { type: 'number', format: 'double' }, stringPropDec2: { type: 'string' } },
+                required: ['stringPropDec2', 'id'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
