@@ -13,7 +13,7 @@ If you get that error, the most likely cause is that you are asking TSOA to crea
 
 # Solution:
 
-Create an interface that lives inside your own code base (i.e. it does live in `./node_modules`) but that has the same structure.
+Create an interface that lives inside your own code base (i.e. it does not live in `./node_modules`) but that has the same structure.
 
 ## Detailed Solution
 
