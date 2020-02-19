@@ -53,8 +53,9 @@ export const generateSwaggerSpec = async (
     data = YAML.stringify(JSON.parse(data), 10);
   }
   const ext = swaggerConfig.yaml ? 'yaml' : 'json';
+  const outputBasename = swaggerConfig.outputBasename || 'swagger';
 
-  await fsWriteFile(`${swaggerConfig.outputDirectory}/swagger.${ext}`, data, { encoding: 'utf8' });
+  await fsWriteFile(`${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`, data, { encoding: 'utf8' });
 
   return metadata;
 };

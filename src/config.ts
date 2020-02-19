@@ -38,6 +38,13 @@ export interface SwaggerConfig {
   outputDirectory: string;
 
   /**
+   * Base-name of swagger.json or swagger.yaml.
+   *
+   * Default: "swagger"
+   */
+  outputBasename?: string;
+
+  /**
    * The entry point to your API
    */
   entryFile: string;
