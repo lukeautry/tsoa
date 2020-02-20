@@ -259,6 +259,7 @@ You can tell `tsoa` to use your automatic controllers discovery by providing a [
 
 Pros:
   * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
+  
 Cons:
   * It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
 
@@ -283,6 +284,7 @@ Tsoa can "crawl" the index file to look for controllers that have the `@Route` d
 
 Pros:
   * The tsoa route generation will be faster.
+  
 Cons:
   * New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the swagger generation. If this is a problem for you, please us the automatic controller discovery option described above.
 
