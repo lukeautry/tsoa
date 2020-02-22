@@ -6,6 +6,7 @@ import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
+import { Tsoa } from '../../../src/metadataGeneration/tsoa';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -1051,6 +1052,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
           );
         });
+      });
+    });
+  });
+
+  describe('Mixed Enums', () => {
+    it('should combine to metaschema', () => {
+      // Arrange
+      const schemaName = 'tooManyTypesEnum';
+      const metadataForEnums: Tsoa.Metadata = {
+        controllers: [],
+        referenceTypeMap: {
+          [schemaName]: {
+            refName: schemaName,
+            dataType: 'refEnum',
+            enums: [1, 'two', 3, 'four'],
+          },
+        },
+      };
+      const swaggerConfig: SwaggerConfig = {
+        outputDirectory: 'mockOutputDirectory',
+        entryFile: 'mockEntryFile',
+      };
+
+      // Act
+      const spec = new SpecGenerator3(metadataForEnums, swaggerConfig).GetSpec();
+
+      // Assert
+      expect(getComponentSchema(schemaName, { specName: 'specDefault', spec })).to.deep.eq({
+        description: undefined,
+        oneOf: [{ type: 'number', enum: [1, 3] }, { type: 'string', enum: ['two', 'four'] }],
       });
     });
   });
