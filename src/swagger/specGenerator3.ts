@@ -126,7 +126,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildSchema() {
-    const schema: { [name: string]: Swagger.Schema } = {};
+    const schema: { [name: string]: Swagger.Schema3 } = {};
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -151,11 +151,29 @@ export class SpecGenerator3 extends SpecGenerator {
           schema[referenceType.refName].example = referenceType.example;
         }
       } else if (referenceType.dataType === 'refEnum') {
-        schema[referenceType.refName] = {
-          description: referenceType.description,
-          enum: referenceType.enums,
-          type: this.decideEnumType(referenceType.enums, referenceType.refName),
-        };
+        const enumTypes = this.determineTypesUsedInEnum(referenceType.enums);
+
+        if (enumTypes.size === 1) {
+          schema[referenceType.refName] = {
+            description: referenceType.description,
+            enum: referenceType.enums,
+            type: enumTypes.has('string') ? 'string' : 'number',
+          };
+        } else {
+          schema[referenceType.refName] = {
+            description: referenceType.description,
+            oneOf: [
+              {
+                type: 'number',
+                enum: referenceType.enums.filter(e => typeof e === 'number'),
+              },
+              {
+                type: 'string',
+                enum: referenceType.enums.filter(e => typeof e === 'string'),
+              },
+            ],
+          };
+        }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const validators = Object.keys(referenceType.validators)

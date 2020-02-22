@@ -43,7 +43,7 @@ export namespace Swagger {
     parameters?: { [name: string]: Parameter };
     requestBodies?: { [name: string]: any };
     responses?: { [name: string]: Response };
-    schemas?: { [name: string]: Schema };
+    schemas?: { [name: string]: Schema | Schema3 };
     securitySchemes?: { [name: string]: Security };
   }
 
@@ -225,7 +225,8 @@ export namespace Swagger {
     items?: BaseSchema;
   }
 
-  export interface Schema3 extends Schema {
+  export interface Schema3 extends Omit<Schema, 'type'> {
+    type?: DataType;
     nullable?: boolean;
     oneOf?: BaseSchema[];
     allOf?: BaseSchema[];

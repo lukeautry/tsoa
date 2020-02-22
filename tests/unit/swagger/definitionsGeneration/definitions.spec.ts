@@ -251,7 +251,7 @@ describe('Definition generation', () => {
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const validatedDefinition = getValidatedDefinition('EnumNumberValue', currentSpec);
-            expect(validatedDefinition.type).to.eq('integer');
+            expect(validatedDefinition.type).to.eq('number');
             const expectedEnumValues = [0, 2, 5];
             expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
           },
