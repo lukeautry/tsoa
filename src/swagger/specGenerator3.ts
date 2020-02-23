@@ -114,23 +114,27 @@ export class SpecGenerator3 extends SpecGenerator {
     return defs;
   }
 
-  private buildServers() {
+  private buildServers(): Swagger.Server[] {
     const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
-    const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
+    const scheme = this.config.schemes ? this.config.schemes : ['https'];
 
-    let url;
-    if (this.config.host === null) {
-      url = basePath;
+    const url: Swagger.Server[] = new Array();
+    if (!this.config.host) {
+      url.push({ url: basePath });
     } else {
-      const host = this.config.host || 'localhost:3000';
-      url = `${scheme}://${host}${basePath}`;
+      if (typeof this.config.host === 'string') {
+        const host = this.config.host || 'localhost:3000';
+        url.push({ url: `${scheme[0]}://${host}${basePath}` });
+      } else {
+        if (scheme.length !== this.config.host.length) {
+          throw new Error('When hosts are an array,  they must match the length of the protocols. They are paired together');
+        }
+        this.config.host.map((hostItem, index) => {
+          url.push({ url: `${scheme[index]}://${hostItem}${basePath}` });
+        });
+      }
     }
-
-    return [
-      {
-        url,
-      } as Swagger.Server,
-    ];
+    return url;
   }
 
   private buildSchema() {

@@ -50,7 +50,7 @@ export interface SwaggerConfig {
   /**
    * API host, expressTemplat e.g. localhost:3000 or myapi.com, use null for relative urls
    */
-  host?: string | null;
+  host?: string | string[] | null;
 
   /**
    * API version number; defaults to npm package version

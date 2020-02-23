@@ -31,7 +31,10 @@ export class SpecGenerator2 extends SpecGenerator {
     if (this.config.version) {
       spec.info.version = this.config.version;
     }
-    if (this.config.host) {
+    if (this.config.host && typeof this.config.host !== 'string' && this.config.host.length > 1) {
+      throw new Error('Multiple hosts are only allowed in the 3.0 spec.');
+    }
+    if (this.config.host && typeof this.config.host === 'string') {
       spec.host = this.config.host;
     }
     if (this.config.description) {
