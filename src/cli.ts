@@ -65,6 +65,12 @@ export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<Swag
   if (!config.outputDirectory) {
     throw new Error('Missing outputDirectory: configuration must contain output directory.');
   }
+  if (config.specVersion === 2 && config.host && typeof config.host !== 'string' && config.host.length > 1) {
+    throw new Error('Multiple hosts are only allowed in the 3.0 spec.');
+  }
+  if (config.specVersion === 3 && config.host && typeof config.host !== 'string' && config.schemes && config.host.length !== config.schemes.length) {
+    throw new Error('When hosts are an array,  they must match the length of the protocols. They are paired together');
+  }
   if (!config.entryFile) {
     throw new Error('Missing entryFile: Configuration must contain an entry point file.');
   }

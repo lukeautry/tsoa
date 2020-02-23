@@ -126,9 +126,6 @@ export class SpecGenerator3 extends SpecGenerator {
         const host = this.config.host || 'localhost:3000';
         url.push({ url: `${scheme[0]}://${host}${basePath}` });
       } else {
-        if (scheme.length !== this.config.host.length) {
-          throw new Error('When hosts are an array,  they must match the length of the protocols. They are paired together');
-        }
         this.config.host.map((hostItem, index) => {
           url.push({ url: `${scheme[index]}://${hostItem}${basePath}` });
         });

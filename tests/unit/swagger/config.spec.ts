@@ -64,6 +64,57 @@ describe('Configuration', () => {
       );
     });
 
+    it('should reject multiple hosts in open api 2', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 2 as any;
+      config.host = ['host1', 'host2'];
+      config.schemes = ['https'];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          throw new Error('Should not get here, expecting error regarding unsupported Spec version');
+        },
+        err => {
+          expect(err.message).to.equal('Multiple hosts are only allowed in the 3.0 spec.');
+          done();
+        },
+      );
+    });
+
+    it('should accept multiple hosts in open api 3', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 3 as any;
+      config.host = ['host1', 'host2'];
+      config.schemes = ['https', 'http'];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.be.ok;
+          done();
+        },
+        err => {
+          throw new Error('Should not get here, expecting valid configs');
+        },
+      );
+    });
+
+    it('should reject multiple hosts in open api 3 that are not the same length as schemes', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 3 as any;
+      config.host = ['host1', 'host2', 'host3'];
+      config.schemes = ['https', 'http'];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          throw new Error('Should not get here, expecting error regarding unsupported host/scheme configs');
+        },
+        err => {
+          expect(err.message).to.equal('When hosts are an array,  they must match the length of the protocols. They are paired together');
+          done();
+        },
+      );
+    });
+
     it('should accept Spec version 3 when specified', done => {
       const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
       config.specVersion = 3;
