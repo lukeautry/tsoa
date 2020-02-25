@@ -464,31 +464,22 @@ export class ValidationService {
     }
 
     const subFieldErrors: FieldErrors[] = [];
-    let cleanValues = {};
 
-    subSchemas.forEach(subSchema => {
+    for (const subSchema of subSchemas) {
       const subFieldError: FieldErrors = {};
       const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, swaggerConfig);
       subFieldErrors.push(subFieldError);
 
       if (Object.keys(subFieldError).length === 0) {
-        cleanValues = { ...cleanValues, ...cleanValue };
+        return cleanValue;
       }
-    });
-
-    if (subFieldErrors.length > 0 && !subFieldErrors.some(subFieldError => Object.keys(subFieldError).length === 0)) {
-      fieldErrors[parent + name] = {
-        message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
-        value,
-      };
-      return;
     }
 
-    if (value instanceof Object && this.resolveAdditionalPropSetting(swaggerConfig) === 'silently-remove-extras') {
-      return cleanValues;
-    }
-
-    return value;
+    fieldErrors[parent + name] = {
+      message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
+      value,
+    };
+    return;
   }
 
   public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
