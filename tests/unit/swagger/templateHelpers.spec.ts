@@ -470,7 +470,7 @@ describe('ValidationService', () => {
 
     it('should enum null is not empty string value', () => {
       const value = null;
-      const error: any = {};
+      const error = {};
       const name = 'name';
       const result = new ValidationService({}).validateEnum(name, value, error, [''] as any);
       expect(result).to.equal(undefined);
@@ -489,7 +489,7 @@ describe('ValidationService', () => {
     it('should enum no member', () => {
       const name = 'name';
       const value = 'HI';
-      const error: any = {};
+      const error = {};
       const enumeration: Enumeration = [];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -499,41 +499,231 @@ describe('ValidationService', () => {
     it('should enum out of member', () => {
       const name = 'name';
       const value = 'SAY';
-      const error: any = {};
+      const error = {};
       const enumeration: Enumeration = ['HELLO', 'HI'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; ['HELLO', 'HI']`);
+      expect(error[name].message).to.equal(`should be one of the following; ['HELLO','HI']`);
     });
 
-    it('does not accepts a string value for a numeric enum', () => {
+    it('does accepts a string value for a numeric enum', () => {
       const name = 'name';
       const value = '1';
-      const error: any = {};
+      const error = {};
+      const enumeration: Enumeration = [0, 1];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(1);
+      expect(error).to.deep.equal({});
+    });
+
+    it('does not accept a wrong string value for a numeric enum', () => {
+      const name = 'name';
+      const value = '2';
+      const error = {};
       const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; [0, 1]`);
+      expect(error[name].message).to.equal(`should be one of the following; [0,1]`);
     });
 
-    it('does not accepts a numeric value for a string-numeric enum', () => {
+    it('does accepts a numeric value for a string-numeric enum', () => {
       const name = 'name';
       const value = 1;
-      const error: any = {};
+      const error = {};
+      const enumeration: Enumeration = ['0', '1'];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal('1');
+      expect(error).to.deep.equal({});
+    });
+
+    it('does not accept an improper numeric value for a string-numeric enum', () => {
+      const name = 'name';
+      const value = 2;
+      const error = {};
       const enumeration: Enumeration = ['0', '1'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; ['0', '1']`);
+      expect(error[name].message).to.equal(`should be one of the following; ['0','1']`);
     });
 
     it('should fail if the value is a non-numeric string for a numeric enum', () => {
       const name = 'name';
       const value = 'foo';
-      const error: any = {};
+      const error = {};
       const enumeration: Enumeration = [1, 2];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
-      expect(error[name].message).to.equal(`should be one of the following; [1, 2]`);
+      expect(error[name].message).to.equal(`should be one of the following; [1,2]`);
+    });
+
+    it('does accepts a boolean value for a boolean enum', () => {
+      const name = 'name';
+      const value = false;
+      const error = {};
+      const enumeration = [false];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(false);
+      expect(error).to.deep.equal({});
+    });
+
+    it('does accepts a stringified boolean value for a boolean enum', () => {
+      const name = 'name';
+      const value = 'true';
+      const error = {};
+      const enumeration = [true];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(true);
+      expect(error).to.deep.equal({});
+    });
+
+    it('does not accept a wrong members of a boolean enum', () => {
+      const name = 'name';
+      const value = false;
+      const error = {};
+      const enumeration = [true];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [true]`);
+    });
+
+    it('does not accept a wrong members of a boolean enum', () => {
+      const name = 'name';
+      const value = 'false';
+      const error = {};
+      const enumeration = [true];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [true]`);
+    });
+
+    it('accepts null in null enum', () => {
+      const name = 'name';
+      const value = null;
+      const error = {};
+      const enumeration = [null];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(null);
+      expect(error).to.deep.equal({});
+    });
+
+    it('accepts stringified null in null enum', () => {
+      const name = 'name';
+      const value = 'null';
+      const error = {};
+      const enumeration = [null];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(null);
+      expect(error).to.deep.equal({});
+    });
+
+    it('does not coerce null to 0', () => {
+      const name = 'name';
+      const value = 'null';
+      const error = {};
+      const enumeration = [0];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [0]`);
+    });
+
+    it('does not coerce 0 to null', () => {
+      const name = 'name';
+      const value = 0;
+      const error = {};
+      const enumeration = [null];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [null]`);
+    });
+
+    it('does not coerce null to false', () => {
+      const name = 'name';
+      const value = null;
+      const error = {};
+      const enumeration = [false];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [false]`);
+    });
+
+    it('does not coerce false to null', () => {
+      const name = 'name';
+      const value = false;
+      const error = {};
+      const enumeration = [null];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [null]`);
+    });
+
+    it('does not coerce 0 to false', () => {
+      const name = 'name';
+      const value = 0;
+      const error = {};
+      const enumeration = [false];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [false]`);
+    });
+
+    it('does not coerce false to 0', () => {
+      const name = 'name';
+      const value = false;
+      const error = {};
+      const enumeration = [0];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [0]`);
+    });
+
+    it("does not coerce null to ''", () => {
+      const name = 'name';
+      const value = null;
+      const error = {};
+      const enumeration = [''];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['']`);
+    });
+
+    it("does not coerce '' to null", () => {
+      const name = 'name';
+      const value = '';
+      const error = {};
+      const enumeration = [null];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [null]`);
+    });
+
+    it('does not coerce 1 to true', () => {
+      const name = 'name';
+      const value = 1;
+      const error = {};
+      const enumeration = [true];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [true]`);
+    });
+
+    it('does not coerce true to 1', () => {
+      const name = 'name';
+      const value = true;
+      const error = {};
+      const enumeration = [1];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; [1]`);
+    });
+
+    it("does not coerce true to '1'", () => {
+      const name = 'name';
+      const value = true;
+      const error = {};
+      const enumeration = ['1'];
+      const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['1']`);
     });
   });
 

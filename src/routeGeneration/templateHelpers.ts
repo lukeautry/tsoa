@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import * as validator from 'validator';
+import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
 import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
@@ -228,7 +228,7 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateEnum(name: string, value: any, fieldErrors: FieldErrors, members?: Array<string | number | boolean>, parent = ''): any {
+  public validateEnum(name: string, value: unknown, fieldErrors: FieldErrors, members?: Array<string | number | boolean | null>, parent = ''): unknown {
     if (!members || members.length === 0) {
       fieldErrors[parent + name] = {
         message: 'no member',
@@ -236,20 +236,19 @@ export class ValidationService {
       };
       return;
     }
-    const enumValue = members.find(member => member === value);
-    if (enumValue === undefined) {
-      const membersCommaSeparated = members
-        .map(member => {
-          return typeof member === 'string' ? `'${member}'` : member;
-        })
-        .join(`, `);
+
+    const enumMatchIndex = members.map(member => String(member)).findIndex(member => validator.equals(member, String(value)));
+
+    if (enumMatchIndex === -1) {
+      const membersInQuotes = members.map(member => (typeof member === 'string' ? `'${member}'` : String(member)));
       fieldErrors[parent + name] = {
-        message: `should be one of the following; [${membersCommaSeparated}]`,
+        message: `should be one of the following; [${membersInQuotes}]`,
         value,
       };
       return;
     }
-    return value;
+
+    return members[enumMatchIndex];
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
