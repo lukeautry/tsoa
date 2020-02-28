@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import * as validator from 'validator';
+import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
 import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
