@@ -372,4 +372,23 @@ export class SpecGenerator2 extends SpecGenerator {
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return { $ref: `#/definitions/${referenceType.refName}` };
   }
+
+  private decideEnumType(anEnum: Array<string | number>, nameOfEnum: string): 'string' | 'number' {
+    const typesUsedInEnum = this.determineTypesUsedInEnum(anEnum);
+
+    const badEnumErrorMessage = () => {
+      const valuesDelimited = Array.from(typesUsedInEnum).join(',');
+      return `Enums can only have string or number values, but enum ${nameOfEnum} had ${valuesDelimited}`;
+    };
+
+    let enumTypeForSwagger: 'string' | 'number';
+    if (typesUsedInEnum.has('string') && typesUsedInEnum.size === 1) {
+      enumTypeForSwagger = 'string';
+    } else if (typesUsedInEnum.has('number') && typesUsedInEnum.size === 1) {
+      enumTypeForSwagger = 'number';
+    } else {
+      throw new Error(badEnumErrorMessage());
+    }
+    return enumTypeForSwagger;
+  }
 }

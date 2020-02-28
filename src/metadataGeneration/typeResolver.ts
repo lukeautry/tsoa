@@ -352,29 +352,12 @@ export class TypeResolver {
 
     const enumDeclaration = enumNodes[0] as ts.EnumDeclaration;
 
-    const typeChecker = this.current.typeChecker;
-    function getEnumValue(member: any) {
-      const constantValue = typeChecker.getConstantValue(member);
-      if (constantValue != null) {
-        return constantValue;
-      }
-      const initializer = member.initializer;
-      if (initializer) {
-        if (initializer.expression) {
-          return initializer.expression.text;
-        }
-        return initializer.text;
-      }
-      return;
-    }
+    const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
+      return item === undefined ? false : true;
+    };
 
-    const enums = enumDeclaration.members.map((member: any, index) => {
-      const enumValue = getEnumValue(member);
-      if (enumValue !== 0 && enumValue !== '' && !enumValue) {
-        return String(index);
-      }
-      return enumValue;
-    });
+    const enums = enumDeclaration.members.map(this.current.typeChecker.getConstantValue).filter(isNotUndefined);
+
     return {
       dataType: 'refEnum',
       description: this.getNodeDescription(enumDeclaration),

@@ -212,9 +212,9 @@ export enum EnumStringNumberValue {
  * EnumStringValue.
  */
 export enum EnumStringValue {
-  EMPTY = '' as any,
-  VALUE_1 = 'VALUE_1' as any,
-  VALUE_2 = 'VALUE_2' as any,
+  EMPTY = '',
+  VALUE_1 = 'VALUE_1',
+  VALUE_2 = 'VALUE_2',
 }
 
 // shortened from StringLiteral to make the tslint enforced
@@ -480,8 +480,8 @@ export interface ValidateMapStringToAny {
  * Gender msg
  */
 export enum Gender {
-  MALE = 'MALE' as any,
-  FEMALE = 'FEMALE' as any,
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
 }
 
 export interface ErrorResponseModel {
