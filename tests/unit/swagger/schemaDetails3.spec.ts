@@ -529,7 +529,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
-              oneOf: [{ type: 'string', enum: ['String'] }, { type: 'string', enum: ['1'] }, { type: 'string', enum: ['20'] }, { type: 'string', enum: ['true'] }, { type: 'string', enum: ['false'] }],
+              oneOf: [
+                { type: 'string', enum: ['String'] },
+                { type: 'number', enum: ['1'] },
+                { type: 'number', enum: ['20'] },
+                { type: 'boolean', enum: ['true'] },
+                { type: 'boolean', enum: ['false'] },
+              ],
               nullable: true,
               default: undefined,
               description: undefined,
@@ -537,7 +543,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
             expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
