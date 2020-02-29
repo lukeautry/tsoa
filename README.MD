@@ -1,4 +1,5 @@
 # tsoa
+
 Pronounced so·uh
 
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
@@ -6,52 +7,52 @@ Pronounced so·uh
 
 ## Table of Contents
 
-  * [Goal](#goal)
-  * [Philosophy](#philosophy)
-  * [How it works](#how-it-works)
-    - [Installation](#installation)
-    - [Create Controllers](#create-controllers)
-    - [Create Models](#create-models)
-    - [Generate](#generate)
-      + [Using CLI](#using-cli)
-      + [Programmatic](#programmatic)
-      + [Automating Regeneration](#automating-regeneration)
-    - [Can I use OpenAPI 3.0 instead of Swagger v2?](#can-i-use-openapi-30-instead-of-swagger-v2)
-    - [How to ensure no additional properties come in at runtime](#how-to-ensure-no-additional-properties-come-in-at-runtime)
-    - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
-    - [Overriding route template](#overriding-route-template)
-    - [Consuming generated routes](#consuming-generated-routes)
-    - [Get access to the request object of express in Controllers](#get-access-to-the-request-object-of-express-in-controllers)
-    - [Dependency injection or IOC](#dependency-injection-or-ioc)
-      + [InversifyJS](#inversifyjs)
-      + [typescript-ioc](#typescript-ioc)
-    - [Specify error response types for Swagger](#specify-error-response-types-for-swagger)
-    - [Authentication](#authentication)
-    - [Path mapping](#path-mapping)
-    - [Uploading files](#uploading-files)
-    - [Using awesome Swagger tools](#using-awesome-swagger-tools)
-  * [Decorators](#decorators)
-    - [Security](#security)
-    - [Tags](#tags)
-    - [OperationId](#operationid)
-    - [Deprecated](#deprecated)
-  * [Command Line Interface](#command-line-interface)
-    - [Swagger spec generation](#swagger-spec-generation)
-    - [Route generation](#route-generation)
-  * [Examples](#examples)
-  * [Help wanted](#help-wanted)
+- [Goal](#goal)
+- [Philosophy](#philosophy)
+- [How it works](#how-it-works)
+  - [Installation](#installation)
+  - [Create Controllers](#create-controllers)
+  - [Create Models](#create-models)
+  - [Generate](#generate)
+    - [Using CLI](#using-cli)
+    - [Programmatic](#programmatic)
+    - [Automating Regeneration](#automating-regeneration)
+  - [Can I use OpenAPI 3.0 instead of Swagger v2?](#can-i-use-openapi-30-instead-of-swagger-v2)
+  - [How to ensure no additional properties come in at runtime](#how-to-ensure-no-additional-properties-come-in-at-runtime)
+  - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
+  - [Overriding route template](#overriding-route-template)
+  - [Consuming generated routes](#consuming-generated-routes)
+  - [Get access to the request object of express in Controllers](#get-access-to-the-request-object-of-express-in-controllers)
+  - [Dependency injection or IOC](#dependency-injection-or-ioc)
+    - [InversifyJS](#inversifyjs)
+    - [typescript-ioc](#typescript-ioc)
+  - [Specify error response types for Swagger](#specify-error-response-types-for-swagger)
+  - [Authentication](#authentication)
+  - [Path mapping](#path-mapping)
+  - [Uploading files](#uploading-files)
+  - [Using awesome Swagger tools](#using-awesome-swagger-tools)
+- [Decorators](#decorators)
+  - [Security](#security)
+  - [Tags](#tags)
+  - [OperationId](#operationid)
+  - [Deprecated](#deprecated)
+- [Command Line Interface](#command-line-interface)
+  - [Swagger spec generation](#swagger-spec-generation)
+  - [Route generation](#route-generation)
+- [Examples](#examples)
+- [Help wanted](#help-wanted)
 
 ## Goal
 
 - TypeScript controllers and models as the single source of truth for your API
 - A valid swagger spec (or OpenAPI 3.0 if you choose 😍) is generated from your controllers and models, including:
-    - Paths (e.g. GET /Users)
-    - Definitions based on TypeScript interfaces (models)
-    - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
-    - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
+  - Paths (e.g. GET /Users)
+  - Definitions based on TypeScript interfaces (models)
+  - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
+  - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
-    - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
-    - Validate request payloads
+  - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
+  - Validate request payloads
 
 ## Philosophy
 
@@ -61,7 +62,7 @@ Pronounced so·uh
 - Minimize boilerplate
 - Models are best represented by interfaces (pure data structures), but can also be represented by classes
 - Runtime validation of tsoa should behave as closely as possible to the specifications that the generated Swagger/OpenAPI schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the swagger document and/or the routes.
-    - Please note that by [enabling OpenAPI 3+](#can-i-use-openapi-30-instead-of-swagger-v2) you minimize the chances of divergent validation logic since OpenAPI has a more expressive schema syntax.
+  - Please note that by [enabling OpenAPI 3+](#can-i-use-openapi-30-instead-of-swagger-v2) you minimize the chances of divergent validation logic since OpenAPI has a more expressive schema syntax.
 
 ## How it works
 
@@ -103,9 +104,22 @@ export class UsersController extends Controller {
   }
 }
 ```
+
 Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
 
+### Mono Repos
+
+If you are using a mono repo structure and want to use an interface from a different package inside of the mono repo, you need to reference that package in your include section of tsconfig. You can reference the copy in node_modules or the copy in the local directory. The node_modules reference will obey versioning in the package lock file.
+
+```
+  "include": [
+    "./src/**/*",
+    "./node_modules/<monorepo-package>/src/index.ts"
+  ],
+```
+
 ### Create Models
+
 ```typescript
 // models/user.ts
 
@@ -136,6 +150,7 @@ Note that type aliases are only supported for string literal types like `type st
 ### Generate
 
 #### Using CLI
+
 ```typescript
 // generate swagger.json
 tsoa swagger
@@ -177,6 +192,7 @@ import { generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig } from
 #### Automating Regeneration
 
 You might find it convenient to automatically generate again. To do this, add a section to your package.json's script section with the following:
+
 ```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
@@ -187,6 +203,7 @@ You might find it convenient to automatically generate again. To do this, add a 
 Then when you've made a change to an API, you simply run "yarn tsoa:gen"
 
 Note: You can also integrate the swagger regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
+
 ```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
@@ -203,14 +220,16 @@ Yes, set `swagger.specVersion` to `3` in your `tsoa.json` file. See more config 
 By default, Swagger allows for models to have [`additionalProperties`](https://swagger.io/docs/specification/data-models/dictionaries/). If you would like to ensure at runtime that the data has only the properties defined in your models, set the `noImplicitAdditionalProperties` [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) option to either `"silently-remove-extras"` or `"throw-on-extras"`.
 
 Caveats:
-  * The following types will always allow additional properties due to the nature of the way they work:
-    * The `any` type
-    * An indexed type (which explicitly allows additional properties) like `export interface IStringToStringDictionary { [key: string] : string }`
-  * If you are using tsoa for an existing service that has consumers...
-    * you will need to inform your consumers before setting `noImplicitAdditionalProperties` to `"throw-on-extras"` since it would be a breaking change (due to the fact that request bodies that previously worked would now get an error).
-  * Regardless, `"noImplicitAdditionalProperties" : "silently-remove-extras"` is a great choice for both legacy AND new APIs (since this mirrors the behavior of C# serializers and other popular JSON serializers).
+
+- The following types will always allow additional properties due to the nature of the way they work:
+  - The `any` type
+  - An indexed type (which explicitly allows additional properties) like `export interface IStringToStringDictionary { [key: string] : string }`
+- If you are using tsoa for an existing service that has consumers...
+  - you will need to inform your consumers before setting `noImplicitAdditionalProperties` to `"throw-on-extras"` since it would be a breaking change (due to the fact that request bodies that previously worked would now get an error).
+- Regardless, `"noImplicitAdditionalProperties" : "silently-remove-extras"` is a great choice for both legacy AND new APIs (since this mirrors the behavior of C# serializers and other popular JSON serializers).
 
 ### Dealing with duplicate model names
+
 If you have multiple models with the same name, you may get errors indicating that there are multiple matching models. If you'd like to designate a class/interface as the 'canonical' version of a model, add a jsdoc element marking it as such:
 
 ```ts
@@ -230,11 +249,12 @@ If you want functionality that tsoa doesn't provide, then one powerful (but pote
 
 _Okay, but why would you want to override the route template?_
 
-* Are you using a server framework that we don't yet support? If so, then [please open an issue first](https://github.com/lukeautry/tsoa/issues). It's likely that we will try to accept your custom template as one of the new standard options. If we can't support the new framework, then we'll recommend a custom route template.
-* Do you have a very specific requirement? Have you already opened an issue and have the tsoa maintainers opted not to support this feature? Then a custom template might solve your needs best.
+- Are you using a server framework that we don't yet support? If so, then [please open an issue first](https://github.com/lukeautry/tsoa/issues). It's likely that we will try to accept your custom template as one of the new standard options. If we can't support the new framework, then we'll recommend a custom route template.
+- Do you have a very specific requirement? Have you already opened an issue and have the tsoa maintainers opted not to support this feature? Then a custom template might solve your needs best.
 
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
+
 ```json
 {
   "swagger": {
@@ -255,42 +275,43 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 You have two options for how to tell tsoa where it can find the controllers that it will use to create the auto-generated `routes.ts` file.
 
 #### (1) Using automatic controllers discovery
+
 You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`). It can be provided on `config.swagger` or `config.routes`.
 
 Pros:
-  * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
-Cons:
-  * It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
+
+- New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
+  Cons:
+- It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
 
 As you can see from the the controllers globs patterns below, you can provide multiple globs of various patterns:
+
 ```json
 {
   "routes": {
     "entryFile": "...",
     "routesDir": "...",
     "middleware": "...",
-    "controllerPathGlobs": [
-      "./dir-with-controllers/*",
-      "./recursive-dir/**/*",
-      "./custom-filerecursive-dir/**/*.controller.ts"
-    ]
+    "controllerPathGlobs": ["./dir-with-controllers/*", "./recursive-dir/**/*", "./custom-filerecursive-dir/**/*.controller.ts"]
   }
 }
 ```
 
 #### (2) Manually telling tsoa which controllers to use in the app entry file
+
 Tsoa can "crawl" the index file to look for controllers that have the `@Route` decorator.
 
 Pros:
-  * The tsoa route generation will be faster.
-Cons:
-  * New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the swagger generation. If this is a problem for you, please us the automatic controller discovery option described above.
+
+- The tsoa route generation will be faster.
+  Cons:
+- New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the swagger generation. If this is a problem for you, please us the automatic controller discovery option described above.
 
 ```typescript
 import * as methodOverride from 'method-override';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import {RegisterRoutes} from './routes';
+import { RegisterRoutes } from './routes';
 
 // ########################################################################
 // controllers need to be referenced in order to get crawled by the generator
@@ -310,12 +331,13 @@ app.listen(3000);
 ### Get access to the request object of express (or koa) in Controllers
 
 To access the request object of express in a controller method use the `@Request`-decorator:
+
 ```typescript
 // controllers/usersController.ts
 
 import * as express from 'express';
-import {Get, Route, Request} from 'tsoa';
-import {User, UserCreationRequest} from '../models/user';
+import { Get, Route, Request } from 'tsoa';
+import { User, UserCreationRequest } from '../models/user';
 
 @Route('Users')
 export class UsersController {
@@ -327,19 +349,20 @@ export class UsersController {
 ```
 
 To access Koa's request object (which has the ctx object) in a controller method use the `@Request`-decorator:
+
 ```typescript
 // controllers/usersController.ts
 
 import * as koa from 'koa';
-import {Get, Route, Request} from 'tsoa';
-import {User, UserCreationRequest} from '../models/user';
+import { Get, Route, Request } from 'tsoa';
+import { User, UserCreationRequest } from '../models/user';
 
 @Route('Users')
 export class UsersController {
   @Get('{id}')
   public async getUser(id: number, @Request() request: koa.Request): Promise<User> {
     const ctx = request.ctx;
-      // TODO: implement some code that uses the request as well
+    // TODO: implement some code that uses the request as well
   }
 }
 ```
@@ -355,9 +378,9 @@ If you want to use dependency injection and let the DI-framework handle the crea
 
 #### InversifyJS
 
-
 To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`):
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
+
 ```json
 {
   "swagger": {
@@ -372,11 +395,13 @@ The convention is that you have to name your inversify `Container` `iocContainer
   }
 }
 ```
+
 Note that as of 1.1.1 the path is now relative to the your current working directory like the other paths.
 
 Here is some example code to setup the container and your controller with inversify.js.
 
 `./inversify/ioc.ts`:
+
 ```ts
 import { Container, inject, interfaces } from 'inversify';
 import { autoProvide, makeProvideDecorator, makeFluentProvideDecorator } from 'inversify-binding-decorators';
@@ -386,18 +411,13 @@ let iocContainer = new Container();
 let provide = makeProvideDecorator(iocContainer);
 let fluentProvider = makeFluentProvideDecorator(iocContainer);
 
-let provideNamed = function(
-  identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>,
-  name: string
-) {
+let provideNamed = function(identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>, name: string) {
   return fluentProvider(identifier)
     .whenTargetNamed(name)
     .done();
 };
 
-let provideSingleton = function(
-  identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>
-) {
+let provideSingleton = function(identifier: string | symbol | interfaces.Newable<any> | interfaces.Abstract<any>) {
   return fluentProvider(identifier)
     .inSingletonScope()
     .done();
@@ -407,6 +427,7 @@ export { iocContainer, autoProvide, provide, provideSingleton, provideNamed, inj
 ```
 
 `./controllers/fooController.ts`
+
 ```ts
 import { Route } from 'tsoa';
 import { provideSingleton, inject } from '../inversify/ioc';
@@ -433,6 +454,7 @@ export class FooService {
 Here is some example code to setup the controller with typescript-ioc.
 
 `./controllers/fooController.ts`
+
 ```ts
 import { Route } from 'tsoa';
 import { Inject, Provides } from "typescript-ioc";
@@ -455,6 +477,7 @@ export class FooService {
 The controllers need to be included in the application in order to be linked.
 
 `index.ts`
+
 ```ts
 import "./controllers/fooController.ts"
 ...
@@ -508,9 +531,9 @@ First, define the security definitions for swagger, and also configure where the
 }
 ```
 
-
 In the middleware, export the function based on which library (Express, Koa, Hapi) you are using. You only create 1 function to handle all authenticate types. The `securityName` and `scopes` come from the annotation you put above your controller function.
 `./authentication.ts`
+
 ```ts
 import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -525,7 +548,7 @@ export function expressAuthentication(request: express.Request, securityName: st
     if (token === 'abc123456') {
       return Promise.resolve({
         id: 1,
-        name: 'Ironman'
+        name: 'Ironman',
       });
     } else {
       return Promise.reject({});
@@ -537,36 +560,38 @@ export function expressAuthentication(request: express.Request, securityName: st
 
     return new Promise((resolve, reject) => {
       if (!token) {
-        reject(new Error("No token provided"))
+        reject(new Error('No token provided'));
       }
-      jwt.verify(token, "[secret]", function (err: any, decoded: any) {
+      jwt.verify(token, '[secret]', function(err: any, decoded: any) {
         if (err) {
-          reject(err)
+          reject(err);
         } else {
           // Check if JWT contains all required scopes
           for (let scope of scopes) {
             if (!decoded.scopes.includes(scope)) {
-              reject(new Error("JWT does not contain required scope."));
+              reject(new Error('JWT does not contain required scope.'));
             }
           }
-          resolve(decoded)
+          resolve(decoded);
         }
       });
     });
   }
-};
+}
 
 import * as hapi from '@hapi/hapi';
 export function hapiAuthentication(request: hapi.Request, securityName: string, scopes?: string[]): Promise<any> {
-    // See above
+  // See above
 }
 
 import { Request } from 'koa';
 export function koaAuthentication(request: Request, securityName: string, scopes?: string[]): Promise<any> {
-    // See above
+  // See above
 }
 ```
+
 `./controllers/securityController.ts`
+
 ```ts
 import { Get, Route, Security, Response } from 'tsoa';
 
@@ -574,13 +599,13 @@ import { Get, Route, Security, Response } from 'tsoa';
 export class SecureController {
   @Response<ErrorResponseModel>('Unexpected error')
   @Security('api_token')
-  @Get("UserInfo")
+  @Get('UserInfo')
   public async userInfo(@Request() request: any): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
   @Security('jwt', ['admin'])
-  @Get("EditUser")
+  @Get('EditUser')
   public async userInfo(@Request() request: any): Promise<string> {
     // Do something here
   }
@@ -593,7 +618,8 @@ Per the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/basic
 
 > Sometimes modules are not directly located under baseUrl. For instance, an import to a module "jquery" would be translated at runtime to "node_modules\jquery\dist\jquery.slim.min.js". Loaders use a mapping configuration to map module names to files at run-time, see RequireJs documentation and SystemJS documentation.
 >
->The TypeScript compiler supports the declaration of such mappings using "paths" property in tsconfig.json files. Here is an example for how to specify the "paths" property for jquery.
+> The TypeScript compiler supports the declaration of such mappings using "paths" property in tsconfig.json files. Here is an example for how to specify the "paths" property for jquery.
+
 ```json
 {
   "compilerOptions": {
@@ -639,7 +665,6 @@ import * as multer from 'multer';
 
 @Route('files')
 export class FilesController {
-
   @Post('uploadFile')
   public async uploadFile(@Request() request: express.Request): Promise<any> {
     await this.handleFile(request);
@@ -650,7 +675,7 @@ export class FilesController {
   private handleFile(request: express.Request): Promise<any> {
     const multerSingle = multer().single('randomFileIsHere');
     return new Promise((resolve, reject) => {
-      multerSingle(request, undefined, async (error) => {
+      multerSingle(request, undefined, async error => {
         if (error) {
           reject(error);
         }
@@ -818,14 +843,10 @@ It can also be set at the controller level to exclude all of its endpoints from 
 @Hidden()
 export class HiddenController {
   @Get()
-  public async find(): Promise<any> {
-
-  }
+  public async find(): Promise<any> {}
 
   @Post()
-  public async create(): Promise<any> {
-
-  }
+  public async create(): Promise<any> {}
 }
 ```
 
@@ -857,7 +878,6 @@ Options:
   --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory   [string]
   --basePath  Base API path                                                                     [string]
 ```
-
 
 ## Examples
 
