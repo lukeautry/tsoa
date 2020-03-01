@@ -166,10 +166,10 @@ export class TypeResolver {
         if (declaration.name) {
           declaration = this.getModelTypeDeclaration(declaration.name as ts.EntityName);
         }
-        const name = this.contextualizedName(declaration.name ? declaration.name.getText() : 'anonymousClass');
+        const name = this.getRefTypeName(this.referencer.getText());
         return this.handleCachingAndCircularReferences(name, () => {
           if (ts.isTypeAliasDeclaration(declaration)) {
-            return this.getTypeAliasReference(declaration, name, this.referencer!);
+            return this.getTypeAliasReference(declaration, this.current.typeChecker.typeToString(type), this.referencer!);
           } else if (ts.isEnumDeclaration(declaration)) {
             return this.getEnumerateType(declaration.name) as Tsoa.RefEnumType;
           } else {
@@ -184,8 +184,8 @@ export class TypeResolver {
         if (declaration.name) {
           declaration = this.getModelTypeDeclaration(declaration.name) as ts.InterfaceDeclaration | ts.ClassDeclaration;
         }
-        const name = this.contextualizedName(declaration.name ? declaration.name.getText() : 'anonymousClass');
-        return this.handleCachingAndCircularReferences(name, () => this.getModelReference(declaration, name));
+        const name = this.getRefTypeName(this.referencer.getText());
+        return this.handleCachingAndCircularReferences(name, () => this.getModelReference(declaration, this.current.typeChecker.typeToString(type)));
       } else {
         try {
           return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
