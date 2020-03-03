@@ -378,10 +378,6 @@ export class SpecGenerator3 extends SpecGenerator {
           });
       }
 
-      if (!property.required) {
-        swaggerType.nullable = true;
-      }
-
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 
