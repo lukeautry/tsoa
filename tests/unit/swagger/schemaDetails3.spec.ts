@@ -514,7 +514,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              oneOf: [{ type: 'string', enum: [''] }, { type: 'string', enum: ['Foo'] }, { type: 'string', enum: ['Bar'] }],
+              oneOf: [{ type: 'string', enum: [''], nullable: false }, { type: 'string', enum: ['Foo'], nullable: false }, { type: 'string', enum: ['Bar'], nullable: false }],
               default: undefined,
               description: undefined,
               example: undefined,
@@ -530,11 +530,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
               oneOf: [
-                { type: 'string', enum: ['String'] },
-                { type: 'number', enum: ['1'] },
-                { type: 'number', enum: ['20'] },
-                { type: 'boolean', enum: ['true'] },
-                { type: 'boolean', enum: ['false'] },
+                { type: 'string', enum: ['String'], nullable: false },
+                { type: 'number', enum: ['1'], nullable: false },
+                { type: 'number', enum: ['20'], nullable: false },
+                { type: 'boolean', enum: ['true'], nullable: false },
+                { type: 'boolean', enum: ['false'], nullable: false },
               ],
               nullable: true,
               default: undefined,
@@ -904,15 +904,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
-                  { type: 'string', enum: ['id'] },
-                  { type: 'string', enum: ['publicStringProperty'] },
-                  { type: 'string', enum: ['optionalPublicStringProperty'] },
-                  { type: 'string', enum: ['emailPattern'] },
-                  { type: 'string', enum: ['stringProperty'] },
-                  { type: 'string', enum: ['publicConstructorVar'] },
-                  { type: 'string', enum: ['readonlyConstructorArgument'] },
-                  { type: 'string', enum: ['optionalPublicConstructorVar'] },
-                  { type: 'string', enum: ['defaultValue1'] },
+                  { type: 'string', enum: ['id'], nullable: false },
+                  { type: 'string', enum: ['publicStringProperty'], nullable: false },
+                  { type: 'string', enum: ['optionalPublicStringProperty'], nullable: false },
+                  { type: 'string', enum: ['emailPattern'], nullable: false },
+                  { type: 'string', enum: ['stringProperty'], nullable: false },
+                  { type: 'string', enum: ['publicConstructorVar'], nullable: false },
+                  { type: 'string', enum: ['readonlyConstructorArgument'], nullable: false },
+                  { type: 'string', enum: ['optionalPublicConstructorVar'], nullable: false },
+                  { type: 'string', enum: ['defaultValue1'], nullable: false },
                 ],
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
@@ -1025,6 +1025,42 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
               },
+              `for schema linked by property ${propertyName}`,
+            );
+          },
+          nullableTypes: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('nullableTypes');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined },
+                wordOrNull: { $ref: '#/components/schemas/Maybe_Word_', description: undefined, format: undefined },
+                numberOrNull: { oneOf: [{ type: 'number', format: 'double' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, format: undefined, default: undefined },
+                justNull: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['null'],
+                  format: undefined,
+                  nullable: true,
+                  type: 'number',
+                },
+              },
+              required: ['justNull', 'maybeString', 'wordOrNull', 'numberOrNull'],
+              type: 'object',
+              nullable: true,
+            });
+
+            const maybeString = getComponentSchema('Maybe_string_', currentSpec);
+            expect(maybeString).to.deep.eq(
+              { oneOf: [{ type: 'string' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
+            expect(maybeWord).to.deep.eq(
+              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },

@@ -399,4 +399,17 @@ export class SpecGenerator3 extends SpecGenerator {
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
     return { allOf: type.types.map(x => this.getSwaggerType(x)) };
   }
+
+  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema3 {
+    const types = this.determineTypesUsedInEnum(enumType.enums);
+
+    if (types.size === 1) {
+      const type = types.values().next().value;
+      const nullable = enumType.enums.includes(null) ? true : false;
+      return { type, enum: enumType.enums.map(member => String(member)), nullable };
+    } else {
+      const valuesDelimited = Array.from(types).join(',');
+      throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
+    }
+  }
 }

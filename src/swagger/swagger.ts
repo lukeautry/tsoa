@@ -232,6 +232,10 @@ export namespace Swagger {
     allOf?: BaseSchema[];
   }
 
+  export interface Schema2 extends Schema {
+    ['x-nullable']?: boolean;
+  }
+
   export interface Schema extends BaseSchema {
     type: DataType;
     format?: DataFormat;

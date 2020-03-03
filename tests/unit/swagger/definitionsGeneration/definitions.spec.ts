@@ -334,7 +334,7 @@ describe('Definition generation', () => {
             expect(validatedDefinition.enum).to.include('', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Foo', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Bar', `for property ${propertyName}.enum`);
-            expect(validatedDefinition['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+            expect(validatedDefinition['x-nullable']).to.eq(false, `for property ${propertyName}[x-nullable]`);
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
@@ -752,6 +752,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                ['x-nullable']: false,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -873,6 +874,36 @@ describe('Definition generation', () => {
               },
               `for schema linked by property ${propertyName}`,
             );
+          },
+          nullableTypes: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('nullableTypes');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                maybeString: { $ref: '#/definitions/Maybe_string_', description: undefined, format: undefined },
+                wordOrNull: { $ref: '#/definitions/Maybe_Word_', description: undefined, format: undefined },
+                numberOrNull: { type: 'number', format: 'double', description: undefined, default: undefined, ['x-nullable']: true },
+                justNull: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['null'],
+                  format: undefined,
+                  type: 'number',
+                  ['x-nullable']: true,
+                },
+              },
+              required: ['justNull', 'maybeString', 'wordOrNull', 'numberOrNull'],
+              type: 'object',
+              ['x-nullable']: true,
+            });
+
+            const maybeString = getValidatedDefinition('Maybe_string_', currentSpec);
+            expect(maybeString).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined, ['x-nullable']: true }, `for schema linked by property ${propertyName}`);
+
+            const maybeWord = getValidatedDefinition('Maybe_Word_', currentSpec);
+            expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined }, `for schema linked by property ${propertyName}`);
           },
         };
 

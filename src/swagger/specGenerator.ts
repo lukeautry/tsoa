@@ -193,7 +193,7 @@ export abstract class SpecGenerator {
 
   protected determineTypesUsedInEnum(anEnum: Array<string | number | boolean | null>) {
     const typesUsedInEnum = anEnum.reduce((theSet, curr) => {
-      const typeUsed = typeof curr;
+      const typeUsed = curr === null ? 'number' : typeof curr;
       theSet.add(typeUsed);
       return theSet;
     }, new Set<'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'>());
@@ -201,9 +201,5 @@ export abstract class SpecGenerator {
     return typesUsedInEnum;
   }
 
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema {
-    const types = this.determineTypesUsedInEnum(enumType.enums);
-    const type = types.size === 1 ? types.values().next().value : 'string';
-    return { type, enum: enumType.enums.map(member => String(member)) };
-  }
+  protected abstract getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema2 | Swagger.Schema3;
 }

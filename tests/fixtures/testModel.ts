@@ -127,7 +127,16 @@ export interface TestModel extends Model {
   };
 
   defaultGenericModel?: GenericModel;
+
+  nullableTypes?: {
+    numberOrNull: number | null;
+    wordOrNull: Maybe<Word>;
+    maybeString: Maybe<string>;
+    justNull: null;
+  };
 }
+
+type Maybe<T> = T | null;
 
 export interface TypeAliasModel1 {
   value1: string;

@@ -41,6 +41,14 @@ export class TypeResolver {
       return primitiveType;
     }
 
+    if (this.typeNode.kind === ts.SyntaxKind.NullKeyword) {
+      const enumType: Tsoa.EnumType = {
+        dataType: 'enum',
+        enums: [null],
+      };
+      return enumType;
+    }
+
     if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
