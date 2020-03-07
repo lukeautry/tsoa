@@ -199,7 +199,7 @@ export function RegisterRoutes(router: KoaRouter) {
             case 'header':
                 return validationService.ValidateParam(args[key], context.request.headers[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body':
-                return validationService.ValidateParam(args[key], context.request.body, name, errorFields, name + '.', {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], context.request.body, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body-prop':
                 return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
             }

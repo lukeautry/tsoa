@@ -741,7 +741,7 @@ describe('Express Server', () => {
               'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
               '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
           );
-          expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
+          expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.intersection.value2":{"message":"\'value2\' is required"}}]');
           expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
 
           expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
@@ -785,13 +785,13 @@ describe('Express Server', () => {
               '{"body.nestedObject.mixedUnion":{"message":"invalid object","value":123}}]',
           );
           expect(body.fields['body.nestedObject.intersection'].message).to.equal(
-            'Could not match the intersection against every type. Issues: [{"body.nestedObject.value2":{"message":"\'value2\' is required"}}]',
+            'Could not match the intersection against every type. Issues: [{"body.nestedObject.intersection.value2":{"message":"\'value2\' is required"}}]',
           );
           expect(body.fields['body.typeAliases.word'].message).to.equal('minLength 1');
           expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
           expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
           expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
-            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}}]`,
           );
           expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
@@ -992,6 +992,31 @@ describe('Express Server', () => {
       );
     });
 
+    it('invalid header parameters have expected errors', () => {
+      return verifyRequest(
+        (err, res) => {
+          const error = JSON.parse(err.text);
+          expect(error.fields.firstname.message).to.equal("'firstname' is required");
+          expect(error.fields.gender.message).to.equal("should be one of the following; ['MALE','FEMALE']");
+          expect(error.fields.human.message).to.equal('invalid boolean value');
+
+          // These have a custom error messages configured
+          expect(error.fields.age.message).to.equal('age');
+          expect(error.fields.weight.message).to.equal('weight');
+        },
+        request => {
+          return request.get(basePath + '/ParameterTest/Header').set({
+            age: 'asdf',
+            gender: 'male',
+            human: 123,
+            last_name: 123,
+            weight: 'hello',
+          });
+        },
+        400,
+      );
+    });
+
     it('parses request parameters', () => {
       return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (err, res) => {
         const model = res.body as ParameterTestModel;
@@ -1041,6 +1066,33 @@ describe('Express Server', () => {
         expect(model.human).to.equal(true);
         expect(model.gender).to.equal(Gender.MALE);
       });
+    });
+
+    it('invalid body field parameters look good', () => {
+      const data: any = {
+        age: 'lkj',
+        firstname: 23,
+        gender: 'male',
+        human: 123,
+        lastname: 123,
+        weight: 'hello',
+      };
+      return verifyPostRequest(
+        basePath + '/ParameterTest/BodyProps',
+        data,
+        (err, res) => {
+          const error = JSON.parse(err.text);
+          expect(error.fields['body.firstname'].message).to.equal('invalid string value');
+          expect(error.fields['body.lastname'].message).to.equal('invalid string value');
+          expect(error.fields['body.gender'].message).to.equal("should be one of the following; ['MALE','FEMALE']");
+          expect(error.fields['body.human'].message).to.equal('invalid boolean value');
+
+          // these have custom error messages configured
+          expect(error.fields['body.age'].message).to.equal('age');
+          expect(error.fields['body.weight'].message).to.equal('weight');
+        },
+        400,
+      );
     });
 
     it('can get request with generic type', () => {
