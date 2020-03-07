@@ -8,7 +8,6 @@ import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
-
 import assert = require('assert');
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
@@ -204,36 +203,70 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   describe('paths', () => {
     describe('requestBody', () => {
-      it('should replace the body parameter with a requestBody', () => {
+      it('should replace the bodyprop parameter with a requestBody', () => {
         const metadataPost = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
         const specPost = new SpecGenerator3(metadataPost, getDefaultOptions()).GetSpec();
 
-        if (!specPost.paths) {
-          throw new Error('Paths are not defined.');
-        }
-        if (!specPost.paths['/PostTest']) {
-          throw new Error('PostTest path not defined.');
-        }
-        if (!specPost.paths['/PostTest'].post) {
-          throw new Error('PostTest post method not defined.');
+        if (!specPost.paths['/PostTest/WithBodyProps']) {
+          throw new Error('PostTest/WithBodyProps path not defined.');
         }
 
-        const method = specPost.paths['/PostTest'].post;
+        if (!specPost.paths['/PostTest/WithBodyProps'].post) {
+          throw new Error('PostTest/WithBodyProps post Method not defined.');
+        }
 
-        if (!method || !method.parameters) {
+        const method = specPost.paths['/PostTest/WithBodyProps'].post;
+
+        if (!method) {
           throw new Error('Parameters not defined.');
         }
-
-        expect(method.parameters).to.deep.equal([]);
 
         if (!method.requestBody) {
           throw new Error('Request body not defined.');
         }
 
-        expect(method.requestBody.content['application/json'].schema).to.deep.equal({
-          $ref: '#/components/schemas/TestModel',
+        expect(method.requestBody).to.have.all.keys('required', 'content');
+        expect(method.requestBody.required).to.be.a('boolean');
+        expect(method.requestBody.content).to.be.an('object');
+
+        expect(method.requestBody.content['application/json'].schema!.properties).to.deep.equal({
+          model: {
+            $ref: '#/components/schemas/TestModel',
+            default: undefined,
+            description: undefined,
+          },
         });
-      });
+      }),
+        it('should replace the body parameter with a requestBody', () => {
+          const metadataPost = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
+          const specPost = new SpecGenerator3(metadataPost, getDefaultOptions()).GetSpec();
+
+          if (!specPost.paths) {
+            throw new Error('Paths are not defined.');
+          }
+          if (!specPost.paths['/PostTest']) {
+            throw new Error('PostTest path not defined.');
+          }
+          if (!specPost.paths['/PostTest'].post) {
+            throw new Error('PostTest post method not defined.');
+          }
+
+          const method = specPost.paths['/PostTest'].post;
+
+          if (!method || !method.parameters) {
+            throw new Error('Parameters not defined.');
+          }
+
+          expect(method.parameters).to.deep.equal([]);
+
+          if (!method.requestBody) {
+            throw new Error('Request body not defined.');
+          }
+
+          expect(method.requestBody.content['application/json'].schema).to.deep.equal({
+            $ref: '#/components/schemas/TestModel',
+          });
+        });
     });
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {

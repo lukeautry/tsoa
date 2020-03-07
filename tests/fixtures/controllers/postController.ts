@@ -1,4 +1,4 @@
-import { Body, Patch, Post, Query, Route } from '../../../src';
+import { Body, Patch, Post, Query, Route, BodyProp } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -61,6 +61,11 @@ export class PostTestController {
 
   @Post('WithBodyAndQueryParams')
   public async postWithBodyAndQueryParams(@Body() model: TestModel, @Query() query: string): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Post('WithBodyProps')
+  public async postWithBodyProps(@BodyProp() model: TestModel): Promise<TestModel> {
     return new ModelService().getModel();
   }
 

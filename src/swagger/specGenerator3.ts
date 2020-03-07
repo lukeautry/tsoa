@@ -296,7 +296,7 @@ export class SpecGenerator3 extends SpecGenerator {
       return undefined;
     }
 
-    let schema: Swagger.Schema = { type: 'object', properties: properties, required: required };
+    const schema: Swagger.Schema = { type: 'object', properties, required };
     return {
       required: required.length > 0,
       content: {
