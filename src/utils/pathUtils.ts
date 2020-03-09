@@ -25,6 +25,6 @@ export function convertColonPathParams(path: string) {
     return path;
   }
 
-  const normalised = path.replace(/:([^/]+)/g, '{$1}');
+  const normalised = path.replace(/:([^\/]+)/g, '{$1}');
   return normalised;
 }
