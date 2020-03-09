@@ -23,6 +23,20 @@ describe('Inversify Express Server', () => {
     // hook in a new getModel method returning id = 2
     managedService.getModel = () => {
       return {
+        exPick3: "exPick3",
+        pickModel: {
+          item1: "item1",
+          item4: "item4"
+        },
+        omitModel: {
+          item1: 'item1',
+          item2: false,
+        },
+        optionalModel: {
+          item1: 'item1',
+          item2: false,
+          item3: 'item3',
+        },
         and: { value1: 'foo', value2: 'bar' },
         boolArray: [true, false],
         boolValue: true,

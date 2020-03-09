@@ -22,7 +22,7 @@ export class TypeResolver {
     private readonly parentNode?: ts.Node,
     private readonly extractEnum = true,
     private context: Context = {},
-  ) {}
+  ) { }
 
   public static clearCache() {
     Object.keys(localReferenceTypeCache).forEach(key => {
@@ -176,6 +176,45 @@ export class TypeResolver {
       if (typeReference.typeName.text === 'String') {
         const stringMetaType: Tsoa.StringType = { dataType: 'string' };
         return stringMetaType;
+      }
+
+      if (typeReference.typeName.text === "Omit" && typeReference.typeArguments && typeReference.typeArguments.length > 0) {
+        const theResolved = new TypeResolver(typeReference.typeArguments[0], this.current, typeReference, this.extractEnum, this.context).resolve();
+        const theRef = theResolved as unknown as Tsoa.RefObjectType;
+        const redactions = typeReference.typeArguments[1].getText().replace(/"/g, "").split(" | ");
+        const redactedProperties = theRef.properties.filter((property) => {
+          return redactions.find((redaction) => {
+            return property.name === redaction;
+          }) === undefined;
+        });
+        theRef.properties = redactedProperties;
+        return theRef;
+      }
+
+      if (typeReference.typeName.text === "Pick" && typeReference.typeArguments && typeReference.typeArguments.length > 0) {
+        const theResolved = new TypeResolver(typeReference.typeArguments[0], this.current, typeReference, this.extractEnum, this.context).resolve();
+        const theRef = theResolved as unknown as Tsoa.RefObjectType;
+        const redactions = typeReference.typeArguments[1].getText().replace(/"/g, "").split(" | ");
+        const redactedProperties = theRef.properties.filter((property) => {
+          return redactions.find((redaction) => {
+            return property.name === redaction;
+          }) !== undefined;
+        });
+        theRef.properties = redactedProperties;
+        return theRef;
+      }
+
+      if (typeReference.typeName.text === "Partial" && typeReference.typeArguments && typeReference.typeArguments.length > 0) {
+        const theResolved = new TypeResolver(typeReference.typeArguments[0], this.current, typeReference, this.extractEnum, this.context).resolve();
+        const theRef = theResolved as unknown as Tsoa.RefObjectType;
+        if (theRef.properties && theRef.properties.length > 0) {
+          theRef.properties.map((property) => {
+            property.required = false;
+            return property;
+          });
+          return theRef
+        }
+        return theResolved;
       }
 
       if (this.context[typeReference.typeName.text]) {
@@ -533,6 +572,10 @@ export class TypeResolver {
   };
 
   private getAnyTypeName(typeNode: ts.TypeNode): string {
+    const parent = typeNode.parent;
+    const firstParentToken = parent.getFirstToken();
+    const typeReference = typeNode as ts.TypeReferenceNode;
+    (typeReference.typeName as ts.Identifier) !== undefined && console.log((typeReference.typeName as ts.Identifier).text);
     const primitiveType = this.attemptToResolveKindToPrimitive(typeNode.kind);
     if (primitiveType.foundMatch) {
       return primitiveType.resolvedType;
@@ -543,15 +586,18 @@ export class TypeResolver {
       return this.getAnyTypeName(arrayType.elementType) + 'Array';
     }
 
+    if (typeNode.kind === ts.SyntaxKind.LiteralType && firstParentToken && firstParentToken.getText() === "Omit") {
+      return 'object';
+    }
+
     if (typeNode.kind === ts.SyntaxKind.UnionType) {
       return 'object';
     }
 
-    if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
+    if (typeNode.kind !== ts.SyntaxKind.TypeReference && typeNode.kind !== ts.SyntaxKind.LiteralType) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`, this.typeNode);
     }
 
-    const typeReference = typeNode as ts.TypeReferenceNode;
     try {
       return (typeReference.typeName as ts.Identifier).text;
     } catch (e) {

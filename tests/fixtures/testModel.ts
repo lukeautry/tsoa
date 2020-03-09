@@ -21,7 +21,10 @@
  *   "stringValue": "a string"
  * }
  */
-export interface TestModel extends Model {
+export interface TestModel extends Partial<ExtendedPick>, Model {
+  optionalModel: Partial<TestPartial>;
+  omitModel: Omit<TestOmit, "item3" | "item4">;
+  pickModel: Pick<TestPick, "item1" | "item4">;
   and: TypeAliasModel1 & TypeAliasModel2;
   /**
    * This is a description of this model property, numberValue
@@ -94,8 +97,31 @@ export interface TestModel extends Model {
       };
     };
   };
-
   defaultGenericModel?: GenericModel;
+}
+
+export interface ExtendedPick {
+  exPick3: "exPick3";
+}
+interface TestPartial {
+  item1: string;
+  item2?: boolean;
+  item3?: string;
+  item4: string;
+}
+
+interface TestPick {
+  item1: string;
+  item2?: boolean;
+  item3?: string;
+  item4: string;
+}
+
+export interface TestOmit {
+  item1: string;
+  item2?: boolean;
+  item3?: string;
+  item4: string;
 }
 
 export interface TypeAliasModel1 {
@@ -221,7 +247,7 @@ export class ParameterTestModel {
   public nicknames?: string[];
 }
 
-export class ValidateCustomErrorModel {}
+export class ValidateCustomErrorModel { }
 
 export class ValidateModel {
   /**

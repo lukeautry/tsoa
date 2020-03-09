@@ -298,6 +298,41 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
         const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Spec) => void> = {
+          optionalModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.include({ $ref: '#/components/schemas/TestPartial' }, `for property ${propertyName}.$ref`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            const schemas = currentSpec.spec.components.schemas;
+            expect(schemas).to.not.be.undefined;
+            if (schemas) {
+              expect(schemas.TestPartial.required).to.be.undefined;
+              expect(schemas.TestPartial.properties).to.have.property('item1');
+              expect(schemas.TestPartial.properties).to.have.property('item2');
+              expect(schemas.TestPartial.properties).to.have.property('item3');
+              expect(schemas.TestPartial.properties).to.have.property('item4');
+            }
+          },
+          omitModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.include({ $ref: '#/components/schemas/TestOmit' }, `for property ${propertyName}.$ref`);
+            const schemas = currentSpec.spec.components.schemas;
+            expect(schemas).to.not.be.undefined;
+            if (schemas) {
+              expect(schemas.TestOmit).to.not.be.undefined;
+              expect(schemas.TestOmit.properties).to.have.property('item1');
+              expect(schemas.TestOmit.properties).to.have.property('item2');
+            }
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
+          pickModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.include({ $ref: '#/components/schemas/TestPick' }, `for property ${propertyName}.$ref`);
+            const schemas = currentSpec.spec.components.schemas;
+            expect(schemas).to.not.be.undefined;
+            if (schemas) {
+              expect(schemas.TestPick).to.not.be.undefined;
+              expect(schemas.TestPick.properties).to.have.property('item1');
+              expect(schemas.TestPick.properties).to.have.property('item4');
+            }
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);

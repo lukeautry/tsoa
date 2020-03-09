@@ -506,6 +506,34 @@ describe('Definition generation', () => {
               type: 'object',
             });
           },
+          optionalModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal({
+              '$ref': "#/definitions/TestPartial",
+              description: undefined,
+              format: undefined,
+            });
+          },
+          omitModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal({
+              '$ref': "#/definitions/TestOmit",
+              description: undefined,
+              format: undefined,
+            });
+          },
+          pickModel: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal({
+              '$ref': "#/definitions/TestPick",
+              description: undefined,
+              format: undefined,
+            });
+          },
+          exPick3: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal({
+              '$ref': "#/definitions/TestPick",
+              description: undefined,
+              format: undefined,
+            });
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
