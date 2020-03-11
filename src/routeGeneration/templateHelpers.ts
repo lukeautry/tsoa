@@ -23,7 +23,7 @@ export class ValidationService {
 
   public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {
     let value = rawValue;
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       if (property.default !== undefined) {
         value = property.default;
       } else if (property.required) {
