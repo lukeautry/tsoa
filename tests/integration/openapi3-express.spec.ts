@@ -62,6 +62,11 @@ describe('OpenAPI3 Express Server', () => {
       word: 'word',
       fourtyTwo: 42,
       intersectionAlias: { value1: 'value1', value2: 'value2' },
+      intersectionAlias2: { value1: 'value1', value2: 'value2', value3: 'string' },
+      unionIntersectionAlias1: { value1: 'one', value3: 'three' },
+      unionIntersectionAlias2: { value1: 'one', value4: 'four' },
+      unionIntersectionAlias3: { value2: 'two', value3: 'three' },
+      unionIntersectionAlias4: { value2: 'two', value4: 'four' },
       unionAlias: { value2: 'value2' },
       nOLAlias: { value1: 'value1', value2: 'value2' },
       genericAlias: 'genericString',
@@ -126,6 +131,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
         expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
         expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
+        expect(body.fields).to.equal(undefined);
       },
       200,
     );
@@ -151,6 +157,8 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
     bodyModel.arrayMin2Item = [0];
     bodyModel.arrayUniqueItem = [0, 0, 1, 1];
+    bodyModel.intersection = { value1: '' } as any;
+    bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123, value4: 123 } as any;
     bodyModel.model = 1 as any;
     bodyModel.mixedUnion = 123 as any;
     bodyModel.intersection = { value1: 'one' } as any;
@@ -184,6 +192,11 @@ describe('OpenAPI3 Express Server', () => {
       word: '',
       fourtyTwo: 41,
       intersectionAlias: { value2: 'value2' },
+      intersectionAlias2: { value1: 'value1', value2: 'value2', value4: 'test' },
+      unionIntersectionAlias1: { value1: 'one', value2: 'two', value3: 'three' },
+      unionIntersectionAlias2: { value1: 'one' },
+      unionIntersectionAlias3: { value1: 'one', value2: 'two', value3: 'three' },
+      unionIntersectionAlias4: { value2: 2, value4: 'four' },
       unionAlias: {},
       nOLAlias: true,
       genericAlias: new ValidateModel(),
@@ -232,8 +245,10 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.arrayMin2Item'].value).to.deep.equal(bodyModel.arrayMin2Item);
         expect(body.fields['body.arrayUniqueItem'].message).to.equal('required unique array');
         expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
-        expect(body.fields['body.model'].message).to.equal('invalid object');
-        expect(body.fields['body.model'].value).to.deep.equal(bodyModel.model);
+        expect(body.fields['body.intersection'].message).to.deep.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
+        expect(body.fields['body.intersection'].value).to.deep.equal(bodyModel.intersection);
+        expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('Could not match intersection against any of the possible combinations: [["value1","value2"]]');
+        expect(body.fields['body.intersectionNoAdditional'].value).to.deep.equal(bodyModel.intersectionNoAdditional);
         expect(body.fields['body.mixedUnion'].message).to.equal(
           'Could not match the union against any of the items. ' +
             'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
@@ -294,7 +309,26 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
         expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
         expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
+        expect(body.fields['body.typeAliases.genericAlias2.id2'].message).to.equal('"id2" is an excess property and therefore is not allowed');
         expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
+        expect(body.fields['body.typeAliases.intersectionAlias2'].message).to.equal(
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.value3":{"message":"'value3' is required"}}]`,
+        );
+        expect(body.fields['body.typeAliases.intersectionAlias2'].message).to.equal(
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.value3":{"message":"'value3' is required"}}]`,
+        );
+        expect(body.fields['body.typeAliases.unionIntersectionAlias1'].message).to.equal(
+          'Could not match intersection against any of the possible combinations: [["value1","value3"],["value1","value4"],["value2","value3"],["value2","value4"]]',
+        );
+        expect(body.fields['body.typeAliases.unionIntersectionAlias2'].message).to.equal(
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.unionIntersectionAlias2":{"message":"Could not match the union against any of the items. Issues: [{\\"body.typeAliases.value3\\":{\\"message\\":\\"'value3' is required\\"}},{\\"body.typeAliases.unionIntersectionAlias2.value4\\":{\\"message\\":\\"'value4' is required\\"}}]","value":{"value1":"one"}}}]`,
+        );
+        expect(body.fields['body.typeAliases.unionIntersectionAlias3'].message).to.equal(
+          'Could not match intersection against any of the possible combinations: [["value1","value3"],["value1","value4"],["value2","value3"],["value2","value4"]]',
+        );
+        expect(body.fields['body.typeAliases.unionIntersectionAlias4'].message).to.equal(
+          `Could not match the intersection against every type. Issues: [{"body.typeAliases.unionIntersectionAlias4":{"message":"Could not match the union against any of the items. Issues: [{\\"body.typeAliases.value1\\":{\\"message\\":\\"'value1' is required\\"}},{\\"body.typeAliases.value2\\":{\\"message\\":\\"invalid string value\\",\\"value\\":2}}]","value":{"value2":2,"value4":"four"}}}]`,
+        );
       },
       400,
     );
