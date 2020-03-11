@@ -512,6 +512,13 @@ describe('Hapi Server', () => {
         forwardGenericAlias: { value1: 'value1' },
       };
 
+      bodyModel.nullableTypes = {
+        numberOrNull: null,
+        wordOrNull: null,
+        maybeString: null,
+        justNull: null,
+      };
+
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
@@ -630,6 +637,13 @@ describe('Hapi Server', () => {
         forwardGenericAlias: 123,
       } as any;
 
+      bodyModel.nullableTypes = {
+        // numberOrNull
+        wordOrNull: '',
+        maybeString: 1,
+        justNull: undefined,
+      } as any;
+
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
@@ -732,6 +746,14 @@ describe('Hapi Server', () => {
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
           expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
           expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
+          expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal("'numberOrNull' is required");
+          expect(body.fields['body.nullableTypes.maybeString'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.maybeString":{"message":"invalid string value","value":1}},{"body.nullableTypes.maybeString":{"message":"should be one of the following; [null]","value":1}}]`,
+          );
+          expect(body.fields['body.nullableTypes.wordOrNull'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.wordOrNull":{"message":"minLength 1","value":""}},{"body.nullableTypes.wordOrNull":{"message":"should be one of the following; [null]","value":""}}]`,
+          );
+          expect(body.fields['body.nullableTypes.justNull'].message).to.equal("'justNull' is required");
         },
         400,
       );

@@ -74,6 +74,13 @@ describe('OpenAPI3 Express Server', () => {
       forwardGenericAlias: { value1: 'value1' },
     };
 
+    bodyModel.nullableTypes = {
+      numberOrNull: null,
+      wordOrNull: null,
+      maybeString: null,
+      justNull: null,
+    };
+
     return verifyPostRequest(
       basePath + `/Validate/body`,
       bodyModel,
@@ -197,6 +204,13 @@ describe('OpenAPI3 Express Server', () => {
         id2: 2,
       },
       forwardGenericAlias: 123,
+    } as any;
+
+    bodyModel.nullableTypes = {
+      // numberOrNull
+      wordOrNull: '',
+      maybeString: 1,
+      justNull: undefined,
     } as any;
 
     return verifyPostRequest(
@@ -324,6 +338,14 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.typeAliases.unionIntersectionAlias4'].message).to.equal(
           `Could not match the intersection against every type. Issues: [{"body.typeAliases.unionIntersectionAlias4":{"message":"Could not match the union against any of the items. Issues: [{\\"body.typeAliases.unionIntersectionAlias4.value1\\":{\\"message\\":\\"'value1' is required\\"}},{\\"body.typeAliases.unionIntersectionAlias4.value2\\":{\\"message\\":\\"invalid string value\\",\\"value\\":2}}]","value":{"value2":2,"value4":"four"}}}]`,
         );
+        expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal("'numberOrNull' is required");
+        expect(body.fields['body.nullableTypes.maybeString'].message).to.equal(
+          `Could not match the union against any of the items. Issues: [{"body.nullableTypes.maybeString":{"message":"invalid string value","value":1}},{"body.nullableTypes.maybeString":{"message":"should be one of the following; [null]","value":1}}]`,
+        );
+        expect(body.fields['body.nullableTypes.wordOrNull'].message).to.equal(
+          `Could not match the union against any of the items. Issues: [{"body.nullableTypes.wordOrNull":{"message":"minLength 1","value":""}},{"body.nullableTypes.wordOrNull":{"message":"should be one of the following; [null]","value":""}}]`,
+        );
+        expect(body.fields['body.nullableTypes.justNull'].message).to.equal("'justNull' is required");
       },
       400,
     );

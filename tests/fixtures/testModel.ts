@@ -402,6 +402,13 @@ export class ValidateModel {
     forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
   };
 
+  public nullableTypes: {
+    numberOrNull: number | null;
+    wordOrNull: Maybe<Word>;
+    maybeString: Maybe<string>;
+    justNull: null;
+  };
+
   public nestedObject: {
     /**
      * @isFloat Invalid float error message.

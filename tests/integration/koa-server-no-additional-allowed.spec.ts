@@ -234,6 +234,13 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         forwardGenericAlias: { value1: 'value1' },
       };
 
+      bodyModel.nullableTypes = {
+        numberOrNull: null,
+        wordOrNull: null,
+        maybeString: null,
+        justNull: null,
+      };
+
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
