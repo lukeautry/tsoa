@@ -1,7 +1,7 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
 import { SwaggerConfig } from './../config';
-import { normalisePath } from './../utils/pathUtils';
+import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
 
@@ -212,7 +212,8 @@ export class SpecGenerator3 extends SpecGenerator {
         .filter(method => !method.isHidden)
         .forEach(method => {
           const normalisedMethodPath = normalisePath(method.path, '/');
-          const path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
+          let path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
+          path = convertColonPathParams(path);
           paths[path] = paths[path] || {};
           this.buildMethod(controller.name, method, paths[path]);
         });
