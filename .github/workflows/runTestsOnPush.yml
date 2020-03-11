@@ -9,12 +9,12 @@ jobs:
     - name: Build
       uses: Borales/actions-yarn@master
       with:
-        args: install
+        cmd: install
     - name: Lint
       uses: Borales/actions-yarn@master
       with:
-        args: lint
+        cmd: lint
     - name: Test
       uses: Borales/actions-yarn@master
       with:
-        args: test
+        cmd: test
