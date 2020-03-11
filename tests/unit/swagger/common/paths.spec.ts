@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { normalisePath } from '../../../../src/utils/pathUtils';
+import { normalisePath, convertColonPathParams } from '../../../../src/utils/pathUtils';
 
 describe('Paths normalisation', () => {
   it('should remove all redundant symbols at the beginning and at the end', () => {
@@ -60,5 +60,31 @@ describe('Paths normalisation', () => {
   it('should handle empty path', () => {
     expect(normalisePath('', 'prefix', 'suffix')).to.equal('');
     expect(normalisePath('', 'prefix', 'suffix', false)).to.equal('prefixsuffix');
+  });
+});
+
+describe('Colon path params conversion', () => {
+  it('should not modify paths without colon', () => {
+    expect(convertColonPathParams('path1/path2')).to.equal('path1/path2');
+    expect(convertColonPathParams('path1/{pathParam}')).to.equal('path1/{pathParam}');
+  });
+
+  it('should replace ":param" with "{param}" in path', () => {
+    expect(convertColonPathParams(':pathParam')).to.equal('{pathParam}');
+    expect(convertColonPathParams('/path1/:pathParam')).to.equal('/path1/{pathParam}');
+    expect(convertColonPathParams('/path1/:pathParam/path2')).to.equal('/path1/{pathParam}/path2');
+  });
+
+  it('should handle empty path', () => {
+    expect(convertColonPathParams('')).to.equal('');
+  });
+
+  it('should ignore bad parameters', () => {
+    expect(convertColonPathParams(undefined as any)).to.equal(undefined);
+    expect(convertColonPathParams(null as any)).to.equal(null);
+    expect(convertColonPathParams(1 as any)).to.equal(1);
+    expect(convertColonPathParams('')).to.equal('');
+    const emptyObject = {};
+    expect(convertColonPathParams(emptyObject as any)).to.equal(emptyObject);
   });
 });
