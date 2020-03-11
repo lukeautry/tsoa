@@ -147,7 +147,7 @@ export class ParameterGenerator {
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
     }
-    if (!this.path.includes(`{${pathName}}`)) {
+    if (!this.path.includes(`{${pathName}}`) && !this.path.includes(`:${pathName}`)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
     }
 

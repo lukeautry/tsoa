@@ -365,6 +365,63 @@ describe('Metadata generation', () => {
       expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
+    it('should generate an path parameter from colon delimiter path params', () => {
+      const method = controller.methods.find(m => m.name === 'getPathColonDelimiter');
+      if (!method) {
+        throw new Error('Method getPathColonDelimiter not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(6);
+
+      const firstnameParam = method.parameters[0];
+      expect(firstnameParam.in).to.equal('path');
+      expect(firstnameParam.name).to.equal('firstname');
+      expect(firstnameParam.parameterName).to.equal('firstname');
+      expect(firstnameParam.description).to.equal('Firstname description');
+      expect(firstnameParam.required).to.be.true;
+      expect(firstnameParam.type.dataType).to.equal('string');
+
+      const lastnameParam = method.parameters[1];
+      expect(lastnameParam.in).to.equal('path');
+      expect(lastnameParam.name).to.equal('last_name');
+      expect(lastnameParam.parameterName).to.equal('lastname');
+      expect(lastnameParam.description).to.equal('Lastname description');
+      expect(lastnameParam.required).to.be.true;
+      expect(lastnameParam.type.dataType).to.equal('string');
+
+      const ageParam = method.parameters[2];
+      expect(ageParam.in).to.equal('path');
+      expect(ageParam.name).to.equal('age');
+      expect(ageParam.parameterName).to.equal('age');
+      expect(ageParam.description).to.equal('Age description');
+      expect(ageParam.required).to.be.true;
+      expect(ageParam.type.dataType).to.equal('integer');
+
+      const weightParam = method.parameters[3];
+      expect(weightParam.in).to.equal('path');
+      expect(weightParam.name).to.equal('weight');
+      expect(weightParam.parameterName).to.equal('weight');
+      expect(weightParam.description).to.equal('Weight description');
+      expect(weightParam.required).to.be.true;
+      expect(weightParam.type.dataType).to.equal('float');
+
+      const humanParam = method.parameters[4];
+      expect(humanParam.in).to.equal('path');
+      expect(humanParam.name).to.equal('human');
+      expect(humanParam.parameterName).to.equal('human');
+      expect(humanParam.description).to.equal('Human description');
+      expect(humanParam.required).to.be.true;
+      expect(humanParam.type.dataType).to.equal('boolean');
+
+      const genderParam = method.parameters[5];
+      expect(genderParam.in).to.equal('path');
+      expect(genderParam.name).to.equal('gender');
+      expect(genderParam.parameterName).to.equal('gender');
+      expect(genderParam.description).to.equal('Gender description');
+      expect(genderParam.required).to.be.true;
+      expect(genderParam.type.dataType).to.equal('enum');
+    });
+
     it('should generate an header parameter', () => {
       const method = controller.methods.find(m => m.name === 'getHeader');
       if (!method) {

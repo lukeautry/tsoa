@@ -71,6 +71,37 @@ export class ParameterController {
   }
 
   /**
+   * Path test paramater
+   *
+   * @param {string} firstname Firstname description
+   * @param {string} lastname Lastname description
+   * @param {number} age Age description
+   * @param {number} weight Weight description
+   * @param {boolean} human Human description
+   * @param {Gender} gender Gender description
+   *
+   * @isInt age
+   * @isFloat weight
+   */
+  @Get('Path/:firstname/:last_name/:age/:weight/:human/:gender')
+  public async getPathColonDelimiter(
+    firstname: string,
+    @Path('last_name') lastname: string,
+    @Path() age: number,
+    @Path() weight: number,
+    @Path() human: boolean,
+    @Path() gender: Gender,
+  ): Promise<ParameterTestModel> {
+    return Promise.resolve<ParameterTestModel>({
+      age,
+      firstname,
+      gender,
+      human,
+      lastname,
+      weight,
+    });
+  }
+  /**
    * Header test paramater
    *
    * @param {string} firstname Firstname description
