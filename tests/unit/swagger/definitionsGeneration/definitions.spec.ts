@@ -810,7 +810,7 @@ describe('Definition generation', () => {
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
                   stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+', 'x-nullable': true },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$', 'x-nullable': true },
                   optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, 'x-nullable': true },
                   publicStringProperty: {
                     type: 'string',

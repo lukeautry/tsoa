@@ -419,7 +419,7 @@ describe('Metadata generation', () => {
       expect(genderParam.parameterName).to.equal('gender');
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
-      expect(genderParam.type.dataType).to.equal('enum');
+      expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
     it('should generate an header parameter', () => {

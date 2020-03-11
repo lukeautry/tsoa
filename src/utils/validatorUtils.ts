@@ -83,11 +83,11 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
           break;
         case 'pattern':
           if (typeof value !== 'string') {
-            throw new GenerateMetadataError(`${name} patameter use string.`);
+            throw new GenerateMetadataError(`${name} parameter use string.`);
           }
           validateObj[name] = {
             errorMsg: getErrorMsg(comment),
-            value,
+            value: removeSurroundingQuotes(value),
           };
           break;
         default:
@@ -173,11 +173,11 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
           break;
         case 'pattern':
           if (typeof value !== 'string') {
-            throw new GenerateMetadataError(`${name} patameter use string.`);
+            throw new GenerateMetadataError(`${name} parameter use string.`);
           }
           validateObj[name] = {
             errorMsg: getErrorMsg(comment),
-            value,
+            value: removeSurroundingQuotes(value),
           };
           break;
         default:
@@ -219,4 +219,11 @@ function getParameterTagSupport() {
     'minDate',
     'maxDate',
   ];
+}
+
+function removeSurroundingQuotes(str: string) {
+  if (str.startsWith('`') && str.endsWith('`')) {
+    return str.substring(1, str.length - 1);
+  }
+  return str;
 }
