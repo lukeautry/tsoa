@@ -101,6 +101,8 @@ export class ValidationService {
       return;
     }
 
+    const previousErrors = Object.keys(fieldErrors).length;
+
     if (!nestedProperties) {
       throw new Error(
         'internal tsoa error: ' +
@@ -135,7 +137,7 @@ export class ValidationService {
       }
     });
 
-    if (Object.keys(fieldErrors).length > 0) {
+    if (Object.keys(fieldErrors).length > previousErrors) {
       return;
     }
 
@@ -394,7 +396,7 @@ export class ValidationService {
   }
 
   public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
-    if (!schema || value === undefined || value === null) {
+    if (!schema || value === undefined) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
         message,
@@ -404,12 +406,17 @@ export class ValidationService {
     }
 
     let arrayValue = [] as any[];
+    const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
       arrayValue = value.map((elementValue, index) => {
         return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.', swaggerConfig);
       });
     } else {
       arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, name + '.', swaggerConfig)];
+    }
+
+    if (Object.keys(fieldErrors).length > previousErrors) {
+      return;
     }
 
     if (!validators) {
@@ -634,6 +641,7 @@ export class ValidationService {
     minimalSwaggerConfig: SwaggerConfigRelatedToRoutes;
   }): any {
     const { name, value, modelDefinition, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
+    const previousErrors = Object.keys(fieldErrors).length;
 
     if (modelDefinition) {
       if (modelDefinition.dataType === 'refEnum') {
@@ -658,12 +666,11 @@ export class ValidationService {
       const keysOnPropertiesModelDefinition = new Set(Object.keys(properties));
       const allPropertiesOnData = new Set(Object.keys(value));
 
-      keysOnPropertiesModelDefinition.forEach((key: string) => {
-        const property = properties[key];
+      Object.entries(properties).forEach(([key, property]) => {
+        const validatedParam = this.ValidateParam(property, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
 
-        // process value only if it exists inside of value or if it is required
-        if (key in value || property.required) {
-          value[key] = this.ValidateParam(property, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
+        if (validatedParam !== undefined) {
+          value[key] = validatedParam;
         }
       });
 
@@ -716,6 +723,10 @@ export class ValidationService {
           }
         });
       }
+    }
+
+    if (Object.keys(fieldErrors).length > previousErrors) {
+      return;
     }
 
     return value;
