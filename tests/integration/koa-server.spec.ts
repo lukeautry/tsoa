@@ -654,7 +654,7 @@ describe('Koa Server', () => {
               'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
               '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
           );
-          expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.value2":{"message":"\'value2\' is required"}}]');
+          expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.intersection.value2":{"message":"\'value2\' is required"}}]');
           expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
 
           expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
@@ -698,13 +698,13 @@ describe('Koa Server', () => {
               '{"body.nestedObject.mixedUnion":{"message":"invalid object","value":123}}]',
           );
           expect(body.fields['body.nestedObject.intersection'].message).to.equal(
-            'Could not match the intersection against every type. Issues: [{"body.nestedObject.value2":{"message":"\'value2\' is required"}}]',
+            'Could not match the intersection against every type. Issues: [{"body.nestedObject.intersection.value2":{"message":"\'value2\' is required"}}]',
           );
           expect(body.fields['body.typeAliases.word'].message).to.equal('minLength 1');
           expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
           expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
           expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
-            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.value1":{"message":"'value1' is required"}}]`,
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}}]`,
           );
           expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');

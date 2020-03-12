@@ -198,7 +198,7 @@ export function RegisterRoutes(server: any) {
             case 'header':
                 return validationService.ValidateParam(args[key], request.headers[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body':
-                return validationService.ValidateParam(args[key], request.payload, name, errorFields, name + '.', {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], request.payload, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
              case 'body-prop':
                 return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
             }
