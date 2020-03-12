@@ -844,7 +844,7 @@ describe('ValidationService', () => {
       const value = ['A', 10, true];
       const error = {};
       const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' });
-      expect(result).to.deep.equal([undefined, 10, undefined]);
+      expect(result).to.deep.equal(undefined);
       expect(error[`${name}.$0`].message).to.equal('invalid integer number');
       expect(error[`${name}.$0`].value).to.equal('A');
       expect(error[`${name}.$2`].message).to.equal('invalid integer number');
@@ -863,7 +863,7 @@ describe('ValidationService', () => {
           },
         },
       }).validateArray(name, value, error, {}, { ref: 'ExampleModel' });
-      expect(result).to.deep.equal([{ a: undefined }, { a: 'bcd' }]);
+      expect(result).to.deep.equal(undefined);
       expect(error).to.deep.equal({
         [`${name}.$0.a`]: {
           message: 'invalid string value',
