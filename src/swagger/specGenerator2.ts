@@ -321,10 +321,6 @@ export class SpecGenerator2 extends SpecGenerator {
           });
       }
 
-      if (!property.required) {
-        swaggerType['x-nullable'] = true;
-      }
-
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 
@@ -332,12 +328,26 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    // Backwards compatible representation of a literal enumeration
     if (type.types.every(subType => subType.dataType === 'enum')) {
       const mergedEnum: Tsoa.EnumType = { dataType: 'enum', enums: [] };
       type.types.forEach(t => {
         mergedEnum.enums = [...mergedEnum.enums, ...(t as Tsoa.EnumType).enums];
       });
       return this.getSwaggerTypeForEnumType(mergedEnum);
+    } else if (type.types.length === 2 && type.types.find(typeInUnion => typeInUnion.dataType === 'enum' && typeInUnion.enums.includes(null))) {
+      // Backwards compatible representation of dataType or null, $ref does not allow any sibling attributes, so we have to bail out
+      const nullEnumIndex = type.types.findIndex(type => type.dataType === 'enum' && type.enums.includes(null));
+      const typeIndex = nullEnumIndex === 1 ? 0 : 1;
+      const swaggerType = this.getSwaggerType(type.types[typeIndex]);
+      const isRef = !!swaggerType.$ref;
+
+      if (isRef) {
+        return { type: 'object' };
+      } else {
+        swaggerType['x-nullable'] = true;
+        return swaggerType;
+      }
     } else if (process.env.NODE_ENV !== 'tsoa_test') {
       // tslint:disable-next-line: no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
@@ -391,5 +401,12 @@ export class SpecGenerator2 extends SpecGenerator {
       throw new Error(badEnumErrorMessage());
     }
     return enumTypeForSwagger;
+  }
+
+  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema2 {
+    const types = this.determineTypesUsedInEnum(enumType.enums);
+    const type = types.size === 1 ? types.values().next().value : 'string';
+    const nullable = enumType.enums.includes(null) ? true : false;
+    return { type, enum: enumType.enums.map(member => String(member)), ['x-nullable']: nullable };
   }
 }

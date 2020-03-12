@@ -322,7 +322,7 @@ describe('ValidationService', () => {
         {},
       );
 
-      expect(error.a.message).to.equal(`'a' is required`);
+      expect(error['body.a'].message).to.equal(`'a' is required`);
     });
   });
 
@@ -844,11 +844,32 @@ describe('ValidationService', () => {
       const value = ['A', 10, true];
       const error = {};
       const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' });
-      expect(result).to.deep.equal([undefined, 10, undefined]);
+      expect(result).to.deep.equal(undefined);
       expect(error[`${name}.$0`].message).to.equal('invalid integer number');
       expect(error[`${name}.$0`].value).to.equal('A');
       expect(error[`${name}.$2`].message).to.equal('invalid integer number');
       expect(error[`${name}.$2`].value).to.equal(true);
+    });
+
+    it('should invalid array nested value', () => {
+      const name = 'name';
+      const value = [{ a: 123 }, { a: 'bcd' }];
+      const error = {};
+      const result = new ValidationService({
+        ExampleModel: {
+          dataType: 'refObject',
+          properties: {
+            a: { dataType: 'string', required: true },
+          },
+        },
+      }).validateArray(name, value, error, {}, { ref: 'ExampleModel' });
+      expect(result).to.deep.equal(undefined);
+      expect(error).to.deep.equal({
+        [`${name}.$0.a`]: {
+          message: 'invalid string value',
+          value: 123,
+        },
+      });
     });
 
     it('should array minItems validate', () => {

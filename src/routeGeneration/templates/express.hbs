@@ -192,7 +192,7 @@ export function RegisterRoutes(app: express.Express) {
                 case 'header':
                     return validationService.ValidateParam(args[key], request.header(name), name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
                 case 'body':
-                    return validationService.ValidateParam(args[key], request.body, name, fieldErrors, name + '.', {{{json minimalSwaggerConfig}}});
+                    return validationService.ValidateParam(args[key], request.body, name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
                 case 'body-prop':
                     return validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', {{{json minimalSwaggerConfig}}});
             }
