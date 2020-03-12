@@ -273,7 +273,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           throw new Error('testModel.properties should have been a truthy object');
         }
         expect(testModel.properties.optionalString).to.not.have.property('x-nullable');
-        expect(testModel.properties.optionalString.nullable).to.be.true;
+        expect(testModel.properties.optionalString.nullable).to.be.undefined;
       });
     });
   });
@@ -365,15 +365,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                       default: undefined,
                       description: undefined,
                       format: undefined,
-                      nullable: true,
                       additionalProperties: {
                         $ref: '#/components/schemas/TypeAliasModel1',
                       },
                     },
                     allNestedOptional: {
                       properties: {
-                        one: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
-                        two: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
+                        one: { type: 'string', default: undefined, description: undefined, format: undefined },
+                        two: { type: 'string', default: undefined, description: undefined, format: undefined },
                       },
                       type: 'object',
                       default: undefined,
@@ -381,14 +380,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                       format: undefined,
                     },
                     bool: { type: 'boolean', default: undefined, description: undefined, format: undefined },
-                    optional: { format: 'double', type: 'number', default: undefined, description: undefined, nullable: true },
+                    optional: { format: 'double', type: 'number', default: undefined, description: undefined },
                   },
                   required: ['allNestedOptional', 'bool'],
                   type: 'object',
                   default: undefined,
                   description: undefined,
                   format: undefined,
-                  nullable: true,
                 },
               },
               required: ['name'],
@@ -422,13 +420,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumIndexValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           enumArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -438,7 +436,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumNumberValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumNumberValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumNumberValue', currentSpec);
@@ -448,7 +446,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumStringNumberValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringNumberValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const schema = getComponentSchema('EnumStringNumberValue', currentSpec);
@@ -458,7 +456,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumStringNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -468,7 +466,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -479,7 +477,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
 
             const schema = getComponentSchema('EnumStringValue', currentSpec);
             expect(schema.type).to.eq('string');
@@ -488,7 +486,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           enumStringArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -514,7 +512,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              oneOf: [{ type: 'string', enum: [''] }, { type: 'string', enum: ['Foo'] }, { type: 'string', enum: ['Bar'] }],
+              oneOf: [{ type: 'string', enum: [''], nullable: false }, { type: 'string', enum: ['Foo'], nullable: false }, { type: 'string', enum: ['Bar'], nullable: false }],
               default: undefined,
               description: undefined,
               example: undefined,
@@ -529,16 +527,21 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
-              oneOf: [{ type: 'string', enum: ['String'] }, { type: 'string', enum: ['1'] }, { type: 'string', enum: ['20'] }, { type: 'string', enum: ['true'] }, { type: 'string', enum: ['false'] }],
-              nullable: true,
+              oneOf: [
+                { type: 'string', enum: ['String'], nullable: false },
+                { type: 'number', enum: ['1'], nullable: false },
+                { type: 'number', enum: ['20'], nullable: false },
+                { type: 'boolean', enum: ['true'], nullable: false },
+                { type: 'boolean', enum: ['false'], nullable: false },
+              ],
               default: undefined,
               description: undefined,
               format: undefined,
             });
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
+            expect(propertySchema.nullable).to.eq(false, `for property ${propertyName}.nullable`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
@@ -547,71 +550,71 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema.format).to.eq('date-time', `for property ${propertyName}.format`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           optionalString: (propertyName, propertySchema) => {
             // should generate an optional property from an optional property
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema).to.not.haveOwnProperty('format', `for property ${propertyName}`);
           },
           anyType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
           unknownType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS_Alias: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsObjectIndirectNS2_Alias: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsArrayIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubArrayModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           modelsEnumIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubEnumModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           typeAliasCase1: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           TypeAliasCase2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}.nullable`);
+            expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
@@ -680,7 +683,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               properties: {
                 word: { $ref: '#/components/schemas/Word', description: undefined, format: undefined },
                 fourtyTwo: { $ref: '#/components/schemas/FourtyTwo', description: undefined, format: undefined },
-                dateAlias: { $ref: '#/components/schemas/DateAlias', description: undefined, format: undefined, nullable: true },
+                dateAlias: { $ref: '#/components/schemas/DateAlias', description: undefined, format: undefined },
                 unionAlias: { $ref: '#/components/schemas/UnionAlias', description: undefined, format: undefined },
                 intersectionAlias: { $ref: '#/components/schemas/IntersectionAlias', description: undefined, format: undefined },
                 nOLAlias: { $ref: '#/components/schemas/NolAlias', description: undefined, format: undefined },
@@ -690,7 +693,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
               type: 'object',
-              nullable: true,
             });
 
             const wordSchema = getComponentSchema('Word', currentSpec);
@@ -774,24 +776,23 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq(
               {
                 properties: {
-                  omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_', description: undefined, format: undefined, nullable: true },
-                  omitHidden: { $ref: '#/components/schemas/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined, nullable: true },
-                  partial: { $ref: '#/components/schemas/Partial_Account_', description: undefined, format: undefined, nullable: true },
-                  excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, nullable: true },
-                  excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, nullable: true },
-                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, nullable: true },
-                  excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, nullable: true },
-                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_', description: undefined, format: undefined, nullable: true },
-                  pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, nullable: true },
-                  readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_', description: undefined, format: undefined, nullable: true },
-                  defaultArgs: { $ref: '#/components/schemas/DefaultTestModel', description: undefined, format: undefined, nullable: true },
-                  heritageCheck: { $ref: '#/components/schemas/HeritageTestModel', description: undefined, format: undefined, nullable: true },
+                  omit: { $ref: '#/components/schemas/Omit_ErrorResponseModel.status_', description: undefined, format: undefined },
+                  omitHidden: { $ref: '#/components/schemas/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined },
+                  partial: { $ref: '#/components/schemas/Partial_Account_', description: undefined, format: undefined },
+                  excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined },
+                  excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined },
+                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined },
+                  excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined },
+                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_', description: undefined, format: undefined },
+                  pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined },
+                  readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_', description: undefined, format: undefined },
+                  defaultArgs: { $ref: '#/components/schemas/DefaultTestModel', description: undefined, format: undefined },
+                  heritageCheck: { $ref: '#/components/schemas/HeritageTestModel', description: undefined, format: undefined },
                 },
                 type: 'object',
                 default: undefined,
                 description: undefined,
                 format: undefined,
-                nullable: true,
               },
               `for property ${propertyName}`,
             );
@@ -850,7 +851,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const partial = getComponentSchema('Partial_Account_', currentSpec);
             expect(partial).to.deep.eq(
               {
-                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined, nullable: true } },
+                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined } },
                 type: 'object',
                 description: 'Make all properties in T optional',
                 default: undefined,
@@ -898,15 +899,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
-                  { type: 'string', enum: ['id'] },
-                  { type: 'string', enum: ['publicStringProperty'] },
-                  { type: 'string', enum: ['optionalPublicStringProperty'] },
-                  { type: 'string', enum: ['emailPattern'] },
-                  { type: 'string', enum: ['stringProperty'] },
-                  { type: 'string', enum: ['publicConstructorVar'] },
-                  { type: 'string', enum: ['readonlyConstructorArgument'] },
-                  { type: 'string', enum: ['optionalPublicConstructorVar'] },
-                  { type: 'string', enum: ['defaultValue1'] },
+                  { type: 'string', enum: ['id'], nullable: false },
+                  { type: 'string', enum: ['publicStringProperty'], nullable: false },
+                  { type: 'string', enum: ['optionalPublicStringProperty'], nullable: false },
+                  { type: 'string', enum: ['emailPattern'], nullable: false },
+                  { type: 'string', enum: ['stringProperty'], nullable: false },
+                  { type: 'string', enum: ['publicConstructorVar'], nullable: false },
+                  { type: 'string', enum: ['readonlyConstructorArgument'], nullable: false },
+                  { type: 'string', enum: ['optionalPublicConstructorVar'], nullable: false },
+                  { type: 'string', enum: ['defaultValue1'], nullable: false },
                 ],
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
@@ -963,14 +964,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(readonlyClassSchema).to.deep.eq(
               {
                 properties: {
-                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, nullable: true },
+                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined },
-                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, nullable: true },
+                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
                   stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+', nullable: true },
-                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, nullable: true },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+' },
+                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined },
                   publicStringProperty: {
                     type: 'string',
                     minLength: 3,
@@ -980,7 +981,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: 'This is a description of a public string property',
                     format: undefined,
                   },
-                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, nullable: true },
+                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined },
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined },
                 },
                 required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
@@ -1012,13 +1013,48 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   value4: { type: 'string', description: undefined, format: undefined, default: undefined },
-                  name: { type: 'string', description: undefined, format: undefined, default: undefined, nullable: true },
+                  name: { type: 'string', description: undefined, format: undefined, default: undefined },
                 },
                 required: ['value4'],
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
               },
+              `for schema linked by property ${propertyName}`,
+            );
+          },
+          nullableTypes: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('nullableTypes');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined },
+                wordOrNull: { $ref: '#/components/schemas/Maybe_Word_', description: undefined, format: undefined },
+                numberOrNull: { oneOf: [{ type: 'number', format: 'double' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, format: undefined, default: undefined },
+                justNull: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['null'],
+                  format: undefined,
+                  nullable: true,
+                  type: 'number',
+                },
+              },
+              required: ['justNull', 'maybeString', 'wordOrNull', 'numberOrNull'],
+              type: 'object',
+            });
+
+            const maybeString = getComponentSchema('Maybe_string_', currentSpec);
+            expect(maybeString).to.deep.eq(
+              { oneOf: [{ type: 'string' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
+            expect(maybeWord).to.deep.eq(
+              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },

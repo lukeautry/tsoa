@@ -191,9 +191,9 @@ export abstract class SpecGenerator {
     };
   }
 
-  protected determineTypesUsedInEnum(anEnum: Array<string | number>) {
+  protected determineTypesUsedInEnum(anEnum: Array<string | number | boolean | null>) {
     const typesUsedInEnum = anEnum.reduce((theSet, curr) => {
-      const typeUsed = typeof curr;
+      const typeUsed = curr === null ? 'number' : typeof curr;
       theSet.add(typeUsed);
       return theSet;
     }, new Set<'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'>());
@@ -201,7 +201,5 @@ export abstract class SpecGenerator {
     return typesUsedInEnum;
   }
 
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema {
-    return { type: 'string', enum: enumType.enums.map(member => String(member)) };
-  }
+  protected abstract getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema2 | Swagger.Schema3;
 }

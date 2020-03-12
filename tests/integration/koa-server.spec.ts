@@ -490,6 +490,13 @@ describe('Koa Server', () => {
         forwardGenericAlias: { value1: 'value1' },
       };
 
+      bodyModel.nullableTypes = {
+        numberOrNull: ('null' as unknown) as null,
+        wordOrNull: null,
+        maybeString: null,
+        justNull: null,
+      };
+
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
@@ -543,6 +550,11 @@ describe('Koa Server', () => {
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
           expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
           expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
+
+          expect(body.nullableTypes.numberOrNull).to.equal(null);
+          expect(body.nullableTypes.wordOrNull).to.equal(bodyModel.nullableTypes.wordOrNull);
+          expect(body.nullableTypes.maybeString).to.equal(bodyModel.nullableTypes.maybeString);
+          expect(body.nullableTypes.justNull).to.equal(bodyModel.nullableTypes.justNull);
         },
         200,
       );
@@ -606,6 +618,13 @@ describe('Koa Server', () => {
           id2: 2,
         },
         forwardGenericAlias: 123,
+      } as any;
+
+      bodyModel.nullableTypes = {
+        // numberOrNull
+        wordOrNull: '',
+        maybeString: 1,
+        justNull: undefined,
       } as any;
 
       return verifyPostRequest(
@@ -710,6 +729,14 @@ describe('Koa Server', () => {
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
           expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
           expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
+          expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal("'numberOrNull' is required");
+          expect(body.fields['body.nullableTypes.maybeString'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.maybeString":{"message":"invalid string value","value":1}},{"body.nullableTypes.maybeString":{"message":"should be one of the following; [null]","value":1}}]`,
+          );
+          expect(body.fields['body.nullableTypes.wordOrNull'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.wordOrNull":{"message":"minLength 1","value":""}},{"body.nullableTypes.wordOrNull":{"message":"should be one of the following; [null]","value":""}}]`,
+          );
+          expect(body.fields['body.nullableTypes.justNull'].message).to.equal("'justNull' is required");
         },
         400,
       );

@@ -231,13 +231,13 @@ describe('Definition generation', () => {
           enumValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/definitions/EnumIndexValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           enumArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -247,7 +247,7 @@ describe('Definition generation', () => {
           enumNumberValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/definitions/EnumNumberValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const validatedDefinition = getValidatedDefinition('EnumNumberValue', currentSpec);
@@ -258,7 +258,7 @@ describe('Definition generation', () => {
           enumStringNumberValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema.$ref).to.eq('#/definitions/EnumStringNumberValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             const validatedDefinition = getValidatedDefinition('EnumStringNumberValue', currentSpec);
@@ -269,7 +269,7 @@ describe('Definition generation', () => {
           enumStringNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -279,7 +279,7 @@ describe('Definition generation', () => {
           enumNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -290,7 +290,7 @@ describe('Definition generation', () => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema.$ref).to.eq('#/definitions/EnumStringValue', `for property ${propertyName}.$ref`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
 
             const validatedDefinition = getValidatedDefinition('EnumStringValue', currentSpec);
             expect(validatedDefinition.type).to.eq('string');
@@ -300,7 +300,7 @@ describe('Definition generation', () => {
           enumStringArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -334,7 +334,7 @@ describe('Definition generation', () => {
             expect(validatedDefinition.enum).to.include('', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Foo', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Bar', `for property ${propertyName}.enum`);
-            expect(validatedDefinition['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
+            expect(validatedDefinition['x-nullable']).to.eq(false, `for property ${propertyName}[x-nullable]`);
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
@@ -345,7 +345,7 @@ describe('Definition generation', () => {
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(false, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
@@ -357,8 +357,8 @@ describe('Definition generation', () => {
             expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
-            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
+            expect(propertySchema['x-nullable']).to.eq(false, `for property ${propertyName}[x-nullable]`);
             if (!propertySchema.enum) {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
@@ -367,71 +367,71 @@ describe('Definition generation', () => {
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema.format).to.eq('date-time', `for property ${propertyName}.format`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
           optionalString: (propertyName, propertySchema) => {
             // should generate an optional property from an optional property
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
             expect(propertySchema).to.not.haveOwnProperty('format', `for property ${propertyName}`);
           },
           anyType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
           },
           unknownType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS_Alias: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsObjectIndirectNS2_Alias: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainerNamespace_InnerNamespace_TestSubModelContainer2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsArrayIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubArrayModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           modelsEnumIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubEnumModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           typeAliasCase1: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase1', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           TypeAliasCase2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TypeAliasModelCase2', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
-            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+            expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
           genericMultiNested: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
@@ -489,12 +489,11 @@ describe('Definition generation', () => {
                       additionalProperties: {
                         $ref: '#/definitions/TypeAliasModel1',
                       },
-                      'x-nullable': true,
                     },
                     allNestedOptional: {
                       properties: {
-                        one: { type: 'string', default: undefined, description: undefined, format: undefined, 'x-nullable': true },
-                        two: { type: 'string', default: undefined, description: undefined, format: undefined, 'x-nullable': true },
+                        one: { type: 'string', default: undefined, description: undefined, format: undefined },
+                        two: { type: 'string', default: undefined, description: undefined, format: undefined },
                       },
                       type: 'object',
                       default: undefined,
@@ -502,14 +501,13 @@ describe('Definition generation', () => {
                       format: undefined,
                     },
                     bool: { type: 'boolean', default: undefined, description: undefined, format: undefined },
-                    optional: { type: 'number', format: 'double', default: undefined, description: undefined, 'x-nullable': true },
+                    optional: { type: 'number', format: 'double', default: undefined, description: undefined },
                   },
                   default: undefined,
                   description: undefined,
                   format: undefined,
                   required: ['allNestedOptional', 'bool'],
                   type: 'object',
-                  'x-nullable': true,
                 },
               },
               required: ['name'],
@@ -525,7 +523,7 @@ describe('Definition generation', () => {
               properties: {
                 word: { $ref: '#/definitions/Word', description: undefined, format: undefined },
                 fourtyTwo: { $ref: '#/definitions/FourtyTwo', description: undefined, format: undefined },
-                dateAlias: { $ref: '#/definitions/DateAlias', description: undefined, format: undefined, 'x-nullable': true },
+                dateAlias: { $ref: '#/definitions/DateAlias', description: undefined, format: undefined },
                 unionAlias: { $ref: '#/definitions/UnionAlias', description: undefined, format: undefined },
                 intersectionAlias: { $ref: '#/definitions/IntersectionAlias', description: undefined, format: undefined },
                 nOLAlias: { $ref: '#/definitions/NolAlias', description: undefined, format: undefined },
@@ -535,7 +533,6 @@ describe('Definition generation', () => {
               },
               required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
               type: 'object',
-              'x-nullable': true,
             });
 
             const wordSchema = getValidatedDefinition('Word', currentSpec);
@@ -614,24 +611,23 @@ describe('Definition generation', () => {
             expect(propertySchema).to.deep.eq(
               {
                 properties: {
-                  omit: { $ref: '#/definitions/Omit_ErrorResponseModel.status_', description: undefined, format: undefined, 'x-nullable': true },
-                  omitHidden: { $ref: '#/definitions/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined, 'x-nullable': true },
-                  partial: { $ref: '#/definitions/Partial_Account_', description: undefined, format: undefined, 'x-nullable': true },
-                  excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, 'x-nullable': true },
-                  excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, 'x-nullable': true },
-                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, 'x-nullable': true },
-                  excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, 'x-nullable': true },
-                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined, 'x-nullable': true },
-                  pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, 'x-nullable': true },
-                  readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined, 'x-nullable': true },
-                  defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined, 'x-nullable': true },
-                  heritageCheck: { $ref: '#/definitions/HeritageTestModel', description: undefined, format: undefined, 'x-nullable': true },
+                  omit: { $ref: '#/definitions/Omit_ErrorResponseModel.status_', description: undefined, format: undefined },
+                  omitHidden: { $ref: '#/definitions/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined },
+                  partial: { $ref: '#/definitions/Partial_Account_', description: undefined, format: undefined },
+                  excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined },
+                  excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined },
+                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined },
+                  excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined },
+                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined },
+                  pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined },
+                  readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined },
+                  defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined },
+                  heritageCheck: { $ref: '#/definitions/HeritageTestModel', description: undefined, format: undefined },
                 },
                 type: 'object',
                 default: undefined,
                 description: undefined,
                 format: undefined,
-                'x-nullable': true,
               },
               `for property ${propertyName}`,
             );
@@ -690,7 +686,7 @@ describe('Definition generation', () => {
             const partial = getValidatedDefinition('Partial_Account_', currentSpec);
             expect(partial).to.deep.eq(
               {
-                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined, 'x-nullable': true } },
+                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined } },
                 type: 'object',
                 description: 'Make all properties in T optional',
                 default: undefined,
@@ -752,6 +748,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                ['x-nullable']: false,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -804,14 +801,14 @@ describe('Definition generation', () => {
             expect(readonlyClassSchema).to.deep.eq(
               {
                 properties: {
-                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, 'x-nullable': true },
+                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined },
-                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, 'x-nullable': true },
+                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
                   stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+', 'x-nullable': true },
-                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, 'x-nullable': true },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+' },
+                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined },
                   publicStringProperty: {
                     type: 'string',
                     minLength: 3,
@@ -821,7 +818,7 @@ describe('Definition generation', () => {
                     description: 'This is a description of a public string property',
                     format: undefined,
                   },
-                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, 'x-nullable': true },
+                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined },
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined },
                 },
                 required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
@@ -857,7 +854,6 @@ describe('Definition generation', () => {
                     description: undefined,
                     format: undefined,
                     type: 'string',
-                    'x-nullable': true,
                   },
                   value4: {
                     default: undefined,
@@ -873,6 +869,35 @@ describe('Definition generation', () => {
               },
               `for schema linked by property ${propertyName}`,
             );
+          },
+          nullableTypes: (propertyName, propertySchema) => {
+            expect(propertyName).to.equal('nullableTypes');
+            expect(propertySchema).to.deep.equal({
+              default: undefined,
+              description: undefined,
+              format: undefined,
+              properties: {
+                maybeString: { $ref: '#/definitions/Maybe_string_', description: undefined, format: undefined },
+                wordOrNull: { $ref: '#/definitions/Maybe_Word_', description: undefined, format: undefined },
+                numberOrNull: { type: 'number', format: 'double', description: undefined, default: undefined, ['x-nullable']: true },
+                justNull: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['null'],
+                  format: undefined,
+                  type: 'number',
+                  ['x-nullable']: true,
+                },
+              },
+              required: ['justNull', 'maybeString', 'wordOrNull', 'numberOrNull'],
+              type: 'object',
+            });
+
+            const maybeString = getValidatedDefinition('Maybe_string_', currentSpec);
+            expect(maybeString).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined, ['x-nullable']: true }, `for schema linked by property ${propertyName}`);
+
+            const maybeWord = getValidatedDefinition('Maybe_Word_', currentSpec);
+            expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined }, `for schema linked by property ${propertyName}`);
           },
         };
 
@@ -1177,8 +1202,8 @@ describe('Definition generation', () => {
           const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
 
           expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
-          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, 'x-nullable': true });
-          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined, 'x-nullable': true });
+          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined });
 
           const ref = getValidatedDefinition('GenericRequest_TestModelArray_', currentSpec).properties;
           expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
@@ -1197,7 +1222,6 @@ describe('Definition generation', () => {
             $ref: '#/definitions/ThingContainerWithTitle_TestModelArray_',
             description: undefined,
             format: undefined,
-            'x-nullable': true,
           });
 
           const ref = getValidatedDefinition('ThingContainerWithTitle_TestModelArray_', currentSpec).properties;
