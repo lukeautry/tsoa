@@ -16,6 +16,7 @@ export interface ValidateStringResponse {
   minLength: string;
   maxLength: string;
   patternValue: string;
+  quotedPatternValue: string;
 }
 
 @Route('Validate')
@@ -99,13 +100,15 @@ export class ValidateController {
    * @minLength minLength 5
    * @maxLength maxLength 3
    * @pattern patternValue ^[a-zA-Z]+$
+   * @pattern quotedPatternValue `^([A-Z])(?!@)$`
    */
   @Get('parameter/string')
-  public stringValidate(@Query() minLength: string, @Query() maxLength: string, @Query() patternValue: string): Promise<ValidateStringResponse> {
+  public stringValidate(@Query() minLength: string, @Query() maxLength: string, @Query() patternValue: string, @Query() quotedPatternValue: string): Promise<ValidateStringResponse> {
     return Promise.resolve({
       maxLength,
       minLength,
       patternValue,
+      quotedPatternValue,
     });
   }
   /**

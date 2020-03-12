@@ -23,6 +23,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.stringMax10Lenght = 'abcdef';
     bodyModel.stringMin5Lenght = 'abcdef';
     bodyModel.stringPatternAZaz = 'aBcD';
+    bodyModel.quotedStringPatternA = 'A';
 
     bodyModel.arrayMax5Item = [0, 1, 2, 3];
     bodyModel.arrayMin2Item = [0, 1];
@@ -47,6 +48,7 @@ describe('OpenAPI3 Express Server', () => {
       stringMax10Lenght: 'abcdef',
       stringMin5Lenght: 'abcdef',
       stringPatternAZaz: 'aBcD',
+      quotedStringPatternA: 'A',
 
       arrayMax5Item: [0, 1, 2, 3],
       arrayMin2Item: [0, 1],
@@ -102,6 +104,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
         expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
         expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+        expect(body.quotedStringPatternA).to.equal(bodyModel.quotedStringPatternA);
 
         expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
         expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
@@ -126,6 +129,7 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
         expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
         expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);
+        expect(body.nestedObject.quotedStringPatternA).to.equal(bodyModel.nestedObject.quotedStringPatternA);
 
         expect(body.nestedObject.arrayMax5Item).to.deep.equal(bodyModel.nestedObject.arrayMax5Item);
         expect(body.nestedObject.arrayMin2Item).to.deep.equal(bodyModel.nestedObject.arrayMin2Item);
@@ -161,6 +165,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.stringMax10Lenght = 'abcdefghijk';
     bodyModel.stringMin5Lenght = 'abcd';
     bodyModel.stringPatternAZaz = 'ab01234';
+    bodyModel.quotedStringPatternA = 'A';
 
     bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
     bodyModel.arrayMin2Item = [0];
@@ -169,6 +174,7 @@ describe('OpenAPI3 Express Server', () => {
     bodyModel.intersectionNoAdditional = { value1: '', value2: '', value3: 123, value4: 123 } as any;
     bodyModel.model = 1 as any;
     bodyModel.mixedUnion = 123 as any;
+    bodyModel.intersection = { value1: 'one' } as any;
     bodyModel.singleBooleanEnum = false as true;
 
     bodyModel.nestedObject = {
@@ -185,6 +191,7 @@ describe('OpenAPI3 Express Server', () => {
       stringMax10Lenght: 'abcdefghijk',
       stringMin5Lenght: 'abcd',
       stringPatternAZaz: 'ab01234',
+      quotedStringPatternA: 'A@',
 
       arrayMax5Item: [0, 1, 2, 3, 4, 6, 7, 8, 9],
       arrayMin2Item: [0],

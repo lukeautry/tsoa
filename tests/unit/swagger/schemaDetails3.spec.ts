@@ -970,7 +970,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
                   stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+' },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$' },
                   optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined },
                   publicStringProperty: {
                     type: 'string',

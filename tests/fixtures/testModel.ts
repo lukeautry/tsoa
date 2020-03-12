@@ -361,7 +361,10 @@ export class ValidateModel {
    *  @pattern ^[a-zA-Z]+$
    */
   public stringPatternAZaz: string;
-
+  /**
+   * @pattern `^([A-Z])(?!@)$`
+   */
+  public quotedStringPatternA: string;
   /**
    * @maxItems 5
    */
@@ -463,7 +466,10 @@ export class ValidateModel {
      *  @pattern ^[a-zA-Z]+$
      */
     stringPatternAZaz: string;
-
+    /**
+     * @pattern `^([A-Z])(?!@)$`
+     */
+    quotedStringPatternA: string;
     /**
      * @maxItems 5
      */
@@ -569,7 +575,7 @@ export class TestClassModel extends TestClassBaseModel {
   public optionalPublicStringProperty?: string;
   /**
    * @format email
-   * @pattern ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$
+   * @pattern `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`
    */
   public emailPattern?: string;
   /* tslint:disable-next-line */

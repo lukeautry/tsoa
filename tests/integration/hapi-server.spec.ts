@@ -418,24 +418,25 @@ describe('Hapi Server', () => {
       );
     });
 
-    it('should valid minLength, maxLength and pattern validation of string type', () => {
+    it('should valid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       return verifyGetRequest(
-        basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf`,
+        basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf&quotedPatternValue=A`,
         (err, res) => {
           const { body } = res;
 
           expect(body.minLength).to.equal('abcdef');
           expect(body.maxLength).to.equal('ab');
           expect(body.patternValue).to.equal('aBcDf');
+          expect(body.quotedPatternValue).to.equal('A');
         },
         200,
       );
     });
 
-    it('should invalid minLength, maxLength and pattern validation of string type', () => {
+    it('should invalid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       const value = '1234';
       return verifyGetRequest(
-        basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}`,
+        basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}&quotedPatternValue=A@`,
         (err, res) => {
           const body = JSON.parse(err.text);
 
@@ -445,6 +446,8 @@ describe('Hapi Server', () => {
           expect(body.fields.maxLength.value).to.equal(value);
           expect(body.fields.patternValue.message).to.equal("Not match in '^[a-zA-Z]+$'");
           expect(body.fields.patternValue.value).to.equal(value);
+          expect(body.fields.quotedPatternValue.message).to.equal("Not match in '^([A-Z])(?!@)$'");
+          expect(body.fields.quotedPatternValue.value).to.equal('A@');
         },
         400,
       );
@@ -466,6 +469,7 @@ describe('Hapi Server', () => {
       bodyModel.stringMax10Lenght = 'abcdef';
       bodyModel.stringMin5Lenght = 'abcdef';
       bodyModel.stringPatternAZaz = 'aBcD';
+      bodyModel.quotedStringPatternA = 'A';
 
       bodyModel.arrayMax5Item = [0, 1, 2, 3];
       bodyModel.arrayMin2Item = [0, 1];
@@ -490,6 +494,7 @@ describe('Hapi Server', () => {
         stringMax10Lenght: 'abcdef',
         stringMin5Lenght: 'abcdef',
         stringPatternAZaz: 'aBcD',
+        quotedStringPatternA: 'A',
 
         arrayMax5Item: [0, 1, 2, 3],
         arrayMin2Item: [0, 1],
@@ -540,6 +545,7 @@ describe('Hapi Server', () => {
           expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
           expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
           expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+          expect(body.quotedStringPatternA).to.equal(bodyModel.quotedStringPatternA);
 
           expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
           expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
@@ -564,6 +570,7 @@ describe('Hapi Server', () => {
           expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
           expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
           expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);
+          expect(body.nestedObject.quotedStringPatternA).to.equal(bodyModel.nestedObject.quotedStringPatternA);
 
           expect(body.nestedObject.arrayMax5Item).to.deep.equal(bodyModel.nestedObject.arrayMax5Item);
           expect(body.nestedObject.arrayMin2Item).to.deep.equal(bodyModel.nestedObject.arrayMin2Item);
@@ -597,6 +604,7 @@ describe('Hapi Server', () => {
       bodyModel.stringMax10Lenght = 'abcdefghijk';
       bodyModel.stringMin5Lenght = 'abcd';
       bodyModel.stringPatternAZaz = 'ab01234';
+      bodyModel.quotedStringPatternA = 'A';
 
       bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
       bodyModel.arrayMin2Item = [0];
@@ -620,6 +628,7 @@ describe('Hapi Server', () => {
         stringMax10Lenght: 'abcdefghijk',
         stringMin5Lenght: 'abcd',
         stringPatternAZaz: 'ab01234',
+        quotedStringPatternA: 'A@',
 
         arrayMax5Item: [0, 1, 2, 3, 4, 6, 7, 8, 9],
         arrayMin2Item: [0],
