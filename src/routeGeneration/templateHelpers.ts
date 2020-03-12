@@ -641,12 +641,13 @@ export class ValidationService {
       }
 
       if (modelDefinition.dataType === 'refAlias') {
-        const parentName = modelDefinition.type.ref ? parent + name + '.' : parent;
-        return this.ValidateParam(modelDefinition.type, value, name, fieldErrors, parentName, swaggerConfig);
+        return this.ValidateParam(modelDefinition.type, value, name, fieldErrors, parent, swaggerConfig);
       }
 
+      const fieldPath = parent + name;
+
       if (!(value instanceof Object)) {
-        fieldErrors[parent + name] = {
+        fieldErrors[fieldPath] = {
           message: `invalid object`,
           value,
         };
@@ -662,7 +663,7 @@ export class ValidationService {
 
         // process value only if it exists inside of value or if it is required
         if (key in value || property.required) {
-          value[key] = this.ValidateParam(property, value[key], key, fieldErrors, parent, swaggerConfig);
+          value[key] = this.ValidateParam(property, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
         }
       });
 
@@ -678,13 +679,13 @@ export class ValidationService {
         Object.keys(value).forEach((key: string) => {
           if (isAnExcessProperty(key)) {
             if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
-              fieldErrors[parent + key] = {
+              fieldErrors[`${fieldPath}.${key}`] = {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
             } else if (swaggerConfig.noImplicitAdditionalProperties === true) {
               warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
-              fieldErrors[parent + key] = {
+              fieldErrors[`${fieldPath}.${key}`] = {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
@@ -703,11 +704,11 @@ export class ValidationService {
       } else {
         Object.keys(value).forEach((key: string) => {
           if (isAnExcessProperty(key)) {
-            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent, swaggerConfig);
+            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
             if (validatedValue !== undefined) {
               value[key] = validatedValue;
             } else {
-              fieldErrors[parent + key] = {
+              fieldErrors[`${fieldPath}.${key}`] = {
                 message: `No matching model found in additionalProperties to validate ${key}`,
                 value: key,
               };
