@@ -130,7 +130,7 @@ export class ValidationService {
 
     Object.keys(nestedProperties).forEach(key => {
       const validatedProp = this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
-      if (validatedProp) {
+      if (validatedProp !== undefined) {
         value[key] = validatedProp;
       }
     });

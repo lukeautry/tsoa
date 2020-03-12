@@ -235,7 +235,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       };
 
       bodyModel.nullableTypes = {
-        numberOrNull: null,
+        numberOrNull: ('null' as unknown) as null,
         wordOrNull: null,
         maybeString: null,
         justNull: null,
@@ -294,6 +294,11 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
           expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
           expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
+
+          expect(body.nullableTypes.numberOrNull).to.equal(null);
+          expect(body.nullableTypes.wordOrNull).to.equal(bodyModel.nullableTypes.wordOrNull);
+          expect(body.nullableTypes.maybeString).to.equal(bodyModel.nullableTypes.maybeString);
+          expect(body.nullableTypes.justNull).to.equal(bodyModel.nullableTypes.justNull);
         },
         200,
       );
