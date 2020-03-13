@@ -101,6 +101,7 @@ export class ValidateController {
    * @maxLength maxLength 3
    * @pattern patternValue ^[a-zA-Z]+$
    * @pattern quotedPatternValue `^([A-Z])(?!@)$`
+   * @example quotedPatternValue "A"
    */
   @Get('parameter/string')
   public stringValidate(@Query() minLength: string, @Query() maxLength: string, @Query() patternValue: string, @Query() quotedPatternValue: string): Promise<ValidateStringResponse> {

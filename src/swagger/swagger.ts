@@ -91,6 +91,7 @@ export namespace Swagger {
     in: 'query' | 'header' | 'path' | 'formData' | 'body';
     required?: boolean;
     description?: string;
+    example?: any;
     schema: Schema;
     type: DataType;
     format?: DataFormat;

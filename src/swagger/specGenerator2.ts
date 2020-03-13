@@ -193,15 +193,16 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties = {} as { [name: string]: Swagger.Schema | Swagger.BaseSchema };
+    const properties = {} as { [name: string]: Swagger.Schema };
     const required: string[] = [];
 
     method.parameters
       .filter(p => p.in === 'body-prop')
       .forEach(p => {
-        properties[p.name] = this.getSwaggerType(p.type);
+        properties[p.name] = this.getSwaggerType(p.type) as Swagger.Schema2;
         properties[p.name].default = p.default;
         properties[p.name].description = p.description;
+        properties[p.name].example = p.example;
 
         if (p.required) {
           required.push(p.name);
@@ -231,6 +232,7 @@ export class SpecGenerator2 extends SpecGenerator {
     let parameter = {
       default: source.default,
       description: source.description,
+      example: source.example,
       in: source.in,
       name: source.name,
       required: source.required,
@@ -305,9 +307,10 @@ export class SpecGenerator2 extends SpecGenerator {
     const properties: { [propertyName: string]: Swagger.Schema } = {};
 
     source.forEach(property => {
-      const swaggerType = this.getSwaggerType(property.type);
+      const swaggerType = this.getSwaggerType(property.type) as Swagger.Schema2;
       const format = property.format as Swagger.DataFormat;
       swaggerType.description = property.description;
+      swaggerType.example = property.example;
       swaggerType.format = format || swaggerType.format;
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;

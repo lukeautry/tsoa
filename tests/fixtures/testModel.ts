@@ -29,6 +29,7 @@ export interface TestModel extends Model {
   numberValue: number;
   numberArray: number[];
   /**
+   * @example "letmein"
    * @format password
    */
   stringValue: string;

@@ -315,6 +315,7 @@ export class SpecGenerator3 extends SpecGenerator {
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
     const parameter = {
       description: source.description,
+      example: source.example,
       in: source.in,
       name: source.name,
       required: source.required,
@@ -365,6 +366,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const swaggerType = this.getSwaggerType(property.type) as Swagger.Schema3;
       const format = property.format as Swagger.DataFormat;
       swaggerType.description = property.description;
+      swaggerType.example = property.example;
       swaggerType.format = format || swaggerType.format;
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;

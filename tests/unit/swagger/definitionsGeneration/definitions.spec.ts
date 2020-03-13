@@ -176,6 +176,7 @@ describe('Definition generation', () => {
           },
           stringValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            expect(propertySchema.example).to.eq('letmein', `for property ${propertyName}.example`);
             expect(propertySchema.format).to.eq('password', `for property ${propertyName}.format`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
@@ -476,8 +477,9 @@ describe('Definition generation', () => {
               default: undefined,
               description: undefined,
               format: undefined,
+              example: undefined,
               properties: {
-                name: { type: 'string', default: undefined, description: undefined, format: undefined },
+                name: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                 nested: {
                   properties: {
                     additionals: {
@@ -486,26 +488,29 @@ describe('Definition generation', () => {
                       default: undefined,
                       description: undefined,
                       format: undefined,
+                      example: undefined,
                       additionalProperties: {
                         $ref: '#/definitions/TypeAliasModel1',
                       },
                     },
                     allNestedOptional: {
                       properties: {
-                        one: { type: 'string', default: undefined, description: undefined, format: undefined },
-                        two: { type: 'string', default: undefined, description: undefined, format: undefined },
+                        one: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                        two: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                       },
                       type: 'object',
                       default: undefined,
                       description: undefined,
                       format: undefined,
+                      example: undefined,
                     },
-                    bool: { type: 'boolean', default: undefined, description: undefined, format: undefined },
-                    optional: { type: 'number', format: 'double', default: undefined, description: undefined },
+                    bool: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined },
+                    optional: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   },
                   default: undefined,
                   description: undefined,
                   format: undefined,
+                  example: undefined,
                   required: ['allNestedOptional', 'bool'],
                   type: 'object',
                 },
@@ -519,17 +524,18 @@ describe('Definition generation', () => {
             expect(propertySchema).to.deep.equal({
               default: undefined,
               description: undefined,
+              example: undefined,
               format: undefined,
               properties: {
-                word: { $ref: '#/definitions/Word', description: undefined, format: undefined },
-                fourtyTwo: { $ref: '#/definitions/FourtyTwo', description: undefined, format: undefined },
-                dateAlias: { $ref: '#/definitions/DateAlias', description: undefined, format: undefined },
-                unionAlias: { $ref: '#/definitions/UnionAlias', description: undefined, format: undefined },
-                intersectionAlias: { $ref: '#/definitions/IntersectionAlias', description: undefined, format: undefined },
-                nOLAlias: { $ref: '#/definitions/NolAlias', description: undefined, format: undefined },
-                genericAlias: { $ref: '#/definitions/GenericAlias_string_', description: undefined, format: undefined },
-                genericAlias2: { $ref: '#/definitions/GenericAlias_Model_', description: undefined, format: undefined },
-                forwardGenericAlias: { $ref: '#/definitions/ForwardGenericAlias_boolean.TypeAliasModel1_', description: undefined, format: undefined },
+                word: { $ref: '#/definitions/Word', description: undefined, format: undefined, example: undefined },
+                fourtyTwo: { $ref: '#/definitions/FourtyTwo', description: undefined, format: undefined, example: undefined },
+                dateAlias: { $ref: '#/definitions/DateAlias', description: undefined, format: undefined, example: undefined },
+                unionAlias: { $ref: '#/definitions/UnionAlias', description: undefined, format: undefined, example: undefined },
+                intersectionAlias: { $ref: '#/definitions/IntersectionAlias', description: undefined, format: undefined, example: undefined },
+                nOLAlias: { $ref: '#/definitions/NolAlias', description: undefined, format: undefined, example: undefined },
+                genericAlias: { $ref: '#/definitions/GenericAlias_string_', description: undefined, format: undefined, example: undefined },
+                genericAlias2: { $ref: '#/definitions/GenericAlias_Model_', description: undefined, format: undefined, example: undefined },
+                forwardGenericAlias: { $ref: '#/definitions/ForwardGenericAlias_boolean.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
               },
               required: ['forwardGenericAlias', 'genericAlias2', 'genericAlias', 'nOLAlias', 'intersectionAlias', 'unionAlias', 'fourtyTwo', 'word'],
               type: 'object',
@@ -576,8 +582,8 @@ describe('Definition generation', () => {
             const nolAliasSchema = getValidatedDefinition('NolAlias', currentSpec);
             expect(nolAliasSchema).to.deep.eq({
               properties: {
-                value1: { type: 'string', default: undefined, description: undefined, format: undefined },
-                value2: { type: 'string', default: undefined, description: undefined, format: undefined },
+                value1: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                value2: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
               },
               required: ['value2', 'value1'],
               type: 'object',
@@ -611,21 +617,22 @@ describe('Definition generation', () => {
             expect(propertySchema).to.deep.eq(
               {
                 properties: {
-                  omit: { $ref: '#/definitions/Omit_ErrorResponseModel.status_', description: undefined, format: undefined },
-                  omitHidden: { $ref: '#/definitions/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined },
-                  partial: { $ref: '#/definitions/Partial_Account_', description: undefined, format: undefined },
-                  excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined },
-                  excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined },
-                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined },
-                  excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined },
-                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined },
-                  pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined },
-                  readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined },
-                  defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined },
-                  heritageCheck: { $ref: '#/definitions/HeritageTestModel', description: undefined, format: undefined },
+                  omit: { $ref: '#/definitions/Omit_ErrorResponseModel.status_', description: undefined, format: undefined, example: undefined },
+                  omitHidden: { $ref: '#/definitions/Omit_PrivateModel.stringPropDec1_', description: undefined, format: undefined, example: undefined },
+                  partial: { $ref: '#/definitions/Partial_Account_', description: undefined, format: undefined, example: undefined },
+                  excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
+                  excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
+                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, example: undefined },
+                  excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
+                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined, example: undefined },
+                  pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, example: undefined },
+                  readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined, example: undefined },
+                  defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined, example: undefined },
+                  heritageCheck: { $ref: '#/definitions/HeritageTestModel', description: undefined, format: undefined, example: undefined },
                 },
                 type: 'object',
                 default: undefined,
+                example: undefined,
                 description: undefined,
                 format: undefined,
               },
@@ -646,7 +653,7 @@ describe('Definition generation', () => {
             const omitReference = getValidatedDefinition('Pick_ErrorResponseModel.Exclude_keyofErrorResponseModel.status__', currentSpec);
             expect(omitReference).to.deep.eq(
               {
-                properties: { message: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2 } },
+                properties: { message: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2, example: undefined } },
                 required: ['message'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
@@ -671,8 +678,8 @@ describe('Definition generation', () => {
             expect(omitHiddenReference).to.deep.eq(
               {
                 properties: {
-                  id: { type: 'number', format: 'double', default: undefined, description: undefined },
-                  stringPropDec2: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2 },
+                  id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  stringPropDec2: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2, example: undefined },
                 },
                 required: ['stringPropDec2', 'id'],
                 type: 'object',
@@ -686,7 +693,7 @@ describe('Definition generation', () => {
             const partial = getValidatedDefinition('Partial_Account_', currentSpec);
             expect(partial).to.deep.eq(
               {
-                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined } },
+                properties: { id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined } },
                 type: 'object',
                 description: 'Make all properties in T optional',
                 default: undefined,
@@ -720,7 +727,7 @@ describe('Definition generation', () => {
             const excludeToAliasTypeAlias4 = getValidatedDefinition('TypeAlias4', currentSpec);
             expect(excludeToAliasTypeAlias4).to.deep.eq(
               {
-                properties: { value4: { type: 'string', default: undefined, description: undefined, format: undefined } },
+                properties: { value4: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined } },
                 required: ['value4'],
                 type: 'object',
                 default: undefined,
@@ -786,6 +793,7 @@ describe('Definition generation', () => {
                     default: undefined,
                     description: undefined,
                     format: undefined,
+                    example: undefined,
                   },
                 },
                 required: ['list'],
@@ -801,14 +809,14 @@ describe('Definition generation', () => {
             expect(readonlyClassSchema).to.deep.eq(
               {
                 properties: {
-                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined },
-                  id: { type: 'number', format: 'double', default: undefined, description: undefined },
-                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined },
-                  stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined },
-                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$' },
-                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined },
+                  defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
+                  id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                  readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                  publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
+                  stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                  emailPattern: { type: 'string', default: undefined, description: undefined, format: 'email', pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$', example: undefined },
+                  optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, example: undefined },
                   publicStringProperty: {
                     type: 'string',
                     minLength: 3,
@@ -817,9 +825,10 @@ describe('Definition generation', () => {
                     default: undefined,
                     description: 'This is a description of a public string property',
                     format: undefined,
+                    example: undefined,
                   },
-                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined },
-                  account: { $ref: '#/definitions/Account', format: undefined, description: undefined },
+                  defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
+                  account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
                 },
                 required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',
@@ -835,8 +844,8 @@ describe('Definition generation', () => {
               {
                 description: undefined,
                 properties: {
-                  t: { $ref: '#/definitions/GenericRequest_Word_', description: undefined, format: undefined },
-                  u: { $ref: '#/definitions/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined },
+                  t: { $ref: '#/definitions/GenericRequest_Word_', description: undefined, format: undefined, example: undefined },
+                  u: { $ref: '#/definitions/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined, example: undefined },
                 },
                 required: ['t', 'u'],
                 type: 'object',
@@ -853,12 +862,14 @@ describe('Definition generation', () => {
                     default: undefined,
                     description: undefined,
                     format: undefined,
+                    example: undefined,
                     type: 'string',
                   },
                   value4: {
                     default: undefined,
                     description: undefined,
                     format: undefined,
+                    example: undefined,
                     type: 'string',
                   },
                 },
@@ -875,16 +886,18 @@ describe('Definition generation', () => {
             expect(propertySchema).to.deep.equal({
               default: undefined,
               description: undefined,
+              example: undefined,
               format: undefined,
               properties: {
-                maybeString: { $ref: '#/definitions/Maybe_string_', description: undefined, format: undefined },
-                wordOrNull: { $ref: '#/definitions/Maybe_Word_', description: undefined, format: undefined },
-                numberOrNull: { type: 'number', format: 'double', description: undefined, default: undefined, ['x-nullable']: true },
+                maybeString: { $ref: '#/definitions/Maybe_string_', description: undefined, format: undefined, example: undefined },
+                wordOrNull: { $ref: '#/definitions/Maybe_Word_', description: undefined, format: undefined, example: undefined },
+                numberOrNull: { type: 'number', format: 'double', description: undefined, default: undefined, ['x-nullable']: true, example: undefined },
                 justNull: {
                   default: undefined,
                   description: undefined,
                   enum: ['null'],
                   format: undefined,
+                  example: undefined,
                   type: 'number',
                   ['x-nullable']: true,
                 },
@@ -1201,18 +1214,18 @@ describe('Definition generation', () => {
         it('should propagate generics', () => {
           const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
 
-          expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
-          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined });
-          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined });
+          expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, example: undefined, default: undefined });
+          expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, example: undefined });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined, example: undefined });
 
           const ref = getValidatedDefinition('GenericRequest_TestModelArray_', currentSpec).properties;
-          expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
-          expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined });
+          expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined, example: undefined });
+          expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined, example: undefined });
         });
         it('should not propagate dangling context', () => {
           const definition = getValidatedDefinition('DanglingContext_number_', currentSpec).properties;
 
-          expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined });
+          expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined, example: undefined });
           expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
         });
         it('should check heritage clauses for type args', () => {
@@ -1222,13 +1235,15 @@ describe('Definition generation', () => {
             $ref: '#/definitions/ThingContainerWithTitle_TestModelArray_',
             description: undefined,
             format: undefined,
+            example: undefined,
           });
 
           const ref = getValidatedDefinition('ThingContainerWithTitle_TestModelArray_', currentSpec).properties;
-          expect(ref!.title).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.title).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined, example: undefined });
           expect(ref!.t).to.deep.equal({
             default: undefined,
             description: undefined,
+            example: undefined,
             format: undefined,
             items: {
               $ref: '#/definitions/TestModel',
@@ -1236,13 +1251,14 @@ describe('Definition generation', () => {
             type: 'array',
           });
 
-          expect(ref!.id).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined });
+          expect(ref!.id).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined, example: undefined });
           expect(ref!.list).to.deep.equal({
             items: { type: 'number', format: 'double' },
             type: 'array',
             description: undefined,
             format: undefined,
             default: undefined,
+            example: undefined,
           });
         });
       });
