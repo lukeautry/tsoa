@@ -202,6 +202,8 @@ export function RegisterRoutes(router: KoaRouter) {
                 return validationService.ValidateParam(args[key], context.request.body, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body-prop':
                 return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
+            case 'res':
+                return undefined;
             }
         });
         if (Object.keys(errorFields).length > 0) {

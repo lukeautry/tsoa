@@ -1,9 +1,10 @@
 ///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
-import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
+import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags, Res } from '../../../src';
 import '../duplicateTestModel';
 import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
 import { ModelService } from './../services/modelService';
+import { Response } from 'express-serve-static-core';
 import TsoaTest from 'tsoaTest';
 
 @Route('GetTest')
@@ -216,6 +217,14 @@ export class GetTestController extends Controller {
   @Get('Void')
   public async getVoid(): Promise<void> {
     return Promise.resolve();
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res')
+  public async getRes(@Res('400') res: Response<TestModel>): Promise<void> {
+    res?.status(400)?.json(new ModelService().getModel());
   }
 }
 

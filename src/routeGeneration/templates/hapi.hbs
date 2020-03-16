@@ -205,8 +205,10 @@ export function RegisterRoutes(server: any) {
                 return validationService.ValidateParam(args[key], request.headers[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body':
                 return validationService.ValidateParam(args[key], request.payload, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
-             case 'body-prop':
+            case 'body-prop':
                 return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
+            case 'res':
+                return undefined;
             }
         });
         if (Object.keys(errorFields).length > 0) {

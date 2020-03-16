@@ -165,7 +165,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     pathMethod.parameters = method.parameters
       .filter(p => {
-        return !(p.in === 'request' || p.in === 'body-prop');
+        return !(p.in === 'request' || p.in === 'body-prop' || p.in === 'res');
       })
       .map(p => this.buildParameter(p));
 

@@ -44,6 +44,9 @@ export class MethodGenerator {
     const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
     responses.push(this.getMethodSuccessResponse(type));
+    const parameters = this.buildParameters();
+    const additionalResponses = parameters.filter((p): p is Tsoa.ResParameter => p.in === 'res');
+    responses.push(...additionalResponses);
 
     return {
       extensions: this.getExtensions(),
@@ -53,7 +56,7 @@ export class MethodGenerator {
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
       operationId: this.getOperationId(),
-      parameters: this.buildParameters(),
+      parameters,
       path: this.path,
       responses,
       security: this.getSecurity(),

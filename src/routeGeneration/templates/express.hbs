@@ -70,7 +70,7 @@ export function RegisterRoutes(app: express.Express) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = getValidatedArgs(args, request);
+                validatedArgs = getValidatedArgs(args, request, response);
             } catch (err) {
                 return next(err);
             }
@@ -178,7 +178,7 @@ export function RegisterRoutes(app: express.Express) {
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-    function getValidatedArgs(args: any, request: any): any[] {
+    function getValidatedArgs(args: any, request: any, response: any): any[] {
         const fieldErrors: FieldErrors  = {};
         const values = Object.keys(args).map((key) => {
             const name = args[key].name;
@@ -195,6 +195,8 @@ export function RegisterRoutes(app: express.Express) {
                     return validationService.ValidateParam(args[key], request.body, name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
                 case 'body-prop':
                     return validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', {{{json minimalSwaggerConfig}}});
+                case 'res':
+                    return response;
             }
         });
 

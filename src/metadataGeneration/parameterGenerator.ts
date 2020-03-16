@@ -27,6 +27,8 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'Res':
+        return this.getResParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -41,6 +43,42 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getResParameter(parameter: ts.ParameterDeclaration): Tsoa.ResParameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+    const decorator = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res') || parameterName;
+    if (!decorator) {
+      throw new GenerateMetadataError('Could not find Decorator', parameter);
+    }
+    const expression = decorator.parent as ts.CallExpression;
+
+    let name = '200';
+    if (expression.arguments.length > 0 && (expression.arguments[0] as any).text) {
+      const initializer = getInitializerValue(expression.arguments[0]);
+      if (typeof initializer !== 'string' && typeof initializer !== 'number') {
+        throw new GenerateMetadataError('Initializer value of @Res could not be determined', parameter);
+      }
+      name = initializer.toString();
+    }
+    let examples = undefined;
+    if (expression.arguments.length > 1 && (expression.arguments[1] as any)) {
+      const argument = expression.arguments[1] as any;
+      examples = getInitializerValue(argument);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter) || '',
+      in: 'res',
+      name,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type,
+      schema: type,
+      examples,
       validators: getParameterValidators(this.parameter, parameterName),
     };
   }
@@ -212,7 +250,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

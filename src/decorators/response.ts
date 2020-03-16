@@ -9,3 +9,9 @@ export function Response<T>(name: string | number, description?: string, example
     return;
   };
 }
+
+export function Res<T>(name: string | number, example?: T): Function {
+  return () => {
+    return;
+  };
+}

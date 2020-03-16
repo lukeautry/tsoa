@@ -291,6 +291,10 @@ export class TypeResolver {
         return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
       }
 
+      if (typeReference.typeName.text === 'Response' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
+        return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
+      }
+
       if (typeReference.typeName.text === 'String') {
         const stringMetaType: Tsoa.StringType = { dataType: 'string' };
         return stringMetaType;

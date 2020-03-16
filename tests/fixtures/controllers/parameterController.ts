@@ -1,5 +1,6 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route } from '../../../src';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res } from '../../../src';
 import { Gender, ParameterTestModel } from '../testModel';
+import { Response } from 'express-serve-static-core';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -314,5 +315,13 @@ export class ParameterController {
   @Get('paramaterImplicitDate')
   public async implicitDate(@Query() date = new Date(2018, 1, 15)): Promise<void> {
     //
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res')
+  public async getRes(@Res('400', { name: 'alternate response' }) res: Response<{ name: string }>): Promise<void> {
+    res?.status(400)?.json({ name: 'alternate response' });
   }
 }

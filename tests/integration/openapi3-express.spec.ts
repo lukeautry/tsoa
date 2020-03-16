@@ -2,11 +2,22 @@ import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
 import { app } from '../fixtures/express-openapi3/server';
-import { ValidateModel } from '../fixtures/testModel';
+import { ValidateModel, TestModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 
 describe('OpenAPI3 Express Server', () => {
+  it('Should return on @Res', () => {
+    return verifyGetRequest(
+      basePath + '/GetTest/Res',
+      (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      },
+      400,
+    );
+  });
+
   it('should valid model validate', () => {
     const bodyModel = new ValidateModel();
     bodyModel.floatValue = 1.2;
@@ -363,6 +374,10 @@ describe('OpenAPI3 Express Server', () => {
       400,
     );
   });
+
+  function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+  }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);

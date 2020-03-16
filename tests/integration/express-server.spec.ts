@@ -126,6 +126,17 @@ describe('Express Server', () => {
     });
   });
 
+  it('Should return on @Res', () => {
+    return verifyGetRequest(
+      basePath + '/GetTest/Res',
+      (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      },
+      400,
+    );
+  });
+
   it('parses buffer parameter', () => {
     return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
       return;
