@@ -988,7 +988,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     default: undefined,
                     description: 'This is a description of a public string property',
                     format: undefined,
-                    example: undefined,
+                    example: 'classPropExample',
                   },
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
@@ -1037,7 +1037,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.equal({
               default: undefined,
               description: undefined,
-              example: undefined,
+              example: {
+                justNull: null,
+                maybeString: null,
+                numberOrNull: null,
+                wordOrNull: null,
+              },
               format: undefined,
               properties: {
                 maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined, example: undefined },

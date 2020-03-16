@@ -129,6 +129,14 @@ export interface TestModel extends Model {
 
   defaultGenericModel?: GenericModel;
 
+  /**
+   * @example {
+   *   "numberOrNull": null,
+   *   "wordOrNull": null,
+   *   "maybeString": null,
+   *   "justNull": null
+   * }
+   */
   nullableTypes?: {
     numberOrNull: number | null;
     wordOrNull: Maybe<Word>;
@@ -567,6 +575,7 @@ export class TestClassModel extends TestClassBaseModel {
    * @minLength 3
    * @maxLength 20
    * @pattern ^[a-zA-Z]+$
+   * @example "classPropExample"
    */
   public publicStringProperty: string;
   /**
