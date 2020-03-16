@@ -29,7 +29,7 @@ export namespace Tsoa {
 
   export interface Parameter {
     parameterName: string;
-    example?: any;
+    example?: unknown;
     description?: string;
     in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
     name: string;
@@ -63,7 +63,7 @@ export namespace Tsoa {
     default?: any;
     description?: string;
     format?: string;
-    example?: any;
+    example?: unknown;
     name: string;
     type: Type;
     required: boolean;
@@ -225,7 +225,7 @@ export namespace Tsoa {
     description?: string;
     dataType: RefTypeLiteral;
     refName: string;
-    example?: any;
+    example?: unknown;
   }
 
   export interface UnionType extends TypeBase {
