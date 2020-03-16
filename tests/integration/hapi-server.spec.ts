@@ -1027,6 +1027,16 @@ describe('Hapi Server', () => {
         expect(model.id).to.equal(1);
       });
     });
+
+    it('Should ignore @Res', () => {
+      return verifyGetRequest(
+        basePath + '/GetTest/Res',
+        (err, res) => {
+          expect(res.body).to.deep.equal({});
+        },
+        204,
+      );
+    });
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
