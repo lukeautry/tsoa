@@ -1,6 +1,5 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res } from '../../../src';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '../../../src';
 import { Gender, ParameterTestModel } from '../testModel';
-import { Response } from 'express-serve-static-core';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -321,7 +320,7 @@ export class ParameterController {
    * @param res The alternate response
    */
   @Get('Res')
-  public async getRes(@Res('400', { name: 'alternate response' }) res: Response<{ name: string }>): Promise<void> {
+  public async getRes(@Res() res: TsoaResponse<400, { name: string }>): Promise<void> {
     res?.status(400)?.json({ name: 'alternate response' });
   }
 }

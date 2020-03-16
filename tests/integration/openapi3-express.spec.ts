@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as request from 'supertest';
 import { app } from '../fixtures/express-openapi3/server';
-import { ValidateModel, TestModel } from '../fixtures/testModel';
+import { TestModel, ValidateModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 

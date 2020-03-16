@@ -704,7 +704,6 @@ describe('Metadata generation', () => {
 
       expect(additionalResponse.description).to.equal('The alternate response');
       expect(additionalResponse.name).to.equal('400');
-      expect(additionalResponse.examples).to.deep.equal({ name: 'alternate response' });
     });
 
     it('Should inline enums for TS Enums in path, query and header when using Swagger', () => {

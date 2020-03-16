@@ -10,7 +10,7 @@ export function Response<T>(name: string | number, description?: string, example
   };
 }
 
-export function Res<T>(name: string | number, example?: T): Function {
+export function Res(): Function {
   return () => {
     return;
   };
