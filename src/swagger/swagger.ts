@@ -91,6 +91,7 @@ export namespace Swagger {
     in: 'query' | 'header' | 'path' | 'formData' | 'body';
     required?: boolean;
     description?: string;
+    example?: unknown;
     schema: Schema;
     type: DataType;
     format?: DataFormat;
@@ -245,7 +246,7 @@ export namespace Swagger {
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
-    example?: { [exampleName: string]: Example };
+    example?: unknown;
     required?: string[];
   }
 
