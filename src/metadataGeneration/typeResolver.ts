@@ -103,6 +103,7 @@ export class TypeResolver {
         .reduce((res, propertySignature: ts.PropertySignature) => {
           const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
           const property: Tsoa.Property = {
+            example: this.getNodeExample(propertySignature),
             default: getJSDocComment(propertySignature, 'default'),
             description: this.getNodeDescription(propertySignature),
             format: this.getNodeFormat(propertySignature),
@@ -718,6 +719,7 @@ export class TypeResolver {
     const property: Tsoa.Property = {
       default: getJSDocComment(propertySignature, 'default'),
       description: this.getNodeDescription(propertySignature),
+      example: this.getNodeExample(propertySignature),
       format: this.getNodeFormat(propertySignature),
       name: identifier.text,
       required,
@@ -752,6 +754,7 @@ export class TypeResolver {
     const property: Tsoa.Property = {
       default: getInitializerValue(propertyDeclaration.initializer, type),
       description: this.getNodeDescription(propertyDeclaration),
+      example: this.getNodeExample(propertyDeclaration),
       format: this.getNodeFormat(propertyDeclaration),
       name: identifier.text,
       required,
@@ -920,7 +923,11 @@ export class TypeResolver {
     const example = getJSDocComment(node, 'example');
 
     if (example) {
-      return JSON.parse(example);
+      try {
+        return JSON.parse(example);
+      } catch {
+        return undefined;
+      }
     } else {
       return undefined;
     }

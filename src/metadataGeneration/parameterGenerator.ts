@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
+import { getJSDocTags } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -55,6 +56,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
+      example: this.getParameterExample(parameter, parameterName),
       in: 'body-prop',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
@@ -76,6 +78,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
+      example: this.getParameterExample(parameter, parameterName),
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -94,6 +97,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
+      example: this.getParameterExample(parameter, parameterName),
       in: 'header',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
       parameterName,
@@ -110,6 +114,7 @@ export class ParameterGenerator {
     const commonProperties = {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
+      example: this.getParameterExample(parameter, parameterName),
       in: 'query' as 'query',
       name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
       parameterName,
@@ -154,6 +159,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, type),
       description: this.getParameterDescription(parameter),
+      example: this.getParameterExample(parameter, parameterName),
       in: 'path',
       name: pathName,
       parameterName,
@@ -175,6 +181,20 @@ export class ParameterGenerator {
     }
 
     return undefined;
+  }
+
+  private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
+    const example = getJSDocTags(node.parent, tag => tag.tagName.text === 'example' && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag => (tag.comment || '').split(' ')[1])[0];
+
+    if (example) {
+      try {
+        return JSON.parse(example);
+      } catch {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
   }
 
   private supportBodyMethod(method: string) {
