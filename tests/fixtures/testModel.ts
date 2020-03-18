@@ -173,6 +173,7 @@ type ThreeOrFour = TypeAliasModel3 | TypeAlias4;
 /**
  * A Word shall be a non-empty sting
  * @minLength 1
+ * @format password
  */
 type Word = string;
 
