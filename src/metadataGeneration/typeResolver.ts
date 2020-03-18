@@ -923,7 +923,11 @@ export class TypeResolver {
     const example = getJSDocComment(node, 'example');
 
     if (example) {
-      return JSON.parse(example);
+      try {
+        return JSON.parse(example);
+      } catch {
+        return undefined;
+      }
     } else {
       return undefined;
     }

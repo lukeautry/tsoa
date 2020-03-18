@@ -187,7 +187,11 @@ export class ParameterGenerator {
     const example = getJSDocTags(node.parent, tag => tag.tagName.text === 'example' && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag => (tag.comment || '').split(' ')[1])[0];
 
     if (example) {
-      return JSON.parse(example);
+      try {
+        return JSON.parse(example);
+      } catch {
+        return undefined;
+      }
     } else {
       return undefined;
     }
