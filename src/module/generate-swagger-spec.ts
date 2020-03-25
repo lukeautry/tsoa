@@ -14,6 +14,13 @@ export interface RoutesConfigRelatedToSwagger {
   controllerPathGlobs?: RoutesConfig['controllerPathGlobs'];
 }
 
+export const getSwaggerOutputPath = (swaggerConfig: SwaggerConfig) => {
+  const ext = swaggerConfig.yaml ? 'yaml' : 'json';
+  const outputBasename = swaggerConfig.outputBasename || 'swagger';
+
+  return `${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`;
+};
+
 export const generateSwaggerSpec = async (
   swaggerConfig: SwaggerConfig,
   routesConfigRelatedToSwagger: RoutesConfigRelatedToSwagger,
@@ -52,10 +59,9 @@ export const generateSwaggerSpec = async (
   if (swaggerConfig.yaml) {
     data = YAML.stringify(JSON.parse(data), 10);
   }
-  const ext = swaggerConfig.yaml ? 'yaml' : 'json';
-  const outputBasename = swaggerConfig.outputBasename || 'swagger';
 
-  await fsWriteFile(`${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`, data, { encoding: 'utf8' });
+  const outputPath = getSwaggerOutputPath(swaggerConfig);
+  await fsWriteFile(outputPath, data, { encoding: 'utf8' });
 
   return metadata;
 };
