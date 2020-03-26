@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
+import { Tsoa } from '../../../src/metadataGeneration/tsoa';
 import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
-import { Tsoa } from '../../../src/metadataGeneration/tsoa';
 import { ExtendedSwaggerConfig } from '../../../src/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
@@ -524,6 +524,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               default: undefined,
               description: undefined,
               example: undefined,
+              format: undefined,
             });
           },
           strLiteralArr: (propertyName, propertySchema) => {
@@ -706,7 +707,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
 
             const wordSchema = getComponentSchema('Word', currentSpec);
-            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1 });
+            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1, format: 'password' });
 
             const fourtyTwoSchema = getComponentSchema('FourtyTwo', currentSpec);
             expect(fourtyTwoSchema).to.deep.eq({
@@ -728,6 +729,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             const intersectionAliasSchema = getComponentSchema('IntersectionAlias', currentSpec);
@@ -745,6 +747,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               ],
               description: undefined,
               example: undefined,
+              format: undefined,
               default: undefined,
             });
 
@@ -759,13 +762,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             const genericAliasStringSchema = getComponentSchema('GenericAlias_string_', currentSpec);
-            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', default: undefined, description: undefined, example: undefined });
+            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', default: undefined, description: undefined, example: undefined, format: undefined });
 
             const genericAliasModelSchema = getComponentSchema('GenericAlias_Model_', currentSpec);
-            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/components/schemas/Model', default: undefined, description: undefined, example: undefined });
+            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/components/schemas/Model', default: undefined, description: undefined, example: undefined, format: undefined });
 
             const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getComponentSchema('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
             expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
@@ -773,6 +777,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             expect(getComponentSchema('GenericAlias_TypeAliasModel1_', currentSpec)).to.deep.eq({
@@ -780,6 +785,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
           },
           advancedTypeAliases: (propertyName, propertySchema) => {
@@ -815,6 +821,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Construct a type with the properties of T except for those in type K.',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -828,6 +835,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -839,6 +847,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Construct a type with the properties of T except for those in type K.',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -855,6 +864,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -867,6 +877,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -878,6 +889,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -889,6 +901,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -902,6 +915,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 default: undefined,
                 description: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -923,6 +937,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -934,6 +949,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -968,6 +984,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -1002,6 +1019,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: 'Make all properties in T readonly',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for schema linked by property ${propertyName}`,
             );
@@ -1077,13 +1095,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const maybeString = getComponentSchema('Maybe_string_', currentSpec);
             expect(maybeString).to.deep.eq(
-              { oneOf: [{ type: 'string' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
+              { oneOf: [{ type: 'string' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
               `for schema linked by property ${propertyName}`,
             );
 
             const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq(
-              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined },
+              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },
