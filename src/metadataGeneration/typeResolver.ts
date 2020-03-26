@@ -437,6 +437,7 @@ export class TypeResolver {
       default: getJSDocComment(declaration, 'default'),
       description: this.getNodeDescription(declaration),
       refName: this.getRefTypeName(name),
+      format: this.getNodeFormat(declaration),
       type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),

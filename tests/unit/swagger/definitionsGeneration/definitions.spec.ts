@@ -542,7 +542,7 @@ describe('Definition generation', () => {
             });
 
             const wordSchema = getValidatedDefinition('Word', currentSpec);
-            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1 });
+            expect(wordSchema).to.deep.eq({ type: 'string', description: 'A Word shall be a non-empty sting', example: undefined, default: undefined, minLength: 1, format: 'password' });
 
             const fourtyTwoSchema = getValidatedDefinition('FourtyTwo', currentSpec);
             expect(fourtyTwoSchema).to.deep.eq({
@@ -564,6 +564,7 @@ describe('Definition generation', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             const intersectionAliasSchema = getValidatedDefinition('IntersectionAlias', currentSpec);
@@ -577,6 +578,7 @@ describe('Definition generation', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             const nolAliasSchema = getValidatedDefinition('NolAlias', currentSpec);
@@ -590,13 +592,14 @@ describe('Definition generation', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             const genericAliasStringSchema = getValidatedDefinition('GenericAlias_string_', currentSpec);
-            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined });
+            expect(genericAliasStringSchema).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined, format: undefined });
 
             const genericAliasModelSchema = getValidatedDefinition('GenericAlias_Model_', currentSpec);
-            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/definitions/Model', description: undefined, example: undefined, default: undefined });
+            expect(genericAliasModelSchema).to.deep.eq({ $ref: '#/definitions/Model', description: undefined, example: undefined, default: undefined, format: undefined });
 
             const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getValidatedDefinition('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
             expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
@@ -604,6 +607,7 @@ describe('Definition generation', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
 
             expect(getValidatedDefinition('GenericAlias_TypeAliasModel1_', currentSpec)).to.deep.eq({
@@ -611,6 +615,7 @@ describe('Definition generation', () => {
               description: undefined,
               example: undefined,
               default: undefined,
+              format: undefined,
             });
           },
           advancedTypeAliases: (propertyName, propertySchema) => {
@@ -646,6 +651,7 @@ describe('Definition generation', () => {
                 description: 'Construct a type with the properties of T except for those in type K.',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -659,6 +665,7 @@ describe('Definition generation', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -670,6 +677,7 @@ describe('Definition generation', () => {
                 description: 'Construct a type with the properties of T except for those in type K.',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -686,6 +694,7 @@ describe('Definition generation', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -698,6 +707,7 @@ describe('Definition generation', () => {
                 description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -709,6 +719,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -720,6 +731,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -733,6 +745,7 @@ describe('Definition generation', () => {
                 default: undefined,
                 description: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -755,6 +768,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
                 ['x-nullable']: false,
               },
               `for definition linked by ${propertyName}`,
@@ -767,6 +781,7 @@ describe('Definition generation', () => {
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -801,6 +816,7 @@ describe('Definition generation', () => {
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -835,6 +851,7 @@ describe('Definition generation', () => {
                 description: 'Make all properties in T readonly',
                 default: undefined,
                 example: undefined,
+                format: undefined,
               },
               `for definition linked by ${propertyName}`,
             );
@@ -912,10 +929,13 @@ describe('Definition generation', () => {
             });
 
             const maybeString = getValidatedDefinition('Maybe_string_', currentSpec);
-            expect(maybeString).to.deep.eq({ type: 'string', description: undefined, example: undefined, default: undefined, ['x-nullable']: true }, `for schema linked by property ${propertyName}`);
+            expect(maybeString).to.deep.eq(
+              { type: 'string', description: undefined, format: undefined, example: undefined, default: undefined, ['x-nullable']: true },
+              `for schema linked by property ${propertyName}`,
+            );
 
             const maybeWord = getValidatedDefinition('Maybe_Word_', currentSpec);
-            expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined }, `for schema linked by property ${propertyName}`);
+            expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined, format: undefined }, `for schema linked by property ${propertyName}`);
           },
         };
 
