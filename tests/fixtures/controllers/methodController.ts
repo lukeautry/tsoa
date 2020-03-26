@@ -106,4 +106,10 @@ export class MethodController extends Controller {
   public async returnAnyType(): Promise<any> {
     return 'Hello Word';
   }
+
+  @Get('returnAliasedVoidType')
+  public async returnAliasedVoidType(): Promise<VoidAlias1> {}
 }
+
+type VoidAlias1 = VoidAlias2;
+type VoidAlias2 = void;

@@ -46,6 +46,7 @@ describe('Metadata generation', () => {
       'summaryMethod',
       'oauthAndAPIkeySecurity',
       'returnAnyType',
+      'returnAliasedVoidType',
     ];
 
     it('should only generate the defined methods', () => {
@@ -161,6 +162,19 @@ describe('Metadata generation', () => {
       const mainResponse = method.responses[0];
       expect(mainResponse.name).to.equal('201');
       expect(mainResponse.description).to.equal('Created');
+    });
+
+    it('should generate 204 response on aliased voids', () => {
+      const method = controller.methods.find(m => m.name === 'returnAliasedVoidType');
+      if (!method) {
+        throw new Error('Method returnAliasedVoidType not defined!');
+      }
+
+      expect(method.responses.length).to.equal(1);
+
+      const mainResponse = method.responses[0];
+      expect(mainResponse.name).to.equal('204');
+      expect(mainResponse.description).to.equal('No content');
     });
 
     it('should generate api security', () => {
