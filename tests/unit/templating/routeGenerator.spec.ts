@@ -39,8 +39,6 @@ describe('RouteGenerator', () => {
         {
           entryFile: 'mockEntryFile',
           routesDir: 'mockRoutesDir',
-        },
-        {
           noImplicitAdditionalProperties: 'silently-remove-extras',
         },
       );

@@ -1,10 +1,10 @@
 {
+    "entryFile": "./tests/fixtures/express/server.ts",
+    "noImplicitAdditionalProperties": "silently-remove-extras",
     "swagger": {
         "outputDirectory": "./dist",
-        "entryFile": "./tests/fixtures/express/server.ts",
         "host": "localhost:3000",
         "basePath": "/v1",
-        "noImplicitAdditionalProperties": "silently-remove-extras",
         "securityDefinitions": {
             "api_key": {
                 "type": "apiKey",
@@ -26,7 +26,6 @@
     },
     "routes": {
         "basePath": "/v1",
-        "entryFile": "./tests/fixtures/express/server.ts",
         "routesDir": "./tests/fixtures/express",
         "middleware": "express",
         "authenticationModule": "./tests/fixtures/express/authentication.ts"

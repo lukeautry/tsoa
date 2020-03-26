@@ -1,13 +1,13 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('DELETE route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/deleteController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/DeleteTest';
 
   it('should generate a path for a DELETE route with no path argument', () => {

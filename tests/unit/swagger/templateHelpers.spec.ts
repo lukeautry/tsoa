@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
+import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
 import { FieldErrors, TsoaRoute, ValidationService } from './../../../src/routeGeneration/templateHelpers';
 
 describe('ValidationService', () => {
@@ -13,8 +13,8 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: undefined,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const error = {};
       const result = v.validateModel({
@@ -38,7 +38,7 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
       const errorDictionary: FieldErrors = {};
@@ -69,7 +69,7 @@ describe('ValidationService', () => {
       }
     });
 
-    it('should allow (but remove) additionalProperties if noImplicitAdditionalProperties is set to throw-on-extras', () => {
+    it('should allow (but remove) additionalProperties if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
       // Arrange
       const modelDefinition: TsoaRoute.ModelSchema = {
         dataType: 'refObject',
@@ -79,7 +79,7 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       };
       const errorDictionary: FieldErrors = {};
@@ -107,7 +107,7 @@ describe('ValidationService', () => {
       expect(errorKeys).to.have.lengthOf(0);
     });
 
-    it('should not allow additionalProperties if noImplicitAdditionalProperties is set to true', () => {
+    it('should allow additionalProperties if noImplicitAdditionalProperties is set to ignore', () => {
       // Arrange
       const modelDefinition: TsoaRoute.ModelSchema = {
         dataType: 'refObject',
@@ -117,49 +117,8 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: true,
-      };
-      const errorDictionary: FieldErrors = {};
-      const nameOfAdditionalProperty = 'I am the bad key name';
-      const dataToValidate = {
-        a: 's',
-        [nameOfAdditionalProperty]: 'something extra',
-      };
-
-      // Act
-      v.validateModel({
-        fieldErrors: errorDictionary,
-        minimalSwaggerConfig,
-        name: '',
-        modelDefinition,
-        value: dataToValidate,
-      });
-
-      // Assert
-      const errorKeys = Object.keys(errorDictionary);
-      expect(errorKeys).to.have.lengthOf(1);
-      const firstAndOnlyErrorKey = errorKeys[0];
-      expect(errorDictionary[firstAndOnlyErrorKey].message).to.eq(`"${nameOfAdditionalProperty}" is an excess property and therefore is not allowed`);
-      if (!dataToValidate[nameOfAdditionalProperty]) {
-        throw new Error(
-          `dataToValidate.${nameOfAdditionalProperty} should have been there because .validateModel should NOT have removed it since it took the more severe option of producing an error instead.`,
-        );
-      }
-    });
-
-    it('should allow additionalProperties if noImplicitAdditionalProperties is set to false', () => {
-      // Arrange
-      const modelDefinition: TsoaRoute.ModelSchema = {
-        dataType: 'refObject',
-        additionalProperties: false,
-        properties: {
-          a: { dataType: 'string', required: true },
-        },
-      };
-      const v = new ValidationService({});
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: false,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const errorDictionary: FieldErrors = {};
       const nameOfAdditionalProperty = 'I am the bad key name';
@@ -192,8 +151,8 @@ describe('ValidationService', () => {
       };
       const v = new ValidationService({});
       const error = {};
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: undefined,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
@@ -208,7 +167,7 @@ describe('ValidationService', () => {
       };
       const v = new ValidationService({});
       const error = {};
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         // we're setting this to the "throw" to demonstrate that explicit additionalProperties should always be allowed
         noImplicitAdditionalProperties: 'throw-on-extras',
       };
@@ -227,7 +186,7 @@ describe('ValidationService', () => {
       };
       const v = new ValidationService({});
       const error = {};
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
         noImplicitAdditionalProperties: 'throw-on-extras',
@@ -250,7 +209,7 @@ describe('ValidationService', () => {
       };
       const v = new ValidationService({});
       const error = {};
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
         noImplicitAdditionalProperties: 'throw-on-extras',
@@ -288,7 +247,7 @@ describe('ValidationService', () => {
         'body',
         error,
         undefined,
-        {},
+        { noImplicitAdditionalProperties: 'ignore' },
       );
 
       expect(result).to.deep.equal({ a: 'value', b: undefined });
@@ -319,7 +278,7 @@ describe('ValidationService', () => {
         'body',
         error,
         undefined,
-        {},
+        { noImplicitAdditionalProperties: 'ignore' },
       );
 
       expect(error['body.a'].message).to.equal(`'a' is required`);
@@ -330,8 +289,8 @@ describe('ValidationService', () => {
     it('Should apply defaults for optional properties', () => {
       const value = undefined;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: undefined,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
       expect(result).to.equal(666);
@@ -340,8 +299,8 @@ describe('ValidationService', () => {
     it('Should not override values with defaults', () => {
       const value = 123;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: undefined,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
       expect(result).to.equal(123);
@@ -350,8 +309,8 @@ describe('ValidationService', () => {
     it('Should apply defaults for required properties', () => {
       const value = undefined;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: true, validators: {} };
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-        noImplicitAdditionalProperties: undefined,
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
       };
       const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
       expect(result).to.equal(666);
@@ -835,7 +794,7 @@ describe('ValidationService', () => {
   describe('Array validate', () => {
     it('should array value', () => {
       const value = ['A', 'B', 'C'];
-      const result = new ValidationService({}).validateArray('name', value, {}, {}, { dataType: 'string' });
+      const result = new ValidationService({}).validateArray('name', value, {}, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'string' });
       expect(result).to.deep.equal(value);
     });
 
@@ -843,7 +802,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = ['A', 10, true];
       const error = {};
-      const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' });
+      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' });
       expect(result).to.deep.equal(undefined);
       expect(error[`${name}.$0`].message).to.equal('invalid integer number');
       expect(error[`${name}.$0`].value).to.equal('A');
@@ -862,7 +821,7 @@ describe('ValidationService', () => {
             a: { dataType: 'string', required: true },
           },
         },
-      }).validateArray(name, value, error, {}, { ref: 'ExampleModel' });
+      }).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { ref: 'ExampleModel' });
       expect(result).to.deep.equal(undefined);
       expect(error).to.deep.equal({
         [`${name}.$0.a`]: {
@@ -876,7 +835,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [80, 10, 199];
       const error = {};
-      const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { minItems: { value: 4 } });
+      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { minItems: { value: 4 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minItems 4`);
     });
@@ -885,7 +844,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [80, 10, 199];
       const error = {};
-      const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { maxItems: { value: 2 } });
+      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { maxItems: { value: 2 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxItems 2`);
     });
@@ -894,7 +853,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [10, 10, 20];
       const error = {};
-      const result = new ValidationService({}).validateArray(name, value, error, {}, { dataType: 'integer' }, { uniqueItems: {} });
+      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { uniqueItems: {} });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`required unique array`);
     });
@@ -920,7 +879,7 @@ describe('ValidationService', () => {
       });
       const name = 'name';
       const error = {};
-      const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+      const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       };
       const subSchemas = [{ ref: 'TypeA' }, { ref: 'TypeB' }];

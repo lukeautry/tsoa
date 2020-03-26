@@ -1,27 +1,18 @@
 import * as moment from 'moment';
 import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
-import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
-import { SwaggerConfigRelatedToRoutes } from './routeGenerator';
+import { AdditionalProps } from './routeGenerator';
 import { isDefaultForAdditionalPropertiesAllowed, TsoaRoute } from './tsoa-route';
 
 // for backwards compatibility with custom templates
-export function ValidateParam(
-  property: TsoaRoute.PropertySchema,
-  value: any,
-  generatedModels: TsoaRoute.Models,
-  name = '',
-  fieldErrors: FieldErrors,
-  parent = '',
-  swaggerConfig: SwaggerConfigRelatedToRoutes,
-) {
+export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: AdditionalProps) {
   return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent, swaggerConfig);
 }
 
 export class ValidationService {
   constructor(private readonly models: TsoaRoute.Models) {}
 
-  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {
+  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: AdditionalProps) {
     let value = rawValue;
     if (value === undefined) {
       if (property.default !== undefined) {
@@ -88,7 +79,7 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    swaggerConfig: SwaggerConfigRelatedToRoutes,
+    swaggerConfig: AdditionalProps,
     nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
@@ -112,7 +103,7 @@ export class ValidationService {
       );
     }
 
-    const propHandling = this.resolveAdditionalPropSetting(swaggerConfig);
+    const propHandling = swaggerConfig.noImplicitAdditionalProperties;
     if (propHandling !== 'ignore') {
       const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value), swaggerConfig);
       if (excessProps.length > 0) {
@@ -395,7 +386,7 @@ export class ValidationService {
     return;
   }
 
-  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
+  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
     if (!schema || value === undefined) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
@@ -460,7 +451,7 @@ export class ValidationService {
     return new Buffer(value);
   }
 
-  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
+  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -488,7 +479,7 @@ export class ValidationService {
     return;
   }
 
-  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: SwaggerConfigRelatedToRoutes, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
+  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -530,7 +521,7 @@ export class ValidationService {
         modelDefinition: schema,
         fieldErrors: requiredPropError,
         minimalSwaggerConfig: {
-          noImplicitAdditionalProperties: false,
+          noImplicitAdditionalProperties: 'ignore',
         },
       });
       return requiredPropError;
@@ -538,7 +529,7 @@ export class ValidationService {
 
     const schemasWithRequiredProps = schemas.filter(schema => Object.keys(getRequiredPropError(schema)).length === 0);
 
-    if (this.resolveAdditionalPropSetting(swaggerConfig) === 'silently-remove-extras') {
+    if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
       if (schemasWithRequiredProps.length > 0) {
         return cleanValues;
       } else {
@@ -558,18 +549,6 @@ export class ValidationService {
         value,
       };
       return;
-    }
-  }
-
-  private resolveAdditionalPropSetting(swaggerConfig: SwaggerConfigRelatedToRoutes): AdditionalPropSetting {
-    if (!swaggerConfig.noImplicitAdditionalProperties) {
-      return 'ignore';
-    } else if (swaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras' || swaggerConfig.noImplicitAdditionalProperties === true) {
-      return 'throw-on-extras';
-    } else if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
-      return 'silently-remove-extras';
-    } else {
-      return assertNever(swaggerConfig.noImplicitAdditionalProperties);
     }
   }
 
@@ -620,26 +599,19 @@ export class ValidationService {
     return { dataType: 'refObject', properties: { ...a.properties, ...b.properties }, additionalProperties: a.additionalProperties || b.additionalProperties || false };
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: SwaggerConfigRelatedToRoutes): string[] {
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: AdditionalProps): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
       return [];
-    } else if (this.resolveAdditionalPropSetting(config) === 'ignore') {
+    } else if (config.noImplicitAdditionalProperties === 'ignore') {
       return [];
     } else {
       return [...properties].filter(property => !modelProperties.has(property));
     }
   }
 
-  public validateModel(input: {
-    name: string;
-    value: any;
-    modelDefinition: TsoaRoute.ModelSchema;
-    fieldErrors: FieldErrors;
-    parent?: string;
-    minimalSwaggerConfig: SwaggerConfigRelatedToRoutes;
-  }): any {
+  public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: AdditionalProps }): any {
     const { name, value, modelDefinition, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
     const previousErrors = Object.keys(fieldErrors).length;
 
@@ -690,18 +662,9 @@ export class ValidationService {
                 message: `"${key}" is an excess property and therefore is not allowed`,
                 value: key,
               };
-            } else if (swaggerConfig.noImplicitAdditionalProperties === true) {
-              warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
-              fieldErrors[`${fieldPath}.${key}`] = {
-                message: `"${key}" is an excess property and therefore is not allowed`,
-                value: key,
-              };
             } else if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
               delete value[key];
-            } else if (swaggerConfig.noImplicitAdditionalProperties === false) {
-              warnAdditionalPropertiesDeprecation(swaggerConfig.noImplicitAdditionalProperties);
-              // then it's okay to have additionalProperties
-            } else if (swaggerConfig.noImplicitAdditionalProperties === undefined) {
+            } else if (swaggerConfig.noImplicitAdditionalProperties === 'ignore') {
               // then it's okay to have additionalProperties
             } else {
               assertNever(swaggerConfig.noImplicitAdditionalProperties);
@@ -778,8 +741,6 @@ export interface ArrayValidator {
 }
 
 export type Validator = IntegerValidator | FloatValidator | DateValidator | DateTimeValidator | StringValidator | BooleanValidator | ArrayValidator;
-
-type AdditionalPropSetting = 'ignore' | 'silently-remove-extras' | 'throw-on-extras';
 
 export interface FieldErrors {
   [name: string]: { message: string; value?: any };

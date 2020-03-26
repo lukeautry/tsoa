@@ -4,14 +4,14 @@ import { expect } from 'chai';
 
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { Tsoa } from '../../../src/metadataGeneration/tsoa';
-import { SwaggerConfig } from '../../../src';
+import { ExtendedSwaggerConfig } from '../../../src/cli';
 
 describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
 
-  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
   if (!spec.info) {
     throw new Error('No spec info.');
@@ -30,19 +30,19 @@ describe('Schema details generation', () => {
   }
 
   it('should set API name if provided', () => {
-    expect(spec.info.title).to.equal(getDefaultOptions().name);
+    expect(spec.info.title).to.equal(getDefaultExtendedOptions().name);
   });
   it('should set API description if provided', () => {
-    expect(spec.info.description).to.equal(getDefaultOptions().description);
+    expect(spec.info.description).to.equal(getDefaultExtendedOptions().description);
   });
   it('should set API version if provided', () => {
-    expect(spec.info.version).to.equal(getDefaultOptions().version);
+    expect(spec.info.version).to.equal(getDefaultExtendedOptions().version);
   });
   it('should set API host if provided', () => {
-    expect(spec.host).to.equal(getDefaultOptions().host);
+    expect(spec.host).to.equal(getDefaultExtendedOptions().host);
   });
   it('should set API schemes if provided', () => {
-    expect(spec.schemes).to.equal(getDefaultOptions().schemes);
+    expect(spec.schemes).to.equal(getDefaultExtendedOptions().schemes);
   });
 
   const license = spec.info.license;
@@ -55,20 +55,20 @@ describe('Schema details generation', () => {
     throw new Error('No license name.');
   }
 
-  it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultOptions().license));
+  it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultExtendedOptions().license));
 
   describe('paths', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
         const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHiddenMethod = new SpecGenerator2(metadataHiddenMethod, getDefaultOptions()).GetSpec();
+        const specHiddenMethod = new SpecGenerator2(metadataHiddenMethod, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
       });
 
       it('should not contain paths for hidden controller', () => {
         const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
-        const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultOptions()).GetSpec();
+        const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
       });
@@ -89,9 +89,10 @@ describe('Schema details generation', () => {
           },
         },
       };
-      const swaggerConfig: SwaggerConfig = {
+      const swaggerConfig: ExtendedSwaggerConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
+        noImplicitAdditionalProperties: 'ignore',
       };
 
       // Act
@@ -107,9 +108,10 @@ describe('Schema details generation', () => {
     });
 
     it('should throw if an enum is mixed with numbers and strings', () => {
-      const swaggerConfig: SwaggerConfig = {
+      const swaggerConfig: ExtendedSwaggerConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
+        noImplicitAdditionalProperties: 'ignore',
       };
       const mixedEnumMetadata = new MetadataGenerator('./tests/fixtures/controllers/mixedEnumController.ts').Generate();
 
