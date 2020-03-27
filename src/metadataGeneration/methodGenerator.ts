@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { isVoidType } from '../utils/isVoidType';
 import { getDecorators } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
@@ -144,11 +145,12 @@ export class MethodGenerator {
 
   private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
+
     if (!decorators || !decorators.length) {
       return {
-        description: type.dataType === 'void' ? 'No content' : 'Ok',
+        description: isVoidType(type) ? 'No content' : 'Ok',
         examples: this.getMethodSuccessExamples(),
-        name: type.dataType === 'void' ? '204' : '200',
+        name: isVoidType(type) ? '204' : '200',
         schema: type,
       };
     }

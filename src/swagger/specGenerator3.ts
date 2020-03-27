@@ -1,5 +1,6 @@
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
+import { isVoidType } from '../utils/isVoidType';
 import { SwaggerConfig } from './../config';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
@@ -268,7 +269,7 @@ export class SpecGenerator3 extends SpecGenerator {
         },
         description: res.description,
       };
-      if (res.schema && res.schema.dataType !== 'void') {
+      if (res.schema && !isVoidType(res.schema)) {
         /* tslint:disable:no-string-literal */
         (swaggerResponses[res.name].content || {})['application/json']['schema'] = this.getSwaggerType(res.schema);
       }
