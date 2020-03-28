@@ -49,8 +49,14 @@ export interface SwaggerConfig {
 
   /**
    * API host, expressTemplat e.g. localhost:3000 or myapi.com, use null for relative urls
+   * OAPI2 compliant
    */
   host?: string | null;
+
+  /**
+   * API hosts array, e.g. [https://locahost:3000, https://myapi.com]
+   */
+  hosts?: string[];
 
   /**
    * API version number; defaults to npm package version

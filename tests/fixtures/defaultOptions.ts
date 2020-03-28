@@ -1,10 +1,26 @@
 import { SwaggerConfig } from './../../src/config';
-export function getDefaultOptions(outputDirectory: string = '', entryFile: string = ''): SwaggerConfig {
+export function getDefaultOptions(outputDirectory: string = '', entryFile: string = '', opapiSpec: number = 2): SwaggerConfig {
+  const specSpecific =
+    opapiSpec === 3
+      ? {
+          // OAPI configs
+          hosts: ['http://localhost:3000', 'http://myapi.com'],
+          swagger: {
+            specVersion: 3,
+          },
+        }
+      : {
+          // OAPI 2.0 configs
+          host: 'localhost:3000',
+          swagger: {
+            specVersion: 3,
+          },
+        };
   return {
+    ...specSpecific,
     basePath: '/v1',
     description: 'Description of a test API',
     entryFile,
-    host: 'localhost:3000',
     license: 'MIT',
     name: 'Test API',
     outputDirectory,

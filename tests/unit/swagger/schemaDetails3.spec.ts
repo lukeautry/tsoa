@@ -14,7 +14,7 @@ import assert = require('assert');
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
 
-  const defaultOptions = getDefaultOptions();
+  const defaultOptions = getDefaultOptions(undefined, undefined, 3);
   const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
@@ -62,20 +62,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('servers', () => {
     it('should replace the parent schemes element', () => {
       expect(specDefault.spec).to.not.have.property('schemes');
-      expect(specDefault.spec.servers[0].url).to.match(/^https/);
+      expect(specDefault.spec.servers[0].url).to.be('http://localhost:3000/v1');
+      expect(specDefault.spec.servers[0].url).to.be('http://myapi.com/v1');
     });
 
-    it('should replace the parent host element', () => {
-      expect(specDefault.spec).to.not.have.property('host');
-      expect(specDefault.spec.servers[0].url).to.match(/localhost:3000/);
-    });
-
-    it('should replace the parent basePath element', () => {
-      expect(specDefault.spec).to.not.have.property('basePath');
-      expect(specDefault.spec.servers[0].url).to.match(/\/v1/);
-    });
-
-    it('setting host to null should result in relative URL', () => {
+    it('setting hosts to null should result in relative URL', () => {
       const optionsWithHostIsNull = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
         host: null,
       });

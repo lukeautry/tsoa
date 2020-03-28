@@ -116,21 +116,15 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildServers() {
     const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
-    const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
 
-    let url;
-    if (this.config.host === null) {
-      url = basePath;
+    let urls;
+    if (!this.config.hosts || this.config.hosts.length === 0) {
+      urls = [`${basePath}`];
     } else {
-      const host = this.config.host || 'localhost:3000';
-      url = `${scheme}://${host}${basePath}`;
+      urls = this.config.hosts;
     }
-
-    return [
-      {
-        url,
-      } as Swagger.Server,
-    ];
+    const servers = urls.map(url => ({ url: `${url}${basePath}` }));
+    return servers;
   }
 
   private buildSchema() {

@@ -72,6 +72,69 @@ describe('Configuration', () => {
         done();
       });
     });
+    it('should accept multiple hosts in open api 3', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 3 as any;
+      config.hosts = ['https://localhost:3000', 'https://localhost:3002'];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.be.ok;
+          done();
+        },
+        err => {
+          throw new Error('Should not get here, expecting valid configs');
+        },
+      );
+    });
+    it('should not allow host, schema', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json', 3);
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 3 as any;
+      config.host = 'localhost:3000';
+      config.schemes = ['http'];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.not.be.ok;
+        },
+        err => {
+          expect(err).to.be.ok;
+        },
+      );
+      config.hosts = [];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.be.ok;
+          done();
+        },
+        err => {
+          throw new Error('Should not get here, expecting valid configs');
+        },
+      );
+    });
+    it('should set a default hosts when none are provided in open api 3', done => {
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json', 3);
+      // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
+      config.specVersion = 3 as any;
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.be.ok;
+        },
+        err => {
+          throw new Error('Should not get here, expecting valid configs');
+        },
+      );
+      config.hosts = [];
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult).to.be.ok;
+          done();
+        },
+        err => {
+          throw new Error('Should not get here, expecting valid configs');
+        },
+      );
+    });
   });
 
   describe('.validateMutualConfigs', () => {

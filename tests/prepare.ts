@@ -5,31 +5,44 @@ import { SwaggerConfig } from '../src/config';
 import { generateRoutes } from '../src/module/generate-routes';
 import { Timer } from './utils/timer';
 
-const defaultOptions: SwaggerConfig = {
-  basePath: '/v1',
-  entryFile: './tests/fixtures/express/server.ts',
-  host: 'localhost:3000',
-  noImplicitAdditionalProperties: 'silently-remove-extras',
-  outputDirectory: './dist',
-  securityDefinitions: {
-    api_key: {
-      in: 'query',
-      name: 'access_token',
-      type: 'apiKey',
-    },
-    tsoa_auth: {
-      authorizationUrl: 'http://swagger.io/api/oauth/dialog',
-      flow: 'implicit',
-      scopes: {
-        'read:pets': 'read things',
-        'write:pets': 'modify things',
+const defaultOptions = (opapiSpec: number = 3): SwaggerConfig => {
+  const specSpecific =
+    opapiSpec === 3
+      ? {
+          hosts: ['http://localhost:3000', 'http://myapi.com'],
+        }
+      : {
+          // OAPI 2.0 configs
+          host: 'localhost:3000',
+        };
+  return {
+    specVersion: opapiSpec === 3 ? 3 : 2,
+    ...specSpecific,
+    basePath: '/v1',
+    entryFile: './tests/fixtures/express/server.ts',
+    noImplicitAdditionalProperties: 'silently-remove-extras',
+    outputDirectory: './dist',
+    securityDefinitions: {
+      api_key: {
+        in: 'query',
+        name: 'access_token',
+        type: 'apiKey',
       },
-      type: 'oauth2',
+      tsoa_auth: {
+        authorizationUrl: 'http://swagger.io/api/oauth/dialog',
+        flow: 'implicit',
+        scopes: {
+          'read:pets': 'read things',
+          'write:pets': 'modify things',
+        },
+        type: 'oauth2',
+      },
     },
-  },
-  yaml: true,
+    yaml: true,
+  };
 };
-const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
+
+const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions(), {
   noImplicitAdditionalProperties: 'throw-on-extras',
   outputDirectory: './distForNoAdditional',
 });
@@ -63,7 +76,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           routesDir: './tests/fixtures/express',
         },
-        defaultOptions,
+        defaultOptions(3),
         undefined,
         undefined,
         metadata,
@@ -94,7 +107,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           routesDir: './tests/fixtures/express-dynamic-controllers',
         },
-        defaultOptions,
+        defaultOptions(),
         undefined,
         undefined,
         metadata,
@@ -109,7 +122,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'koa',
           routesDir: './tests/fixtures/koa',
         },
-        defaultOptions,
+        defaultOptions(),
         undefined,
         undefined,
         metadata,
@@ -139,7 +152,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'hapi',
           routesDir: './tests/fixtures/hapi',
         },
-        defaultOptions,
+        defaultOptions(),
       ),
     ),
     log('Custom Route Generation', () =>
@@ -153,7 +166,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           routesDir: './tests/fixtures/custom',
           routesFileName: 'customRoutes.ts',
         },
-        defaultOptions,
+        defaultOptions(),
         undefined,
         undefined,
         metadata,
@@ -169,7 +182,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           routesDir: './tests/fixtures/inversify',
         },
-        defaultOptions,
+        defaultOptions(),
       ),
     ),
   ]);
