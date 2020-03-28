@@ -119,7 +119,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     let urls;
     if (!this.config.hosts || this.config.hosts.length === 0) {
-      urls = [`${basePath}`];
+      urls = [''];
     } else {
       urls = this.config.hosts;
     }

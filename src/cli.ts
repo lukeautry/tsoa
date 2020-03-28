@@ -74,7 +74,7 @@ export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<Swag
   if (config.specVersion === 2 && config.hosts) {
     throw new Error('Multiple hosts are only supported in the 3.0 spec.');
   }
-  if ((config.specVersion === 3 && config.schemes) || config.host) {
+  if (config.specVersion === 3 && (config.schemes || config.host)) {
     throw new Error('config.host is deprecated OAPI3 standard uses config.hosts, an array of full URLS, e.g. https://mydomain.com');
   }
 

@@ -5,19 +5,14 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
       ? {
           // OAPI configs
           hosts: ['http://localhost:3000', 'http://myapi.com'],
-          swagger: {
-            specVersion: 3,
-          },
         }
       : {
           // OAPI 2.0 configs
           host: 'localhost:3000',
-          swagger: {
-            specVersion: 3,
-          },
         };
   return {
     ...specSpecific,
+    specVersion: opapiSpec === 3 ? 3 : 2,
     basePath: '/v1',
     description: 'Description of a test API',
     entryFile,

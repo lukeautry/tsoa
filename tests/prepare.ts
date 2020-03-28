@@ -42,7 +42,7 @@ const defaultOptions = (opapiSpec: number = 3): SwaggerConfig => {
   };
 };
 
-const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions(), {
+const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions(3), {
   noImplicitAdditionalProperties: 'throw-on-extras',
   outputDirectory: './distForNoAdditional',
 });
@@ -76,7 +76,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           routesDir: './tests/fixtures/express',
         },
-        defaultOptions(3),
+        defaultOptions(2),
         undefined,
         undefined,
         metadata,

@@ -62,16 +62,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('servers', () => {
     it('should replace the parent schemes element', () => {
       expect(specDefault.spec).to.not.have.property('schemes');
-      expect(specDefault.spec.servers[0].url).to.be('http://localhost:3000/v1');
-      expect(specDefault.spec.servers[0].url).to.be('http://myapi.com/v1');
+      expect(specDefault.spec.servers[0].url).to.equal('http://localhost:3000/v1');
+      expect(specDefault.spec.servers[1].url).to.equal('http://myapi.com/v1');
     });
 
     it('setting hosts to null should result in relative URL', () => {
       const optionsWithHostIsNull = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-        host: null,
+        hosts: undefined,
       });
       const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithHostIsNull).GetSpec();
-
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });

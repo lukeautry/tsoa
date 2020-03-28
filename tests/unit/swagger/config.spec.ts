@@ -65,17 +65,20 @@ describe('Configuration', () => {
     });
 
     it('should accept Spec version 3 when specified', done => {
-      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
-      config.specVersion = 3;
-      validateSwaggerConfig(config).then((configResult: SwaggerConfig) => {
-        expect(configResult.specVersion).to.equal(3);
-        done();
-      });
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json', 3);
+      validateSwaggerConfig(config).then(
+        (configResult: SwaggerConfig) => {
+          expect(configResult.specVersion).to.equal(3);
+          done();
+        },
+        error => {
+          throw new Error('Should not get here, expecting a valid spec');
+        },
+      );
     });
     it('should accept multiple hosts in open api 3', done => {
-      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json');
+      const config: SwaggerConfig = getDefaultOptions('some/output/directory', 'tsoa.json', 3);
       // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
-      config.specVersion = 3 as any;
       config.hosts = ['https://localhost:3000', 'https://localhost:3002'];
       validateSwaggerConfig(config).then(
         (configResult: SwaggerConfig) => {
@@ -95,20 +98,11 @@ describe('Configuration', () => {
       config.schemes = ['http'];
       validateSwaggerConfig(config).then(
         (configResult: SwaggerConfig) => {
-          expect(configResult).to.not.be.ok;
+          throw new Error('Should not get here, expecting invalid configs');
         },
         err => {
           expect(err).to.be.ok;
-        },
-      );
-      config.hosts = [];
-      validateSwaggerConfig(config).then(
-        (configResult: SwaggerConfig) => {
-          expect(configResult).to.be.ok;
           done();
-        },
-        err => {
-          throw new Error('Should not get here, expecting valid configs');
         },
       );
     });
