@@ -29,6 +29,13 @@ const nameDefault = () => getPackageJsonValue('name', 'TSOA');
 const versionDefault = () => getPackageJsonValue('version', '1.0.0');
 const descriptionDefault = () => getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
 const licenseDefault = () => getPackageJsonValue('license', 'MIT');
+const determineNoImplicitAdditionalSetting = (noImplicitAdditionalProperties: Config['noImplicitAdditionalProperties']): Exclude<Config['noImplicitAdditionalProperties'], undefined> => {
+  if (noImplicitAdditionalProperties === 'silently-remove-extras' || noImplicitAdditionalProperties === 'throw-on-extras' || noImplicitAdditionalProperties === 'ignore') {
+    return noImplicitAdditionalProperties;
+  } else {
+    return 'ignore';
+  }
+};
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
@@ -84,6 +91,7 @@ export const validateSwaggerConfig = async (config: Config): Promise<ExtendedSwa
     throw new Error('Unsupported Spec version.');
   }
 
+  const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
   config.swagger.name = config.swagger.name || (await nameDefault());
   config.swagger.description = config.swagger.description || (await descriptionDefault());
   config.swagger.license = config.swagger.license || (await licenseDefault());
@@ -91,8 +99,8 @@ export const validateSwaggerConfig = async (config: Config): Promise<ExtendedSwa
 
   return {
     ...config.swagger,
+    noImplicitAdditionalProperties,
     entryFile: config.entryFile,
-    noImplicitAdditionalProperties: config.noImplicitAdditionalProperties || 'ignore',
     controllerPathGlobs: config.controllerPathGlobs,
   };
 };
@@ -122,13 +130,14 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
     throw new Error(`No iocModule file found at '${config.routes.iocModule}'`);
   }
 
+  const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
   config.routes.basePath = config.routes.basePath || '/';
   config.routes.middleware = config.routes.middleware || 'express';
 
   return {
     ...config.routes,
     entryFile: config.entryFile,
-    noImplicitAdditionalProperties: config.noImplicitAdditionalProperties || 'ignore',
+    noImplicitAdditionalProperties,
     controllerPathGlobs: config.controllerPathGlobs,
   };
 };
