@@ -757,6 +757,7 @@ describe('Definition generation', () => {
                 enum: [
                   'id',
                   'enumKeys',
+                  'keyInterface',
                   'publicStringProperty',
                   'optionalPublicStringProperty',
                   'emailPattern',
@@ -829,6 +830,7 @@ describe('Definition generation', () => {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': false, enum: ['id'] },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
