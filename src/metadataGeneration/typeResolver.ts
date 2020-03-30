@@ -217,6 +217,15 @@ export class TypeResolver {
       }
     }
 
+    if (ts.isIndexedAccessTypeNode(this.typeNode) && ts.isLiteralTypeNode(this.typeNode.indexType) && ts.isStringLiteral(this.typeNode.indexType.literal)) {
+      const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
+      if (symbol === undefined) {
+        throw new GenerateMetadataError(`Could not determine the keys on ${this.typeNode.getText()}`, this.typeNode);
+      }
+      const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
+      return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode);
     }

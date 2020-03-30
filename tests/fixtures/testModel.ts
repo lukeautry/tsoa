@@ -575,6 +575,12 @@ enum MyEnum {
   KO,
 }
 
+interface Indexed {
+  foo: {
+    bar: string;
+  };
+}
+
 /**
  * This is a description of TestClassModel
  */
@@ -583,6 +589,7 @@ export class TestClassModel extends TestClassBaseModel {
   public defaultValue2 = 'Default Value 2';
   public enumKeys: keyof typeof MyEnum;
   public keyInterface?: keyof Model;
+  public indexedType?: Indexed['foo']['bar'];
   /**
    * This is a description of a public string property
    *
