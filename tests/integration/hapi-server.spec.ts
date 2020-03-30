@@ -1082,6 +1082,7 @@ describe('Hapi Server', () => {
     model.publicStringProperty = 'test';
     model.stringProperty = 'test';
     model.account = { id: 1234 };
+    model.enumKeys = 'OK';
 
     return model;
   }

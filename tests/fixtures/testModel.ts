@@ -564,12 +564,19 @@ export class PrivateModel {
   }
 }
 
+enum MyEnum {
+  OK,
+  KO,
+}
+
 /**
  * This is a description of TestClassModel
  */
 export class TestClassModel extends TestClassBaseModel {
   public account: Account;
   public defaultValue2 = 'Default Value 2';
+  public enumKeys: keyof typeof MyEnum;
+  public keyInterface?: keyof Model;
   /**
    * This is a description of a public string property
    *

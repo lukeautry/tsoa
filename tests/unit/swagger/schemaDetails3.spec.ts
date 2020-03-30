@@ -921,6 +921,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 oneOf: [
                   { type: 'string', enum: ['id'], nullable: false },
+                  { type: 'string', enum: ['enumKeys'], nullable: false },
+                  { type: 'string', enum: ['keyInterface'], nullable: false },
                   { type: 'string', enum: ['publicStringProperty'], nullable: false },
                   { type: 'string', enum: ['optionalPublicStringProperty'], nullable: false },
                   { type: 'string', enum: ['emailPattern'], nullable: false },
@@ -990,7 +992,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
+                  enumKeys: {
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    example: undefined,
+                    oneOf: [{ enum: ['OK'], nullable: false, type: 'string' }, { enum: ['KO'], nullable: false, type: 'string' }],
+                  },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
@@ -1010,7 +1020,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
                 },
-                required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+                required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',
                 description: 'Make all properties in T readonly',
                 default: undefined,

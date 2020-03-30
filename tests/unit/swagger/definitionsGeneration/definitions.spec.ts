@@ -756,6 +756,8 @@ describe('Definition generation', () => {
                 type: 'string',
                 enum: [
                   'id',
+                  'enumKeys',
+                  'keyInterface',
                   'publicStringProperty',
                   'optionalPublicStringProperty',
                   'emailPattern',
@@ -826,7 +828,9 @@ describe('Definition generation', () => {
               {
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
+                  enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': false, enum: ['id'] },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
@@ -846,7 +850,7 @@ describe('Definition generation', () => {
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
                 },
-                required: ['account', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+                required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',
                 description: 'Make all properties in T readonly',
                 default: undefined,

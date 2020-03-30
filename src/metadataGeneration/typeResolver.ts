@@ -207,6 +207,16 @@ export class TypeResolver {
       }
     }
 
+    if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
+      const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
+      try {
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      } catch (err) {
+        const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
+        throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
+      }
+    }
+
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode);
     }
