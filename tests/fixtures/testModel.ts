@@ -439,7 +439,7 @@ export class TestClassModel extends TestClassBaseModel {
   /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
-
+  public static staticStringProperty: string;
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar
    */
