@@ -238,7 +238,7 @@ export namespace Swagger {
   }
 
   export interface Schema extends BaseSchema {
-    type: DataType;
+    type?: DataType;
     format?: DataFormat;
     additionalProperties?: boolean | BaseSchema;
     properties?: { [propertyName: string]: Schema3 };
