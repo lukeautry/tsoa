@@ -165,7 +165,6 @@ export abstract class SpecGenerator {
       any: {
         // While the any type is discouraged, it does explicitly allows anything, so it should always allow additionalProperties
         additionalProperties: true,
-        type: 'object',
       },
       binary: { type: 'string', format: 'binary' },
       boolean: { type: 'boolean' },
