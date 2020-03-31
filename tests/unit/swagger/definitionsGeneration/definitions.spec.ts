@@ -1047,6 +1047,13 @@ describe('Definition generation', () => {
         }
       });
 
+      it('should not generate a property for a static property', () => {
+        const propertyName = 'staticStringProperty';
+        if (properties[propertyName]) {
+          throw new Error(`Property '${propertyName}' was not expected to exist.`);
+        }
+      });
+
       it('should not generate a property for a non-public constructor var', () => {
         const propertyName = 'protectedConstructorVar';
         if (properties[propertyName]) {
