@@ -764,6 +764,7 @@ export class TypeResolver {
         return !ignore;
       })
       .filter(member => member.kind === ts.SyntaxKind.PropertyDeclaration)
+      .filter(member => !this.hasStaticModifier(member))
       .filter(member => this.hasPublicModifier(member)) as Array<ts.PropertyDeclaration | ts.ParameterDeclaration>;
 
     const classConstructor = classDeclaration.members.find(member => member.kind === ts.SyntaxKind.Constructor) as ts.ConstructorDeclaration;
@@ -898,6 +899,15 @@ export class TypeResolver {
       !node.modifiers ||
       node.modifiers.every(modifier => {
         return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
+      })
+    );
+  }
+
+  private hasStaticModifier(node: ts.Node) {
+    return (
+      node.modifiers &&
+      node.modifiers.some(modifier => {
+        return modifier.kind === ts.SyntaxKind.StaticKeyword;
       })
     );
   }
