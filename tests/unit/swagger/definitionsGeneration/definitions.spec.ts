@@ -640,7 +640,12 @@ describe('Definition generation', () => {
                   partial: { $ref: '#/definitions/Partial_Account_', description: undefined, format: undefined, example: undefined },
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
-                  excludeLiteral: { $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, example: undefined },
+                  excludeLiteral: {
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_',
+                    description: undefined,
+                    format: undefined,
+                    example: undefined,
+                  },
                   excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
                   excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined, example: undefined },
                   pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, example: undefined },
@@ -763,7 +768,7 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account~OR~defaultValue2_', currentSpec);
+            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
@@ -845,6 +850,9 @@ describe('Definition generation', () => {
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                  indexedTypeToAlias: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToClass: { $ref: '#/definitions/IndexedClass', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToInterface: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': false, enum: ['id'] },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
@@ -874,6 +882,44 @@ describe('Definition generation', () => {
               },
               `for definition linked by ${propertyName}`,
             );
+
+            const indexedTypeToClass = getValidatedDefinition('IndexedClass', currentSpec);
+            expect(indexedTypeToClass).to.deep.eq({
+              additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
+              description: undefined,
+              properties: {
+                foo: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['bar'],
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                  'x-nullable': false,
+                },
+              },
+              required: ['foo'],
+              type: 'object',
+            });
+
+            const indexedTypeToInterface = getValidatedDefinition('IndexedInterface', currentSpec);
+            expect(indexedTypeToInterface).to.deep.eq({
+              additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
+              description: undefined,
+              properties: {
+                foo: {
+                  default: undefined,
+                  description: undefined,
+                  enum: ['bar'],
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                  'x-nullable': false,
+                },
+              },
+              required: ['foo'],
+              type: 'object',
+            });
 
             const defaultArgs = getValidatedDefinition('DefaultTestModel', currentSpec);
             expect(defaultArgs).to.deep.eq(

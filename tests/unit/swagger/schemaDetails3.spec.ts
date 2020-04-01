@@ -805,7 +805,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   partial: { $ref: '#/components/schemas/Partial_Account_', description: undefined, format: undefined, example: undefined },
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
-                  excludeLiteral: { $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2_', description: undefined, format: undefined, example: undefined },
+                  excludeLiteral: {
+                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_',
+                    description: undefined,
+                    format: undefined,
+                    example: undefined,
+                  },
                   excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
                   excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_', description: undefined, format: undefined, example: undefined },
                   pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, example: undefined },
@@ -928,7 +933,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account~OR~defaultValue2_', currentSpec);
+            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
@@ -1014,6 +1019,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+                  indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToInterface: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToAlias: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },

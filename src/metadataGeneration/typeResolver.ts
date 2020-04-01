@@ -217,13 +217,27 @@ export class TypeResolver {
       }
     }
 
-    if (ts.isIndexedAccessTypeNode(this.typeNode) && ts.isLiteralTypeNode(this.typeNode.indexType) && ts.isStringLiteral(this.typeNode.indexType.literal)) {
+    if (
+      ts.isIndexedAccessTypeNode(this.typeNode) &&
+      ts.isLiteralTypeNode(this.typeNode.indexType) &&
+      (ts.isStringLiteral(this.typeNode.indexType.literal) || ts.isNumericLiteral(this.typeNode.indexType.literal))
+    ) {
       const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
       if (symbol === undefined) {
-        throw new GenerateMetadataError(`Could not determine the keys on ${this.typeNode.getText()}`, this.typeNode);
+        throw new GenerateMetadataError(
+          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType))}`,
+          this.typeNode,
+        );
       }
       const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
-      return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      try {
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      } catch {
+        throw new GenerateMetadataError(
+          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(declaration)!))}`,
+          this.typeNode,
+        );
+      }
     }
 
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
