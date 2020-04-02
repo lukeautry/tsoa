@@ -144,7 +144,7 @@ export class TypeResolver {
     if (ts.isMappedTypeNode(this.typeNode) && this.referencer) {
       const isNotIgnored = (e: ts.Declaration) => {
         const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
-        return !ignore;
+        return !ignore && (ts.isPropertyDeclaration(e) || ts.isPropertySignature(e) || ts.isParameter(e));
       };
 
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);

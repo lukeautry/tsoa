@@ -516,11 +516,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              oneOf: [
-                { type: 'string', enum: [''], nullable: false },
-                { type: 'string', enum: ['Foo'], nullable: false },
-                { type: 'string', enum: ['Bar'], nullable: false },
-              ],
+              oneOf: [{ type: 'string', enum: [''], nullable: false }, { type: 'string', enum: ['Foo'], nullable: false }, { type: 'string', enum: ['Bar'], nullable: false }],
               default: undefined,
               description: undefined,
               example: undefined,
@@ -934,6 +930,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   { type: 'string', enum: ['publicConstructorVar'], nullable: false },
                   { type: 'string', enum: ['readonlyConstructorArgument'], nullable: false },
                   { type: 'string', enum: ['optionalPublicConstructorVar'], nullable: false },
+                  { type: 'string', enum: ['myIgnoredMethod'], nullable: false },
                   { type: 'string', enum: ['defaultValue1'], nullable: false },
                 ],
                 description: 'Exclude from T those types that are assignable to U',
@@ -1001,10 +998,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: undefined,
                     format: undefined,
                     example: undefined,
-                    oneOf: [
-                      { enum: ['OK'], nullable: false, type: 'string' },
-                      { enum: ['KO'], nullable: false, type: 'string' },
-                    ],
+                    oneOf: [{ enum: ['OK'], nullable: false, type: 'string' }, { enum: ['KO'], nullable: false, type: 'string' }],
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
@@ -1083,10 +1077,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined, example: undefined },
                 wordOrNull: { $ref: '#/components/schemas/Maybe_Word_', description: undefined, format: undefined, example: undefined },
                 numberOrNull: {
-                  oneOf: [
-                    { type: 'number', format: 'double' },
-                    { type: 'number', enum: ['null'], nullable: true },
-                  ],
+                  oneOf: [{ type: 'number', format: 'double' }, { type: 'number', enum: ['null'], nullable: true }],
                   description: undefined,
                   format: undefined,
                   default: undefined,
@@ -1177,10 +1168,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       // Assert
       expect(getComponentSchema(schemaName, { specName: 'specDefault', spec })).to.deep.eq({
         description: undefined,
-        oneOf: [
-          { type: 'number', enum: [1, 3] },
-          { type: 'string', enum: ['two', 'four'] },
-        ],
+        oneOf: [{ type: 'number', enum: [1, 3] }, { type: 'string', enum: ['two', 'four'] }],
       });
     });
   });

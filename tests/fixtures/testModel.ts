@@ -612,6 +612,10 @@ export class TestClassModel extends TestClassBaseModel {
   ) {
     super();
   }
+
+  public myIgnoredMethod() {
+    return 'ignored';
+  }
 }
 
 export interface GenericModel<T = string> {
