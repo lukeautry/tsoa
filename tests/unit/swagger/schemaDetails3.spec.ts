@@ -810,6 +810,60 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for property ${propertyName}`,
             );
 
+            const getterClass = getComponentSchema('GetterClass', currentSpec);
+            expect(getterClass).to.deep.eq({
+              allOf: [
+                {
+                  $ref: '#/components/schemas/NonFunctionProperties_GetterClass_',
+                },
+                {
+                  properties: {
+                    foo: {
+                      type: 'string',
+                      description: undefined,
+                      example: undefined,
+                      format: undefined,
+                      default: undefined,
+                    },
+                  },
+                  required: ['foo'],
+                  type: 'object',
+                },
+              ],
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: undefined,
+            });
+            const getterClass2 = getComponentSchema('NonFunctionProperties_GetterClass_', currentSpec);
+            expect(getterClass2).to.deep.eq({
+              $ref: '#/components/schemas/Pick_GetterClass.NonFunctionPropertyNames_GetterClass__',
+              description: undefined,
+              example: undefined,
+              format: undefined,
+              default: undefined,
+            });
+            const getterClass3 = getComponentSchema('Pick_GetterClass.NonFunctionPropertyNames_GetterClass__', currentSpec);
+            expect(getterClass3).to.deep.eq({
+              default: undefined,
+              description: 'From T, pick a set of properties whose keys are in the union K',
+              example: undefined,
+              format: undefined,
+              properties: {
+                a: {
+                  type: 'string',
+                  enum: ['b'],
+                  nullable: false,
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+              },
+              required: ['a'],
+              type: 'object',
+            });
+
             const omit = getComponentSchema('Omit_ErrorResponseModel.status_', currentSpec);
             expect(omit).to.deep.eq(
               {

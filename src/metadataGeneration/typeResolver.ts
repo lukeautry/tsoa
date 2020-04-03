@@ -258,16 +258,23 @@ export class TypeResolver {
       const toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
       if (toJSON) {
         const declaration = toJSON.declarations[0] as ts.MethodDeclaration;
-        const signature = this.current.typeChecker.getSignatureFromDeclaration(declaration);
-        const returnType = this.current.typeChecker.getReturnTypeOfSignature(signature!);
-        try {
-          const resolved = new TypeResolver(this.current.typeChecker.typeToTypeNode(returnType)!, this.current, this.parentNode, this.context).resolve() as Tsoa.ReferenceType;
-          resolved.refName = typeReference.getText();
-          this.current.AddReferenceType(resolved);
-          return resolved;
-        } catch {
-          // ignore methods
+
+        let nodeType = declaration.type;
+        if (!nodeType) {
+          const typeChecker = this.current.typeChecker;
+          const signature = typeChecker.getSignatureFromDeclaration(declaration);
+          const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+          nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
         }
+        const type = new TypeResolver(nodeType, this.current).resolve();
+        const referenceType: Tsoa.ReferenceType = {
+          refName: typeReference.getText(),
+          dataType: 'refAlias',
+          type,
+          validators: {},
+        };
+        this.current.AddReferenceType(referenceType);
+        return referenceType;
       }
 
       if (this.context[typeReference.typeName.text]) {

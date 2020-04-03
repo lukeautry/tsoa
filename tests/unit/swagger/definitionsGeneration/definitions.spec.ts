@@ -682,18 +682,6 @@ describe('Definition generation', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const getterClass = getValidatedDefinition('GetterClass', currentSpec);
-            expect(getterClass).to.deep.eq({
-              properties: {
-                a: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['b'], 'x-nullable': false },
-                foo: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
-              },
-              required: ['foo', 'a'],
-              type: 'object',
-              description: undefined,
-              additionalProperties: false,
-            });
-
             const omitHiddenReference = getValidatedDefinition('Pick_PrivateModel.Exclude_keyofPrivateModel.stringPropDec1__', currentSpec);
             expect(omitHiddenReference).to.deep.eq(
               {

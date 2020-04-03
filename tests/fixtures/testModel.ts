@@ -618,6 +618,10 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
+type NonFunctionPropertyNames<T> = {
+  [K in keyof T]: T[K] extends Function ? never : K;
+}[keyof T];
+type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
 export class GetterClass {
   public a: 'b';
 
@@ -625,8 +629,8 @@ export class GetterClass {
     return 'bar';
   }
 
-  public toJSON() {
-    return Object.assign({}, { a: this.a }, { foo: this.foo });
+  public toJSON(): NonFunctionProperties<GetterClass> & { foo: string } {
+    return Object.assign({}, this, { foo: this.foo });
   }
 }
 
