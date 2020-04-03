@@ -254,6 +254,22 @@ export class TypeResolver {
         return stringMetaType;
       }
 
+      const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
+      const toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
+      if (toJSON) {
+        const declaration = toJSON.declarations[0] as ts.MethodDeclaration;
+        const signature = this.current.typeChecker.getSignatureFromDeclaration(declaration);
+        const returnType = this.current.typeChecker.getReturnTypeOfSignature(signature!);
+        try {
+          const resolved = new TypeResolver(this.current.typeChecker.typeToTypeNode(returnType)!, this.current, this.parentNode, this.context).resolve() as Tsoa.ReferenceType;
+          resolved.refName = typeReference.getText();
+          this.current.AddReferenceType(resolved);
+          return resolved;
+        } catch {
+          // ignore methods
+        }
+      }
+
       if (this.context[typeReference.typeName.text]) {
         return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.context).resolve();
       }

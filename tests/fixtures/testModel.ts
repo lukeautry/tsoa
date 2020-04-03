@@ -618,6 +618,18 @@ export class TestClassModel extends TestClassBaseModel {
   }
 }
 
+export class GetterClass {
+  public a: 'b';
+
+  get foo() {
+    return 'bar';
+  }
+
+  public toJSON() {
+    return Object.assign({}, { a: this.a }, { foo: this.foo });
+  }
+}
+
 export interface GenericModel<T = string> {
   result: T;
   union?: T | string;
