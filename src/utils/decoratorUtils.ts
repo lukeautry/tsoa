@@ -18,7 +18,7 @@ export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identif
     .filter(isMatching);
 }
 
-export function getDecoratorName(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
+export function getNodeFirstDecoratorName(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
@@ -27,18 +27,29 @@ export function getDecoratorName(node: ts.Node, isMatching: (identifier: ts.Iden
   return decorators[0].text;
 }
 
-export function getDecoratorTextValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
+export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.TypeChecker, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
   }
+  const values = getDecoratorValues(decorators[0], typeChecker);
+  return values && values[0];
+}
 
-  const expression = decorators[0].parent as ts.CallExpression;
+export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+  const expression = decorator.parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) {
     return;
   }
-  return (expArguments[0] as ts.StringLiteral).text;
+  return expArguments.map(a => {
+    if (a.kind === ts.SyntaxKind.PropertyAccessExpression) {
+      const symbol = typeChecker.getSymbolAtLocation(a);
+      const initialaizer = symbol && symbol.valueDeclaration && (symbol.valueDeclaration as any).initializer;
+      a = initialaizer;
+    }
+    return getInitializerValue(a);
+  });
 }
 
 export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {

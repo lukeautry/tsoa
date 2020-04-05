@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
-
+const UNAUTHORIZED = { code: '401', text: 'Unauthorized' };
 @Route('MethodTest')
 export class MethodController extends Controller {
   @Get('Get')
@@ -44,7 +44,7 @@ export class MethodController extends Controller {
   }
 
   @Response<ErrorResponseModel>('400', 'Bad Request')
-  @Response<ErrorResponseModel>('401', 'Unauthorized')
+  @Response<ErrorResponseModel>(UNAUTHORIZED.code, UNAUTHORIZED.text)
   @Response<ErrorResponseModel>('default', 'Unexpected error', { status: 500, message: 'Something went wrong!' })
   @Get('MultiResponse')
   public async multiResponse(): Promise<TestModel> {
