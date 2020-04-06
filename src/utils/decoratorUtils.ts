@@ -52,6 +52,14 @@ export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Typ
   });
 }
 
+export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+  const [first, second] = getDecoratorValues(decorator, typeChecker);
+  if (isObject(first)) {
+    return first;
+  }
+  return { [first]: second || [] };
+}
+
 export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
@@ -72,4 +80,8 @@ export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifie
     return false;
   }
   return true;
+}
+
+function isObject(v: any) {
+  return typeof v === 'object' && v !== null;
 }

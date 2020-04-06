@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecorators, getDecoratorValues } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -220,14 +220,7 @@ export class MethodGenerator {
       return this.parentSecurity || [];
     }
 
-    const isObject = v => typeof v === 'object' && v !== null;
-    return securityDecorators.map(d => {
-      const [first, second] = getDecoratorValues(d, this.current.typeChecker);
-      if (isObject(first)) {
-        return first;
-      }
-      return { [first]: second || [] };
-    });
+    return securityDecorators.map(d => getSecurites(d, this.current.typeChecker));
   }
 
   private getIsHidden() {
