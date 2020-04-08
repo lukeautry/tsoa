@@ -56,7 +56,7 @@ export interface SwaggerConfig {
   /**
    * API hosts array, e.g. [https://locahost:3000, https://myapi.com]
    */
-  hosts?: string[];
+  servers?: OpenAPI3Server[];
 
   /**
    * API version number; defaults to npm package version
