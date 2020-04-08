@@ -51,6 +51,7 @@
     "@koa/router": "^8.0.8",
     "@types/koa__router": "^8.0.2",
     "fs-extra": "^8.1.0",
+    "glob": "^7.1.6",
     "handlebars": "^4.5.3",
     "merge": "^1.2.1",
     "minimatch": "^3.0.4",
