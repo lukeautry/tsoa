@@ -429,7 +429,7 @@ export class TypeResolver {
         referenceType = {
           dataType: 'refEnum',
           refName: this.getRefTypeName(name),
-          enums: [(declaration.initializer as ts.StringLiteral).text],
+          enums: [this.current.typeChecker.getConstantValue(declaration)!],
         };
       } else {
         referenceType = this.getModelReference(declaration, name);
