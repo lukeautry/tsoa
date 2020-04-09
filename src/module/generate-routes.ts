@@ -1,15 +1,12 @@
 import * as path from 'path';
 import * as ts from 'typescript';
-import { RoutesConfig } from '../config';
+import { ExtendedRoutesConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
-import { RouteGenerator, SwaggerConfigRelatedToRoutes } from '../routeGeneration/routeGenerator';
-import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
-import { validateMutualConfigs } from '../utils/mutualConfigValidation';
+import { RouteGenerator } from '../routeGeneration/routeGenerator';
 
 export const generateRoutes = async (
-  routesConfig: RoutesConfig,
-  minimalSwaggerConfig: SwaggerConfigRelatedToRoutes,
+  routesConfig: ExtendedRoutesConfig,
   compilerOptions?: ts.CompilerOptions,
   ignorePaths?: string[],
   /**
@@ -17,19 +14,11 @@ export const generateRoutes = async (
    */
   metadata?: Tsoa.Metadata,
 ) => {
-  // NOTE: I did not realize that the controllerPathGlobs was related to both swagger
-  //   and route generation when I merged https://github.com/lukeautry/tsoa/pull/396
-  //   So this allows tsoa consumers to submit it on either config and tsoa will respect the selection
-  if (minimalSwaggerConfig.controllerPathGlobs && !routesConfig.controllerPathGlobs) {
-    routesConfig.controllerPathGlobs = minimalSwaggerConfig.controllerPathGlobs;
-  }
-  validateMutualConfigs(routesConfig, minimalSwaggerConfig);
-
   if (!metadata) {
     metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs).Generate();
   }
 
-  const routeGenerator = new RouteGenerator(metadata, routesConfig, exactly(minimalSwaggerConfig));
+  const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
   let pathTransformer;
   let template;
@@ -57,36 +46,4 @@ export const generateRoutes = async (
   await routeGenerator.GenerateCustomRoutes(template, pathTransformer);
 
   return metadata;
-};
-
-const exactly = (input: SwaggerConfigRelatedToRoutes): SwaggerConfigRelatedToRoutes => {
-  // Validate the config values first
-  if (input.noImplicitAdditionalProperties === true) {
-    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
-  } else if (input.noImplicitAdditionalProperties === false) {
-    warnAdditionalPropertiesDeprecation(input.noImplicitAdditionalProperties);
-  } else if (input.noImplicitAdditionalProperties === undefined || input.noImplicitAdditionalProperties === 'throw-on-extras' || input.noImplicitAdditionalProperties === 'silently-remove-extras') {
-    // then it's good to go
-  } else {
-    throw new Error(`noImplicitAdditionalProperties is set to an invalid value. See https://github.com/lukeautry/tsoa/blob/master/src/config.ts for available options.`);
-  }
-
-  if (input.specVersion && input.specVersion !== 2 && input.specVersion !== 3) {
-    input.specVersion = 2;
-  }
-
-  // Make an exact copy that doesn't have other properties
-  const recordOfProps: Record<keyof SwaggerConfigRelatedToRoutes, 'right side does not matter'> = {
-    noImplicitAdditionalProperties: 'right side does not matter',
-    // tslint:disable-next-line: object-literal-sort-keys
-    controllerPathGlobs: 'right side does not matter',
-    specVersion: 'right side does not matter',
-  };
-
-  const exactObj: any = {};
-  Object.keys(recordOfProps).forEach(key => {
-    const strictKey = key;
-    exactObj[strictKey] = input[strictKey];
-  });
-  return exactObj;
 };

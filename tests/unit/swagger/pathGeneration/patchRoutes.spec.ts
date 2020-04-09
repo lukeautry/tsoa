@@ -1,13 +1,13 @@
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 
 describe('PATCH route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/patchController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/PatchTest';
 
   it('should generate a path for a PATCH route with no path argument', () => {

@@ -1,18 +1,18 @@
 import { expect } from 'chai';
 import 'mocha';
-import { SwaggerConfig } from '../../../src/config';
 import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
 import { Tsoa } from '../../../src/metadataGeneration/tsoa';
 import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
-import { getDefaultOptions } from '../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
+import { ExtendedSwaggerConfig } from '../../../src/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
 
-  const defaultOptions = getDefaultOptions();
-  const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
+  const defaultOptions: ExtendedSwaggerConfig = getDefaultExtendedOptions();
+  const optionsWithNoAdditional = Object.assign<{}, ExtendedSwaggerConfig, Partial<ExtendedSwaggerConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
@@ -73,7 +73,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should have relative URL when no host is defined', () => {
-      const optionsWithNoHost = Object.assign<{}, SwaggerConfig>({}, defaultOptions);
+      const optionsWithNoHost = Object.assign<{}, ExtendedSwaggerConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
       const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithNoHost).GetSpec();
@@ -202,7 +202,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
         const metadataPost = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
-        const specPost = new SpecGenerator3(metadataPost, getDefaultOptions()).GetSpec();
+        const specPost = new SpecGenerator3(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specPost.paths) {
           throw new Error('Paths are not defined.');
@@ -234,14 +234,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
         const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, getDefaultOptions()).GetSpec();
+        const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
       });
 
       it('should not contain paths for hidden controller', () => {
         const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
-        const specHiddenController = new SpecGenerator3(metadataHiddenController, getDefaultOptions()).GetSpec();
+        const specHiddenController = new SpecGenerator3(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
       });
@@ -525,7 +525,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              oneOf: [{ type: 'string', enum: [''], nullable: false }, { type: 'string', enum: ['Foo'], nullable: false }, { type: 'string', enum: ['Bar'], nullable: false }],
+              oneOf: [
+                { type: 'string', enum: [''], nullable: false },
+                { type: 'string', enum: ['Foo'], nullable: false },
+                { type: 'string', enum: ['Bar'], nullable: false },
+              ],
               default: undefined,
               description: undefined,
               example: undefined,
@@ -1085,7 +1089,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined, example: undefined },
                 wordOrNull: { $ref: '#/components/schemas/Maybe_Word_', description: undefined, format: undefined, example: undefined },
                 numberOrNull: {
-                  oneOf: [{ type: 'number', format: 'double' }, { type: 'number', enum: ['null'], nullable: true }],
+                  oneOf: [
+                    { type: 'number', format: 'double' },
+                    { type: 'number', enum: ['null'], nullable: true },
+                  ],
                   description: undefined,
                   format: undefined,
                   default: undefined,
@@ -1165,9 +1172,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
         },
       };
-      const swaggerConfig: SwaggerConfig = {
+      const swaggerConfig: ExtendedSwaggerConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
+        noImplicitAdditionalProperties: 'ignore',
       };
 
       // Act
@@ -1176,7 +1184,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       // Assert
       expect(getComponentSchema(schemaName, { specName: 'specDefault', spec })).to.deep.eq({
         description: undefined,
-        oneOf: [{ type: 'number', enum: [1, 3] }, { type: 'string', enum: ['two', 'four'] }],
+        oneOf: [
+          { type: 'number', enum: [1, 3] },
+          { type: 'string', enum: ['two', 'four'] },
+        ],
       });
     });
   });

@@ -2,13 +2,13 @@ import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('GET route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/GetTest';
 
   const getValidatedGetOperation = (actionRoute: string) => {
@@ -73,7 +73,7 @@ describe('GET route generation', () => {
 
   it('should generate a path for a GET route with no controller path argument', () => {
     const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
-    const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultOptions()).GetSpec();
+    const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultExtendedOptions()).GetSpec();
     VerifyPath(pathlessSpec, '/Current', path => path.get, false);
   });
 
@@ -164,7 +164,7 @@ describe('GET route generation', () => {
   it('should reject complex types as arguments', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultOptions()).GetSpec();
+      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
     }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });
 

@@ -1,17 +1,18 @@
 import { expect } from 'chai';
 import 'mocha';
-import { SwaggerConfig } from '../../../../src/config';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
 import { Swagger } from '../../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { TestModel } from '../../../fixtures/testModel';
+import { ExtendedSwaggerConfig } from '../../../../src/cli';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
   const dynamicMetadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts', undefined, undefined, ['./tests/fixtures/controllers/getController.ts']).Generate();
-  const defaultOptions = getDefaultOptions();
-  const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
+  const defaultConfig = getDefaultOptions();
+  const defaultOptions: ExtendedSwaggerConfig = { ...defaultConfig.swagger, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
+  const optionsWithNoAdditional = Object.assign<{}, ExtendedSwaggerConfig, Partial<ExtendedSwaggerConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 

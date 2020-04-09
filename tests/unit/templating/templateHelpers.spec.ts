@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { FieldErrors, TsoaRoute, ValidationService } from '../../../src';
-import { SwaggerConfigRelatedToRoutes } from '../../../src/routeGeneration/routeGenerator';
+import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
@@ -35,7 +35,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
@@ -88,7 +88,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
@@ -147,7 +147,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
@@ -231,8 +231,8 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-    noImplicitAdditionalProperties: true,
+  const minimalSwaggerConfig: AdditionalProps = {
+    noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
@@ -300,7 +300,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
@@ -326,7 +326,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   });
 });
 
-it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to false', () => {
+it('should not throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to ignore', () => {
   // Arrange
   const refName = 'ExampleModel';
   const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
@@ -357,8 +357,8 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-    noImplicitAdditionalProperties: false,
+  const minimalSwaggerConfig: AdditionalProps = {
+    noImplicitAdditionalProperties: 'ignore',
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName';
@@ -430,7 +430,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
@@ -469,7 +469,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   });
 });
 
-it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to false', () => {
+it('should not throw if the data has additionalProperties (on a nested Object) if noImplicitAdditionalProperties is set to ignore', () => {
   // Arrange
   const refName = 'ExampleModel';
   const models: TsoaRoute.RefObjectModels = {
@@ -525,8 +525,8 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
     },
   };
   const v = new ValidationService(models);
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
-    noImplicitAdditionalProperties: false,
+  const minimalSwaggerConfig: AdditionalProps = {
+    noImplicitAdditionalProperties: 'ignore',
   };
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
@@ -585,7 +585,7 @@ it('should throw if properties on nOl are missing', () => {
   const v = new ValidationService({});
 
   const errors = {};
-  const minimalSwaggerConfig: SwaggerConfigRelatedToRoutes = {
+  const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   };
 

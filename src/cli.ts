@@ -29,6 +29,13 @@ const nameDefault = () => getPackageJsonValue('name', 'TSOA');
 const versionDefault = () => getPackageJsonValue('version', '1.0.0');
 const descriptionDefault = () => getPackageJsonValue('description', 'Build swagger-compliant REST APIs using TypeScript and Node');
 const licenseDefault = () => getPackageJsonValue('license', 'MIT');
+const determineNoImplicitAdditionalSetting = (noImplicitAdditionalProperties: Config['noImplicitAdditionalProperties']): Exclude<Config['noImplicitAdditionalProperties'], undefined> => {
+  if (noImplicitAdditionalProperties === 'silently-remove-extras' || noImplicitAdditionalProperties === 'throw-on-extras' || noImplicitAdditionalProperties === 'ignore') {
+    return noImplicitAdditionalProperties;
+  } else {
+    return 'ignore';
+  }
+};
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
@@ -61,8 +68,14 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
   return config || {};
 };
 
-export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<SwaggerConfig> => {
-  if (!config.outputDirectory) {
+export interface ExtendedSwaggerConfig extends SwaggerConfig {
+  entryFile: Config['entryFile'];
+  noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
+  controllerPathGlobs?: Config['controllerPathGlobs'];
+}
+
+export const validateSwaggerConfig = async (config: Config): Promise<ExtendedSwaggerConfig> => {
+  if (!config.swagger.outputDirectory) {
     throw new Error('Missing outputDirectory: configuration must contain output directory.');
   }
   if (!config.entryFile) {
@@ -71,44 +84,62 @@ export const validateSwaggerConfig = async (config: SwaggerConfig): Promise<Swag
   if (!(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  config.version = config.version || (await versionDefault());
+  config.swagger.version = config.swagger.version || (await versionDefault());
 
-  config.specVersion = config.specVersion || 2;
-  if (config.specVersion !== 2 && config.specVersion !== 3) {
+  config.swagger.specVersion = config.swagger.specVersion || 2;
+  if (config.swagger.specVersion !== 2 && config.swagger.specVersion !== 3) {
     throw new Error('Unsupported Spec version.');
   }
 
-  config.name = config.name || (await nameDefault());
-  config.description = config.description || (await descriptionDefault());
-  config.license = config.license || (await licenseDefault());
-  config.basePath = config.basePath || '/';
+  const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
+  config.swagger.name = config.swagger.name || (await nameDefault());
+  config.swagger.description = config.swagger.description || (await descriptionDefault());
+  config.swagger.license = config.swagger.license || (await licenseDefault());
+  config.swagger.basePath = config.swagger.basePath || '/';
 
-  return config;
+  return {
+    ...config.swagger,
+    noImplicitAdditionalProperties,
+    entryFile: config.entryFile,
+    controllerPathGlobs: config.controllerPathGlobs,
+  };
 };
 
-const validateRoutesConfig = async (config: RoutesConfig): Promise<RoutesConfig> => {
+export interface ExtendedRoutesConfig extends RoutesConfig {
+  entryFile: Config['entryFile'];
+  noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
+  controllerPathGlobs?: Config['controllerPathGlobs'];
+}
+
+const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
   if (!config.entryFile) {
     throw new Error('Missing entryFile: Configuration must contain an entry point file.');
   }
   if (!(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  if (!config.routesDir) {
+  if (!config.routes.routesDir) {
     throw new Error('Missing routesDir: Configuration must contain a routes file output directory.');
   }
 
-  if (config.authenticationModule && !((await fsExists(config.authenticationModule)) || (await fsExists(config.authenticationModule + '.ts')))) {
-    throw new Error(`No authenticationModule file found at '${config.authenticationModule}'`);
+  if (config.routes.authenticationModule && !((await fsExists(config.routes.authenticationModule)) || (await fsExists(config.routes.authenticationModule + '.ts')))) {
+    throw new Error(`No authenticationModule file found at '${config.routes.authenticationModule}'`);
   }
 
-  if (config.iocModule && !((await fsExists(config.iocModule)) || (await fsExists(config.iocModule + '.ts')))) {
-    throw new Error(`No iocModule file found at '${config.iocModule}'`);
+  if (config.routes.iocModule && !((await fsExists(config.routes.iocModule)) || (await fsExists(config.routes.iocModule + '.ts')))) {
+    throw new Error(`No iocModule file found at '${config.routes.iocModule}'`);
   }
 
-  config.basePath = config.basePath || '/';
-  config.middleware = config.middleware || 'express';
+  const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
+  config.routes.basePath = config.routes.basePath || '/';
+  config.routes.middleware = config.routes.middleware || 'express';
 
-  return config;
+  return {
+    ...config.routes,
+    entryFile: config.entryFile,
+    noImplicitAdditionalProperties,
+    controllerPathGlobs: config.controllerPathGlobs,
+  };
 };
 
 const configurationArgs: yargs.Options = {
@@ -211,10 +242,9 @@ async function swaggerSpecGenerator(args: SwaggerArgs) {
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const swaggerConfig = await validateSwaggerConfig(config.swagger);
-    const routesConfig = await validateRoutesConfig(config.routes);
+    const swaggerConfig = await validateSwaggerConfig(config);
 
-    await generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore);
+    await generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
@@ -230,10 +260,9 @@ async function routeGenerator(args: ConfigArgs) {
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const routesConfig = await validateRoutesConfig(config.routes);
-    const swaggerConfig = await validateSwaggerConfig(config.swagger);
+    const routesConfig = await validateRoutesConfig(config);
 
-    await generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore);
+    await generateRoutes(routesConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);
@@ -258,15 +287,12 @@ export async function generateSwaggerAndRoutes(args: SwaggerArgs) {
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const routesConfig = await validateRoutesConfig(config.routes);
-    const swaggerConfig = await validateSwaggerConfig(config.swagger);
+    const routesConfig = await validateRoutesConfig(config);
+    const swaggerConfig = await validateSwaggerConfig(config);
 
     const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
 
-    return await Promise.all([
-      generateRoutes(routesConfig, swaggerConfig, compilerOptions, config.ignore, metadata),
-      generateSwaggerSpec(swaggerConfig, routesConfig, compilerOptions, config.ignore, metadata),
-    ]);
+    return await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);

@@ -3,7 +3,7 @@ import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -549,7 +549,7 @@ describe('Metadata generation', () => {
     });
 
     it('Should inline enums for TS Enums in path, query and header when using Swagger', () => {
-      const spec = new SpecGenerator2(parameterMetadata, getDefaultOptions()).GetSpec();
+      const spec = new SpecGenerator2(parameterMetadata, getDefaultExtendedOptions()).GetSpec();
       const method = spec.paths['/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}'].get;
 
       if (!method || !method.parameters) {

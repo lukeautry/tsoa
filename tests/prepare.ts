@@ -1,38 +1,8 @@
 // tslint:disable:no-console
 import chalk from 'chalk';
 import { generateSwaggerAndRoutes } from '../src/cli';
-import { SwaggerConfig } from '../src/config';
 import { generateRoutes } from '../src/module/generate-routes';
 import { Timer } from './utils/timer';
-
-const defaultOptions: SwaggerConfig = {
-  basePath: '/v1',
-  entryFile: './tests/fixtures/express/server.ts',
-  host: 'localhost:3000',
-  noImplicitAdditionalProperties: 'silently-remove-extras',
-  outputDirectory: './dist',
-  securityDefinitions: {
-    api_key: {
-      in: 'query',
-      name: 'access_token',
-      type: 'apiKey',
-    },
-    tsoa_auth: {
-      authorizationUrl: 'http://swagger.io/api/oauth/dialog',
-      flow: 'implicit',
-      scopes: {
-        'read:pets': 'read things',
-        'write:pets': 'modify things',
-      },
-      type: 'oauth2',
-    },
-  },
-  yaml: true,
-};
-const optionsWithNoAdditional = Object.assign<{}, SwaggerConfig, Partial<SwaggerConfig>>({}, defaultOptions, {
-  noImplicitAdditionalProperties: 'throw-on-extras',
-  outputDirectory: './distForNoAdditional',
-});
 
 const spec = async () => {
   const result = await generateSwaggerAndRoutes({
@@ -57,13 +27,13 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Express Route Generation', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
           authenticationModule: './tests/fixtures/express/authentication.ts',
           basePath: '/v1',
           entryFile: './tests/fixtures/express/server.ts',
           middleware: 'express',
           routesDir: './tests/fixtures/express',
         },
-        defaultOptions,
         undefined,
         undefined,
         metadata,
@@ -72,13 +42,13 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'throw-on-extras',
           authenticationModule: './tests/fixtures/express-openapi3/authentication.ts',
           basePath: '/v1',
           entryFile: './tests/fixtures/server.ts',
           middleware: 'express',
           routesDir: './tests/fixtures/express-openapi3',
         },
-        { ...optionsWithNoAdditional, specVersion: 3 },
         undefined,
         undefined,
         metadata,
@@ -87,6 +57,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Express Dynamic Route Generation', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
           authenticationModule: './tests/fixtures/express/authentication.ts',
           basePath: '/v1',
           controllerPathGlobs: ['./tests/fixtures/controllers/*'],
@@ -94,7 +65,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           middleware: 'express',
           routesDir: './tests/fixtures/express-dynamic-controllers',
         },
-        defaultOptions,
         undefined,
         undefined,
         metadata,
@@ -103,13 +73,13 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Koa Route Generation', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
           authenticationModule: './tests/fixtures/koa/authentication.ts',
           basePath: '/v1',
           entryFile: './tests/fixtures/koa/server.ts',
           middleware: 'koa',
           routesDir: './tests/fixtures/koa',
         },
-        defaultOptions,
         undefined,
         undefined,
         metadata,
@@ -118,33 +88,32 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'throw-on-extras',
           authenticationModule: './tests/fixtures/koaNoAdditional/authentication.ts',
           basePath: '/v1',
           entryFile: './tests/fixtures/server.ts',
           middleware: 'koa',
           routesDir: './tests/fixtures/koaNoAdditional',
         },
-        optionsWithNoAdditional,
         undefined,
         undefined,
         metadata,
       ),
     ),
     log('Hapi Route Generation', () =>
-      generateRoutes(
-        {
-          authenticationModule: './tests/fixtures/hapi/authentication.ts',
-          basePath: '/v1',
-          entryFile: './tests/fixtures/hapi/server.ts',
-          middleware: 'hapi',
-          routesDir: './tests/fixtures/hapi',
-        },
-        defaultOptions,
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './tests/fixtures/hapi/authentication.ts',
+        basePath: '/v1',
+        entryFile: './tests/fixtures/hapi/server.ts',
+        middleware: 'hapi',
+        routesDir: './tests/fixtures/hapi',
+      }),
     ),
     log('Custom Route Generation', () =>
       generateRoutes(
         {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
           authenticationModule: './tests/fixtures/custom/authentication.ts',
           basePath: '/v1',
           entryFile: './tests/fixtures/custom/server.ts',
@@ -153,24 +122,21 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
           routesDir: './tests/fixtures/custom',
           routesFileName: 'customRoutes.ts',
         },
-        defaultOptions,
         undefined,
         undefined,
         metadata,
       ),
     ),
     log('Inversify Route Generation', () =>
-      generateRoutes(
-        {
-          authenticationModule: './tests/fixtures/inversify/authentication.ts',
-          basePath: '/v1',
-          entryFile: './tests/fixtures/inversify/server.ts',
-          iocModule: './tests/fixtures/inversify/ioc.ts',
-          middleware: 'express',
-          routesDir: './tests/fixtures/inversify',
-        },
-        defaultOptions,
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './tests/fixtures/inversify/authentication.ts',
+        basePath: '/v1',
+        entryFile: './tests/fixtures/inversify/server.ts',
+        iocModule: './tests/fixtures/inversify/ioc.ts',
+        middleware: 'express',
+        routesDir: './tests/fixtures/inversify',
+      }),
     ),
   ]);
 })();

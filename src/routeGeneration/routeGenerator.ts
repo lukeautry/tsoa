@@ -2,19 +2,17 @@ import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
+import { ExtendedRoutesConfig } from '../cli';
+import { Config } from '../config';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
-import { warnAdditionalPropertiesDeprecation } from '../utils/deprecations';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
 import { isRefType } from '../utils/internalTypeGuards';
-import { RoutesConfig, SwaggerConfig } from './../config';
 import { normalisePath } from './../utils/pathUtils';
 import { TsoaRoute } from './tsoa-route';
 
-export interface SwaggerConfigRelatedToRoutes {
-  noImplicitAdditionalProperties?: SwaggerConfig['noImplicitAdditionalProperties'];
-  controllerPathGlobs?: SwaggerConfig['controllerPathGlobs'];
-  specVersion?: SwaggerConfig['specVersion'];
+export interface AdditionalProps {
+  noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
 }
 
 export class RouteGenerator {
@@ -30,7 +28,7 @@ export class RouteGenerator {
     vscode: true,
   };
 
-  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: RoutesConfig, private readonly minimalSwaggerConfig: SwaggerConfigRelatedToRoutes) {}
+  constructor(private readonly metadata: Tsoa.Metadata, private readonly options: ExtendedRoutesConfig) {}
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
@@ -60,21 +58,14 @@ export class RouteGenerator {
       if (additionalProperties) {
         // Then the model for this type explicitly allows additional properties and thus we should assign that
         return JSON.stringify(additionalProperties);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
+      } else if (this.options.noImplicitAdditionalProperties === 'silently-remove-extras') {
         return JSON.stringify(false);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === 'throw-on-extras') {
+      } else if (this.options.noImplicitAdditionalProperties === 'throw-on-extras') {
         return JSON.stringify(false);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === undefined) {
-        // Since Swagger defaults to allowing additional properties, then that will be our default
-        return JSON.stringify(true);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === true) {
-        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
-        return JSON.stringify(false);
-      } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties === false) {
-        warnAdditionalPropertiesDeprecation(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+      } else if (this.options.noImplicitAdditionalProperties === 'ignore') {
         return JSON.stringify(true);
       } else {
-        return assertNever(this.minimalSwaggerConfig.noImplicitAdditionalProperties);
+        return assertNever(this.options.noImplicitAdditionalProperties);
       }
     };
     handlebars.registerHelper('additionalPropsHelper', additionalPropsHelper);
@@ -126,7 +117,7 @@ export class RouteGenerator {
       }),
       environment: process.env,
       iocModule,
-      minimalSwaggerConfig: this.minimalSwaggerConfig,
+      minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
       models: this.buildModels(),
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
     });
@@ -157,7 +148,7 @@ export class RouteGenerator {
         };
         if (referenceType.additionalProperties) {
           refObjModel.additionalProperties = this.buildProperty(referenceType.additionalProperties);
-        } else if (this.minimalSwaggerConfig.noImplicitAdditionalProperties) {
+        } else if (this.options.noImplicitAdditionalProperties !== 'ignore') {
           refObjModel.additionalProperties = false;
         } else {
           // Since Swagger allows "excess properties" (to use a TypeScript term) by default

@@ -18,6 +18,21 @@ export interface Config {
   ignore?: string[];
 
   /**
+   * The entry point to your API
+   */
+  entryFile: string;
+
+  /**
+   * An array of path globs that point to your route controllers that you would like to have tsoa include.
+   */
+  controllerPathGlobs?: string[];
+
+  /**
+   * Modes that allow you to prevent input data from entering into your API. This will document your decision in the swagger.yaml and it will turn on excess-property validation (at runtime) in your routes.
+   */
+  noImplicitAdditionalProperties?: 'throw-on-extras' | 'silently-remove-extras' | 'ignore';
+
+  /**
    * Typescript CompilerOptions to be used during generation
    *
    * @type {ts.CompilerOptions}
@@ -36,16 +51,6 @@ export interface SwaggerConfig {
    * Generated SwaggerConfig.json will output here
    */
   outputDirectory: string;
-
-  /**
-   * The entry point to your API
-   */
-  entryFile: string;
-
-  /**
-   * Modes that allow you to prevent input data from entering into your API. This will document your decision in the swagger.yaml and it will turn on excess-property validation (at runtime) in your routes.
-   */
-  noImplicitAdditionalProperties?: 'throw-on-extras' | 'silently-remove-extras' | DeprecatedOptionForAdditionalPropertiesHandling;
 
   /**
    * API host, expressTemplate.g. localhost:3000 or myapi.com
@@ -119,11 +124,6 @@ export interface SwaggerConfig {
   yaml?: boolean;
 
   schemes?: Swagger.Protocol[];
-
-  /**
-   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
-   */
-  controllerPathGlobs?: string[];
 }
 
 export interface RoutesConfig {
@@ -136,11 +136,6 @@ export interface RoutesConfig {
    * Routes filename; the filename of the generated route file ('routes.ts' by default)
    */
   routesFileName?: string;
-
-  /**
-   * The entry point to your API
-   */
-  entryFile: string;
 
   /**
    * Base API path; e.g. the '/v1' in https://myapi.com/v1
@@ -166,9 +161,4 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
-
-  /**
-   * An array of path globs that point to your route controllers that you would like to have tsoa include. You can provide this config on either the SwaggerConfig or the RoutesConfig
-   */
-  controllerPathGlobs?: string[];
 }

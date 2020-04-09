@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
-import { getDefaultOptions } from '../../../fixtures/defaultOptions';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('Security route generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/securityController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
   it('should generate a route with a named security', () => {
     const path = verifyPath('/SecurityTest');
