@@ -48,6 +48,7 @@ export interface TestModel extends Model {
   enumStringNumberArray?: EnumStringNumberValue[];
   enumNumberArray?: EnumNumberValue[];
   enumStringValue?: EnumStringValue;
+  enumStringProperty?: EnumStringValue.VALUE_1;
   enumStringArray?: EnumStringValue[];
   modelValue: TestSubModel;
   modelsArray: TestSubModel[];

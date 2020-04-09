@@ -173,7 +173,7 @@ export class TypeResolver {
       if (type.aliasSymbol) {
         let declaration = type.aliasSymbol.declarations[0] as ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.DeclarationStatement;
         if (declaration.name) {
-          declaration = this.getModelTypeDeclaration(declaration.name as ts.EntityName);
+          declaration = this.getModelTypeDeclaration(declaration.name as ts.EntityName) as ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.DeclarationStatement;
         }
         const name = this.getRefTypeName(this.referencer.getText());
         return this.handleCachingAndCircularReferences(name, () => {
@@ -425,6 +425,12 @@ export class TypeResolver {
       let referenceType: Tsoa.ReferenceType;
       if (ts.isTypeAliasDeclaration(declaration)) {
         referenceType = this.getTypeAliasReference(declaration, name, node);
+      } else if (ts.isEnumMember(declaration)) {
+        referenceType = {
+          dataType: 'refEnum',
+          refName: this.getRefTypeName(name),
+          enums: [(declaration.initializer as ts.StringLiteral).text],
+        };
       } else {
         referenceType = this.getModelReference(declaration, name);
       }
@@ -580,6 +586,7 @@ export class TypeResolver {
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.TypeAliasDeclaration:
       case ts.SyntaxKind.EnumDeclaration:
+      case ts.SyntaxKind.EnumMember:
         return true;
       default:
         return false;
@@ -597,13 +604,13 @@ export class TypeResolver {
     while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
       const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier ? (leftmost as ts.Identifier).text : (leftmost as ts.QualifiedName).right.text;
       const moduleDeclarations = statements.filter(node => {
-        if (node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) {
+        if ((node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) && !ts.isEnumDeclaration(node)) {
           return false;
         }
 
-        const moduleDeclaration = node as ts.ModuleDeclaration;
+        const moduleDeclaration = node as ts.ModuleDeclaration | ts.EnumDeclaration;
         return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
-      }) as ts.ModuleDeclaration[];
+      }) as Array<ts.ModuleDeclaration | ts.EnumDeclaration>;
 
       if (!moduleDeclarations.length) {
         throw new GenerateMetadataError(`No matching module declarations found for ${leftmostName}.`);
@@ -612,12 +619,15 @@ export class TypeResolver {
         throw new GenerateMetadataError(`Multiple matching module declarations found for ${leftmostName}; please make module declarations unique.`);
       }
 
-      const moduleBlock = moduleDeclarations[0].body as ts.ModuleBlock;
-      if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) {
-        throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
+      if (ts.isEnumDeclaration(moduleDeclarations[0])) {
+        statements = moduleDeclarations[0].members;
+      } else {
+        const moduleBlock = moduleDeclarations[0].body as ts.ModuleBlock;
+        if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) {
+          throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
+        }
+        statements = moduleBlock.statements;
       }
-
-      statements = moduleBlock.statements;
       leftmost = leftmost.parent as ts.EntityName;
     }
 
@@ -635,9 +645,9 @@ export class TypeResolver {
         return false;
       }
 
-      const modelTypeDeclaration = node as UsableDeclaration;
+      const modelTypeDeclaration = node as UsableDeclaration | ts.EnumMember;
       return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
-    }) as Array<Exclude<UsableDeclaration, ts.PropertySignature>>;
+    }) as Array<Exclude<UsableDeclaration | ts.EnumMember, ts.PropertySignature>>;
 
     if (!modelTypes.length) {
       throw new GenerateMetadataError(
@@ -799,7 +809,8 @@ export class TypeResolver {
   private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName, context: Context): Context {
     this.context = {};
 
-    const typeParameters = this.getModelTypeDeclaration(targetEntitiy).typeParameters;
+    const declaration = this.getModelTypeDeclaration(targetEntitiy);
+    const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
 
     if (typeParameters) {
       for (let index = 0; index < typeParameters.length; index++) {
