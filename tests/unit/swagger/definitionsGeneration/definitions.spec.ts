@@ -402,6 +402,9 @@ describe('Definition generation', () => {
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string--bar-boolean__');
           },
+          indexed: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/Partial_Indexed~foo~_');
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);

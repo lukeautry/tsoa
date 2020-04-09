@@ -589,6 +589,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Generic__foo-string--bar-boolean__');
           },
+          indexed: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed~foo~_');
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
