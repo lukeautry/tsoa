@@ -298,6 +298,15 @@ describe('Definition generation', () => {
             const expectedEnumValues = ['', 'VALUE_1', 'VALUE_2'];
             expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
           },
+          enumStringProperty: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/EnumStringValue.VALUE_1');
+            const schema = getValidatedDefinition('EnumStringValue.VALUE_1', currentSpec);
+            expect(schema).to.deep.eq({
+              description: undefined,
+              enum: ['VALUE_1'],
+              type: 'string',
+            });
+          },
           enumStringArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
