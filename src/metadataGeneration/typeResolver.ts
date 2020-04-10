@@ -217,6 +217,22 @@ export class TypeResolver {
       }
     }
 
+    if (
+      ts.isIndexedAccessTypeNode(this.typeNode) &&
+      ts.isLiteralTypeNode(this.typeNode.indexType) &&
+      (ts.isStringLiteral(this.typeNode.indexType.literal) || ts.isNumericLiteral(this.typeNode.indexType.literal))
+    ) {
+      const hasType = (node: ts.Node): node is ts.HasType => node.hasOwnProperty('type');
+      const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
+      if (symbol === undefined || !hasType(symbol.valueDeclaration) || !symbol.valueDeclaration.type) {
+        throw new GenerateMetadataError(
+          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType))}`,
+          this.typeNode,
+        );
+      }
+      return new TypeResolver(symbol.valueDeclaration.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode);
     }
@@ -492,7 +508,8 @@ export class TypeResolver {
         .replace(/\[\]/g, 'Array')
         .replace(/{|}/g, '_') // SuccessResponse_{indexesCreated-number}_ -> SuccessResponse__indexesCreated-number__
         .replace(/([a-z]+):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
-        .replace(/;/g, '--'),
+        .replace(/;/g, '--')
+        .replace(/([a-z]+)\[([a-z]+)\]/gi, '$1~$2~'), // Partial_SerializedDatasourceWithVersion[format]_ -> Partial_SerializedDatasourceWithVersion~format~_,
     );
   }
 

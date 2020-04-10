@@ -61,6 +61,7 @@ export interface TestModel extends Model {
   anyType?: any;
   unknownType?: unknown;
   genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
+  indexed?: Partial<Indexed['foo']>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
@@ -93,7 +94,7 @@ export interface TestModel extends Model {
     partial?: Partial<Account>;
     excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
     excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
-    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | 'defaultValue2'>;
+    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | 'defaultValue2' | 'indexedTypeToInterface' | 'indexedTypeToClass' | 'indexedTypeToAlias'>;
     excludeToInterface?: Exclude<OneOrTwo, TypeAliasModel1>;
     excludeTypeToPrimitive?: NonNullable<number | null>;
 
@@ -149,6 +150,12 @@ export interface TestModel extends Model {
 
 interface Generic<T> {
   foo: T;
+}
+
+interface Indexed {
+  foo: {
+    bar: string;
+  };
 }
 
 type Maybe<T> = T | null;
@@ -575,6 +582,24 @@ enum MyEnum {
   KO,
 }
 
+interface IndexedInterface {
+  foo: 'bar';
+}
+type IndexedInterfaceAlias = IndexedInterface;
+class IndexedClass {
+  public foo: 'bar';
+}
+
+interface Indexed {
+  foo: {
+    bar: string;
+  };
+  interface: IndexedInterface;
+  alias: IndexedInterfaceAlias;
+  class: IndexedClass;
+}
+type IndexType = 'foo';
+
 /**
  * This is a description of TestClassModel
  */
@@ -583,6 +608,10 @@ export class TestClassModel extends TestClassBaseModel {
   public defaultValue2 = 'Default Value 2';
   public enumKeys: keyof typeof MyEnum;
   public keyInterface?: keyof Model;
+  public indexedType?: Indexed[IndexType]['bar'];
+  public indexedTypeToInterface?: Indexed['interface'];
+  public indexedTypeToClass?: Indexed['class'];
+  public indexedTypeToAlias?: Indexed['alias'];
   /**
    * This is a description of a public string property
    *
