@@ -489,7 +489,10 @@ export class TypeResolver {
         .replace(/\'([^']*)\'|\"(^"*)\"/g, '$1')
         .replace(/&/g, '~AND~')
         .replace(/\|/g, '~OR~')
-        .replace(/\[\]/g, 'Array'),
+        .replace(/\[\]/g, 'Array')
+        .replace(/{|}/g, '_') // SuccessResponse_{indexesCreated-number}_ -> SuccessResponse__indexesCreated-number__
+        .replace(/([a-z]+):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
+        .replace(/;/g, '--'),
     );
   }
 

@@ -399,6 +399,9 @@ describe('Definition generation', () => {
             expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
+          genericTypeObject: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string--bar-boolean__');
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
