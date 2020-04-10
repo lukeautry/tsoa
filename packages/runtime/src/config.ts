@@ -62,7 +62,7 @@ export interface SpecConfig {
    *
    * @default: "openapi"
    */
-  outputBasename?: string;
+  specFileBaseName?: string;
 
   /**
 
