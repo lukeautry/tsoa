@@ -40,7 +40,7 @@ export interface SwaggerConfig {
   /**
    * Base-name of swagger.json or swagger.yaml.
    *
-   * Default: "swagger"
+   * @default: "openapi"
    */
   outputBasename?: string;
 
