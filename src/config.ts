@@ -42,7 +42,7 @@ export interface SwaggerConfig {
    *
    * @default: "openapi"
    */
-  outputBasename?: string;
+  specFileBaseName?: string;
 
   /**
    * The entry point to your API
