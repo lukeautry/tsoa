@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
 import '../duplicateTestModel';
-import { GenericModel, GetterClass, TestClassModel, TestModel, TestSubModel } from '../testModel';
+import { GenericModel, GetterClass, TestClassModel, TestModel, TestSubModel, GetterInterface } from '../testModel';
 import { ModelService } from './../services/modelService';
 
 @Route('GetTest')
@@ -61,6 +61,11 @@ export class GetTestController extends Controller {
   @Get('GetterClass')
   public async getGetterClass(): Promise<GetterClass> {
     return new GetterClass();
+  }
+
+  @Get('GetterInterface')
+  public async getGetterInterface(): Promise<GetterInterface> {
+    return {} as GetterInterface;
   }
 
   @Get('Multi')

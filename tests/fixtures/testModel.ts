@@ -634,6 +634,10 @@ export class GetterClass {
   }
 }
 
+export interface GetterInterface {
+  toJSON(): { foo: string };
+}
+
 export interface GenericModel<T = string> {
   result: T;
   union?: T | string;

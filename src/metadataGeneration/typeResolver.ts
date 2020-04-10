@@ -254,29 +254,6 @@ export class TypeResolver {
         return stringMetaType;
       }
 
-      const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
-      const toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
-      if (toJSON) {
-        const declaration = toJSON.declarations[0] as ts.MethodDeclaration;
-
-        let nodeType = declaration.type;
-        if (!nodeType) {
-          const typeChecker = this.current.typeChecker;
-          const signature = typeChecker.getSignatureFromDeclaration(declaration);
-          const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-          nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
-        }
-        const type = new TypeResolver(nodeType, this.current).resolve();
-        const referenceType: Tsoa.ReferenceType = {
-          refName: typeReference.getText(),
-          dataType: 'refAlias',
-          type,
-          validators: {},
-        };
-        this.current.AddReferenceType(referenceType);
-        return referenceType;
-      }
-
       if (this.context[typeReference.typeName.text]) {
         return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.context).resolve();
       }
@@ -478,15 +455,45 @@ export class TypeResolver {
   }
 
   private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, name: string) {
+    const example = this.getNodeExample(modelType);
+    const description = this.getNodeDescription(modelType);
+
+    // Handle toJSON methods
+    let toJSON: ts.ClassElement | ts.TypeElement | undefined;
+    if (ts.isClassDeclaration(modelType)) {
+      toJSON = modelType.members.find(member => member.name && member.name.getText() === 'toJSON');
+    } else {
+      toJSON = modelType.members.find(member => member.name && member.name.getText() === 'toJSON');
+    }
+
+    if (toJSON && (ts.isMethodDeclaration(toJSON) || ts.isMethodSignature(toJSON))) {
+      let nodeType = toJSON.type;
+      if (!nodeType) {
+        const typeChecker = this.current.typeChecker;
+        const signature = typeChecker.getSignatureFromDeclaration(toJSON);
+        const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+        nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
+      }
+      const type = new TypeResolver(nodeType, this.current).resolve();
+      const referenceType: Tsoa.ReferenceType = {
+        refName: this.getRefTypeName(name),
+        dataType: 'refAlias',
+        description,
+        type,
+        validators: {},
+        ...(example && { example }),
+      };
+      return referenceType;
+    }
+
     const properties = this.getModelProperties(modelType);
     const additionalProperties = this.getModelAdditionalProperties(modelType);
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
-    const example = this.getNodeExample(modelType);
 
     const referenceType: Tsoa.ReferenceType = {
       additionalProperties,
       dataType: 'refObject',
-      description: this.getNodeDescription(modelType),
+      description,
       properties: inheritedProperties,
       refName: this.getRefTypeName(name),
       ...(example && { example }),
