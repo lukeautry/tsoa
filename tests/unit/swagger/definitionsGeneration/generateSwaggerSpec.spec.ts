@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import 'mocha';
 import { getSwaggerOutputPath, SwaggerConfig } from '../../../../src/module/generate-swagger-spec';
 
-const fakeSwaggerConfig = ({ outputDirectory, yaml, outputBasename, ...more }: { outputDirectory: string; yaml?: boolean; outputBasename?: string }) => {
+const fakeSwaggerConfig = ({ outputDirectory, yaml, specFileBaseName, ...more }: { outputDirectory: string; yaml?: boolean; specFileBaseName?: string }) => {
   const answer: SwaggerConfig = {
     entryFile: '',
     outputDirectory,
     yaml,
-    outputBasename,
+    specFileBaseName,
     ...more,
   };
   return answer;
@@ -20,7 +20,7 @@ describe('getSwaggerOutputPath()', () => {
         outputDirectory: '.',
       }),
     );
-    expect(result).to.equal('./swagger.json');
+    expect(result).to.equal('./openapi.json');
   });
 
   it('should make the output path (YAML)', () => {
@@ -30,7 +30,7 @@ describe('getSwaggerOutputPath()', () => {
         yaml: true,
       }),
     );
-    expect(result).to.equal('./swagger.yaml');
+    expect(result).to.equal('./openapi.yaml');
   });
 
   it('should make the output path (YAML, different filename)', () => {
@@ -38,7 +38,7 @@ describe('getSwaggerOutputPath()', () => {
       fakeSwaggerConfig({
         outputDirectory: '.',
         yaml: true,
-        outputBasename: 'api-spec',
+        specFileBaseName: 'api-spec',
       }),
     );
     expect(result).to.equal('./api-spec.yaml');
@@ -48,7 +48,7 @@ describe('getSwaggerOutputPath()', () => {
     const result = getSwaggerOutputPath(
       fakeSwaggerConfig({
         outputDirectory: 'my-routes',
-        outputBasename: 'private-routes',
+        specFileBaseName: 'private-routes',
       }),
     );
     expect(result).to.equal('my-routes/private-routes.json');
