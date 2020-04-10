@@ -42,14 +42,7 @@ export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Typ
   if (!expArguments || !expArguments.length) {
     return;
   }
-  return expArguments.map(a => {
-    if (a.kind === ts.SyntaxKind.PropertyAccessExpression) {
-      const symbol = typeChecker.getSymbolAtLocation(a);
-      const initialaizer = symbol && symbol.valueDeclaration && (symbol.valueDeclaration as any).initializer;
-      a = initialaizer;
-    }
-    return getInitializerValue(a);
-  });
+  return expArguments.map(a => getInitializerValue(a, typeChecker));
 }
 
 export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
@@ -58,20 +51,6 @@ export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeCheck
     return first;
   }
   return { [first]: second || [] };
-}
-
-export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
-  const decorators = getDecorators(node, isMatching);
-  if (!decorators || !decorators.length) {
-    return;
-  }
-
-  const expression = decorators[0].parent as ts.CallExpression;
-  const expArguments = expression.arguments;
-  if (!expArguments || !expArguments.length) {
-    return;
-  }
-  return getInitializerValue(expArguments[0]);
 }
 
 export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {

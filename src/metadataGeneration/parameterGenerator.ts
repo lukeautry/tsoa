@@ -53,7 +53,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       in: 'body-prop',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
@@ -92,7 +92,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       in: 'header',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
@@ -108,7 +108,7 @@ export class ParameterGenerator {
     const type = this.getValidatedType(parameter, false);
 
     const commonProperties = {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       in: 'query' as 'query',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
@@ -152,7 +152,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       in: 'path',
       name: pathName,

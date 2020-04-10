@@ -1,15 +1,15 @@
 import * as ts from 'typescript';
 import { Tsoa } from './tsoa';
 
-export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.Type) => {
-  if (!initializer) {
+export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: ts.TypeChecker, type?: Tsoa.Type) => {
+  if (!initializer || !typeChecker) {
     return;
   }
 
   switch (initializer.kind as ts.SyntaxKind) {
     case ts.SyntaxKind.ArrayLiteralExpression:
       const arrayLiteral = initializer as ts.ArrayLiteralExpression;
-      return arrayLiteral.elements.map(element => getInitializerValue(element));
+      return arrayLiteral.elements.map(element => getInitializerValue(element, typeChecker));
     case ts.SyntaxKind.StringLiteral:
       return (initializer as ts.StringLiteral).text;
     case ts.SyntaxKind.TrueKeyword:
@@ -27,7 +27,7 @@ export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.Typ
         let date = new Date();
         if (newExpression.arguments) {
           const newArguments = newExpression.arguments.filter(args => args.kind !== undefined);
-          const argsValue = newArguments.map(args => getInitializerValue(args));
+          const argsValue = newArguments.map(args => getInitializerValue(args, typeChecker));
           if (argsValue.length > 0) {
             date = new Date(argsValue as any);
           }
@@ -43,10 +43,12 @@ export const getInitializerValue = (initializer?: ts.Expression, type?: Tsoa.Typ
       const objectLiteral = initializer as ts.ObjectLiteralExpression;
       const nestedObject: any = {};
       objectLiteral.properties.forEach((p: any) => {
-        nestedObject[p.name.text] = getInitializerValue(p.initializer);
+        nestedObject[p.name.text] = getInitializerValue(p.initializer, typeChecker);
       });
       return nestedObject;
     default:
-      return;
+      const symbol = typeChecker.getSymbolAtLocation(initializer);
+      const extractedInitializer = symbol && symbol.valueDeclaration && (symbol.valueDeclaration as any).initializer;
+      return extractedInitializer ? getInitializerValue(extractedInitializer, typeChecker) : undefined;
   }
 };
