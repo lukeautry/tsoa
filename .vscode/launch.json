@@ -1,48 +1,42 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Mocha TS Tests",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "env": {
-                "NODE_ENV": "tsoa_test"
-            },
-            "args": [
-                "**/*spec.ts",
-                "--debug",
-                "--debug-brk",
-                "--require",
-                "ts-node/register",
-                "--colors",
-            ],
-            "preLaunchTask": "prepareFiles",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "protocol": "inspector"
-        },
-        {
-            "name": "Generate",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/src/cli.ts",
-            "stopOnEntry": false,
-            "args": [
-                "swagger"
-            ],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build",
-            "runtimeExecutable": null,
-            "runtimeArgs": [
-                "--nolazy"
-            ],
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "externalConsole": false,
-            "sourceMaps": true,
-            "outDir": "${workspaceRoot}/dist"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha TS Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "NODE_ENV": "tsoa_test"
+      },
+      "args": ["**/*spec.ts", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "preLaunchTask": "prepareFiles",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "protocol": "inspector"
+    },
+    {
+      "name": "Generate",
+      "type": "node",
+      "request": "launch",
+      "args": ["${workspaceRoot}/src/cli.ts", "swagger"],
+      "cwd": "${workspaceRoot}",
+      "preLaunchTask": "build",
+      "runtimeArgs": ["--require", "ts-node/register"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Pretest",
+      "type": "node",
+      "request": "launch",
+      "args": ["${workspaceRoot}/tests/prepare.ts"],
+      "cwd": "${workspaceRoot}",
+      "runtimeArgs": ["--require", "ts-node/register"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
 }

@@ -1,23 +1,22 @@
 {
-    "version": "0.1.0",
-    "command": "npm",
-    "isShellCommand": true,
-    "showOutput": "always",
-    "suppressTaskName": true,
-    "tasks": [
-        {
-            "taskName": "build",
-            "isBuildCommand": true,
-            "args": ["run", "build"]
-        },
-        {
-            "taskName": "test",
-            "isTestCommand": true,
-            "args": ["test"]
-        },
-        {
-            "taskName": "prepareFiles",
-            "args": ["run", "pretest"]
-        }
-    ]
+  "version": "2.0.0",
+  "command": "yarn",
+  "type": "shell",
+  "tasks": [
+    {
+      "label": "build",
+      "group": "build",
+      "args": ["run", "build"]
+    },
+    {
+      "label": "test",
+      "group": "test",
+      "args": ["test"]
+    },
+    {
+      "label": "prepareFiles",
+      "group": "none",
+      "args": ["run", "pretest"]
+    }
+  ]
 }
