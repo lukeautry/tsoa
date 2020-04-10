@@ -16,7 +16,7 @@ export interface RoutesConfigRelatedToSwagger {
 
 export const getSwaggerOutputPath = (swaggerConfig: SwaggerConfig) => {
   const ext = swaggerConfig.yaml ? 'yaml' : 'json';
-  const outputBasename = swaggerConfig.outputBasename || 'swagger';
+  const outputBasename = swaggerConfig.outputBasename || 'openapi';
 
   return `${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`;
 };
