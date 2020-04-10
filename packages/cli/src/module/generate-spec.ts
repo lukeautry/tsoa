@@ -9,7 +9,7 @@ import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
 
 export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
   const ext = swaggerConfig.yaml ? 'yaml' : 'json';
-  const outputBasename = swaggerConfig.outputBasename || 'swagger';
+  const outputBasename = swaggerConfig.outputBasename || 'openapi';
 
   return `${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`;
 };
