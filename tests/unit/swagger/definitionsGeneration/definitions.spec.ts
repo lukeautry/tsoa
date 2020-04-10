@@ -390,7 +390,7 @@ describe('Definition generation', () => {
             expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
           },
           genericTypeObject: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string__');
+            expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string--bar-boolean__');
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);

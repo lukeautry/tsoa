@@ -59,7 +59,7 @@ export interface TestModel extends Model {
   optionalString?: string;
   anyType?: any;
   unknownType?: unknown;
-  genericTypeObject?: Generic<{ foo: string }>
+  genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
@@ -146,7 +146,9 @@ export interface TestModel extends Model {
   };
 }
 
-interface Generic<T> { foo: T }
+interface Generic<T> {
+  foo: T;
+}
 
 type Maybe<T> = T | null;
 
