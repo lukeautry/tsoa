@@ -229,14 +229,12 @@ export class TypeResolver {
           this.typeNode,
         );
       }
-      const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
+      const declarations = symbol.getDeclarations() as ts.PropertyDeclaration[];
+      const type = declarations[0].type;
       try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        return new TypeResolver(type!, this.current, this.typeNode, this.context, this.referencer).resolve();
       } catch {
-        throw new GenerateMetadataError(
-          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(declaration)!))}`,
-          this.typeNode,
-        );
+        throw new GenerateMetadataError(`Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(type!))}`, this.typeNode);
       }
     }
 

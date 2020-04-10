@@ -1024,7 +1024,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },
                   indexedTypeToInterface: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
-                  indexedTypeToAlias: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToAlias: { $ref: '#/components/schemas/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },

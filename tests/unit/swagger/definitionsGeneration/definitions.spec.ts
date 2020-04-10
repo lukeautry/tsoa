@@ -853,7 +853,7 @@ describe('Definition generation', () => {
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
-                  indexedTypeToAlias: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
+                  indexedTypeToAlias: { $ref: '#/definitions/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/definitions/IndexedClass', description: undefined, format: undefined, example: undefined },
                   indexedTypeToInterface: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': false, enum: ['id'] },
