@@ -60,7 +60,7 @@ export interface SpecConfig {
   /**
    * Base-name of swagger.json or swagger.yaml.
    *
-   * Default: "swagger"
+   * @default: "openapi"
    */
   outputBasename?: string;
 
