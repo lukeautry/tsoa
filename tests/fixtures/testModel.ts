@@ -638,6 +638,10 @@ export interface GetterInterface {
   toJSON(): { foo: string };
 }
 
+export interface GetterInterfaceHerited extends GetterInterface {
+  foo: number;
+}
+
 export interface GenericModel<T = string> {
   result: T;
   union?: T | string;

@@ -459,18 +459,19 @@ export class TypeResolver {
     const description = this.getNodeDescription(modelType);
 
     // Handle toJSON methods
-    let toJSON: ts.ClassElement | ts.TypeElement | undefined;
-    if (ts.isClassDeclaration(modelType)) {
-      toJSON = modelType.members.find(member => member.name && member.name.getText() === 'toJSON');
-    } else {
-      toJSON = modelType.members.find(member => member.name && member.name.getText() === 'toJSON');
+    let toJSON: ts.Symbol | undefined;
+    if ('symbol' in modelType) {
+      // @ts-ignore
+      const type = this.current.typeChecker.getDeclaredTypeOfSymbol(modelType.symbol);
+      toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
     }
 
-    if (toJSON && (ts.isMethodDeclaration(toJSON) || ts.isMethodSignature(toJSON))) {
-      let nodeType = toJSON.type;
+    if (toJSON && toJSON.declarations.length > 0) {
+      const declaration = toJSON.declarations[0] as ts.MethodDeclaration;
+      let nodeType = declaration.type;
       if (!nodeType) {
         const typeChecker = this.current.typeChecker;
-        const signature = typeChecker.getSignatureFromDeclaration(toJSON);
+        const signature = typeChecker.getSignatureFromDeclaration(declaration);
         const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
         nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
       }

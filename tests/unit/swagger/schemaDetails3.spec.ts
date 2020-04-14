@@ -883,6 +883,25 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               description: undefined,
             });
 
+            const getterInterfaceHerited = getComponentSchema('GetterInterfaceHerited', currentSpec);
+            expect(getterInterfaceHerited).to.deep.eq({
+              properties: {
+                foo: {
+                  type: 'string',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+              },
+              required: ['foo'],
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: undefined,
+            });
+
             const omit = getComponentSchema('Omit_ErrorResponseModel.status_', currentSpec);
             expect(omit).to.deep.eq(
               {
