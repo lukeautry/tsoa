@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { assertNever } from '../utils/assertNever';
 import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
-import { getPropertyValidators } from './../utils/validatorUtils';
+import { getPropertyValidators, getPropertyValidatorsFromTags } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
@@ -142,23 +142,70 @@ export class TypeResolver {
     }
 
     if (ts.isMappedTypeNode(this.typeNode) && this.referencer) {
-      const isNotIgnored = (e: ts.Declaration) => {
-        const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
-        return !ignore && (ts.isPropertyDeclaration(e) || ts.isPropertySignature(e) || ts.isParameter(e));
-      };
-
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
-      const tsProperties = this.current.typeChecker.getPropertiesOfType(type).map(symbol => symbol.declarations[0]);
-      const mappedTypeNode = this.typeNode;
-      const properties = tsProperties.filter(isNotIgnored).map(property => {
-        if (ts.isPropertySignature(property)) {
-          return this.propertyFromSignature(property, mappedTypeNode.questionToken);
-        } else if (ts.isPropertyDeclaration(property) || ts.isParameter(property)) {
-          return this.propertyFromDeclaration(property, mappedTypeNode.questionToken);
-        } else {
-          throw new GenerateMetadataError(`could not resolve property of kind ${property.kind}. Please report this as an issue`, property);
+      const typeChecker = this.current.typeChecker;
+      const properties: Tsoa.Property[] = [];
+      for (const property of type.getProperties()) {
+        const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
+        const jsDocTags = property.getJsDocTags();
+
+        // Ignore methods, getter, setter and @ignored props
+        const declaration = property.declarations && property.declarations[0] as ts.Declaration | undefined;
+        const haveIgnoreTag = jsDocTags.find(tag => tag.name === 'ignore');
+        if (
+          haveIgnoreTag ||
+          (declaration !== undefined &&
+          !ts.isPropertyDeclaration(declaration) &&
+          !ts.isPropertySignature(declaration) &&
+          !ts.isParameter(declaration))
+        ) {
+          continue // ignore
         }
-      });
+
+        // Resolve default value, required and typeNode
+        const defaultTag = jsDocTags.find(tag => tag.name === 'default');
+        let defaultValue = defaultTag !== undefined ? defaultTag.text : undefined;
+        let required = false;
+        let typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
+        if (declaration) {
+          required = !declaration.questionToken && !declaration.initializer; // no `?` and no default value
+          defaultValue = getInitializerValue(declaration.initializer); // handle `public foo = 'default'`
+          if (declaration.type) {
+            // preserve aliases
+            typeNode = declaration.type;
+          }
+        }
+        if (this.typeNode.questionToken && this.typeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
+          required = true;
+        } else if (this.typeNode.questionToken && this.typeNode.questionToken.kind === ts.SyntaxKind.QuestionToken) {
+          required = false;
+        }
+
+        // Get jsdoc infos
+        const docComments = property.getDocumentationComment(this.current.typeChecker);
+        const desc = docComments.length ? ts.displayPartsToString(docComments) : undefined;
+        const exampleTag = jsDocTags.find(tag => tag.name === 'example');
+        let example: string | undefined;
+        try {
+          if (exampleTag && exampleTag.text) {
+            example = JSON.parse(exampleTag.text);
+          }
+          // tslint:disable-next-line: no-empty
+        } catch {}
+        const formatTag = jsDocTags.find(tag => tag.name === 'format');
+
+        // Push property
+        properties.push({
+          default: defaultValue,
+          description: desc,
+          example,
+          format: formatTag !== undefined ? formatTag.text : undefined,
+          name: property.name,
+          required,
+          type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
+          validators: getPropertyValidatorsFromTags(jsDocTags) || {},
+        });
+      }
 
       const objectLiteral: Tsoa.NestedObjectLiteralType = {
         dataType: 'nestedObjectLiteral',
