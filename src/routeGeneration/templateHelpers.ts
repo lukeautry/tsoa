@@ -750,10 +750,20 @@ export interface Exception extends Error {
   status: number;
 }
 
-export class ValidateError implements Exception {
+export class ValidateException implements Exception {
   public status = 400;
-  public name = 'ValidateError';
+  public name = 'ValidateException';
 
   constructor(public fields: FieldErrors, public message: string) {}
 }
+
+export class ValidateError extends Error implements Exception {
+  public status = 400;
+  public name = 'ValidateError';
+
+  constructor(public fields: FieldErrors, public message: string) {
+    super(message);
+  }
+}
+
 export * from './tsoa-route';
