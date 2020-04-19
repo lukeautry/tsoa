@@ -48,7 +48,9 @@ export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: t
       return nestedObject;
     default:
       const symbol = typeChecker.getSymbolAtLocation(initializer);
-      const extractedInitializer = symbol && symbol.valueDeclaration && (symbol.valueDeclaration as any).initializer;
+      const extractedInitializer = symbol && symbol.valueDeclaration && hasInitializer(symbol.valueDeclaration) && (symbol.valueDeclaration.initializer as ts.Expression);
       return extractedInitializer ? getInitializerValue(extractedInitializer, typeChecker) : undefined;
   }
 };
+
+const hasInitializer = (node: ts.Node): node is ts.HasInitializer => node.hasOwnProperty('initializer');
