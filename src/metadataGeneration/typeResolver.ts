@@ -459,21 +459,17 @@ export class TypeResolver {
     const description = this.getNodeDescription(modelType);
 
     // Handle toJSON methods
-    let toJSON: ts.Symbol | undefined;
-    if ('symbol' in modelType) {
-      // @ts-ignore
-      const type = this.current.typeChecker.getDeclaredTypeOfSymbol(modelType.symbol);
-      toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
+    if (!modelType.name) {
+      throw new GenerateMetadataError("Can't get Symbol from anonymous class", modelType);
     }
-
-    if (toJSON && toJSON.declarations.length > 0) {
-      const declaration = toJSON.declarations[0] as ts.MethodDeclaration;
-      let nodeType = declaration.type;
+    const type = this.current.typeChecker.getTypeAtLocation(modelType.name);
+    const toJSON = this.current.typeChecker.getPropertyOfType(type, 'toJSON');
+    if (toJSON && toJSON.valueDeclaration && (ts.isMethodDeclaration(toJSON.valueDeclaration) || ts.isMethodSignature(toJSON.valueDeclaration))) {
+      let nodeType = toJSON.valueDeclaration.type;
       if (!nodeType) {
-        const typeChecker = this.current.typeChecker;
-        const signature = typeChecker.getSignatureFromDeclaration(declaration);
-        const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-        nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
+        const signature = this.current.typeChecker.getSignatureFromDeclaration(toJSON.valueDeclaration);
+        const implicitType = this.current.typeChecker.getReturnTypeOfSignature(signature!);
+        nodeType = this.current.typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
       }
       const type = new TypeResolver(nodeType, this.current).resolve();
       const referenceType: Tsoa.ReferenceType = {
