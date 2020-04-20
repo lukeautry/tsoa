@@ -16,6 +16,7 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
+import { boomify, Payload } from '@hapi/boom';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -77,9 +78,14 @@ export function RegisterRoutes(server: any) {
                     try {
                         validatedArgs = getValidatedArgs(args, request);
                     } catch (err) {
-                        return h
-                            .response(err)
-                            .code(err.status || 500);
+                        const boomErr = boomify(err);
+                        boomErr.output.statusCode = err.status || 500;
+                        boomErr.output.payload = {
+                            name: err.name,
+                            fields: err.fields,
+                            message: err.message,
+                        } as unknown as Payload;
+                        throw boomErr;
                     }
 
                     {{#if ../../iocModule}}

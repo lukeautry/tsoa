@@ -787,6 +787,7 @@ describe('Definition generation', () => {
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
+                  'myIgnoredMethod',
                   'defaultValue1',
                 ],
                 description: 'Exclude from T those types that are assignable to U',
