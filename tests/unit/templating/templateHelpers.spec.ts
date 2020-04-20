@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import { FieldErrors, TsoaRoute, ValidationService } from '../../../src';
 import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
+import { ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
@@ -612,4 +613,8 @@ it('should throw if properties on nOl are missing', () => {
       value: undefined,
     },
   });
+});
+
+it('should throw an Error', () => {
+  expect(new ValidateError({}, '')).to.be.an.instanceof(Error);
 });
