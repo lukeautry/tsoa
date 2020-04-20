@@ -3,10 +3,10 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
-import { Config, RoutesConfig, SwaggerConfig } from './config';
+import { Config, RoutesConfig, SpecConfig } from './config';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
-import { generateSwaggerSpec } from './module/generate-swagger-spec';
+import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 
 const workingDir: string = process.cwd();
@@ -68,14 +68,14 @@ const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOption
   return config || {};
 };
 
-export interface ExtendedSwaggerConfig extends SwaggerConfig {
+export interface ExtendedSpecConfig extends SpecConfig {
   entryFile: Config['entryFile'];
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
 }
 
-export const validateSwaggerConfig = async (config: Config): Promise<ExtendedSwaggerConfig> => {
-  if (!config.swagger.outputDirectory) {
+export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecConfig> => {
+  if (!config.spec.outputDirectory) {
     throw new Error('Missing outputDirectory: configuration must contain output directory.');
   }
   if (!config.entryFile) {
@@ -84,21 +84,21 @@ export const validateSwaggerConfig = async (config: Config): Promise<ExtendedSwa
   if (!(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
-  config.swagger.version = config.swagger.version || (await versionDefault());
+  config.spec.version = config.spec.version || (await versionDefault());
 
-  config.swagger.specVersion = config.swagger.specVersion || 2;
-  if (config.swagger.specVersion !== 2 && config.swagger.specVersion !== 3) {
+  config.spec.specVersion = config.spec.specVersion || 2;
+  if (config.spec.specVersion !== 2 && config.spec.specVersion !== 3) {
     throw new Error('Unsupported Spec version.');
   }
 
   const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
-  config.swagger.name = config.swagger.name || (await nameDefault());
-  config.swagger.description = config.swagger.description || (await descriptionDefault());
-  config.swagger.license = config.swagger.license || (await licenseDefault());
-  config.swagger.basePath = config.swagger.basePath || '/';
+  config.spec.name = config.spec.name || (await nameDefault());
+  config.spec.description = config.spec.description || (await descriptionDefault());
+  config.spec.license = config.spec.license || (await licenseDefault());
+  config.spec.basePath = config.spec.basePath || '/';
 
   return {
-    ...config.swagger,
+    ...config.spec,
     noImplicitAdditionalProperties,
     entryFile: config.entryFile,
     controllerPathGlobs: config.controllerPathGlobs,
@@ -189,8 +189,8 @@ if (!module.parent) {
     .usage('Usage: $0 <command> [options]')
     .demand(1)
     .command(
-      'swagger',
-      'Generate swagger spec',
+      'spec',
+      'Generate OpenAPI spec',
       {
         basePath: basePathArgs,
         configuration: configurationArgs,
@@ -198,7 +198,19 @@ if (!module.parent) {
         json: jsonArgs,
         yaml: yarmlArgs,
       },
-      swaggerSpecGenerator as any,
+      SpecGenerator as any,
+    )
+    .command(
+      'swagger',
+      'Generate OpenAPI spec',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      SpecGenerator as any,
     )
     .command(
       'routes',
@@ -210,8 +222,8 @@ if (!module.parent) {
       routeGenerator as any,
     )
     .command(
-      'swagger-and-routes',
-      'Generate swagger and routes',
+      'spec-and-routes',
+      'Generate OpenAPI spec and routes',
       {
         basePath: basePathArgs,
         configuration: configurationArgs,
@@ -219,32 +231,44 @@ if (!module.parent) {
         json: jsonArgs,
         yaml: yarmlArgs,
       },
-      generateSwaggerAndRoutes as any,
+      generateSpecAndRoutes as any,
+    )
+    .command(
+      'swagger-and-routes',
+      'Generate OpenAPI spec and routes',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        host: hostArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      generateSpecAndRoutes as any,
     )
     .help('help')
     .alias('help', 'h').argv;
 }
 
-async function swaggerSpecGenerator(args: SwaggerArgs) {
+async function SpecGenerator(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
-      config.swagger.basePath = args.basePath;
+      config.spec.basePath = args.basePath;
     }
     if (args.host) {
-      config.swagger.host = args.host;
+      config.spec.host = args.host;
     }
     if (args.yaml) {
-      config.swagger.yaml = args.yaml;
+      config.spec.yaml = args.yaml;
     }
     if (args.json) {
-      config.swagger.yaml = false;
+      config.spec.yaml = false;
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const swaggerConfig = await validateSwaggerConfig(config);
+    const swaggerConfig = await validateSpecConfig(config);
 
-    await generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore);
+    await generateSpec(swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate swagger error.\n', err);
@@ -270,29 +294,29 @@ async function routeGenerator(args: ConfigArgs) {
   }
 }
 
-export async function generateSwaggerAndRoutes(args: SwaggerArgs) {
+export async function generateSpecAndRoutes(args: SwaggerArgs) {
   try {
     const config = await getConfig(args.configuration);
     if (args.basePath) {
-      config.swagger.basePath = args.basePath;
+      config.spec.basePath = args.basePath;
     }
     if (args.host) {
-      config.swagger.host = args.host;
+      config.spec.host = args.host;
     }
     if (args.yaml) {
-      config.swagger.yaml = args.yaml;
+      config.spec.yaml = args.yaml;
     }
     if (args.json) {
-      config.swagger.yaml = false;
+      config.spec.yaml = false;
     }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config);
-    const swaggerConfig = await validateSwaggerConfig(config);
+    const swaggerConfig = await validateSpecConfig(config);
 
     const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
 
-    return await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSwaggerSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
+    return await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
   } catch (err) {
     // tslint:disable-next-line:no-console
     console.error('Generate routes error.\n', err);

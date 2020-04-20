@@ -1,4 +1,4 @@
-import { ExtendedSwaggerConfig } from '../cli';
+import { ExtendedSpecConfig } from '../cli';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
 import { isVoidType } from '../utils/isVoidType';
@@ -17,7 +17,7 @@ import { Swagger } from './swagger';
  * Also accept OpenAPI 3.0.0 metadata, like components/securitySchemes instead of securityDefinitions
  */
 export class SpecGenerator3 extends SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSwaggerConfig) {
+  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {
     super(metadata, config);
   }
 

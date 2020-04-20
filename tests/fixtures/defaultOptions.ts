@@ -1,4 +1,4 @@
-import { ExtendedSwaggerConfig } from '../../src/cli';
+import { ExtendedSpecConfig } from '../../src/cli';
 import { Config } from './../../src/config';
 export function getDefaultOptions(outputDirectory: string = '', entryFile: string = ''): Config {
   return {
@@ -7,7 +7,7 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
     routes: {
       routesDir: './build',
     },
-    swagger: {
+    spec: {
       basePath: '/v1',
       description: 'Description of a test API',
       host: 'localhost:3000',
@@ -61,10 +61,10 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
   };
 }
 
-export function getDefaultExtendedOptions(outputDirectory: string = '', entryFile: string = ''): ExtendedSwaggerConfig {
+export function getDefaultExtendedOptions(outputDirectory: string = '', entryFile: string = ''): ExtendedSpecConfig {
   const defaultOptions = getDefaultOptions(outputDirectory, entryFile);
   return {
-    ...defaultOptions.swagger,
+    ...defaultOptions.spec,
     entryFile,
     noImplicitAdditionalProperties: 'ignore',
     controllerPathGlobs: defaultOptions.controllerPathGlobs,

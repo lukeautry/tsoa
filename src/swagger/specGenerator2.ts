@@ -1,4 +1,4 @@
-import { ExtendedSwaggerConfig } from '../cli';
+import { ExtendedSpecConfig } from '../cli';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { assertNever } from '../utils/assertNever';
 import { isVoidType } from '../utils/isVoidType';
@@ -7,7 +7,7 @@ import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
 
 export class SpecGenerator2 extends SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSwaggerConfig) {
+  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {
     super(metadata, config);
   }
 

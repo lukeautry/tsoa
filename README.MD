@@ -16,7 +16,7 @@ Pronounced so·uh
       + [Using CLI](#using-cli)
       + [Programmatic](#programmatic)
       + [Automating Regeneration](#automating-regeneration)
-    - [Can I use OpenAPI 3.0 instead of Swagger v2?](#can-i-use-openapi-30-instead-of-swagger-v2)
+    - [Can I use OpenAPI 3.0 instead of OpenAPI 2 (formerly Swagger)?](#can-i-use-openapi-3-instead-of-openapi-2-(formerly-swagger))
     - [How to ensure no additional properties come in at runtime](#how-to-ensure-no-additional-properties-come-in-at-runtime)
     - [Dealing with duplicate model names](#dealing-with-duplicate-model-names)
     - [Overriding route template](#overriding-route-template)
@@ -25,18 +25,18 @@ Pronounced so·uh
     - [Dependency injection or IOC](#dependency-injection-or-ioc)
       + [InversifyJS](#inversifyjs)
       + [typescript-ioc](#typescript-ioc)
-    - [Specify error response types for Swagger](#specify-error-response-types-for-swagger)
+    - [Specify error response types for OpenAPI](#specify-error-response-types-for-openapi)
     - [Authentication](#authentication)
     - [Path mapping](#path-mapping)
     - [Uploading files](#uploading-files)
-    - [Using awesome Swagger tools](#using-awesome-swagger-tools)
+    - [Using awesome OpenAPI tools](#using-awesome-openapi-tools)
   * [Decorators](#decorators)
     - [Security](#security)
     - [Tags](#tags)
     - [OperationId](#operationid)
     - [Deprecated](#deprecated)
   * [Command Line Interface](#command-line-interface)
-    - [Swagger spec generation](#swagger-spec-generation)
+    - [OpenAPI spec generation](#spec-generation)
     - [Route generation](#route-generation)
   * [Examples](#examples)
   * [Help wanted](#help-wanted)
@@ -44,10 +44,10 @@ Pronounced so·uh
 ## Goal
 
 - TypeScript controllers and models as the single source of truth for your API
-- A valid swagger spec (or OpenAPI 3.0 if you choose 😍) is generated from your controllers and models, including:
+- A valid OpenAPI (formerly Swagger) spec (2.0 or 3.0 if you choose 😍) is generated from your controllers and models, including:
     - Paths (e.g. GET /Users)
     - Definitions based on TypeScript interfaces (models)
-    - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the Swagger spec)
+    - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the OpenAPI spec)
     - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
     - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
@@ -60,8 +60,8 @@ Pronounced so·uh
 - Use jsdoc for pure text metadata (e.g. endpoint descriptions)
 - Minimize boilerplate
 - Models are best represented by interfaces (pure data structures), but can also be represented by classes
-- Runtime validation of tsoa should behave as closely as possible to the specifications that the generated Swagger/OpenAPI schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the swagger document and/or the routes.
-    - Please note that by [enabling OpenAPI 3+](#can-i-use-openapi-30-instead-of-swagger-v2) you minimize the chances of divergent validation logic since OpenAPI has a more expressive schema syntax.
+- Runtime validation of tsoa should behave as closely as possible to the specifications that the generated OpenAPI 2/3 schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the OpenAPI Specification (OAS) and/or the routes.
+    - Please note that by enabling OpenAPI 3 you minimize the chances of divergent validation logic since OpenAPI 3 has a more expressive schema syntax.
 
 ## How it works
 
@@ -103,7 +103,7 @@ export class UsersController extends Controller {
   }
 }
 ```
-Note: tsoa can not create swagger documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
+Note: tsoa can not create OpenAPI 2 (formerly Swagger) documents from interfaces that are defined in external dependencies. This is by design. Full explanation available in [ExternalInterfacesExplanation.MD](https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD)
 
 ### Create Models
 ```typescript
@@ -137,8 +137,8 @@ Note that type aliases are only supported for string literal types like `type st
 
 #### Using CLI
 ```typescript
-// generate swagger.json
-tsoa swagger
+// generate OAS
+tsoa spec
 
 // generate routes
 tsoa routes
@@ -149,10 +149,10 @@ See [CLI documentation](#command-line-interface)
 #### Programmatic
 
 ```typescript
-import { generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig } from 'tsoa';
+import { generateRoutes, generateSpec, ExtendedRoutesConfig, ExtendedSpecConfig } from 'tsoa';
 
 (async () => {
-  const swaggerOptions: SwaggerConfig = {
+  const specOptions: ExtendedSpecConfig = {
     basePath: '/api',
     entryFile: './api/server.ts',
     specVersion: 3,
@@ -160,15 +160,15 @@ import { generateRoutes, generateSwaggerSpec, RoutesConfig, SwaggerConfig } from
     controllerPathGlobs: ['./routeControllers/**/*Controller.ts'],
   };
 
-  const routeOptions: RoutesConfig = {
+  const routeOptions: ExtendedRoutesConfig = {
     basePath: '/api',
     entryFile: './api/server.ts',
     routesDir: './api',
   };
 
-  await generateSwaggerSpec(swaggerOptions, routeOptions);
+  await generateSpec(specOptions);
 
-  await generateRoutes(routeOptions, swaggerOptions);
+  await generateRoutes(routeOptions);
 })();
 ```
 
@@ -180,13 +180,13 @@ You might find it convenient to automatically generate again. To do this, add a 
 ```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
-    "tsoa:gen": "yarn tsoa swagger -c ./api/tsoa.json && yarn tsoa routes -c ./api/tsoa.json"
+    "tsoa:gen": "yarn tsoa spec -c ./api/tsoa.json && yarn tsoa routes -c ./api/tsoa.json"
   },
 ```
 
 Then when you've made a change to an API, you simply run "yarn tsoa:gen"
 
-Note: You can also integrate the swagger regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
+Note: You can also integrate the OpenAPI 2 (formerly Swagger) regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
 ```json
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
@@ -194,13 +194,13 @@ Note: You can also integrate the swagger regeneration directly into your build s
   },
 ```
 
-### Can I use OpenAPI 3.0 instead of Swagger v2?
+### Can I use OpenAPI 3 instead of OpenAPI 2 (formerly Swagger)?
 
-Yes, set `swagger.specVersion` to `3` in your `tsoa.json` file. See more config options by looking at [the config type definition](https://github.com/lukeautry/tsoa/blob/master/src/config.ts).
+Yes, set `spec.specVersion` to `3` in your `tsoa.json` file. See more config options by looking at [the config type definition](https://github.com/lukeautry/tsoa/blob/master/src/config.ts).
 
 ### How to ensure no additional properties come in at runtime
 
-By default, Swagger allows for models to have [`additionalProperties`](https://swagger.io/docs/specification/data-models/dictionaries/). If you would like to ensure at runtime that the data has only the properties defined in your models, set the `noImplicitAdditionalProperties` [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) option to either `"silently-remove-extras"` or `"throw-on-extras"`.
+By default, OpenAPI allows for models to have [`additionalProperties`](https://swagger.io/docs/specification/data-models/dictionaries/). If you would like to ensure at runtime that the data has only the properties defined in your models, set the `noImplicitAdditionalProperties` [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) option to either `"silently-remove-extras"` or `"throw-on-extras"`.
 
 Caveats:
   * The following types will always allow additional properties due to the nature of the way they work:
@@ -237,7 +237,7 @@ Route templates are generated from predefined handlebar templates. You can overr
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
 ```json
 {
-  "swagger": {
+  "spec": {
     ...
   },
   "routes": {
@@ -255,10 +255,10 @@ by defining it in your tsoa.json configuration. Route paths are generated based 
 You have two options for how to tell tsoa where it can find the controllers that it will use to create the auto-generated `routes.ts` file.
 
 #### (1) Using automatic controllers discovery
-You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`). It can be provided on `config.swagger` or `config.routes`.
+You can tell `tsoa` to use your automatic controllers discovery by providing a [minimatch glob](http://www.globtester.com/) in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`). It can be provided on `config.spec` or `config.routes`.
 
 Pros:
-  * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the swagger documentation and to the auto-generated `routes.ts` file.
+  * New developers can add a controller without having to know how tsoa "crawls" for the controllers. As long as their controller is caught by the glob that you provide, the controller will be added to the OpenAPI documentation and to the auto-generated `routes.ts` file.
   
 Cons:
   * It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
@@ -286,7 +286,7 @@ Pros:
   * The tsoa route generation will be faster.
   
 Cons:
-  * New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the swagger generation. If this is a problem for you, please us the automatic controller discovery option described above.
+  * New developers on your team might add a controller and not understand why the new controller was not exposed to the router or to the OpenAPI generation. If this is a problem for you, please us the automatic controller discovery option described above.
 
 ```typescript
 import * as methodOverride from 'method-override';
@@ -346,8 +346,8 @@ export class UsersController {
 }
 ```
 
-Note that the parameter `request` does not appear in your swagger definition file.
-Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in swagger generation.
+Note that the parameter `request` does not appear in your OAS file.
+Likewise you can use the decorator `@Inject` to mark a parameter as being injected manually and should be omitted in Spec generation.
 In this case you should write your own custom template where you inject the needed objects/values in the method-call.
 
 ### Dependency injection or IOC
@@ -362,7 +362,7 @@ To tell `tsoa` to use your DI-container you have to reference your module export
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
 ```json
 {
-  "swagger": {
+  "spec": {
     ...
   },
   "routes": {
@@ -463,11 +463,11 @@ import "./controllers/fooController.ts"
 
 ```
 
-### Specify error response types for Swagger
+### Specify error response types for OpenAPI
 
 ```ts
 @Response('400', 'Bad request')
-@DefaultResponse<ErrorResponse>('Unexpected error')
+@Response<ErrorResponse>('default', 'Unexpected error')
 @Get('Response')
 public async getResponse(): Promise<TestModel> {
   return new ModelService().getModel();
@@ -480,11 +480,11 @@ For information on how to return a specific error [see this example](https://git
 
 Authentication is done using a middleware handler along with `@Security('name', ['scopes'])` decorator in your controller.
 
-First, define the security definitions for swagger, and also configure where the authentication middleware handler is. In this case, it is in the `authentication.ts` file.
+First, define the security definitions for OpenAPI, and also configure where the authentication middleware handler is. In this case, it is in the `authentication.ts` file.
 
 ```json
 {
-  "swagger": {
+  "spec": {
     "securityDefinitions": {
         "api_key": {
             "type": "apiKey",
@@ -611,7 +611,7 @@ If you have a project that utilized this functionality, you can configure the in
 
 ```json
 {
-  "swagger": {
+  "spec": {
     ...
   },
   "routes": {
@@ -663,11 +663,11 @@ export class FilesController {
 }
 ```
 
-The according swagger definition can be merge-overwritten inside `tsoa.json`. Here is a quick sample, what the previous request should look like.
+The according OpenAPI definition can be merge-overwritten inside `tsoa.json`. Here is a quick sample, what the previous request should look like.
 
 ```json
 {
-  "swagger": {
+  "spec": {
     ...
     "specMerging": "recursive",
     "spec": {
@@ -698,11 +698,11 @@ The according swagger definition can be merge-overwritten inside `tsoa.json`. He
 
 ### Tags
 
-If you have a project that needs a description and/or external docs for tags, you can configure the internal generators to use the correct tags definitions and external docs by providing a tags property to swagger property in tsoa.json.
+If you have a project that needs a description and/or external docs for tags, you can configure the internal generators to use the correct tags definitions and external docs by providing a tags property to spec property in tsoa.json.
 
 ```json
 {
-  "swagger": {
+  "spec": {
     "tags":  [
       {
         "name": "User",
@@ -721,9 +721,9 @@ If you have a project that needs a description and/or external docs for tags, yo
 }
 ```
 
-### Using awesome Swagger tools
+### Using awesome OpenAPI tools
 
-Now that you have a swagger spec (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://swagger.io/).
+Now that you have a OpenAPI Specification (OAS) (swagger.json), you can use all kinds of amazing tools that [generate documentation, client SDKs, and more](http://openapi.tools//).
 
 ## Decorators
 
@@ -779,7 +779,7 @@ export class UserController {
 ### OperationId
 
 Set operationId parameter under operation's path.
-Useful for use with Swagger code generation tool since this parameter is used to name the function generated in the client SDK.
+Useful for use with OpenAPI code generation tool since this parameter is used to name the function generated in the client SDK.
 
 ```ts
 @Get()
@@ -804,7 +804,7 @@ public async find(): Promise<any> {
 
 ### Hidden
 
-Excludes this endpoint from the generated swagger document.
+Excludes this endpoint from the generated OpenAPI Specification document.
 
 ```ts
   @Get()
@@ -814,7 +814,7 @@ Excludes this endpoint from the generated swagger document.
   }
 ```
 
-It can also be set at the controller level to exclude all of its endpoints from the swagger document.
+It can also be set at the controller level to exclude all of its endpoints from the OpenAPI Specification document.
 
 ```ts
 @Hidden()
@@ -839,10 +839,10 @@ For information on the configuration object (tsoa.json), check out the following
 
 [Configuration sample](./tsoa.json)
 
-### Swagger spec generation
+### OpenAPI Specification (OAS) generation
 
 ```
-Usage: tsoa swagger [options]
+Usage: tsoa spec [options]
 
 Options:
    --configuration, -c  tsoa configuration file; default is tsoa.json in the working directory  [string]

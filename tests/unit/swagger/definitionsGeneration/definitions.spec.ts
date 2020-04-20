@@ -5,14 +5,14 @@ import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
 import { Swagger } from '../../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { TestModel } from '../../../fixtures/testModel';
-import { ExtendedSwaggerConfig } from '../../../../src/cli';
+import { ExtendedSpecConfig } from '../../../../src/cli';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
   const dynamicMetadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts', undefined, undefined, ['./tests/fixtures/controllers/getController.ts']).Generate();
   const defaultConfig = getDefaultOptions();
-  const defaultOptions: ExtendedSwaggerConfig = { ...defaultConfig.swagger, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
-  const optionsWithNoAdditional = Object.assign<{}, ExtendedSwaggerConfig, Partial<ExtendedSwaggerConfig>>({}, defaultOptions, {
+  const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
+  const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 

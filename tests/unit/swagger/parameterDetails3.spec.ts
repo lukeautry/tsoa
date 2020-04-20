@@ -4,14 +4,14 @@ import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGener
 import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
-import { ExtendedSwaggerConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '../../../src/cli';
 
 describe('Parameter generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/parameterController.ts').Generate();
 
   const defaultConfig = getDefaultOptions();
-  const defaultOptions: ExtendedSwaggerConfig = { ...defaultConfig.swagger, noImplicitAdditionalProperties: 'ignore', entryFile: defaultConfig.entryFile };
-  const optionsWithNoAdditional = Object.assign<{}, ExtendedSwaggerConfig, Partial<ExtendedSwaggerConfig>>({}, defaultOptions, {
+  const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, noImplicitAdditionalProperties: 'ignore', entryFile: defaultConfig.entryFile };
+  const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 

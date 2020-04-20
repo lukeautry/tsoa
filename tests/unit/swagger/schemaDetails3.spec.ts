@@ -6,13 +6,13 @@ import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { Swagger } from '../../../src/swagger/swagger';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
-import { ExtendedSwaggerConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '../../../src/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
 
-  const defaultOptions: ExtendedSwaggerConfig = getDefaultExtendedOptions();
-  const optionsWithNoAdditional = Object.assign<{}, ExtendedSwaggerConfig, Partial<ExtendedSwaggerConfig>>({}, defaultOptions, {
+  const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
+  const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
 
@@ -73,7 +73,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should have relative URL when no host is defined', () => {
-      const optionsWithNoHost = Object.assign<{}, ExtendedSwaggerConfig>({}, defaultOptions);
+      const optionsWithNoHost = Object.assign<{}, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
       const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithNoHost).GetSpec();
@@ -1274,7 +1274,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
         },
       };
-      const swaggerConfig: ExtendedSwaggerConfig = {
+      const swaggerConfig: ExtendedSpecConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
         noImplicitAdditionalProperties: 'ignore',

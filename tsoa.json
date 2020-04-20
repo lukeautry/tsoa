@@ -1,7 +1,7 @@
 {
     "entryFile": "./tests/fixtures/express/server.ts",
     "noImplicitAdditionalProperties": "silently-remove-extras",
-    "swagger": {
+    "spec": {
         "outputDirectory": "./dist",
         "host": "localhost:3000",
         "basePath": "/v1",

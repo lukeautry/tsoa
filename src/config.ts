@@ -5,7 +5,7 @@ export interface Config {
   /**
    * Swagger generation configuration object
    */
-  swagger: SwaggerConfig;
+  spec: SpecConfig;
 
   /**
    * Route generation configuration object
@@ -46,7 +46,7 @@ export interface Config {
  */
 export type DeprecatedOptionForAdditionalPropertiesHandling = true | false;
 
-export interface SwaggerConfig {
+export interface SpecConfig {
   /**
    * Generated SwaggerConfig.json will output here
    */

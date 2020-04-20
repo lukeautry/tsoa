@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
-export { SwaggerConfig, Config, RoutesConfig } from '../config';
-import { ExtendedSwaggerConfig } from '../cli';
+export { SpecConfig as SwaggerConfig, Config, RoutesConfig } from '../config';
+import { ExtendedSpecConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import { SpecGenerator2 } from '../swagger/specGenerator2';
@@ -9,8 +9,8 @@ import { SpecGenerator3 } from '../swagger/specGenerator3';
 import { Swagger } from '../swagger/swagger';
 import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
 
-export const generateSwaggerSpec = async (
-  swaggerConfig: ExtendedSwaggerConfig,
+export const generateSpec = async (
+  swaggerConfig: ExtendedSpecConfig,
   compilerOptions?: ts.CompilerOptions,
   ignorePaths?: string[],
   /**
