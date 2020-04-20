@@ -647,6 +647,48 @@ export class TestClassModel extends TestClassBaseModel {
   ) {
     super();
   }
+
+  public myIgnoredMethod() {
+    return 'ignored';
+  }
+}
+
+type NonFunctionPropertyNames<T> = {
+  [K in keyof T]: T[K] extends Function ? never : K;
+}[keyof T];
+type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
+export class GetterClass {
+  public a: 'b';
+
+  get foo() {
+    return 'bar';
+  }
+
+  public toJSON(): NonFunctionProperties<GetterClass> & { foo: string } {
+    return Object.assign({}, this, { foo: this.foo });
+  }
+}
+
+export class SimpleClassWithToJSON {
+  public a: string;
+  public b: boolean;
+
+  constructor(a: string, b: boolean) {
+    this.a = a;
+    this.b = b;
+  }
+
+  public toJSON(): { a: string } {
+    return { a: this.a };
+  }
+}
+
+export interface GetterInterface {
+  toJSON(): { foo: string };
+}
+
+export interface GetterInterfaceHerited extends GetterInterface {
+  foo: number;
 }
 
 export interface GenericModel<T = string> {

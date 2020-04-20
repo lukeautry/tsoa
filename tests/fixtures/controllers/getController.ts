@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '../../../src';
 import '../duplicateTestModel';
-import { GenericModel, TestClassModel, TestModel, TestSubModel } from '../testModel';
+import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
 import { ModelService } from './../services/modelService';
 
 @Route('GetTest')
@@ -56,6 +56,26 @@ export class GetTestController extends Controller {
   @Get('ClassModel')
   public async getClassModel(): Promise<TestClassModel> {
     return new ModelService().getClassModel();
+  }
+
+  @Get('GetterClass')
+  public async getGetterClass(): Promise<GetterClass> {
+    return new GetterClass();
+  }
+
+  @Get('SimpleClassWithToJSON')
+  public async simpleClassWithToJSON(): Promise<SimpleClassWithToJSON> {
+    return new SimpleClassWithToJSON('hello, world', true);
+  }
+
+  @Get('GetterInterface')
+  public async getGetterInterface(): Promise<GetterInterface> {
+    return {} as GetterInterface;
+  }
+
+  @Get('GetterInterfaceHerited')
+  public async getGetterInterfaceHerited(): Promise<GetterInterfaceHerited> {
+    return {} as GetterInterfaceHerited;
   }
 
   @Get('Multi')
