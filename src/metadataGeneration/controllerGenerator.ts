@@ -1,9 +1,8 @@
 import * as ts from 'typescript';
-import { getDecorators } from './../utils/decoratorUtils';
+import { getDecorators, getSecurites } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
-import { getSecurities } from './security';
 import { Tsoa } from './tsoa';
 
 export class ControllerGenerator {
@@ -85,7 +84,7 @@ export class ControllerGenerator {
       return [];
     }
 
-    return getSecurities(securityDecorators);
+    return securityDecorators.map(d => getSecurites(d, this.current.typeChecker));
   }
 
   private getIsHidden(): boolean {

@@ -791,7 +791,7 @@ export class TypeResolver {
       const type = new TypeResolver(typeNode, this.current, property, this.extractEnum, this.context).resolve();
 
       return {
-        default: getInitializerValue(property.initializer, type),
+        default: getInitializerValue(property.initializer, this.current.typeChecker, type),
         description: this.getNodeDescription(property),
         format: this.getNodeFormat(property),
         name: identifier.text,
