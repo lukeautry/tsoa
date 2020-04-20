@@ -750,13 +750,6 @@ export interface Exception extends Error {
   status: number;
 }
 
-export class ValidateException implements Exception {
-  public status = 400;
-  public name = 'ValidateException';
-
-  constructor(public fields: FieldErrors, public message: string) {}
-}
-
 export class ValidateError extends Error implements Exception {
   public status = 400;
   public name = 'ValidateError';
