@@ -634,6 +634,20 @@ export class GetterClass {
   }
 }
 
+export class SimpleClassWithToJSON {
+  public a: string;
+  public b: boolean;
+
+  constructor(a: string, b: boolean) {
+    this.a = a;
+    this.b = b;
+  }
+
+  public toJSON(): { a: string } {
+    return { a: this.a };
+  }
+}
+
 export interface GetterInterface {
   toJSON(): { foo: string };
 }

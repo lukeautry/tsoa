@@ -36,6 +36,15 @@ describe('Koa Server', () => {
     });
   });
 
+  it('respects toJSON for class serialization', () => {
+    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (err, res) => {
+      const getterClass = res.body;
+      expect(getterClass).to.haveOwnProperty('a');
+      expect(getterClass.a).to.equal('hello, world');
+      expect(getterClass).to.not.haveOwnProperty('b');
+    });
+  });
+
   it('can handle get request with collection return value', () => {
     return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
       const models = res.body as TestModel[];
