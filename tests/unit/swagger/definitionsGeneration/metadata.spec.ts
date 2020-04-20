@@ -38,6 +38,7 @@ describe('Metadata generation', () => {
       'description',
       'tags',
       'multiResponse',
+      'decoratorVariousValues',
       'successResponse',
       'oauthOrAPIkeySecurity',
       'apiSecurity',
@@ -149,6 +150,47 @@ describe('Metadata generation', () => {
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');
       expect(successResponse.description).to.equal('Ok');
+    });
+
+    it('should get decorator values passed by different ways', () => {
+      const method = controller.methods.find(m => m.name === 'decoratorVariousValues');
+      if (!method) {
+        throw new Error('Method decoratorVariousValues not defined!');
+      }
+
+      expect(method.responses.length).to.equal(4);
+
+      const valuesFromObject = method.responses[0];
+      expect(valuesFromObject.name).to.equal('401');
+      expect(valuesFromObject.description).to.equal('Unauthorized');
+
+      const enumNumber = method.responses[1];
+      expect(enumNumber.name).to.equal(400);
+      expect(enumNumber.description).to.equal('Bad Request');
+
+      const enumString = method.responses[2];
+      expect(enumString.name).to.equal('404');
+      expect(enumString.description).to.equal('Not Found');
+
+      const success = method.responses[3];
+      expect(success.name).to.equal(201);
+      expect(success.description).to.equal('Created');
+
+      if (!method.security) {
+        throw new Error('Security decorator not defined!');
+      }
+
+      const security = method.security[0];
+      expect(security).to.haveOwnProperty('JWT2');
+      expect(security['JWT2']).to.deep.equal(['permission:admin', 'permission:owner']);
+
+      const objSecurity = method.security[1];
+      expect(objSecurity).to.deep.equal({
+        firstSec: [],
+        secondSec: ['permission:admin', 'permission:owner'],
+      });
+
+      expect(method.tags).to.deep.equal(['EnumTag1']);
     });
 
     it('should generate success response', () => {

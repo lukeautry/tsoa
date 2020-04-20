@@ -842,7 +842,7 @@ export class TypeResolver {
     }
 
     const property: Tsoa.Property = {
-      default: getInitializerValue(propertyDeclaration.initializer, type),
+      default: getInitializerValue(propertyDeclaration.initializer, this.current.typeChecker),
       description: this.getNodeDescription(propertyDeclaration),
       example: this.getNodeExample(propertyDeclaration),
       format: this.getNodeFormat(propertyDeclaration),
