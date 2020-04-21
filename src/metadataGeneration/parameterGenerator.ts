@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
+import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
 import { getJSDocTags } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
@@ -11,7 +11,7 @@ import { TypeResolver } from './typeResolver';
 export class ParameterGenerator {
   constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
 
-  public Generate(): Tsoa.Parameter {
+  public Generate(): Tsoa.Parameter | null {
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
@@ -107,7 +107,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter | null {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
@@ -121,6 +121,13 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
     };
+
+    if (this.getQueryParamterIsHidden(parameter)) {
+      if (commonProperties.required) {
+        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support @Hidden because it is required (does not allow undefined and does not have a default value).`);
+      }
+      return null;
+    }
 
     if (type.dataType === 'array') {
       const arrayType = type as Tsoa.ArrayType;
@@ -230,5 +237,19 @@ export class ParameterGenerator {
       typeNode = this.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
     }
     return new TypeResolver(typeNode, this.current, parameter).resolve();
+  }
+
+  private getQueryParamterIsHidden(parameter: ts.ParameterDeclaration) {
+    const hiddenDecorators = getDecorators(parameter, identifier => identifier.text === 'Hidden');
+    if (!hiddenDecorators || !hiddenDecorators.length) {
+      return false;
+    }
+
+    if (hiddenDecorators.length > 1) {
+      const parameterName = (parameter.name as ts.Identifier).text;
+      throw new GenerateMetadataError(`Only one Hidden decorator allowed on @Query('${parameterName}').`);
+    }
+
+    return true;
   }
 }

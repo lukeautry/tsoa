@@ -637,6 +637,28 @@ describe('Metadata generation', () => {
       expect(method.path).to.equal('hiddenGetMethod');
       expect(method.isHidden).to.equal(true);
     });
+
+    it('should mark query params as hidden', () => {
+      const method = controller.methods.find(m => m.name === 'hiddenQueryMethod');
+      if (!method) {
+        throw new Error('Method hiddenQueryMethod not defined!');
+      }
+
+      const defaultSecret = method.parameters.find(p => p.name === 'defaultSecret');
+      expect(defaultSecret).to.be.undefined;
+
+      const optionalSecret = method.parameters.find(p => p.name === 'optionalSecret');
+      expect(optionalSecret).to.be.undefined;
+
+      expect(method.parameters.length).to.equal(1);
+
+      const normalParam = method.parameters[0];
+      expect(normalParam.in).to.equal('query');
+      expect(normalParam.name).to.equal('normalParam');
+      expect(normalParam.parameterName).to.equal('normalParam');
+      expect(normalParam.required).to.be.true;
+      expect(normalParam.type.dataType).to.equal('string');
+    });
   });
 
   describe('HiddenControllerGenerator', () => {
