@@ -6,7 +6,7 @@ import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGener
 import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { Tsoa } from '../../../src/metadataGeneration/tsoa';
-import { ExtendedSwaggerConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '../../../src/cli';
 
 describe('Schema details generation', () => {
   const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
@@ -89,7 +89,7 @@ describe('Schema details generation', () => {
           },
         },
       };
-      const swaggerConfig: ExtendedSwaggerConfig = {
+      const swaggerConfig: ExtendedSpecConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
         noImplicitAdditionalProperties: 'ignore',
@@ -108,7 +108,7 @@ describe('Schema details generation', () => {
     });
 
     it('should throw if an enum is mixed with numbers and strings', () => {
-      const swaggerConfig: ExtendedSwaggerConfig = {
+      const swaggerConfig: ExtendedSpecConfig = {
         outputDirectory: 'mockOutputDirectory',
         entryFile: 'mockEntryFile',
         noImplicitAdditionalProperties: 'ignore',

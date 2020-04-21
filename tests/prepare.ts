@@ -1,11 +1,11 @@
 // tslint:disable:no-console
 import chalk from 'chalk';
-import { generateSwaggerAndRoutes } from '../src/cli';
+import { generateSpecAndRoutes } from '../src/cli';
 import { generateRoutes } from '../src/module/generate-routes';
 import { Timer } from './utils/timer';
 
 const spec = async () => {
-  const result = await generateSwaggerAndRoutes({
+  const result = await generateSpecAndRoutes({
     configuration: 'tsoa.json',
   });
   return result[0];
