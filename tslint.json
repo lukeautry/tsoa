@@ -1,8 +1,7 @@
 {
-  "extends": [
-    "tslint:recommended"
-  ],
+  "extends": ["tslint:recommended"],
   "rules": {
+    "array-type": [true, "array-simple"],
     "arrow-parens": false,
     "object-literal-sort-keys": false,
     "semicolon": false,
@@ -12,24 +11,15 @@
     "align": false,
     "no-unused-expression": false,
     "no-shadowed-variable": false,
-    "interface-name": [
-      true,
-      "never-prefix"
-    ],
-    "member-ordering": [
-      false
-    ],
+    "interface-name": [true, "never-prefix"],
+    "member-ordering": [false],
     "max-classes-per-file": false,
     "no-reference": false,
-    "no-namespace": [
-      false
-    ],
+    "no-namespace": [false],
     "object-literal-key-quotes": false,
     "ban-types": false
   },
   "linterOptions": {
-      "exclude": [
-        "./node_modules/**"
-      ]
+    "exclude": ["./node_modules/**"]
   }
 }
