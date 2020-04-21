@@ -1,11 +1,12 @@
 {
   "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
     "typescript",
+    "openapi",
     "swagger",
     "server",
     "node",
