@@ -237,11 +237,11 @@ Route templates are generated from predefined handlebar templates. You can overr
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
 ```js
 {
+  "entryFile": "...",
   "spec": {
     ...
   },
   "routes": {
-    "entryFile": "...",
     "routesDir": "...",
     "middleware": "express",
     "middlewareTemplate": "custom-template.ts"
@@ -266,8 +266,8 @@ Cons:
 As you can see from the the controllers globs patterns below, you can provide multiple globs of various patterns:
 ```js
 {
+  "entryFile": "...",
   "routes": {
-    "entryFile": "...",
     "routesDir": "...",
     "middleware": "...",
     "controllerPathGlobs": [
@@ -362,11 +362,11 @@ To tell `tsoa` to use your DI-container you have to reference your module export
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
 ```js
 {
+  "entryFile": "...",
   "spec": {
     ...
   },
   "routes": {
-    "entryFile": "...",
     "routesDir": "...",
     "middleware": "...",
     "iocModule": "./inversify/ioc",
