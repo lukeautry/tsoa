@@ -2,7 +2,9 @@
 Pronounced so·uh
 
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
-[![npm version](https://badge.fury.io/js/tsoa.svg)](https://badge.fury.io/js/tsoa)
+[![npm version](https://img.shields.io/npm/v/tsoa/v3beta)](https://www.npmjs.com/package/tsoa)
+
+## This Readme is intended for tsoa v3-beta, for stable releases, please refer to the Readme of the [2.x branch](https://github.com/lukeautry/tsoa/tree/2.x).
 
 ## Table of Contents
 
@@ -131,8 +133,6 @@ export interface UserCreationRequest {
 }
 ```
 
-Note that type aliases are only supported for string literal types like `type status = 'Happy' | 'Sad'`
-
 ### Generate
 
 #### Using CLI
@@ -177,7 +177,7 @@ import { generateRoutes, generateSpec, ExtendedRoutesConfig, ExtendedSpecConfig 
 #### Automating Regeneration
 
 You might find it convenient to automatically generate again. To do this, add a section to your package.json's script section with the following:
-```json
+```js
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
     "tsoa:gen": "yarn tsoa spec -c ./api/tsoa.json && yarn tsoa routes -c ./api/tsoa.json"
@@ -187,7 +187,7 @@ You might find it convenient to automatically generate again. To do this, add a 
 Then when you've made a change to an API, you simply run "yarn tsoa:gen"
 
 Note: You can also integrate the OpenAPI 2 (formerly Swagger) regeneration directly into your build step, but there are risks. To do that, ADDITIONAL add it to your build script in package.json:
-```json
+```js
   "scripts": {
     // ... other stuff (note that comments are not valid JSON, so please remove this)
     "build:api": "tsoa:gen && yarn tsc -p ./api/tsconfig.json",
@@ -235,7 +235,7 @@ _Okay, but why would you want to override the route template?_
 
 Route templates are generated from predefined handlebar templates. You can override and define your own template to use
 by defining it in your tsoa.json configuration. Route paths are generated based on the middleware type you have defined.
-```json
+```js
 {
   "spec": {
     ...
@@ -264,7 +264,7 @@ Cons:
   * It could be potentially slower (but not significantly slow) than the alternative option described further down in the readme.
 
 As you can see from the the controllers globs patterns below, you can provide multiple globs of various patterns:
-```json
+```js
 {
   "routes": {
     "entryFile": "...",
@@ -360,7 +360,7 @@ If you want to use dependency injection and let the DI-framework handle the crea
 
 To tell `tsoa` to use your DI-container you have to reference your module exporting the DI-container in the [config](https://github.com/lukeautry/tsoa/blob/master/src/config.ts) file (e.g. `tsoa.json`):
 The convention is that you have to name your inversify `Container` `iocContainer` and export it in the given module.
-```json
+```js
 {
   "spec": {
     ...
@@ -482,7 +482,7 @@ Authentication is done using a middleware handler along with `@Security('name', 
 
 First, define the security definitions for OpenAPI, and also configure where the authentication middleware handler is. In this case, it is in the `authentication.ts` file.
 
-```json
+```js
 {
   "spec": {
     "securityDefinitions": {
@@ -596,7 +596,7 @@ Per the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/basic
 > Sometimes modules are not directly located under baseUrl. For instance, an import to a module "jquery" would be translated at runtime to "node_modules\jquery\dist\jquery.slim.min.js". Loaders use a mapping configuration to map module names to files at run-time, see RequireJs documentation and SystemJS documentation.
 >
 >The TypeScript compiler supports the declaration of such mappings using "paths" property in tsconfig.json files. Here is an example for how to specify the "paths" property for jquery.
-```json
+```js
 {
   "compilerOptions": {
     "baseUrl": ".", // This must be specified if "paths" is.
@@ -609,7 +609,7 @@ Per the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/basic
 
 If you have a project that utilized this functionality, you can configure the internal generators to use the correct paths by providing a compilerOptions property to route configuration property in tsoa.json.
 
-```json
+```js
 {
   "spec": {
     ...
@@ -665,7 +665,7 @@ export class FilesController {
 
 The according OpenAPI definition can be merge-overwritten inside `tsoa.json`. Here is a quick sample, what the previous request should look like.
 
-```json
+```js
 {
   "spec": {
     ...
@@ -700,7 +700,7 @@ The according OpenAPI definition can be merge-overwritten inside `tsoa.json`. He
 
 If you have a project that needs a description and/or external docs for tags, you can configure the internal generators to use the correct tags definitions and external docs by providing a tags property to spec property in tsoa.json.
 
-```json
+```js
 {
   "spec": {
     "tags":  [
