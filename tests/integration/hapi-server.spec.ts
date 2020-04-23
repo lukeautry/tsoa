@@ -48,7 +48,7 @@ describe('Hapi Server', () => {
     return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
-      models.forEach(m => {
+      models.forEach((m) => {
         expect(m.id).to.equal(1);
       });
     });
@@ -171,6 +171,16 @@ describe('Hapi Server', () => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
       },
       200,
+    );
+  });
+
+  it('should reject invalid additionalProperties', () => {
+    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (err: any, res: any) => null, 400);
+      }),
     );
   });
 
@@ -913,7 +923,7 @@ describe('Hapi Server', () => {
           expect(model.human).to.equal(true);
           expect(model.gender).to.equal('MALE');
         },
-        request => {
+        (request) => {
           return request.get(basePath + '/ParameterTest/Header').set({
             age: 45,
             firstname: 'Tony',
@@ -1020,11 +1030,11 @@ describe('Hapi Server', () => {
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.post(path).send(data), expectedStatus);
   }
 
   function verifyRequest(verifyResponse: (err: any, res: any) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {

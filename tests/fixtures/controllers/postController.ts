@@ -23,6 +23,11 @@ export class PostTestController {
     return model;
   }
 
+  @Post('Object')
+  public async postObject(@Body() body: { obj: { [key: string]: string } }): Promise<{ [key: string]: string }> {
+    return body.obj;
+  }
+
   @Patch()
   public async updateModel(@Body() model: TestModel): Promise<TestModel> {
     return await new ModelService().getModel();

@@ -84,7 +84,7 @@ export class ValidationService {
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
   ) {
-    if (!(value instanceof Object)) {
+    if (!(value instanceof Object) || Array.isArray(value)) {
       fieldErrors[parent + name] = {
         message: `invalid object`,
         value,
@@ -127,6 +127,16 @@ export class ValidationService {
         value[key] = validatedProp;
       }
     });
+
+    if (typeof additionalProperties === 'object' && typeof value === 'object') {
+      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined')
+      keys.forEach(key => {
+        const validatedProp = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
+        if (validatedProp !== undefined) {
+          value[key] = validatedProp;
+        }
+      })
+    }
 
     if (Object.keys(fieldErrors).length > previousErrors) {
       return;
