@@ -1205,7 +1205,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   default: undefined,
                   description: undefined,
                   example: undefined,
-                  enum: ['null'],
+                  enum: [null],
                   format: undefined,
                   nullable: true,
                   type: 'number',
@@ -1230,7 +1230,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq(
-              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
+              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: [null], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },
