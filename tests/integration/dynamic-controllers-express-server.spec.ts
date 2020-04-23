@@ -60,7 +60,7 @@ describe('Express Server', () => {
     return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
-      models.forEach(m => {
+      models.forEach((m) => {
         expect(m.id).to.equal(1);
       });
     });
@@ -124,6 +124,16 @@ describe('Express Server', () => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
     });
+  });
+
+  it('should reject invalid additionalProperties', () => {
+    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (err: any, res: any) => null, 400);
+      }),
+    );
   });
 
   it('parses buffer parameter', () => {
@@ -985,7 +995,7 @@ describe('Express Server', () => {
           expect(model.human).to.equal(true);
           expect(model.gender).to.equal('MALE');
         },
-        request => {
+        (request) => {
           return request.get(basePath + '/ParameterTest/Header').set({
             age: 45,
             firstname: 'Tony',
@@ -1091,11 +1101,11 @@ describe('Express Server', () => {
   });
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.post(path).send(data), expectedStatus);
   }
 
   function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {

@@ -15,6 +15,16 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     });
   });
 
+  it('should reject invalid additionalProperties', () => {
+    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (err: any, res: any) => null, 400);
+      }),
+    );
+  });
+
   it('should call out any additionalProperties', () => {
     const data = Object.assign({}, getFakeModel(), {
       someExtraProperty: 'someExtraValue',
@@ -327,7 +337,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       return verifyPostRequest(
         basePath + '/Validate/map',
         data,
-        err => {
+        (err) => {
           const body = JSON.parse(err.text);
 
           // Although dictionaries/records allow additionalProperties they are still subject to their own validation
@@ -437,11 +447,11 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
   it('shutdown server', () => server.close());
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.get(path), expectedStatus);
   }
 
   function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
+    return verifyRequest(verifyResponse, (request) => request.post(path).send(data), expectedStatus);
   }
 
   function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
