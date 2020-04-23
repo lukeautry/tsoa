@@ -1194,17 +1194,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 maybeString: { $ref: '#/components/schemas/Maybe_string_', description: undefined, format: undefined, example: undefined },
                 wordOrNull: { $ref: '#/components/schemas/Maybe_Word_', description: undefined, format: undefined, example: undefined },
                 numberOrNull: {
-                  oneOf: [{ type: 'number', format: 'double' }, { type: 'number', enum: ['null'], nullable: true }],
-                  description: undefined,
-                  format: undefined,
                   default: undefined,
+                  description: undefined,
                   example: undefined,
+                  format: 'double',
+                  nullable: true,
+                  type: 'number',
                 },
                 justNull: {
                   default: undefined,
                   description: undefined,
                   example: undefined,
-                  enum: ['null'],
+                  enum: [null],
                   format: undefined,
                   nullable: true,
                   type: 'number',
@@ -1216,13 +1217,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const maybeString = getComponentSchema('Maybe_string_', currentSpec);
             expect(maybeString).to.deep.eq(
-              { oneOf: [{ type: 'string' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
+              {
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+                nullable: true,
+                type: 'string',
+              },
               `for schema linked by property ${propertyName}`,
             );
 
             const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq(
-              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: ['null'], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
+              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: [null], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },

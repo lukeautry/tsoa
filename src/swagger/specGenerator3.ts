@@ -394,6 +394,29 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    // use nullable: true to represent simple unions with null. This converts to
+    // a better type when using code generation in a client.
+    if (type.types.length === 2 && type.types.find(typeInUnion => typeInUnion.dataType === 'enum' && typeInUnion.enums.includes(null))) {
+      const nullEnumIndex = type.types.findIndex(type => type.dataType === 'enum' && type.enums.includes(null));
+      const typeIndex = nullEnumIndex === 1 ? 0 : 1;
+      const swaggerType = this.getSwaggerType(type.types[typeIndex]);
+
+      const isRef = !!swaggerType.$ref;
+
+      // let special case of ref union with null fall through to be handled as a
+      // oneOf. Example of this case is:
+      // type Nullable<T> = T | null;
+      // type MyNullableType = Nullable<OtherType>;
+      //
+      // this is required because other members of $ref containing objects are
+      // ignored so the null would otherwise get left out:
+      // https://swagger.io/docs/specification/using-ref/#syntax
+      if (!isRef) {
+        swaggerType['nullable'] = true;
+        return swaggerType;
+      }
+    }
+
     return { oneOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 
@@ -407,7 +430,7 @@ export class SpecGenerator3 extends SpecGenerator {
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { type, enum: enumType.enums.map(member => String(member)), nullable };
+      return { type, enum: enumType.enums.map(member => (member === null ? null : String(member))), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
