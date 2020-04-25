@@ -705,13 +705,7 @@ export class TypeResolver {
     if (modelTypes.length > 1) {
       // remove types that are from typescript e.g. 'Account'
       modelTypes = modelTypes.filter(modelType => {
-        if (
-          modelType
-            .getSourceFile()
-            .fileName.replace(/\\/g, '/')
-            .toLowerCase()
-            .indexOf('node_modules/typescript') > -1
-        ) {
+        if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
           return false;
         }
 

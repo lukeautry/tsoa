@@ -5,11 +5,12 @@
 [Search the existing issues](https://github.com/lukeautry/tsoa/search?type=Issues) before logging a new one.
 
 Some search tips:
- * *Don't* restrict your search to only open issues. An issue with a title similar to yours may have been closed as a duplicate of one with a less-findable title.
- * Check for synonyms. For example, if your bug involves an interface, it likely also occurs with type aliases or classes.
- * Search for the title of the issue you're about to log. This sounds obvious but 80% of the time this is sufficient to find a duplicate when one exists.
- * Read more than the first page of results. Many bugs here use the same words so relevancy sorting is not particularly strong.
- * If you have a crash, search for the first few topmost function names shown in the call stack.
+
+- _Don't_ restrict your search to only open issues. An issue with a title similar to yours may have been closed as a duplicate of one with a less-findable title.
+- Check for synonyms. For example, if your bug involves an interface, it likely also occurs with type aliases or classes.
+- Search for the title of the issue you're about to log. This sounds obvious but 80% of the time this is sufficient to find a duplicate when one exists.
+- Read more than the first page of results. Many bugs here use the same words so relevancy sorting is not particularly strong.
+- If you have a crash, search for the first few topmost function names shown in the call stack.
 
 ## 2. Did you find a bug?
 
@@ -19,9 +20,8 @@ Please follow the issue template and include as much information as you can. Thi
 
 We also accept suggestions in the issue tracker.
 
- * Be sure to [search](https://github.com/lukeautry/tsoa/search?type=Issues) first for a duplicate.
- * Please ensure that your suggestion adheres to the [goals](https://github.com/lukeautry/tsoa#goal) and [philosophy](https://github.com/lukeautry/tsoa#philosophy) of the project
-
+- Be sure to [search](https://github.com/lukeautry/tsoa/search?type=Issues) first for a duplicate.
+- Please ensure that your suggestion adheres to the [goals](https://github.com/lukeautry/tsoa#goal) and [philosophy](https://github.com/lukeautry/tsoa#philosophy) of the project
 
 # Instructions for Contributing Code
 
@@ -57,15 +57,15 @@ These tests read controller files (just like tsoa does for real tsoa users) (via
 
 Your pull request should:
 
-* Include a description of what your change intends to do
-* Be a child commit of a reasonably recent commit in the **master** branch
-    * Requests need not be a single commit, but should be a linear sequence of commits (i.e. no merge commits in your PR)
-* It is desirable, but not necessary, for the tests to pass at each commit
-* Have clear commit messages
-    * e.g. "Minor refactor in goToTypeDefinition", "Fix iterated type in for-await-of", "Add test for preserveWatchOutput on command line"
-* Include adequate tests
-    * At least one test should fail in the absence of your non-test code changes. If your PR does not match this criteria, please specify why
-    * Tests should include reasonable permutations of the target fix/change
-    * Include baseline changes with your change
-    * All changed code must have some degree of code coverage (either integrative or unit level)
-* To avoid line ending issues, set `autocrlf = input` and `whitespace = cr-at-eol` in your git configuration
+- Include a description of what your change intends to do
+- Be a child commit of a reasonably recent commit in the **master** branch
+  - Requests need not be a single commit, but should be a linear sequence of commits (i.e. no merge commits in your PR)
+- It is desirable, but not necessary, for the tests to pass at each commit
+- Have clear commit messages
+  - e.g. "Minor refactor in goToTypeDefinition", "Fix iterated type in for-await-of", "Add test for preserveWatchOutput on command line"
+- Include adequate tests
+  - At least one test should fail in the absence of your non-test code changes. If your PR does not match this criteria, please specify why
+  - Tests should include reasonable permutations of the target fix/change
+  - Include baseline changes with your change
+  - All changed code must have some degree of code coverage (either integrative or unit level)
+- To avoid line ending issues, set `autocrlf = input` and `whitespace = cr-at-eol` in your git configuration

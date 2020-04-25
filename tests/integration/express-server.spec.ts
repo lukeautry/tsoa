@@ -140,10 +140,7 @@ describe('Express Server', () => {
   });
 
   it('should reject invalid additionalProperties', () => {
-    const invalidValues = [
-      'invalid', null, [], 1,
-      { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }
-    ];
+    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
     return Promise.all(
       invalidValues.map((value: any) => {

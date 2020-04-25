@@ -129,13 +129,13 @@ export class ValidationService {
     });
 
     if (typeof additionalProperties === 'object' && typeof value === 'object') {
-      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined')
+      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined');
       keys.forEach(key => {
         const validatedProp = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
         if (validatedProp !== undefined) {
           value[key] = validatedProp;
         }
-      })
+      });
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {

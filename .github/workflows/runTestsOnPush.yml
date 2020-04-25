@@ -5,16 +5,16 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Build
-      uses: Borales/actions-yarn@master
-      with:
-        cmd: install
-    - name: Lint
-      uses: Borales/actions-yarn@master
-      with:
-        cmd: lint
-    - name: Test
-      uses: Borales/actions-yarn@master
-      with:
-        cmd: test
+      - uses: actions/checkout@master
+      - name: Build
+        uses: Borales/actions-yarn@master
+        with:
+          cmd: install
+      - name: Lint
+        uses: Borales/actions-yarn@master
+        with:
+          cmd: lint
+      - name: Test
+        uses: Borales/actions-yarn@master
+        with:
+          cmd: test
