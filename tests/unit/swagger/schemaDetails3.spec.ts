@@ -594,11 +594,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Generic__foo-string--bar-boolean__');
           },
           indexed: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed~foo~_');
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed-at-foo_');
           },
           record: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo~OR~record-bar._data-string__');
-            const schema = getComponentSchema('Record_record-foo~OR~record-bar._data-string__', currentSpec);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
+            const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);
             expect(schema).to.be.deep.eq({
               properties: {
                 'record-foo': {
@@ -683,13 +683,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel1-Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/components/schemas/GenericRequest_TypeAliasModel2-Array_', `for property ${propertyName}.$ref`);
           },
           defaultGenericModel: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/GenericModel', `for property ${propertyName}.$ref`);
@@ -848,13 +848,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_',
+                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
                   },
                   excludeToInterface: { $ref: '#/components/schemas/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
-                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number~OR~null_', description: undefined, format: undefined, example: undefined },
+                  excludeTypeToPrimitive: { $ref: '#/components/schemas/NonNullable_number-or-null_', description: undefined, format: undefined, example: undefined },
                   pick: { $ref: '#/components/schemas/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, example: undefined },
                   readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_', description: undefined, format: undefined, example: undefined },
                   defaultArgs: { $ref: '#/components/schemas/DefaultTestModel', description: undefined, format: undefined, example: undefined },
@@ -1067,7 +1067,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 oneOf: [
@@ -1105,7 +1105,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeTypeToPrimitive = getComponentSchema('NonNullable_number~OR~null_', currentSpec);
+            const excludeTypeToPrimitive = getComponentSchema('NonNullable_number-or-null_', currentSpec);
             expect(excludeTypeToPrimitive).to.deep.eq(
               {
                 type: 'number',
