@@ -163,7 +163,7 @@ export class SpecGenerator3 extends SpecGenerator {
         } else {
           schema[referenceType.refName] = {
             description: referenceType.description,
-            oneOf: [
+            anyOf: [
               {
                 type: 'number',
                 enum: referenceType.enums.filter(e => typeof e === 'number'),
@@ -404,7 +404,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const isRef = !!swaggerType.$ref;
 
       // let special case of ref union with null fall through to be handled as a
-      // oneOf. Example of this case is:
+      // anyOf. Example of this case is:
       // type Nullable<T> = T | null;
       // type MyNullableType = Nullable<OtherType>;
       //
@@ -417,7 +417,7 @@ export class SpecGenerator3 extends SpecGenerator {
       }
     }
 
-    return { oneOf: type.types.map(x => this.getSwaggerType(x)) };
+    return { anyOf: type.types.map(x => this.getSwaggerType(x)) };
   }
 
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {

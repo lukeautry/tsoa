@@ -48,7 +48,7 @@ describe('Parameter generation for OpenAPI 3.0.0', () => {
 
         expect(bodySpec).to.deep.eq(
           {
-            oneOf: [
+            anyOf: [
               {
                 $ref: '#/components/schemas/ParameterTestModel',
               },
