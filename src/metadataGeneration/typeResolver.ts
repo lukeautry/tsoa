@@ -143,69 +143,66 @@ export class TypeResolver {
 
     if (ts.isMappedTypeNode(this.typeNode) && this.referencer) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
+      const mappedTypeNode = this.typeNode;
       const typeChecker = this.current.typeChecker;
-      const properties: Tsoa.Property[] = [];
-      for (const property of type.getProperties()) {
-        const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
-        const jsDocTags = property.getJsDocTags();
-
+      const getDeclaration = (prop: ts.Symbol) => prop.declarations && (prop.declarations[0] as ts.Declaration | undefined);
+      const isIgnored = (prop: ts.Symbol) => {
+        const declaration = getDeclaration(prop);
+        return (
+          prop.getJsDocTags().find(tag => tag.name === 'ignore') !== undefined ||
+          (declaration !== undefined && !ts.isPropertyDeclaration(declaration) && !ts.isPropertySignature(declaration) && !ts.isParameter(declaration))
+        );
+      };
+      const properties: Tsoa.Property[] = type
+        .getProperties()
         // Ignore methods, getter, setter and @ignored props
-        const declaration = property.declarations && property.declarations[0] as ts.Declaration | undefined;
-        const haveIgnoreTag = jsDocTags.find(tag => tag.name === 'ignore');
-        if (
-          haveIgnoreTag ||
-          (declaration !== undefined &&
-          !ts.isPropertyDeclaration(declaration) &&
-          !ts.isPropertySignature(declaration) &&
-          !ts.isParameter(declaration))
-        ) {
-          continue // ignore
-        }
+        .filter(property => isIgnored(property) === false)
+        // Transform to property
+        .map(property => {
+          const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
+          const jsDocTags = property.getJsDocTags();
+          const declaration = getDeclaration(property) as ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration | undefined;
 
-        // Resolve default value, required and typeNode
-        const defaultTag = jsDocTags.find(tag => tag.name === 'default');
-        let defaultValue = defaultTag !== undefined ? defaultTag.text : undefined;
-        let required = false;
-        let typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
-        if (declaration) {
-          required = !declaration.questionToken && !declaration.initializer; // no `?` and no default value
-          defaultValue = getInitializerValue(declaration.initializer); // handle `public foo = 'default'`
-          if (declaration.type) {
-            // preserve aliases
-            typeNode = declaration.type;
+          if (declaration && ts.isPropertySignature(declaration)) {
+            return this.propertyFromSignature(declaration, mappedTypeNode.questionToken);
+          } else if (declaration && (ts.isPropertyDeclaration(declaration) || ts.isParameter(declaration))) {
+            return this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken);
           }
-        }
-        if (this.typeNode.questionToken && this.typeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
-          required = true;
-        } else if (this.typeNode.questionToken && this.typeNode.questionToken.kind === ts.SyntaxKind.QuestionToken) {
-          required = false;
-        }
 
-        // Get jsdoc infos
-        const docComments = property.getDocumentationComment(this.current.typeChecker);
-        const desc = docComments.length ? ts.displayPartsToString(docComments) : undefined;
-        const exampleTag = jsDocTags.find(tag => tag.name === 'example');
-        let example: string | undefined;
-        try {
-          if (exampleTag && exampleTag.text) {
-            example = JSON.parse(exampleTag.text);
+          // Resolve default value, required and typeNode
+          const defaultTag = jsDocTags.find(tag => tag.name === 'default');
+          const defaultValue = defaultTag !== undefined ? defaultTag.text : undefined;
+          let required = false;
+          const typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
+          if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
+            required = true;
+          } else if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.QuestionToken) {
+            required = false;
           }
-          // tslint:disable-next-line: no-empty
-        } catch {}
-        const formatTag = jsDocTags.find(tag => tag.name === 'format');
 
-        // Push property
-        properties.push({
-          default: defaultValue,
-          description: desc,
-          example,
-          format: formatTag !== undefined ? formatTag.text : undefined,
-          name: property.name,
-          required,
-          type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
-          validators: getPropertyValidatorsFromTags(jsDocTags) || {},
+          // Get jsdoc infos
+          const exampleTag = jsDocTags.find(tag => tag.name === 'example');
+          let example: string | undefined;
+          try {
+            if (exampleTag && exampleTag.text) {
+              example = JSON.parse(exampleTag.text);
+            }
+            // tslint:disable-next-line: no-empty
+          } catch {}
+          const formatTag = jsDocTags.find(tag => tag.name === 'format');
+
+          // Push property
+          return {
+            default: defaultValue,
+            description: this.getSymbolDescription(property),
+            example,
+            format: formatTag !== undefined ? formatTag.text : undefined,
+            name: property.name,
+            required,
+            type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
+            validators: getPropertyValidatorsFromTags(jsDocTags) || {},
+          };
         });
-      }
 
       const objectLiteral: Tsoa.NestedObjectLiteralType = {
         dataType: 'nestedObjectLiteral',
@@ -1026,7 +1023,10 @@ export class TypeResolver {
       // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'
       symbol.flags = 0;
     }
+    return this.getSymbolDescription(symbol);
+  }
 
+  private getSymbolDescription(symbol: ts.Symbol) {
     const comments = symbol.getDocumentationComment(this.current.typeChecker);
     if (comments.length) {
       return ts.displayPartsToString(comments);
