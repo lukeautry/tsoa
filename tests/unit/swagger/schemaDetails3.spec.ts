@@ -596,6 +596,41 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed~foo~_');
           },
+          record: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo~OR~record-bar._data-string__');
+            const schema = getComponentSchema('Record_record-foo~OR~record-bar._data-string__', currentSpec);
+            expect(schema).to.be.deep.eq({
+              properties: {
+                'record-foo': {
+                  properties: {
+                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  },
+                  required: ['data'],
+                  type: 'object',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+                'record-bar': {
+                  properties: {
+                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  },
+                  required: ['data'],
+                  type: 'object',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+              },
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+            });
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);

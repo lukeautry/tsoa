@@ -62,6 +62,7 @@ export interface TestModel extends Model {
   unknownType?: unknown;
   genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
   indexed?: Partial<Indexed['foo']>;
+  record?: Record<'record-foo' | 'record-bar', { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;

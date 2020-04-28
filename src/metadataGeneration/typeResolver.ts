@@ -142,23 +142,49 @@ export class TypeResolver {
     }
 
     if (ts.isMappedTypeNode(this.typeNode) && this.referencer) {
-      const isNotIgnored = (e: ts.Declaration) => {
-        const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
-        return !ignore && (ts.isPropertyDeclaration(e) || ts.isPropertySignature(e) || ts.isParameter(e));
-      };
-
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
-      const tsProperties = this.current.typeChecker.getPropertiesOfType(type).map(symbol => symbol.declarations[0]);
       const mappedTypeNode = this.typeNode;
-      const properties = tsProperties.filter(isNotIgnored).map(property => {
-        if (ts.isPropertySignature(property)) {
-          return this.propertyFromSignature(property, mappedTypeNode.questionToken);
-        } else if (ts.isPropertyDeclaration(property) || ts.isParameter(property)) {
-          return this.propertyFromDeclaration(property, mappedTypeNode.questionToken);
-        } else {
-          throw new GenerateMetadataError(`could not resolve property of kind ${property.kind}. Please report this as an issue`, property);
-        }
-      });
+      const typeChecker = this.current.typeChecker;
+      const getDeclaration = (prop: ts.Symbol) => prop.declarations && (prop.declarations[0] as ts.Declaration | undefined);
+      const isIgnored = (prop: ts.Symbol) => {
+        const declaration = getDeclaration(prop);
+        return (
+          prop.getJsDocTags().find(tag => tag.name === 'ignore') !== undefined ||
+          (declaration !== undefined && !ts.isPropertyDeclaration(declaration) && !ts.isPropertySignature(declaration) && !ts.isParameter(declaration))
+        );
+      };
+      const properties: Tsoa.Property[] = type
+        .getProperties()
+        // Ignore methods, getter, setter and @ignored props
+        .filter(property => isIgnored(property) === false)
+        // Transform to property
+        .map(property => {
+          const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
+          const declaration = getDeclaration(property) as ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration | undefined;
+
+          if (declaration && ts.isPropertySignature(declaration)) {
+            return this.propertyFromSignature(declaration, mappedTypeNode.questionToken);
+          } else if (declaration && (ts.isPropertyDeclaration(declaration) || ts.isParameter(declaration))) {
+            return this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken);
+          }
+
+          // Resolve default value, required and typeNode
+          let required = false;
+          const typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
+          if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
+            required = true;
+          } else if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.QuestionToken) {
+            required = false;
+          }
+
+          // Push property
+          return {
+            name: property.name,
+            required,
+            type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
+            validators: {},
+          };
+        });
 
       const objectLiteral: Tsoa.NestedObjectLiteralType = {
         dataType: 'nestedObjectLiteral',
