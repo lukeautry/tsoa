@@ -179,7 +179,6 @@ export class TypeResolver {
 
           // Push property
           return {
-            description: this.getSymbolDescription(property),
             name: property.name,
             required,
             type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
@@ -1006,10 +1005,7 @@ export class TypeResolver {
       // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'
       symbol.flags = 0;
     }
-    return this.getSymbolDescription(symbol);
-  }
 
-  private getSymbolDescription(symbol: ts.Symbol) {
     const comments = symbol.getDocumentationComment(this.current.typeChecker);
     if (comments.length) {
       return ts.displayPartsToString(comments);
