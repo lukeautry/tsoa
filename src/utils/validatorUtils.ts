@@ -105,19 +105,9 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
   }, {} as Tsoa.Validators);
 }
 
-export function getPropertyValidators(property: ts.Node): Tsoa.Validators | undefined {
-  const tags = getJSDocTags(property, () => true);
-  return getPropertyValidatorsFromTags(
-    tags.map(tag => ({
-      name: tag.tagName.text,
-      text: tag.comment,
-    })),
-  );
-}
-
-export function getPropertyValidatorsFromTags(tagsList: ts.JSDocTagInfo[]): Tsoa.Validators | undefined {
-  const tags = tagsList.filter(tag => {
-    return getParameterTagSupport().some(value => value === tag.name);
+export function getPropertyValidators(property: ts.PropertyDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature | ts.ParameterDeclaration): Tsoa.Validators | undefined {
+  const tags = getJSDocTags(property, tag => {
+    return getParameterTagSupport().some(value => value === tag.tagName.text);
   });
   function getValue(comment?: string) {
     if (!comment) {
@@ -142,8 +132,8 @@ export function getPropertyValidatorsFromTags(tagsList: ts.JSDocTagInfo[]): Tsoa
   }
 
   return tags.reduce((validateObj, tag) => {
-    const name = tag.name;
-    const comment = tag.text;
+    const name = tag.tagName.text;
+    const comment = tag.comment;
     const value = getValue(comment);
 
     switch (name) {

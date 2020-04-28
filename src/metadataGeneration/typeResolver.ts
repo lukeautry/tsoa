@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { assertNever } from '../utils/assertNever';
 import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
-import { getPropertyValidators, getPropertyValidatorsFromTags } from './../utils/validatorUtils';
+import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
@@ -160,7 +160,6 @@ export class TypeResolver {
         // Transform to property
         .map(property => {
           const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
-          const jsDocTags = property.getJsDocTags();
           const declaration = getDeclaration(property) as ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration | undefined;
 
           if (declaration && ts.isPropertySignature(declaration)) {
@@ -170,8 +169,6 @@ export class TypeResolver {
           }
 
           // Resolve default value, required and typeNode
-          const defaultTag = jsDocTags.find(tag => tag.name === 'default');
-          const defaultValue = defaultTag !== undefined ? defaultTag.text : undefined;
           let required = false;
           const typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
           if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
@@ -180,27 +177,13 @@ export class TypeResolver {
             required = false;
           }
 
-          // Get jsdoc infos
-          const exampleTag = jsDocTags.find(tag => tag.name === 'example');
-          let example: string | undefined;
-          try {
-            if (exampleTag && exampleTag.text) {
-              example = JSON.parse(exampleTag.text);
-            }
-            // tslint:disable-next-line: no-empty
-          } catch {}
-          const formatTag = jsDocTags.find(tag => tag.name === 'format');
-
           // Push property
           return {
-            default: defaultValue,
             description: this.getSymbolDescription(property),
-            example,
-            format: formatTag !== undefined ? formatTag.text : undefined,
             name: property.name,
             required,
             type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
-            validators: getPropertyValidatorsFromTags(jsDocTags) || {},
+            validators: {},
           };
         });
 
