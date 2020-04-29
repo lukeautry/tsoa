@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { getJSDocTags } from './../utils/jsDocUtils';
 import { getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
+import { getJSDocTags } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
