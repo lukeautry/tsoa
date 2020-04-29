@@ -18,7 +18,7 @@ export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identif
     .filter(isMatching);
 }
 
-export function getDecoratorName(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
+export function getNodeFirstDecoratorName(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
@@ -27,32 +27,30 @@ export function getDecoratorName(node: ts.Node, isMatching: (identifier: ts.Iden
   return decorators[0].text;
 }
 
-export function getDecoratorTextValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
+export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.TypeChecker, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
   }
-
-  const expression = decorators[0].parent as ts.CallExpression;
-  const expArguments = expression.arguments;
-  if (!expArguments || !expArguments.length) {
-    return;
-  }
-  return (expArguments[0] as ts.StringLiteral).text;
+  const values = getDecoratorValues(decorators[0], typeChecker);
+  return values && values[0];
 }
 
-export function getDecoratorOptionValue(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
-  const decorators = getDecorators(node, isMatching);
-  if (!decorators || !decorators.length) {
-    return;
-  }
-
-  const expression = decorators[0].parent as ts.CallExpression;
+export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+  const expression = decorator.parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) {
     return;
   }
-  return getInitializerValue(expArguments[0]);
+  return expArguments.map(a => getInitializerValue(a, typeChecker));
+}
+
+export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+  const [first, second] = getDecoratorValues(decorator, typeChecker);
+  if (isObject(first)) {
+    return first;
+  }
+  return { [first]: second || [] };
 }
 
 export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
@@ -61,4 +59,8 @@ export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifie
     return false;
   }
   return true;
+}
+
+function isObject(v: any) {
+  return typeof v === 'object' && v !== null;
 }

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { getDecoratorName, getDecoratorTextValue } from './../utils/decoratorUtils';
 import { getJSDocTags } from './../utils/jsDocUtils';
+import { getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -12,7 +12,7 @@ export class ParameterGenerator {
   constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
 
   public Generate(): Tsoa.Parameter {
-    const decoratorName = getDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
+    const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
       case 'Request':
@@ -54,11 +54,11 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: this.getParameterExample(parameter, parameterName),
       in: 'body-prop',
-      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'BodyProp') || parameterName,
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -95,11 +95,11 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: this.getParameterExample(parameter, parameterName),
       in: 'header',
-      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Header') || parameterName,
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -112,11 +112,11 @@ export class ParameterGenerator {
     const type = this.getValidatedType(parameter);
 
     const commonProperties = {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: this.getParameterExample(parameter, parameterName),
       in: 'query' as 'query',
-      name: getDecoratorTextValue(this.parameter, ident => ident.text === 'Query') || parameterName,
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -146,8 +146,9 @@ export class ParameterGenerator {
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
+
     const type = this.getValidatedType(parameter);
-    const pathName = getDecoratorTextValue(this.parameter, ident => ident.text === 'Path') || parameterName;
+    const pathName = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Path') || parameterName;
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -157,7 +158,7 @@ export class ParameterGenerator {
     }
 
     return {
-      default: getInitializerValue(parameter.initializer, type),
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: this.getParameterExample(parameter, parameterName),
       in: 'path',
