@@ -555,14 +555,15 @@ export class TypeResolver {
         .replace(/<|>/g, '_')
         .replace(/\s+/g, '')
         .replace(/,/g, '.')
-        .replace(/\'([^']*)\'|\"(^"*)\"/g, '$1')
-        .replace(/&/g, '~AND~')
-        .replace(/\|/g, '~OR~')
-        .replace(/\[\]/g, 'Array')
+        .replace(/\'([^']*)\'/g, '$1')
+        .replace(/\"([^"]*)\"/g, '$1')
+        .replace(/&/g, '-and-')
+        .replace(/\|/g, '-or-')
+        .replace(/\[\]/g, '-Array')
         .replace(/{|}/g, '_') // SuccessResponse_{indexesCreated-number}_ -> SuccessResponse__indexesCreated-number__
         .replace(/([a-z]+):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
         .replace(/;/g, '--')
-        .replace(/([a-z]+)\[([a-z]+)\]/gi, '$1~$2~'), // Partial_SerializedDatasourceWithVersion[format]_ -> Partial_SerializedDatasourceWithVersion~format~_,
+        .replace(/([a-z]+)\[([a-z]+)\]/gi, '$1-at-$2'), // Partial_SerializedDatasourceWithVersion[format]_ -> Partial_SerializedDatasourceWithVersion~format~_,
     );
   }
 

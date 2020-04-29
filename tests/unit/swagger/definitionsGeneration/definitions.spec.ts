@@ -403,11 +403,11 @@ describe('Definition generation', () => {
             expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string--bar-boolean__');
           },
           indexed: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/Partial_Indexed~foo~_');
+            expect(propertySchema.$ref).to.eq('#/definitions/Partial_Indexed-at-foo_');
           },
           record: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo~OR~record-bar._data-string__');
-            const schema = getValidatedDefinition('Record_record-foo~OR~record-bar._data-string__', currentSpec);
+            expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo-or-record-bar._data-string__');
+            const schema = getValidatedDefinition('Record_record-foo-or-record-bar._data-string__', currentSpec);
             expect(schema).to.be.deep.eq({
               properties: {
                 'record-foo': {
@@ -492,13 +492,13 @@ describe('Definition generation', () => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel1-Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel2-Array_', `for property ${propertyName}.$ref`);
           },
           defaultGenericModel: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericModel', `for property ${propertyName}.$ref`);
@@ -679,13 +679,13 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/definitions/Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_',
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
                   },
                   excludeToInterface: { $ref: '#/definitions/Exclude_OneOrTwo.TypeAliasModel1_', description: undefined, format: undefined, example: undefined },
-                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number~OR~null_', description: undefined, format: undefined, example: undefined },
+                  excludeTypeToPrimitive: { $ref: '#/definitions/NonNullable_number-or-null_', description: undefined, format: undefined, example: undefined },
                   pick: { $ref: '#/definitions/Pick_ThingContainerWithTitle_string_.list_', description: undefined, format: undefined, example: undefined },
                   readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined, example: undefined },
                   defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined, example: undefined },
@@ -806,7 +806,7 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account~OR~defaultValue2~OR~indexedTypeToInterface~OR~indexedTypeToClass~OR~indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
@@ -846,7 +846,7 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number~OR~null_', currentSpec);
+            const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number-or-null_', currentSpec);
             expect(excludeTypeToPrimitive).to.deep.eq(
               {
                 type: 'number',
@@ -1290,7 +1290,7 @@ describe('Definition generation', () => {
           expect(property.$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic model array', () => {
-          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;
 
           if (!definition) {
             throw new Error(`There were no properties on model.`);
@@ -1326,7 +1326,7 @@ describe('Definition generation', () => {
           expect(property.type).to.equal('string');
         });
         it('should generate different definitions for a generic primitive array', () => {
-          const definition = getValidatedDefinition('GenericModel_stringArray_', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_string-Array_', currentSpec).properties;
 
           if (!definition) {
             throw new Error(`There were no properties on model.`);
@@ -1348,13 +1348,13 @@ describe('Definition generation', () => {
           expect((property.items as Swagger.Schema).type).to.equal('string');
         });
         it('should propagate generics', () => {
-          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;
 
           expect(definition!.result).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, example: undefined, default: undefined });
           expect(definition!.union).to.deep.equal({ type: 'object', description: undefined, format: undefined, default: undefined, example: undefined });
-          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModelArray_', description: undefined, format: undefined, example: undefined });
+          expect(definition!.nested).to.deep.equal({ $ref: '#/definitions/GenericRequest_TestModel-Array_', description: undefined, format: undefined, example: undefined });
 
-          const ref = getValidatedDefinition('GenericRequest_TestModelArray_', currentSpec).properties;
+          const ref = getValidatedDefinition('GenericRequest_TestModel-Array_', currentSpec).properties;
           expect(ref!.name).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined, example: undefined });
           expect(ref!.value).to.deep.equal({ items: { $ref: '#/definitions/TestModel' }, type: 'array', description: undefined, format: undefined, default: undefined, example: undefined });
         });
@@ -1365,16 +1365,16 @@ describe('Definition generation', () => {
           expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
         });
         it('should check heritage clauses for type args', () => {
-          const definition = getValidatedDefinition('GenericModel_TestModelArray_', currentSpec).properties;
+          const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;
 
           expect(definition!.heritageCheck).to.deep.equal({
-            $ref: '#/definitions/ThingContainerWithTitle_TestModelArray_',
+            $ref: '#/definitions/ThingContainerWithTitle_TestModel-Array_',
             description: undefined,
             format: undefined,
             example: undefined,
           });
 
-          const ref = getValidatedDefinition('ThingContainerWithTitle_TestModelArray_', currentSpec).properties;
+          const ref = getValidatedDefinition('ThingContainerWithTitle_TestModel-Array_', currentSpec).properties;
           expect(ref!.title).to.deep.equal({ type: 'string', description: undefined, format: undefined, default: undefined, example: undefined });
           expect(ref!.t).to.deep.equal({
             default: undefined,

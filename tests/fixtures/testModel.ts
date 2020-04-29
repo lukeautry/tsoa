@@ -95,7 +95,8 @@ export interface TestModel extends Model {
     partial?: Partial<Account>;
     excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
     excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
-    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | 'defaultValue2' | 'indexedTypeToInterface' | 'indexedTypeToClass' | 'indexedTypeToAlias'>;
+    // prettier-ignore
+    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | "defaultValue2" | "indexedTypeToInterface" | 'indexedTypeToClass' | 'indexedTypeToAlias'>;
     excludeToInterface?: Exclude<OneOrTwo, TypeAliasModel1>;
     excludeTypeToPrimitive?: NonNullable<number | null>;
 
