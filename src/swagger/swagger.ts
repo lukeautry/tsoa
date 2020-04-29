@@ -229,7 +229,7 @@ export namespace Swagger {
   export interface Schema3 extends Omit<Schema, 'type'> {
     type?: DataType;
     nullable?: boolean;
-    oneOf?: BaseSchema[];
+    anyOf?: BaseSchema[];
     allOf?: BaseSchema[];
   }
 

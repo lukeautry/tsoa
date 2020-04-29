@@ -525,7 +525,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              oneOf: [
+              anyOf: [
                 { type: 'string', enum: [''], nullable: false },
                 { type: 'string', enum: ['Foo'], nullable: false },
                 { type: 'string', enum: ['Bar'], nullable: false },
@@ -545,7 +545,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           unionPrimetiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
-              oneOf: [
+              anyOf: [
                 { type: 'string', enum: ['String'], nullable: false },
                 { type: 'number', enum: ['1'], nullable: false },
                 { type: 'number', enum: ['20'], nullable: false },
@@ -719,7 +719,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           or: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
               {
-                oneOf: [{ $ref: '#/components/schemas/TypeAliasModel1' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
+                anyOf: [{ $ref: '#/components/schemas/TypeAliasModel1' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
               },
               `for property ${propertyName}.$ref`,
             );
@@ -728,7 +728,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           mixedUnion: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include(
               {
-                oneOf: [{ type: 'string' }, { $ref: '#/components/schemas/TypeAliasModel1' }],
+                anyOf: [{ type: 'string' }, { $ref: '#/components/schemas/TypeAliasModel1' }],
               },
               `for property ${propertyName}.$ref`,
             );
@@ -775,7 +775,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const unionAliasSchema = getComponentSchema('UnionAlias', currentSpec);
             expect(unionAliasSchema).to.deep.eq({
-              oneOf: [{ $ref: '#/components/schemas/TypeAliasModelCase2' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
+              anyOf: [{ $ref: '#/components/schemas/TypeAliasModelCase2' }, { $ref: '#/components/schemas/TypeAliasModel2' }],
               description: undefined,
               example: undefined,
               default: undefined,
@@ -823,7 +823,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const forwardGenericAliasBooleanAndTypeAliasModel1Schema = getComponentSchema('ForwardGenericAlias_boolean.TypeAliasModel1_', currentSpec);
             expect(forwardGenericAliasBooleanAndTypeAliasModel1Schema).to.deep.eq({
-              oneOf: [{ $ref: '#/components/schemas/GenericAlias_TypeAliasModel1_' }, { type: 'boolean' }],
+              anyOf: [{ $ref: '#/components/schemas/GenericAlias_TypeAliasModel1_' }, { type: 'boolean' }],
               description: undefined,
               example: undefined,
               default: undefined,
@@ -1070,7 +1070,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
             expect(excludeLiteral).to.deep.eq(
               {
-                oneOf: [
+                anyOf: [
                   { type: 'string', enum: ['id'], nullable: false },
                   { type: 'string', enum: ['enumKeys'], nullable: false },
                   { type: 'string', enum: ['keyInterface'], nullable: false },
@@ -1150,7 +1150,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: undefined,
                     format: undefined,
                     example: undefined,
-                    oneOf: [
+                    anyOf: [
                       { enum: ['OK'], nullable: false, type: 'string' },
                       { enum: ['KO'], nullable: false, type: 'string' },
                     ],
@@ -1272,7 +1272,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const maybeWord = getComponentSchema('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq(
-              { oneOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: [null], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
+              { anyOf: [{ $ref: '#/components/schemas/Word' }, { type: 'number', enum: [null], nullable: true }], description: undefined, default: undefined, example: undefined, format: undefined },
               `for schema linked by property ${propertyName}`,
             );
           },
@@ -1336,7 +1336,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       // Assert
       expect(getComponentSchema(schemaName, { specName: 'specDefault', spec })).to.deep.eq({
         description: undefined,
-        oneOf: [
+        anyOf: [
           { type: 'number', enum: [1, 3] },
           { type: 'string', enum: ['two', 'four'] },
         ],
