@@ -2,9 +2,9 @@
 Pronounced so·uh
 
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
-[![npm version](https://img.shields.io/npm/v/tsoa/v3beta)](https://www.npmjs.com/package/tsoa)
+[![npm version](https://img.shields.io/npm/v/tsoa/latest)](https://www.npmjs.com/package/tsoa)
 
-## This Readme is intended for tsoa v3-beta, for stable releases, please refer to the Readme of the [2.x branch](https://github.com/lukeautry/tsoa/tree/2.x).
+## The Rendered Documentation can be found [here](https://tsoa-community.github.io/docs/index).
 
 ## Table of Contents
 
