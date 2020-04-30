@@ -766,6 +766,7 @@ export class ValidateError extends Error implements Exception {
 
   constructor(public fields: FieldErrors, public message: string) {
     super(message);
+    Object.setPrototypeOf(this, ValidateError.prototype);
   }
 }
 

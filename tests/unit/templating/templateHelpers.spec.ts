@@ -5,6 +5,13 @@ import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
 import { ValidateError } from '../../../src/routeGeneration/templateHelpers';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
+it('ValidateError should be an instanceof ValidateError', () => {
+  const validateError = new ValidateError({}, '');
+
+  expect(validateError instanceof ValidateError).to.be.true;
+  expect(validateError instanceof Error).to.be.true;
+});
+
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
