@@ -247,15 +247,26 @@ export class TypeResolver {
       ts.isLiteralTypeNode(this.typeNode.indexType) &&
       (ts.isStringLiteral(this.typeNode.indexType.literal) || ts.isNumericLiteral(this.typeNode.indexType.literal))
     ) {
-      const hasType = (node: ts.Node): node is ts.HasType => node.hasOwnProperty('type');
+      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && node.hasOwnProperty('type');
       const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
-      if (symbol === undefined || !hasType(symbol.valueDeclaration) || !symbol.valueDeclaration.type) {
+      if (symbol === undefined) {
         throw new GenerateMetadataError(
           `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType))}`,
           this.typeNode,
         );
       }
-      return new TypeResolver(symbol.valueDeclaration.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+      if (hasType(symbol.valueDeclaration) && symbol.valueDeclaration.type) {
+        return new TypeResolver(symbol.valueDeclaration.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+      }
+      const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
+      try {
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      } catch {
+        throw new GenerateMetadataError(
+          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(declaration)!))}`,
+          this.typeNode,
+        );
+      }
     }
 
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
