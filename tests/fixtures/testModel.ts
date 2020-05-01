@@ -607,21 +607,14 @@ interface Indexed {
 }
 type IndexType = 'foo';
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
-type Names = 'foo' | 'bar';
-class ClassIndexTest {
-  public static foo = { payload: ['id'] } as const;
-  public static bar = { payload: ['id'] } as const;
-}
-type ResponseDistribute<T> = T extends Names
-  ? {
-      [key in T]: {
-        status: 'fail';
-        data: Record<typeof ClassIndexTest[T]['payload'][number], string | string[]>;
-      };
-    }
-  : never;
-type Response = UnionToIntersection<ResponseDistribute<Names>>;
+const ClassIndexTest = {
+  foo: ['id'],
+} as const
+type Names = keyof typeof ClassIndexTest;
+type ResponseDistribute<T> = T extends Names ? {
+  [key in T]: Record<typeof ClassIndexTest[T][number], string>;
+} : never;
+type IndexRecordAlias = ResponseDistribute<Names>;
 
 /**
  * This is a description of TestClassModel
@@ -635,7 +628,7 @@ export class TestClassModel extends TestClassBaseModel {
   public indexedTypeToInterface?: Indexed['interface'];
   public indexedTypeToClass?: Indexed['class'];
   public indexedTypeToAlias?: Indexed['alias'];
-  public indexedResponse?: Response['foo'];
+  public indexedResponse?: IndexRecordAlias['foo'];
   /**
    * This is a description of a public string property
    *
