@@ -91,6 +91,7 @@
     "express": "^4.17.1",
     "husky": "^3.0.2",
     "inversify": "^5.0.1",
+    "inversify-binding-decorators": "^4.0.0",
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
     "lint-staged": "9.2.3",

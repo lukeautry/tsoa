@@ -138,5 +138,17 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routesDir: './tests/fixtures/inversify',
       }),
     ),
+    log('Inversify(-binding-decorators) with ControllerPathGlob Route Generation', () =>
+      generateRoutes({
+        controllerPathGlobs: ['tests/fixtures/inversify-cpg/*Controller.ts'],
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './tests/fixtures/inversify-cpg/authentication.ts',
+        basePath: '/v1',
+        entryFile: '',
+        iocModule: './tests/fixtures/inversify-cpg/ioc.ts',
+        middleware: 'express',
+        routesDir: './tests/fixtures/inversify-cpg',
+      }),
+    ),
   ]);
 })();
