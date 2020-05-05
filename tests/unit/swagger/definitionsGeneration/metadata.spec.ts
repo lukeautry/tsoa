@@ -651,6 +651,22 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('ControllerWithCommonResponsesGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/controllerWithCommonResponses.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should add common responses to every method', () => {
+      expect(controller.methods).to.have.lengthOf(2);
+      controller.methods.forEach(method => {
+        expect(method.responses.length).to.equal(2);
+
+        const response = method.responses[0];
+        expect(response.name).to.equal('401');
+        expect(response.description).to.equal('Unauthorized');
+      });
+    });
+  });
+
   describe('DeprecatedMethodGenerator', () => {
     const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/deprecatedController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
