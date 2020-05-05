@@ -182,7 +182,7 @@ describe('Metadata generation', () => {
 
       const security = method.security[0];
       expect(security).to.haveOwnProperty('JWT2');
-      expect(security['JWT2']).to.deep.equal(['permission:admin', 'permission:owner']);
+      expect(security.JWT2).to.deep.equal(['permission:admin', 'permission:owner']);
 
       const objSecurity = method.security[1];
       expect(objSecurity).to.deep.equal({
