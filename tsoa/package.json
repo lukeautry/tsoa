@@ -17,17 +17,6 @@
     "hapi.js",
     "koa"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && npm run pre-commit"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "prettier --write",
-      "git add"
-    ]
-  },
   "scripts": {
     "start": "tsc -b -w",
     "build": "yarn tsc",
@@ -41,7 +30,6 @@
     "@tsoa/cli": "3.0.8"
   },
   "devDependencies": {
-    "husky": "^3.0.2",
     "tslint": "^6.1.1",
     "typescript": "^3.8.2"
   },
