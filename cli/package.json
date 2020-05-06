@@ -17,17 +17,6 @@
     "hapi.js",
     "koa"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && npm run pre-commit"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "prettier --write",
-      "git add"
-    ]
-  },
   "scripts": {
     "start": "tsc -b -w",
     "build": "yarn clean && yarn tsc && yarn copy-templates && yarn copy-types",
@@ -37,13 +26,11 @@
     "lint": "tslint ./src/**/*.ts ./tests/**/*.ts",
     "format": "tsfmt -r",
     "prepare": "yarn build",
-    "deploy": "yarn version patch -m \"Release v%s\" && yarn publish",
     "preversion": "yarn test",
     "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
-    "test": "node ../ensureYarn.js && tsc -p ./tests/tsconfig.json --noEmit && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
-    "pre-commit": "yarn lint && yarn test",
+    "test": "node ../ensureYarn.js && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
     "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
@@ -90,12 +77,10 @@
     "copyfiles": "^2.2.0",
     "cross-env": "^5.1.6",
     "express": "^4.17.1",
-    "husky": "^3.0.2",
     "inversify": "^5.0.1",
     "inversify-binding-decorators": "^4.0.0",
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
-    "lint-staged": "9.2.3",
     "method-override": "^3.0.0",
     "mocha": "^7.1.1",
     "prettier": "^2.0.5",

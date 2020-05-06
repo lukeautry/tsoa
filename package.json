@@ -18,10 +18,32 @@
   ],
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm run pre-commit"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "scripts": {
+    "build": "lerna run build",
+    "deploy": "lerna version patch -m \"Release v%s\" && lerna publish",
+    "prepare": "lerna run build",
+    "preversion": "yarn test",
+    "test": "lerna run test",
+    "lint": "lerna run lint",
+    "pre-commit": "yarn lint && yarn test"
+  },
   "dependencies": {
   },
   "devDependencies": {
-    "lerna": "^3.20.2"
+    "lerna": "^3.20.2",
+    "husky": "^3.0.2",
+    "lint-staged": "9.2.3"
   },
   "repository": {
     "type": "git",

@@ -32,8 +32,6 @@
     "start": "tsc -b -w",
     "build": "yarn tsc",
     "lint": "tslint ./src/**/*.ts",
-    "prepare": "yarn build",
-    "pre-commit": "yarn lint",
     "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
