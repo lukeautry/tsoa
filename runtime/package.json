@@ -36,8 +36,6 @@
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
-  "dependencies": {
-  },
   "devDependencies": {
     "@types/node": "^12.7.2",
     "husky": "^3.0.2",

@@ -30,12 +30,11 @@
     ]
   },
   "scripts": {
-    "build": "lerna run build",
+    "build": "lerna run build --stream",
     "deploy": "lerna version patch -m \"Release v%s\" && lerna publish",
-    "prepare": "lerna run build",
-    "preversion": "yarn test",
-    "test": "lerna run test",
-    "lint": "lerna run lint",
+    "prepare": "yarn build",
+    "test": "lerna run test --stream",
+    "lint": "lerna run lint --stream",
     "pre-commit": "yarn lint && yarn test"
   },
   "dependencies": {

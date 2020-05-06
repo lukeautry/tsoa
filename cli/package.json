@@ -27,7 +27,6 @@
     "format": "tsfmt -r",
     "prepare": "yarn build",
     "preversion": "yarn test",
-    "postversion": "git push origin master && git push --follow-tags",
     "pretest": "cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
     "test": "node ../ensureYarn.js && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
