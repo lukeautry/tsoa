@@ -1,5 +1,5 @@
 {
-  "name": "@tsoa/runtime",
+  "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "version": "3.0.8",
   "main": "./dist/index.js",
@@ -29,19 +29,20 @@
     ]
   },
   "scripts": {
-    "start": "tsc -w",
+    "start": "tsc -b -w",
     "build": "yarn tsc",
     "lint": "tslint ./src/**/*.ts",
     "prepare": "yarn build",
     "pre-commit": "yarn lint",
-    "tsc": "tsc"
+    "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "@tsoa/runtime": "3.0.8",
+    "@tsoa/cli": "3.0.8"
   },
   "devDependencies": {
-    "@types/node": "^12.7.2",
     "husky": "^3.0.2",
     "tslint": "^6.1.1",
     "typescript": "^3.8.2"

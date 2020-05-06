@@ -35,7 +35,8 @@
   "workspaces": {
     "packages": [
       "cli",
-      "runtime"
+      "runtime",
+      "tsoa"
     ]
   }
 }
