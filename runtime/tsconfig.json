@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "src",
     "sourceMap": true,
     "noImplicitAny": false,
     "module": "commonjs",
+    "types": ["node"],
+    "composite": true,
     "target": "es5",
     "lib": ["es6", "es2017.object", "dom"],
     "typeRoots": ["node_modules/@types", "./typings"],
@@ -19,7 +22,5 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "strictBindCallApply": true
-  },
-  "exclude": ["src/routeGeneration/templates/**/*"],
-  "include": ["src/**/*.ts", "runtime/src/routeGeneration/tsoa-route.ts", "runtime/src/metadataGeneration/tsoa.ts", "cli/src/utils/assertNever.ts", "cli/src/utils/decoratorUtils.ts", "cli/src/utils/genericTypeGuards.ts", "cli/src/utils/jsDocUtils.ts", "cli/src/utils/fs.ts", "cli/src/utils/importClassesFromDirectories.ts", "cli/src/utils/pathUtils.ts", "cli/src/swagger/swagger.ts"]
+  }
 }
