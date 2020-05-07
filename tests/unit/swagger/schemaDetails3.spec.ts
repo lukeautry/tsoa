@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
+import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
-import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
+import { SpecGenerator3 } from '@tsoa/cli/dist/swagger/specGenerator3';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
-import { ExtendedSpecConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -201,7 +201,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('paths', () => {
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
-        const metadataPost = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
+        const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
         const specPost = new SpecGenerator3(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specPost.paths) {
@@ -233,14 +233,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
-        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
       });
 
       it('should not contain paths for hidden controller', () => {
-        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
         const specHiddenController = new SpecGenerator3(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;

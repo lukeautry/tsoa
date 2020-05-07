@@ -1,9 +1,8 @@
 {
-  "name": "@tsoa/cli",
+  "name": "tsoa-tests",
+  "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "version": "3.0.8",
-  "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
   "keywords": [
     "typescript",
     "openapi",
@@ -18,14 +17,13 @@
     "koa"
   ],
   "scripts": {
-    "build": "yarn clean && yarn tsc && yarn copy-templates",
-    "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
-    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "build": "yarn clean && yarn tsc",
+    "clean": "rimraf dist && rimraf fixtures/*/routes.ts",
     "lint": "tslint ./src/**/*.ts",
-    "format": "tsfmt -r",
-    "prepare": "yarn build",
-    "tsc": "tsc -b",
-    "watch": "tsc -b -w"
+    "pretest": "yarn clean && cross-env NODE_ENV=tsoa_test ts-node ./prepare.ts",
+    "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
+    "test": "node ../ensureYarn.js && tsc -b tsconfig.build.json && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
+    "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -88,9 +86,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
-  },
-  "bin": {
-    "tsoa": "dist/cli.js"
   },
   "engines": {
     "yarn": ">=1.9.4",

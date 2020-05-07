@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "sourceMap": true,
-    "composite": true,
     "noImplicitAny": false,
     "module": "commonjs",
     "target": "es5",
@@ -22,9 +21,8 @@
     "noFallthroughCasesInSwitch": true,
     "strictBindCallApply": true
   },
-  "exclude": ["src/routeGeneration/templates/**/*"],
-  "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../runtime" }
+    { "path": "../runtime" },
+    { "path": "../cli" }
   ]
 }

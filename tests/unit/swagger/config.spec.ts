@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { validateSpecConfig, ExtendedSpecConfig } from '../../../src/cli';
+import { validateSpecConfig, ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
 import { Config } from '@tsoa/runtime';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 

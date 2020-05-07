@@ -2,14 +2,14 @@ import 'mocha';
 
 import { expect } from 'chai';
 
-import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/dist/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { Tsoa } from '@tsoa/runtime';
-import { ExtendedSpecConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
 
 describe('Schema details generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
 
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
@@ -60,14 +60,14 @@ describe('Schema details generation', () => {
   describe('paths', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
-        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHiddenMethod = new SpecGenerator2(metadataHiddenMethod, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
       });
 
       it('should not contain paths for hidden controller', () => {
-        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
@@ -113,7 +113,7 @@ describe('Schema details generation', () => {
         entryFile: 'mockEntryFile',
         noImplicitAdditionalProperties: 'ignore',
       };
-      const mixedEnumMetadata = new MetadataGenerator('./tests/fixtures/controllers/mixedEnumController.ts').Generate();
+      const mixedEnumMetadata = new MetadataGenerator('./fixtures/controllers/mixedEnumController.ts').Generate();
 
       // Act
       let errToTest: Error | null = null;

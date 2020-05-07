@@ -1,20 +1,32 @@
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/dist/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 
-describe('PATCH route generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/patchController.ts').Generate();
+describe('PUT route generation', () => {
+  const metadata = new MetadataGenerator('./fixtures/controllers/putController.ts').Generate();
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-  const baseRoute = '/PatchTest';
+  const baseRoute = '/PutTest';
 
-  it('should generate a path for a PATCH route with no path argument', () => {
+  const getValidatedParameters = (actionRoute: string) => {
+    const path = verifyPath(actionRoute);
+    if (!path.put) {
+      throw new Error('No patch operation.');
+    }
+    if (!path.put.parameters) {
+      throw new Error('No parameters');
+    }
+
+    return path.put.parameters as any;
+  };
+
+  it('should generate a path for a PUT route with no path argument', () => {
     verifyPath(baseRoute);
   });
 
-  it('should generate a path for a PATCH route with a path argument', () => {
+  it('should generate a path for a PUT route with a path argument', () => {
     const actionRoute = `${baseRoute}/Location`;
     verifyPath(actionRoute);
   });
@@ -24,22 +36,8 @@ describe('PATCH route generation', () => {
     verifyPath(actionRoute, true);
   });
 
-  const getValidatedParameters = (actionRoute: string) => {
-    const path = verifyPath(actionRoute);
-    if (!path.patch) {
-      throw new Error('No patch operation.');
-    }
-    if (!path.patch.parameters) {
-      throw new Error('No parameters');
-    }
-
-    return path.patch.parameters as any;
-  };
-
   it('should generate a parameter for path parameters', () => {
-    const actionRoute = `${baseRoute}/WithId/{id}`;
-    const parameters = getValidatedParameters(actionRoute);
-
+    const parameters = getValidatedParameters(`${baseRoute}/WithId/{id}`);
     VerifyPathableParameter(parameters, 'id', 'number', 'path', 'double');
   });
 
@@ -49,6 +47,6 @@ describe('PATCH route generation', () => {
   });
 
   function verifyPath(route: string, isCollection?: boolean) {
-    return VerifyPath(spec, route, path => path.patch, isCollection);
+    return VerifyPath(spec, route, path => path.put, isCollection);
   }
 });

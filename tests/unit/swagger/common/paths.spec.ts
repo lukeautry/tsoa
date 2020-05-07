@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { normalisePath, convertColonPathParams } from '../../../../src/utils/pathUtils';
+import { normalisePath, convertColonPathParams } from '@tsoa/cli/dist/utils/pathUtils';
 
 describe('Paths normalisation', () => {
   it('should remove all redundant symbols at the beginning and at the end', () => {

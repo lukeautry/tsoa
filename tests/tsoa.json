@@ -1,5 +1,5 @@
 {
-  "entryFile": "./tests/fixtures/express/server.ts",
+  "entryFile": "./fixtures/express/server.ts",
   "noImplicitAdditionalProperties": "silently-remove-extras",
   "spec": {
     "outputDirectory": "./dist",
@@ -26,8 +26,8 @@
   },
   "routes": {
     "basePath": "/v1",
-    "routesDir": "./tests/fixtures/express",
+    "routesDir": "./fixtures/express",
     "middleware": "express",
-    "authenticationModule": "./tests/fixtures/express/authentication.ts"
+    "authenticationModule": "./fixtures/express/authentication.ts"
   }
 }

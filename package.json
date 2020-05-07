@@ -33,7 +33,7 @@
     "build": "lerna run build --stream",
     "deploy": "lerna version patch -m \"Release v%s\" --force-publish && lerna publish",
     "prepare": "yarn build",
-    "test": "lerna run test --stream",
+    "test": "yarn --cwd tests test",
     "lint": "lerna run lint --stream",
     "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel"
@@ -58,7 +58,8 @@
     "packages": [
       "cli",
       "runtime",
-      "tsoa"
+      "tsoa",
+      "tests"
     ]
   }
 }

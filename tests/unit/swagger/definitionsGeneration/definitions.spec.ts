@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/dist/swagger/specGenerator2';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { TestModel } from '../../../fixtures/testModel';
-import { ExtendedSpecConfig } from '../../../../src/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
 
 describe('Definition generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
-  const dynamicMetadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts', undefined, undefined, ['./tests/fixtures/controllers/getController.ts']).Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  const dynamicMetadata = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, ['./fixtures/controllers/getController.ts']).Generate();
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
