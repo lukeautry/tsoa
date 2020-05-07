@@ -29,10 +29,10 @@
     ]
   },
   "scripts": {
-    "start": "tsc -w",
     "build": "yarn tsc",
     "lint": "tslint ./src/**/*.ts",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "watch": "tsc -w"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",

@@ -3,8 +3,7 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import * as tsfmt from 'typescript-formatter';
 import { ExtendedRoutesConfig } from '../cli';
-import { assertNever } from '@tsoa/runtime';
-import { Tsoa, TsoaRoute } from '@tsoa/runtime';
+import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
 import { isRefType } from '../utils/internalTypeGuards';
 import { normalisePath } from './../utils/pathUtils';
@@ -68,13 +67,8 @@ export class RouteGenerator {
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
 
-    // If we're working locally then tsoa won't exist as an importable module.
-    // So, when in testing mode we reference the module by path instead.
-    const env = process.env.NODE_ENV;
-    let canImportByAlias = true;
-    if (env === 'tsoa_test') {
-      canImportByAlias = true;
-    }
+    // Left in for backwards compatability, previously if we're working locally then tsoa runtime code wasn't an importable module but now it is.
+    const canImportByAlias = true;
 
     const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
 

@@ -18,7 +18,6 @@
     "koa"
   ],
   "scripts": {
-    "start": "tsc -b -w",
     "build": "yarn clean && yarn tsc && yarn copy-templates",
     "copy-types": "copyfiles -u 1 ./src/*.d.ts ./dist",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
@@ -30,7 +29,8 @@
     "pretest": "yarn build && cross-env NODE_ENV=tsoa_test ts-node ./tests/prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
     "test": "node ../ensureYarn.js && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha **/*.spec.ts --exit --require ts-node/register --timeout 5000",
-    "tsc": "tsc -b"
+    "tsc": "tsc -b",
+    "watch": "tsc -b -w"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",

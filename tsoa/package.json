@@ -18,10 +18,10 @@
     "koa"
   ],
   "scripts": {
-    "start": "tsc -b -w",
     "build": "yarn tsc",
     "lint": "tslint ./src/**/*.ts",
-    "tsc": "tsc -b"
+    "tsc": "tsc -b",
+    "watch": "tsc -b -w"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -36,6 +36,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
+  },
+  "bin": {
+    "tsoa": "dist/cli.js"
   },
   "engines": {
     "yarn": ">=1.9.4",

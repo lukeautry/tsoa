@@ -184,7 +184,7 @@ export interface SwaggerArgs extends ConfigArgs {
   yaml?: boolean;
 }
 
-if (!module.parent) {
+export function runCLI(): void {
   yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
@@ -248,6 +248,8 @@ if (!module.parent) {
     .help('help')
     .alias('help', 'h').argv;
 }
+
+if (!module.parent) runCLI();
 
 async function SpecGenerator(args: SwaggerArgs) {
   try {

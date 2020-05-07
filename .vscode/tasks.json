@@ -17,6 +17,11 @@
       "label": "prepareFiles",
       "group": "none",
       "args": ["run", "pretest"]
+    },
+    {
+      "label": "watch",
+      "group": "build",
+      "args": ["run", "watch"]
     }
   ]
 }
