@@ -79,7 +79,13 @@ export class ControllerGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
+    const noSecurityDecorators = getDecorators(this.node, identifier => identifier.text === 'NoSecurity');
     const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
+
+    if (noSecurityDecorators?.length) {
+      throw new GenerateMetadataError(`NoSecurity decorator is unnecessary in '${this.node.name!.text}' class.`);
+    }
+
     if (!securityDecorators || !securityDecorators.length) {
       return [];
     }
