@@ -286,7 +286,7 @@ describe('ValidationService', () => {
   });
 
   describe('Param validate', () => {
-    it('Should apply defaults for optional properties', () => {
+    it('should apply defaults for optional properties', () => {
       const value = undefined;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
       const minimalSwaggerConfig: AdditionalProps = {
@@ -296,7 +296,7 @@ describe('ValidationService', () => {
       expect(result).to.equal(666);
     });
 
-    it('Should not override values with defaults', () => {
+    it('should not override values with defaults', () => {
       const value = 123;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
       const minimalSwaggerConfig: AdditionalProps = {
@@ -306,7 +306,7 @@ describe('ValidationService', () => {
       expect(result).to.equal(123);
     });
 
-    it('Should apply defaults for required properties', () => {
+    it('should apply defaults for required properties', () => {
       const value = undefined;
       const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: true, validators: {} };
       const minimalSwaggerConfig: AdditionalProps = {
@@ -465,7 +465,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`should be one of the following; ['HELLO','HI']`);
     });
 
-    it('does accepts a string value for a numeric enum', () => {
+    it('does accept a string value for a numeric enum', () => {
       const name = 'name';
       const value = '1';
       const error = {};
@@ -485,7 +485,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`should be one of the following; [0,1]`);
     });
 
-    it('does accepts a numeric value for a string-numeric enum', () => {
+    it('does accept a numeric value for a string-numeric enum', () => {
       const name = 'name';
       const value = 1;
       const error = {};
@@ -515,7 +515,7 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`should be one of the following; [1,2]`);
     });
 
-    it('does accepts a boolean value for a boolean enum', () => {
+    it('does accept a boolean value for a boolean enum', () => {
       const name = 'name';
       const value = false;
       const error = {};
@@ -525,7 +525,7 @@ describe('ValidationService', () => {
       expect(error).to.deep.equal({});
     });
 
-    it('does accepts a stringified boolean value for a boolean enum', () => {
+    it('does accept a stringified boolean value for a boolean enum', () => {
       const name = 'name';
       const value = 'true';
       const error = {};
