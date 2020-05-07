@@ -31,14 +31,16 @@
   },
   "scripts": {
     "build": "lerna run build --stream",
-    "deploy": "lerna version patch -m \"Release v%s\" --force-publish && lerna publish",
+    "deploy": "yarn bump && lerna publish from-git",
+    "bump": "lerna version patch -m \"Release v%s\" --force-publish",
     "clean": "lerna run clean --stream",
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
     "lint": "lerna run lint --stream",
     "pre-commit": "yarn lint && yarn test",
-    "watch": "lerna run watch --parallel"
+    "watch": "lerna run watch --parallel",
+    "lerna": "lerna"
   },
   "dependencies": {
   },
