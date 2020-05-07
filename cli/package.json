@@ -23,7 +23,6 @@
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "lint": "tslint ./src/**/*.ts",
     "format": "tsfmt -r",
-    "prepare": "yarn build",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
   },
