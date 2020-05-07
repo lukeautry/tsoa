@@ -41,5 +41,8 @@
     "yarn": ">=1.9.4",
     "node": ">=6.0.0"
   },
-  "engineStrict": true
+  "engineStrict": true,
+  "publishConfig": {
+    "access": "public"
+  }
 }
