@@ -166,7 +166,7 @@ export class GetTestController extends Controller {
 
   @Get('HandleBufferType')
   public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
-    return new Buffer('testbuffer');
+    return Buffer.from('testbuffer');
   }
 
   @Get('HandleStreamType')

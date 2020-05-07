@@ -17,17 +17,6 @@
     "hapi.js",
     "koa"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && npm run pre-commit"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "prettier --write",
-      "git add"
-    ]
-  },
   "scripts": {
     "build": "yarn tsc",
     "lint": "tslint ./src/**/*.ts",
@@ -36,9 +25,11 @@
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
+  "dependencies": {
+    "moment": "^2.24.0",
+    "validator": "^12.2.0"
+  },
   "devDependencies": {
-    "@types/node": "^12.7.2",
-    "husky": "^3.0.2",
     "tslint": "^6.1.1",
     "typescript": "^3.8.2"
   },

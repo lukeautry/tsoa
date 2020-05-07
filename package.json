@@ -32,6 +32,7 @@
   "scripts": {
     "build": "lerna run build --stream",
     "deploy": "lerna version patch -m \"Release v%s\" --force-publish && lerna publish",
+    "clean": "lerna run clean",
     "prepare": "yarn build",
     "test": "yarn --cwd tests test",
     "lint": "lerna run lint --stream",
@@ -43,7 +44,10 @@
   "devDependencies": {
     "lerna": "^3.20.2",
     "husky": "^3.0.2",
-    "lint-staged": "9.2.3"
+    "prettier": "^2.0.5",
+    "lint-staged": "9.2.3",
+    "tslint": "^6.1.1",
+    "typescript": "^3.8.2"
   },
   "repository": {
     "type": "git",

@@ -458,7 +458,7 @@ export class ValidationService {
   }
 
   public validateBuffer(name: string, value: string) {
-    return new Buffer(value);
+    return Buffer.from(value);
   }
 
   public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
