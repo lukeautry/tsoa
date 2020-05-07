@@ -63,9 +63,7 @@
   "engineStrict": true,
   "workspaces": {
     "packages": [
-      "cli",
-      "runtime",
-      "tsoa",
+      "packages/*",
       "tests"
     ]
   }

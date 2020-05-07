@@ -22,7 +22,7 @@
     "strictBindCallApply": true
   },
   "references": [
-    { "path": "../runtime" },
-    { "path": "../cli" }
+    { "path": "../packages/runtime" },
+    { "path": "../packages/cli" }
   ]
 }
