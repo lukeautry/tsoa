@@ -17,7 +17,7 @@
     "koa"
   ],
   "scripts": {
-    "clean": "rimraf dist && rimraf fixtures/*/routes.ts",
+    "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
     "lint": "tslint ./src/**/*.ts",
     "pretest": "yarn clean && cross-env NODE_ENV=tsoa_test ts-node ./prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",

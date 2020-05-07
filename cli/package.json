@@ -20,7 +20,7 @@
   "scripts": {
     "build": "yarn clean && yarn tsc && yarn copy-templates",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
-    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
     "lint": "tslint ./src/**/*.ts",
     "format": "tsfmt -r",
     "prepare": "yarn build",

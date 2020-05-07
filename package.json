@@ -32,7 +32,7 @@
   "scripts": {
     "build": "lerna run build --stream",
     "deploy": "lerna version patch -m \"Release v%s\" --force-publish && lerna publish",
-    "clean": "lerna run clean",
+    "clean": "lerna run clean --stream",
     "prepare": "yarn build",
     "test": "yarn --cwd tests test",
     "lint": "lerna run lint --stream",
