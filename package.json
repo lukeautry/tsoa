@@ -42,8 +42,7 @@
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "lerna": "^3.20.2",
     "husky": "^3.0.2",

@@ -24,7 +24,5 @@
   },
   "exclude": ["src/routeGeneration/templates/**/*"],
   "include": ["src/**/*.ts"],
-  "references": [
-    { "path": "../runtime" }
-  ]
+  "references": [{ "path": "../runtime" }]
 }

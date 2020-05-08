@@ -33,8 +33,8 @@
       "name": "Generate",
       "type": "node",
       "request": "launch",
-      "args": ["${workspaceRoot}/src/cli.ts", "swagger"],
-      "cwd": "${workspaceRoot}",
+      "args": ["${workspaceRoot}/packages/tsoa/src/cli.ts", "swagger"],
+      "cwd": "${workspaceRoot}/tests",
       "preLaunchTask": "build",
       "runtimeArgs": ["--require", "ts-node/register"],
       "env": {
@@ -46,7 +46,7 @@
       "type": "node",
       "request": "launch",
       "args": ["${workspaceRoot}/tests/prepare.ts"],
-      "cwd": "${workspaceRoot}",
+      "cwd": "${workspaceRoot}/tests",
       "runtimeArgs": ["--require", "ts-node/register"],
       "env": {
         "NODE_ENV": "development"

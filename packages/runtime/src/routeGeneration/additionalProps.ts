@@ -1,5 +1,5 @@
-import { Config } from "../config";
+import { Config } from '../config';
 
 export interface AdditionalProps {
-    noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
-  }
+  noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
+}

@@ -6,7 +6,7 @@ import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('NoSecurity route generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/noSecurityController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/noSecurityController.ts').Generate();
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
   it('should generate a route with a named security', () => {

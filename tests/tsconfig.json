@@ -21,8 +21,5 @@
     "noFallthroughCasesInSwitch": true,
     "strictBindCallApply": true
   },
-  "references": [
-    { "path": "../packages/runtime" },
-    { "path": "../packages/cli" }
-  ]
+  "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }]
 }
