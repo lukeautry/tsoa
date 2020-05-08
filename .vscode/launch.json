@@ -6,14 +6,15 @@
       "request": "launch",
       "name": "Mocha TS Tests",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["**/*spec.ts", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "args": ["'**/*spec.ts'", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "protocol": "inspector"
+      "protocol": "inspector",
     },
     {
       "type": "node",
