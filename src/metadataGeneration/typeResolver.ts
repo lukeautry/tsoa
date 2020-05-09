@@ -689,19 +689,21 @@ export class TypeResolver {
       if (!moduleDeclarations.length) {
         throw new GenerateMetadataError(`No matching module declarations found for ${leftmostName}.`);
       }
-      if (moduleDeclarations.length > 1) {
-        throw new GenerateMetadataError(`Multiple matching module declarations found for ${leftmostName}; please make module declarations unique.`);
-      }
 
-      if (ts.isEnumDeclaration(moduleDeclarations[0])) {
-        statements = moduleDeclarations[0].members;
-      } else {
-        const moduleBlock = moduleDeclarations[0].body as ts.ModuleBlock;
-        if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) {
-          throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
-        }
-        statements = moduleBlock.statements;
-      }
+      statements = Array.prototype.concat(
+        ...moduleDeclarations.map(declaration => {
+          if (ts.isEnumDeclaration(declaration)) {
+            return declaration.members;
+          } else {
+            const moduleBlock = declaration.body as ts.ModuleBlock;
+            if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) {
+              throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
+            }
+            return moduleBlock.statements;
+          }
+        }),
+      );
+
       leftmost = leftmost.parent as ts.EntityName;
     }
 
