@@ -46,7 +46,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security, this.isHidden, this.commonResponses))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.commonResponses, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
@@ -77,7 +77,7 @@ export class ControllerGenerator {
 
       const [name, description, examples] = getDecoratorValues(decorator, this.current.typeChecker);
       if (!name) {
-        throw new GenerateMetadataError(`Controller's responses should has explicit name.`);
+        throw new GenerateMetadataError(`Controller's responses should have an explicit name.`);
       }
 
       return {

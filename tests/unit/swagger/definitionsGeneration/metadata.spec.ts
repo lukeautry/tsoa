@@ -660,9 +660,13 @@ describe('Metadata generation', () => {
       controller.methods.forEach(method => {
         expect(method.responses.length).to.equal(2);
 
-        const response = method.responses[0];
+        let response = method.responses[0];
         expect(response.name).to.equal('401');
         expect(response.description).to.equal('Unauthorized');
+
+        response = method.responses[1];
+        expect(response.name).to.equal('200');
+        expect(response.description).to.equal('Ok');
       });
     });
   });

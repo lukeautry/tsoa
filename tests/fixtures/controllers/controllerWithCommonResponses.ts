@@ -1,9 +1,9 @@
 import { Controller, Get, Response, Post, Route } from '../../../src';
 import { ModelService } from '../services/modelService';
-import { TestModel } from '../testModel';
+import { ErrorResponseModel, TestModel } from '../testModel';
 
 @Route('Controller')
-@Response('401', 'Unauthorized')
+@Response<ErrorResponseModel>('401', 'Unauthorized')
 export class HiddenMethodController extends Controller {
   @Get('protectedGetMethod')
   public async protectedGetMethod(): Promise<TestModel> {
