@@ -145,8 +145,9 @@ export class MethodController extends Controller {
   }
 
   @Get('returnAliasedVoidType')
-  // tslint:disable-next-line:no-empty
-  public async returnAliasedVoidType(): Promise<VoidAlias1> {}
+  public async returnAliasedVoidType(): Promise<VoidAlias1> {
+    return;
+  }
 }
 
 type VoidAlias1 = VoidAlias2;
