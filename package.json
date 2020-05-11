@@ -62,7 +62,8 @@
   "engineStrict": true,
   "workspaces": {
     "packages": [
-      "packages/*"
+      "packages/*",
+      "tests"
     ]
   }
 }
