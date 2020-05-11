@@ -16,6 +16,7 @@ export class MethodGenerator {
   constructor(
     private readonly node: ts.MethodDeclaration,
     private readonly current: MetadataGenerator,
+    private readonly commonResponses: Tsoa.Response[],
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
     private readonly isParentHidden?: boolean,
@@ -40,7 +41,7 @@ export class MethodGenerator {
       nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
     }
     const type = new TypeResolver(nodeType, this.current).resolve();
-    const responses = this.getMethodResponses();
+    const responses = this.commonResponses.concat(this.getMethodResponses());
     responses.push(this.getMethodSuccessResponse(type));
 
     return {

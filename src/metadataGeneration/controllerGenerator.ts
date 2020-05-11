@@ -1,21 +1,24 @@
 import * as ts from 'typescript';
-import { getDecorators, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from './tsoa';
+import { TypeResolver } from './typeResolver';
 
 export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
   private readonly security?: Tsoa.Security[];
   private readonly isHidden?: boolean;
+  private readonly commonResponses: Tsoa.Response[];
 
   constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
     this.isHidden = this.getIsHidden();
+    this.commonResponses = this.getCommonResponses();
   }
 
   public IsValid() {
@@ -43,7 +46,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.tags, this.security, this.isHidden))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.commonResponses, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
@@ -61,6 +64,29 @@ export class ControllerGenerator {
     const expression = decorator.parent as ts.CallExpression;
     const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
     return decoratorArgument ? `${decoratorArgument.text}` : '';
+  }
+
+  private getCommonResponses(): Tsoa.Response[] {
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'Response');
+    if (!decorators || !decorators.length) {
+      return [];
+    }
+
+    return decorators.map(decorator => {
+      const expression = decorator.parent as ts.CallExpression;
+
+      const [name, description, examples] = getDecoratorValues(decorator, this.current.typeChecker);
+      if (!name) {
+        throw new GenerateMetadataError(`Controller's responses should have an explicit name.`);
+      }
+
+      return {
+        description: description || '',
+        examples,
+        name,
+        schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+      } as Tsoa.Response;
+    });
   }
 
   private getTags() {
