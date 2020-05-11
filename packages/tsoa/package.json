@@ -19,7 +19,6 @@
   ],
   "scripts": {
     "build": "yarn tsc",
-    "lint": "tslint ./src/**/*.ts",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
   },
@@ -30,7 +29,6 @@
     "@tsoa/cli": "3.0.8"
   },
   "devDependencies": {
-    "tslint": "^6.1.1",
     "typescript": "^3.8.2"
   },
   "repository": {

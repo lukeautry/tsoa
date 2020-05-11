@@ -37,7 +37,7 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
-    "lint": "lerna run lint --stream",
+    "lint": "tslint ./packages/**/src/**/*.ts ./tests/**/*.ts",
     "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"

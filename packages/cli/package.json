@@ -21,7 +21,6 @@
     "build": "yarn clean && yarn tsc && yarn copy-templates",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
-    "lint": "tslint ./src/**/*.ts",
     "format": "tsfmt -r",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
@@ -46,8 +45,7 @@
     "@types/yamljs": "^0.2.30",
     "@types/yargs": "^13.0.2",
     "copyfiles": "^2.2.0",
-    "rimraf": "^3.0.0",
-    "tslint": "^6.1.1"
+    "rimraf": "^3.0.0"
   },
   "repository": {
     "type": "git",

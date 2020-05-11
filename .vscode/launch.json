@@ -14,7 +14,7 @@
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "protocol": "inspector",
+      "protocol": "inspector"
     },
     {
       "type": "node",
