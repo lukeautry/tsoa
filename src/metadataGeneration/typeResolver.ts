@@ -695,11 +695,10 @@ export class TypeResolver {
           if (ts.isEnumDeclaration(declaration)) {
             return declaration.members;
           } else {
-            const moduleBlock = declaration.body as ts.ModuleBlock;
-            if (moduleBlock === null || moduleBlock.kind !== ts.SyntaxKind.ModuleBlock) {
+            if (!declaration.body || !ts.isModuleBlock(declaration.body)) {
               throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
             }
-            return moduleBlock.statements;
+            return declaration.body.statements;
           }
         }),
       );

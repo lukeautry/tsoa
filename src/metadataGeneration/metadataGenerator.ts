@@ -56,6 +56,27 @@ export class MetadataGenerator {
       }
 
       ts.forEachChild(sf, node => {
+        /**
+         * If we declare a namespace within a module, like we do in `tsoaTestModule.d.ts`,
+         * we need to explicitly get the children of the module declaration
+         * (`declare module 'tsoaTest'`) - which are the moduleBlock statements,
+         * because otherwise our type resolver cannot iterate over namespaces defined in that module.
+         */
+        if (ts.isModuleDeclaration(node)) {
+          /**
+           * For some reason unknown to me, TS resolves both `declare module` and `namespace` to
+           * the same kind (`ModuleDeclaration`). In order to figure out whether it's one or the other,
+           * we check the node flags. They tell us whether it is a namespace or not.
+           */
+          // tslint:disable-next-line:no-bitwise
+          if ((node.flags & ts.NodeFlags.Namespace) === 0 && node.body && ts.isModuleBlock(node.body)) {
+            node.body.statements.forEach(statement => {
+              this.nodes.push(statement);
+            });
+            return;
+          }
+        }
+
         this.nodes.push(node);
       });
     });

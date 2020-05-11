@@ -4,7 +4,7 @@ import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessRe
 import '../duplicateTestModel';
 import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
 import { ModelService } from './../services/modelService';
-import * as tsoaTestModule from 'tsoaTestModule';
+import TsoaTest from 'tsoaTest';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -80,9 +80,9 @@ export class GetTestController extends Controller {
     return {} as GetterInterfaceHerited;
   }
 
-  @Get('ModuleRedeclaration')
-  public async getModuleRedeclaration(): Promise<tsoaTestModule.TestModel73> {
-    return {} as tsoaTestModule.TestModel73;
+  @Get('ModuleRedeclarationAndNamespace')
+  public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
+    return {} as TsoaTest.TestModel73;
   }
 
   @Get('Multi')
