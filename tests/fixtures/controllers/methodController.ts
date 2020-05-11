@@ -145,7 +145,9 @@ export class MethodController extends Controller {
   }
 
   @Get('returnAliasedVoidType')
-  public async returnAliasedVoidType(): Promise<VoidAlias1> {}
+  public async returnAliasedVoidType(): Promise<VoidAlias1> {
+    return;
+  }
 }
 
 type VoidAlias1 = VoidAlias2;

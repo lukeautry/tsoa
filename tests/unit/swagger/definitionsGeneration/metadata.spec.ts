@@ -182,7 +182,7 @@ describe('Metadata generation', () => {
 
       const security = method.security[0];
       expect(security).to.haveOwnProperty('JWT2');
-      expect(security['JWT2']).to.deep.equal(['permission:admin', 'permission:owner']);
+      expect(security.JWT2).to.deep.equal(['permission:admin', 'permission:owner']);
 
       const objSecurity = method.security[1];
       expect(objSecurity).to.deep.equal({
@@ -647,6 +647,26 @@ describe('Metadata generation', () => {
       expect(controller.methods).to.have.lengthOf(2);
       controller.methods.forEach(method => {
         expect(method.isHidden).to.equal(true);
+      });
+    });
+  });
+
+  describe('ControllerWithCommonResponsesGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/controllerWithCommonResponses.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should add common responses to every method', () => {
+      expect(controller.methods).to.have.lengthOf(2);
+      controller.methods.forEach(method => {
+        expect(method.responses.length).to.equal(2);
+
+        let response = method.responses[0];
+        expect(response.name).to.equal('401');
+        expect(response.description).to.equal('Unauthorized');
+
+        response = method.responses[1];
+        expect(response.name).to.equal('200');
+        expect(response.description).to.equal('Ok');
       });
     });
   });

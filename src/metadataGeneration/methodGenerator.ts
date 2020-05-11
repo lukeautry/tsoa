@@ -16,6 +16,7 @@ export class MethodGenerator {
   constructor(
     private readonly node: ts.MethodDeclaration,
     private readonly current: MetadataGenerator,
+    private readonly commonResponses: Tsoa.Response[],
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
     private readonly isParentHidden?: boolean,
@@ -40,7 +41,7 @@ export class MethodGenerator {
       nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
     }
     const type = new TypeResolver(nodeType, this.current).resolve();
-    const responses = this.getMethodResponses();
+    const responses = this.commonResponses.concat(this.getMethodResponses());
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
@@ -217,7 +218,21 @@ export class MethodGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
+    const noSecurityDecorators = this.getDecoratorsByIdentifier(this.node, 'NoSecurity');
     const securityDecorators = this.getDecoratorsByIdentifier(this.node, 'Security');
+
+    if (noSecurityDecorators?.length > 1) {
+      throw new GenerateMetadataError(`Only one NoSecurity decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    if (noSecurityDecorators?.length && securityDecorators?.length) {
+      throw new GenerateMetadataError(`NoSecurity decorator cannot be used in conjunction with Security decorator in '${this.getCurrentLocation}' method.`);
+    }
+
+    if (noSecurityDecorators?.length) {
+      return [];
+    }
+
     if (!securityDecorators || !securityDecorators.length) {
       return this.parentSecurity || [];
     }
