@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
-import { SpecGenerator2 } from '@tsoa/cli/dist/swagger/specGenerator2';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {

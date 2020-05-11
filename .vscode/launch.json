@@ -10,7 +10,7 @@
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["'**/*spec.ts'", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "args": ["'**/*spec.ts'", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -24,7 +24,7 @@
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["${file}", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "args": ["${file}", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -37,7 +37,7 @@
       "args": ["${workspaceRoot}/packages/tsoa/src/cli.ts", "swagger"],
       "cwd": "${workspaceRoot}/tests",
       "preLaunchTask": "build",
-      "runtimeArgs": ["--require", "ts-node/register"],
+      "runtimeArgs": ["--require", "ts-node/register", "--require", "tsconfig-paths/register"],
       "env": {
         "NODE_ENV": "development"
       }
@@ -48,7 +48,7 @@
       "request": "launch",
       "args": ["${workspaceRoot}/tests/prepare.ts"],
       "cwd": "${workspaceRoot}/tests",
-      "runtimeArgs": ["--require", "ts-node/register"],
+      "runtimeArgs": ["--require", "ts-node/register", "--require", "tsconfig-paths/register"],
       "env": {
         "NODE_ENV": "development"
       }

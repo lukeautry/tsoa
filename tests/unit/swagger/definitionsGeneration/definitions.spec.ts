@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '@tsoa/cli/dist/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { TestModel } from '../../../fixtures/testModel';
-import { ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();

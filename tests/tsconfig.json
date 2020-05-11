@@ -4,6 +4,7 @@
     "rootDir": ".",
     "sourceMap": true,
     "noImplicitAny": false,
+    "baseUrl": ".",
     "module": "commonjs",
     "target": "es5",
     "lib": ["es6", "es2017.object", "dom"],
@@ -19,7 +20,11 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "strictBindCallApply": true
+    "strictBindCallApply": true,
+    "paths": {
+      "@tsoa/cli/*": ["../packages/cli/src/*"],
+      "@tsoa/runtime/*": ["../packages/runtime/src/*"]
+    }
   },
   "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }]
 }

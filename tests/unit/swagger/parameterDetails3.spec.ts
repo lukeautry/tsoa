@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '@tsoa/cli/dist/metadataGeneration/metadataGenerator';
-import { SpecGenerator3 } from '@tsoa/cli/dist/swagger/specGenerator3';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
-import { ExtendedSpecConfig } from '@tsoa/cli/dist/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Parameter generation for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
