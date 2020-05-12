@@ -36,7 +36,7 @@ export class ControllerGenerator {
     const sourceFile = this.node.parent.getSourceFile();
     const methods = this.buildMethods();
     const methodSignatureDuplicates = this.getMethodSignatureDuplicates(methods);
-    if (methodSignatureDuplicates) {
+    if (methodSignatureDuplicates.length) {
       throw new GenerateMetadataError(`Controller has methods with same routes: \n"${methodSignatureDuplicates.join('\n\n')}".`);
     }
 
@@ -64,11 +64,7 @@ export class ControllerGenerator {
         result.push(`@${targetMethod.method}(${targetMethod.path})\n${targetMethod.name}`);
       }
     });
-    if (result.length) {
-      return result;
-    } else {
-      return null;
-    }
+    return result;
   }
 
   private getPath() {
