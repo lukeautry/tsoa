@@ -37,7 +37,7 @@ export class ControllerGenerator {
     const methods = this.buildMethods();
     const methodSignatureDuplicates = this.getMethodSignatureDuplicates(methods);
     if (methodSignatureDuplicates) {
-      throw new GenerateMetadataError(`Controller has methods with same routes: "${methodSignatureDuplicates.join('\n')}".`);
+      throw new GenerateMetadataError(`Controller has methods with same routes: \n"${methodSignatureDuplicates.join('\n\n')}".`);
     }
 
     return {
@@ -61,7 +61,7 @@ export class ControllerGenerator {
     methods.forEach(targetMethod => {
       const duplicates = methods.filter(({ method, path }) => targetMethod.method === method && targetMethod.path === path);
       if (duplicates.length > 1) {
-        result.push(`\n@${targetMethod.method}(${targetMethod.path})\n${targetMethod.name}`);
+        result.push(`@${targetMethod.method}(${targetMethod.path})\n${targetMethod.name}`);
       }
     });
     if (result.length) {
