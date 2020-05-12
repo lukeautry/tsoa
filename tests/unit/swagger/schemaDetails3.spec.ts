@@ -1310,7 +1310,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
-  describe('Mixed Enums', () => {
+  describe('mixed Enums', () => {
     it('should combine to metaschema', () => {
       // Arrange
       const schemaName = 'tooManyTypesEnum';
@@ -1340,6 +1340,28 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           { type: 'number', enum: [1, 3] },
           { type: 'string', enum: ['two', 'four'] },
         ],
+      });
+    });
+  });
+
+  describe('module declarations with namespaces', () => {
+    it('should generate the proper schema for a model declared in a namespace in a module', () => {
+      const ref = specDefault.spec.paths['/GetTest/ModuleRedeclarationAndNamespace'].get?.responses['200'].content?.['application/json']['schema']['$ref'];
+      expect(ref).to.equal('#/components/schemas/TsoaTest.TestModel73');
+      expect(getComponentSchema('TsoaTest.TestModel73', specDefault)).to.deep.equal({
+        additionalProperties: true,
+        description: undefined,
+        properties: {
+          value: {
+            default: undefined,
+            description: undefined,
+            example: undefined,
+            format: undefined,
+            type: 'string',
+          },
+        },
+        required: undefined,
+        type: 'object',
       });
     });
   });
