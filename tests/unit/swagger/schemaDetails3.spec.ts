@@ -1319,6 +1319,24 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
+            const customRecord = getComponentSchema('Record_id.string_', currentSpec);
+            expect(customRecord).to.deep.eq({
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              format: undefined,
+              example: undefined,
+              properties: {
+                id: {
+                  default: undefined,
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                },
+              },
+              type: 'object',
+            })
+
             const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
             expect(readonlyClassSchema).to.deep.eq(
               {
@@ -1336,29 +1354,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
-                    default: undefined,
+                    $ref: "#/components/schemas/Record_id.string_",
                     description: undefined,
                     example: undefined,
-                    format: undefined,
-                    properties: {
-                      data: {
-                        $ref: '#/components/schemas/Record',
-                        description: undefined,
-                        example: undefined,
-                        format: undefined,
-                      },
-                      status: {
-                        default: undefined,
-                        description: undefined,
-                        enum: ['fail'],
-                        example: undefined,
-                        format: undefined,
-                        nullable: false,
-                        type: 'string',
-                      },
-                    },
-                    required: ['data', 'status'],
-                    type: 'object',
+                    format: undefined
                   },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },

@@ -904,6 +904,24 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
+            const customRecord = getValidatedDefinition('Record_id.string_', currentSpec);
+            expect(customRecord).to.deep.eq({
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              format: undefined,
+              example: undefined,
+              properties: {
+                id: {
+                  default: undefined,
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                },
+              },
+              type: 'object',
+            });
+
             const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
             expect(readonlyClassSchema).to.deep.eq(
               {
@@ -912,29 +930,10 @@ describe('Definition generation', () => {
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
-                    default: undefined,
+                    $ref: '#/definitions/Record_id.string_',
                     description: undefined,
                     example: undefined,
                     format: undefined,
-                    properties: {
-                      data: {
-                        $ref: '#/definitions/Record',
-                        description: undefined,
-                        example: undefined,
-                        format: undefined,
-                      },
-                      status: {
-                        default: undefined,
-                        description: undefined,
-                        enum: ['fail'],
-                        example: undefined,
-                        format: undefined,
-                        'x-nullable': false,
-                        type: 'string',
-                      },
-                    },
-                    required: ['data', 'status'],
-                    type: 'object',
                   },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToAlias: { $ref: '#/definitions/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },

@@ -448,7 +448,19 @@ export class TypeResolver {
     }
 
     // Can't invoke getText on Synthetic Nodes
-    const resolvableName = node.pos !== -1 ? node.getText() : (type as ts.Identifier).text;
+    let resolvableName = node.pos !== -1 ? node.getText() : (type as ts.Identifier).text;
+    if (node.pos === -1 && 'typeArguments' in node && Array.isArray(node.typeArguments)) {
+      // Add typearguments for Synthetic nodes (e.g. Record<> in TestClassModel.indexedResponse)
+      const argumentsString = node.typeArguments.map((arg) => {
+        if (ts.isLiteralTypeNode(arg)) {
+          return `'${String(this.getLiteralValue(arg))}'`
+        }
+        const resolved = this.attemptToResolveKindToPrimitive(arg.kind)
+        if (resolved.foundMatch === false) return 'any'
+        return resolved.resolvedType
+      })
+      resolvableName += `<${argumentsString.join(', ')}>`
+    }
 
     const name = this.contextualizedName(resolvableName);
 
@@ -824,7 +836,7 @@ export class TypeResolver {
       format: this.getNodeFormat(propertySignature),
       name: identifier.text,
       required,
-      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context).resolve(),
+      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type as ts.TypeReferenceType).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
     };
     return property;
@@ -843,7 +855,7 @@ export class TypeResolver {
       throw new GenerateMetadataError(`No valid type found for property declaration.`);
     }
 
-    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context).resolve();
+    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context, typeNode as ts.TypeReferenceType).resolve();
 
     let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
