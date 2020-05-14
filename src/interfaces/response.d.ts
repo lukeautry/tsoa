@@ -1,6 +1,4 @@
-import { Response } from 'express-serve-static-core';
-
-type HttpStatusCodeLiteral =
+export type HttpStatusCodeLiteral =
   | 100
   | 101
   | 102
@@ -65,22 +63,4 @@ type HttpStatusCodeLiteral =
   | 511
   | 599;
 
-export interface TsoaResponse<T extends HttpStatusCodeLiteral, U> extends Response<U> {
-  /**
-   * Set status `code`.
-   */
-  status(code: T): this;
-
-  /**
-   * Set the response HTTP status code to `statusCode` and send its string representation as the response body.
-   * @link http://expressjs.com/4x/api.html#res.sendStatus
-   *
-   * Examples:
-   *
-   *    res.sendStatus(200); // equivalent to res.status(200).send('OK')
-   *    res.sendStatus(403); // equivalent to res.status(403).send('Forbidden')
-   *    res.sendStatus(404); // equivalent to res.status(404).send('Not Found')
-   *    res.sendStatus(500); // equivalent to res.status(500).send('Internal Server Error')
-   */
-  sendStatus(code: T): this;
-}
+export type TsoaResponse<T extends HttpStatusCodeLiteral, U, V = {}> = (status: T, data: U, headers?: V) => any;

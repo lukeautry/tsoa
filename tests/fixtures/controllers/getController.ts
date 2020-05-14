@@ -223,7 +223,7 @@ export class GetTestController extends Controller {
    */
   @Get('Res')
   public async getRes(@Res() res: TsoaResponse<400, TestModel>): Promise<void> {
-    res?.status(400)?.json(new ModelService().getModel());
+    res?.(400, new ModelService().getModel());
   }
 }
 

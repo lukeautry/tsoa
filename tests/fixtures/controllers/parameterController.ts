@@ -321,6 +321,6 @@ export class ParameterController {
    */
   @Get('Res')
   public async getRes(@Res() res: TsoaResponse<400, { name: string }>): Promise<void> {
-    res?.status(400)?.json({ name: 'alternate response' });
+    res?.(400, { name: 'alternate response' });
   }
 }

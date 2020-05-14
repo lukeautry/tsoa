@@ -2,9 +2,9 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from 'tsoa';
 {{else}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '../../../src';
 {{/if}}
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -165,16 +165,30 @@ export function RegisterRoutes(app: express.Express) {
 
                 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-                if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
-                    data.pipe(response);
-                } else if (data || data === false) { // === false allows boolean result
-                    response.status(statusCode || 200).json(data);
-                } else {
-                    response.status(statusCode || 204).end();
-                }
+                returnHandler(response, statusCode, data)
             })
             .catch((error: any) => next(error));
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function returnHandler(response: any, statusCode: number, data: any) {
+        if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
+            data.pipe(response);
+        } else if (data || data === false) { // === false allows boolean result
+            response.status(statusCode || 200).json(data);
+        } else {
+            response.status(statusCode || 204).end();
+        }
+    }
+    
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function responder(response: any): TsoaResponse<HttpStatusCodeLiteral, unknown, undefined>  {
+        return function(status, data, _headers) {
+            returnHandler(response, status, data);
+        };
+    };
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -196,7 +210,7 @@ export function RegisterRoutes(app: express.Express) {
                 case 'body-prop':
                     return validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', {{{json minimalSwaggerConfig}}});
                 case 'res':
-                    return response;
+                    return responder(response);
             }
         });
 
