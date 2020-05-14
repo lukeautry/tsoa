@@ -257,6 +257,8 @@ export class SpecGenerator3 extends SpecGenerator {
     if (bodyParams.length > 0) {
       pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
     }
+
+    method.customAttributes.forEach(customAttr => (pathMethod[customAttr.key] = customAttr.value));
   }
 
   protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation3 {

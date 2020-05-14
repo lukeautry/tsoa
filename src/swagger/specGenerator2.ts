@@ -171,6 +171,8 @@ export class SpecGenerator2 extends SpecGenerator {
     if (pathMethod.parameters.filter((p: Swagger.BaseParameter) => p.in === 'body').length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
     }
+
+    method.customAttributes.forEach(customAttr => (pathMethod[customAttr.key] = customAttr.value));
   }
 
   protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {

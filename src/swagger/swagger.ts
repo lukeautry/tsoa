@@ -159,6 +159,8 @@ export namespace Swagger {
     schemes?: Protocol[];
     deprecated?: boolean;
     security?: Security[];
+    // Used to apply custom attributes to paths
+    [key: string]: unknown;
   }
 
   export interface Operation3 {
