@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
+import { Controller, CustomAttribute, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
@@ -147,6 +147,15 @@ export class MethodController extends Controller {
   @Get('returnAliasedVoidType')
   public async returnAliasedVoidType(): Promise<VoidAlias1> {
     return;
+  }
+
+  @CustomAttribute('x-attKey', 'attValue')
+  @CustomAttribute('x-attKey1', { test: 'testVal' })
+  @CustomAttribute('x-attKey2', ['y0', 'y1'])
+  @CustomAttribute('x-attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
+  @Get('CustomAttribute')
+  public async customAttribute(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 }
 
