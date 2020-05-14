@@ -12,7 +12,7 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
     const [decoratorKeyArg, decoratorValueArg] = extensionDecorator.parent.arguments;
 
     if (!ts.isStringLiteral(decoratorKeyArg)) {
-      throw new Error('The First argument of @Extension must be the attribute key as a string');
+      throw new Error('The first argument of @Extension must be a string');
     }
 
     const attributeKey = decoratorKeyArg.text;
