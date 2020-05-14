@@ -1,4 +1,4 @@
-import { CustomAttributeType } from '../decorators/customAttribute';
+import { ExtensionType } from '../decorators/extension';
 
 export namespace Tsoa {
   export interface Metadata {
@@ -14,7 +14,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
-    customAttributes: CustomAttribute[];
+    extensions: Extension[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
@@ -55,9 +55,9 @@ export namespace Tsoa {
     [key: string]: string[];
   }
 
-  export interface CustomAttribute {
+  export interface Extension {
     key: string;
-    value: CustomAttributeType | CustomAttributeType[];
+    value: ExtensionType | ExtensionType[];
   }
 
   export interface Response {

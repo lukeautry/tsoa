@@ -172,7 +172,7 @@ export class SpecGenerator2 extends SpecGenerator {
       throw new Error('Only one body parameter allowed per controller method.');
     }
 
-    method.customAttributes.forEach(customAttr => (pathMethod[customAttr.key] = customAttr.value));
+    method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
   protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {

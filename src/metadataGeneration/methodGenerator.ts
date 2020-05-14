@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
-import { getCustomAttributes } from './customAttribute';
+import { getExtensions } from './extension';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
@@ -46,7 +46,7 @@ export class MethodGenerator {
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
-      customAttributes: this.getCustomAttributes(),
+      extensions: this.getExtensions(),
       deprecated: this.getIsDeprecated(),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
@@ -86,12 +86,12 @@ export class MethodGenerator {
     return parameters;
   }
 
-  private getCustomAttributes() {
-    const customAttributeDecorators = this.getDecoratorsByIdentifier(this.node, 'CustomAttribute');
-    if (!customAttributeDecorators || !customAttributeDecorators.length) {
+  private getExtensions() {
+    const extensionDecorators = this.getDecoratorsByIdentifier(this.node, 'Extension');
+    if (!extensionDecorators || !extensionDecorators.length) {
       return [];
     }
-    return getCustomAttributes(customAttributeDecorators, this.current);
+    return getExtensions(extensionDecorators, this.current);
   }
 
   private getCurrentLocation() {

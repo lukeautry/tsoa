@@ -16,11 +16,11 @@ describe('Metadata generation', () => {
     });
   });
 
-  describe('CustomMethodAttributeGenerator', () => {
+  describe('InvalidExtensionControllerGenerator', () => {
     it('should throw an Error when an attribute is not prefixed with "x-"', () => {
       expect(() => {
-        new MetadataGenerator('./tests/fixtures/controllers/invalidCustomAttributeController.ts').Generate();
-      }).to.throw('Custom attributes must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+        new MetadataGenerator('./tests/fixtures/controllers/invalidExtensionController.ts').Generate();
+      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
     });
   });
 
@@ -51,7 +51,7 @@ describe('Metadata generation', () => {
       'oauthOrAPIkeySecurity',
       'apiSecurity',
       'oauthSecurity',
-      'customAttribute',
+      'extension',
       'deprecatedMethod',
       'summaryMethod',
       'oauthAndAPIkeySecurity',
@@ -274,23 +274,23 @@ describe('Metadata generation', () => {
       expect(method.security[0].api_key).to.deep.equal([]);
     });
 
-    it('should generate all custom attributes', () => {
-      const method = controller.methods.find(m => m.name === 'customAttribute');
+    it('should generate all extensions', () => {
+      const method = controller.methods.find(m => m.name === 'extension');
       if (!method) {
-        throw new Error('Method customAttribute not defined!');
+        throw new Error('Method extension not defined!');
       }
-      if (!method.customAttributes || method.customAttributes.length <= 0) {
-        throw new Error('No custom attribute decorators defined!');
+      if (!method.extensions || method.extensions.length <= 0) {
+        throw new Error('No extension decorators defined!');
       }
 
-      const expectedCustomAttributes = [
+      const expectedExtensions = [
         { key: 'x-attKey', value: 'attValue' },
         { key: 'x-attKey1', value: { test: 'testVal' } },
         { key: 'x-attKey2', value: ['y0', 'y1'] },
         { key: 'x-attKey3', value: [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }] },
       ];
 
-      expect(method.customAttributes).to.deep.equal(expectedCustomAttributes);
+      expect(method.extensions).to.deep.equal(expectedExtensions);
     });
 
     it('should generate deprecated method true', () => {
