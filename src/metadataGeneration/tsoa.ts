@@ -241,4 +241,8 @@ export namespace Tsoa {
   export interface ReferenceTypeMap {
     [refName: string]: Tsoa.ReferenceType;
   }
+
+  export interface MethodsSignatureMap {
+    [signature: string]: string[];
+  }
 }

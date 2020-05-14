@@ -34,15 +34,10 @@ export class ControllerGenerator {
     }
 
     const sourceFile = this.node.parent.getSourceFile();
-    const methods = this.buildMethods();
-    const methodSignatureDuplicates = this.getMethodSignatureDuplicates(methods);
-    if (methodSignatureDuplicates.length) {
-      throw new GenerateMetadataError(`Controller has methods with same routes: \n"${methodSignatureDuplicates.join('\n\n')}".`);
-    }
 
     return {
       location: sourceFile.fileName,
-      methods,
+      methods: this.buildMethods(),
       name: this.node.name.text,
       path: this.path || '',
     };
@@ -54,17 +49,6 @@ export class ControllerGenerator {
       .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.commonResponses, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
-  }
-
-  private getMethodSignatureDuplicates(methods: Tsoa.Method[]) {
-    const result: string[] = [];
-    methods.forEach(targetMethod => {
-      const duplicates = methods.filter(({ method, path }) => targetMethod.method === method && targetMethod.path === path);
-      if (duplicates.length > 1) {
-        result.push(`@${targetMethod.method}(${targetMethod.path})\n${targetMethod.name}`);
-      }
-    });
-    return result;
   }
 
   private getPath() {

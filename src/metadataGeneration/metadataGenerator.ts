@@ -28,6 +28,7 @@ export class MetadataGenerator {
 
     const controllers = this.buildControllers();
 
+    this.checkForMethodSignatureDuplicates(controllers);
     this.circularDependencyResolvers.forEach(c => c(this.referenceTypeMap));
 
     return {
@@ -60,6 +61,34 @@ export class MetadataGenerator {
       });
     });
   }
+
+  private checkForMethodSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
+    const map: Tsoa.MethodsSignatureMap = {};
+    controllers.forEach(controller => {
+      controller.methods.forEach(method => {
+        const signature = method.path ? `@${method.method}(${controller.path}/${method.path})` : `@${method.method}(${controller.path})`;
+        const methodDescription = `${controller.name}#${method.name}`;
+
+        if (map[signature]) {
+          map[signature].push(methodDescription);
+        } else {
+          map[signature] = [methodDescription];
+        }
+      });
+    });
+
+    let message = '';
+    Object.keys(map).forEach(signature => {
+      const controllers = map[signature];
+      if (controllers.length > 1) {
+        message += `Duplicate method signature ${signature} found in controllers: ${controllers.join(', ')}\n`;
+      }
+    });
+
+    if (message) {
+      throw new GenerateMetadataError(message);
+    }
+  };
 
   public TypeChecker() {
     return this.typeChecker;

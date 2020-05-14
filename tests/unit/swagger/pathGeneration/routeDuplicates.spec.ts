@@ -4,5 +4,5 @@ import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGe
 it('should reject methods with same routes', () => {
   expect(() => {
     new MetadataGenerator('./tests/fixtures/controllers/duplicateMethodsController.ts').Generate();
-  }).to.throw(`Controller has methods with same routes: \n"@get(Complex)\ngetModel\n\n@get(Complex)\nduplicateGetModel".`);
+  }).to.throw(`Duplicate method signature @get(GetTest/Complex) found in controllers: DuplicateMethodsTestController#getModel, DuplicateMethodsTestController#duplicateGetModel\n`);
 });
