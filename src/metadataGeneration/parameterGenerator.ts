@@ -193,11 +193,7 @@ export class ParameterGenerator {
       return undefined;
     } else {
       try {
-        if (examples.length === 1) {
-          return JSON.parse(examples[0]);
-        } else {
-          return examples.map(example => JSON.parse(example));
-        }
+        return examples.map(example => JSON.parse(example));
       } catch (e) {
         throw new GenerateMetadataError(`JSON format is incorrect: ${e.message}`);
       }
