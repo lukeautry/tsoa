@@ -222,8 +222,8 @@ export class GetTestController extends Controller {
    * @param res The alternate response
    */
   @Get('Res')
-  public async getRes(@Res() res: TsoaResponse<400, TestModel>): Promise<void> {
-    res?.(400, new ModelService().getModel());
+  public async getRes(@Res() res: TsoaResponse<400, TestModel, { 'custom-header': string }>): Promise<void> {
+    res?.(400, new ModelService().getModel(), { 'custom-header': 'hello' });
   }
 }
 

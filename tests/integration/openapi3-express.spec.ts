@@ -13,6 +13,7 @@ describe('OpenAPI3 Express Server', () => {
       (err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
+        expect(res.header['custom-header']).to.eq('hello');
       },
       400,
     );

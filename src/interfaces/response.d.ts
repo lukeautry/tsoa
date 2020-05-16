@@ -63,4 +63,4 @@ export type HttpStatusCodeLiteral =
   | 511
   | 599;
 
-export type TsoaResponse<T extends HttpStatusCodeLiteral, U, V = {}> = (status: T, data: U, headers?: V) => any;
+export type TsoaResponse<T extends HttpStatusCodeLiteral, U, V extends {} = {}> = (status: T, data: U, headers?: V) => any;
