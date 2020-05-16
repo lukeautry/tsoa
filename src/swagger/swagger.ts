@@ -92,6 +92,7 @@ export namespace Swagger {
     required?: boolean;
     description?: string;
     example?: unknown;
+    examples?: unknown;
     schema: Schema;
     type: DataType;
     format?: DataFormat;
