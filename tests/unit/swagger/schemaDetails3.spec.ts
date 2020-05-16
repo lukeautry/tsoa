@@ -1310,7 +1310,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
-  describe('Mixed Enums', () => {
+  describe('mixed Enums', () => {
     it('should combine to metaschema', () => {
       // Arrange
       const schemaName = 'tooManyTypesEnum';
@@ -1369,5 +1369,29 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
     expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
     expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
+  });
+
+  describe('module declarations with namespaces', () => {
+    it('should generate the proper schema for a model declared in a namespace in a module', () => {
+      /* tslint:disable:no-string-literal */
+      const ref = specDefault.spec.paths['/GetTest/ModuleRedeclarationAndNamespace'].get?.responses['200'].content?.['application/json']['schema']['$ref'];
+      /* tslint:enable:no-string-literal */
+      expect(ref).to.equal('#/components/schemas/TsoaTest.TestModel73');
+      expect(getComponentSchema('TsoaTest.TestModel73', specDefault)).to.deep.equal({
+        additionalProperties: true,
+        description: undefined,
+        properties: {
+          value: {
+            default: undefined,
+            description: undefined,
+            example: undefined,
+            format: undefined,
+            type: 'string',
+          },
+        },
+        required: undefined,
+        type: 'object',
+      });
+    });
   });
 });
