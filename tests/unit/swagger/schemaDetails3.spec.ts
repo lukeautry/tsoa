@@ -236,7 +236,31 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
-        expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod']);
+        expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
+      });
+
+      it('should not contain hidden query params', () => {
+        const metadataHidden = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const specHidden = new SpecGenerator3(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+
+        if (!specHidden.paths) {
+          throw new Error('Paths are not defined.');
+        }
+        if (!specHidden.paths['/Controller/hiddenQueryMethod']) {
+          throw new Error('hiddenQueryMethod path not defined.');
+        }
+        if (!specHidden.paths['/Controller/hiddenQueryMethod'].get) {
+          throw new Error('hiddenQueryMethod get method not defined.');
+        }
+
+        const method = specHidden.paths['/Controller/hiddenQueryMethod'].get;
+        expect(method.parameters).to.have.lengthOf(1);
+
+        const normalParam = method.parameters![0];
+        expect(normalParam.in).to.equal('query');
+        expect(normalParam.name).to.equal('normalParam');
+        expect(normalParam.required).to.be.true;
+        expect(normalParam.schema.type).to.equal('string');
       });
 
       it('should not contain paths for hidden controller', () => {
