@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getExtensions } from './extension';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
@@ -45,6 +46,7 @@ export class MethodGenerator {
     responses.push(this.getMethodSuccessResponse(type));
 
     return {
+      extensions: this.getExtensions(),
       deprecated: this.getIsDeprecated(),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
@@ -82,6 +84,14 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
     }
     return parameters;
+  }
+
+  private getExtensions() {
+    const extensionDecorators = this.getDecoratorsByIdentifier(this.node, 'Extension');
+    if (!extensionDecorators || !extensionDecorators.length) {
+      return [];
+    }
+    return getExtensions(extensionDecorators, this.current);
   }
 
   private getCurrentLocation() {

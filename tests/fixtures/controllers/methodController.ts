@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
+import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
@@ -147,6 +147,15 @@ export class MethodController extends Controller {
   @Get('returnAliasedVoidType')
   public async returnAliasedVoidType(): Promise<VoidAlias1> {
     return;
+  }
+
+  @Extension('x-attKey', 'attValue')
+  @Extension('x-attKey1', { test: 'testVal' })
+  @Extension('x-attKey2', ['y0', 'y1'])
+  @Extension('x-attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
+  @Get('Extension')
+  public async extension(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 }
 

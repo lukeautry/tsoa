@@ -16,6 +16,14 @@ describe('Metadata generation', () => {
     });
   });
 
+  describe('InvalidExtensionControllerGenerator', () => {
+    it('should throw an Error when an attribute is not prefixed with "x-"', () => {
+      expect(() => {
+        new MetadataGenerator('./tests/fixtures/controllers/invalidExtensionController.ts').Generate();
+      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+    });
+  });
+
   describe('DynamicControllerGenerator', () => {
     it("should should throw 'globs found 0 controllers.'", () => {
       expect(() => {
@@ -43,6 +51,7 @@ describe('Metadata generation', () => {
       'oauthOrAPIkeySecurity',
       'apiSecurity',
       'oauthSecurity',
+      'extension',
       'deprecatedMethod',
       'summaryMethod',
       'oauthAndAPIkeySecurity',
@@ -263,6 +272,25 @@ describe('Metadata generation', () => {
       }
       expect(method.security[0].tsoa_auth).to.deep.equal(['write:pets', 'read:pets']);
       expect(method.security[0].api_key).to.deep.equal([]);
+    });
+
+    it('should generate all extensions', () => {
+      const method = controller.methods.find(m => m.name === 'extension');
+      if (!method) {
+        throw new Error('Method extension not defined!');
+      }
+      if (!method.extensions || method.extensions.length <= 0) {
+        throw new Error('No extension decorators defined!');
+      }
+
+      const expectedExtensions = [
+        { key: 'x-attKey', value: 'attValue' },
+        { key: 'x-attKey1', value: { test: 'testVal' } },
+        { key: 'x-attKey2', value: ['y0', 'y1'] },
+        { key: 'x-attKey3', value: [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }] },
+      ];
+
+      expect(method.extensions).to.deep.equal(expectedExtensions);
     });
 
     it('should generate deprecated method true', () => {

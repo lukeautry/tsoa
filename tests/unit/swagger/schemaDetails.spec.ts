@@ -127,4 +127,31 @@ describe('Schema details generation', () => {
       expect(errToTest!.message).to.eq(`Enums can only have string or number values, but enum MixedStringAndNumberEnum had number,string`);
     });
   });
+
+  describe('Extensions schema generation', () => {
+    const metadata = new MetadataGenerator('./tests/fixtures/controllers/methodController').Generate();
+    const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+    if (!spec.paths) {
+      throw new Error('No spec info.');
+    }
+
+    const extensionPath = spec.paths['/MethodTest/Extension'].get;
+
+    if (!extensionPath) {
+      throw new Error('extension method was not rendered');
+    }
+
+    // Verify that extensions are appeneded to the path
+    expect(extensionPath).to.have.property('x-attKey');
+    expect(extensionPath).to.have.property('x-attKey1');
+    expect(extensionPath).to.have.property('x-attKey2');
+    expect(extensionPath).to.have.property('x-attKey3');
+
+    // Verify that extensions have correct values
+    expect(extensionPath['x-attKey']).to.deep.equal('attValue');
+    expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
+    expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
+    expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
+  });
 });
