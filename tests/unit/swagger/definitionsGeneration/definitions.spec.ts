@@ -619,8 +619,8 @@ describe('Definition generation', () => {
 
             const fourtyTwoSchema = getValidatedDefinition('FourtyTwo', currentSpec);
             expect(fourtyTwoSchema).to.deep.eq({
-              type: 'number',
-              format: 'double',
+              type: 'integer',
+              format: 'int32',
               description: 'The number 42 expressed through OpenAPI',
               example: 42,
               minimum: 42,
