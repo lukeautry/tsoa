@@ -198,6 +198,125 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('example comment', () => {
+    it('should generate single example for model', () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.components === undefined) {
+        throw new Error('No components find!');
+      }
+      if (spec.components.schemas === undefined) {
+        throw new Error('No schemas find!');
+      }
+
+      // tslint:disable-next-line:no-string-literal
+      const example = spec.components.schemas['Location'].example;
+      expect(example).to.be.not.undefined;
+      expect(example).to.deep.equal({
+        contry: '123',
+        city: '456',
+      });
+    });
+
+    it('should generate multiple example for controller', () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.paths === undefined) {
+        throw new Error('No paths find!');
+      }
+
+      it('@Path parameter in Get method', () => {
+        const pathParams = spec.paths['/path/{path}'].parameters![0];
+        expect(pathParams.example).to.be.undefined;
+        expect(pathParams.examples).to.be.equal(['an_example_path', 'an_example_path2']);
+      });
+
+      it('@Query parameter in Get method', () => {
+        const queryParams = spec.paths['/query'].parameters![0];
+        expect(queryParams.example).to.be.undefined;
+        expect(queryParams.examples).to.be.equal(['an_example_query', 'an_example_query2']);
+      });
+
+      it('@Header parameter in Get method', () => {
+        const headerParams = spec.paths['/header'].parameters![0];
+        expect(headerParams.example).to.be.undefined;
+        expect(headerParams.examples).to.be.equal(['aaaaaaLongCookie', 'aaaaaaLongCookie2']);
+      });
+
+      it('@Body parameter in Post method', () => {
+        const postBodyParams = spec.paths['/post_body'].parameters![0];
+        expect(postBodyParams.example).to.be.undefined;
+        expect(postBodyParams.examples).to.deep.equal([
+          {
+            contry: '1',
+            city: '1',
+          },
+          {
+            contry: '2',
+            city: '2',
+          },
+        ]);
+      });
+
+      it('@BodyProp parameter in Post method', () => {
+        const postBodyPropsParams = spec.paths['/two_parameter/{s}'].parameters![0];
+        expect(postBodyPropsParams.example).to.be.undefined;
+        expect(postBodyPropsParams.examples).to.deep.equal(['prop1_1', 'prop1_2', 'prop1_3']);
+      });
+
+      it('Two parameter with @Body and @Path in Post method', () => {
+        const path = spec.paths['/two_parameter/{s}'];
+
+        const bodyParams = path.parameters![0];
+        expect(bodyParams.example).to.be.undefined;
+        expect(bodyParams.examples).to.deep.equal([
+          {
+            contry: '1',
+            city: '1',
+          },
+          {
+            contry: '2',
+            city: '2',
+          },
+        ]);
+
+        const pathParams = path.parameters![1];
+        expect(pathParams.example).to.be.undefined;
+        expect(pathParams.examples).to.be.equal(['aa0', 'aa1']);
+      });
+
+      it('Array with two @Body parameters in Post method', () => {
+        // tslint:disable-next-line:no-string-literal
+        const bodyParams = spec.paths['array_with_object'].parameters![0];
+        expect(bodyParams.example).to.be.undefined;
+        expect(bodyParams.examples).to.deep.equal([
+          [
+            {
+              contry: '1',
+              city: '1',
+            },
+            {
+              contry: '2',
+              city: '2',
+            },
+          ],
+          [
+            {
+              contry: '22',
+              city: '22',
+            },
+            {
+              contry: '33',
+              city: '33',
+            },
+          ],
+        ]);
+      });
+    });
+  });
+
   describe('paths', () => {
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
@@ -1346,6 +1465,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   describe('module declarations with namespaces', () => {
     it('should generate the proper schema for a model declared in a namespace in a module', () => {
+      // tslint:disable-next-line:no-string-literal
       const ref = specDefault.spec.paths['/GetTest/ModuleRedeclarationAndNamespace'].get?.responses['200'].content?.['application/json']['schema']['$ref'];
       expect(ref).to.equal('#/components/schemas/TsoaTest.TestModel73');
       expect(getComponentSchema('TsoaTest.TestModel73', specDefault)).to.deep.equal({
