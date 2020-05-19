@@ -1,8 +1,10 @@
+///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '@tsoa/runtime';
 import '../duplicateTestModel';
 import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
 import { ModelService } from './../services/modelService';
+import TsoaTest from 'tsoaTest';
 
 @Route('GetTest')
 export class GetTestController extends Controller {
@@ -76,6 +78,11 @@ export class GetTestController extends Controller {
   @Get('GetterInterfaceHerited')
   public async getGetterInterfaceHerited(): Promise<GetterInterfaceHerited> {
     return {} as GetterInterfaceHerited;
+  }
+
+  @Get('ModuleRedeclarationAndNamespace')
+  public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
+    return {} as TsoaTest.TestModel73;
   }
 
   @Get('Multi')

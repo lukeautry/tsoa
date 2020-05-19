@@ -75,6 +75,7 @@ describe('Definition generation', () => {
           'TestSubModelContainerNamespace.InnerNamespace.TestSubModelContainer2',
           'TestSubModel2',
           'TestSubModelNamespace.TestSubModelNS',
+          'TsoaTest.TestModel73',
         ];
         expectedModels.forEach(modelName => {
           getValidatedDefinition(modelName, currentSpec);
@@ -82,7 +83,7 @@ describe('Definition generation', () => {
       });
     });
 
-    it('should generate an member of type object for union type', () => {
+    it('should generate a member of type object for union type', () => {
       allSpecs.forEach(currentSpec => {
         const definition = getValidatedDefinition('Result', currentSpec);
         if (!definition.properties) {
@@ -103,7 +104,7 @@ describe('Definition generation', () => {
       });
     });
 
-    it('should generate an member of type object for union type', () => {
+    it('should generate a member of type object for union type', () => {
       allSpecs.forEach(currentSpec => {
         const definition = getValidatedDefinition('TestModel', currentSpec);
         if (!definition.properties) {
@@ -117,7 +118,7 @@ describe('Definition generation', () => {
       });
     });
 
-    it('should generate an member of type object for intersection type', () => {
+    it('should generate a member of type object for intersection type', () => {
       allSpecs.forEach(currentSpec => {
         const definition = getValidatedDefinition('TestModel', currentSpec);
         if (!definition.properties) {
@@ -128,6 +129,27 @@ describe('Definition generation', () => {
         }
 
         expect(definition.properties.and.type).to.equal('object');
+      });
+    });
+
+    it('should generate a correct definition for models in namespaces in modules', () => {
+      allSpecs.forEach(currentSpec => {
+        const namespaceInModule = getValidatedDefinition('TsoaTest.TestModel73', currentSpec);
+
+        expect(namespaceInModule).to.deep.include({
+          description: undefined,
+          properties: {
+            value: {
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+              type: 'string',
+            },
+          },
+          required: undefined,
+          type: 'object',
+        });
       });
     });
 
