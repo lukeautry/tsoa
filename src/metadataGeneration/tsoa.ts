@@ -1,3 +1,5 @@
+import { ExtensionType } from '../decorators/extension';
+
 export namespace Tsoa {
   export interface Metadata {
     controllers: Controller[];
@@ -12,6 +14,7 @@ export namespace Tsoa {
   }
 
   export interface Method {
+    extensions: Extension[];
     deprecated?: boolean;
     description?: string;
     method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
@@ -50,6 +53,11 @@ export namespace Tsoa {
 
   export interface Security {
     [key: string]: string[];
+  }
+
+  export interface Extension {
+    key: string;
+    value: ExtensionType | ExtensionType[];
   }
 
   export interface Response {

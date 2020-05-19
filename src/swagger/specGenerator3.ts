@@ -86,24 +86,25 @@ export class SpecGenerator3 extends SpecGenerator {
           type: 'http',
         } as Swagger.BasicSecurity3;
       } else if (definitions[key].type === 'oauth2') {
-        const definition = definitions[key] as Swagger.OAuth2PasswordSecurity &
-          Swagger.OAuth2ApplicationSecurity &
-          Swagger.OAuth2ImplicitSecurity &
-          Swagger.OAuth2AccessCodeSecurity &
-          Swagger.OAuth2Security3;
+        const definition = definitions[key] as
+          | Swagger.OAuth2PasswordSecurity
+          | Swagger.OAuth2ApplicationSecurity
+          | Swagger.OAuth2ImplicitSecurity
+          | Swagger.OAuth2AccessCodeSecurity
+          | Swagger.OAuth2Security3;
         const oauth = (defs[key] || {
           type: 'oauth2',
           description: definitions[key].description,
-          flows: definition.flows || {},
+          flows: (this.hasOAuthFlows(definition) && definition.flows) || {},
         }) as Swagger.OAuth2Security3;
 
-        if (definition.flow === 'password') {
+        if (this.hasOAuthFlow(definition) && definition.flow === 'password') {
           oauth.flows.password = { tokenUrl: definition.tokenUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
-        } else if (definition.flow === 'accessCode') {
+        } else if (this.hasOAuthFlow(definition) && definition.flow === 'accessCode') {
           oauth.flows.authorizationCode = { tokenUrl: definition.tokenUrl, authorizationUrl: definition.authorizationUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
-        } else if (definition.flow === 'application') {
+        } else if (this.hasOAuthFlow(definition) && definition.flow === 'application') {
           oauth.flows.clientCredentials = { tokenUrl: definition.tokenUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
-        } else if (definition.flow === 'implicit') {
+        } else if (this.hasOAuthFlow(definition) && definition.flow === 'implicit') {
           oauth.flows.implicit = { authorizationUrl: definition.authorizationUrl, scopes: definition.scopes || {} } as Swagger.OAuth2SecurityFlow3;
         }
 
@@ -113,6 +114,14 @@ export class SpecGenerator3 extends SpecGenerator {
       }
     });
     return defs;
+  }
+
+  private hasOAuthFlow(definition: any): definition is { flow: string } {
+    return !!definition.flow;
+  }
+
+  private hasOAuthFlows(definition: any): definition is { flows: Swagger.OAuthFlow } {
+    return !!definition.flows;
   }
 
   private buildServers() {
@@ -257,6 +266,8 @@ export class SpecGenerator3 extends SpecGenerator {
     if (bodyParams.length > 0) {
       pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
     }
+
+    method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
   protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation3 {
