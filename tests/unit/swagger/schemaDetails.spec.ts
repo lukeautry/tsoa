@@ -57,6 +57,35 @@ describe('Schema details generation', () => {
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultExtendedOptions().license));
 
+  describe('@is[num] comment', () => {
+    it("should generate model's schema type without comment name specify", () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/tagController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.definitions === undefined) {
+        throw new Error('No definitions find!');
+      }
+
+      // type: integer, format: int64 represents long.
+      expect(spec.definitions['NumType'].type).to.be.equal('integer');
+      expect(spec.definitions['NumType'].format).to.be.equal('int64');
+    });
+
+    it('should reject with orphan parameter jsdoc comment', () => {
+      // Act
+      let errToTest: Error | null = null;
+      try {
+        const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidTagController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      } catch (err) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/Orphan tag: @isInt should have a parameter name follows with./);
+    });
+  });
+
   describe('paths', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {

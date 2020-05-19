@@ -24,17 +24,9 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
     const parameterName = ((node as any).name as ts.Identifier).text;
     tags = getJSDocTags(node.parent as any, tag => {
       if (ts.isJSDocParameterTag(tag)) {
-        // exception process @param tag
-        const inCommentName = (tag as ts.JSDocParameterTag).name as ts.Identifier;
-        if (inCommentName === undefined) {
-          throw new GenerateMetadataError(`Statement in comment: ${tag.getFullText()} has a orphan tag, a parameter name should follows with tag.`);
-        }
-        return inCommentName.text === parameterName || inCommentName.escapedText === parameterName;
-      }
-
-      // other tags like tsoaModel, is[NumberType], etc.
-      if (tag.comment === undefined) {
-        throw new GenerateMetadataError(`Statement in comment: ${tag.getFullText} has a orphan tag, a parameter name should follows with tag.`);
+        return false;
+      } else if (tag.comment === undefined) {
+        throw new GenerateMetadataError(`Orphan tag: @${tag.tagName.text || tag.tagName.escapedText} should have a parameter name follows with.`);
       }
       return tag.comment.startsWith(parameterName);
     });

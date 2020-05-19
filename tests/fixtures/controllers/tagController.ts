@@ -1,18 +1,18 @@
-import { Controller, Route, Get, Query } from '../../../src';
+import { Route, Controller, Get, Query } from '../../../src';
 
 /**
- * @isInt
+ * @isLong
  */
-export type num = number;
+export type NumType = number;
 
-@Route('Tag')
+@Route('TagTest')
 export class TagController extends Controller {
   /**
-   *
-   * @example index2
+   * @isInt index
+   * @param {number} index
    */
   @Get()
-  public async get(@Query() index: num, @Query() index2: number): Promise<void> {
+  public async get(@Query() index: NumType, @Query() index2: number): Promise<void> {
     return;
   }
 }
