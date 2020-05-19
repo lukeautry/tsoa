@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 
 export function getJSDocDescription(node: ts.Node) {
   const jsDocs = (node as any).jsDoc as ts.JSDoc[];
@@ -17,16 +18,29 @@ export function getJSDocComment(node: ts.Node, tagName: string) {
   return tags[0].comment;
 }
 
-export function getJSDocTagNames(node: ts.Node) {
+export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
   let tags: ts.JSDocTag[];
   if (node.kind === ts.SyntaxKind.Parameter) {
     const parameterName = ((node as any).name as ts.Identifier).text;
     tags = getJSDocTags(node.parent as any, tag => {
-      return tag.comment !== undefined && tag.comment.startsWith(parameterName);
+      if (ts.isJSDocParameterTag(tag)) {
+        // exception process @param tag
+        const inCommentName = (tag as ts.JSDocParameterTag).name as ts.Identifier;
+        if (inCommentName === undefined) {
+          throw new GenerateMetadataError(`Statement in comment: ${tag.getFullText()} has a orphan tag, a parameter name should follows with tag.`);
+        }
+        return inCommentName.text === parameterName || inCommentName.escapedText === parameterName;
+      }
+
+      // other tags like tsoaModel, is[NumberType], etc.
+      if (tag.comment === undefined) {
+        throw new GenerateMetadataError(`Statement in comment: ${tag.getFullText} has a orphan tag, a parameter name should follows with tag.`);
+      }
+      return tag.comment.startsWith(parameterName);
     });
   } else {
     tags = getJSDocTags(node as any, tag => {
-      return tag.comment !== undefined;
+      return requireTagName ? tag.comment !== undefined : true;
     });
   }
   return tags.map(tag => {
