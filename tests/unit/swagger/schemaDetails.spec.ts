@@ -57,6 +57,112 @@ describe('Schema details generation', () => {
 
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultExtendedOptions().license));
 
+  describe('example comment', () => {
+    it('should generate single example for model', () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.definitions === undefined) {
+        throw new Error('No definitions find!');
+      }
+
+      // tslint:disable-next-line:no-string-literal
+      const example = spec.definitions['Location'].example;
+      expect(example).to.be.not.undefined;
+      expect(example).to.deep.equal({
+        contry: '123',
+        city: '456',
+      });
+    });
+
+    it('should generate single example for controller', () => {
+      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.paths === undefined) {
+        throw new Error('No paths find!');
+      }
+
+      it('@Path parameter in Get method', () => {
+        const pathParams = spec.paths['/path/{path}'].parameters![0];
+        expect(pathParams.examples).to.be.undefined;
+        expect(pathParams.example).to.be.equal('an_example_path');
+      });
+
+      it('@Query parameter in Get method', () => {
+        const queryParams = spec.paths['/query'].parameters![0];
+        expect(queryParams.examples).to.be.undefined;
+        expect(queryParams.example).to.be.equal('an_example_query');
+      });
+
+      it('@Header parameter in Get method', () => {
+        const headerParams = spec.paths['/header'].parameters![0];
+        expect(headerParams.examples).to.be.undefined;
+        expect(headerParams.example).to.be.equal('aaaaaaLongCookie');
+      });
+
+      it('@Body parameter in Post method', () => {
+        const postBodyParams = spec.paths['/post_body'].parameters![0];
+        expect(postBodyParams.examples).to.be.undefined;
+        expect(postBodyParams.example).to.deep.equal({
+          contry: '1',
+          city: '1',
+        });
+      });
+
+      it('@BodyProp parameter in Post method', () => {
+        const postBodyPropsParams = spec.paths['/two_parameter/{s}'].parameters![0];
+        expect(postBodyPropsParams.examples).to.be.undefined;
+        expect(postBodyPropsParams.example).to.deep.equal('prop1_1');
+      });
+
+      it('Two parameter with @Body and @Path in Post method', () => {
+        const path = spec.paths['/two_parameter/{s}'];
+
+        const bodyParams = path.parameters![0];
+        expect(bodyParams.examples).to.be.undefined;
+        expect(bodyParams.example).to.deep.equal({
+          contry: '1',
+          city: '1',
+        });
+
+        const pathParams = path.parameters![1];
+        expect(pathParams.examples).to.be.undefined;
+        expect(pathParams.example).to.be.equal('aa0');
+      });
+
+      it('Array with two @Body parameters in Post method', () => {
+        // tslint:disable-next-line:no-string-literal
+        const bodyParams = spec.paths['array_with_object'].parameters![0];
+        expect(bodyParams.examples).to.be.undefined;
+        expect(bodyParams.example).to.deep.equal([
+          {
+            contry: '1',
+            city: '1',
+          },
+          {
+            contry: '2',
+            city: '2',
+          },
+        ]);
+      });
+    });
+
+    it('should reject with incorrect JSON-format jsdoc comment', () => {
+      // Act
+      let errToTest: Error | null = null;
+      try {
+        const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidExampleController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      } catch (err) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/JSON format is incorrect:/);
+    });
+  });
+
   describe('paths', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {

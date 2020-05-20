@@ -192,16 +192,18 @@ export class ParameterGenerator {
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
-    const example = getJSDocTags(node.parent, tag => tag.tagName.text === 'example' && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag => (tag.comment || '').split(' ')[1])[0];
+    const examples = getJSDocTags(node.parent, tag => (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag =>
+      (tag.comment || '').replace(`${parameterName} `, '').replace(/\r/g, ''),
+    );
 
-    if (example) {
-      try {
-        return JSON.parse(example);
-      } catch {
-        return undefined;
-      }
-    } else {
+    if (examples.length === 0) {
       return undefined;
+    } else {
+      try {
+        return examples.map(example => JSON.parse(example));
+      } catch (e) {
+        throw new GenerateMetadataError(`JSON format is incorrect: ${e.message}`);
+      }
     }
   }
 

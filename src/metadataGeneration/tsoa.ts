@@ -32,7 +32,7 @@ export namespace Tsoa {
 
   export interface Parameter {
     parameterName: string;
-    example?: unknown;
+    example?: unknown[];
     description?: string;
     in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
     name: string;

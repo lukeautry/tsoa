@@ -1088,6 +1088,32 @@ describe('Definition generation', () => {
           const definition = getValidatedDefinition('TestModel', currentSpec);
           expect(definition.description).to.equal('This is a description of a model');
         });
+
+        it('should generate single first example from jsdoc', () => {
+          const definition = getValidatedDefinition('TestModel', currentSpec);
+          if (!definition.example) {
+            throw new Error('No definition example.');
+          }
+
+          expect(definition.example).to.deep.equal({
+            boolArray: [true, false],
+            boolValue: true,
+            dateValue: '2018-06-25T15:45:00Z',
+            id: 2,
+            modelValue: {
+              id: 3,
+              email: 'test(at)example.com',
+            },
+            modelsArray: [],
+            numberArray: [1, 2, 3],
+            numberValue: 1,
+            optionalString: 'optional string',
+            strLiteralArr: ['Foo', 'Bar'],
+            strLiteralVal: 'Foo',
+            stringArray: ['string one', 'string two'],
+            stringValue: 'a string',
+          });
+        });
       });
     });
 

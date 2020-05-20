@@ -286,7 +286,7 @@ export class SpecGenerator3 extends SpecGenerator {
       }
       if (res.examples) {
         /* tslint:disable:no-string-literal */
-        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples } };
+        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples } as Swagger.Example3 };
       }
     });
 
@@ -315,6 +315,20 @@ export class SpecGenerator3 extends SpecGenerator {
       },
     };
 
+    const parameterExamples = parameter.example;
+    if (parameterExamples === undefined) {
+      mediaType.example = parameterExamples;
+    } else if (parameterExamples.length === 1) {
+      mediaType.example = parameterExamples[0];
+    } else {
+      mediaType.examples = {};
+      parameterExamples.forEach((example, index) =>
+        Object.assign(mediaType.examples, {
+          [`Example ${index + 1}`]: { value: example } as Swagger.Example3,
+        }),
+      );
+    }
+
     const requestBody: Swagger.RequestBody = {
       description: parameter.description,
       required: parameter.required,
@@ -329,7 +343,6 @@ export class SpecGenerator3 extends SpecGenerator {
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
     const parameter = {
       description: source.description,
-      example: source.example,
       in: source.in,
       name: source.name,
       required: source.required,
@@ -369,6 +382,20 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
+
+    const parameterExamples = source.example;
+    if (parameterExamples === undefined) {
+      parameter.example = parameterExamples;
+    } else if (parameterExamples.length === 1) {
+      parameter.example = parameterExamples[0];
+    } else {
+      parameter.examples = {};
+      parameterExamples.forEach((example, index) =>
+        Object.assign(parameter.examples, {
+          [`Example ${index + 1}`]: { value: example } as Swagger.Example3,
+        }),
+      );
+    }
 
     return parameter;
   }
