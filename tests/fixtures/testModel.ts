@@ -20,6 +20,10 @@
  *   "stringArray": ["string one", "string two"],
  *   "stringValue": "a string"
  * }
+ * @example
+ * {
+ *   "stringValue": "(example2)a string"
+ * }
  */
 export interface TestModel extends Model {
   and: TypeAliasModel1 & TypeAliasModel2;
@@ -30,6 +34,7 @@ export interface TestModel extends Model {
   numberArray: number[];
   /**
    * @example "letmein"
+   * @example "letmein(example)2"
    * @format password
    */
   stringValue: string;

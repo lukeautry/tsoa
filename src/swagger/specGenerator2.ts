@@ -207,7 +207,7 @@ export class SpecGenerator2 extends SpecGenerator {
         properties[p.name] = this.getSwaggerType(p.type) as Swagger.Schema2;
         properties[p.name].default = p.default;
         properties[p.name].description = p.description;
-        properties[p.name].example = p.example;
+        properties[p.name].example = p.example === undefined ? undefined : p.example[0];
 
         if (p.required) {
           required.push(p.name);
@@ -237,7 +237,6 @@ export class SpecGenerator2 extends SpecGenerator {
     let parameter = {
       default: source.default,
       description: source.description,
-      example: source.example,
       in: source.in,
       name: source.name,
       required: source.required,
