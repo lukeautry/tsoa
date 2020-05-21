@@ -17,7 +17,7 @@ export namespace Tsoa {
     extensions: Extension[];
     deprecated?: boolean;
     description?: string;
-    method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'head';
+    method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
     name: string;
     parameters: Parameter[];
     path: string;
@@ -248,5 +248,9 @@ export namespace Tsoa {
 
   export interface ReferenceTypeMap {
     [refName: string]: Tsoa.ReferenceType;
+  }
+
+  export interface MethodsSignatureMap {
+    [signature: string]: string[];
   }
 }
