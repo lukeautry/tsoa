@@ -3,6 +3,7 @@ import 'mocha';
 import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
 import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
 import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { SpecGenerator3 } from '../../../../src/swagger/specGenerator3';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
@@ -225,9 +226,18 @@ describe('Metadata generation', () => {
 
       const mainResponse = method.responses[0];
       expect(mainResponse.name).to.equal('204');
-      expect(mainResponse.description).to.equal('No content');
     });
 
+    it('should not generate content or description for 204 responses in v3', () => {
+      const oas3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const operation = oas3.paths['/GetTest/Void'].get;
+      console.log(JSON.stringify(operation));
+      const voidResponse = operation?.responses[204];
+      if (!voidResponse) {
+        throw new Error('Void get operation not defined!');
+      }
+      expect(voidResponse).to.not.haveOwnProperty('content');
+    });
     it('should generate api security', () => {
       const method = controller.methods.find(m => m.name === 'apiSecurity');
       if (!method) {
