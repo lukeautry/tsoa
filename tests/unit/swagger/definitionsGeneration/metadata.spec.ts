@@ -225,7 +225,6 @@ describe('Metadata generation', () => {
 
       const mainResponse = method.responses[0];
       expect(mainResponse.name).to.equal('204');
-      expect(mainResponse.description).to.equal('No content');
     });
 
     it('should generate api security', () => {

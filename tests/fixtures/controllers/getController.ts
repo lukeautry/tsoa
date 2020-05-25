@@ -212,6 +212,11 @@ export class GetTestController extends Controller {
       result: new ModelService().getModel().stringArray,
     };
   }
+
+  @Get('Void')
+  public async getVoid(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 export interface ErrorResponse {

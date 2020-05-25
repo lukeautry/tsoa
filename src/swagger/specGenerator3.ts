@@ -275,14 +275,14 @@ export class SpecGenerator3 extends SpecGenerator {
 
     method.responses.forEach((res: Tsoa.Response) => {
       swaggerResponses[res.name] = {
-        content: {
-          'application/json': {} as Swagger.Schema3,
-        },
         description: res.description,
       };
       if (res.schema && !isVoidType(res.schema)) {
-        /* tslint:disable:no-string-literal */
-        (swaggerResponses[res.name].content || {})['application/json']['schema'] = this.getSwaggerType(res.schema);
+        swaggerResponses[res.name].content = {
+          'application/json': {
+            schema: this.getSwaggerType(res.schema),
+          } as Swagger.Schema3,
+        };
       }
       if (res.examples) {
         /* tslint:disable:no-string-literal */
