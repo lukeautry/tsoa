@@ -904,8 +904,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const fourtyTwoSchema = getComponentSchema('FourtyTwo', currentSpec);
             expect(fourtyTwoSchema).to.deep.eq({
-              type: 'number',
-              format: 'double',
+              type: 'integer',
+              format: 'int32',
               description: 'The number 42 expressed through OpenAPI',
               example: 42,
               minimum: 42,
