@@ -81,6 +81,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('info', () => {
+    it('should generate a valid info object', () => {
+      expect(specDefault.spec.info).to.deep.equal({
+        title: 'Test API',
+        description: 'Description of a test API',
+        contact: { email: 'jane@doe.com', name: 'Jane Doe', url: 'www.jane-doe.com' },
+        license: { name: 'MIT' },
+        version: '1.0.0',
+      });
+    });
+  });
+
   describe('security', () => {
     it('should replace the parent securityDefinitions with securitySchemes within components', () => {
       expect(specDefault.spec).to.not.have.property('securityDefinitions');
