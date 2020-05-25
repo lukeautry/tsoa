@@ -76,9 +76,33 @@ export interface SpecConfig {
   name?: string;
 
   /**
-   * 'API description; defaults to npm package description
+   * API description; defaults to npm package description
    */
   description?: string;
+
+  /**
+   * Contact Information
+   */
+  contact?: {
+    /**
+     * The identifying name of the contact person/organization.
+     * @default npm package author
+     */
+    name?: string;
+
+    /**
+     * The email address of the contact person/organization.
+     * @default npm package author email
+     */
+    email?: string;
+
+    /**
+     * API Info url
+     * The URL pointing to the contact information.
+     * @default npm package author url
+     */
+    url?: string;
+  };
 
   /**
    * API license; defaults to npm package license

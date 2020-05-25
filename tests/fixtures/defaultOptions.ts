@@ -13,6 +13,11 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
       host: 'localhost:3000',
       license: 'MIT',
       name: 'Test API',
+      contact: {
+        email: 'jane@doe.com',
+        name: 'Jane Doe',
+        url: 'www.jane-doe.com',
+      },
       outputDirectory,
       securityDefinitions: {
         basic: {
