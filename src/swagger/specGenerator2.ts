@@ -44,6 +44,11 @@ export class SpecGenerator2 extends SpecGenerator {
     if (this.config.license) {
       spec.info.license = { name: this.config.license };
     }
+
+    if (this.config.contact) {
+      spec.info.contact = this.config.contact;
+    }
+
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {

@@ -36,6 +36,7 @@ const determineNoImplicitAdditionalSetting = (noImplicitAdditionalProperties: Co
     return 'ignore';
   }
 };
+const authorInformation = getPackageJsonValue('author', 'unknown');
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
@@ -99,6 +100,16 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   config.spec.description = config.spec.description || (await descriptionDefault());
   config.spec.license = config.spec.license || (await licenseDefault());
   config.spec.basePath = config.spec.basePath || '/';
+
+  if (!config.spec.contact) {
+    config.spec.contact = {};
+  }
+
+  const contact = (await authorInformation).match(/^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m);
+
+  config.spec.contact.name = config.spec.contact.name || contact?.[1];
+  config.spec.contact.email = config.spec.contact.email || contact?.[2];
+  config.spec.contact.url = config.spec.contact.url || contact?.[3];
 
   return {
     ...config.spec,

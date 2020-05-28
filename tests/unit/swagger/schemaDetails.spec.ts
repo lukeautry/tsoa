@@ -55,7 +55,13 @@ describe('Schema details generation', () => {
     throw new Error('No license name.');
   }
 
+  const contactInfo = spec.info.contact;
+  if (!contactInfo) {
+    throw new Error('No contact information.');
+  }
+
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultExtendedOptions().license));
+  it('should set contact information if provided', () => expect(contactInfo).to.deep.equal(getDefaultExtendedOptions().contact));
 
   describe('@is[num] comment', () => {
     it("should generate model's schema type without comment name specify", () => {
