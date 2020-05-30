@@ -39,7 +39,6 @@ export type HttpStatusCodeLiteral =
   | 416
   | 417
   | 418
-  | 421
   | 422
   | 423
   | 424
@@ -47,9 +46,6 @@ export type HttpStatusCodeLiteral =
   | 428
   | 429
   | 431
-  | 444
-  | 451
-  | 499
   | 500
   | 501
   | 502
@@ -60,7 +56,6 @@ export type HttpStatusCodeLiteral =
   | 507
   | 508
   | 510
-  | 511
-  | 599;
+  | 511;
 
 export type TsoaResponse<T extends HttpStatusCodeLiteral, U, V extends {} = {}> = (status: T, data: U, headers?: V) => any;
