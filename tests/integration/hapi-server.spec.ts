@@ -1028,13 +1028,15 @@ describe('Hapi Server', () => {
       });
     });
 
-    it('Should ignore @Res', () => {
+    it('Should return on @Res', () => {
       return verifyGetRequest(
         basePath + '/GetTest/Res',
         (err, res) => {
-          expect(res.body).to.deep.equal({});
+          const model = res.body as TestModel;
+          expect(model.id).to.equal(1);
+          expect(res.get('custom-header')).to.eq('hello');
         },
-        204,
+        400,
       );
     });
   });

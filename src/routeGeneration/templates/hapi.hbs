@@ -2,9 +2,9 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from 'tsoa';
 {{else}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '../../../src';
 {{/if}}
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -76,7 +76,7 @@ export function RegisterRoutes(server: any) {
 
                     let validatedArgs: any[] = [];
                     try {
-                        validatedArgs = getValidatedArgs(args, request);
+                        validatedArgs = getValidatedArgs(args, request, h);
                     } catch (err) {
                         const boomErr = boomify(err);
                         boomErr.output.statusCode = err.status || 500;
@@ -166,31 +166,48 @@ export function RegisterRoutes(server: any) {
     function promiseHandler(controllerObj: any, promise: any, request: any, h: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
-                const response = (data || data === false)
-                    ? h.response(data).code(200)
-                    : h.response("").code(204);
+                let statusCode;
+                let headers;
 
                 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
                 if (isController(controllerObj)) {
-                    const headers = controllerObj.getHeaders();
-                    Object.keys(headers).forEach((name: string) => {
-                        response.header(name, headers[name]);
-                    });
+                    headers = controllerObj.getHeaders();
 
-                    const statusCode = controllerObj.getStatus();
-                    if (statusCode) {
-                        response.code(statusCode);
-                    }
+                statusCode = controllerObj.getStatus();
                 }
-                return response;
+                return returnHandler(h, statusCode, data, headers);;
             })
             .catch((error: any) => h.response(error).code(error.status || 500));
     }
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-    function getValidatedArgs(args: any, request: any): any[] {
+    function returnHandler(h: any, statusCode: number, data: any, headers: any = {}) {
+        if (h.__isTsoaResponded) {
+            return h.__isTsoaResponded;
+        }
+
+        let response = (data || data === false) 
+                    ? h.response(data).code(200)
+                    : h.response("").code(204);
+
+        Object.keys(headers).forEach((name: string) => {
+            response.header(name, headers[name]);
+        });
+        
+        if (statusCode) {
+            response.code(statusCode);
+        }
+
+        h.__isTsoaResponded = response;
+
+        return response;
+    }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function getValidatedArgs(args: any, request: any, h: any): any[] {
         const errorFields: FieldErrors = {};
         const values = Object.keys(args).map(key => {
             const name = args[key].name;
@@ -208,7 +225,7 @@ export function RegisterRoutes(server: any) {
             case 'body-prop':
                 return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
             case 'res':
-                return undefined;
+                return responder(h);
             }
         });
         if (Object.keys(errorFields).length > 0) {
@@ -216,6 +233,14 @@ export function RegisterRoutes(server: any) {
         }
         return values;
     }
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function responder(h: any): TsoaResponse<HttpStatusCodeLiteral, unknown>  {
+        return function(status, data, headers) {
+           returnHandler(h, status, data, headers);
+        };
+    };
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }
