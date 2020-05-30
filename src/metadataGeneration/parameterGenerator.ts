@@ -27,6 +27,8 @@ export class ParameterGenerator {
         return this.getQueryParameter(this.parameter);
       case 'Path':
         return this.getPathParameter(this.parameter);
+      case 'Res':
+        return this.getResParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -42,6 +44,51 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
       validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getResParameter(parameter: ts.ParameterDeclaration): Tsoa.ResParameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const decorator = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res') || parameterName;
+    if (!decorator) {
+      throw new GenerateMetadataError('Could not find Decorator', parameter);
+    }
+
+    const typeNode = parameter.type;
+
+    if (!typeNode || !ts.isTypeReferenceNode(typeNode) || typeNode.typeName.getText() !== 'TsoaResponse') {
+      throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
+    }
+
+    if (!typeNode.typeArguments || !typeNode.typeArguments[0]) {
+      throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
+    }
+
+    const statusArgument = typeNode.typeArguments[0];
+    const statusArgumentType = this.current.typeChecker.getTypeAtLocation(statusArgument);
+
+    const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
+      // tslint:disable-next-line:no-bitwise
+      return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
+    };
+
+    if (!isNumberLiteralType(statusArgumentType)) {
+      throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
+    }
+
+    const status = statusArgumentType.value + '';
+
+    const type = new TypeResolver(typeNode.typeArguments[1], this.current, typeNode).resolve();
+
+    return {
+      description: this.getParameterDescription(parameter) || '',
+      in: 'res',
+      name: status,
+      parameterName,
+      required: true,
+      type,
+      schema: type,
+      validators: {},
     };
   }
 
@@ -212,7 +259,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

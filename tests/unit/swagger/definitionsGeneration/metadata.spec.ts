@@ -684,6 +684,28 @@ describe('Metadata generation', () => {
       expect((parameter.example as unknown[]).length).to.be.equal(2);
     });
 
+    it('should generate a res parameter and the corresponding additional response', () => {
+      const method = controller.methods.find(m => m.name === 'getRes');
+      if (!method) {
+        throw new Error('Method getRes not defined!');
+      }
+      const parameter = method.parameters.find(param => param.parameterName === 'res');
+      if (!parameter) {
+        throw new Error('Parameter firstname not defined!');
+      }
+      const additionalResponse = method.responses[1];
+
+      expect(method.parameters.length).to.equal(1);
+      expect(parameter.description).to.equal('The alternate response');
+      expect(parameter.in).to.equal('res');
+      expect(parameter.name).to.equal('400');
+      expect(parameter.parameterName).to.equal('res');
+      expect(parameter.required).to.be.true;
+
+      expect(additionalResponse.description).to.equal('The alternate response');
+      expect(additionalResponse.name).to.equal('400');
+    });
+
     it('Should inline enums for TS Enums in path, query and header when using Swagger', () => {
       const spec = new SpecGenerator2(parameterMetadata, getDefaultExtendedOptions()).GetSpec();
       const method = spec.paths['/ParameterTest/Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}'].get;

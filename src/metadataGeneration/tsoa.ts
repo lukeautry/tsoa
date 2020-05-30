@@ -34,12 +34,17 @@ export namespace Tsoa {
     parameterName: string;
     example?: unknown[];
     description?: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request';
+    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'res';
     name: string;
     required?: boolean;
     type: Type;
     default?: any;
     validators: Validators;
+  }
+
+  export interface ResParameter extends Response, Parameter {
+    in: 'res';
+    description: string;
   }
 
   export interface ArrayParameter extends Parameter {

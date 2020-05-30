@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route } from '../../../src';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '../../../src';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -314,5 +314,13 @@ export class ParameterController {
   @Get('paramaterImplicitDate')
   public async implicitDate(@Query() date = new Date(2018, 1, 15)): Promise<void> {
     //
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res')
+  public async getRes(@Res() res: TsoaResponse<400, { name: string }>): Promise<void> {
+    res?.(400, { name: 'alternate response' });
   }
 }
