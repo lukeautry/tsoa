@@ -21,7 +21,7 @@ export class TypeResolver {
     private readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
     private context: Context = {},
-    private readonly referencer?: ts.TypeReferenceType,
+    private readonly referencer?: ts.TypeNode,
   ) {}
 
   public static clearCache() {
@@ -192,7 +192,7 @@ export class TypeResolver {
       return objectLiteral;
     }
 
-    if (ts.isConditionalTypeNode(this.typeNode) && this.referencer) {
+    if (ts.isConditionalTypeNode(this.typeNode) && this.referencer && ts.isTypeReferenceNode(this.referencer)) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
 
       if (type.aliasSymbol) {
@@ -203,7 +203,8 @@ export class TypeResolver {
         const name = this.getRefTypeName(this.referencer.getText());
         return this.handleCachingAndCircularReferences(name, () => {
           if (ts.isTypeAliasDeclaration(declaration)) {
-            return this.getTypeAliasReference(declaration, this.current.typeChecker.typeToString(type), this.referencer!);
+            // Note: I don't understand why typescript lose type for `this.referencer` (from above with isTypeReferenceNode())
+            return this.getTypeAliasReference(declaration, this.current.typeChecker.typeToString(type), this.referencer as ts.TypeReferenceNode);
           } else if (ts.isEnumDeclaration(declaration)) {
             return this.getEnumerateType(declaration.name) as Tsoa.RefEnumType;
           } else {
@@ -451,15 +452,15 @@ export class TypeResolver {
     let resolvableName = node.pos !== -1 ? node.getText() : (type as ts.Identifier).text;
     if (node.pos === -1 && 'typeArguments' in node && Array.isArray(node.typeArguments)) {
       // Add typearguments for Synthetic nodes (e.g. Record<> in TestClassModel.indexedResponse)
-      const argumentsString = node.typeArguments.map((arg) => {
+      const argumentsString = node.typeArguments.map(arg => {
         if (ts.isLiteralTypeNode(arg)) {
-          return `'${String(this.getLiteralValue(arg))}'`
+          return `'${String(this.getLiteralValue(arg))}'`;
         }
-        const resolved = this.attemptToResolveKindToPrimitive(arg.kind)
-        if (resolved.foundMatch === false) return 'any'
-        return resolved.resolvedType
-      })
-      resolvableName += `<${argumentsString.join(', ')}>`
+        const resolved = this.attemptToResolveKindToPrimitive(arg.kind);
+        if (resolved.foundMatch === false) return 'any';
+        return resolved.resolvedType;
+      });
+      resolvableName += `<${argumentsString.join(', ')}>`;
     }
 
     const name = this.contextualizedName(resolvableName);
@@ -836,7 +837,7 @@ export class TypeResolver {
       format: this.getNodeFormat(propertySignature),
       name: identifier.text,
       required,
-      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type as ts.TypeReferenceType).resolve(),
+      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
     };
     return property;
@@ -855,7 +856,7 @@ export class TypeResolver {
       throw new GenerateMetadataError(`No valid type found for property declaration.`);
     }
 
-    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context, typeNode as ts.TypeReferenceType).resolve();
+    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context, typeNode).resolve();
 
     let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
