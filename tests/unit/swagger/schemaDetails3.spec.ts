@@ -1026,7 +1026,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
+                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1245,7 +1245,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getComponentSchema(
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              currentSpec,
+            );
             expect(excludeLiteral).to.deep.eq(
               {
                 anyOf: [
@@ -1335,7 +1338,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
               },
               type: 'object',
-            })
+            });
 
             const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
             expect(readonlyClassSchema).to.deep.eq(
@@ -1354,10 +1357,16 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
-                    $ref: "#/components/schemas/Record_id.string_",
+                    $ref: '#/components/schemas/Record_id.string_',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
+                  },
+                  indexedResponseObject: {
+                    $ref: '#/components/schemas/Record_id.any_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
                   },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },

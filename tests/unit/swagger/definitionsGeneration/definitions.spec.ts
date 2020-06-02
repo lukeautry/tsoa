@@ -701,7 +701,7 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -828,7 +828,10 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getValidatedDefinition(
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              currentSpec,
+            );
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
@@ -931,6 +934,12 @@ describe('Definition generation', () => {
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
                     $ref: '#/definitions/Record_id.string_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  indexedResponseObject: {
+                    $ref: '#/definitions/Record_id.any_',
                     description: undefined,
                     example: undefined,
                     format: undefined,
