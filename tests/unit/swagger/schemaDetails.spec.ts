@@ -73,8 +73,8 @@ describe('Schema details generation', () => {
       }
 
       // type: integer, format: int64 represents long.
-      expect(spec.definitions['NumType'].type).to.be.equal('integer');
-      expect(spec.definitions['NumType'].format).to.be.equal('int64');
+      expect(spec.definitions.NumType.type).to.be.equal('integer');
+      expect(spec.definitions.NumType.format).to.be.equal('int64');
     });
 
     it('should reject with orphan parameter jsdoc comment', () => {
