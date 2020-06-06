@@ -117,6 +117,12 @@ describe('Schema details generation', () => {
       if (spec.paths === undefined) {
         throw new Error('No paths found!');
       }
+
+      it('@Res parameters with 2 examples', () => {
+        const responses = spec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
+
+        expect(responses?.[400]?.examples?.['application/json']).to.eq(123);
+      });
     });
 
     it('should reject with incorrect JSON-format jsdoc comment', () => {
@@ -172,6 +178,18 @@ describe('Schema details generation', () => {
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
+      });
+    });
+
+    describe('methods', () => {
+      describe('responses', () => {
+        it('Falls back to the first @Example<>', () => {
+          const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test 1');
+        });
       });
     });
   });

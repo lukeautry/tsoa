@@ -290,8 +290,11 @@ export class SpecGenerator3 extends SpecGenerator {
         };
       }
       if (res.examples) {
+        const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+          return { ...acc, [`Example ${currentIndex + 1}`]: { value: ex } };
+        }, {});
         /* tslint:disable:no-string-literal */
-        (swaggerResponses[res.name].content || {})['application/json']['examples'] = { example: { value: res.examples } as Swagger.Example3 };
+        (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
       }
     });
 

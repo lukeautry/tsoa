@@ -154,7 +154,7 @@ describe('Metadata generation', () => {
       const defaultResponse = method.responses[2];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
-      expect(defaultResponse.examples).to.deep.equal({ status: 500, message: 'Something went wrong!' });
+      expect(defaultResponse.examples).to.deep.equal([{ status: 500, message: 'Something went wrong!' }]);
 
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');

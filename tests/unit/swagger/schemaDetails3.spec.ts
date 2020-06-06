@@ -398,6 +398,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         expect(specHiddenController.paths).to.be.empty;
       });
     });
+
+    describe('methods', () => {
+      describe('responses', () => {
+        it('Supports multiple examples', () => {
+          const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+          const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: 'test 1',
+            },
+            'Example 2': {
+              value: 'test 2',
+            },
+          });
+        });
+      });
+    });
   });
 
   describe('components', () => {

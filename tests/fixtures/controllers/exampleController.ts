@@ -1,4 +1,4 @@
-import { Post, Route, Body, Path, Get, Query, Header, BodyProp } from '../../../src';
+import { Post, Route, Body, Path, Get, Query, Header, BodyProp, Example, Res, TsoaResponse } from '../../../src';
 
 /**
  * @example {
@@ -112,5 +112,18 @@ export class ExampleTestController {
   @Post('/array_with_object')
   public async arrayWithObject(@Body() locations: Location[]): Promise<void> {
     return;
+  }
+
+  /**
+   * @param res The alternate response
+   * @example res 123
+   * @example res 1
+   */
+  @Example<string>('test 1')
+  @Example<string>('test 2')
+  @Get('MultiResponseExamples')
+  public async responseExamples(@Res() res: TsoaResponse<400, number, { 'custom-header': string }>): Promise<string> {
+    res?.(400, 123, { 'custom-header': 'hello' });
+    return 'test 1';
   }
 }
