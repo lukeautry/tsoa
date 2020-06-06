@@ -5,6 +5,7 @@ import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { Swagger } from './swagger';
+import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
 /**
  * TODO:
@@ -35,6 +36,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const mergeFuncs: { [key: string]: any } = {
         immediate: Object.assign,
         recursive: require('merge').recursive,
+        deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => require('deepmerge').all([spec, merge]),
       };
 
       spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);

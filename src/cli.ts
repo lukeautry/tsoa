@@ -95,6 +95,10 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
     throw new Error('Unsupported Spec version.');
   }
 
+  if (config.spec.spec && !['immediate', 'recursive', 'deepmerge', undefined].includes(config.spec.specMerging)) {
+    throw new Error(`Invalid specMerging config: ${config.spec.specMerging}`);
+  }
+
   const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
   config.spec.name = config.spec.name || (await nameDefault());
   config.spec.description = config.spec.description || (await descriptionDefault());
