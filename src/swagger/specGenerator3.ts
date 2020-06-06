@@ -9,7 +9,6 @@ import { Swagger } from './swagger';
 /**
  * TODO:
  * Handle formData parameters
- * Handle tags
  * Handle requestBodies of type other than json
  * Handle requestBodies as reusable objects
  * Handle headers, examples, responses, etc.
@@ -28,6 +27,7 @@ export class SpecGenerator3 extends SpecGenerator {
       openapi: '3.0.0',
       paths: this.buildPaths(),
       servers: this.buildServers(),
+      tags: this.config.tags,
     };
 
     if (this.config.spec) {
