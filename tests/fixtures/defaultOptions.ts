@@ -62,6 +62,7 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
         },
       },
       version: '1.0.0',
+      tags: [{ name: 'hello', description: 'Endpoints related to greeting functionality' }],
     },
   };
 }

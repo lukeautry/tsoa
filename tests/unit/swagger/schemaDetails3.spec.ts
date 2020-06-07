@@ -56,6 +56,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     return `for the ${chosenSpec.specName} spec`;
   }
 
+  describe('tags', () => {
+    it('should generate a valid tags array', () => {
+      expect(specDefault.spec.tags).to.deep.equal([{ name: 'hello', description: 'Endpoints related to greeting functionality' }]);
+    });
+  });
+
   describe('servers', () => {
     it('should replace the parent schemes element', () => {
       expect(specDefault.spec).to.not.have.property('schemes');
