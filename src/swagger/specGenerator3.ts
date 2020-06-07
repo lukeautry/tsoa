@@ -436,6 +436,16 @@ export class SpecGenerator3 extends SpecGenerator {
     return { $ref: `#/components/schemas/${referenceType.refName}` };
   }
 
+  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
+    if (dataType === 'any') {
+      // Setting additionalProperties causes issues with code generators for OpenAPI 3
+      // Therefore, we avoid setting it explicitly (since it's the implicit default already)
+      return {};
+    }
+
+    return super.getSwaggerTypeForPrimitiveType(dataType);
+  }
+
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
     // use nullable: true to represent simple unions with null. This converts to
     // a better type when using code generation in a client.

@@ -738,12 +738,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           anyType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
+            expect(propertySchema.additionalProperties).to.eq(undefined, 'because the "any" type always allows more properties be definition');
           },
           unknownType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
+            expect(propertySchema.additionalProperties).to.eq(undefined, 'because the "unknown" type always allows more properties be definition');
           },
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Generic__foo-string--bar-boolean__');
