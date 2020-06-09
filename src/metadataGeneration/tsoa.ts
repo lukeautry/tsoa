@@ -69,7 +69,7 @@ export namespace Tsoa {
     description: string;
     name: string;
     schema?: Type;
-    examples?: any;
+    examples?: unknown[];
   }
 
   export interface Property {

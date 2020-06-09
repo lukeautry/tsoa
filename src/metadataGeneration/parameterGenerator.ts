@@ -85,6 +85,7 @@ export class ParameterGenerator {
       in: 'res',
       name: status,
       parameterName,
+      examples: this.getParameterExample(parameter, parameterName),
       required: true,
       type,
       schema: type,

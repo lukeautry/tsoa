@@ -192,8 +192,8 @@ export class SpecGenerator2 extends SpecGenerator {
       if (res.schema && !isVoidType(res.schema)) {
         swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
       }
-      if (res.examples) {
-        swaggerResponses[res.name].examples = { 'application/json': res.examples };
+      if (res.examples && res.examples[0]) {
+        swaggerResponses[res.name].examples = { 'application/json': res.examples[0] };
       }
     });
 

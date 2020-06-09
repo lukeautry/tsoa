@@ -83,7 +83,7 @@ export namespace Swagger {
   }
 
   export interface Example {
-    [mediaType: string]: unknown;
+    examples?: { [exampleName: string]: Swagger.Example3 };
   }
 
   export interface Example3 {
@@ -207,7 +207,7 @@ export namespace Swagger {
 
   export interface Response3 {
     description: string;
-    content?: { [name: string]: Schema | Example };
+    content?: { [name: string]: Schema & Example };
     headers?: { [name: string]: Header };
   }
 

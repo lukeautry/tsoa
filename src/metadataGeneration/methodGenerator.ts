@@ -135,11 +135,11 @@ export class MethodGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      const [name, description, examples] = getDecoratorValues(decorator, this.current.typeChecker);
+      const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
         description: description || '',
-        examples,
+        examples: [example],
         name: name || '200',
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
       } as Tsoa.Response;
@@ -177,11 +177,10 @@ export class MethodGenerator {
     if (!exampleDecorators || !exampleDecorators.length) {
       return undefined;
     }
-    if (exampleDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
-    }
-    const values = getDecoratorValues(exampleDecorators[0], this.current.typeChecker);
-    return values && values[0];
+
+    const examples = exampleDecorators.map(exampleDecorator => getDecoratorValues(exampleDecorator, this.current.typeChecker)?.[0]);
+
+    return examples || [];
   }
 
   private supportsPathMethod(method: string) {

@@ -73,8 +73,8 @@ describe('Schema details generation', () => {
       }
 
       // type: integer, format: int64 represents long.
-      expect(spec.definitions['NumType'].type).to.be.equal('integer');
-      expect(spec.definitions['NumType'].format).to.be.equal('int64');
+      expect(spec.definitions.NumType.type).to.be.equal('integer');
+      expect(spec.definitions.NumType.format).to.be.equal('int64');
     });
 
     it('should reject with orphan parameter jsdoc comment', () => {
@@ -110,76 +110,18 @@ describe('Schema details generation', () => {
       });
     });
 
-    it('should generate single example for controller', () => {
+    describe('should generate single example for controller', () => {
       const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
       if (spec.paths === undefined) {
-        throw new Error('No paths find!');
+        throw new Error('No paths found!');
       }
 
-      it('@Path parameter in Get method', () => {
-        const pathParams = spec.paths['/path/{path}'].parameters![0];
-        expect(pathParams.examples).to.be.undefined;
-        expect(pathParams.example).to.be.equal('an_example_path');
-      });
+      it('@Res parameters with 2 examples', () => {
+        const responses = spec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
 
-      it('@Query parameter in Get method', () => {
-        const queryParams = spec.paths['/query'].parameters![0];
-        expect(queryParams.examples).to.be.undefined;
-        expect(queryParams.example).to.be.equal('an_example_query');
-      });
-
-      it('@Header parameter in Get method', () => {
-        const headerParams = spec.paths['/header'].parameters![0];
-        expect(headerParams.examples).to.be.undefined;
-        expect(headerParams.example).to.be.equal('aaaaaaLongCookie');
-      });
-
-      it('@Body parameter in Post method', () => {
-        const postBodyParams = spec.paths['/post_body'].parameters![0];
-        expect(postBodyParams.examples).to.be.undefined;
-        expect(postBodyParams.example).to.deep.equal({
-          contry: '1',
-          city: '1',
-        });
-      });
-
-      it('@BodyProp parameter in Post method', () => {
-        const postBodyPropsParams = spec.paths['/two_parameter/{s}'].parameters![0];
-        expect(postBodyPropsParams.examples).to.be.undefined;
-        expect(postBodyPropsParams.example).to.deep.equal('prop1_1');
-      });
-
-      it('Two parameter with @Body and @Path in Post method', () => {
-        const path = spec.paths['/two_parameter/{s}'];
-
-        const bodyParams = path.parameters![0];
-        expect(bodyParams.examples).to.be.undefined;
-        expect(bodyParams.example).to.deep.equal({
-          contry: '1',
-          city: '1',
-        });
-
-        const pathParams = path.parameters![1];
-        expect(pathParams.examples).to.be.undefined;
-        expect(pathParams.example).to.be.equal('aa0');
-      });
-
-      it('Array with two @Body parameters in Post method', () => {
-        // tslint:disable-next-line:no-string-literal
-        const bodyParams = spec.paths['array_with_object'].parameters![0];
-        expect(bodyParams.examples).to.be.undefined;
-        expect(bodyParams.example).to.deep.equal([
-          {
-            contry: '1',
-            city: '1',
-          },
-          {
-            contry: '2',
-            city: '2',
-          },
-        ]);
+        expect(responses?.[400]?.examples?.['application/json']).to.eq(123);
       });
     });
 
@@ -236,6 +178,18 @@ describe('Schema details generation', () => {
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
+      });
+    });
+
+    describe('methods', () => {
+      describe('responses', () => {
+        it('Falls back to the first @Example<>', () => {
+          const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test 1');
+        });
       });
     });
   });
