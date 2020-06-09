@@ -82,7 +82,7 @@ export class ControllerGenerator {
 
       return {
         description: description || '',
-        examples: [example],
+        examples: example === undefined ? undefined : [example],
         name,
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
       } as Tsoa.Response;
