@@ -1,10 +1,36 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
   /**
-   * Get test paramater
+   * Example test parameter
+   *
+   * @example firstname "name1"
+   * @example firstname "name2"
+   * @example lastname "lastname"
+   * @example gender {
+   *  "MALE": "MALE",
+   *  "FEMALE": "FEMALE"
+   * }
+   * @example gender {
+   *  "MALE": "MALE2",
+   *  "FEMALE": "FEMALE2"
+   * }
+   * @example nicknames [
+   * "name1", "name2"
+   * ]
+   * @example nicknames [
+   *  "name2_1", "name2_2"
+   * ]
+   */
+  @Post('Example/{firstname}')
+  public async example(@Path() firstname: string, @Query() lastname: string, @Body() gender: Gender, @Query() nicknames: string[]): Promise<void> {
+    return;
+  }
+
+  /**
+   * Query test paramater
    *
    * @param {string} firstname Firstname description
    * @param {string} lastname Lastname description
@@ -16,6 +42,9 @@ export class ParameterController {
    *
    * @isInt age
    * @isFloat weight
+   *
+   * @example lastname "name1"
+   * @example lastname "name2"
    */
   @Get('Query')
   public async getQuery(
@@ -50,6 +79,9 @@ export class ParameterController {
    *
    * @isInt age
    * @isFloat weight
+   *
+   * @example lastname "name1"
+   * @example lastname "name2"
    */
   @Get('Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}')
   public async getPath(
@@ -113,6 +145,9 @@ export class ParameterController {
    *
    * @isInt age
    * @isFloat weight
+   *
+   * @example lastname "name1"
+   * @example lastname "name2"
    */
   @Get('Header')
   public async getHeader(
@@ -154,6 +189,17 @@ export class ParameterController {
    * Body test paramater
    *
    * @param {object} body Body description
+   *
+   * @example body {
+   *  "firstname": "first1",
+   *  "lastname": "last1",
+   *  "age": 1
+   * }
+   * @example body {
+   *  "firstname": "first2",
+   *  "lastname": "last2",
+   *  "age": 2
+   * }
    */
   @Post('Body')
   public async getBody(@Body() body: ParameterTestModel): Promise<ParameterTestModel> {
@@ -189,6 +235,9 @@ export class ParameterController {
    *
    * @isInt age
    * @isFloat weight
+   *
+   * @example firstname "name1"
+   * @example firstname "name2"
    */
   @Post('BodyProps')
   public async getBodyProps(
@@ -265,5 +314,13 @@ export class ParameterController {
   @Get('paramaterImplicitDate')
   public async implicitDate(@Query() date = new Date(2018, 1, 15)): Promise<void> {
     //
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res')
+  public async getRes(@Res() res: TsoaResponse<400, { name: string }>): Promise<void> {
+    res?.(400, { name: 'alternate response' });
   }
 }

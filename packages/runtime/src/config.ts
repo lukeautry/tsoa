@@ -76,9 +76,33 @@ export interface SpecConfig {
   name?: string;
 
   /**
-   * 'API description; defaults to npm package description
+   * API description; defaults to npm package description
    */
   description?: string;
+
+  /**
+   * Contact Information
+   */
+  contact?: {
+    /**
+     * The identifying name of the contact person/organization.
+     * @default npm package author
+     */
+    name?: string;
+
+    /**
+     * The email address of the contact person/organization.
+     * @default npm package author email
+     */
+    email?: string;
+
+    /**
+     * API Info url
+     * The URL pointing to the contact information.
+     * @default npm package author url
+     */
+    url?: string;
+  };
 
   /**
    * API license; defaults to npm package license
@@ -101,10 +125,11 @@ export interface SpecConfig {
    * Possible values:
    *  - 'immediate' is overriding top level elements only thus you can not append a new path or alter an existing value without erasing same level elements.
    *  - 'recursive' proceed to a deep merge and will concat every branches or override or create new values if needed. @see https://www.npmjs.com/package/merge
+   *  - 'deepmerge' uses `deepmerge` to merge, which will concat object branches and concat arrays as well @see https://www.npmjs.com/package/deepmerge
    * The default is set to immediate so it is not breaking previous versions.
    * @default 'immediate'
    */
-  specMerging?: 'immediate' | 'recursive';
+  specMerging?: 'immediate' | 'recursive' | 'deepmerge';
 
   /**
    * Security Definitions Object

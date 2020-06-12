@@ -44,6 +44,9 @@ export class MethodGenerator {
     const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
     responses.push(this.getMethodSuccessResponse(type));
+    const parameters = this.buildParameters();
+    const additionalResponses = parameters.filter((p): p is Tsoa.ResParameter => p.in === 'res');
+    responses.push(...additionalResponses);
 
     return {
       extensions: this.getExtensions(),
@@ -53,7 +56,7 @@ export class MethodGenerator {
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
       operationId: this.getOperationId(),
-      parameters: this.buildParameters(),
+      parameters,
       path: this.path,
       responses,
       security: this.getSecurity(),
@@ -132,11 +135,11 @@ export class MethodGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      const [name, description, examples] = getDecoratorValues(decorator, this.current.typeChecker);
+      const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
         description: description || '',
-        examples,
+        examples: example === undefined ? undefined : [example],
         name: name || '200',
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
       } as Tsoa.Response;
@@ -174,11 +177,10 @@ export class MethodGenerator {
     if (!exampleDecorators || !exampleDecorators.length) {
       return undefined;
     }
-    if (exampleDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Example decorator allowed in '${this.getCurrentLocation}' method.`);
-    }
-    const values = getDecoratorValues(exampleDecorators[0], this.current.typeChecker);
-    return values && values[0];
+
+    const examples = exampleDecorators.map(exampleDecorator => getDecoratorValues(exampleDecorator, this.current.typeChecker)?.[0]);
+
+    return examples || [];
   }
 
   private supportsPathMethod(method: string) {

@@ -75,14 +75,14 @@ export class ControllerGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      const [name, description, examples] = getDecoratorValues(decorator, this.current.typeChecker);
+      const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
       if (!name) {
         throw new GenerateMetadataError(`Controller's responses should have an explicit name.`);
       }
 
       return {
         description: description || '',
-        examples,
+        examples: example === undefined ? undefined : [example],
         name,
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
       } as Tsoa.Response;

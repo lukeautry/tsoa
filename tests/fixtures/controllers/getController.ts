@@ -1,6 +1,6 @@
 ///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
-import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags } from '@tsoa/runtime';
+import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
 import '../duplicateTestModel';
 import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
 import { ModelService } from './../services/modelService';
@@ -211,6 +211,19 @@ export class GetTestController extends Controller {
     return {
       result: new ModelService().getModel().stringArray,
     };
+  }
+
+  @Get('Void')
+  public async getVoid(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res')
+  public async getRes(@Res() res: TsoaResponse<400, TestModel, { 'custom-header': string }>): Promise<void> {
+    res?.(400, new ModelService().getModel(), { 'custom-header': 'hello' });
   }
 }
 

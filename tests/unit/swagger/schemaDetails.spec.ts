@@ -55,7 +55,90 @@ describe('Schema details generation', () => {
     throw new Error('No license name.');
   }
 
+  const contactInfo = spec.info.contact;
+  if (!contactInfo) {
+    throw new Error('No contact information.');
+  }
+
   it('should set API license if provided', () => expect(licenseName).to.equal(getDefaultExtendedOptions().license));
+  it('should set contact information if provided', () => expect(contactInfo).to.deep.equal(getDefaultExtendedOptions().contact));
+
+  describe('@is[num] comment', () => {
+    it("should generate model's schema type without comment name specify", () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/tagController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.definitions === undefined) {
+        throw new Error('No definitions find!');
+      }
+
+      // type: integer, format: int64 represents long.
+      expect(spec.definitions.NumType.type).to.be.equal('integer');
+      expect(spec.definitions.NumType.format).to.be.equal('int64');
+    });
+
+    it('should reject with orphan parameter jsdoc comment', () => {
+      // Act
+      let errToTest: Error | null = null;
+      try {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidTagController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      } catch (err) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/Orphan tag: @isInt should have a parameter name follows with./);
+    });
+  });
+
+  describe('example comment', () => {
+    it('should generate single example for model', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.definitions === undefined) {
+        throw new Error('No definitions find!');
+      }
+
+      // tslint:disable-next-line:no-string-literal
+      const example = spec.definitions['Location'].example;
+      expect(example).to.be.not.undefined;
+      expect(example).to.deep.equal({
+        contry: '123',
+        city: '456',
+      });
+    });
+
+    describe('should generate single example for controller', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      if (spec.paths === undefined) {
+        throw new Error('No paths found!');
+      }
+
+      it('@Res parameters with 2 examples', () => {
+        const responses = spec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
+
+        expect(responses?.[400]?.examples?.['application/json']).to.eq(123);
+      });
+    });
+
+    it('should reject with incorrect JSON-format jsdoc comment', () => {
+      // Act
+      let errToTest: Error | null = null;
+      try {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidExampleController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      } catch (err) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/JSON format is incorrect:/);
+    });
+  });
 
   describe('paths', () => {
     describe('hidden paths', () => {
@@ -95,6 +178,18 @@ describe('Schema details generation', () => {
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
+      });
+    });
+
+    describe('methods', () => {
+      describe('responses', () => {
+        it('Falls back to the first @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test 1');
+        });
       });
     });
   });

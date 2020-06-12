@@ -15,6 +15,8 @@ import '../controllers/parameterController';
 import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
+import '../controllers/exampleController';
+import '../controllers/tagController';
 
 import { RegisterRoutes } from './routes';
 

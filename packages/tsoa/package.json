@@ -29,7 +29,7 @@
     "@tsoa/cli": "3.0.8"
   },
   "devDependencies": {
-    "typescript": "^3.8.2"
+    "typescript": "^3.9.2"
   },
   "repository": {
     "type": "git",

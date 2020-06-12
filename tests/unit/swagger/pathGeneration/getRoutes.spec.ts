@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
+import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
@@ -159,6 +160,17 @@ describe('GET route generation', () => {
     }
 
     expect(successResponse.schema.type).to.equal('object');
+  });
+
+  it('should not generate content for 204 responses in v3', () => {
+    const oas3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+    const operation = oas3.paths['/GetTest/Void'].get;
+
+    const voidResponse = operation?.responses[204];
+    if (!voidResponse) {
+      throw new Error('Void get operation not defined!');
+    }
+    expect(voidResponse).to.not.haveOwnProperty('content');
   });
 
   it('should reject complex types as arguments', () => {

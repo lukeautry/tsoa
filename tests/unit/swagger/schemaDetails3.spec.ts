@@ -56,6 +56,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     return `for the ${chosenSpec.specName} spec`;
   }
 
+  describe('tags', () => {
+    it('should generate a valid tags array', () => {
+      expect(specDefault.spec.tags).to.deep.equal([{ name: 'hello', description: 'Endpoints related to greeting functionality' }]);
+    });
+  });
+
   describe('servers', () => {
     it('should replace the parent schemes element', () => {
       expect(specDefault.spec).to.not.have.property('schemes');
@@ -78,6 +84,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
+    });
+  });
+
+  describe('info', () => {
+    it('should generate a valid info object', () => {
+      expect(specDefault.spec.info).to.deep.equal({
+        title: 'Test API',
+        description: 'Description of a test API',
+        contact: { email: 'jane@doe.com', name: 'Jane Doe', url: 'www.jane-doe.com' },
+        license: { name: 'MIT' },
+        version: '1.0.0',
+      });
     });
   });
 
@@ -198,6 +216,122 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('example comment', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+    const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+    it('should generate single example for model', () => {
+      if (exampleSpec.components === undefined) {
+        throw new Error('No components find!');
+      }
+      if (exampleSpec.components.schemas === undefined) {
+        throw new Error('No schemas find!');
+      }
+
+      const example = exampleSpec.components.schemas?.Location.example;
+      expect(example).to.be.not.undefined;
+      expect(example).to.deep.equal({
+        contry: '123',
+        city: '456',
+      });
+    });
+
+    describe('should generate multiple example for Parameters', () => {
+      it('@Path parameter in Get method', () => {
+        const pathParams = exampleSpec.paths['/ExampleTest/path/{path}'].get!.parameters![0];
+        expect(pathParams.example).to.be.undefined;
+        expect(pathParams.examples).to.deep.equal({ 'Example 1': { value: 'an_example_path' }, 'Example 2': { value: 'an_example_path2' } });
+      });
+
+      it('@Query parameter in Get method', () => {
+        const queryParams = exampleSpec.paths['/ExampleTest/query'].get!.parameters![0];
+        expect(queryParams.example).to.be.undefined;
+        expect(queryParams.examples).to.deep.equal({ 'Example 1': { value: 'an_example_query' }, 'Example 2': { value: 'an_example_query2' } });
+      });
+
+      it('@Header parameter in Get method', () => {
+        const headerParams = exampleSpec.paths['/ExampleTest/header'].get!.parameters![0];
+        expect(headerParams.example).to.be.undefined;
+        expect(headerParams.examples).to.deep.equal({ 'Example 1': { value: 'aaaaaaLongCookie' }, 'Example 2': { value: 'aaaaaaLongCookie2' } });
+      });
+
+      it('@Body parameter in Post method', () => {
+        const postBodyParams = exampleSpec.paths['/ExampleTest/post_body'].post?.requestBody?.content?.['application/json'];
+        expect(postBodyParams?.example).to.be.undefined;
+        expect(postBodyParams?.examples).to.deep.equal({
+          'Example 1': {
+            value: {
+              contry: '1',
+              city: '1',
+            },
+          },
+          'Example 2': {
+            value: {
+              contry: '2',
+              city: '2',
+            },
+          },
+        });
+      });
+
+      it('Two parameter with @Body and @Path in Post method', () => {
+        const path = exampleSpec.paths['/ExampleTest/two_parameter/{s}'].post!;
+
+        const bodyParams = path.requestBody?.content?.['application/json'];
+        expect(bodyParams?.example).to.be.undefined;
+        expect(bodyParams?.examples).to.deep.equal({
+          'Example 1': {
+            value: {
+              contry: '1',
+              city: '1',
+            },
+          },
+          'Example 2': {
+            value: {
+              contry: '2',
+              city: '2',
+            },
+          },
+        });
+
+        const pathParams = path.parameters![0];
+        expect(pathParams?.example).to.be.undefined;
+        expect(pathParams?.examples).to.deep.equal({ 'Example 1': { value: 'aa0' }, 'Example 2': { value: 'aa1' }, 'Example 3': { value: 'aa2' } });
+      });
+
+      it('Array with two @Body parameters in Post method', () => {
+        const bodyParams = exampleSpec.paths['/ExampleTest/array_with_object'].post?.requestBody?.content?.['application/json'];
+        expect(bodyParams?.example).to.be.undefined;
+        expect(bodyParams?.examples).to.deep.equal({
+          'Example 1': {
+            value: [
+              {
+                contry: '1',
+                city: '1',
+              },
+              {
+                contry: '2',
+                city: '2',
+              },
+            ],
+          },
+          'Example 2': {
+            value: [
+              {
+                contry: '22',
+                city: '22',
+              },
+              {
+                contry: '33',
+                city: '33',
+              },
+            ],
+          },
+        });
+      });
+    });
+  });
+
   describe('paths', () => {
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
@@ -268,6 +402,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         const specHiddenController = new SpecGenerator3(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
+      });
+    });
+
+    describe('methods', () => {
+      describe('responses', () => {
+        it('Supports multiple examples', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+          const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: 'test 1',
+            },
+            'Example 2': {
+              value: 'test 2',
+            },
+          });
+        });
       });
     });
   });
@@ -607,12 +761,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           anyType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            expect(propertySchema.additionalProperties).to.eq(true, 'because the "any" type always allows more properties be definition');
+            expect(propertySchema.additionalProperties).to.eq(undefined, 'because the "any" type always allows more properties be definition');
           },
           unknownType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}`);
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
-            expect(propertySchema.additionalProperties).to.eq(true, 'because the "unknown" type always allows more properties be definition');
+            expect(propertySchema.additionalProperties).to.eq(undefined, 'because the "unknown" type always allows more properties be definition');
           },
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Generic__foo-string--bar-boolean__');
@@ -785,8 +939,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const fourtyTwoSchema = getComponentSchema('FourtyTwo', currentSpec);
             expect(fourtyTwoSchema).to.deep.eq({
-              type: 'number',
-              format: 'double',
+              type: 'integer',
+              format: 'int32',
               description: 'The number 42 expressed through OpenAPI',
               example: 42,
               minimum: 42,

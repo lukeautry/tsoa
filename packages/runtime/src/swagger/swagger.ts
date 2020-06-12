@@ -37,7 +37,7 @@ export namespace Swagger {
 
   export interface Components {
     callbacks?: { [name: string]: any };
-    examples?: { [name: string]: any };
+    examples?: { [name: string]: Example3 | string };
     headers?: { [name: string]: any };
     links?: { [name: string]: any };
     parameters?: { [name: string]: Parameter };
@@ -83,7 +83,13 @@ export namespace Swagger {
   }
 
   export interface Example {
-    [name: string]: any;
+    examples?: { [exampleName: string]: Swagger.Example3 };
+  }
+
+  export interface Example3 {
+    value: unknown;
+    summary?: string;
+    description?: string;
   }
 
   export interface BaseParameter extends BaseSchema {
@@ -92,6 +98,7 @@ export namespace Swagger {
     required?: boolean;
     description?: string;
     example?: unknown;
+    examples?: { [name: string]: Example3 | string };
     schema: Schema;
     type: DataType;
     format?: DataFormat;
@@ -186,8 +193,8 @@ export namespace Swagger {
 
   export interface MediaType {
     schema?: Schema3;
-    example?: { [name: string]: any };
-    examples?: { [name: string]: any };
+    example?: unknown;
+    examples?: { [name: string]: Example3 | string };
     encoding?: { [name: string]: any };
   }
 
@@ -195,12 +202,12 @@ export namespace Swagger {
     description: string;
     schema?: Schema;
     headers?: { [name: string]: Header };
-    examples?: { [name: string]: Example };
+    examples?: Example;
   }
 
   export interface Response3 {
     description: string;
-    content?: { [name: string]: Schema | Example };
+    content?: { [name: string]: Schema & Example };
     headers?: { [name: string]: Header };
   }
 
