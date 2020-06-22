@@ -449,31 +449,36 @@ export class SpecGenerator3 extends SpecGenerator {
     return super.getSwaggerTypeForPrimitiveType(dataType);
   }
 
+  private isNull(type: Tsoa.Type) {
+    return type.dataType === 'enum' && type.enums.length === 1 && type.enums[0] === null;
+  }
+
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    // use nullable: true to represent simple unions with null. This converts to
-    // a better type when using code generation in a client.
-    if (type.types.length === 2 && type.types.find(typeInUnion => typeInUnion.dataType === 'enum' && typeInUnion.enums.includes(null))) {
-      const nullEnumIndex = type.types.findIndex(type => type.dataType === 'enum' && type.enums.includes(null));
-      const typeIndex = nullEnumIndex === 1 ? 0 : 1;
-      const swaggerType = this.getSwaggerType(type.types[typeIndex]);
+    const notNullSwaggerTypes = type.types.filter(x => !this.isNull(x)).map(x => this.getSwaggerType(x));
+    const nullable = type.types.length !== notNullSwaggerTypes.length;
 
-      const isRef = !!swaggerType.$ref;
+    if (nullable && notNullSwaggerTypes.length === 1) {
+      const [swaggerType] = notNullSwaggerTypes;
 
-      // let special case of ref union with null fall through to be handled as a
-      // anyOf. Example of this case is:
-      // type Nullable<T> = T | null;
-      // type MyNullableType = Nullable<OtherType>;
-      //
-      // this is required because other members of $ref containing objects are
-      // ignored so the null would otherwise get left out:
+      // let special case of ref union with null to use an allOf with a single
+      // element since you can't attach nullable directly to a ref.
       // https://swagger.io/docs/specification/using-ref/#syntax
-      if (!isRef) {
+      //
+      // Using this format has the benefit that its already supported by the
+      // openapi typescript-fetch generation.
+      if (swaggerType.$ref) {
+        return { allOf: [swaggerType], nullable: true };
+      } else {
         swaggerType['nullable'] = true;
         return swaggerType;
       }
     }
 
-    return { anyOf: type.types.map(x => this.getSwaggerType(x)) };
+    if (nullable) {
+      return { anyOf: notNullSwaggerTypes, nullable };
+    } else {
+      return { anyOf: notNullSwaggerTypes };
+    }
   }
 
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
