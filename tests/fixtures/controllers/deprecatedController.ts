@@ -1,5 +1,4 @@
-import { Controller, Get, Route } from '../../../src';
-import { Deprecated } from '../../../src/decorators/deprecated';
+import { Controller, Get, Route, Deprecated } from '@tsoa/runtime';
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';
 

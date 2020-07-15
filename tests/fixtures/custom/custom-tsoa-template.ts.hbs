@@ -1,9 +1,5 @@
 /* tslint:disable */
-{{#if canImportByAlias}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
-{{else}}
-  import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '../../../src';
-{{/if}}
+import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from '@tsoa/runtime';
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 {{/if}}

@@ -1,4 +1,4 @@
-import { Body, Put, Route } from '../../../src';
+import { Body, Put, Route } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 function ensureYarn() {
   if (npmStyleLockFileExists()) {
@@ -17,7 +18,7 @@ function npmStyleLockFileExists() {
 }
 
 function yarnStyleLockFileExists() {
-  return fs.existsSync('yarn.lock');
+  return fs.existsSync(path.join(__dirname, 'yarn.lock'));
 }
 
 // Color formatting libraries may not be available when this script is run.

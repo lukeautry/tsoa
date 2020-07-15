@@ -1,4 +1,4 @@
-import { Body, Get, Post, Query, Route } from './../../../src';
+import { Body, Get, Post, Query, Route } from '@tsoa/runtime';
 import { ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from './../testModel';
 
 export interface ValidateDateResponse {

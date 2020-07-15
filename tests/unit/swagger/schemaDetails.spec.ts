@@ -2,14 +2,14 @@ import 'mocha';
 
 import { expect } from 'chai';
 
-import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { Tsoa } from '../../../src/metadataGeneration/tsoa';
-import { ExtendedSpecConfig } from '../../../src/cli';
+import { Tsoa } from '@tsoa/runtime';
+import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Schema details generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
 
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
@@ -65,7 +65,7 @@ describe('Schema details generation', () => {
 
   describe('@is[num] comment', () => {
     it("should generate model's schema type without comment name specify", () => {
-      const metadata = new MetadataGenerator('./tests/fixtures/controllers/tagController.ts').Generate();
+      const metadata = new MetadataGenerator('./fixtures/controllers/tagController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
       if (spec.definitions === undefined) {
@@ -81,7 +81,7 @@ describe('Schema details generation', () => {
       // Act
       let errToTest: Error | null = null;
       try {
-        const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidTagController.ts').Generate();
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidTagController.ts').Generate();
         new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
       } catch (err) {
         errToTest = err;
@@ -94,7 +94,7 @@ describe('Schema details generation', () => {
 
   describe('example comment', () => {
     it('should generate single example for model', () => {
-      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
       if (spec.definitions === undefined) {
@@ -111,7 +111,7 @@ describe('Schema details generation', () => {
     });
 
     describe('should generate single example for controller', () => {
-      const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
       if (spec.paths === undefined) {
@@ -129,7 +129,7 @@ describe('Schema details generation', () => {
       // Act
       let errToTest: Error | null = null;
       try {
-        const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidExampleController.ts').Generate();
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidExampleController.ts').Generate();
         new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
       } catch (err) {
         errToTest = err;
@@ -143,14 +143,14 @@ describe('Schema details generation', () => {
   describe('paths', () => {
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
-        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHiddenMethod = new SpecGenerator2(metadataHiddenMethod, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
       });
 
       it('should not contain hidden query params', () => {
-        const metadataHidden = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHidden = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHidden = new SpecGenerator2(metadataHidden, getDefaultExtendedOptions()).GetSpec();
 
         if (!specHidden.paths) {
@@ -174,7 +174,7 @@ describe('Schema details generation', () => {
       });
 
       it('should not contain paths for hidden controller', () => {
-        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
@@ -184,7 +184,7 @@ describe('Schema details generation', () => {
     describe('methods', () => {
       describe('responses', () => {
         it('Falls back to the first @Example<>', () => {
-          const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
           const responses = exampleSpec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
 
@@ -232,7 +232,7 @@ describe('Schema details generation', () => {
         entryFile: 'mockEntryFile',
         noImplicitAdditionalProperties: 'ignore',
       };
-      const mixedEnumMetadata = new MetadataGenerator('./tests/fixtures/controllers/mixedEnumController.ts').Generate();
+      const mixedEnumMetadata = new MetadataGenerator('./fixtures/controllers/mixedEnumController.ts').Generate();
 
       // Act
       let errToTest: Error | null = null;
@@ -248,7 +248,7 @@ describe('Schema details generation', () => {
   });
 
   describe('Extensions schema generation', () => {
-    const metadata = new MetadataGenerator('./tests/fixtures/controllers/methodController').Generate();
+    const metadata = new MetadataGenerator('./fixtures/controllers/methodController.ts').Generate();
     const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
     if (!spec.paths) {

@@ -1,13 +1,13 @@
 import 'mocha';
 import { expect } from 'chai';
-import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { ExtendedSpecConfig } from '../../../src/cli';
-import { Swagger } from '../../../src/swagger/swagger';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { ExtendedSpecConfig } from '@tsoa/cli/cli';
+import { Swagger } from '@tsoa/runtime';
+import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 
 describe('specMergins', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
 
   describe('recursive', () => {

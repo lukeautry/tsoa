@@ -1,12 +1,12 @@
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 
 describe('PUT route generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/putController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/putController.ts').Generate();
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/PutTest';
 

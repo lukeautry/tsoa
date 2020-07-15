@@ -1,4 +1,4 @@
-import { Route, Get, Query, Controller } from '../../../src';
+import { Route, Get, Query, Controller } from '@tsoa/runtime';
 
 @Route('TagTest')
 export class InvalidTagController extends Controller {

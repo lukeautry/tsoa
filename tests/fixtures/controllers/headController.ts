@@ -1,4 +1,4 @@
-import { Head, Query, Route } from '../../../src';
+import { Head, Query, Route } from '@tsoa/runtime';
 
 @Route('HeadTest')
 export class HeadTestController {

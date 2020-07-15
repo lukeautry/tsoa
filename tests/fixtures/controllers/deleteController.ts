@@ -1,4 +1,4 @@
-import { Delete, Query, Route } from '../../../src';
+import { Delete, Query, Route } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

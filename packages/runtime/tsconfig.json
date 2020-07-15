@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "types": ["node"],
+    "composite": true,
+    "target": "es5",
+    "lib": ["es6", "es2017.object", "dom"],
+    "typeRoots": ["node_modules/@types", "./typings"],
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "newLine": "LF",
+    "noUnusedParameters": false,
+    "emitDecoratorMetadata": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictBindCallApply": true
+  }
+}

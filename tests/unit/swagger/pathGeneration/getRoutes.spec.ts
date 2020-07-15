@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
+import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { SpecGenerator3 } from '../../../../src/swagger/specGenerator3';
 
 describe('GET route generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/GetTest';
 
@@ -73,7 +73,7 @@ describe('GET route generation', () => {
   });
 
   it('should generate a path for a GET route with no controller path argument', () => {
-    const pathlessMetadata = new MetadataGenerator('./tests/fixtures/controllers/pathlessGetController.ts').Generate();
+    const pathlessMetadata = new MetadataGenerator('./fixtures/controllers/pathlessGetController.ts').Generate();
     const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultExtendedOptions()).GetSpec();
     VerifyPath(pathlessSpec, '/Current', path => path.get, false);
   });
@@ -175,7 +175,7 @@ describe('GET route generation', () => {
 
   it('should reject complex types as arguments', () => {
     expect(() => {
-      const invalidMetadata = new MetadataGenerator('./tests/fixtures/controllers/invalidGetController.ts').Generate();
+      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
     }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });

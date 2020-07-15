@@ -1,0 +1,46 @@
+{
+  "name": "@tsoa/runtime",
+  "description": "Build swagger-compliant REST APIs using TypeScript and Node",
+  "version": "3.0.8",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "keywords": [
+    "typescript",
+    "openapi",
+    "swagger",
+    "server",
+    "node",
+    "node.js",
+    "codegen",
+    "generation",
+    "express",
+    "hapi.js",
+    "koa"
+  ],
+  "scripts": {
+    "build": "yarn tsc",
+    "tsc": "tsc",
+    "watch": "tsc -w"
+  },
+  "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.24.0",
+    "validator": "^12.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/tsoa.git"
+  },
+  "engines": {
+    "yarn": ">=1.9.4",
+    "node": ">=6.0.0"
+  },
+  "engineStrict": true,
+  "publishConfig": {
+    "access": "public"
+  }
+}

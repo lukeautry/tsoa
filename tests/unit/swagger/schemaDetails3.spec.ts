@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../src/metadataGeneration/metadataGenerator';
-import { Tsoa } from '../../../src/metadataGeneration/tsoa';
-import { SpecGenerator3 } from '../../../src/swagger/specGenerator3';
-import { Swagger } from '../../../src/swagger/swagger';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { Tsoa } from '@tsoa/runtime';
+import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { Swagger } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/duplicateTestModel';
-import { ExtendedSpecConfig } from '../../../src/cli';
+import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -217,7 +217,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   describe('example comment', () => {
-    const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+    const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
     const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
 
     it('should generate single example for model', () => {
@@ -335,7 +335,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('paths', () => {
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
-        const metadataPost = new MetadataGenerator('./tests/fixtures/controllers/postController.ts').Generate();
+        const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
         const specPost = new SpecGenerator3(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specPost.paths) {
@@ -367,14 +367,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
-        const metadataHiddenMethod = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
       });
 
       it('should not contain hidden query params', () => {
-        const metadataHidden = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+        const metadataHidden = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
         const specHidden = new SpecGenerator3(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specHidden.paths) {
@@ -398,7 +398,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
 
       it('should not contain paths for hidden controller', () => {
-        const metadataHiddenController = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+        const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
         const specHiddenController = new SpecGenerator3(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
@@ -408,7 +408,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     describe('methods', () => {
       describe('responses', () => {
         it('Supports multiple examples', () => {
-          const metadata = new MetadataGenerator('./tests/fixtures/controllers/exampleController.ts').Generate();
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
 
           const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
@@ -1523,7 +1523,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   describe('Extensions schema generation', () => {
-    const metadata = new MetadataGenerator('./tests/fixtures/controllers/methodController').Generate();
+    const metadata = new MetadataGenerator('./fixtures/controllers/methodController').Generate();
     const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
 
     if (!spec.paths) {

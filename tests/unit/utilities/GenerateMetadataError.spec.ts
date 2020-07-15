@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import { join, normalize } from 'path';
 import { createProgram, InterfaceDeclaration, isInterfaceDeclaration, PropertySignature } from 'typescript';
-import { GenerateMetadataError } from '../../../src/metadataGeneration/exceptions';
+import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 
 const path = normalize(join(__dirname, '../../fixtures/program.ts'));
 const program = createProgram([path], {});

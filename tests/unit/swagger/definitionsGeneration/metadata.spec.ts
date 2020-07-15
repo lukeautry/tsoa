@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetadataGenerator } from '../../../../src/metadataGeneration/metadataGenerator';
-import { Tsoa } from '../../../../src/metadataGeneration/tsoa';
-import { SpecGenerator2 } from '../../../../src/swagger/specGenerator2';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { Tsoa } from '@tsoa/runtime';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
-  const metadata = new MetadataGenerator('./tests/fixtures/controllers/getController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
 
   describe('ControllerGenerator', () => {
     it('should generate one controller', () => {
@@ -19,7 +19,7 @@ describe('Metadata generation', () => {
   describe('InvalidExtensionControllerGenerator', () => {
     it('should throw an Error when an attribute is not prefixed with "x-"', () => {
       expect(() => {
-        new MetadataGenerator('./tests/fixtures/controllers/invalidExtensionController.ts').Generate();
+        new MetadataGenerator('./fixtures/controllers/invalidExtensionController.ts').Generate();
       }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
     });
   });
@@ -28,14 +28,14 @@ describe('Metadata generation', () => {
     it("should should throw 'globs found 0 controllers.'", () => {
       expect(() => {
         // Non existing controllers folder to get 0 controllers found error
-        const NON_CONTROLLER_EXISTS_GLOB = './tests/unit/swagger';
-        new MetadataGenerator('./tests/fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB]).Generate();
+        const NON_CONTROLLER_EXISTS_GLOB = './unit/swagger';
+        new MetadataGenerator('./fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB]).Generate();
       }).to.throw(/globs found 0 controllers./);
     });
   });
 
   describe('MethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/methodController.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
     const definedMethods = [
       'getMethod',
@@ -321,7 +321,7 @@ describe('Metadata generation', () => {
   });
 
   describe('ParameterGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/parameterController.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
     it('should generate single and multiple examples', () => {
@@ -729,7 +729,7 @@ describe('Metadata generation', () => {
   });
 
   describe('HiddenMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenMethodController.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
     it('should mark methods as visible by default', () => {
@@ -778,7 +778,7 @@ describe('Metadata generation', () => {
   });
 
   describe('HiddenControllerGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/hiddenController.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
     it('should mark all methods as hidden', () => {
@@ -790,7 +790,7 @@ describe('Metadata generation', () => {
   });
 
   describe('ControllerWithCommonResponsesGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/controllerWithCommonResponses.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
     it('should add common responses to every method', () => {
@@ -810,7 +810,7 @@ describe('Metadata generation', () => {
   });
 
   describe('DeprecatedMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/deprecatedController.ts').Generate();
+    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
 
     it('should generate normal method', () => {

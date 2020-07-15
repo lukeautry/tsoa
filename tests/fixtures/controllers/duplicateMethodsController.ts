@@ -1,4 +1,4 @@
-import { Get, Route } from '../../../src';
+import { Route, Get } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 
 @Route('GetTest')

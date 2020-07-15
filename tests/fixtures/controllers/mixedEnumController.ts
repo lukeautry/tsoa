@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Route } from '../../../src';
+import { Body, Controller, Post, Route } from '@tsoa/runtime';
 
 export enum MixedStringAndNumberEnum {
   one = 1,

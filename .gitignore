@@ -5,3 +5,4 @@ routes.ts
 customRoutes.ts
 .idea/
 yarn-error.log
+tsconfig.tsbuildinfo

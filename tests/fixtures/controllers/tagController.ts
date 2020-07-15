@@ -1,4 +1,4 @@
-import { Route, Controller, Get, Query } from '../../../src';
+import { Route, Controller, Get, Query } from '@tsoa/runtime';
 
 /**
  * @isLong

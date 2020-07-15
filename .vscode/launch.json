@@ -6,10 +6,11 @@
       "request": "launch",
       "name": "Mocha TS Tests",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["**/*spec.ts", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "args": ["'**/*spec.ts'", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -23,7 +24,7 @@
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["${file}", "--debug", "--debug-brk", "--require", "ts-node/register", "--colors"],
+      "args": ["${file}", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -33,10 +34,10 @@
       "name": "Generate",
       "type": "node",
       "request": "launch",
-      "args": ["${workspaceRoot}/src/cli.ts", "swagger"],
-      "cwd": "${workspaceRoot}",
+      "args": ["${workspaceRoot}/packages/tsoa/src/cli.ts", "swagger"],
+      "cwd": "${workspaceRoot}/tests",
       "preLaunchTask": "build",
-      "runtimeArgs": ["--require", "ts-node/register"],
+      "runtimeArgs": ["--require", "ts-node/register", "--require", "tsconfig-paths/register"],
       "env": {
         "NODE_ENV": "development"
       }
@@ -46,8 +47,8 @@
       "type": "node",
       "request": "launch",
       "args": ["${workspaceRoot}/tests/prepare.ts"],
-      "cwd": "${workspaceRoot}",
-      "runtimeArgs": ["--require", "ts-node/register"],
+      "cwd": "${workspaceRoot}/tests",
+      "runtimeArgs": ["--require", "ts-node/register", "--require", "tsconfig-paths/register"],
       "env": {
         "NODE_ENV": "development"
       }

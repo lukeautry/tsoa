@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '../../../src';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')

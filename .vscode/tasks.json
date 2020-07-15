@@ -16,7 +16,13 @@
     {
       "label": "prepareFiles",
       "group": "none",
-      "args": ["run", "pretest"]
+      "args": ["run", "pretest"],
+      "options": { "cwd": "tests" }
+    },
+    {
+      "label": "watch",
+      "group": "build",
+      "args": ["run", "watch"]
     }
   ]
 }

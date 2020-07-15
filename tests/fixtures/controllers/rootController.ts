@@ -1,4 +1,4 @@
-import { Controller, Get, Route } from '../../../src';
+import { Controller, Get, Route } from '@tsoa/runtime';
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';
 

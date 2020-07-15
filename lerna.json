@@ -1,0 +1,13 @@
+{
+  "version": "3.0.8",
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "command": {
+    "version": {
+      "allowBranch": "master"
+    },
+    "publish": {
+      "allowBranch": "master"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Get, Request, Response, Route, Security, NoSecurity } from '../../../src';
+import { Get, Request, Response, Route, Security, NoSecurity } from '@tsoa/runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 interface RequestWithUser {

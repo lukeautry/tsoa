@@ -1,4 +1,4 @@
-import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '../../../src';
+import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 

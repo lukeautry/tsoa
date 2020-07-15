@@ -1,4 +1,4 @@
-import { Post, Route, Body, Path, Get, Query, Header, BodyProp, Example, Res, TsoaResponse } from '../../../src';
+import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse } from '@tsoa/runtime';
 
 /**
  * @example {

@@ -1,4 +1,4 @@
-import { Body, Patch, Post, Query, Route } from '../../../src';
+import { Body, Patch, Post, Query, Route } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 

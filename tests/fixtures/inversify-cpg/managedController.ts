@@ -1,5 +1,5 @@
 import { inject } from 'inversify';
-import { Get, Route, Security } from '../../../src';
+import { Get, Route, Security } from '@tsoa/runtime';
 import { TestModel } from '../testModel';
 import { ManagedService } from './managedService';
 import { provideSingleton } from './provideSingleton';

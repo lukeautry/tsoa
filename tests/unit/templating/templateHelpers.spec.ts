@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { FieldErrors, TsoaRoute, ValidationService } from '../../../src';
-import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
-import { ValidateError } from '../../../src/routeGeneration/templateHelpers';
+import { TsoaRoute, AdditionalProps, ValidateError, FieldErrors, ValidationService } from '@tsoa/runtime';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
 it('ValidateError should be an instanceof ValidateError', () => {

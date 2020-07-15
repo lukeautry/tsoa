@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { AdditionalProps } from '../../../src/routeGeneration/routeGenerator';
-import { FieldErrors, TsoaRoute, ValidationService } from './../../../src/routeGeneration/templateHelpers';
+import { TsoaRoute, FieldErrors, ValidationService, AdditionalProps } from '@tsoa/runtime';
 
 describe('ValidationService', () => {
   describe('Model validate', () => {
