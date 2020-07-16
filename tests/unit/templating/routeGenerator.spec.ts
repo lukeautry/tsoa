@@ -67,4 +67,31 @@ describe('RouteGenerator', () => {
       });
     });
   });
+
+  describe('.buildContent', () => {
+    it('strips .ts from the end of module paths but not from the middle', () => {
+      const generator = new RouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controllerWith.tsInPath.ts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}', s => s);
+
+      expect(models).to.equal('./controllerWith.tsInPath');
+    });
+  });
 });

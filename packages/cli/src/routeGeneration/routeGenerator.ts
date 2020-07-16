@@ -43,7 +43,7 @@ export class RouteGenerator {
     return await this.GenerateRoutes(file, pathTransformer);
   }
 
-  private buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
+  public buildContent(middlewareTemplate: string, pathTransformer: (path: string) => string) {
     handlebars.registerHelper('json', (context: any) => {
       return JSON.stringify(context);
     });
@@ -163,7 +163,7 @@ export class RouteGenerator {
   }
 
   private getRelativeImportPath(fileLocation: string) {
-    fileLocation = fileLocation.replace('.ts', ''); // no ts extension in import
+    fileLocation = fileLocation.replace(/.ts$/, ''); // no ts extension in import
     return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
   }
 
