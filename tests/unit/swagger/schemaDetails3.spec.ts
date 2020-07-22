@@ -1026,7 +1026,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
+                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1245,7 +1245,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
-            const excludeLiteral = getComponentSchema('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getComponentSchema(
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              currentSpec,
+            );
             expect(excludeLiteral).to.deep.eq(
               {
                 anyOf: [
@@ -1253,6 +1256,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   { type: 'string', enum: ['enumKeys'], nullable: false },
                   { type: 'string', enum: ['keyInterface'], nullable: false },
                   { type: 'string', enum: ['indexedType'], nullable: false },
+                  { type: 'string', enum: ['indexedResponse'], nullable: false },
                   { type: 'string', enum: ['publicStringProperty'], nullable: false },
                   { type: 'string', enum: ['optionalPublicStringProperty'], nullable: false },
                   { type: 'string', enum: ['emailPattern'], nullable: false },
@@ -1318,6 +1322,24 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for a schema linked by property ${propertyName}`,
             );
 
+            const customRecord = getComponentSchema('Record_id.string_', currentSpec);
+            expect(customRecord).to.deep.eq({
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              format: undefined,
+              example: undefined,
+              properties: {
+                id: {
+                  default: undefined,
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                },
+              },
+              type: 'object',
+            });
+
             const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
             expect(readonlyClassSchema).to.deep.eq(
               {
@@ -1334,6 +1356,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     ],
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  indexedResponse: {
+                    $ref: '#/components/schemas/Record_id.string_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  indexedResponseObject: {
+                    $ref: '#/components/schemas/Record_id.any_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },
                   indexedTypeToInterface: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },

@@ -101,7 +101,7 @@ export interface TestModel extends Model {
     excludeToEnum?: Exclude<EnumUnion, EnumNumberValue>;
     excludeToAlias?: Exclude<ThreeOrFour, TypeAliasModel3>;
     // prettier-ignore
-    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | "defaultValue2" | "indexedTypeToInterface" | 'indexedTypeToClass' | 'indexedTypeToAlias'>;
+    excludeLiteral?: Exclude<keyof TestClassModel, 'account' | "defaultValue2" | "indexedTypeToInterface" | 'indexedTypeToClass' | 'indexedTypeToAlias' | 'indexedResponseObject'>;
     excludeToInterface?: Exclude<OneOrTwo, TypeAliasModel1>;
     excludeTypeToPrimitive?: NonNullable<number | null>;
 
@@ -607,6 +607,17 @@ interface Indexed {
 }
 type IndexType = 'foo';
 
+const ClassIndexTest = {
+  foo: ['id'],
+} as const;
+type Names = keyof typeof ClassIndexTest;
+type ResponseDistribute<T, U> = T extends Names
+  ? {
+      [key in T]: Record<typeof ClassIndexTest[T][number], U>;
+    }
+  : never;
+type IndexRecordAlias<T> = ResponseDistribute<Names, T>;
+
 /**
  * This is a description of TestClassModel
  */
@@ -619,6 +630,8 @@ export class TestClassModel extends TestClassBaseModel {
   public indexedTypeToInterface?: Indexed['interface'];
   public indexedTypeToClass?: Indexed['class'];
   public indexedTypeToAlias?: Indexed['alias'];
+  public indexedResponse?: IndexRecordAlias<string>['foo'];
+  public indexedResponseObject?: IndexRecordAlias<{ myProp1: string }>['foo'];
   /**
    * This is a description of a public string property
    *

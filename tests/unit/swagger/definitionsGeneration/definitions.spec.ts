@@ -701,7 +701,7 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_',
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -828,7 +828,10 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
-            const excludeLiteral = getValidatedDefinition('Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias_', currentSpec);
+            const excludeLiteral = getValidatedDefinition(
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              currentSpec,
+            );
             expect(excludeLiteral).to.deep.eq(
               {
                 type: 'string',
@@ -837,6 +840,7 @@ describe('Definition generation', () => {
                   'enumKeys',
                   'keyInterface',
                   'indexedType',
+                  'indexedResponse',
                   'publicStringProperty',
                   'optionalPublicStringProperty',
                   'emailPattern',
@@ -903,6 +907,24 @@ describe('Definition generation', () => {
               `for definition linked by ${propertyName}`,
             );
 
+            const customRecord = getValidatedDefinition('Record_id.string_', currentSpec);
+            expect(customRecord).to.deep.eq({
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              format: undefined,
+              example: undefined,
+              properties: {
+                id: {
+                  default: undefined,
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  type: 'string',
+                },
+              },
+              type: 'object',
+            });
+
             const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
             expect(readonlyClassSchema).to.deep.eq(
               {
@@ -910,6 +932,18 @@ describe('Definition generation', () => {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  indexedResponse: {
+                    $ref: '#/definitions/Record_id.string_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  indexedResponseObject: {
+                    $ref: '#/definitions/Record_id.any_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                   indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   indexedTypeToAlias: { $ref: '#/definitions/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },
                   indexedTypeToClass: { $ref: '#/definitions/IndexedClass', description: undefined, format: undefined, example: undefined },
