@@ -36,7 +36,14 @@ const determineNoImplicitAdditionalSetting = (noImplicitAdditionalProperties: Co
     return 'ignore';
   }
 };
-const authorInformation = getPackageJsonValue('author', 'unknown');
+const authorInformation: Promise<
+  | string
+  | {
+      name?: string;
+      email?: string;
+      url?: string;
+    }
+> = getPackageJsonValue('author', 'unknown');
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
@@ -109,11 +116,19 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
     config.spec.contact = {};
   }
 
-  const contact = (await authorInformation).match(/^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m);
+  const author = await authorInformation;
 
-  config.spec.contact.name = config.spec.contact.name || contact?.[1];
-  config.spec.contact.email = config.spec.contact.email || contact?.[2];
-  config.spec.contact.url = config.spec.contact.url || contact?.[3];
+  if (typeof author === 'string') {
+    const contact = author.match(/^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m);
+
+    config.spec.contact.name = config.spec.contact.name || contact?.[1];
+    config.spec.contact.email = config.spec.contact.email || contact?.[2];
+    config.spec.contact.url = config.spec.contact.url || contact?.[3];
+  } else if (typeof author === 'object') {
+    config.spec.contact.name = config.spec.contact.name || author?.name;
+    config.spec.contact.email = config.spec.contact.email || author?.email;
+    config.spec.contact.url = config.spec.contact.url || author?.url;
+  }
 
   return {
     ...config.spec,
