@@ -6,7 +6,7 @@ const TEST_OBJECT_CONST = {
   unAuthCode: '401',
   unAuthText: 'Unauthorized',
   success: 'Created',
-};
+} as const;
 
 enum TEST_ENUM_CODES {
   BAD = 400,
@@ -70,7 +70,7 @@ export class MethodController extends Controller {
 
   @Response<ErrorResponseModel>('400', 'Bad Request')
   @Response<ErrorResponseModel>('401', 'Unauthorized')
-  @Response<ErrorResponseModel>('default', 'Unexpected error', { status: 500, message: 'Something went wrong!' })
+  @Response<ErrorResponseModel>('500', 'Unexpected error', { status: 500, message: 'Something went wrong!' })
   @Get('MultiResponse')
   public async multiResponse(): Promise<TestModel> {
     return new ModelService().getModel();

@@ -152,7 +152,7 @@ describe('Metadata generation', () => {
       expect(unauthResponse.description).to.equal('Unauthorized');
 
       const defaultResponse = method.responses[2];
-      expect(defaultResponse.name).to.equal('default');
+      expect(defaultResponse.name).to.equal('500');
       expect(defaultResponse.description).to.equal('Unexpected error');
       expect(defaultResponse.examples).to.deep.equal([{ status: 500, message: 'Something went wrong!' }]);
 
