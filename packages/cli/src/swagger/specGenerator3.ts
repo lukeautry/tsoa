@@ -174,6 +174,9 @@ export class SpecGenerator3 extends SpecGenerator {
             enum: referenceType.enums,
             type: enumTypes.has('string') ? 'string' : 'number',
           };
+          if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
+            schema[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
+          }
         } else {
           schema[referenceType.refName] = {
             description: referenceType.description,

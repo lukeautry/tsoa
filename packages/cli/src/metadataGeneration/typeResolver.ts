@@ -429,11 +429,13 @@ export class TypeResolver {
     };
 
     const enums = enumDeclaration.members.map(this.current.typeChecker.getConstantValue).filter(isNotUndefined);
+    const enumVarnames = enumDeclaration.members.map(e => e.name.getText()).filter(isNotUndefined);
 
     return {
       dataType: 'refEnum',
       description: this.getNodeDescription(enumDeclaration),
       enums,
+      enumVarnames,
       refName: enumName,
     };
   }
@@ -495,6 +497,7 @@ export class TypeResolver {
           dataType: 'refEnum',
           refName: this.getRefTypeName(name),
           enums: [this.current.typeChecker.getConstantValue(declaration)!],
+          enumVarnames: [declaration.name.getText()],
         };
       } else {
         referenceType = this.getModelReference(declaration, name);

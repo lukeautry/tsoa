@@ -149,6 +149,12 @@ export interface SpecConfig {
   yaml?: boolean;
 
   schemes?: Swagger.Protocol[];
+
+  /**
+   * Enable x-enum-varnames support
+   * @default false
+   */
+  xEnumVarnames?: boolean;
 }
 
 export interface RoutesConfig {

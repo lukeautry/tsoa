@@ -96,6 +96,9 @@ export class SpecGenerator2 extends SpecGenerator {
           enum: referenceType.enums,
           type: this.decideEnumType(referenceType.enums, referenceType.refName),
         };
+        if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
+          definitions[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
+        }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const format = referenceType.format as Swagger.DataFormat;
