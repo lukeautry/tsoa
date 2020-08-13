@@ -7,21 +7,21 @@ interface RequestWithUser {
 
 @Route('SecurityTest')
 export class SecurityTestController {
-  @Response<ErrorResponseModel>('500', 'Unexpected error')
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get()
   public async GetWithApi(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
-  @Response<ErrorResponseModel>('500', 'Unexpected error')
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('Hapi')
   public async GetWithApiForHapi(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
 
-  @Response<ErrorResponseModel>('500', 'Unexpected error')
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('Koa')
   public async GetWithApiForKoa(@Request() request: RequestWithUser): Promise<UserResponseModel> {
@@ -53,7 +53,7 @@ export class SecurityTestController {
     return Promise.resolve(request.user);
   }
 
-  @Response<ErrorResponseModel>('500', 'Unexpected error')
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get('ServerError')
   public async GetServerError(@Request() request: RequestWithUser): Promise<UserResponseModel> {

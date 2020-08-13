@@ -1,4 +1,4 @@
-import { HttpStatusCodeLiteral, HttpStatusCodeLiteralStr } from '../interfaces/response'
+import { HttpStatusCodeLiteral } from '../interfaces/response'
 
 export function SuccessResponse(name: string | number, description?: string): Function {
   return () => {
@@ -9,7 +9,7 @@ export function SuccessResponse(name: string | number, description?: string): Fu
 export function Response<T>(
   // The status code should not be allowed to be 200 or "200"` since that return type is already defined by the return of the route function.
   // @see https://github.com/lukeautry/tsoa/issues/119
-  name: Exclude<HttpStatusCodeLiteral, 200> | Exclude<HttpStatusCodeLiteralStr, '200'>,
+  name: Exclude<HttpStatusCodeLiteral, 200> | Exclude<string, '200'>,
   description?: string,
   example?: T
 ): Function {

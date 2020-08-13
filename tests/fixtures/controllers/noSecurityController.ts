@@ -8,7 +8,7 @@ interface RequestWithUser {
 @Security('tsoa_auth', ['write:pets', 'read:pets'])
 @Route('NoSecurityTest')
 export class NoSecurityTestController {
-  @Response<ErrorResponseModel>('500', 'Unexpected error')
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security('api_key')
   @Get()
   public async GetWithApi(@Request() request: RequestWithUser): Promise<UserResponseModel> {
