@@ -282,19 +282,21 @@ export class SpecGenerator3 extends SpecGenerator {
       swaggerResponses[res.name] = {
         description: res.description,
       };
+
       if (res.schema && !isVoidType(res.schema)) {
         swaggerResponses[res.name].content = {
           'application/json': {
             schema: this.getSwaggerType(res.schema),
           } as Swagger.Schema3,
         };
-      }
-      if (res.examples) {
-        const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
-          return { ...acc, [`Example ${currentIndex + 1}`]: { value: ex } };
-        }, {});
-        /* tslint:disable:no-string-literal */
-        (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
+
+        if (res.examples) {
+          const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+            return { ...acc, [`Example ${currentIndex + 1}`]: { value: ex } };
+          }, {});
+          /* tslint:disable:no-string-literal */
+          (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
+        }
       }
     });
 

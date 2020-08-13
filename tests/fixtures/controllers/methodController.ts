@@ -1,4 +1,4 @@
-import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags } from '@tsoa/runtime';
+import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags, Example } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
@@ -144,6 +144,7 @@ export class MethodController extends Controller {
     return 'Hello Word';
   }
 
+  @Example(undefined)
   @Get('returnAliasedVoidType')
   public async returnAliasedVoidType(): Promise<VoidAlias1> {
     return;
