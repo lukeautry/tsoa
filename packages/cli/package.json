@@ -37,7 +37,6 @@
     "minimatch": "^3.0.4",
     "moment": "^2.24.0",
     "typescript": "^3.9.2",
-    "typescript-formatter": "^7.2.2",
     "validator": "^12.2.0",
     "yamljs": "^0.3.0",
     "yargs": "^14.0.0"
