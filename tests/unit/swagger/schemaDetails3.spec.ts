@@ -15,13 +15,16 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
+  const optionsWithXEnumVarnames = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+    xEnumVarnames: true,
+  });
 
   interface SpecAndName {
     spec: Swagger.Spec3;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras';
+    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames';
   }
 
   const specDefault: SpecAndName = {
@@ -31,6 +34,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
+  };
+  const specWithXEnumVarnames: SpecAndName = {
+    spec: new SpecGenerator3(metadata, optionsWithXEnumVarnames).GetSpec(),
+    specName: 'specWithXEnumVarnames',
   };
 
   const getComponentSchema = (name: string, chosenSpec: SpecAndName) => {
@@ -456,6 +463,21 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('xEnumVarnames', () => {
+    it('EnumNumberValue', () => {
+      const schema = getComponentSchema('EnumNumberValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['VALUE_0', 'VALUE_1', 'VALUE_2']);
+    });
+    it('EnumStringValue', () => {
+      const schema = getComponentSchema('EnumStringValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['EMPTY', 'VALUE_1', 'VALUE_2']);
+    });
+    it('EnumStringNumberValue', () => {
+      const schema = getComponentSchema('EnumStringNumberValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['VALUE_0', 'VALUE_1', 'VALUE_2']);
+    });
+  });
+
   allSpecs.forEach(currentSpec => {
     describe(`for ${currentSpec.specName}`, () => {
       describe('should set additionalProperties to false if noImplicitAdditionalProperties is set to "throw-on-extras" (when there are no dictionary or any types)', () => {
@@ -624,6 +646,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const schema = getComponentSchema('EnumNumberValue', currentSpec);
             expect(schema.type).to.eq('number');
             expect(schema.enum).to.eql([0, 2, 5]);
+            expect(schema['x-enum-varnames']).to.eq(undefined);
           },
           enumStringNumberValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
@@ -634,6 +657,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const schema = getComponentSchema('EnumStringNumberValue', currentSpec);
             expect(schema.type).to.eq('string');
             expect(schema.enum).to.eql(['0', '2', '5']);
+            expect(schema['x-enum-varnames']).to.eq(undefined);
           },
           enumStringNumberArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
@@ -664,6 +688,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const schema = getComponentSchema('EnumStringValue', currentSpec);
             expect(schema.type).to.eq('string');
             expect(schema.enum).to.eql(['', 'VALUE_1', 'VALUE_2']);
+            expect(schema['x-enum-varnames']).to.eq(undefined);
           },
           enumStringProperty: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/EnumStringValue.VALUE_1');
