@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
-import * as tsfmt from 'typescript-formatter';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
 import { fsReadFile, fsWriteFile } from '../utils/fs';
@@ -9,18 +8,6 @@ import { isRefType } from '../utils/internalTypeGuards';
 import { normalisePath } from './../utils/pathUtils';
 
 export class RouteGenerator {
-  private tsfmtConfig = {
-    editorconfig: true,
-    replace: true,
-    tsconfig: {
-      newLine: 'LF',
-    },
-    tsfmt: true,
-    tslint: false,
-    verify: true,
-    vscode: true,
-  };
-
   constructor(private readonly metadata: Tsoa.Metadata, private readonly options: ExtendedRoutesConfig) {}
 
   public async GenerateRoutes(middlewareTemplate: string, pathTransformer: (path: string) => string) {
@@ -33,8 +20,7 @@ export class RouteGenerator {
     const fileName = `${this.options.routesDir}/${this.options.routesFileName || 'routes.ts'}`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
 
-    const formatted = await tsfmt.processString(fileName, content, this.tsfmtConfig as any);
-    await fsWriteFile(fileName, formatted.dest);
+    await fsWriteFile(fileName, content);
   }
 
   public async GenerateCustomRoutes(template: string, pathTransformer: (path: string) => string) {
