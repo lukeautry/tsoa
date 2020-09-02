@@ -232,6 +232,7 @@ export namespace Swagger {
     maxProperties?: number;
     minProperties?: number;
     enum?: Array<string | number | null>;
+    'x-enum-varnames'?: string[];
     items?: BaseSchema;
   }
 

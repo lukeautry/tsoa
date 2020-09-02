@@ -220,6 +220,7 @@ export namespace Tsoa {
   export interface RefEnumType extends ReferenceTypeBase {
     dataType: 'refEnum';
     enums: Array<string | number>;
+    enumVarnames?: string[];
   }
 
   export interface RefObjectType extends ReferenceTypeBase {

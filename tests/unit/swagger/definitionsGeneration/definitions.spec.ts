@@ -15,13 +15,15 @@ describe('Definition generation', () => {
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
-
+  const optionsWithXEnumVarnames = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+    xEnumVarnames: true,
+  });
   interface SpecAndName {
     spec: Swagger.Spec2;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras';
+    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras' | 'specWithXEnumVarnames';
   }
 
   const specDefault: SpecAndName = {
@@ -41,7 +43,10 @@ describe('Definition generation', () => {
     spec: new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec(),
     specName: 'dynamicSpecWithNoImplicitExtras',
   };
-
+  const specWithXEnumVarnames: SpecAndName = {
+    spec: new SpecGenerator2(metadata, optionsWithXEnumVarnames).GetSpec(),
+    specName: 'specWithXEnumVarnames',
+  };
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
    */
@@ -63,6 +68,21 @@ describe('Definition generation', () => {
   function forSpec(chosenSpec: SpecAndName): string {
     return `for the ${chosenSpec.specName} spec`;
   }
+
+  describe('xEnumVarnames', () => {
+    it('EnumNumberValue', () => {
+      const schema = getValidatedDefinition('EnumNumberValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['VALUE_0', 'VALUE_1', 'VALUE_2']);
+    });
+    it('EnumStringValue', () => {
+      const schema = getValidatedDefinition('EnumStringValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['EMPTY', 'VALUE_1', 'VALUE_2']);
+    });
+    it('EnumStringNumberValue', () => {
+      const schema = getValidatedDefinition('EnumStringNumberValue', specWithXEnumVarnames);
+      expect(schema['x-enum-varnames']).to.eql(['VALUE_0', 'VALUE_1', 'VALUE_2']);
+    });
+  });
 
   describe('Interface-based generation', () => {
     it('should generate a definition for referenced models', () => {
@@ -320,6 +340,7 @@ describe('Definition generation', () => {
             expect(validatedDefinition.type).to.eq('string');
             const expectedEnumValues = ['', 'VALUE_1', 'VALUE_2'];
             expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
+            expect(validatedDefinition['x-enum-varnames']).to.eq(undefined);
           },
           enumStringProperty: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/EnumStringValue.VALUE_1');
