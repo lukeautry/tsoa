@@ -428,7 +428,7 @@ export class TypeResolver {
       return item === undefined ? false : true;
     };
 
-    const enums = enumDeclaration.members.map(this.current.typeChecker.getConstantValue).filter(isNotUndefined);
+    const enums = enumDeclaration.members.map(this.current.typeChecker.getConstantValue.bind(this.current.typeChecker)).filter(isNotUndefined);
     const enumVarnames = enumDeclaration.members.map(e => e.name.getText()).filter(isNotUndefined);
 
     return {
@@ -507,7 +507,7 @@ export class TypeResolver {
 
       return referenceType;
     } catch (err) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
@@ -652,7 +652,7 @@ export class TypeResolver {
 
       return reference;
     } catch (err) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.error(`There was a problem resolving type of '${name}'.`);
       throw err;
     }
@@ -695,14 +695,14 @@ export class TypeResolver {
 
   private resolveLeftmostIdentifier(type: ts.EntityName): ts.Identifier {
     while (type.kind !== ts.SyntaxKind.Identifier) {
-      type = (type as ts.QualifiedName).left;
+      type = type.left;
     }
-    return type as ts.Identifier;
+    return type;
   }
 
   private resolveModelTypeScope(leftmost: ts.EntityName, statements: any): any[] {
     while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
-      const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier ? (leftmost as ts.Identifier).text : (leftmost as ts.QualifiedName).right.text;
+      const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier ? leftmost.text : leftmost.right.text;
       const moduleDeclarations = statements.filter(node => {
         if ((node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) && !ts.isEnumDeclaration(node)) {
           return false;
@@ -739,7 +739,7 @@ export class TypeResolver {
     const leftmostIdentifier = this.resolveLeftmostIdentifier(type);
     const statements: any[] = this.resolveModelTypeScope(leftmostIdentifier, this.current.nodes);
 
-    const typeName = type.kind === ts.SyntaxKind.Identifier ? (type as ts.Identifier).text : (type as ts.QualifiedName).right.text;
+    const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
     let modelTypes = statements.filter(node => {
       if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
@@ -883,7 +883,7 @@ export class TypeResolver {
 
   private getModelAdditionalProperties(node: UsableDeclaration) {
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
-      const interfaceDeclaration = node as ts.InterfaceDeclaration;
+      const interfaceDeclaration = node;
       const indexMember = interfaceDeclaration.members.find(member => member.kind === ts.SyntaxKind.IndexSignature);
       if (!indexMember) {
         return undefined;

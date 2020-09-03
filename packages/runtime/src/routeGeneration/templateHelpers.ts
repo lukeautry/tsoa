@@ -114,7 +114,7 @@ export class ValidationService {
         }
         if (propHandling === 'throw-on-extras') {
           fieldErrors[parent + name] = {
-            message: `"${excessProps}" is an excess property and therefore is not allowed`,
+            message: `"${excessProps.join(',')}" is an excess property and therefore is not allowed`,
             value: excessProps.reduce((acc, propName) => ({ [propName]: value[propName], ...acc }), {}),
           };
         }
@@ -245,7 +245,7 @@ export class ValidationService {
     if (enumMatchIndex === -1) {
       const membersInQuotes = members.map(member => (typeof member === 'string' ? `'${member}'` : String(member)));
       fieldErrors[parent + name] = {
-        message: `should be one of the following; [${membersInQuotes}]`,
+        message: `should be one of the following; [${membersInQuotes.join(',')}]`,
         value,
       };
       return;

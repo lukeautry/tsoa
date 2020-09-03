@@ -4,7 +4,7 @@
  * Adds prefix and suffix if supplied
  * Replace ':pathParam' with '{pathParam}'
  */
-export function normalisePath(path: string, withPrefix?: string, withSuffix?: string, skipPrefixAndSuffixIfEmpty: boolean = true) {
+export function normalisePath(path: string, withPrefix?: string, withSuffix?: string, skipPrefixAndSuffixIfEmpty = true) {
   if ((!path || path === '/') && skipPrefixAndSuffixIfEmpty) {
     return '';
   }

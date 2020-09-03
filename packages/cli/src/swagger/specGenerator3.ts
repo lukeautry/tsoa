@@ -297,7 +297,7 @@ export class SpecGenerator3 extends SpecGenerator {
           const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
             return { ...acc, [`Example ${currentIndex + 1}`]: { value: ex } };
           }, {});
-          /* tslint:disable:no-string-literal */
+          /* eslint-disable @typescript-eslint/dot-notation */
           (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
         }
       }

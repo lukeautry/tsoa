@@ -1,4 +1,6 @@
 {
-  "tslint.autoFixOnSave": true,
+  "editor.codeActionsOnSave": {
+    "eslint.autoFixOnSave": true
+  },
   "typescript.tsdk": "node_modules/typescript/lib"
 }

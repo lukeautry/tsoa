@@ -1,0 +1,13 @@
+5 ESLint rules behave differently from their TSLint counterparts:
+  * @typescript-eslint/no-unused-expressions:
+    - The TSLint optional config "allow-new" is the default ESLint behavior and will no longer be ignored.
+  * eqeqeq:
+    - Option "smart" allows for comparing two literal values, evaluating the value of typeof and null comparisons.
+  * no-invalid-this:
+    - Functions in methods will no longer be ignored.
+  * no-underscore-dangle:
+    - Leading and trailing underscores (_) on identifiers will now be ignored.
+  * prefer-arrow/prefer-arrow-functions:
+    - ESLint does not support allowing standalone function declarations.
+    - ESLint does not support allowing named functions defined with the function keyword.
+

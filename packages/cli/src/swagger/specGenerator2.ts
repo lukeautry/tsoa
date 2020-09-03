@@ -268,7 +268,7 @@ export class SpecGenerator2 extends SpecGenerator {
     }
 
     if (parameter.in === 'query' && parameterType.type === 'array') {
-      (parameter as Swagger.QueryParameter).collectionFormat = 'multi';
+      parameter.collectionFormat = 'multi';
     }
 
     if (parameterType.$ref) {
@@ -364,7 +364,7 @@ export class SpecGenerator2 extends SpecGenerator {
         return swaggerType;
       }
     } else if (process.env.NODE_ENV !== 'tsoa_test') {
-      // tslint:disable-next-line: no-console
+      // eslint-disable-next-line no-console
       console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
     }
     return { type: 'object' };
@@ -387,7 +387,7 @@ export class SpecGenerator2 extends SpecGenerator {
         return { ...acc, ...props };
       } else {
         process.env.NODE_ENV !== 'tsoa_test' &&
-          // tslint:disable-next-line: no-console
+          // eslint-disable-next-line no-console
           console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
         return { ...acc };
       }

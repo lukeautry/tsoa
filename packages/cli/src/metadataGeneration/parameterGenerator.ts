@@ -68,7 +68,7 @@ export class ParameterGenerator {
     const statusArgumentType = this.current.typeChecker.getTypeAtLocation(statusArgument);
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
-      // tslint:disable-next-line:no-bitwise
+      // eslint-disable-next-line no-bitwise
       return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
@@ -76,7 +76,7 @@ export class ParameterGenerator {
       throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
     }
 
-    const status = statusArgumentType.value + '';
+    const status = String(statusArgumentType.value);
 
     const type = new TypeResolver(typeNode.typeArguments[1], this.current, typeNode).resolve();
 
@@ -163,7 +163,7 @@ export class ParameterGenerator {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: this.getParameterExample(parameter, parameterName),
-      in: 'query' as 'query',
+      in: 'query' as const,
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
@@ -178,7 +178,7 @@ export class ParameterGenerator {
     }
 
     if (type.dataType === 'array') {
-      const arrayType = type as Tsoa.ArrayType;
+      const arrayType = type;
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
@@ -203,7 +203,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
 
     const type = this.getValidatedType(parameter);
-    const pathName = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Path') || parameterName;
+    const pathName = String(getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Path') || parameterName);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -250,7 +250,7 @@ export class ParameterGenerator {
       try {
         return examples.map(example => JSON.parse(example));
       } catch (e) {
-        throw new GenerateMetadataError(`JSON format is incorrect: ${e.message}`);
+        throw new GenerateMetadataError(`JSON format is incorrect: ${String(e.message)}`);
       }
     }
   }

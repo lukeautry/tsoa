@@ -26,7 +26,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
       if (ts.isJSDocParameterTag(tag)) {
         return false;
       } else if (tag.comment === undefined) {
-        throw new GenerateMetadataError(`Orphan tag: @${tag.tagName.text || tag.tagName.escapedText} should have a parameter name follows with.`);
+        throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.escapedText)} should have a parameter name follows with.`);
       }
       return tag.comment.startsWith(parameterName);
     });

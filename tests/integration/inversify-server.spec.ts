@@ -19,7 +19,7 @@ describe('Inversify Express Server', () => {
 
   it('handles request with managed controller using managed service', () => {
     const managedService = iocContainer.get<ManagedService>(ManagedService);
-    const oldGetModel = managedService.getModel;
+    const oldGetModel = managedService.getModel.bind(managedService);
     // hook in a new getModel method returning id = 2
     managedService.getModel = () => {
       return {
@@ -81,9 +81,9 @@ describe('Inversify Express Server', () => {
         .end((err: any, res: any) => {
           let parsedError: any;
           try {
-            parsedError = JSON.parse(res.error as any);
+            parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error as any;
+            parsedError = res.error;
           }
 
           if (err) {
