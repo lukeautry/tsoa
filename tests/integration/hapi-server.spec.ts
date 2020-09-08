@@ -1056,9 +1056,9 @@ describe('Hapi Server', () => {
         .end((err: any, res: any) => {
           let parsedError: any;
           try {
-            parsedError = JSON.parse(res.error as any);
+            parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error as any;
+            parsedError = res.error;
           }
 
           if (err) {

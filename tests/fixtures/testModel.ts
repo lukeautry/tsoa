@@ -114,10 +114,10 @@ export interface TestModel extends Model {
   };
 
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
-  // tslint:disable-next-line: array-type
+  // eslint-disable-next-line @typescript-eslint/array-type
   genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
   genericNestedArrayCharacter1?: GenericRequest<TypeAliasModel1[]>;
-  // tslint:disable-next-line: array-type
+  // eslint-disable-next-line @typescript-eslint/array-type
   genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
   mixedUnion?: string | TypeAliasModel1;
@@ -179,7 +179,6 @@ export class TypeAliasModel3 {
   public value3: string;
 }
 
-// tslint:disable-next-line:interface-over-type-literal
 export type TypeAlias4 = { value4: string };
 
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
@@ -651,7 +650,6 @@ export class TestClassModel extends TestClassBaseModel {
    * @pattern `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`
    */
   public emailPattern?: string;
-  /* tslint:disable-next-line */
   stringProperty: string;
   protected protectedStringProperty: string;
   public static staticStringProperty: string;

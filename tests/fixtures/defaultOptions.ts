@@ -1,6 +1,6 @@
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { Config } from '@tsoa/runtime';
-export function getDefaultOptions(outputDirectory: string = '', entryFile: string = ''): Config {
+export function getDefaultOptions(outputDirectory = '', entryFile = ''): Config {
   return {
     entryFile,
     controllerPathGlobs: [],
@@ -67,7 +67,7 @@ export function getDefaultOptions(outputDirectory: string = '', entryFile: strin
   };
 }
 
-export function getDefaultExtendedOptions(outputDirectory: string = '', entryFile: string = ''): ExtendedSpecConfig {
+export function getDefaultExtendedOptions(outputDirectory = '', entryFile = ''): ExtendedSpecConfig {
   const defaultOptions = getDefaultOptions(outputDirectory, entryFile);
   return {
     ...defaultOptions.spec,

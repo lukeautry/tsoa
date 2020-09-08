@@ -74,7 +74,7 @@ export class MethodGenerator {
         } catch (e) {
           const methodId = this.node.name as ts.Identifier;
           const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
-          throw new GenerateMetadataError(`${e.message} \n in '${controllerId.text}.${methodId.text}'`);
+          throw new GenerateMetadataError(`${String(e.message)} \n in '${controllerId.text}.${methodId.text}'`);
         }
       })
       .filter((p): p is Tsoa.Parameter => p !== null);
@@ -112,7 +112,7 @@ export class MethodGenerator {
       return;
     }
     if (pathDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
+      throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation()}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
     }
 
     const decorator = pathDecorators[0];
@@ -158,7 +158,7 @@ export class MethodGenerator {
       };
     }
     if (decorators.length > 1) {
-      throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     const [name, description] = getDecoratorValues(decorators[0], this.current.typeChecker);
@@ -196,7 +196,7 @@ export class MethodGenerator {
       return false;
     }
     if (depDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Deprecated decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Deprecated decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     return true;
@@ -208,7 +208,7 @@ export class MethodGenerator {
       return undefined;
     }
     if (opDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one OperationId decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one OperationId decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     const values = getDecoratorValues(opDecorators[0], this.current.typeChecker);
@@ -221,7 +221,7 @@ export class MethodGenerator {
       return this.parentTags;
     }
     if (tagsDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     const tags = getDecoratorValues(tagsDecorators[0], this.current.typeChecker);
@@ -236,11 +236,11 @@ export class MethodGenerator {
     const securityDecorators = this.getDecoratorsByIdentifier(this.node, 'Security');
 
     if (noSecurityDecorators?.length > 1) {
-      throw new GenerateMetadataError(`Only one NoSecurity decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one NoSecurity decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     if (noSecurityDecorators?.length && securityDecorators?.length) {
-      throw new GenerateMetadataError(`NoSecurity decorator cannot be used in conjunction with Security decorator in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`NoSecurity decorator cannot be used in conjunction with Security decorator in '${this.getCurrentLocation()}' method.`);
     }
 
     if (noSecurityDecorators?.length) {
@@ -265,7 +265,7 @@ export class MethodGenerator {
     }
 
     if (hiddenDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.getCurrentLocation}' method.`);
+      throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
     return true;

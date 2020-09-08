@@ -13,7 +13,7 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
-  public IsExportedNode(node: ts.Node) {
+  public IsExportedNode(_node: ts.Node) {
     return true;
   }
 
@@ -37,7 +37,7 @@ export class MetadataGenerator {
     };
   }
 
-  private setProgramToDynamicControllersFiles(controllers) {
+  private setProgramToDynamicControllersFiles(controllers: string[]) {
     const allGlobFiles = importClassesFromDirectories(controllers);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
@@ -69,7 +69,7 @@ export class MetadataGenerator {
            * the same kind (`ModuleDeclaration`). In order to figure out whether it's one or the other,
            * we check the node flags. They tell us whether it is a namespace or not.
            */
-          // tslint:disable-next-line:no-bitwise
+          // eslint-disable-next-line no-bitwise
           if ((node.flags & ts.NodeFlags.Namespace) === 0 && node.body && ts.isModuleBlock(node.body)) {
             node.body.statements.forEach(statement => {
               this.nodes.push(statement);

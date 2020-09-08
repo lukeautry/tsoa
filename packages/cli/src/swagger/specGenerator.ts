@@ -106,13 +106,13 @@ export abstract class SpecGenerator {
     };
   }
 
-  protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
+  protected getSwaggerTypeForReferenceType(_referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
     return {
       // Don't set additionalProperties value here since it will be set within the $ref's model when that $ref gets created
     };
   }
 
-  protected getSwaggerTypeForVoid(dataType: 'void'): Swagger.BaseSchema {
+  protected getSwaggerTypeForVoid(_dataType: 'void'): Swagger.BaseSchema {
     // Described here: https://swagger.io/docs/specification/describing-responses/#empty
     const voidSchema = {
       // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
@@ -135,7 +135,7 @@ export abstract class SpecGenerator {
   protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
     if (dataType === 'object') {
       if (process.env.NODE_ENV !== 'tsoa_test') {
-        // tslint:disable-next-line: no-console
+        // eslint-disable-next-line no-console
         console.warn(`The type Object is discouraged. Please consider using an interface such as:
           export interface IStringToStringDictionary {
             [key: string]: string;

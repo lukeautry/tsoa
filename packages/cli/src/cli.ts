@@ -59,11 +59,11 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
     if (err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.error(err);
       throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
     } else {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.error(err);
       throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
     }
@@ -305,7 +305,7 @@ async function SpecGenerator(args: SwaggerArgs) {
 
     await generateSpec(swaggerConfig, compilerOptions, config.ignore);
   } catch (err) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.error('Generate swagger error.\n', err);
     process.exit(1);
   }
@@ -323,7 +323,7 @@ async function routeGenerator(args: ConfigArgs) {
 
     await generateRoutes(routesConfig, compilerOptions, config.ignore);
   } catch (err) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
     process.exit(1);
   }
@@ -353,7 +353,7 @@ export async function generateSpecAndRoutes(args: SwaggerArgs) {
 
     return await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
   } catch (err) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
     process.exit(1);
     throw err;

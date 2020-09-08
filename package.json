@@ -37,18 +37,22 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
-    "lint": "tslint ./packages/**/src/**/*.ts ./tests/**/*.ts",
+    "lint": "eslint ./packages/**/src/**/*.ts ./tests/**/*.ts",
+    "lint:fix": "npm run lint -- --fix",
     "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"
   },
   "dependencies": {},
   "devDependencies": {
-    "lerna": "^3.20.2",
+    "@typescript-eslint/eslint-plugin": "^4.0.1",
+    "@typescript-eslint/parser": "^4.0.1",
+    "eslint": "^7.8.1",
+    "eslint-config-prettier": "^6.11.0",
     "husky": "^3.0.2",
-    "prettier": "^2.0.5",
+    "lerna": "^3.20.2",
     "lint-staged": "9.2.3",
-    "tslint": "^6.1.1",
+    "prettier": "^2.0.5",
     "typescript": "^3.9.2"
   },
   "repository": {

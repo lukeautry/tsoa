@@ -5,7 +5,7 @@ export class GenerateMetadataError extends Error {
   constructor(message?: string, node?: Node, onlyCurrent = false) {
     super(message);
     if (node) {
-      this.message = `${message}\n${prettyLocationOfNode(node)}\n${prettyTroubleCause(node, onlyCurrent)}`;
+      this.message = `${message!}\n${prettyLocationOfNode(node)}\n${prettyTroubleCause(node, onlyCurrent)}`;
     }
   }
 }

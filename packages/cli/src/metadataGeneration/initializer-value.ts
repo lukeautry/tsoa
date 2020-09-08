@@ -6,7 +6,7 @@ export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: t
     return;
   }
 
-  switch (initializer.kind as ts.SyntaxKind) {
+  switch (initializer.kind) {
     case ts.SyntaxKind.ArrayLiteralExpression:
       const arrayLiteral = initializer as ts.ArrayLiteralExpression;
       return arrayLiteral.elements.map(element => getInitializerValue(element, typeChecker));
