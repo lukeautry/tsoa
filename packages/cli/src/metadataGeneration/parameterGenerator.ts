@@ -284,7 +284,7 @@ export class ParameterGenerator {
     let typeNode = parameter.type;
     if (!typeNode) {
       const type = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(type) as ts.TypeNode;
+      typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
     }
     return new TypeResolver(typeNode, this.current, parameter).resolve();
   }

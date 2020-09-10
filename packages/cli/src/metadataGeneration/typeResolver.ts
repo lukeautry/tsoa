@@ -169,7 +169,7 @@ export class TypeResolver {
 
           // Resolve default value, required and typeNode
           let required = false;
-          const typeNode = this.current.typeChecker.typeToTypeNode(propertyType)!;
+          const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
           if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
             required = true;
           } else if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.QuestionToken) {
@@ -223,7 +223,7 @@ export class TypeResolver {
         return this.handleCachingAndCircularReferences(name, () => this.getModelReference(declaration, this.current.typeChecker.typeToString(type)));
       } else {
         try {
-          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
         } catch {
           throw new GenerateMetadataError(
             `Couldn't resolve Conditional to TypeNode. If you think this should be resolvable, please file an Issue. The flags on the result of the ConditionalType was ${type.flags}`,
@@ -236,7 +236,7 @@ export class TypeResolver {
     if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
       try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
       } catch (err) {
         const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
         throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
@@ -543,7 +543,7 @@ export class TypeResolver {
       if (!nodeType) {
         const signature = this.current.typeChecker.getSignatureFromDeclaration(toJSON.valueDeclaration);
         const implicitType = this.current.typeChecker.getReturnTypeOfSignature(signature!);
-        nodeType = this.current.typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
+        nodeType = this.current.typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
       }
       const type = new TypeResolver(nodeType, this.current).resolve();
       const referenceType: Tsoa.ReferenceType = {
@@ -852,7 +852,7 @@ export class TypeResolver {
 
     if (!typeNode) {
       const tsType = this.current.typeChecker.getTypeAtLocation(propertyDeclaration);
-      typeNode = this.current.typeChecker.typeToTypeNode(tsType);
+      typeNode = this.current.typeChecker.typeToTypeNode(tsType, undefined, ts.NodeBuilderFlags.NoTruncation);
     }
 
     if (!typeNode) {

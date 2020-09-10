@@ -39,7 +39,7 @@ export class MethodGenerator {
       const typeChecker = this.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-      nodeType = typeChecker.typeToTypeNode(implicitType) as ts.TypeNode;
+      nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
     }
     const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
