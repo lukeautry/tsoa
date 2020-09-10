@@ -12,6 +12,8 @@ import '../controllers/methodController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
 
+import '../controllers/truncationTestController';
+
 import { RegisterRoutes } from './customRoutes';
 
 export const app: express.Express = express();

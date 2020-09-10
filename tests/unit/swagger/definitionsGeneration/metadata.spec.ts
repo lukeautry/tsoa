@@ -835,4 +835,39 @@ describe('Metadata generation', () => {
       expect(method.deprecated).to.equal(true);
     });
   });
+
+  describe('TruncationTestMethodGenerator', () => {
+    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/truncationTestController.ts').Generate();
+    const controller = parameterMetadata.controllers[0];
+
+    it('should generate unabridgedObject method', () => {
+      const method = controller.methods.find(m => m.name === 'unabridgedObject');
+      if (!method) {
+        throw new Error('Method unabridgedObject not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('unabridgedObject');
+    });
+
+    it('should generate abridgedObject method', () => {
+      const method = controller.methods.find(m => m.name === 'abridgedObject');
+      if (!method) {
+        throw new Error('Method abridgedObject not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('abridgedObject');
+    });
+
+    it('should generate abridgedObjectWithTypeModel method', () => {
+      const method = controller.methods.find(m => m.name === 'abridgedObjectWithTypeModel');
+      if (!method) {
+        throw new Error('Method abridgedObjectWithTypeModel not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('abridgedObjectWithTypeModel');
+    });
+  });
 });
