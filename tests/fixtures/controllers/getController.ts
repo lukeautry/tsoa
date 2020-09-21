@@ -139,7 +139,7 @@ export class GetTestController extends Controller {
   public async getRequest(@Request() request: any): Promise<TestModel> {
     const model = new ModelService().getModel();
     // set the stringValue from the request context to test successful injection
-    model.stringValue = (request as any).stringValue;
+    model.stringValue = request.stringValue;
     return model;
   }
 

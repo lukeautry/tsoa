@@ -21,6 +21,7 @@
       "request": "launch",
       "name": "Mocha TS Tests: Current File",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
       },

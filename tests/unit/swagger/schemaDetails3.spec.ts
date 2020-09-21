@@ -741,7 +741,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            expect(propertySchema!.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
+            expect(propertySchema.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);

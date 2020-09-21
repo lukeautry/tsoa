@@ -3,10 +3,11 @@ module.exports = {
     node: true,
     es6: true,
   },
+  root: true,
   extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier', 'prettier/@typescript-eslint'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: ['./packages/**/tsconfig.json', './tests/tsconfig.json'],
+    project: ['packages/**/tsconfig.json', 'tests/tsconfig.json'],
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint'],
@@ -97,8 +98,10 @@ module.exports = {
       },
     },
     {
-      files: './tests/**/*.ts',
+      files: 'tests/**/*.ts',
       rules: {
+        'prefer-spread': 'off',
+        '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',

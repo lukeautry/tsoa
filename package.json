@@ -37,7 +37,7 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
-    "lint": "eslint ./packages/**/src/**/*.ts ./tests/**/*.ts",
+    "lint": "eslint . --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel",

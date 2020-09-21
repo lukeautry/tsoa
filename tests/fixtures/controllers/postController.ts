@@ -30,7 +30,7 @@ export class PostTestController {
 
   @Patch()
   public async updateModel(@Body() model: TestModel): Promise<TestModel> {
-    return await new ModelService().getModel();
+    return new ModelService().getModel();
   }
 
   @Post('WithDifferentReturnCode')

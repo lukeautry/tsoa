@@ -392,7 +392,7 @@ describe('Definition generation', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            expect(propertySchema!.items!.$ref).to.eq('#/definitions/StrLiteral', `for property ${propertyName}.$ref`);
+            expect(propertySchema.items!.$ref).to.eq('#/definitions/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
