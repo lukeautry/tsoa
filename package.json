@@ -39,7 +39,6 @@
     "test": "yarn --cwd tests test",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run lint --fix",
-    "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"
   },
