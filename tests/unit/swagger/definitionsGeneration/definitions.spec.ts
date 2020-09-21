@@ -1117,7 +1117,7 @@ describe('Definition generation', () => {
                 justNull: {
                   default: undefined,
                   description: undefined,
-                  enum: ['null'],
+                  enum: [null],
                   format: undefined,
                   example: undefined,
                   type: 'number',
