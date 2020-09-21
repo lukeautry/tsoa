@@ -20,13 +20,13 @@
   "license": "MIT",
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run pre-commit"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
     "*.{js,ts}": [
       "prettier --write",
-      "git add"
+      "yarn run lint:fix"
     ]
   },
   "scripts": {
@@ -38,7 +38,7 @@
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "yarn run lint --fix",
     "pre-commit": "yarn lint && yarn test",
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"
@@ -49,9 +49,9 @@
     "@typescript-eslint/parser": "^4.1.1",
     "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.11.0",
-    "husky": "^3.0.2",
+    "husky": "^4.3.0",
     "lerna": "^3.20.2",
-    "lint-staged": "9.2.3",
+    "lint-staged": "^10.4.0",
     "prettier": "^2.1.2",
     "typescript": "^3.9.2"
   },
