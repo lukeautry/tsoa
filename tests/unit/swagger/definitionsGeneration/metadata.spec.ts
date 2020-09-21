@@ -836,38 +836,82 @@ describe('Metadata generation', () => {
     });
   });
 
-  describe('TruncationTestMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./tests/fixtures/controllers/truncationTestController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+  describe('TypeInferenceController', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/typeInferenceController.ts').Generate();
+    const controller = metadata.controllers.find(controller => controller.name === 'TypeInferenceController');
 
-    it('should generate unabridgedObject method', () => {
-      const method = controller.methods.find(m => m.name === 'unabridgedObject');
+    if (!controller) {
+      throw new Error('TypeInferenceController not defined!');
+    }
+
+    it('should generate multiKeysInterfaceInference method', () => {
+      const method = controller.methods.find(method => method.name === 'multiKeysInterfaceInference');
       if (!method) {
-        throw new Error('Method unabridgedObject not defined!');
+        throw new Error('Method multiKeysInterfaceInference not defined!');
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('unabridgedObject');
+      expect(method.path).to.equal('keys-interface-inference');
+      const [response] = method.responses;
+      expect(response.schema?.dataType).to.eq('refAlias');
+      expect((response.schema as Tsoa.RefAliasType)?.refName).to.eq('Partial_TruncationTestModel_');
+      const properties = ((response.schema as Tsoa.RefAliasType).type as Tsoa.NestedObjectLiteralType).properties;
+      expect(properties.map(prop => prop.name)).to.have.members([
+        'demo01',
+        'demo02',
+        'demo03',
+        'demo04',
+        'demo05',
+        'demo06',
+        'demo07',
+        'demo08',
+        'demo09',
+        'demo10',
+        'demo11',
+        'demo12',
+        'demo13',
+        'demo14',
+        'demo15',
+        'demo16',
+        'demo17',
+        'd',
+      ]);
     });
 
-    it('should generate abridgedObject method', () => {
-      const method = controller.methods.find(m => m.name === 'abridgedObject');
+    it('should generate multiKeysPropertyInference method', () => {
+      const method = controller.methods.find(method => method.name === 'multiKeysPropertyInference');
       if (!method) {
-        throw new Error('Method abridgedObject not defined!');
+        throw new Error('Method multiKeysPropertyInference not defined!');
       }
 
       expect(method.method).to.equal('get');
-      expect(method.path).to.equal('abridgedObject');
-    });
-
-    it('should generate abridgedObjectWithTypeModel method', () => {
-      const method = controller.methods.find(m => m.name === 'abridgedObjectWithTypeModel');
-      if (!method) {
-        throw new Error('Method abridgedObjectWithTypeModel not defined!');
-      }
-
-      expect(method.method).to.equal('get');
-      expect(method.path).to.equal('abridgedObjectWithTypeModel');
+      expect(method.path).to.equal('keys-property-inference');
+      const [response] = method.responses;
+      expect(response.schema?.dataType).to.eq('nestedObjectLiteral');
+      const properties = (response.schema as Tsoa.NestedObjectLiteralType).properties;
+      expect(properties.map(prop => prop.name)).to.have.members([
+        'demo01',
+        'demo02',
+        'demo03',
+        'demo04',
+        'demo05',
+        'demo06',
+        'demo07',
+        'demo08',
+        'demo09',
+        'demo10',
+        'demo11',
+        'demo12',
+        'demo13',
+        'demo14',
+        'demo15',
+        'demo16',
+        'demo17',
+        'demo18',
+        'demo19',
+        'demo20',
+        'demo21',
+      ]);
     });
   });
 });
