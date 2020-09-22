@@ -243,6 +243,16 @@ export class TypeResolver {
       }
     }
 
+    if (ts.isIndexedAccessTypeNode(this.typeNode) && (this.typeNode.indexType.kind === ts.SyntaxKind.NumberKeyword || this.typeNode.indexType.kind === ts.SyntaxKind.StringKeyword)) {
+      const numberIndexType = this.typeNode.indexType.kind === ts.SyntaxKind.NumberKeyword;
+      const objectType = this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType);
+      const type = numberIndexType ? objectType.getNumberIndexType() : objectType.getStringIndexType();
+      if (type === undefined) {
+        throw new GenerateMetadataError(`Could not determine ${numberIndexType ? 'number' : 'string'} index on ${this.current.typeChecker.typeToString(objectType)}`, this.typeNode);
+      }
+      return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (
       ts.isIndexedAccessTypeNode(this.typeNode) &&
       ts.isLiteralTypeNode(this.typeNode.indexType) &&

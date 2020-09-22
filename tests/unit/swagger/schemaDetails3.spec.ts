@@ -741,7 +741,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            expect(propertySchema!.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
+            expect(propertySchema.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
@@ -1051,7 +1051,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+                    $ref:
+                      '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1271,7 +1272,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
 
             const excludeLiteral = getComponentSchema(
-              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
               currentSpec,
             );
             expect(excludeLiteral).to.deep.eq(
@@ -1397,6 +1398,42 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   indexedTypeToClass: { $ref: '#/components/schemas/IndexedClass', description: undefined, format: undefined, example: undefined },
                   indexedTypeToInterface: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   indexedTypeToAlias: { $ref: '#/components/schemas/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },
+                  arrayUnion: {
+                    anyOf: [
+                      {
+                        enum: ['foo'],
+                        nullable: false,
+                        type: 'string',
+                      },
+                      {
+                        enum: ['bar'],
+                        nullable: false,
+                        type: 'string',
+                      },
+                    ],
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  objectUnion: {
+                    anyOf: [
+                      {
+                        enum: ['foo'],
+                        nullable: false,
+                        type: 'string',
+                      },
+                      {
+                        enum: ['bar'],
+                        nullable: false,
+                        type: 'string',
+                      },
+                    ],
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },

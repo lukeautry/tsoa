@@ -392,7 +392,7 @@ describe('Definition generation', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            expect(propertySchema!.items!.$ref).to.eq('#/definitions/StrLiteral', `for property ${propertyName}.$ref`);
+            expect(propertySchema.items!.$ref).to.eq('#/definitions/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema['x-nullable']).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
@@ -722,7 +722,8 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+                    $ref:
+                      '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -850,7 +851,7 @@ describe('Definition generation', () => {
             );
 
             const excludeLiteral = getValidatedDefinition(
-              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject_',
+              'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
               currentSpec,
             );
             expect(excludeLiteral).to.deep.eq(
@@ -970,6 +971,24 @@ describe('Definition generation', () => {
                   indexedTypeToClass: { $ref: '#/definitions/IndexedClass', description: undefined, format: undefined, example: undefined },
                   indexedTypeToInterface: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': false, enum: ['id'] },
+                  arrayUnion: {
+                    default: undefined,
+                    description: undefined,
+                    enum: ['foo', 'bar'],
+                    example: undefined,
+                    format: undefined,
+                    type: 'string',
+                    'x-nullable': false,
+                  },
+                  objectUnion: {
+                    default: undefined,
+                    description: undefined,
+                    enum: ['foo', 'bar'],
+                    example: undefined,
+                    format: undefined,
+                    type: 'string',
+                    'x-nullable': false,
+                  },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
                   publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
