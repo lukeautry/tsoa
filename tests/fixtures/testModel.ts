@@ -311,6 +311,27 @@ export interface BooleanResponseModel {
   success: boolean;
 }
 
+export interface TruncationTestModel {
+  demo01: string;
+  demo02: string;
+  demo03: string;
+  demo04: string;
+  demo05: string;
+  demo06: string;
+  demo07: string;
+  demo08: string;
+  demo09: string;
+  demo10: string;
+  demo11: string;
+  demo12: string;
+  demo13: string;
+  demo14: string;
+  demo15: string;
+  demo16: string;
+  demo17: string;
+  d?: string;
+}
+
 export interface UserResponseModel {
   id: number;
   name: string;
