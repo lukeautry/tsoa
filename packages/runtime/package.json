@@ -29,6 +29,7 @@
     "validator": "^12.2.0"
   },
   "devDependencies": {
+    "@types/node": "^14.11.1",
     "typescript": "^3.9.2"
   },
   "repository": {

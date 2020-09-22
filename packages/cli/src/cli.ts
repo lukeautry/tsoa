@@ -61,10 +61,12 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
     } else if (err.name === 'SyntaxError') {
       // eslint-disable-next-line no-console
       console.error(err);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
     } else {
       // eslint-disable-next-line no-console
       console.error(err);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
     }
   }
@@ -103,6 +105,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   }
 
   if (config.spec.spec && !['immediate', 'recursive', 'deepmerge', undefined].includes(config.spec.specMerging)) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new Error(`Invalid specMerging config: ${config.spec.specMerging}`);
   }
 
@@ -119,7 +122,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   const author = await authorInformation;
 
   if (typeof author === 'string') {
-    const contact = author.match(/^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m);
+    const contact = /^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m.exec(author);
 
     config.spec.contact.name = config.spec.contact.name || contact?.[1];
     config.spec.contact.email = config.spec.contact.email || contact?.[2];

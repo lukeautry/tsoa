@@ -20,13 +20,13 @@
   "license": "MIT",
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run pre-commit"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
     "*.{js,ts}": [
       "prettier --write",
-      "git add"
+      "yarn run lint:fix"
     ]
   },
   "scripts": {
@@ -37,22 +37,21 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
-    "lint": "eslint ./packages/**/src/**/*.ts ./tests/**/*.ts",
-    "lint:fix": "npm run lint -- --fix",
-    "pre-commit": "yarn lint && yarn test",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "yarn run lint --fix",
     "watch": "lerna run watch --parallel",
     "lerna": "lerna"
   },
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.0.1",
-    "@typescript-eslint/parser": "^4.0.1",
-    "eslint": "^7.8.1",
+    "@typescript-eslint/eslint-plugin": "^4.1.1",
+    "@typescript-eslint/parser": "^4.1.1",
+    "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.11.0",
-    "husky": "^3.0.2",
+    "husky": "^4.3.0",
     "lerna": "^3.20.2",
-    "lint-staged": "9.2.3",
-    "prettier": "^2.0.5",
+    "lint-staged": "^10.4.0",
+    "prettier": "^2.1.2",
     "typescript": "^3.9.2"
   },
   "repository": {
