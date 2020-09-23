@@ -28,17 +28,30 @@ describe('Configuration', () => {
       );
     });
 
-    it('should reject when entryFile is not set', done => {
+    it('should reject when entryFile is not set and controllerPathGlobs is unset or empty', done => {
       const config: Config = getDefaultOptions('some/output/directory');
+      expect(config.entryFile).not.to.be.ok;
+      expect(config.controllerPathGlobs).to.be.an('array').that.has.length(0);
       validateSpecConfig(config).then(
         result => {
           throw new Error('Should not get here, expecting error regarding entryFile');
         },
         err => {
-          expect(err.message).to.equal('Missing entryFile: configuration must contain an entry point file.');
+          expect(err.message).to.equal('Missing entryFile and controllerPathGlobs: Configuration must contain an entry point file or controller path globals.');
           done();
         },
       );
+    });
+
+    it('should pass when entryFile is not set but controllerPathGlobs is given', done => {
+      const config: Config = getDefaultOptions('some/output/directory');
+      config.controllerPathGlobs = ['/some/path'];
+      expect(config.entryFile).not.to.be.ok;
+      expect(config.controllerPathGlobs).to.be.an('array').that.does.not.have.length(0);
+      validateSpecConfig(config).then(result => {
+        expect(result).to.be.ok;
+        done();
+      });
     });
 
     it('should set the default API version', done => {

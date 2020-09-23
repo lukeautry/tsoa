@@ -91,10 +91,10 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   if (!config.spec.outputDirectory) {
     throw new Error('Missing outputDirectory: configuration must contain output directory.');
   }
-  if (!config.entryFile) {
-    throw new Error('Missing entryFile: configuration must contain an entry point file.');
+  if (!config.entryFile && (!config.controllerPathGlobs || !config.controllerPathGlobs.length)) {
+    throw new Error('Missing entryFile and controllerPathGlobs: Configuration must contain an entry point file or controller path globals.');
   }
-  if (!(await fsExists(config.entryFile))) {
+  if (!!config.entryFile && !(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - please check your tsoa config.`);
   }
   config.spec.version = config.spec.version || (await versionDefault());
@@ -148,10 +148,10 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
-  if (!config.entryFile) {
-    throw new Error('Missing entryFile: Configuration must contain an entry point file.');
+  if (!config.entryFile && (!config.controllerPathGlobs || !config.controllerPathGlobs.length)) {
+    throw new Error('Missing entryFile and controllerPathGlobs: Configuration must contain an entry point file or controller path globals.');
   }
-  if (!(await fsExists(config.entryFile))) {
+  if (!!config.entryFile && !(await fsExists(config.entryFile))) {
     throw new Error(`EntryFile not found: ${config.entryFile} - Please check your tsoa config.`);
   }
   if (!config.routes.routesDir) {
