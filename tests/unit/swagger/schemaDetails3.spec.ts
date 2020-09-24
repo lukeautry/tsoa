@@ -728,15 +728,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
-              anyOf: [
-                { type: 'string', enum: [''], nullable: false },
-                { type: 'string', enum: ['Foo'], nullable: false },
-                { type: 'string', enum: ['Bar'], nullable: false },
-              ],
               default: undefined,
               description: undefined,
+              enum: ['', 'Foo', 'Bar'],
               example: undefined,
               format: undefined,
+              type: 'string',
             });
           },
           strLiteralArr: (propertyName, propertySchema) => {
@@ -746,19 +743,31 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
           },
-          unionPrimetiveType: (propertyName, propertySchema) => {
+          unionPrimitiveType: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({
               anyOf: [
-                { type: 'string', enum: ['String'], nullable: false },
-                { type: 'number', enum: ['1'], nullable: false },
-                { type: 'number', enum: ['20'], nullable: false },
-                { type: 'boolean', enum: ['true'], nullable: false },
-                { type: 'boolean', enum: ['false'], nullable: false },
+                { type: 'string', enum: ['String'] },
+                { type: 'number', enum: ['1', '20'] },
+                { type: 'boolean', enum: ['true', 'false'] },
               ],
-              example: undefined,
               default: undefined,
               description: undefined,
+              example: undefined,
               format: undefined,
+            });
+          },
+          nullableUnionPrimitiveType: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({
+              anyOf: [
+                { type: 'string', enum: ['String'] },
+                { type: 'number', enum: ['1', '20'] },
+                { type: 'boolean', enum: ['true', 'false'] },
+              ],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+              nullable: true,
             });
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
@@ -899,6 +908,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const definition = getComponentSchema('GenericModel', currentSpec);
             expect(definition.properties!.result.type).to.deep.equal('string');
+            // string | string reduced to just string after removal of duplicate
+            // types when generating union spec
+            expect(definition.properties!.union.type).to.deep.equal('string');
             expect(definition.properties!.nested.$ref).to.deep.equal('#/components/schemas/GenericRequest_string_');
           },
           and: (propertyName, propertySchema) => {
@@ -1277,26 +1289,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
             expect(excludeLiteral).to.deep.eq(
               {
-                anyOf: [
-                  { type: 'string', enum: ['id'], nullable: false },
-                  { type: 'string', enum: ['enumKeys'], nullable: false },
-                  { type: 'string', enum: ['keyInterface'], nullable: false },
-                  { type: 'string', enum: ['indexedType'], nullable: false },
-                  { type: 'string', enum: ['indexedResponse'], nullable: false },
-                  { type: 'string', enum: ['publicStringProperty'], nullable: false },
-                  { type: 'string', enum: ['optionalPublicStringProperty'], nullable: false },
-                  { type: 'string', enum: ['emailPattern'], nullable: false },
-                  { type: 'string', enum: ['stringProperty'], nullable: false },
-                  { type: 'string', enum: ['publicConstructorVar'], nullable: false },
-                  { type: 'string', enum: ['readonlyConstructorArgument'], nullable: false },
-                  { type: 'string', enum: ['optionalPublicConstructorVar'], nullable: false },
-                  { type: 'string', enum: ['myIgnoredMethod'], nullable: false },
-                  { type: 'string', enum: ['defaultValue1'], nullable: false },
-                ],
-                description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
+                description: 'Exclude from T those types that are assignable to U',
+                enum: [
+                  'id',
+                  'enumKeys',
+                  'keyInterface',
+                  'indexedType',
+                  'indexedResponse',
+                  'publicStringProperty',
+                  'optionalPublicStringProperty',
+                  'emailPattern',
+                  'stringProperty',
+                  'publicConstructorVar',
+                  'readonlyConstructorArgument',
+                  'optionalPublicConstructorVar',
+                  'myIgnoredMethod',
+                  'defaultValue1',
+                ],
                 example: undefined,
                 format: undefined,
+                type: 'string',
               },
               `for a schema linked by property ${propertyName}`,
             );
@@ -1374,12 +1387,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   enumKeys: {
                     default: undefined,
                     description: undefined,
-                    format: undefined,
+                    enum: ['OK', 'KO'],
                     example: undefined,
-                    anyOf: [
-                      { enum: ['OK'], nullable: false, type: 'string' },
-                      { enum: ['KO'], nullable: false, type: 'string' },
-                    ],
+                    format: undefined,
+                    type: 'string',
                   },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
@@ -1399,40 +1410,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   indexedTypeToInterface: { $ref: '#/components/schemas/IndexedInterface', description: undefined, format: undefined, example: undefined },
                   indexedTypeToAlias: { $ref: '#/components/schemas/IndexedInterfaceAlias', description: undefined, format: undefined, example: undefined },
                   arrayUnion: {
-                    anyOf: [
-                      {
-                        enum: ['foo'],
-                        nullable: false,
-                        type: 'string',
-                      },
-                      {
-                        enum: ['bar'],
-                        nullable: false,
-                        type: 'string',
-                      },
-                    ],
                     default: undefined,
                     description: undefined,
+                    enum: ['foo', 'bar'],
                     example: undefined,
                     format: undefined,
+                    type: 'string',
                   },
                   objectUnion: {
-                    anyOf: [
-                      {
-                        enum: ['foo'],
-                        nullable: false,
-                        type: 'string',
-                      },
-                      {
-                        enum: ['bar'],
-                        nullable: false,
-                        type: 'string',
-                      },
-                    ],
                     default: undefined,
                     description: undefined,
+                    enum: ['foo', 'bar'],
                     example: undefined,
                     format: undefined,
+                    type: 'string',
                   },
                   keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], nullable: false },
                   optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },

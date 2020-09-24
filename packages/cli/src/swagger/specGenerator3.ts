@@ -458,9 +458,54 @@ export class SpecGenerator3 extends SpecGenerator {
     return type.dataType === 'enum' && type.enums.length === 1 && type.enums[0] === null;
   }
 
+  // Join disparate enums with the same type into one.
+  //
+  // grouping enums is helpful because it makes the spec more readable and it
+  // bypasses a failure in openapi-generator caused by using anyOf with
+  // duplicate types.
+  private groupEnums(types: Array<Swagger.Schema | Swagger.BaseSchema>) {
+    const returnTypes: Array<Swagger.Schema | Swagger.BaseSchema> = [];
+    const enumValuesByType = {};
+    for (const type of types) {
+      if (type.enum && type.type) {
+        for (const enumValue of type.enum) {
+          if (!enumValuesByType[type.type]) {
+            enumValuesByType[type.type] = [];
+          }
+          enumValuesByType[type.type][enumValue] = enumValue;
+        }
+      }
+      // preserve non-enum types
+      else {
+        returnTypes.push(type);
+      }
+    }
+
+    Object.keys(enumValuesByType).forEach(dataType =>
+      returnTypes.push({
+        type: dataType,
+        enum: Object.values(enumValuesByType[dataType]),
+      }),
+    );
+
+    return returnTypes;
+  }
+
+  protected removeDuplicateSwaggerTypes(types: Array<Swagger.Schema | Swagger.BaseSchema>) {
+    if (types.length === 1) {
+      return types;
+    } else {
+      const typesSet = new Set<string>();
+      for (const type of types) {
+        typesSet.add(JSON.stringify(type));
+      }
+      return Array.from(typesSet).map(typeString => JSON.parse(typeString));
+    }
+  }
+
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    const notNullSwaggerTypes = type.types.filter(x => !this.isNull(x)).map(x => this.getSwaggerType(x));
-    const nullable = type.types.length !== notNullSwaggerTypes.length;
+    const notNullSwaggerTypes = this.removeDuplicateSwaggerTypes(this.groupEnums(type.types.filter(x => !this.isNull(x)).map(x => this.getSwaggerType(x))));
+    const nullable = type.types.some(x => this.isNull(x));
 
     if (nullable && notNullSwaggerTypes.length === 1) {
       const [swaggerType] = notNullSwaggerTypes;
@@ -480,9 +525,25 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     if (nullable) {
-      return { anyOf: notNullSwaggerTypes, nullable };
+      if (notNullSwaggerTypes.length === 1) {
+        const [swaggerType] = notNullSwaggerTypes;
+        // for ref union with null, use an allOf with a single
+        // element since you can't attach nullable directly to a ref.
+        // https://swagger.io/docs/specification/using-ref/#syntax
+        if (swaggerType.$ref) {
+          return { allOf: [swaggerType], nullable };
+        }
+
+        return { ...swaggerType, nullable };
+      } else {
+        return { anyOf: notNullSwaggerTypes, nullable };
+      }
     } else {
-      return { anyOf: notNullSwaggerTypes };
+      if (notNullSwaggerTypes.length === 1) {
+        return notNullSwaggerTypes[0];
+      } else {
+        return { anyOf: notNullSwaggerTypes };
+      }
     }
   }
 
