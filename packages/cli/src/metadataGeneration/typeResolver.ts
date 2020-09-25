@@ -757,7 +757,7 @@ export class TypeResolver {
       }
 
       const modelTypeDeclaration = node as UsableDeclaration | ts.EnumMember;
-      return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
+      return (modelTypeDeclaration.name as ts.Identifier)?.text === typeName;
     }) as Array<Exclude<UsableDeclaration | ts.EnumMember, ts.PropertySignature>>;
 
     if (!modelTypes.length) {
