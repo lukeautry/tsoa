@@ -283,18 +283,14 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.TemplateLiteralType) {
-      if (this.referencer) {
-        const typeToReslve = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
-        try {
-          return new TypeResolver(this.current.typeChecker.typeToTypeNode(typeToReslve, undefined, undefined)!, this.current, this.typeNode, this.context, this.referencer).resolve();
-        } catch {
-          throw new GenerateMetadataError(
-            `Could not the type of ${this.current.typeChecker.typeToString(
-              this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(typeToReslve, undefined, undefined)!),
-            )}`,
-            this.typeNode,
-          );
-        }
+      const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer || this.typeNode);
+      try {
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, undefined)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      } catch {
+        throw new GenerateMetadataError(
+          `Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(type, undefined, undefined)!))}`,
+          this.typeNode,
+        );
       }
     }
 
