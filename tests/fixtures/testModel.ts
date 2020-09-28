@@ -155,7 +155,8 @@ export interface TestModel extends Model {
     justNull: null;
   };
 
-  templateLiteralString?: TemplateLiteralString
+  templateLiteralString?: TemplateLiteralString,
+  inlineTLS?: `${Uppercase<OrderDirection>}`
 }
 
 interface Generic<T> {

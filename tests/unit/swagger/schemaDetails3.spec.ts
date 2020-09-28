@@ -5,7 +5,7 @@ import { Tsoa } from '@tsoa/runtime';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { TestModel } from '../../fixtures/duplicateTestModel';
+import { TestModel } from '../../fixtures/testModel';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
@@ -493,7 +493,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
-        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Spec) => void> = {
+        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema3) => void> = {
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
@@ -1573,6 +1573,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
               type: 'string',
             });
+          },
+          inlineTLS: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: ['ASC', 'DESC'],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+              },
+              `for property ${propertyName}`,
+            );
           },
         };
 

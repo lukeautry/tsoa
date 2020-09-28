@@ -1185,6 +1185,20 @@ describe('Definition generation', () => {
               'x-nullable': false,
             });
           },
+          inlineTLS: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: ['ASC', 'DESC'],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                'x-nullable': false,
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
