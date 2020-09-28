@@ -1151,6 +1151,40 @@ describe('Definition generation', () => {
             const maybeWord = getValidatedDefinition('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined, format: undefined }, `for schema linked by property ${propertyName}`);
           },
+          templateLiteralString: (properyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({ $ref: '#/definitions/TemplateLiteralString', description: undefined, example: undefined, format: undefined });
+
+            const tlsSchema = getValidatedDefinition('TemplateLiteralString', currentSpec);
+
+            expect(tlsSchema).to.deep.eq({ $ref: '#/definitions/OrderOptions_ParameterTestModel_', default: undefined, example: undefined, format: undefined, description: undefined });
+
+            const orderOptionsSchema = getValidatedDefinition('OrderOptions_ParameterTestModel_', currentSpec);
+
+            expect(orderOptionsSchema).to.deep.eq({
+              default: undefined,
+              description: undefined,
+              enum: [
+                'firstname:asc',
+                'lastname:asc',
+                'age:asc',
+                'weight:asc',
+                'human:asc',
+                'gender:asc',
+                'nicknames:asc',
+                'firstname:desc',
+                'lastname:desc',
+                'age:desc',
+                'weight:desc',
+                'human:desc',
+                'gender:desc',
+                'nicknames:desc',
+              ],
+              example: undefined,
+              format: undefined,
+              type: 'string',
+              'x-nullable': false,
+            });
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {

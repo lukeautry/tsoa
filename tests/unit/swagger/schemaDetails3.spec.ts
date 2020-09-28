@@ -1541,6 +1541,39 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for schema linked by property ${propertyName}`,
             );
           },
+          templateLiteralString: (properyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({ $ref: '#/components/schemas/TemplateLiteralString', description: undefined, example: undefined, format: undefined });
+
+            const tlsSchema = getComponentSchema('TemplateLiteralString', currentSpec);
+
+            expect(tlsSchema).to.deep.eq({ $ref: '#/components/schemas/OrderOptions_ParameterTestModel_', default: undefined, example: undefined, format: undefined, description: undefined });
+
+            const orderOptionsSchema = getComponentSchema('OrderOptions_ParameterTestModel_', currentSpec);
+
+            expect(orderOptionsSchema).to.deep.eq({
+              default: undefined,
+              description: undefined,
+              enum: [
+                'firstname:asc',
+                'lastname:asc',
+                'age:asc',
+                'weight:asc',
+                'human:asc',
+                'gender:asc',
+                'nicknames:asc',
+                'firstname:desc',
+                'lastname:desc',
+                'age:desc',
+                'weight:desc',
+                'human:desc',
+                'gender:desc',
+                'nicknames:desc',
+              ],
+              example: undefined,
+              format: undefined,
+              type: 'string',
+            });
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];

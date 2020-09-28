@@ -154,6 +154,8 @@ export interface TestModel extends Model {
     maybeString: Maybe<string>;
     justNull: null;
   };
+
+  templateLiteralString?: TemplateLiteralString
 }
 
 interface Generic<T> {
@@ -775,3 +777,9 @@ interface DanglingContext<T> {
 interface TSameNameDifferentValue {
   str: string;
 }
+
+type OrderDirection = "asc" | "desc";
+
+type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
+
+type TemplateLiteralString = OrderOptions<ParameterTestModel>;
