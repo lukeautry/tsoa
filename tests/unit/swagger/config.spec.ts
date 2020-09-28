@@ -7,9 +7,9 @@ import { getDefaultOptions } from '../../fixtures/defaultOptions';
 describe('Configuration', () => {
   describe('.validateSwaggerConfig', () => {
     it('should reject when spec is not set', done => {
-      const config: Config = getDefaultOptions();
+      const config: Partial<Config> = getDefaultOptions();
       delete config.spec;
-      validateSpecConfig(config).catch(err => {
+      validateSpecConfig(config as Config).catch(err => {
         expect(err.message).to.equal('Missing spec: configuration must contain spec. Spec used to be called swagger in previous versions of tsoa.');
         done();
       });

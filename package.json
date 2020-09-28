@@ -51,8 +51,7 @@
     "husky": "^4.3.0",
     "lerna": "^3.20.2",
     "lint-staged": "^10.4.0",
-    "prettier": "^2.1.2",
-    "typescript": "^3.9.2"
+    "prettier": "^2.1.2"
   },
   "repository": {
     "type": "git",

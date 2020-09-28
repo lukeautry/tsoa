@@ -1050,7 +1050,7 @@ describe('Hapi Server', () => {
   }
 
   function verifyRequest(verifyResponse: (err: any, res: any) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       methodOperation(request(server.listener))
         .expect(expectedStatus)
         .end((err: any, res: any) => {

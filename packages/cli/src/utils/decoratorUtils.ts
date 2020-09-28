@@ -36,11 +36,11 @@ export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.TypeCh
   return values && values[0];
 }
 
-export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.TypeChecker): any[] {
   const expression = decorator.parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) {
-    return;
+    return [];
   }
   return expArguments.map(a => getInitializerValue(a, typeChecker));
 }

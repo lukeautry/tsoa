@@ -385,7 +385,7 @@ describe('OpenAPI3 Express Server', () => {
   }
 
   function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)
         .end((err: any, res: any) => {

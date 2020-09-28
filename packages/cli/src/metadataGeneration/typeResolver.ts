@@ -125,7 +125,7 @@ export class TypeResolver {
           throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
         }
 
-        additionalType = new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
+        additionalType = new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
       }
 
       const objLiteral: Tsoa.NestedObjectLiteralType = {
@@ -250,7 +250,7 @@ export class TypeResolver {
       if (type === undefined) {
         throw new GenerateMetadataError(`Could not determine ${numberIndexType ? 'number' : 'string'} index on ${this.current.typeChecker.typeToString(objectType)}`, this.typeNode);
       }
-      return new TypeResolver(this.current.typeChecker.typeToTypeNode(type)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, undefined)!, this.current, this.typeNode, this.context, this.referencer).resolve();
     }
 
     if (
@@ -271,10 +271,12 @@ export class TypeResolver {
       }
       const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
       try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration, undefined, undefined)!, this.current, this.typeNode, this.context, this.referencer).resolve();
       } catch {
         throw new GenerateMetadataError(
-          `Could not determine the keys on ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(declaration)!))}`,
+          `Could not determine the keys on ${this.current.typeChecker.typeToString(
+            this.current.typeChecker.getTypeFromTypeNode(this.current.typeChecker.typeToTypeNode(declaration, undefined, undefined)!),
+          )}`,
           this.typeNode,
         );
       }
@@ -328,8 +330,8 @@ export class TypeResolver {
     return referenceType;
   }
 
-  private getLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean {
-    let value: boolean | number | string;
+  private getLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean | null {
+    let value: boolean | number | string | null;
     switch (typeNode.literal.kind) {
       case ts.SyntaxKind.TrueKeyword:
         value = true;
@@ -342,6 +344,9 @@ export class TypeResolver {
         break;
       case ts.SyntaxKind.NumericLiteral:
         value = parseFloat(typeNode.literal.text);
+        break;
+      case ts.SyntaxKind.NullKeyword:
+        value = null;
         break;
       default:
         if (typeNode.literal.hasOwnProperty('text')) {
@@ -571,7 +576,7 @@ export class TypeResolver {
     const additionalProperties = this.getModelAdditionalProperties(modelType);
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
 
-    const referenceType: Tsoa.ReferenceType = {
+    const referenceType: Tsoa.ReferenceType & { properties: Tsoa.Property[] } = {
       additionalProperties,
       dataType: 'refObject',
       description,
@@ -905,7 +910,7 @@ export class TypeResolver {
         throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
       }
 
-      return new TypeResolver(indexSignatureDeclaration.type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
+      return new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
     }
 
     return undefined;
