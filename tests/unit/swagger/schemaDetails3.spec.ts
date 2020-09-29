@@ -1541,7 +1541,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for schema linked by property ${propertyName}`,
             );
           },
-          templateLiteralString: (properyName, propertySchema) => {
+          templateLiteralString: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq({ $ref: '#/components/schemas/TemplateLiteralString', description: undefined, example: undefined, format: undefined });
 
             const tlsSchema = getComponentSchema('TemplateLiteralString', currentSpec);
@@ -1550,29 +1550,33 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const orderOptionsSchema = getComponentSchema('OrderOptions_ParameterTestModel_', currentSpec);
 
-            expect(orderOptionsSchema).to.deep.eq({
-              default: undefined,
-              description: undefined,
-              enum: [
-                'firstname:asc',
-                'lastname:asc',
-                'age:asc',
-                'weight:asc',
-                'human:asc',
-                'gender:asc',
-                'nicknames:asc',
-                'firstname:desc',
-                'lastname:desc',
-                'age:desc',
-                'weight:desc',
-                'human:desc',
-                'gender:desc',
-                'nicknames:desc',
-              ],
-              example: undefined,
-              format: undefined,
-              type: 'string',
-            });
+            expect(orderOptionsSchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: [
+                  'firstname:asc',
+                  'lastname:asc',
+                  'age:asc',
+                  'weight:asc',
+                  'human:asc',
+                  'gender:asc',
+                  'nicknames:asc',
+                  'firstname:desc',
+                  'lastname:desc',
+                  'age:desc',
+                  'weight:desc',
+                  'human:desc',
+                  'gender:desc',
+                  'nicknames:desc',
+                ],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                nullable: false,
+              },
+              `for property ${propertyName}`,
+            );
           },
           inlineTLS: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
@@ -1583,6 +1587,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 example: undefined,
                 format: undefined,
                 type: 'string',
+                nullable: false,
               },
               `for property ${propertyName}`,
             );
