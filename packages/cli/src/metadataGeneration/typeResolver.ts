@@ -162,9 +162,9 @@ export class TypeResolver {
           const declaration = getDeclaration(property) as ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration | undefined;
 
           if (declaration && ts.isPropertySignature(declaration)) {
-            return this.propertyFromSignature(declaration, mappedTypeNode.questionToken);
+            return { ...this.propertyFromSignature(declaration, mappedTypeNode.questionToken), name: property.getName() };
           } else if (declaration && (ts.isPropertyDeclaration(declaration) || ts.isParameter(declaration))) {
-            return this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken);
+            return { ...this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken), name: property.getName() };
           }
 
           // Resolve default value, required and typeNode
@@ -178,7 +178,7 @@ export class TypeResolver {
 
           // Push property
           return {
-            name: property.name,
+            name: property.getName(),
             required,
             type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
             validators: {},
