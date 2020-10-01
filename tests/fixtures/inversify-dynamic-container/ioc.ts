@@ -1,13 +1,12 @@
+import e = require('express');
 import { Container } from 'inversify';
 import { ManagedController } from './managedController';
 import { ManagedService } from './managedService';
 
-export let containerMethodCalled = false;
-
-const iocContainer = function (request: Express.Request): Container {
+const iocContainer = function (request: e.Request): Container {
   const container = new Container();
-  containerMethodCalled = true;
-  container.bind<ManagedService>(ManagedService).to(ManagedService).inSingletonScope();
+  container.bind<string>(Symbol.for('requestPath')).toConstantValue(request.path);
+  container.bind<ManagedService>(ManagedService).to(ManagedService);
   container.bind<ManagedController>(ManagedController).to(ManagedController).inSingletonScope();
   return container;
 };

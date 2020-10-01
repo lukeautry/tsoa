@@ -3,18 +3,14 @@ import 'mocha';
 import 'reflect-metadata';
 import * as request from 'supertest';
 import { app } from '../fixtures/inversify-dynamic-container/server';
-import { containerMethodCalled } from '../fixtures/inversify-dynamic-container/ioc';
-import { TestModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 
 describe('Inversify Express Server Dynamic Container', () => {
   it('can handle get request with no path argument', () => {
-    expect(containerMethodCalled).to.equal(false);
     return verifyGetRequest(basePath + '/ManagedTest?tsoa=abc123456', (err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-      expect(containerMethodCalled).to.equal(true);
+      const model = res.body as string;
+      expect(model).to.equal(basePath + '/ManagedTest');
     });
   });
 
