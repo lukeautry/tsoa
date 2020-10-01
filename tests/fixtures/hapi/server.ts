@@ -15,9 +15,7 @@ import '../controllers/validateController';
 
 import { RegisterRoutes } from './routes';
 
-export const server = new Server({
-  port: 3003,
-});
+export const server = new Server({});
 
 RegisterRoutes(server);
 
