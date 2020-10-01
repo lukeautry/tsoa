@@ -37,4 +37,4 @@ app.use(async (context, next) => {
 
 app.use(router.routes()).use(router.allowedMethods());
 
-export const server = app.listen(3002);
+export const server = app.listen();
