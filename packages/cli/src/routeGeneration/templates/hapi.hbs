@@ -11,7 +11,7 @@ import { hapiAuthentication } from '{{authenticationModule}}';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import { TsoaIocContainer, TsoaIocContainerMethod } from '@tsoa/runtime';
+import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, Payload } from '@hapi/boom';
 
@@ -86,7 +86,7 @@ export function RegisterRoutes(server: any) {
                     }
 
                     {{#if ../../iocModule}}
-                    const container: TsoaIocContainer = typeof iocContainer === 'function' ? (iocContainer as TsoaIocContainerMethod)(request) : iocContainer;
+                    const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
                     const controller: any = container.get<{{../name}}>({{../name}});
                     if (typeof controller['setStatus'] === 'function') {

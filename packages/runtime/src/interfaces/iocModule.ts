@@ -1,5 +1,5 @@
-export interface TsoaIocContainer {
-  get<T>(controller: any): T;
+export interface IocContainer {
+  get<T>(controller: { prototype: T }): T;
 }
 
-export type TsoaIocContainerMethod = (request: any) => TsoaIocContainer;
+export type IocContainerFactory = (request: unknown) => IocContainer;
