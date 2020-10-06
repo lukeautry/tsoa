@@ -361,7 +361,7 @@ describe('Hapi Server', () => {
 
     it('should valid max and min validation of integer type', () => {
       return verifyGetRequest(
-        basePath + `/Validate/parameter/integer?minValue=6&maxValue=2`,
+        basePath + `/Validate/parameter/integer?value=6&value_max=2`,
         (err, res) => {
           const { body } = res;
           expect(body.minValue).to.equal(6);
@@ -374,13 +374,13 @@ describe('Hapi Server', () => {
     it('should invalid max and min validation of integer type', () => {
       const value = 4;
       return verifyGetRequest(
-        basePath + `/Validate/parameter/integer?minValue=${value}&maxValue=${value}`,
+        basePath + `/Validate/parameter/integer?value=${value}&value_max=${value}`,
         (err, res) => {
           const body = JSON.parse(err.text);
-          expect(body.fields.minValue.message).to.equal('min 5');
-          expect(body.fields.minValue.value).to.equal(String(value));
-          expect(body.fields.maxValue.message).to.equal('max 3');
-          expect(body.fields.maxValue.value).to.equal(String(value));
+          expect(body.fields.value.message).to.equal('min 5');
+          expect(body.fields.value.value).to.equal(String(value));
+          expect(body.fields.value_max.message).to.equal('max 3');
+          expect(body.fields.value_max.value).to.equal(String(value));
         },
         400,
       );

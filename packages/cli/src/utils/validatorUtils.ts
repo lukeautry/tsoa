@@ -14,7 +14,10 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
       if (!tag.comment) {
         return false;
       }
-      return value === tag.tagName.text && tag.comment.startsWith(parameterName);
+
+      const commentParts = tag.comment.split(' ');
+
+      return value === tag.tagName.text && commentParts[0] === parameterName;
     });
   });
 
