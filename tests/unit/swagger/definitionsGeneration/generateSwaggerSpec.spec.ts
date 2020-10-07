@@ -1,13 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
-import { getSwaggerOutputPath, SwaggerConfig } from '../../../../src/module/generate-swagger-spec';
+import { getSwaggerOutputPath } from '../../../../packages/cli/src/module/generate-spec';
+import { ExtendedSpecConfig } from '../../../../packages/cli';
 
 const fakeSwaggerConfig = ({ outputDirectory, yaml, specFileBaseName, ...more }: { outputDirectory: string; yaml?: boolean; specFileBaseName?: string }) => {
-  const answer: SwaggerConfig = {
+  const answer: ExtendedSpecConfig = {
     entryFile: '',
     outputDirectory,
     yaml,
     specFileBaseName,
+    noImplicitAdditionalProperties: 'throw-on-extras',
     ...more,
   };
   return answer;
