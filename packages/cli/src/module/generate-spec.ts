@@ -7,6 +7,13 @@ import { SpecGenerator2 } from '../swagger/specGenerator2';
 import { SpecGenerator3 } from '../swagger/specGenerator3';
 import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
 
+export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
+  const ext = swaggerConfig.yaml ? 'yaml' : 'json';
+  const outputBasename = swaggerConfig.outputBasename || 'swagger';
+
+  return `${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`;
+};
+
 export const generateSpec = async (
   swaggerConfig: ExtendedSpecConfig,
   compilerOptions?: ts.CompilerOptions,
@@ -36,10 +43,9 @@ export const generateSpec = async (
   if (swaggerConfig.yaml) {
     data = YAML.stringify(JSON.parse(data), 10);
   }
-  const ext = swaggerConfig.yaml ? 'yaml' : 'json';
-  const outputBasename = swaggerConfig.outputBasename || 'swagger';
 
-  await fsWriteFile(`${swaggerConfig.outputDirectory}/${outputBasename}.${ext}`, data, { encoding: 'utf8' });
+  const outputPath = getSwaggerOutputPath(swaggerConfig);
+  await fsWriteFile(outputPath, data, { encoding: 'utf8' });
 
   return metadata;
 };
