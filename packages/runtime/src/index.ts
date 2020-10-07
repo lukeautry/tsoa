@@ -9,6 +9,7 @@ export * from './decorators/security';
 export * from './decorators/extension';
 export * from './interfaces/controller';
 export * from './interfaces/response';
+export * from './interfaces/iocModule';
 export * from './decorators/response';
 export * from './metadataGeneration/tsoa';
 export * from './routeGeneration/templateHelpers';
