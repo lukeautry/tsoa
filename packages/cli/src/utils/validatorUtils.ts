@@ -9,24 +9,13 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
     return {};
   }
 
+  const getCommentValue = (comment?: string) => comment && comment.split(' ')[0];
+
   const tags = getJSDocTags(parameter.parent, tag => {
-    return getParameterTagSupport().some(value => {
-      if (!tag.comment) {
-        return false;
-      }
-
-      const commentParts = tag.comment.split(' ');
-
-      return value === tag.tagName.text && commentParts[0] === parameterName;
-    });
+    const { comment } = tag;
+    return getParameterTagSupport().some(value => !!comment && value === tag.tagName.text && getCommentValue(comment) === parameterName);
   });
 
-  function getValue(comment?: string) {
-    if (!comment) {
-      return;
-    }
-    return comment.split(' ')[0];
-  }
   function getErrorMsg(comment?: string, isValue = true) {
     if (!comment) {
       return;
@@ -50,7 +39,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
 
     const name = tag.tagName.text;
     const comment = tag.comment.substr(tag.comment.indexOf(' ') + 1).trim();
-    const value = getValue(comment);
+    const value = getCommentValue(comment);
 
     switch (name) {
       case 'uniqueItems':
