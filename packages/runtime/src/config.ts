@@ -58,6 +58,14 @@ export interface SpecConfig {
   host?: string;
 
   /**
+   * Base-name of swagger.json or swagger.yaml.
+   *
+   * @default: "swagger"
+   */
+  specFileBaseName?: string;
+
+  /**
+
    * API version number; defaults to npm package version
    */
   version?: string;
