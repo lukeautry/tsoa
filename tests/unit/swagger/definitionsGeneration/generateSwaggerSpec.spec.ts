@@ -22,7 +22,7 @@ describe('getSwaggerOutputPath()', () => {
         outputDirectory: '.',
       }),
     );
-    expect(result).to.equal('./openapi.json');
+    expect(result).to.equal('./swagger.json');
   });
 
   it('should make the output path (YAML)', () => {
@@ -32,7 +32,7 @@ describe('getSwaggerOutputPath()', () => {
         yaml: true,
       }),
     );
-    expect(result).to.equal('./openapi.yaml');
+    expect(result).to.equal('./swagger.yaml');
   });
 
   it('should make the output path (YAML, different filename)', () => {
