@@ -1541,6 +1541,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for schema linked by property ${propertyName}`,
             );
           },
+          stringAndBoolArray: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({
+              items: {
+                anyOf: [{ type: 'string' }, { type: 'boolean' }],
+              },
+              type: 'array',
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+            });
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
