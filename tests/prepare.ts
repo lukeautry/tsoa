@@ -39,6 +39,20 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         metadata,
       ),
     ),
+    log('Express Router Route Generation', () =>
+      generateRoutes(
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          authenticationModule: './fixtures/express-router/authentication.ts',
+          entryFile: './fixtures/express-router/server.ts',
+          middleware: 'express',
+          routesDir: './fixtures/express-router',
+        },
+        undefined,
+        undefined,
+        metadata,
+      ),
+    ),
     log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () =>
       generateRoutes(
         {
