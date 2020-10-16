@@ -140,6 +140,9 @@ export interface TestModel extends Model {
 
   defaultGenericModel?: GenericModel;
 
+  // prettier-ignore
+  stringAndBoolArray?: Array<(string | boolean)>;
+
   /**
    * @example {
    *   "numberOrNull": null,
