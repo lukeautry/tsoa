@@ -1,3 +1,3 @@
 node_modules
-packages/**/dist
+dist
 .eslintrc.js
