@@ -1,3 +1,9 @@
+export function Options(value?: string): Function {
+  return () => {
+    return;
+  };
+}
+
 export function Get(value?: string): Function {
   return () => {
     return;
