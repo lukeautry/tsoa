@@ -464,16 +464,16 @@ describe('Definition generation', () => {
             const schema = getValidatedDefinition('Serialize__bar-foo.foo-string__', currentSpec);
             expect(schema).to.be.deep.eq({
               properties: {
-                'bar': {
+                bar: {
                   type: 'string',
                   enum: ['bar'],
                   description: undefined,
                   example: undefined,
                   format: undefined,
                   default: undefined,
-                  'x-nullable': false
+                  'x-nullable': false,
                 },
-                'foo': {
+                foo: {
                   type: 'string',
                   description: undefined,
                   example: undefined,
@@ -1018,7 +1018,7 @@ describe('Definition generation', () => {
                   arrayUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -1027,7 +1027,7 @@ describe('Definition generation', () => {
                   objectUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',

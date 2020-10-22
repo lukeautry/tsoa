@@ -1415,7 +1415,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   arrayUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -1423,7 +1423,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   objectUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',
