@@ -520,6 +520,7 @@ describe('Definition generation', () => {
                   default: undefined,
                 },
               },
+              required: ['record-foo', 'record-bar'],
               type: 'object',
               default: undefined,
               example: undefined,
@@ -988,6 +989,7 @@ describe('Definition generation', () => {
                   type: 'string',
                 },
               },
+              required: ['id'],
               type: 'object',
             });
 

@@ -839,6 +839,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   default: undefined,
                 },
               },
+              required: ['record-foo', 'record-bar'],
               type: 'object',
               default: undefined,
               example: undefined,
@@ -1379,6 +1380,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   type: 'string',
                 },
               },
+              required: ['id'],
               type: 'object',
             });
 

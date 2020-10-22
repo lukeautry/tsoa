@@ -172,7 +172,7 @@ export class TypeResolver {
           }
 
           // Resolve default value, required and typeNode
-          let required = false;
+          let required = true;
           const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
           if (mappedTypeNode.questionToken && mappedTypeNode.questionToken.kind === ts.SyntaxKind.MinusToken) {
             required = true;
