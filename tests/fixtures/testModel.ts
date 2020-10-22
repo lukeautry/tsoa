@@ -67,6 +67,7 @@ export interface TestModel extends Model {
   anyType?: any;
   unknownType?: unknown;
   genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
+  genericMappedType?: Serialize<{ bar: 'foo', foo: string }>;
   indexed?: Partial<Indexed['foo']>;
   record?: Record<'record-foo' | 'record-bar', { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
@@ -157,6 +158,11 @@ export interface TestModel extends Model {
     maybeString: Maybe<string>;
     justNull: null;
   };
+}
+
+type Serialize<T extends any> = {
+  [key in keyof T]: T[key] extends 'foo' ? 'bar' :
+                    T[key]
 }
 
 interface Generic<T> {

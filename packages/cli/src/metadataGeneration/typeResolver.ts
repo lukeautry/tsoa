@@ -161,10 +161,14 @@ export class TypeResolver {
           const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
           const declaration = getDeclaration(property) as ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration | undefined;
 
-          if (declaration && ts.isPropertySignature(declaration)) {
-            return this.propertyFromSignature(declaration, mappedTypeNode.questionToken);
-          } else if (declaration && (ts.isPropertyDeclaration(declaration) || ts.isParameter(declaration))) {
-            return this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken);
+          // Note: for conditional type node, we want to resolve propertyType, because the declaration doesn't have the right type
+          // for conditional mapped type (see `TestModel.genericMappedType` in tests)
+          if (mappedTypeNode.type && !ts.isConditionalTypeNode(mappedTypeNode.type)) {
+            if (declaration && ts.isPropertySignature(declaration)) {
+              return this.propertyFromSignature(declaration, mappedTypeNode.questionToken);
+            } else if (declaration && (ts.isPropertyDeclaration(declaration) || ts.isParameter(declaration))) {
+              return this.propertyFromDeclaration(declaration, mappedTypeNode.questionToken);
+            }
           }
 
           // Resolve default value, required and typeNode

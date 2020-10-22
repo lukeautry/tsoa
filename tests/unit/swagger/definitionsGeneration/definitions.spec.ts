@@ -459,6 +459,36 @@ describe('Definition generation', () => {
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Generic__foo-string--bar-boolean__');
           },
+          genericMappedType: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/Serialize__bar-foo.foo-string__');
+            const schema = getValidatedDefinition('Serialize__bar-foo.foo-string__', currentSpec);
+            expect(schema).to.be.deep.eq({
+              properties: {
+                'bar': {
+                  type: 'string',
+                  enum: ['bar'],
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                  'x-nullable': false
+                },
+                'foo': {
+                  type: 'string',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+              },
+              required: ['bar', 'foo'],
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: undefined,
+            });
+          },
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Partial_Indexed-at-foo_');
           },

@@ -805,6 +805,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           genericTypeObject: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Generic__foo-string--bar-boolean__');
           },
+          genericMappedType: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Serialize__bar-foo.foo-string__');
+          },
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed-at-foo_');
           },
