@@ -113,6 +113,7 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
+    const controllerDup: { [key: string]: any } = {};
     let message = '';
 
     controllers.forEach(controller => {
@@ -124,6 +125,7 @@ export class MetadataGenerator {
         chunks[method.method].push(method);
       });
 
+      const chunkDupPath: { [key: string]: Tsoa.Method[] } = {};
       const regex = new RegExp('^{.*?}/?');
       Object.keys(chunks).forEach((key: string) => {
         let containFirstPath = false;
@@ -138,17 +140,37 @@ export class MetadataGenerator {
         });
 
         if (duplicates.length > 1) {
-          message += 'Duplicate path parameter definition signature found in methods ';
-          duplicates.forEach((each: Tsoa.Method, index, array) => {
-            message += each.name;
-            if (index !== array.length - 1) {
+          chunkDupPath[key] = duplicates;
+        }
+      });
+
+      if (Object.keys(chunkDupPath).length > 0) {
+        controllerDup[controller.name] = chunkDupPath;
+      }
+    });
+
+    if (Object.keys(controllerDup).length > 0) {
+      message = `Duplicate path parameter definition signature found in controller `;
+      Object.keys(controllerDup).forEach((conKey, i, iArr) => {
+        message += `${conKey} at `;
+        const methodDup = controllerDup[conKey];
+        Object.keys(methodDup).forEach((methodKey, j, jArr) => {
+          message += `[method ${methodKey.toUpperCase()} `;
+          const dup = methodDup[methodKey];
+          dup.forEach((each: Tsoa.Method, k, kArr) => {
+            message += `${each.name}`;
+            if (k !== kArr.length - 1) {
               message += ', ';
             }
           });
-          message += ` in controller ${controller.name}\n`;
+          message += j !== jArr.length - 1 ? '], ' : ']';
+        });
+        if (i !== iArr.length - 1) {
+          message += ', ';
         }
       });
-    });
+      message += '\n';
+    }
 
     if (message) {
       throw new GenerateMetadataError(message);

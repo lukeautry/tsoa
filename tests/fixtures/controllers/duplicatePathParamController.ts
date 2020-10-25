@@ -2,15 +2,23 @@ import { Route, Get, Post, Path } from '@tsoa/runtime';
 
 @Route('GetTest')
 export class DuplicatePathParamTestController {
-  @Get('{id}') public pathParamTest(@Path() id: string) {
+  @Get('{id}') public getPathParamTest(@Path() id: string) {
     return id;
   }
 
-  @Get('{identifier}') public pathParamTest2(@Path() identifier: string) {
+  @Get('{identifier}') public getPathParamTest2(@Path() identifier: string) {
     return identifier;
   }
 
-  @Post('{identifier}') public pathParamTest3(@Path() identifier: string) {
+  @Post('{id}') public postPathParamTest(@Path() id: string) {
+    return id;
+  }
+
+  @Post('{identifier}') public postPathParamTest2(@Path() identifier: string) {
     return identifier;
+  }
+
+  @Post('{anotherIdentifier}') public postPathParamTest3(@Path() anotherIdentifier: string) {
+    return anotherIdentifier;
   }
 }
