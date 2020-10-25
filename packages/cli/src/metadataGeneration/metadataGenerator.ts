@@ -29,6 +29,7 @@ export class MetadataGenerator {
     const controllers = this.buildControllers();
 
     this.checkForMethodSignatureDuplicates(controllers);
+    this.checkForPathParamSignatureDuplicates(controllers);
     this.circularDependencyResolvers.forEach(c => c(this.referenceTypeMap));
 
     return {
@@ -104,6 +105,49 @@ export class MetadataGenerator {
       if (controllers.length > 1) {
         message += `Duplicate method signature ${signature} found in controllers: ${controllers.join(', ')}\n`;
       }
+    });
+
+    if (message) {
+      throw new GenerateMetadataError(message);
+    }
+  };
+
+  private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
+    let message = '';
+
+    controllers.forEach(controller => {
+      const chunks: { [key: string]: Tsoa.Method[] } = {};
+      controller.methods.forEach(method => {
+        if (chunks[method.method] === undefined) {
+          chunks[method.method] = [];
+        }
+        chunks[method.method].push(method);
+      });
+
+      const regex = new RegExp('^{.*?}/?');
+      Object.keys(chunks).forEach((key: string) => {
+        let containFirstPath = false;
+        const chunk = chunks[key];
+        const duplicates: Tsoa.Method[] = [];
+        chunk.forEach(value => {
+          const currentMatch = regex.test(value.path);
+          if (currentMatch) {
+            duplicates.push(value);
+          }
+          containFirstPath = containFirstPath || currentMatch;
+        });
+
+        if (duplicates.length > 1) {
+          message += 'Duplicate path parameter definition signature found in methods ';
+          duplicates.forEach((each: Tsoa.Method, index, array) => {
+            message += each.name;
+            if (index !== array.length - 1) {
+              message += ', ';
+            }
+          });
+          message += ` in controller ${controller.name}\n`;
+        }
+      });
     });
 
     if (message) {
