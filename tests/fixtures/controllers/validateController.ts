@@ -54,18 +54,18 @@ export class ValidateController {
     });
   }
   /**
-   * @param {number} minValue
-   * @param {number} maxValue
-   * @isInt minValue
-   * @minimum minValue 5
-   * @isInt maxValue
-   * @maximum maxValue 3
+   * @param {number} value
+   * @param {number} value_max
+   * @isInt value
+   * @minimum value 5
+   * @isInt value_max
+   * @maximum value_max 3
    */
   @Get('parameter/integer')
-  public longValidate(@Query() minValue: number, @Query() maxValue: number): Promise<ValidateNumberResponse> {
+  public longValidate(@Query() value: number, @Query() value_max: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
-      maxValue,
-      minValue,
+      minValue: value,
+      maxValue: value_max,
     });
   }
   /**

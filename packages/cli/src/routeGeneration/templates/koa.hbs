@@ -15,6 +15,7 @@ import { koaAuthentication } from '{{authenticationModule}}';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
+import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import * as KoaRouter from '@koa/router';
 
@@ -75,7 +76,9 @@ export function RegisterRoutes(router: KoaRouter) {
             }
 
             {{#if ../../iocModule}}
-            const controller: any = iocContainer.get<{{../name}}>({{../name}});
+            const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+            const controller: any = container.get<{{../name}}>({{../name}});
             if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
             }

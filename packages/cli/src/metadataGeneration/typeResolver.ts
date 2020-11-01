@@ -295,6 +295,10 @@ export class TypeResolver {
       }
     }
 
+    if (ts.isParenthesizedTypeNode(this.typeNode)) {
+      return new TypeResolver(this.typeNode.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (this.typeNode.kind !== ts.SyntaxKind.TypeReference) {
       throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode);
     }
@@ -775,7 +779,7 @@ export class TypeResolver {
       }
 
       const modelTypeDeclaration = node as UsableDeclaration | ts.EnumMember;
-      return (modelTypeDeclaration.name as ts.Identifier).text === typeName;
+      return (modelTypeDeclaration.name as ts.Identifier)?.text === typeName;
     }) as Array<Exclude<UsableDeclaration | ts.EnumMember, ts.PropertySignature>>;
 
     if (!modelTypes.length) {

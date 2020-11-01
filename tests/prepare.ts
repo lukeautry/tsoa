@@ -39,6 +39,20 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         metadata,
       ),
     ),
+    log('Express Router Route Generation', () =>
+      generateRoutes(
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          authenticationModule: './fixtures/express-router/authentication.ts',
+          entryFile: './fixtures/express-router/server.ts',
+          middleware: 'express',
+          routesDir: './fixtures/express-router',
+        },
+        undefined,
+        undefined,
+        metadata,
+      ),
+    ),
     log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () =>
       generateRoutes(
         {
@@ -148,6 +162,17 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         iocModule: './fixtures/inversify-cpg/ioc.ts',
         middleware: 'express',
         routesDir: './fixtures/inversify-cpg',
+      }),
+    ),
+    log('Inversify Route Generation using dynamic container creation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './fixtures/inversify-dynamic-container/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/inversify-dynamic-container/server.ts',
+        iocModule: './fixtures/inversify-dynamic-container/ioc.ts',
+        middleware: 'express',
+        routesDir: './fixtures/inversify-dynamic-container',
       }),
     ),
   ]);

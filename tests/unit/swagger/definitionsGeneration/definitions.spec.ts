@@ -1310,6 +1310,16 @@ describe('Definition generation', () => {
               `for property ${propertyName}`,
             );
           },
+          stringAndBoolArray: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.type).to.eq('object', `for property ${propertyName}.items.type`);
+            expect(propertySchema.items.format).to.eq(undefined, `for property ${propertyName}.items.format`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
