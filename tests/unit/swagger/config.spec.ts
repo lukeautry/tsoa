@@ -93,5 +93,14 @@ describe('Configuration', () => {
         done();
       });
     });
+
+    it('should accept Spec version 3.1 when specified', done => {
+      const config: Config = getDefaultOptions('some/output/directory', 'tsoa.json');
+      config.spec.specVersion = 3.1;
+      validateSpecConfig(config).then((configResult: ExtendedSpecConfig) => {
+        expect(configResult.specVersion).to.equal(3.1);
+        done();
+      });
+    });
   });
 });

@@ -100,7 +100,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   config.spec.version = config.spec.version || (await versionDefault());
 
   config.spec.specVersion = config.spec.specVersion || 2;
-  if (config.spec.specVersion !== 2 && config.spec.specVersion !== 3) {
+  if (config.spec.specVersion !== 2 && config.spec.specVersion !== 3 && config.spec.specVersion !== 3.1) {
     throw new Error('Unsupported Spec version.');
   }
 

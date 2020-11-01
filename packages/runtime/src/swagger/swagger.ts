@@ -5,7 +5,7 @@ export namespace Swagger {
 
   export type Protocol = 'http' | 'https' | 'ws' | 'wss';
 
-  export type SupportedSpecMajorVersion = 2 | 3;
+  export type SupportedSpecMajorVersion = 2 | 3 | 3.1;
 
   export interface Spec {
     info: Info;
@@ -29,7 +29,7 @@ export namespace Swagger {
   }
 
   export interface Spec3 extends Spec {
-    openapi: '3.0.0';
+    openapi: '3.0.0' | '3.1.0';
     servers: Server[];
     components: Components;
     paths: { [name: string]: Path3 };
