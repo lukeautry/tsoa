@@ -113,7 +113,7 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
-    const controllerDup: { [key: string]: any } = {};
+    const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
     let message = '';
 
     controllers.forEach(controller => {
@@ -151,24 +151,20 @@ export class MetadataGenerator {
 
     if (Object.keys(controllerDup).length > 0) {
       message = `Duplicate path parameter definition signature found in controller `;
-      Object.keys(controllerDup).forEach((conKey, i, iArr) => {
-        message += `${conKey} at `;
-        const methodDup = controllerDup[conKey];
-        Object.keys(methodDup).forEach((methodKey, j, jArr) => {
-          message += `[method ${methodKey.toUpperCase()} `;
-          const dup = methodDup[methodKey];
-          dup.forEach((each: Tsoa.Method, k, kArr) => {
-            message += `${each.name}`;
-            if (k !== kArr.length - 1) {
-              message += ', ';
-            }
-          });
-          message += j !== jArr.length - 1 ? '], ' : ']';
-        });
-        if (i !== iArr.length - 1) {
-          message += ', ';
-        }
-      });
+      message += Object.keys(controllerDup)
+        .map((conKey: string) => {
+          const methodDup: { [key: string]: Tsoa.Method[] } = controllerDup[conKey];
+          return `${conKey} at ${Object.keys(methodDup)
+            .map((methodKey: string) => {
+              return `[method ${methodKey.toUpperCase()} ${methodDup[methodKey]
+                .map((method: Tsoa.Method) => {
+                  return method.name;
+                })
+                .join(', ')}]`;
+            })
+            .join(', ')}`;
+        })
+        .join(', ');
       message += '\n';
     }
 
