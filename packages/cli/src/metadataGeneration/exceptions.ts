@@ -1,8 +1,8 @@
 import { normalize } from 'path';
-import { Node } from 'typescript';
+import { Node, TypeNode } from 'typescript';
 
 export class GenerateMetadataError extends Error {
-  constructor(message?: string, node?: Node, onlyCurrent = false) {
+  constructor(message?: string, node?: Node | TypeNode, onlyCurrent = false) {
     super(message);
     if (node) {
       this.message = `${message!}\n${prettyLocationOfNode(node)}\n${prettyTroubleCause(node, onlyCurrent)}`;
@@ -10,7 +10,7 @@ export class GenerateMetadataError extends Error {
   }
 }
 
-export function prettyLocationOfNode(node: Node) {
+export function prettyLocationOfNode(node: Node | TypeNode) {
   const sourceFile = node.getSourceFile();
   const token = node.getFirstToken() || node.parent.getFirstToken();
   const start = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getStart()).line + 1}` : '';
@@ -19,7 +19,7 @@ export function prettyLocationOfNode(node: Node) {
   return `At: ${normalizedPath}.`;
 }
 
-export function prettyTroubleCause(node: Node, onlyCurrent = false) {
+export function prettyTroubleCause(node: Node | TypeNode, onlyCurrent = false) {
   let name: string;
   if (onlyCurrent || !node.parent) {
     name = node.pos !== -1 ? node.getText() : (node as any).name.text;
