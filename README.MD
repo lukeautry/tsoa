@@ -6,6 +6,7 @@ Pronounced so·uh
 
 OpenAPI-compliant REST APIs using TypeScript and Node
 
+[![Coverage Status](https://coveralls.io/repos/github/lukeautry/tsoa/badge.svg?branch=master)](https://coveralls.io/github/lukeautry/tsoa?branch=master)
 [![Codeship Status for lukeautry/tsoa](https://codeship.com/projects/cdce38d0-1f6b-0134-258e-1ed679ae6c9d/status?branch=master)](https://codeship.com/projects/160322)
 [![npm version](https://img.shields.io/npm/v/tsoa/latest)](https://www.npmjs.com/package/tsoa)
 
