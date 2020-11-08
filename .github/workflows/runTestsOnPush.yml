@@ -14,11 +14,23 @@ jobs:
         uses: Borales/actions-yarn@master
         with:
           cmd: lint
-      - name: Test with Coverage
+      - name: Unit Test with Coverage
         uses: Borales/actions-yarn@master
         with:
-          cmd: test:coverage
-      - name: Push coverage to Coverall
+          cmd: test:unit:cov
+      - name: Push unit test coverage to Coveralls.io
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: cov-report/unit/lcov.info
+          flag-name: unit
+      - name: Integrate Test with Coverage
+        uses: Borales/actions-yarn@master
+        with:
+          cmd: test:integrate:cov
+      - name: Push integrate test coverage to Coveralls.io
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: cov-report/integrate/lcov.info
+          flag-name: integrate
