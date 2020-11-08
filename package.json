@@ -36,6 +36,7 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "yarn --cwd tests test",
+    "test:coverage": "yarn --cwd tests test:coverage",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run lint --fix",
     "watch": "lerna run watch --parallel",

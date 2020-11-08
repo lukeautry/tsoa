@@ -1,0 +1,14 @@
+{
+    "all": true,
+    "include": [
+        "packages/**/*.ts"
+    ],
+    "exclude": [
+        "tests/**/*.ts",
+        "packages/**/dist",
+        "packages/**/node_modules"
+    ],
+    "cwd": "../",
+    "report-dir": "./coverage",
+    "temp-dir": "./.nyc_output"
+}
