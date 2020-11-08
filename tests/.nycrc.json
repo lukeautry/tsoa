@@ -9,6 +9,9 @@
         "packages/**/node_modules"
     ],
     "cwd": "../",
-    "report-dir": "./coverage",
-    "temp-dir": "./.nyc_output"
+    "temp-dir": "./.nyc_output",
+    "reporter": [
+        "text",
+        "lcov"
+    ]
 }

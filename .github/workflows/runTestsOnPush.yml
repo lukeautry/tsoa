@@ -14,7 +14,11 @@ jobs:
         uses: Borales/actions-yarn@master
         with:
           cmd: lint
-      - name: Test
+      - name: Test with Coverage
         uses: Borales/actions-yarn@master
         with:
-          cmd: test
+          cmd: test:coverage
+      - name: Push coverage to Coverall
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
