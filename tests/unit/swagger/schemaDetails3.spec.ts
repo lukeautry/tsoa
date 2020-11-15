@@ -141,6 +141,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const flow = password.flows.password;
 
+      if (!flow) {
+        throw new Error('No password flow.');
+      }
+
       expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
       expect(flow.authorizationUrl).to.be.undefined;
 
@@ -164,6 +168,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(app.flows.clientCredentials).exist;
 
       const flow = app.flows.clientCredentials;
+
+      if (!flow) {
+        throw new Error('No clientCredentials flow.');
+      }
 
       expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
       expect(flow.authorizationUrl).to.be.undefined;
@@ -189,6 +197,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const flow = authCode.flows.authorizationCode;
 
+      if (!flow) {
+        throw new Error('No authorizationCode flow.');
+      }
+
       expect(flow.tokenUrl).to.equal('/ats-api/auth/token');
       expect(flow.authorizationUrl).to.equal('/ats-api/auth/authorization');
 
@@ -212,6 +224,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(imp.flows.implicit).exist;
 
       const flow = imp.flows.implicit;
+
+      if (!flow) {
+        throw new Error('No implicit flow.');
+      }
 
       expect(flow.tokenUrl).to.be.undefined;
       expect(flow.authorizationUrl).to.equal('/ats-api/auth/authorization');
