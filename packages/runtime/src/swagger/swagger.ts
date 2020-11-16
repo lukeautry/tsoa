@@ -337,7 +337,7 @@ export namespace Swagger {
   }
 
   export type OAuthFlow = {
-    [flowName in OAuth2FlowTypes]: OAuth2SecurityFlow3;
+    [flowName in OAuth2FlowTypes]?: OAuth2SecurityFlow3;
   };
   export type OAuth2FlowTypes = 'authorizationCode' | 'implicit' | 'password' | 'clientCredentials';
   export type Security = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity | OAuth2Security3;
