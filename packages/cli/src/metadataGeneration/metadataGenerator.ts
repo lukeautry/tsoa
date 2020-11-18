@@ -113,39 +113,83 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
+    const isParamRegExp = new RegExp("{|}|:");
     const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
     let message = '';
 
-    controllers.forEach(controller => {
-      const chunks: { [key: string]: Tsoa.Method[] } = {};
-      controller.methods.forEach(method => {
-        if (chunks[method.method] === undefined) {
-          chunks[method.method] = [];
+    /**
+     * @return 0 means not duplication.
+     * @return 1 means fully duplicate.
+     * @return 2 means partially duplicate, and p's path is o's prefix.
+     * @return 3 means partially duplicate, and o's path is p's prefix.
+     */
+    function _examinePaths(o: { paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }, p: { paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }): number {
+      const testLength = o.paths.length > p.paths.length ? p.paths.length : o.paths.length;
+      for (let i = 0; i < testLength; i += 1) {
+        if ((o.paths[i].isParam && !p.paths[i].isParam)
+          || (!o.paths[i].isParam && p.paths[i].isParam)
+          || (!o.paths[i].isParam && o.paths[i].path !== p.paths[i].path)
+        ) {
+          return 0;
         }
-        chunks[method.method].push(method);
+      }
+      if (o.paths.length === p.paths.length) {
+        return 1;
+      } else if (o.paths.length > p.paths.length) {
+        return 2;
+      } else {
+        return 3;
+      }
+    }
+
+    controllers.forEach(controller => {
+      const methodRouteGroup: { [key: string]: Array<{
+        paths: Array<{
+          isParam: boolean,
+          path: string,
+        }>,
+        method: Tsoa.Method,
+      }> } = {};
+      // Group each ts methods with RESTful methods into same object in same controller.
+      controller.methods.forEach(method => {
+        if (methodRouteGroup[method.method] === undefined) {
+          methodRouteGroup[method.method] = [];
+        }
+        methodRouteGroup[method.method].push({
+          paths: method.path.split('/').map((val: string) => {
+            return { isParam: isParamRegExp.test(val), path: val };
+          }),
+          method,
+        });
       });
 
-      const chunkDupPath: { [key: string]: Tsoa.Method[] } = {};
-      const regex = new RegExp('^{.*?}/?');
-      Object.keys(chunks).forEach((key: string) => {
-        let containFirstPath = false;
-        const chunk = chunks[key];
+      const dupRoute: { [key: string]: Tsoa.Method[] } = {};
+      Object.keys(methodRouteGroup).forEach((key: string) => {
+        const methodRoutes: Array<{ paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }> = methodRouteGroup[key];
         const duplicates: Tsoa.Method[] = [];
-        chunk.forEach(value => {
-          const currentMatch = regex.test(value.path);
-          if (currentMatch) {
-            duplicates.push(value);
+        for (let i = 0; i < methodRoutes.length - 1; i += 1) {
+          const iMethodRoute = methodRoutes[i];
+          for (let j = i + 1; j < methodRoutes.length; j += 1) {
+            const jMethodRoute = methodRoutes[j];
+            const examineResult = _examinePaths(iMethodRoute, jMethodRoute);
+            if (examineResult === 1) {
+              if (!duplicates.includes(iMethodRoute.method)) { duplicates.push(iMethodRoute.method); }
+              if (!duplicates.includes(jMethodRoute.method)) { duplicates.push(jMethodRoute.method); }
+            } else if (examineResult === 2) {
+              console.warn(`[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`);
+            } else if (examineResult === 3) {
+              console.warn(`[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`);
+            }
           }
-          containFirstPath = containFirstPath || currentMatch;
-        });
+        }
 
         if (duplicates.length > 1) {
-          chunkDupPath[key] = duplicates;
+          dupRoute[key] = duplicates;
         }
       });
 
-      if (Object.keys(chunkDupPath).length > 0) {
-        controllerDup[controller.name] = chunkDupPath;
+      if (Object.keys(dupRoute).length > 0) {
+        controllerDup[controller.name] = dupRoute;
       }
     });
 
