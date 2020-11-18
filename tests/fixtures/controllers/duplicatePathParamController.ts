@@ -1,4 +1,4 @@
-import { Route, Get, Post, Path } from '@tsoa/runtime';
+import { Route, Get, Post, Path, Delete, Head } from '@tsoa/runtime';
 
 @Route('GetTest')
 export class DuplicatePathParamTestController {
@@ -18,7 +18,29 @@ export class DuplicatePathParamTestController {
     return identifier;
   }
 
-  @Post('{anotherIdentifier}') public postPathParamTest3(@Path() anotherIdentifier: string) {
+  @Post(':anotherIdentifier') public postPathParamTest3(@Path() anotherIdentifier: string) {
     return anotherIdentifier;
+  }
+
+  @Delete('Delete/{id}') public deletePathParamTest(@Path() id: string) {
+    return id;
+  }
+
+  // This method should not report error cause its prefix route is different.
+  @Delete('Delete2/{id}') public deletePathParamTest2(@Path() id: string) {
+    return id;
+  }
+
+  @Delete('Delete/:identifier') public deletePathParamTest3(@Path() identifier: string) {
+    return identifier;
+  }
+
+  // These two Head method should raise only warn but still work.
+  @Head('Head/{id}') public headPathParamTest(@Path() id) {
+    return id;
+  }
+
+  @Head('Head/{id}/{id2}') public headPathParamTest2(@Path() id, @Path() id2) {
+    return { id, id2 };''
   }
 }

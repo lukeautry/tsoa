@@ -12,7 +12,7 @@ describe('reject when something duplicate', () => {
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/duplicatePathParamController.ts').Generate();
     }).to.throw(
-      `Duplicate path parameter definition signature found in controller DuplicatePathParamTestController at [method GET getPathParamTest, getPathParamTest2], [method POST postPathParamTest, postPathParamTest2, postPathParamTest3]\n`,
+      `Duplicate path parameter definition signature found in controller DuplicatePathParamTestController at [method GET getPathParamTest, getPathParamTest2], [method POST postPathParamTest, postPathParamTest2, postPathParamTest3], [method DELETE deletePathParamTest, deletePathParamTest3]\n`,
     );
   });
 });
