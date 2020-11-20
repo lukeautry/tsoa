@@ -55,7 +55,7 @@
     "supertest": "^4.0.2",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.1.1-rc"
+    "typescript": "^4.1.2"
   },
   "repository": {
     "type": "git",
