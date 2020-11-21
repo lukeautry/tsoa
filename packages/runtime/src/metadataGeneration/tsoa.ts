@@ -24,6 +24,7 @@ export namespace Tsoa {
     type: Type;
     tags?: string[];
     responses: Response[];
+    successStatus?: number;
     security: Security[];
     summary?: string;
     isHidden: boolean;

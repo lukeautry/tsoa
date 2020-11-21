@@ -15,6 +15,7 @@ import '../controllers/parameterController';
 import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
+import '../controllers/noExtendsController';
 
 import { RegisterRoutes } from './routes';
 

@@ -97,7 +97,7 @@ export function RegisterRoutes(server: any) {
                     {{/if}}
 
                     const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-                    return promiseHandler(controller, promise, request, h);
+                    return promiseHandler(controller, promise, request, {{successStatus}}, h);
                 }
             }
         });
@@ -162,10 +162,10 @@ export function RegisterRoutes(server: any) {
         return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
     }
 
-    function promiseHandler(controllerObj: any, promise: any, request: any, h: any) {
+    function promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
-                let statusCode;
+                let statusCode = successStatus;
                 let headers;
 
                 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
