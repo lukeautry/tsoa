@@ -27,7 +27,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: cov-report/${{ matrix.test_stage }}/lcov.info
+          path-to-lcov: tests/cov-report/${{ matrix.test_stage }}/lcov.info
           flag-name: ${{ matrix.test_stage }}
           parallel: true
   finish:

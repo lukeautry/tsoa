@@ -17,21 +17,22 @@
     "koa"
   ],
   "scripts": {
-    "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
+    "clean": "rimraf ../cov-report dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
     "pretest": "yarn clean && cross-env NODE_ENV=tsoa_test ts-node --require tsconfig-paths/register ./prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
     "test": "yarn test:unit && yarn test:integrate",
     "test:unit": "node ../ensureYarn.js && yarn pretest && tsc -b tsconfig.build.json && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha 'unit/**/*.spec.ts' --exit --require ts-node/register --require tsconfig-paths/register --timeout 5000",
     "test:integrate": "node ../ensureYarn.js && yarn pretest && tsc -b tsconfig.build.json && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha 'integration/**/*.spec.ts' --exit --require ts-node/register --require tsconfig-paths/register --timeout 5000",
-    "test:cov": "nyc --report-dir=./cov-report yarn test",
-    "test:unit:cov": "nyc --report-dir=./cov-report/unit yarn test:unit",
-    "test:integrate:cov": "nyc --report-dir=./cov-report/integrate yarn test:integrate",
+    "test:cov": "nyc --report-dir=./tests/cov-report yarn test",
+    "test:unit:cov": "nyc --report-dir=./tests/cov-report/unit yarn test:unit",
+    "test:integrate:cov": "nyc --report-dir=./tests/cov-report/integrate yarn test:integrate",
     "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "devDependencies": {
     "@hapi/hapi": "^19.1.1",
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@koa/router": "^8.0.8",
     "@types/body-parser": "^1.17.1",
     "@types/chai": "^4.2.0",
@@ -58,8 +59,9 @@
     "nyc": "^15.1.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
+    "source-map-support": "^0.5.19",
     "supertest": "^4.0.2",
-    "ts-node": "^8.3.0",
+    "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.2"
   },
