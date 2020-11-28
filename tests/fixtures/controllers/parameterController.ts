@@ -115,7 +115,7 @@ export class ParameterController {
    * @isInt age
    * @isFloat weight
    */
-  @Get('Path/:firstname/:last_name/:age/:weight/:human/:gender')
+  @Get('PathColonDelimiter/:firstname/:last_name/:age/:weight/:human/:gender')
   public async getPathColonDelimiter(
     firstname: string,
     @Path('last_name') lastname: string,
@@ -133,6 +133,7 @@ export class ParameterController {
       weight,
     });
   }
+
   /**
    * Header test paramater
    *
