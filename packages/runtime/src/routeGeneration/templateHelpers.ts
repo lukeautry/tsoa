@@ -84,7 +84,7 @@ export class ValidationService {
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
   ) {
-    if (!(value instanceof Object) || Array.isArray(value)) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       fieldErrors[parent + name] = {
         message: `invalid object`,
         value,
@@ -636,7 +636,7 @@ export class ValidationService {
 
       const fieldPath = parent + name;
 
-      if (!(value instanceof Object)) {
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) {
         fieldErrors[fieldPath] = {
           message: `invalid object`,
           value,

@@ -21,7 +21,6 @@
     "build": "yarn clean && yarn tsc && yarn copy-templates",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
-    "format": "tsfmt -r",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
   },
@@ -33,7 +32,7 @@
     "fs-extra": "^8.1.0",
     "glob": "^7.1.6",
     "handlebars": "^4.7.6",
-    "merge": "^1.2.1",
+    "merge": "^2.1.0",
     "minimatch": "^3.0.4",
     "moment": "^2.24.0",
     "typescript": "^3.9.2",
