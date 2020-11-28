@@ -1151,7 +1151,165 @@ describe('Definition generation', () => {
             const maybeWord = getValidatedDefinition('Maybe_Word_', currentSpec);
             expect(maybeWord).to.deep.eq({ type: 'object', description: undefined, example: undefined, default: undefined, format: undefined }, `for schema linked by property ${propertyName}`);
           },
+          templateLiteralString: (properyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({ $ref: '#/definitions/TemplateLiteralString', description: undefined, example: undefined, format: undefined });
 
+            const tlsSchema = getValidatedDefinition('TemplateLiteralString', currentSpec);
+
+            expect(tlsSchema).to.deep.eq({ $ref: '#/definitions/OrderOptions_ParameterTestModel_', default: undefined, example: undefined, format: undefined, description: undefined });
+
+            const orderOptionsSchema = getValidatedDefinition('OrderOptions_ParameterTestModel_', currentSpec);
+
+            expect(orderOptionsSchema).to.deep.eq({
+              default: undefined,
+              description: undefined,
+              enum: [
+                'firstname:asc',
+                'lastname:asc',
+                'age:asc',
+                'weight:asc',
+                'human:asc',
+                'gender:asc',
+                'nicknames:asc',
+                'firstname:desc',
+                'lastname:desc',
+                'age:desc',
+                'weight:desc',
+                'human:desc',
+                'gender:desc',
+                'nicknames:desc',
+              ],
+              example: undefined,
+              format: undefined,
+              type: 'string',
+              'x-nullable': false,
+            });
+          },
+          inlineTLS: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: ['ASC', 'DESC'],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                'x-nullable': false,
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          inlineMappedType: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal(
+              {
+                properties: {
+                  'lastname:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'age:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'weight:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'human:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'gender:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'nicknames:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'firstname:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'lastname:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'age:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'weight:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'human:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'gender:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'nicknames:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                },
+                type: 'object',
+                description: undefined,
+                example: undefined,
+                format: undefined,
+                default: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          inlineMappedTypeRemapped: (propertyName, propertySchema) => {
+            expect(Object.keys(propertySchema.properties || {})).to.have.members(
+              ['FirstnameProp', 'LastnameProp', 'AgeProp', 'WeightProp', 'HumanProp', 'GenderProp', 'NicknamesProp'],
+              `for property ${propertyName}`,
+            );
+          },
           stringAndBoolArray: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             if (!propertySchema.items) {

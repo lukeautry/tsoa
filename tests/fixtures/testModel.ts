@@ -157,6 +157,12 @@ export interface TestModel extends Model {
     maybeString: Maybe<string>;
     justNull: null;
   };
+
+  templateLiteralString?: TemplateLiteralString,
+  inlineTLS?: `${Uppercase<OrderDirection>}`
+  inlineMappedType?: {[K in Exclude<TemplateLiteralString, 'firstname:asc'>]: boolean}
+  inlineMappedTypeRemapped?: {
+    [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string}
 }
 
 interface Generic<T> {
@@ -778,3 +784,9 @@ interface DanglingContext<T> {
 interface TSameNameDifferentValue {
   str: string;
 }
+
+type OrderDirection = "asc" | "desc";
+
+type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
+
+type TemplateLiteralString = OrderOptions<ParameterTestModel>;

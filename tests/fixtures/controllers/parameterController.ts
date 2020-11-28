@@ -220,8 +220,8 @@ export class ParameterController {
    * @param {object} body Body description
    */
   @Post('Bodies')
-  public async getBodies(@Body() body: ParameterTestModel | ParameterTestModel[]): Promise<ParameterTestModel[]> {
-    const bodies = [...body];
+  public async getBodies(@Body() body: ParameterTestModel[]): Promise<ParameterTestModel[]> {
+    const bodies = [...[body].flat()];
 
     return Promise.resolve<ParameterTestModel[]>(bodies);
   }

@@ -5,7 +5,7 @@ import { Tsoa } from '@tsoa/runtime';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { TestModel } from '../../fixtures/duplicateTestModel';
+import { TestModel } from '../../fixtures/testModel';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
@@ -509,7 +509,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
-        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Spec) => void> = {
+        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema3) => void> = {
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
@@ -1555,6 +1555,168 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(maybeWord).to.deep.eq(
               { allOf: [{ $ref: '#/components/schemas/Word' }], description: undefined, default: undefined, example: undefined, format: undefined, nullable: true },
               `for schema linked by property ${propertyName}`,
+            );
+          },
+          templateLiteralString: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({ $ref: '#/components/schemas/TemplateLiteralString', description: undefined, example: undefined, format: undefined });
+
+            const tlsSchema = getComponentSchema('TemplateLiteralString', currentSpec);
+
+            expect(tlsSchema).to.deep.eq({ $ref: '#/components/schemas/OrderOptions_ParameterTestModel_', default: undefined, example: undefined, format: undefined, description: undefined });
+
+            const orderOptionsSchema = getComponentSchema('OrderOptions_ParameterTestModel_', currentSpec);
+
+            expect(orderOptionsSchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: [
+                  'firstname:asc',
+                  'lastname:asc',
+                  'age:asc',
+                  'weight:asc',
+                  'human:asc',
+                  'gender:asc',
+                  'nicknames:asc',
+                  'firstname:desc',
+                  'lastname:desc',
+                  'age:desc',
+                  'weight:desc',
+                  'human:desc',
+                  'gender:desc',
+                  'nicknames:desc',
+                ],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                nullable: false,
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          inlineTLS: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                enum: ['ASC', 'DESC'],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                nullable: false,
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          inlineMappedType: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.equal(
+              {
+                properties: {
+                  'lastname:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'age:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'weight:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'human:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'gender:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'nicknames:asc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'firstname:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'lastname:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'age:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'weight:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'human:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'gender:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                  'nicknames:desc': {
+                    type: 'boolean',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
+                  },
+                },
+                type: 'object',
+                description: undefined,
+                example: undefined,
+                format: undefined,
+                default: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          inlineMappedTypeRemapped: (propertyName, propertySchema) => {
+            expect(Object.keys(propertySchema.properties || {})).to.have.members(
+              ['FirstnameProp', 'LastnameProp', 'AgeProp', 'WeightProp', 'HumanProp', 'GenderProp', 'NicknamesProp'],
+              `for property ${propertyName}`,
             );
           },
           stringAndBoolArray: (propertyName, propertySchema) => {
