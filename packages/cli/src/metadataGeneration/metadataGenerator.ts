@@ -117,7 +117,7 @@ export class MetadataGenerator {
     const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
     let message = '';
 
-    enum _PathDuplicationType {
+    enum PathDuplicationType {
       NONE, // No duplication.
       FULL, // Fully duplicate.
       PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX, // subject's path is tester's prefix.
@@ -127,7 +127,7 @@ export class MetadataGenerator {
     function _examinePaths(
       tester: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
       subject: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
-    ): _PathDuplicationType {
+    ): PathDuplicationType {
       const testLength = tester.paths.length > subject.paths.length ? subject.paths.length : tester.paths.length;
       for (let i = 0; i < testLength; i += 1) {
         if (
@@ -135,15 +135,15 @@ export class MetadataGenerator {
           (!tester.paths[i].isParam && subject.paths[i].isParam) ||
           (!tester.paths[i].isParam && tester.paths[i].path !== subject.paths[i].path)
         ) {
-          return _PathDuplicationType.NONE;
+          return PathDuplicationType.NONE;
         }
       }
       if (tester.paths.length === subject.paths.length) {
-        return _PathDuplicationType.FULL;
+        return PathDuplicationType.FULL;
       } else if (tester.paths.length > subject.paths.length) {
-        return _PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX;
+        return PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX;
       } else {
-        return _PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX;
+        return PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX;
       }
     }
 
@@ -178,22 +178,25 @@ export class MetadataGenerator {
           const iMethodRoute = methodRoutes[i];
           for (let j = i + 1; j < methodRoutes.length; j += 1) {
             const jMethodRoute = methodRoutes[j];
-            const examineResult = _examinePaths(iMethodRoute, jMethodRoute);
-            if (examineResult === 1) {
-              if (!duplicates.includes(iMethodRoute.method)) {
-                duplicates.push(iMethodRoute.method);
-              }
-              if (!duplicates.includes(jMethodRoute.method)) {
-                duplicates.push(jMethodRoute.method);
-              }
-            } else if (examineResult === 2) {
-              console.warn(
-                `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
-              );
-            } else if (examineResult === 3) {
-              console.warn(
-                `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
-              );
+            switch (_examinePaths(iMethodRoute, jMethodRoute)) {
+              case PathDuplicationType.FULL:
+                if (!duplicates.includes(iMethodRoute.method)) {
+                  duplicates.push(iMethodRoute.method);
+                }
+                if (!duplicates.includes(jMethodRoute.method)) {
+                  duplicates.push(jMethodRoute.method);
+                }
+                break;
+              case PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX:
+                console.warn(
+                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoke, because its route is partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
+                );
+                break;
+              case PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX:
+                console.warn(
+                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoke, because its route is partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
+                );
+                break;
             }
           }
         }
