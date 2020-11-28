@@ -21,7 +21,6 @@
     "build": "yarn clean && yarn tsc && yarn copy-templates",
     "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/* ./dist",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
-    "format": "tsfmt -r",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
   },
