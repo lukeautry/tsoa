@@ -113,44 +113,51 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
-    const isParamRegExp = new RegExp("{|}|:");
+    const isParamRegExp = new RegExp('{|}|:');
     const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
     let message = '';
 
-    /**
-     * @return 0 means not duplication.
-     * @return 1 means fully duplicate.
-     * @return 2 means partially duplicate, and p's path is o's prefix.
-     * @return 3 means partially duplicate, and o's path is p's prefix.
-     */
-    function _examinePaths(o: { paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }, p: { paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }): number {
-      const testLength = o.paths.length > p.paths.length ? p.paths.length : o.paths.length;
+    enum _PathDuplicationType {
+      NONE, // No duplication.
+      FULL, // Fully duplicate.
+      PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX, // subject's path is tester's prefix.
+      PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX, // tester's path is subject's prefix.
+    }
+
+    function _examinePaths(
+      tester: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
+      subject: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
+    ): _PathDuplicationType {
+      const testLength = tester.paths.length > subject.paths.length ? subject.paths.length : tester.paths.length;
       for (let i = 0; i < testLength; i += 1) {
-        if ((o.paths[i].isParam && !p.paths[i].isParam)
-          || (!o.paths[i].isParam && p.paths[i].isParam)
-          || (!o.paths[i].isParam && o.paths[i].path !== p.paths[i].path)
+        if (
+          (tester.paths[i].isParam && !subject.paths[i].isParam) ||
+          (!tester.paths[i].isParam && subject.paths[i].isParam) ||
+          (!tester.paths[i].isParam && tester.paths[i].path !== subject.paths[i].path)
         ) {
-          return 0;
+          return _PathDuplicationType.NONE;
         }
       }
-      if (o.paths.length === p.paths.length) {
-        return 1;
-      } else if (o.paths.length > p.paths.length) {
-        return 2;
+      if (tester.paths.length === subject.paths.length) {
+        return _PathDuplicationType.FULL;
+      } else if (tester.paths.length > subject.paths.length) {
+        return _PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX;
       } else {
-        return 3;
+        return _PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX;
       }
     }
 
     controllers.forEach(controller => {
-      const methodRouteGroup: { [key: string]: Array<{
-        paths: Array<{
-          isParam: boolean,
-          path: string,
-        }>,
-        method: Tsoa.Method,
-      }> } = {};
-      // Group each ts methods with RESTful methods into same object in same controller.
+      const methodRouteGroup: {
+        [key: string]: Array<{
+          paths: Array<{
+            isParam: boolean;
+            path: string;
+          }>;
+          method: Tsoa.Method;
+        }>;
+      } = {};
+      // Group all ts methods with HTTP method decorator into same object in same controller.
       controller.methods.forEach(method => {
         if (methodRouteGroup[method.method] === undefined) {
           methodRouteGroup[method.method] = [];
@@ -165,7 +172,7 @@ export class MetadataGenerator {
 
       const dupRoute: { [key: string]: Tsoa.Method[] } = {};
       Object.keys(methodRouteGroup).forEach((key: string) => {
-        const methodRoutes: Array<{ paths: Array<{ isParam: boolean, path: string }>, method: Tsoa.Method }> = methodRouteGroup[key];
+        const methodRoutes: Array<{ paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method }> = methodRouteGroup[key];
         const duplicates: Tsoa.Method[] = [];
         for (let i = 0; i < methodRoutes.length - 1; i += 1) {
           const iMethodRoute = methodRoutes[i];
@@ -173,12 +180,20 @@ export class MetadataGenerator {
             const jMethodRoute = methodRoutes[j];
             const examineResult = _examinePaths(iMethodRoute, jMethodRoute);
             if (examineResult === 1) {
-              if (!duplicates.includes(iMethodRoute.method)) { duplicates.push(iMethodRoute.method); }
-              if (!duplicates.includes(jMethodRoute.method)) { duplicates.push(jMethodRoute.method); }
+              if (!duplicates.includes(iMethodRoute.method)) {
+                duplicates.push(iMethodRoute.method);
+              }
+              if (!duplicates.includes(jMethodRoute.method)) {
+                duplicates.push(jMethodRoute.method);
+              }
             } else if (examineResult === 2) {
-              console.warn(`[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`);
+              console.warn(
+                `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
+              );
             } else if (examineResult === 3) {
-              console.warn(`[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`);
+              console.warn(
+                `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never been invoke, because its route is partialy collison with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
+              );
             }
           }
         }
