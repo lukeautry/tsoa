@@ -18,9 +18,9 @@ export class NoExtendsController {
     return Promise.resolve();
   }
 
-  @Get('namedSuccessResponse')
-  @SuccessResponse('Teapot')
-  public async namedSuccessResponse(): Promise<void> {
+  @Get('rangedSuccessResponse')
+  @SuccessResponse('2XX')
+  public async rangedSuccessResponse(): Promise<void> {
     return Promise.resolve();
   }
 }

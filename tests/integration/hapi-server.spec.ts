@@ -323,7 +323,7 @@ describe('Hapi Server', () => {
 
     it('should ignore named success response', () => {
       return verifyGetRequest(
-        basePath + `/NoExtends/namedSuccessResponse`,
+        basePath + `/NoExtends/rangedSuccessResponse`,
         (err, res) => {
           expect(res.status).to.equal(204);
         },
