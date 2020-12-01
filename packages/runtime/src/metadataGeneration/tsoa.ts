@@ -70,6 +70,7 @@ export namespace Tsoa {
     name: string;
     schema?: Type;
     examples?: unknown[];
+    headers?: Type;
   }
 
   export interface Property {

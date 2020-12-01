@@ -301,6 +301,24 @@ export class SpecGenerator3 extends SpecGenerator {
           (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
         }
       }
+
+      if (res.headers) {
+        const headers = {};
+        if (res.headers.dataType === 'refObject') {
+          headers[res.headers.refName] = {
+            schema: this.getSwaggerTypeForReferenceType(res.headers) as Swagger.Schema3,
+            description: res.headers.description,
+          } as Swagger.Header3;
+        } else if (res.headers.dataType === 'nestedObjectLiteral') {
+          res.headers.properties.forEach((each: Tsoa.Property) => {
+            headers[each.name] = {
+              schema: this.getSwaggerType(each.type),
+              description: each.description,
+            };
+          });
+        }
+        swaggerResponses[res.name].headers = headers;
+      }
     });
 
     return {

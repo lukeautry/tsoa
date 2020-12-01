@@ -196,6 +196,19 @@ export class SpecGenerator2 extends SpecGenerator {
       if (res.examples && res.examples[0]) {
         swaggerResponses[res.name].examples = { 'application/json': res.examples[0] } as Swagger.Example;
       }
+
+      if (res.headers) {
+        const headers = {};
+        if (res.headers.dataType === 'refObject' || res.headers.dataType === 'nestedObjectLiteral') {
+          res.headers.properties.forEach((each: Tsoa.Property) => {
+            headers[each.name] = {
+              type: this.getSwaggerType(each.type).type,
+              description: each.description,
+            };
+          });
+        }
+        swaggerResponses[res.name].headers = headers;
+      }
     });
 
     return {

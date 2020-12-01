@@ -208,7 +208,7 @@ export namespace Swagger {
   export interface Response3 {
     description: string;
     content?: { [name: string]: Schema & Example };
-    headers?: { [name: string]: Header };
+    headers?: { [name: string]: Header3 };
   }
 
   export interface BaseSchema {
@@ -260,8 +260,37 @@ export namespace Swagger {
     required?: string[];
   }
 
-  export interface Header extends BaseSchema {
-    type: 'integer' | 'number' | 'boolean' | 'string' | 'array';
+  export interface Header {
+    description?: string;
+    type: 'string' | 'number' | 'integer' | 'boolean' | 'array';
+    format?: string;
+    items?: BaseSchema;
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
+    default?: string | boolean | number | any;
+    maximum?: number;
+    exclusiveMaximum?: boolean;
+    minimum?: number;
+    exclusiveMinimum?: boolean;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
+    maxItems?: number;
+    minItems?: number;
+    uniqueItems?: boolean;
+    enum?: Array<string | number | null>;
+    multipleOf?: number;
+  }
+
+  export interface Header3 extends BaseSchema {
+    required?: boolean;
+    description?: string;
+    example?: unknown;
+    examples?: {
+      [name: string]: Example3 | string;
+    };
+    schema: Schema;
+    type?: DataType;
+    format?: DataFormat;
   }
 
   export interface XML {
