@@ -430,6 +430,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
     describe('methods', () => {
       describe('responses', () => {
+        it('should generate headers in reponse.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
+          const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject'];
+          paths.forEach((path: string) => {
+            const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
+
+            expect(responses?.[200]?.headers).to.not.eq(undefined);
+            if (path.includes('HeaderClass')) {
+              expect(responses?.[200]?.headers?.ResponseHeader).to.not.eq(undefined);
+            }
+          });
+        });
+
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();

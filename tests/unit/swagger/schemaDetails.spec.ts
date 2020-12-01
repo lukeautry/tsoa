@@ -183,6 +183,29 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('responses', () => {
+        it('should generate headers in reponse.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
+          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject'];
+          paths.forEach((path: string) => {
+            const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
+
+            expect(responses?.[200]?.headers).to.not.eq(undefined);
+            if (path.includes('HeaderClass')) {
+              expect(responses?.[200]?.headers).to.deep.eq({
+                Link: {
+                  type: 'string',
+                  description: 'a link string',
+                },
+                LinkB: {
+                  type: 'string',
+                  description: 'b link str',
+                },
+              });
+            }
+          });
+        });
+
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
