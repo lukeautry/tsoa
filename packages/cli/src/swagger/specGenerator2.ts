@@ -184,17 +184,17 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
-    const swaggerResponses: any = {};
+    const swaggerResponses: { [name: string]: Swagger.Response } = {};
 
     method.responses.forEach((res: Tsoa.Response) => {
       swaggerResponses[res.name] = {
         description: res.description,
       };
       if (res.schema && !isVoidType(res.schema)) {
-        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema;
       }
       if (res.examples && res.examples[0]) {
-        swaggerResponses[res.name].examples = { 'application/json': res.examples[0] };
+        swaggerResponses[res.name].examples = { 'application/json': res.examples[0] } as Swagger.Example;
       }
     });
 
