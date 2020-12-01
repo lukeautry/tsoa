@@ -11,7 +11,7 @@ import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
 
 export class MethodGenerator {
-  private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
+  private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
 
   constructor(
@@ -184,7 +184,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['get', 'post', 'put', 'patch', 'delete', 'head'].some(m => m === method.toLowerCase());
+    return ['options', 'get', 'post', 'put', 'patch', 'delete', 'head'].some(m => m === method.toLowerCase());
   }
 
   private getIsDeprecated() {

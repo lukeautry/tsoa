@@ -38,6 +38,7 @@ describe('Metadata generation', () => {
     const parameterMetadata = new MetadataGenerator('./fixtures/controllers/methodController.ts').Generate();
     const controller = parameterMetadata.controllers[0];
     const definedMethods = [
+      'optionsMethod',
       'getMethod',
       'postMethod',
       'patchMethod',
@@ -65,6 +66,16 @@ describe('Metadata generation', () => {
 
     it('should generate the defined methods', () => {
       expect(definedMethods.filter(methodName => controller.methods.map(m => m.name).indexOf(methodName) === -1).length).to.equal(0);
+    });
+
+    it('should generate options method', () => {
+      const method = controller.methods.find(m => m.name === 'optionsMethod');
+      if (!method) {
+        throw new Error('Method optionsMethod no detined!');
+      }
+
+      expect(method.method).to.equal('options');
+      expect(method.path).to.equal('Options');
     });
 
     it('should generate get method', () => {

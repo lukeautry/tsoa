@@ -115,6 +115,17 @@ describe('Koa Server', () => {
     });
   });
 
+  it('correctly handles OPTIONS requests', () => {
+    const path = basePath + '/OptionsTest/Current';
+    return verifyRequest(
+      (err, res) => {
+        expect(res.text).to.equal('');
+      },
+      request => request.options(path),
+      204,
+    );
+  });
+
   it('should reject invalid strings', () => {
     const invalidValues = [null, 1, undefined, {}];
 
