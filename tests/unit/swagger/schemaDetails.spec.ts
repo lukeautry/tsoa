@@ -183,7 +183,7 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('responses', () => {
-        it('should generate headers in reponse.', () => {
+        it('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
           const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
           const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject'];
@@ -203,6 +203,26 @@ describe('Schema details generation', () => {
                 },
               });
             }
+          });
+        });
+
+        it('should generate headers from class response decorator.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderController.ts').Generate();
+          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const paths = ['Response1', 'Response2'];
+          paths.forEach((path: string) => {
+            const responses = responseSpec.paths[`/CommonResponseHeader/${path}`].get?.responses;
+
+            expect(responses?.[200]?.headers).to.deep.eq({
+              CommonLink: {
+                type: 'string',
+                description: 'a common link string',
+              },
+              CommonLinkB: {
+                type: 'string',
+                description: 'b common link str',
+              },
+            });
           });
         });
 

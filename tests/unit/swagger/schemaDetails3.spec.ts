@@ -430,7 +430,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
     describe('methods', () => {
       describe('responses', () => {
-        it('should generate headers in reponse.', () => {
+        it('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
           const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
           const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject'];
@@ -441,6 +441,17 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             if (path.includes('HeaderClass')) {
               expect(responses?.[200]?.headers?.ResponseHeader).to.not.eq(undefined);
             }
+          });
+        });
+
+        it('should generate headers from class response decorator.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderController.ts').Generate();
+          const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const paths = ['Response1', 'Response2'];
+          paths.forEach((path: string) => {
+            const responses = responseSpec.paths[`/CommonResponseHeader/${path}`].get?.responses;
+
+            expect(responses?.[200]?.headers?.CommonResponseHeader).to.not.eq(undefined);
           });
         });
 
