@@ -283,6 +283,7 @@ describe('Koa Server', () => {
           expect(res.status).to.equal(204);
           expect(res.header.hero).to.equal('IronMan');
           expect(res.header.name).to.equal('Tony Stark');
+          expect(res.header['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
         },
         204,
       );
