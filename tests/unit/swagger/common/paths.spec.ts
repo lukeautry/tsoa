@@ -95,7 +95,7 @@ describe('Braces path params conversion', () => {
     expect(convertBracesPathParams('path1/:pathParam')).to.equal('path1/:pathParam');
   });
 
-  it('should replace "{param}" with ":param" in path', () => {
+  it('should replace braces params with colon params', () => {
     expect(convertBracesPathParams('{pathParam}')).to.equal(':pathParam');
     expect(convertBracesPathParams('/path1/{pathParam}')).to.equal('/path1/:pathParam');
     expect(convertBracesPathParams('/path1/{pathParam}/path2')).to.equal('/path1/:pathParam/path2');
@@ -105,9 +105,9 @@ describe('Braces path params conversion', () => {
     expect(convertBracesPathParams('')).to.equal('');
   });
 
-  it('should throw with invalid params', () => {
-    expect(() => convertBracesPathParams('{')).to.throw();
-    expect(() => convertBracesPathParams('path}')).to.throw();
-    expect(() => convertBracesPathParams('/path/{pathParam1}/{pathParam2')).to.throw();
+  it('should not replace floating braces', () => {
+    expect(() => convertBracesPathParams('{')).to.equal('{');
+    expect(() => convertBracesPathParams('path}')).to.equal('path}');
+    expect(() => convertBracesPathParams('/path/{pathParam1}/{pathParam2')).to.equal('/path/:pathParam/{pathParam2');
   });
 });

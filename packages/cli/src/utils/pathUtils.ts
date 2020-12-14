@@ -30,9 +30,5 @@ export function convertColonPathParams(path: string) {
 }
 
 export function convertBracesPathParams(path: string) {
-  const normalised = path.replace(/{([^\/]+)}/g, ':$1');
-  if (normalised.indexOf('{') >= 0 || normalised.indexOf('}') >= 0) {
-    throw new Error(`Invalid parameters found in path: ${path}`);
-  }
-  return normalised;
+  return path.replace(/{([^\/]+)}/g, ':$1');
 }
