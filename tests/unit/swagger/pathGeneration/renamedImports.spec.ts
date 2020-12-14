@@ -18,4 +18,18 @@ describe('Renamed imports', () => {
       return VerifyPath(spec, route, path => path.get, isCollection, isNoContent);
     }
   });
+
+  describe('model', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithRenamedModelImport.ts').Generate();
+    const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    const baseRoute = '/RenamedModelImport';
+
+    it('should generate a path for a function with a renamed model', () => {
+      verifyPath(baseRoute);
+    });
+
+    function verifyPath(route: string, isCollection?: boolean, isNoContent?: boolean) {
+      return VerifyPath(spec, route, path => path.get, isCollection, isNoContent);
+    }
+  });
 });
