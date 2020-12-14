@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { normalisePath, convertColonPathParams, convertBracketPathParams } from '@tsoa/cli/utils/pathUtils';
+import { normalisePath, convertColonPathParams, convertBracesPathParams } from '@tsoa/cli/utils/pathUtils';
 
 describe('Paths normalisation', () => {
   it('should remove all redundant symbols at the beginning and at the end', () => {
@@ -89,25 +89,25 @@ describe('Colon path params conversion', () => {
   });
 });
 
-describe('Bracket path params conversion', () => {
-  it('should not modify paths without brackets', () => {
-    expect(convertBracketPathParams('path1/path2')).to.equal('path1/path2');
-    expect(convertBracketPathParams('path1/:pathParam')).to.equal('path1/:pathParam');
+describe('Braces path params conversion', () => {
+  it('should not modify paths without braces', () => {
+    expect(convertBracesPathParams('path1/path2')).to.equal('path1/path2');
+    expect(convertBracesPathParams('path1/:pathParam')).to.equal('path1/:pathParam');
   });
 
   it('should replace "{param}" with ":param" in path', () => {
-    expect(convertBracketPathParams('{pathParam}')).to.equal(':pathParam');
-    expect(convertBracketPathParams('/path1/{pathParam}')).to.equal('/path1/:pathParam');
-    expect(convertBracketPathParams('/path1/{pathParam}/path2')).to.equal('/path1/:pathParam/path2');
+    expect(convertBracesPathParams('{pathParam}')).to.equal(':pathParam');
+    expect(convertBracesPathParams('/path1/{pathParam}')).to.equal('/path1/:pathParam');
+    expect(convertBracesPathParams('/path1/{pathParam}/path2')).to.equal('/path1/:pathParam/path2');
   });
 
   it('should handle empty path', () => {
-    expect(convertBracketPathParams('')).to.equal('');
+    expect(convertBracesPathParams('')).to.equal('');
   });
 
   it('should throw with invalid params', () => {
-    expect(() => convertBracketPathParams('{')).to.throw();
-    expect(() => convertBracketPathParams('path}')).to.throw();
-    expect(() => convertBracketPathParams('/path/{pathParam1}/{pathParam2')).to.throw();
+    expect(() => convertBracesPathParams('{')).to.throw();
+    expect(() => convertBracesPathParams('path}')).to.throw();
+    expect(() => convertBracesPathParams('/path/{pathParam1}/{pathParam2')).to.throw();
   });
 });

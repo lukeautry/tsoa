@@ -4,7 +4,7 @@ import { ExtendedRoutesConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { RouteGenerator } from '../routeGeneration/routeGenerator';
-import { convertBracketPathParams } from '../utils/pathUtils';
+import { convertBracesPathParams } from '../utils/pathUtils';
 
 export const generateRoutes = async (
   routesConfig: ExtendedRoutesConfig,
@@ -21,7 +21,7 @@ export const generateRoutes = async (
 
   const routeGenerator = new RouteGenerator(metadata, routesConfig);
 
-  let pathTransformer = convertBracketPathParams;
+  let pathTransformer = convertBracesPathParams;
   let template;
 
   switch (routesConfig.middleware) {
