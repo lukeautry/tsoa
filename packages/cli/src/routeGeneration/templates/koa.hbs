@@ -72,7 +72,7 @@ export function RegisterRoutes(router: KoaRouter) {
               validatedArgs = getValidatedArgs(args, context, next);
             } catch (error) {
               context.status = error.status;
-              context.throw(error.status, JSON.stringify({ fields: error.fields }));
+              context.throw(error.status, JSON.stringify({ fields: error.fields }), error);
             }
 
             {{#if ../../iocModule}}
