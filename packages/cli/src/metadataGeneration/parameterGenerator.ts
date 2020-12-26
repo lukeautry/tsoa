@@ -80,6 +80,8 @@ export class ParameterGenerator {
 
     const type = new TypeResolver(typeNode.typeArguments[1], this.current, typeNode).resolve();
 
+    const headers = typeNode.typeArguments.length === 3 ? new TypeResolver(typeNode.typeArguments[2], this.current, typeNode).resolve() : undefined;
+
     return {
       description: this.getParameterDescription(parameter) || '',
       in: 'res',
@@ -90,6 +92,7 @@ export class ParameterGenerator {
       type,
       schema: type,
       validators: {},
+      headers,
     };
   }
 

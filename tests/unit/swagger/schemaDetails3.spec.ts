@@ -433,7 +433,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         it('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
           const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
-          const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject'];
+          const paths = ['SuccessResponseWithHeaderClass', 'SuccessResponseWithObject', 'ResponseWithHeaderClass', 'ResponseWithObject', 'TsoaResponseWithHeaderClass', 'TsoaResponseWithObject'];
           paths.forEach((path: string) => {
             const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
 
