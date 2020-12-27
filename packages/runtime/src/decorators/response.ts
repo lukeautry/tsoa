@@ -1,22 +1,10 @@
-export function SuccessResponse(name: string | number, description?: string): Function;
-
-export function SuccessResponse<T>(name: string | number, description?: string): Function;
-
-export function SuccessResponse<T>(name: string | number, description?: string): Function {
+export function SuccessResponse<HeaderType = {}>(name: string | number, description?: string): Function {
   return () => {
     return;
   };
 }
 
-export function Response(name: string | number, description?: string): Function;
-
-export function Response<U>(name: string | number, description?: string): Function;
-
-export function Response<T>(name: string | number, description?: string, example?: T): Function;
-
-export function Response<T, U>(name: string | number, description?: string, example?: T): Function;
-
-export function Response<T, U>(name: string | number, description?: string, example?: T): Function {
+export function Response<ExampleType, HeaderType = {}>(name: string | number, description?: string, example?: ExampleType): Function {
   return () => {
     return;
   };
