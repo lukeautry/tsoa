@@ -13,6 +13,11 @@ class CommonResponseHeader {
    * b common link str
    */
   CommonLinkB: string;
+
+  /**
+   * c common link number, optional
+   */
+  CommonLinkC?: number;
 }
 
 @Route('CommonResponseHeaderClass')

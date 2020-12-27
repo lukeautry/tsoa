@@ -183,19 +183,19 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('responses', () => {
-        it('should generate headers from method reponse decorator.', () => {
+        describe('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
           const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
-          it('should generate proper schema for header class.', () => {
+          it('proper schema for header class.', () => {
             const pathsWithHeaderClass = [
               'SuccessResponseWithHeaderClass',
               'ResponseWithHeaderClass',
               'TsoaResponseWithHeaderClass',
             ];
             pathsWithHeaderClass.forEach((path: string) => {
-              const response = responseSpec.paths[`/ResponseHeader/${path}`];
-              expect(response?.[200]?.headers).to.deep.eq({
+              const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
                 Link: {
                   type: 'string',
                   description: 'a link string',
@@ -204,16 +204,24 @@ describe('Schema details generation', () => {
                   type: 'string',
                   description: 'b link str',
                 },
+                LinkC: {
+                  type: 'number',
+                  description: 'c link number, optional',
+                },
               });
             });
           });
-          it('should generate even with object.', () => {
+          it('with header object.', () => {
             expect(responseSpec.paths['/ResponseHeader/SuccessResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
               linkA: {
                 type: 'string',
                 description: undefined,
               },
               linkB: {
+                type: 'string',
+                description: undefined,
+              },
+              linkOpt: {
                 type: 'string',
                 description: undefined,
               },
@@ -227,6 +235,10 @@ describe('Schema details generation', () => {
                 type: 'string',
                 description: undefined,
               },
+              linkOpt: {
+                type: 'number',
+                description: undefined,
+              },
             });
             expect(responseSpec.paths['/ResponseHeader/TsoaResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
               linkE: {
@@ -237,48 +249,60 @@ describe('Schema details generation', () => {
                 type: 'number',
                 description: undefined,
               },
-            });
-          });
-        });
-
-        it('should generate headers from class response decorator with header class.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
-          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-          const paths = ['Response1', 'Response2'];
-          paths.forEach((path: string) => {
-            const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
-            expect(responses?.[200]?.headers).to.deep.eq({
-              CommonLink: {
-                type: 'string',
-                description: 'a common link string',
-              },
-              CommonLinkB: {
-                type: 'string',
-                description: 'b common link str',
-              },
-            });
-          });
-        });
-
-        it('should generate headers from class response decorator with header object.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
-          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-          const paths = ['Response1', 'Response2'];
-          paths.forEach((path: string) => {
-            const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
-            expect(responses?.[200]?.headers).to.deep.eq({
-              objectA: {
+              linkOpt: {
                 type: 'string',
                 description: undefined,
               },
-              objectB: {
-                type: 'number',
-                description: undefined,
-              },
             });
           });
         });
+        describe('should generate headers from class response decorator.', () => {   
+          it('with header class.', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+            const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path: string) => {
+              const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
+                CommonLink: {
+                  type: 'string',
+                  description: 'a common link string',
+                },
+                CommonLinkB: {
+                  type: 'string',
+                  description: 'b common link str',
+                },
+                CommonLinkC: {
+                  type: 'number',
+                  description: 'c common link number, optional',
+                },
+              });
+            });
+          });
 
+          it('with header object.', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
+            const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path: string) => {
+              const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
+                objectA: {
+                  type: 'string',
+                  description: undefined,
+                },
+                objectB: {
+                  type: 'number',
+                  description: undefined,
+                },
+                objectC: {
+                  type: 'string',
+                  description: undefined,
+                },
+              });
+            });
+          });
+        });
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();

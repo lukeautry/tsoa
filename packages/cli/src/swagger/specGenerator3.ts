@@ -314,6 +314,7 @@ export class SpecGenerator3 extends SpecGenerator {
             headers[each.name] = {
               schema: this.getSwaggerType(each.type),
               description: each.description,
+              required: each.required,
             };
           });
         }

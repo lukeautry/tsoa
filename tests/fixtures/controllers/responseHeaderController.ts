@@ -13,6 +13,11 @@ class ResponseHeader {
    * b link str
    */
   LinkB: string;
+
+  /**
+   * c link number, optional
+   */
+  LinkC?: number;
 }
 
 @Route('ResponseHeader')
@@ -24,7 +29,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('SuccessResponseWithObject')
-  @SuccessResponse<{ linkA: string; linkB: string }>(200, 'xxx')
+  @SuccessResponse<{ linkA: string; linkB: string; linkOpt?: string }>(200, 'xxx')
   public async handler2(): Promise<void> {
     return;
   }
@@ -36,7 +41,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('ResponseWithObject')
-  @Response<null, { linkC: number; linkD: string }>(200, 'yyy')
+  @Response<null, { linkC: number; linkD: string; linkOpt?: number }>(200, 'yyy')
   public async handler4(): Promise<void> {
     return;
   }
@@ -47,7 +52,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('TsoaResponseWithObject')
-  public async handler6(@Res() res: TsoaResponse<200, null, { linkE: string; linkF: number }>): Promise<void> {
+  public async handler6(@Res() res: TsoaResponse<200, null, { linkE: string; linkF: number; linkOpt?: string }>): Promise<void> {
     return;
   }
 }

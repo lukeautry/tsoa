@@ -4,6 +4,7 @@ import { Controller, Get, Route, Response } from '@tsoa/runtime';
 @Response<null, {
   objectA: string;
   objectB: number;
+  objectC?: string;
 }>(200, 'Ok')
 export class CommonResponseHeaderObjectController extends Controller {
   @Get('Response1')
