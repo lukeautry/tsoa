@@ -206,6 +206,8 @@ export class SpecGenerator2 extends SpecGenerator {
               description: each.description,
             };
           });
+        } else {
+          throw new Error('Header should be a class or nested object.');
         }
         swaggerResponses[res.name].headers = headers;
       }

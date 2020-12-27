@@ -504,7 +504,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
           });
         });
-
         describe('should generate headers from class response decorator.', () => {   
           it('with header class.', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
@@ -546,6 +545,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               });
             });
           });
+        });
+        it('should throw error with incorrect header class or nested object.', () => {
+          // Act
+          let errToTest: Error | null = null;
+          try {
+            const metadata = new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
+            new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          } catch (err) {
+            errToTest = err;
+          }
+
+          // Assert
+          expect(errToTest!.message).to.match(/Header should be a class or nested object./);
         });
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
