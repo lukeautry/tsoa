@@ -1,7 +1,7 @@
 import { Controller, Get, Route, Response } from '@tsoa/runtime';
 
 /**
- * Common, asdasdsda
+ * Common response header's description
  */
 class CommonResponseHeader {
   /**
@@ -15,9 +15,9 @@ class CommonResponseHeader {
   CommonLinkB: string;
 }
 
-@Route('CommonResponseHeader')
+@Route('CommonResponseHeaderClass')
 @Response<null, CommonResponseHeader>(200, 'Ok')
-export class ResponseHeaderController extends Controller {
+export class CommonResponseHeaderClassController extends Controller {
   @Get('Response1')
   public async handler(): Promise<void> {
     return;

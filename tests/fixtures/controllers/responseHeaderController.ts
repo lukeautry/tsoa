@@ -1,7 +1,7 @@
 import { Controller, Get, Route, SuccessResponse, Response, TsoaResponse, Res } from '@tsoa/runtime';
 
 /**
- * asdasdsda
+ * response header's description
  */
 class ResponseHeader {
   /**
