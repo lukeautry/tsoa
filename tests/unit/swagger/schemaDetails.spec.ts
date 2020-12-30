@@ -197,12 +197,13 @@ describe('Schema details generation', () => {
                   description: 'a link string',
                 },
                 LinkB: {
-                  type: 'string',
-                  description: 'b link str',
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'b link str[]',
                 },
                 LinkC: {
-                  type: 'number',
-                  description: 'c link number, optional',
+                  type: 'string',
+                  description: 'c link string, optional',
                 },
               });
             });
@@ -214,7 +215,8 @@ describe('Schema details generation', () => {
                 description: undefined,
               },
               linkB: {
-                type: 'string',
+                type: 'array',
+                items: { type: 'string' },
                 description: undefined,
               },
               linkOpt: {
@@ -224,15 +226,16 @@ describe('Schema details generation', () => {
             });
             expect(responseSpec.paths['/ResponseHeader/ResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
               linkC: {
-                type: 'number',
-                description: undefined,
-              },
-              linkD: {
                 type: 'string',
                 description: undefined,
               },
+              linkD: {
+                type: 'array',
+                items: { type: 'string' },
+                description: undefined,
+              },
               linkOpt: {
-                type: 'number',
+                type: 'string',
                 description: undefined,
               },
             });
@@ -242,7 +245,8 @@ describe('Schema details generation', () => {
                 description: undefined,
               },
               linkF: {
-                type: 'number',
+                type: 'array',
+                items: { type: 'string' },
                 description: undefined,
               },
               linkOpt: {
@@ -265,12 +269,13 @@ describe('Schema details generation', () => {
                   description: 'a common link string',
                 },
                 CommonLinkB: {
-                  type: 'string',
-                  description: 'b common link str',
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'b common link str[]',
                 },
                 CommonLinkC: {
-                  type: 'number',
-                  description: 'c common link number, optional',
+                  type: 'string',
+                  description: 'c common link string, optional',
                 },
               });
             });
@@ -288,7 +293,8 @@ describe('Schema details generation', () => {
                   description: undefined,
                 },
                 objectB: {
-                  type: 'number',
+                  type: 'array',
+                  items: { type: 'string' },
                   description: undefined,
                 },
                 objectC: {

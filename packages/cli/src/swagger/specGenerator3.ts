@@ -303,16 +303,16 @@ export class SpecGenerator3 extends SpecGenerator {
       }
 
       if (res.headers) {
-        const headers = {};
+        const headers: { [name: string]: Swagger.Header3 } = {};
         if (res.headers.dataType === 'refObject') {
           headers[res.headers.refName] = {
             schema: this.getSwaggerTypeForReferenceType(res.headers) as Swagger.Schema3,
             description: res.headers.description,
-          } as Swagger.Header3;
+          };
         } else if (res.headers.dataType === 'nestedObjectLiteral') {
           res.headers.properties.forEach((each: Tsoa.Property) => {
             headers[each.name] = {
-              schema: this.getSwaggerType(each.type),
+              schema: this.getSwaggerType(each.type) as Swagger.Schema3,
               description: each.description,
               required: each.required,
             };

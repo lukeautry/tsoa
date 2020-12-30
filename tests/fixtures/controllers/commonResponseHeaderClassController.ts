@@ -10,14 +10,14 @@ class CommonResponseHeader {
   CommonLink: string;
 
   /**
-   * b common link str
+   * b common link str[]
    */
-  CommonLinkB: string;
+  CommonLinkB: string[];
 
   /**
-   * c common link number, optional
+   * c common link string, optional
    */
-  CommonLinkC?: number;
+  CommonLinkC?: string;
 }
 
 @Route('CommonResponseHeaderClass')

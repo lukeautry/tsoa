@@ -455,7 +455,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               linkB: {
                 required: true,
-                schema: { type: 'string' },
+                schema: { type: 'array', items: { type: 'string' } },
                 description: undefined,
               },
               linkOpt: {
@@ -467,17 +467,17 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(responseSpec.paths['/ResponseHeader/ResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
               linkC: {
                 required: true,
-                schema: { type: 'number', format: 'double' },
+                schema: { type: 'string' },
                 description: undefined,
               },
               linkD: {
                 required: true,
-                schema: { type: 'string' },
+                schema: { type: 'array', items: { type: 'string' } },
                 description: undefined,
               },
               linkOpt: {
                 required: false,
-                schema: { type: 'number', format: 'double' },
+                schema: { type: 'string' },
                 description: undefined,
               },
             });
@@ -489,7 +489,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               linkF: {
                 required: true,
-                schema: { type: 'number', format: 'double' },
+                schema: { type: 'array', items: { type: 'string' } },
                 description: undefined,
               },
               linkOpt: {
@@ -530,7 +530,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 objectB: {
                   required: true,
-                  schema: { type: 'number', format: 'double' },
+                  schema: { type: 'array', items: { type: 'string' } },
                   description: undefined,
                 },
                 objectC: {

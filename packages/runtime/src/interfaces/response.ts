@@ -1,3 +1,5 @@
+import { IsValidHeader } from '../utils/isHeaderType';
+
 export type HttpStatusCodeLiteral =
   | 100
   | 101
@@ -58,4 +60,4 @@ export type HttpStatusCodeLiteral =
   | 510
   | 511;
 
-export type TsoaResponse<T extends HttpStatusCodeLiteral, U, V extends {} = {}> = (status: T, data: U, headers?: V) => any;
+export type TsoaResponse<T extends HttpStatusCodeLiteral, BodyType, HeaderType extends IsValidHeader<HeaderType> = {}> = (status: T, data: BodyType, headers?: HeaderType) => any;

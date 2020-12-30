@@ -3,21 +3,21 @@ import { Controller, Get, Route, SuccessResponse, Response, TsoaResponse, Res } 
 /**
  * response header's description
  */
-class ResponseHeader {
+interface ResponseHeader {
   /**
    * a link string
    */
   Link: string;
 
   /**
-   * b link str
+   * b link str[]
    */
-  LinkB: string;
+  LinkB: string[];
 
   /**
-   * c link number, optional
+   * c link string, optional
    */
-  LinkC?: number;
+  LinkC?: string;
 }
 
 @Route('ResponseHeader')
@@ -29,7 +29,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('SuccessResponseWithObject')
-  @SuccessResponse<{ linkA: string; linkB: string; linkOpt?: string }>(200, 'xxx')
+  @SuccessResponse<{ linkA: string; linkB: string[]; linkOpt?: string }>(200, 'xxx')
   public async handler2(): Promise<void> {
     return;
   }
@@ -41,7 +41,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('ResponseWithObject')
-  @Response<null, { linkC: number; linkD: string; linkOpt?: number }>(200, 'yyy')
+  @Response<null, { linkC: string; linkD: string[]; linkOpt?: string }>(200, 'yyy')
   public async handler4(): Promise<void> {
     return;
   }
@@ -52,7 +52,7 @@ export class ResponseHeaderController extends Controller {
   }
 
   @Get('TsoaResponseWithObject')
-  public async handler6(@Res() res: TsoaResponse<200, null, { linkE: string; linkF: number; linkOpt?: string }>): Promise<void> {
+  public async handler6(@Res() res: TsoaResponse<200, null, { linkE: string; linkF: string[]; linkOpt?: string }>): Promise<void> {
     return;
   }
 }

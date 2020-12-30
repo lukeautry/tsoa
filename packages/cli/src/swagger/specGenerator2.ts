@@ -202,7 +202,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if (res.headers.dataType === 'refObject' || res.headers.dataType === 'nestedObjectLiteral') {
           res.headers.properties.forEach((each: Tsoa.Property) => {
             headers[each.name] = {
-              type: this.getSwaggerType(each.type).type,
+              ...this.getSwaggerType(each.type),
               description: each.description,
             };
           });

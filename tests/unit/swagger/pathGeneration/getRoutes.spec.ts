@@ -184,12 +184,12 @@ describe('GET route generation', () => {
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
     }).to.throw(
-      "Unable to parse Header Type 'asd'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'asd'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
+      "Unable to parse Header Type 'Header names must be of type string'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'Header names must be of type string'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
     );
 
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-    }).to.throw("Unable to parse Header Type null\nAt: fixtures/controllers/incorrectResponseHeaderController.ts:4:4.\nThis was caused by 'Response<null, null>(200)'");
+    }).to.throw("Unable to parse Header Type any\nAt: fixtures/controllers/incorrectResponseHeaderController.ts:4:4.\nThis was caused by 'Response<null, any>(200)'");
   });
 
   it('should generate a path description from jsdoc comment', () => {

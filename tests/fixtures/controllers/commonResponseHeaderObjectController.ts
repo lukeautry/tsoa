@@ -1,11 +1,14 @@
 import { Controller, Get, Route, Response } from '@tsoa/runtime';
 
 @Route('CommonResponseHeaderObject')
-@Response<null, {
-  objectA: string;
-  objectB: number;
-  objectC?: string;
-}>(200, 'Ok')
+@Response<
+  null,
+  {
+    objectA: string;
+    objectB: string[];
+    objectC?: string;
+  }
+>(200, 'Ok')
 export class CommonResponseHeaderObjectController extends Controller {
   @Get('Response1')
   public async handler(): Promise<void> {
