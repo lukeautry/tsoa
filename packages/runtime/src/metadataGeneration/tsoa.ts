@@ -70,7 +70,7 @@ export namespace Tsoa {
     name: string;
     schema?: Type;
     examples?: unknown[];
-    headers?: Type;
+    headers?: HeaderType;
   }
 
   export interface Property {
@@ -260,4 +260,6 @@ export namespace Tsoa {
   export interface MethodsSignatureMap {
     [signature: string]: string[];
   }
+
+  export type HeaderType = Tsoa.NestedObjectLiteralType | Tsoa.RefObjectType;
 }

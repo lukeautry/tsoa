@@ -318,7 +318,7 @@ export class SpecGenerator3 extends SpecGenerator {
             };
           });
         } else {
-          throw new Error('Header should be a class or nested object.');
+          assertNever(res.headers);
         }
         swaggerResponses[res.name].headers = headers;
       }

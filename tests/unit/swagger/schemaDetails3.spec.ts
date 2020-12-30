@@ -435,18 +435,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
 
           it('proper schema ref for header class.', () => {
-            const pathsWithHeaderClass = [
-              'SuccessResponseWithHeaderClass',
-              'ResponseWithHeaderClass',
-              'TsoaResponseWithHeaderClass',
-            ];
+            const pathsWithHeaderClass = ['SuccessResponseWithHeaderClass', 'ResponseWithHeaderClass', 'TsoaResponseWithHeaderClass'];
             pathsWithHeaderClass.forEach((path: string) => {
               const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
               expect(responses?.[200]?.headers?.ResponseHeader).to.deep.eq({
                 schema: {
                   $ref: '#/components/schemas/ResponseHeader',
                 },
-                description: 'response header\'s description',
+                description: "response header's description",
               });
             });
           });
@@ -504,7 +500,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
           });
         });
-        describe('should generate headers from class response decorator.', () => {   
+        describe('should generate headers from class response decorator.', () => {
           it('with header class.', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
             const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
@@ -515,7 +511,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 schema: {
                   $ref: '#/components/schemas/CommonResponseHeader',
                 },
-                description: 'Common response header\'s description',
+                description: "Common response header's description",
               });
             });
           });
@@ -546,19 +542,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
           });
         });
-        it('should throw error with incorrect header class or nested object.', () => {
-          // Act
-          let errToTest: Error | null = null;
-          try {
-            const metadata = new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-            new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
-          } catch (err) {
-            errToTest = err;
-          }
 
-          // Assert
-          expect(errToTest!.message).to.match(/Header should be a class or nested object./);
-        });
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();

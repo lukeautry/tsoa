@@ -188,11 +188,7 @@ describe('Schema details generation', () => {
           const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
           it('proper schema for header class.', () => {
-            const pathsWithHeaderClass = [
-              'SuccessResponseWithHeaderClass',
-              'ResponseWithHeaderClass',
-              'TsoaResponseWithHeaderClass',
-            ];
+            const pathsWithHeaderClass = ['SuccessResponseWithHeaderClass', 'ResponseWithHeaderClass', 'TsoaResponseWithHeaderClass'];
             pathsWithHeaderClass.forEach((path: string) => {
               const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
               expect(responses?.[200]?.headers).to.deep.eq({
@@ -256,7 +252,7 @@ describe('Schema details generation', () => {
             });
           });
         });
-        describe('should generate headers from class response decorator.', () => {   
+        describe('should generate headers from class response decorator.', () => {
           it('with header class.', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
             const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
@@ -303,19 +299,7 @@ describe('Schema details generation', () => {
             });
           });
         });
-        it('should throw error with incorrect header class or nested object.', () => {
-          // Act
-          let errToTest: Error | null = null;
-          try {
-            const metadata = new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-            new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-          } catch (err) {
-            errToTest = err;
-          }
 
-          // Assert
-          expect(errToTest!.message).to.match(/Header should be a class or nested object./);
-        });
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();

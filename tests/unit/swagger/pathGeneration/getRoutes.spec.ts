@@ -180,6 +180,18 @@ describe('GET route generation', () => {
     }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });
 
+  it('should reject invalid header types', () => {
+    expect(() => {
+      new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
+    }).to.throw(
+      "Unable to parse Header Type 'asd'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'asd'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
+    );
+
+    expect(() => {
+      new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
+    }).to.throw("Unable to parse Header Type null\nAt: fixtures/controllers/incorrectResponseHeaderController.ts:4:4.\nThis was caused by 'Response<null, null>(200)'");
+  });
+
   it('should generate a path description from jsdoc comment', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) {
