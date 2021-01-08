@@ -9,7 +9,7 @@ import { ParameterGenerator } from './parameterGenerator';
 
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
-import { getHeaderType } from '../utils/headerTypeHeloers';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class MethodGenerator {
   private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';

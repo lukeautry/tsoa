@@ -5,7 +5,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { TypeResolver } from './typeResolver';
 import { Tsoa } from '@tsoa/runtime';
-import { getHeaderType } from '../utils/headerTypeHeloers';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ControllerGenerator {
   private readonly path?: string;

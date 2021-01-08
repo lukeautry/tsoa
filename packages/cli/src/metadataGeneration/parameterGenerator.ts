@@ -7,7 +7,7 @@ import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
-import { getHeaderType } from '../utils/headerTypeHeloers';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ParameterGenerator {
   constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
