@@ -28,3 +28,7 @@ export function convertColonPathParams(path: string) {
   const normalised = path.replace(/:([^\/]+)/g, '{$1}');
   return normalised;
 }
+
+export function convertBracesPathParams(path: string) {
+  return path.replace(/{([^\/]+)}/g, ':$1');
+}

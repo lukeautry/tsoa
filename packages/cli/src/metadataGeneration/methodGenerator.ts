@@ -12,7 +12,7 @@ import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class MethodGenerator {
-  private method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
+  private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
 
   constructor(
@@ -44,7 +44,8 @@ export class MethodGenerator {
     }
     const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
-    responses.push(this.getMethodSuccessResponse(type));
+    const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
+    responses.push(successResponse);
     const parameters = this.buildParameters();
     const additionalResponses = parameters.filter((p): p is Tsoa.ResParameter => p.in === 'res');
     responses.push(...additionalResponses);
@@ -60,6 +61,7 @@ export class MethodGenerator {
       parameters,
       path: this.path,
       responses,
+      successStatus: successStatus,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getTags(),
@@ -148,15 +150,17 @@ export class MethodGenerator {
     });
   }
 
-  private getMethodSuccessResponse(type: Tsoa.Type): Tsoa.Response {
+  private getMethodSuccessResponse(type: Tsoa.Type): { response: Tsoa.Response; status?: number } {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
 
     if (!decorators || !decorators.length) {
       return {
-        description: isVoidType(type) ? 'No content' : 'Ok',
-        examples: this.getMethodSuccessExamples(),
-        name: isVoidType(type) ? '204' : '200',
-        schema: type,
+        response: {
+          description: isVoidType(type) ? 'No content' : 'Ok',
+          examples: this.getMethodSuccessExamples(),
+          name: isVoidType(type) ? '204' : '200',
+          schema: type,
+        },
       };
     }
     if (decorators.length > 1) {
@@ -175,6 +179,14 @@ export class MethodGenerator {
       name: name || '200',
       schema: type,
       headers,
+      response: {
+        description: description || '',
+        examples,
+        name: name || '200',
+        schema: type,
+      },
+      headers,
+      status: name && /^\d+$/.test(name) ? parseInt(name, 10) : undefined,
     };
   }
 
@@ -190,7 +202,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['get', 'post', 'put', 'patch', 'delete', 'head'].some(m => m === method.toLowerCase());
+    return ['options', 'get', 'post', 'put', 'patch', 'delete', 'head'].some(m => m === method.toLowerCase());
   }
 
   private getIsDeprecated() {

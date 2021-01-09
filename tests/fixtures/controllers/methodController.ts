@@ -1,4 +1,4 @@
-import { Controller, Extension, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags, Example } from '@tsoa/runtime';
+import { Controller, Extension, Options, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags, Example } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
@@ -29,6 +29,11 @@ const TEST_SEC = {
 
 @Route('MethodTest')
 export class MethodController extends Controller {
+  @Options('Options')
+  public async optionsMethod(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
   @Get('Get')
   public async getMethod(): Promise<TestModel> {
     return new ModelService().getModel();

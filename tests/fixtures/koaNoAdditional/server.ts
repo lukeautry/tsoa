@@ -2,6 +2,7 @@ import * as Koa from 'koa';
 import * as KoaRouter from '@koa/router';
 import '../controllers/rootController';
 
+import '../controllers/optionsController';
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/headController';
@@ -14,6 +15,7 @@ import '../controllers/parameterController';
 import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
+import '../controllers/noExtendsController';
 
 import * as bodyParser from 'koa-bodyparser';
 import { RegisterRoutes } from './routes';

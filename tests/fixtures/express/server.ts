@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as methodOverride from 'method-override';
 import '../controllers/rootController';
 
+import '../controllers/optionsController';
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/headController';
@@ -17,6 +18,7 @@ import '../controllers/testController';
 import '../controllers/validateController';
 import '../controllers/exampleController';
 import '../controllers/tagController';
+import '../controllers/noExtendsController';
 
 import { RegisterRoutes } from './routes';
 

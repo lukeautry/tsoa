@@ -223,6 +223,17 @@ describe('Express Server', () => {
     });
   });
 
+  it('correctly handles OPTIONS requests', () => {
+    const path = basePath + '/OptionsTest/Current';
+    return verifyRequest(
+      (err, res) => {
+        expect(res.text).to.equal('');
+      },
+      request => request.options(path),
+      204,
+    );
+  });
+
   it('should reject invalid strings', () => {
     const invalidValues = [null, 1, undefined, {}];
 
@@ -371,6 +382,39 @@ describe('Express Server', () => {
           expect(res.status).to.equal(204);
           expect(res.header.hero).to.equal('IronMan');
           expect(res.header.name).to.equal('Tony Stark');
+          expect(res.header['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
+        },
+        204,
+      );
+    });
+  });
+
+  describe('NoExtends', () => {
+    it('should ignore SuccessResponse code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/customSuccessResponseCode`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+
+    it('should ignore SuccessResponse enum code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/enumSuccessResponseCode`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+
+    it('should ignore SuccessResponse 2XX code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/rangedSuccessResponse`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
         },
         204,
       );

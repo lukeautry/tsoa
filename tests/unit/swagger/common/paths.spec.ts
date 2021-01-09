@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { normalisePath, convertColonPathParams } from '@tsoa/cli/utils/pathUtils';
+import { normalisePath, convertColonPathParams, convertBracesPathParams } from '@tsoa/cli/utils/pathUtils';
 
 describe('Paths normalisation', () => {
   it('should remove all redundant symbols at the beginning and at the end', () => {
@@ -86,5 +86,32 @@ describe('Colon path params conversion', () => {
     expect(convertColonPathParams('')).to.equal('');
     const emptyObject = {};
     expect(convertColonPathParams(emptyObject as any)).to.equal(emptyObject);
+  });
+});
+
+describe('Braces path params conversion', () => {
+  it('should not modify paths without braces', () => {
+    expect(convertBracesPathParams('path1/path2')).to.equal('path1/path2');
+    expect(convertBracesPathParams('path1/:pathParam')).to.equal('path1/:pathParam');
+  });
+
+  it('should replace braces param with colon param', () => {
+    expect(convertBracesPathParams('{pathParam}')).to.equal(':pathParam');
+    expect(convertBracesPathParams('/path1/{pathParam}')).to.equal('/path1/:pathParam');
+    expect(convertBracesPathParams('/path1/{pathParam}/path2')).to.equal('/path1/:pathParam/path2');
+  });
+
+  it('should replace multiple braces params with colon params', () => {
+    expect(convertBracesPathParams('/path1/{pathParam1}/path2/{pathParam2}')).to.equal('/path1/:pathParam1/path2/:pathParam2');
+  });
+
+  it('should handle empty path', () => {
+    expect(convertBracesPathParams('')).to.equal('');
+  });
+
+  it('should not replace floating braces', () => {
+    expect(convertBracesPathParams('{')).to.equal('{');
+    expect(convertBracesPathParams('path}')).to.equal('path}');
+    expect(convertBracesPathParams('/path/{pathParam1}/{pathParam2')).to.equal('/path/:pathParam1/{pathParam2');
   });
 });

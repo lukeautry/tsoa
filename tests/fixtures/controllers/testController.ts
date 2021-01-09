@@ -1,5 +1,5 @@
 import { Controller, Get, Route } from '@tsoa/runtime';
-import { TestModel } from '../../fixtures/testModel';
+import { TestModel } from '../testModel';
 import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';
 
@@ -39,6 +39,7 @@ export class TestController extends Controller {
       setTimeout(() => {
         this.setHeader('hero', 'IronMan');
         this.setHeader('name', 'Tony Stark');
+        this.setHeader('set-cookie', ['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
         resolve();
       }, 1000);
     });
