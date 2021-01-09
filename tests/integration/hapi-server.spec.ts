@@ -312,6 +312,38 @@ describe('Hapi Server', () => {
     });
   });
 
+  describe('NoExtends', () => {
+    it('should ignore SuccessResponse code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/customSuccessResponseCode`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+
+    it('should ignore SuccessResponse enum code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/enumSuccessResponseCode`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+
+    it('should ignore SuccessResponse 2XX code and use default code', () => {
+      return verifyGetRequest(
+        basePath + `/NoExtends/rangedSuccessResponse`,
+        (err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+  });
+
   describe('Validate', () => {
     it('should valid minDate and maxDate validation of date type', () => {
       const minDate = '2019-01-01';

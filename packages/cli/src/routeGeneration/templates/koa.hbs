@@ -87,7 +87,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{/if}}
 
             const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-            return promiseHandler(controller, promise, context, next);
+            return promiseHandler(controller, promise, context, {{successStatus}}, next);
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
@@ -157,10 +157,10 @@ export function RegisterRoutes(router: KoaRouter) {
 
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-  function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, next: () => Promise<any>) {
+  function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, successStatus: any, next: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
-            let statusCode;
+            let statusCode = successStatus;
             let headers;
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

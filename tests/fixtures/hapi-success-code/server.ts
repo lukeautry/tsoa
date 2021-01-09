@@ -1,7 +1,6 @@
 import { Server } from '@hapi/hapi';
 import '../controllers/rootController';
 
-import '../controllers/optionsController';
 import '../controllers/deleteController';
 import '../controllers/getController';
 import '../controllers/patchController';

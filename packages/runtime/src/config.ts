@@ -200,4 +200,12 @@ export interface RoutesConfig {
    * Authentication Module for express, hapi and koa
    */
   authenticationModule?: string;
+
+  /**
+   * When enabled, the `@SuccessResponse` annotations' code is used for responses by default.
+   * Otherwise, non-empty responses default to 200 and empty responses to 204.
+   *
+   * @default false
+   */
+  useSuccessResponseCode?: boolean;
 }

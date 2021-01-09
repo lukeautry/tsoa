@@ -18,6 +18,7 @@ import '../controllers/testController';
 import '../controllers/validateController';
 import '../controllers/exampleController';
 import '../controllers/tagController';
+import '../controllers/noExtendsController';
 
 import { RegisterRoutes } from './routes';
 
