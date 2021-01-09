@@ -174,18 +174,13 @@ export class MethodGenerator {
     const headers = getHeaderType(expression.typeArguments, 0, this.current);
 
     return {
-      description: description || '',
-      examples,
-      name: name || '200',
-      schema: type,
-      headers,
       response: {
         description: description || '',
         examples,
         name: name || '200',
         schema: type,
+        headers,
       },
-      headers,
       status: name && /^\d+$/.test(name) ? parseInt(name, 10) : undefined,
     };
   }
