@@ -63,7 +63,7 @@ export class RouteGenerator {
       basePath: normalisedBasePath,
       canImportByAlias,
       controllers: this.metadata.controllers.map(controller => {
-        const normalisedControllerPath = normalisePath(controller.path, '/');
+        const normalisedControllerPath = pathTransformer(normalisePath(controller.path, '/'));
 
         return {
           actions: controller.methods.map(method => {
