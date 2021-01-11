@@ -5,37 +5,51 @@ import { Tsoa } from '@tsoa/runtime';
 
 describe('Sub resource route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/subResourceController.ts').Generate();
-  const baseRoute = 'SubResourceTest/{mainResourceId}/SubResource';
 
-  const getParameters = (methodPath: string) => {
-    const controller = metadata.controllers.find(c => c.path === baseRoute);
-    if (!controller) {
-      throw new Error(`Missing controller for ${baseRoute}`);
-    }
+  const variants = [
+    {
+      name: 'Using brackets',
+      baseRoute: 'SubResourceTest/{mainResourceId}/SubResource',
+    },
+    {
+      name: 'Using colon',
+      baseRoute: 'SubResourceColonTest/:mainResourceId/SubResource',
+    },
+  ];
 
-    const method = controller.methods.find(m => m.path === methodPath);
-    if (!method) {
-      throw new Error('Unknown method ');
-    }
+  variants.forEach(({ name, baseRoute }) => {
+    describe(name, () => {
+      const getParameters = (methodPath: string) => {
+        const controller = metadata.controllers.find(c => c.path === baseRoute);
+        if (!controller) {
+          throw new Error(`Missing controller for ${baseRoute}`);
+        }
 
-    return method.parameters;
-  };
+        const method = controller.methods.find(m => m.path === methodPath);
+        if (!method) {
+          throw new Error('Unknown method ');
+        }
 
-  const validatePathParameter = (parameters: Tsoa.Parameter[], name: string) => {
-    const parameter = parameters.find(p => p.name === name);
-    expect(parameter, `Path parameter '${name}' wasn't generated.`).to.exist;
-    expect(parameter!.in).to.equal('path');
-    expect(parameter!.type).to.eql({ dataType: 'string' });
-  };
+        return method.parameters;
+      };
 
-  it('should generate a path parameter for method without path parameter', () => {
-    const parameters = getParameters('');
-    validatePathParameter(parameters, 'mainResourceId');
-  });
+      const validatePathParameter = (parameters: Tsoa.Parameter[], name: string) => {
+        const parameter = parameters.find(p => p.name === name);
+        expect(parameter, `Path parameter '${name}' wasn't generated.`).to.exist;
+        expect(parameter!.in).to.equal('path');
+        expect(parameter!.type).to.eql({ dataType: 'string' });
+      };
 
-  it('should generate two path parameters for method with path parameter', () => {
-    const parameters = getParameters('{subResourceId}');
-    validatePathParameter(parameters, 'mainResourceId');
-    validatePathParameter(parameters, 'subResourceId');
+      it('should generate a path parameter for method without path parameter', () => {
+        const parameters = getParameters('');
+        validatePathParameter(parameters, 'mainResourceId');
+      });
+
+      it('should generate two path parameters for method with path parameter', () => {
+        const parameters = getParameters('{subResourceId}');
+        validatePathParameter(parameters, 'mainResourceId');
+        validatePathParameter(parameters, 'subResourceId');
+      });
+    });
   });
 });
