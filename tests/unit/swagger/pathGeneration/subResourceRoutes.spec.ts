@@ -1,35 +1,41 @@
 import 'mocha';
+import { expect } from 'chai';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
-import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
-import { VerifyPathableParameter } from '../../utilities/verifyParameter';
-import { VerifyPath } from '../../utilities/verifyPath';
+import { Tsoa } from '@tsoa/runtime';
 
 describe('Sub resource route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/subResourceController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-  const baseRoute = '/SubResourceTest/{mainResourceId}';
+  const baseRoute = 'SubResourceTest/{mainResourceId}/SubResource';
 
-  const getValidatedParameters = (actionRoute: string) => {
-    const path = VerifyPath(spec, actionRoute, path => path.get);
-    if (!path.get) {
-      throw new Error('No get operation.');
-    }
-    if (!path.get.parameters) {
-      throw new Error('No parameters');
+  const getParameters = (methodPath: string) => {
+    const controller = metadata.controllers.find(c => c.path === baseRoute);
+    if (!controller) {
+      throw new Error(`Missing controller for ${baseRoute}`);
     }
 
-    return path.get.parameters as any;
+    const method = controller.methods.find(m => m.path === methodPath);
+    if (!method) {
+      throw new Error('Unknown method ');
+    }
+
+    return method.parameters;
+  };
+
+  const validatePathParameter = (parameters: Tsoa.Parameter[], name: string) => {
+    const parameter = parameters.find(p => p.name === name);
+    expect(parameter, `Path parameter '${name}' wasn't generated.`).to.exist;
+    expect(parameter!.in).to.equal('path');
+    expect(parameter!.type).to.eql({ dataType: 'string' });
   };
 
   it('should generate a path parameter for method without path parameter', () => {
-    const parameters = getValidatedParameters(`${baseRoute}/SubResource`);
-    VerifyPathableParameter(parameters, 'mainResourceId', 'string', 'path');
+    const parameters = getParameters('');
+    validatePathParameter(parameters, 'mainResourceId');
   });
 
   it('should generate two path parameters for method with path parameter', () => {
-    const parameters = getValidatedParameters(`${baseRoute}/SubResource/{subResourceId}`);
-    VerifyPathableParameter(parameters, 'mainResourceId', 'string', 'path');
-    VerifyPathableParameter(parameters, 'subResourceId', 'string', 'path');
+    const parameters = getParameters('{subResourceId}');
+    validatePathParameter(parameters, 'mainResourceId');
+    validatePathParameter(parameters, 'subResourceId');
   });
 });
