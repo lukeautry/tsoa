@@ -1090,8 +1090,7 @@ describe('Hapi Server', () => {
       const mainResourceId = 'main-123';
 
       return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (err, res) => {
-        const model = res.body as TestModel;
-        expect(model.stringArray).to.eql([mainResourceId]);
+        expect(res.text).to.equal(mainResourceId);
       });
     });
 
@@ -1100,8 +1099,7 @@ describe('Hapi Server', () => {
       const subResourceId = 'sub-456';
 
       return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (err, res) => {
-        const model = res.body as TestModel;
-        expect(model.stringArray).to.eql([mainResourceId, subResourceId]);
+        expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
       });
     });
   });
