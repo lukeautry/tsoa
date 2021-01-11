@@ -1246,6 +1246,27 @@ describe('Express Server', () => {
     });
   });
 
+  describe('Sub resource', () => {
+    it('parses path parameters from the controller description', () => {
+      const mainResourceId = 'main-123';
+
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.stringArray).to.eql([mainResourceId]);
+      });
+    });
+
+    it('parses path parameters from the controller description and method description', () => {
+      const mainResourceId = 'main-123';
+      const subResourceId = 'sub-456';
+
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.stringArray).to.eql([mainResourceId, subResourceId]);
+      });
+    });
+  });
+
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
