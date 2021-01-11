@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
@@ -18,6 +19,7 @@ export class MethodGenerator {
     private readonly node: ts.MethodDeclaration,
     private readonly current: MetadataGenerator,
     private readonly commonResponses: Tsoa.Response[],
+    private readonly parentPath?: string,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
     private readonly isParentHidden?: boolean,
@@ -69,10 +71,11 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
+    const fullPath = path.join(this.parentPath || '', this.path);
     const parameters = this.node.parameters
       .map(p => {
         try {
-          return new ParameterGenerator(p, this.method, this.path, this.current).Generate();
+          return new ParameterGenerator(p, this.method, fullPath, this.current).Generate();
         } catch (e) {
           const methodId = this.node.name as ts.Identifier;
           const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
