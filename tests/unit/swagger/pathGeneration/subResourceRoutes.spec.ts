@@ -4,7 +4,7 @@ import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerato
 import { Tsoa } from '@tsoa/runtime';
 
 describe('Sub resource route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/subResourceController.ts').Generate();
+  const metadata = new MetadataGenerator('./fixtures/controllers/subresourceController.ts').Generate();
 
   const variants = [
     {
