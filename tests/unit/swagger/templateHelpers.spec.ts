@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { TsoaRoute, FieldErrors, ValidationService, AdditionalProps } from '@tsoa/runtime';
+import { TypeAliasDate, TypeAliasDateTime, TypeAliasModel1, TypeAliasModel2 } from 'fixtures/testModel';
 
 describe('ValidationService', () => {
   describe('Model validate', () => {
@@ -886,6 +887,85 @@ describe('ValidationService', () => {
       const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, minimalSwaggerConfig, subSchemas);
       expect(resultA).to.deep.equal({ type: 'A', a: 100 });
       expect(resultB).to.deep.equal({ type: 'B', b: 20 });
+    });
+  });
+
+  describe('Intersection Validate', () => {
+    it('should validate intersection with throw-on-extras on', () => {
+      const refName = 'ExampleModel';
+      const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }, { ref: 'TypeAliasModelDateTime' }];
+      const models: TsoaRoute.Models = {
+        [refName]: {
+          dataType: 'refObject',
+          properties: {
+            and: {
+              dataType: 'intersection',
+              subSchemas,
+              required: true,
+            },
+          },
+        },
+        TypeAliasModel1: {
+          dataType: 'refObject',
+          properties: {
+            value1: { dataType: 'string', required: true },
+          },
+          additionalProperties: false,
+        },
+        TypeAliasModel2: {
+          dataType: 'refObject',
+          properties: {
+            value2: { dataType: 'string', required: true },
+          },
+          additionalProperties: false,
+        },
+        TypeAliasModelDateTime: {
+          dataType: 'refObject',
+          properties: {
+            dateTimeValue: { dataType: 'datetime', required: true },
+          },
+          additionalProperties: false,
+        },
+        TypeAliasModelDate: {
+          dataType: 'refObject',
+          properties: {
+            dateValue: { dataType: 'date', required: true },
+          },
+          additionalProperties: false,
+        },
+      };
+      const v = new ValidationService(models);
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'throw-on-extras',
+      };
+      const errorDictionary: FieldErrors = {};
+      const dataToValidate: TypeAliasModel1 & TypeAliasModel2 & TypeAliasDateTime = {
+        value1: 'this is value 1',
+        value2: 'this is value 2',
+        dateTimeValue: ('2017-01-01T00:00:00' as unknown) as Date,
+      };
+
+      // Act
+      const name = 'dataToValidate';
+      const validatedData = v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+
+      // Assert
+      const expectedValues = { ...dataToValidate, dateTimeValue: new Date('2017-01-01T00:00:00') };
+      expect(errorDictionary).to.deep.equal({});
+      expect(validatedData).to.deep.equal(expectedValues);
+
+      const errorDictionary2: FieldErrors = {};
+      const dataToValidate2: TypeAliasModel1 & TypeAliasModel2 & TypeAliasDateTime & TypeAliasDate = {
+        ...dataToValidate,
+        dateValue: ('2017-01-01' as unknown) as Date,
+      };
+
+      const subSchemas2 = subSchemas.concat([{ ref: 'TypeAliasModelDate' }]);
+      const validatedData2 = v.validateIntersection('and', dataToValidate2, errorDictionary2, minimalSwaggerConfig, subSchemas2, name + '.');
+
+      const expectedValues2 = { ...expectedValues, dateValue: new Date('2017-01-01') };
+      expect(errorDictionary2).to.deep.equal({});
+      expect(validatedData2).to.deep.equal(expectedValues2);
     });
   });
 });

@@ -539,6 +539,10 @@ export class ValidationService {
 
     const schemasWithRequiredProps = schemas.filter(schema => Object.keys(getRequiredPropError(schema)).length === 0);
 
+    if (swaggerConfig.noImplicitAdditionalProperties === 'ignore') {
+      return { ...value, ...cleanValues };
+    }
+
     if (swaggerConfig.noImplicitAdditionalProperties === 'silently-remove-extras') {
       if (schemasWithRequiredProps.length > 0) {
         return cleanValues;
@@ -552,7 +556,7 @@ export class ValidationService {
     }
 
     if (schemasWithRequiredProps.length > 0 && schemasWithRequiredProps.some(schema => this.getExcessPropertiesFor(schema, Object.keys(value), swaggerConfig).length === 0)) {
-      return value;
+      return cleanValues;
     } else {
       fieldErrors[parent + name] = {
         message: `Could not match intersection against any of the possible combinations: ${JSON.stringify(schemas.map(s => Object.keys(s.properties)))}`,
@@ -589,12 +593,31 @@ export class ValidationService {
     }
   }
 
-  private selfIntersectionExcludingCombinations(modelSchemass: TsoaRoute.RefObjectModelSchema[][]) {
+  /**
+   * combine all schemas once without backwards combinations ie
+   * input: [[value1], [value2]] should be [[value1, value2]]
+   * not [[value1, value2],[value2, value1]]
+   * and
+   * input: [[value1], [value2], [value3]] should be [
+   *   [value1, value2, value3],
+   *   [value1, value2],
+   *   [value1, value3],
+   *   [value2, value3]
+   * ]
+   * @param modelSchemass
+   */
+  private selfIntersectionExcludingCombinations(modelSchemass: TsoaRoute.RefObjectModelSchema[][]): TsoaRoute.RefObjectModelSchema[] {
     const res: TsoaRoute.RefObjectModelSchema[] = [];
 
     for (let outerIndex = 0; outerIndex < modelSchemass.length; outerIndex++) {
+      let currentCollector = { ...modelSchemass[outerIndex][0] };
       for (let innerIndex = outerIndex + 1; innerIndex < modelSchemass.length; innerIndex++) {
-        res.push(...this.intersectRefObjectModelSchemas(modelSchemass[outerIndex], modelSchemass[innerIndex]));
+        currentCollector = { ...this.intersectRefObjectModelSchemas([currentCollector], modelSchemass[innerIndex])[0] };
+        if (innerIndex - outerIndex > 1) {
+          res.push(currentCollector);
+        }
+        const currentCombination = this.intersectRefObjectModelSchemas(modelSchemass[outerIndex], modelSchemass[innerIndex]);
+        res.push(...currentCombination);
       }
     }
 
