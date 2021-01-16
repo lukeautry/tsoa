@@ -1074,6 +1074,25 @@ describe('Koa Server', () => {
     });
   });
 
+  describe('Sub resource', () => {
+    it('parses path parameters from the controller description', () => {
+      const mainResourceId = 'main-123';
+
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (err, res) => {
+        expect(res.text).to.equal(mainResourceId);
+      });
+    });
+
+    it('parses path parameters from the controller description and method description', () => {
+      const mainResourceId = 'main-123';
+      const subResourceId = 'sub-456';
+
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (err, res) => {
+        expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
+      });
+    });
+  });
+
   it('shutdown server', () => server.close());
 
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
