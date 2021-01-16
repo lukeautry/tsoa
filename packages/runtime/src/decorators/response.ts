@@ -1,10 +1,12 @@
-export function SuccessResponse(name: string | number, description?: string): Function {
+import { IsValidHeader } from '../utils/isHeaderType';
+
+export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = {}>(name: string | number, description?: string): Function {
   return () => {
     return;
   };
 }
 
-export function Response<T>(name: string | number, description?: string, example?: T): Function {
+export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderType> = {}>(name: string | number, description?: string, example?: ExampleType): Function {
   return () => {
     return;
   };

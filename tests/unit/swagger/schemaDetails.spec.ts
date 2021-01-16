@@ -183,6 +183,129 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('responses', () => {
+        describe('should generate headers from method reponse decorator.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
+          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+          it('proper schema for header class.', () => {
+            const pathsWithHeaderClass = ['SuccessResponseWithHeaderClass', 'ResponseWithHeaderClass', 'TsoaResponseWithHeaderClass'];
+            pathsWithHeaderClass.forEach((path: string) => {
+              const responses = responseSpec.paths[`/ResponseHeader/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
+                Link: {
+                  type: 'string',
+                  description: 'a link string',
+                },
+                LinkB: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'b link str[]',
+                },
+                LinkC: {
+                  type: 'string',
+                  description: 'c link string, optional',
+                },
+              });
+            });
+          });
+          it('with header object.', () => {
+            expect(responseSpec.paths['/ResponseHeader/SuccessResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
+              linkA: {
+                type: 'string',
+                description: undefined,
+              },
+              linkB: {
+                type: 'array',
+                items: { type: 'string' },
+                description: undefined,
+              },
+              linkOpt: {
+                type: 'string',
+                description: undefined,
+              },
+            });
+            expect(responseSpec.paths['/ResponseHeader/ResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
+              linkC: {
+                type: 'string',
+                description: undefined,
+              },
+              linkD: {
+                type: 'array',
+                items: { type: 'string' },
+                description: undefined,
+              },
+              linkOpt: {
+                type: 'string',
+                description: undefined,
+              },
+            });
+            expect(responseSpec.paths['/ResponseHeader/TsoaResponseWithObject'].get?.responses?.[200]?.headers).to.deep.eq({
+              linkE: {
+                type: 'string',
+                description: undefined,
+              },
+              linkF: {
+                type: 'array',
+                items: { type: 'string' },
+                description: undefined,
+              },
+              linkOpt: {
+                type: 'string',
+                description: undefined,
+              },
+            });
+          });
+        });
+        describe('should generate headers from class response decorator.', () => {
+          it('with header class.', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+            const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path: string) => {
+              const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
+                CommonLink: {
+                  type: 'string',
+                  description: 'a common link string',
+                },
+                CommonLinkB: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'b common link str[]',
+                },
+                CommonLinkC: {
+                  type: 'string',
+                  description: 'c common link string, optional',
+                },
+              });
+            });
+          });
+
+          it('with header object.', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
+            const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path: string) => {
+              const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
+              expect(responses?.[200]?.headers).to.deep.eq({
+                objectA: {
+                  type: 'string',
+                  description: undefined,
+                },
+                objectB: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: undefined,
+                },
+                objectC: {
+                  type: 'string',
+                  description: undefined,
+                },
+              });
+            });
+          });
+        });
+
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();

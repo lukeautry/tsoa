@@ -5,6 +5,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { TypeResolver } from './typeResolver';
 import { Tsoa } from '@tsoa/runtime';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ControllerGenerator {
   private readonly path?: string;
@@ -85,6 +86,7 @@ export class ControllerGenerator {
         examples: example === undefined ? undefined : [example],
         name,
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
     });
   }

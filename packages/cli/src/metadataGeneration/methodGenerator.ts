@@ -9,6 +9,7 @@ import { ParameterGenerator } from './parameterGenerator';
 
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -144,6 +145,7 @@ export class MethodGenerator {
         examples: example === undefined ? undefined : [example],
         name: name || '200',
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
     });
   }
@@ -168,12 +170,16 @@ export class MethodGenerator {
     const [name, description] = getDecoratorValues(decorators[0], this.current.typeChecker);
     const examples = this.getMethodSuccessExamples();
 
+    const expression = decorators[0].parent as ts.CallExpression;
+    const headers = getHeaderType(expression.typeArguments, 0, this.current);
+
     return {
       response: {
         description: description || '',
         examples,
         name: name || '200',
         schema: type,
+        headers,
       },
       status: name && /^\d+$/.test(name) ? parseInt(name, 10) : undefined,
     };
