@@ -22,6 +22,18 @@ export class DuplicatePathParamTestController {
     return anotherIdentifier;
   }
 
+  @Post('{identifier}-{identifier2}') public postPathParamTest4(@Path() identifier: string) {
+    return identifier;
+  }
+
+  @Post('test-{identifier}') public postPathParamPrefixTest1(@Path() identifier: string) {
+    return identifier;
+  }
+
+  @Post('anothertest-{identifier}') public postPathParamPrefixTest2(@Path() identifier: string) {
+    return identifier;
+  }
+
   @Delete('Delete/{id}') public deletePathParamTest(@Path() id: string) {
     return id;
   }
@@ -41,6 +53,6 @@ export class DuplicatePathParamTestController {
   }
 
   @Head('Head/{id}/{id2}') public headPathParamTest2(@Path() id, @Path() id2) {
-    return { id, id2 };''
+    return { id, id2 };
   }
 }

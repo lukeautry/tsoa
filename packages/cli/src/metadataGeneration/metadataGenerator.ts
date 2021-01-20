@@ -113,7 +113,7 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
-    const isParamRegExp = new RegExp('{|}|:');
+    const paramRegExp = new RegExp('{(\\w*)}|:(\\w+)', 'g');
     const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
     let message = '';
 
@@ -125,16 +125,12 @@ export class MetadataGenerator {
     }
 
     function _examinePaths(
-      tester: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
-      subject: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
+      tester: { paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method },
+      subject: { paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method },
     ): PathDuplicationType {
       const testLength = tester.paths.length > subject.paths.length ? subject.paths.length : tester.paths.length;
       for (let i = 0; i < testLength; i += 1) {
-        if (
-          (tester.paths[i].isParam && !subject.paths[i].isParam) ||
-          (!tester.paths[i].isParam && subject.paths[i].isParam) ||
-          (!tester.paths[i].isParam && tester.paths[i].path !== subject.paths[i].path)
-        ) {
+        if (tester.paths[i].cntParams !== subject.paths[i].cntParams || tester.paths[i].path !== subject.paths[i].path) {
           return PathDuplicationType.NONE;
         }
       }
@@ -151,7 +147,7 @@ export class MetadataGenerator {
       const methodRouteGroup: {
         [key: string]: Array<{
           paths: Array<{
-            isParam: boolean;
+            cntParams: number;
             path: string;
           }>;
           method: Tsoa.Method;
@@ -164,7 +160,17 @@ export class MetadataGenerator {
         }
         methodRouteGroup[method.method].push({
           paths: method.path.split('/').map((val: string) => {
-            return { isParam: isParamRegExp.test(val), path: val };
+            const params = val.match(paramRegExp);
+            const cntParams = params?.length || 0;
+
+            return {
+              cntParams: cntParams,
+              path:
+                params?.reduce((s, a) => {
+                  // replace all params with {} placeholder for comparison
+                  return s.replace(a, '{}');
+                }, val) || val,
+            };
           }),
           method,
         });
@@ -172,7 +178,7 @@ export class MetadataGenerator {
 
       const dupRoute: { [key: string]: Tsoa.Method[] } = {};
       Object.keys(methodRouteGroup).forEach((key: string) => {
-        const methodRoutes: Array<{ paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method }> = methodRouteGroup[key];
+        const methodRoutes: Array<{ paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method }> = methodRouteGroup[key];
         const duplicates: Tsoa.Method[] = [];
         for (let i = 0; i < methodRoutes.length - 1; i += 1) {
           const iMethodRoute = methodRoutes[i];
