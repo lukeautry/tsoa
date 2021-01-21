@@ -14,8 +14,8 @@ describe('Overlapping routes', () => {
 
     new MetadataGenerator('./fixtures/controllers/duplicatePathParamController.ts').Generate();
 
-    expect(consoleWarn.calledWith('[Method headPathParamTest route: Head/{id}] may never be invoked, because its route is partially collides with [Method headPathParamTest2 route: Head/{id}/{id2}]'))
-      .to.be.true;
+    expect(consoleWarn.calledWith('[Method headPathParamTest route: Head/{id}] may never be invoked, because its route partially collides with [Method headPathParamTest2 route: Head/{id}/{id2}]')).to
+      .be.true;
 
     expect(
       consoleWarn.calledWith(
