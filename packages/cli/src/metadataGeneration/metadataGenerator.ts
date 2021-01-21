@@ -124,13 +124,10 @@ export class MetadataGenerator {
       PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX, // tester's path is subject's prefix.
     }
 
-    function _examinePaths(
-      tester: { paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method },
-      subject: { paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method },
-    ): PathDuplicationType {
+    function _examinePaths(tester: { paths: string[]; method: Tsoa.Method }, subject: { paths: string[]; method: Tsoa.Method }): PathDuplicationType {
       const testLength = tester.paths.length > subject.paths.length ? subject.paths.length : tester.paths.length;
       for (let i = 0; i < testLength; i += 1) {
-        if (tester.paths[i].cntParams !== subject.paths[i].cntParams || tester.paths[i].path !== subject.paths[i].path) {
+        if (tester.paths[i] !== subject.paths[i]) {
           return PathDuplicationType.NONE;
         }
       }
@@ -146,10 +143,7 @@ export class MetadataGenerator {
     controllers.forEach(controller => {
       const methodRouteGroup: {
         [key: string]: Array<{
-          paths: Array<{
-            cntParams: number;
-            path: string;
-          }>;
+          paths: string[];
           method: Tsoa.Method;
         }>;
       } = {};
@@ -161,16 +155,13 @@ export class MetadataGenerator {
         methodRouteGroup[method.method].push({
           paths: method.path.split('/').map((val: string) => {
             const params = val.match(paramRegExp);
-            const cntParams = params?.length || 0;
 
-            return {
-              cntParams: cntParams,
-              path:
-                params?.reduce((s, a) => {
-                  // replace all params with {} placeholder for comparison
-                  return s.replace(a, '{}');
-                }, val) || val,
-            };
+            return (
+              params?.reduce((s, a) => {
+                // replace all params with {} placeholder for comparison
+                return s.replace(a, '{}');
+              }, val) || val
+            );
           }),
           method,
         });
@@ -178,7 +169,7 @@ export class MetadataGenerator {
 
       const dupRoute: { [key: string]: Tsoa.Method[] } = {};
       Object.keys(methodRouteGroup).forEach((key: string) => {
-        const methodRoutes: Array<{ paths: Array<{ cntParams: number; path: string }>; method: Tsoa.Method }> = methodRouteGroup[key];
+        const methodRoutes: Array<{ paths: string[]; method: Tsoa.Method }> = methodRouteGroup[key];
         const duplicates: Tsoa.Method[] = [];
         for (let i = 0; i < methodRoutes.length - 1; i += 1) {
           const iMethodRoute = methodRoutes[i];
@@ -195,12 +186,12 @@ export class MetadataGenerator {
                 break;
               case PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX:
                 console.warn(
-                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoke, because its route is partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
+                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoke, because its route partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
                 );
                 break;
               case PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX:
                 console.warn(
-                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoke, because its route is partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
+                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoke, because its route partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
                 );
                 break;
             }
