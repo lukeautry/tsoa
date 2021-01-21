@@ -5,6 +5,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { TypeResolver } from './typeResolver';
 import { Tsoa } from '@tsoa/runtime';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ControllerGenerator {
   private readonly path?: string;
@@ -46,7 +47,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter(m => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.commonResponses, this.tags, this.security, this.isHidden))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.current, this.commonResponses, this.path, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
@@ -85,6 +86,7 @@ export class ControllerGenerator {
         examples: example === undefined ? undefined : [example],
         name,
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
     });
   }

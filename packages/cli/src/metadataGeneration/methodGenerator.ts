@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
@@ -9,6 +10,7 @@ import { ParameterGenerator } from './parameterGenerator';
 
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
+import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -18,6 +20,7 @@ export class MethodGenerator {
     private readonly node: ts.MethodDeclaration,
     private readonly current: MetadataGenerator,
     private readonly commonResponses: Tsoa.Response[],
+    private readonly parentPath?: string,
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
     private readonly isParentHidden?: boolean,
@@ -69,10 +72,11 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
+    const fullPath = path.join(this.parentPath || '', this.path);
     const parameters = this.node.parameters
       .map(p => {
         try {
-          return new ParameterGenerator(p, this.method, this.path, this.current).Generate();
+          return new ParameterGenerator(p, this.method, fullPath, this.current).Generate();
         } catch (e) {
           const methodId = this.node.name as ts.Identifier;
           const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
@@ -144,6 +148,7 @@ export class MethodGenerator {
         examples: example === undefined ? undefined : [example],
         name: name || '200',
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
     });
   }
@@ -168,12 +173,16 @@ export class MethodGenerator {
     const [name, description] = getDecoratorValues(decorators[0], this.current.typeChecker);
     const examples = this.getMethodSuccessExamples();
 
+    const expression = decorators[0].parent as ts.CallExpression;
+    const headers = getHeaderType(expression.typeArguments, 0, this.current);
+
     return {
       response: {
         description: description || '',
         examples,
         name: name || '200',
         schema: type,
+        headers,
       },
       status: name && /^\d+$/.test(name) ? parseInt(name, 10) : undefined,
     };
