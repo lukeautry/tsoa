@@ -186,12 +186,12 @@ export class MetadataGenerator {
                 break;
               case PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX:
                 console.warn(
-                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoke, because its route partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
+                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoked, because its route partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
                 );
                 break;
               case PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX:
                 console.warn(
-                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoke, because its route partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
+                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoked, because its route partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
                 );
                 break;
             }
@@ -228,7 +228,7 @@ export class MetadataGenerator {
     }
 
     if (message) {
-      throw new GenerateMetadataError(message);
+      console.warn(message);
     }
   };
 
