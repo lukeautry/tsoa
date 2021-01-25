@@ -1061,6 +1061,115 @@ describe('ValidationService', () => {
         // Assert
         expect(errorDictionary3).to.deep.equal({});
         expect(validatedData3).to.deep.equal(dataToValidate3);
+
+        const withUnionsName = 'withUnions';
+        const withUnionsSubSchemas = [{ ref: 'ServiceObject' }, { ref: 'BigUnion' }];
+        const WithUnionModels: TsoaRoute.Models = {
+          [withUnionsName]: {
+            dataType: 'refObject',
+            properties: {
+              unions: {
+                dataType: 'intersection',
+                subSchemas: withUnionsSubSchemas,
+                required: true,
+              },
+            },
+          },
+          ServiceObject: {
+            dataType: 'refObject',
+            properties: {
+              service: { dataType: 'enum', enums: ['23'], required: false },
+            },
+          },
+          BigUnion: {
+            dataType: 'refAlias',
+            type: {
+              dataType: 'union',
+              subSchemas: [{ ref: 'Union1' }, { ref: 'Union2' }, { ref: 'Union3' }],
+            },
+          },
+          Union1: {
+            dataType: 'refObject',
+            properties: {
+              model: { dataType: 'string', required: true },
+              barcode_format: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+          Union2: {
+            dataType: 'refObject',
+            properties: {
+              model: { dataType: 'string', required: true },
+              barcode_format: { dataType: 'string', required: true },
+              aProperty: { dataType: 'string', required: true },
+            },
+          },
+          Union3: {
+            dataType: 'refObject',
+            properties: {
+              model: { dataType: 'string', required: true },
+              aAnotherProperty: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+        };
+        const withUnionValidationService = new ValidationService(WithUnionModels);
+        const withUnionDataToValidate1 = {
+          model: 'model1',
+          service: '23',
+        };
+        const withUnionErrorDictionary1 = {};
+
+        withUnionValidationService.validateIntersection('union', withUnionDataToValidate1, withUnionErrorDictionary1, minimalSwaggerConfig, withUnionsSubSchemas, withUnionsName + '.');
+
+        // Assert
+        expect(withUnionErrorDictionary1).to.deep.equal({
+          'withUnions.union': {
+            message: `Could not match the intersection against every type. Issues: [{"withUnions.union":{"message":"Could not match the union against any of the items. Issues: [{\\"withUnions.union.barcode_format\\":{\\"message\\":\\"'barcode_format' is required\\"}},{\\"withUnions.union.barcode_format\\":{\\"message\\":\\"'barcode_format' is required\\"},\\"withUnions.union.aProperty\\":{\\"message\\":\\"'aProperty' is required\\"}},{\\"withUnions.union.aAnotherProperty\\":{\\"message\\":\\"'aAnotherProperty' is required\\"}}]","value":{"model":"model1","service":"23"}}}]`,
+            value: withUnionDataToValidate1,
+          },
+        });
+
+        const withUnionDataToValidate2 = {
+          model: 'model2',
+          barcode_format: 'none',
+          aProperty: 'blabla',
+          service: '23',
+        };
+        const withUnionErrorDictionary2 = {};
+
+        const validatedResult2 = withUnionValidationService.validateIntersection(
+          'union',
+          withUnionDataToValidate2,
+          withUnionErrorDictionary2,
+          minimalSwaggerConfig,
+          withUnionsSubSchemas,
+          withUnionsName + '.',
+        );
+
+        // Assert
+        expect(withUnionErrorDictionary2).to.deep.equal({});
+        expect(validatedResult2).to.deep.equal(withUnionDataToValidate2);
+
+        const withUnionDataToValidate3 = {
+          model: 'model3',
+          aAnotherProperty: 'blabla',
+          service: '23',
+        };
+        const withUnionErrorDictionary3 = {};
+
+        const validatedResult3 = withUnionValidationService.validateIntersection(
+          'union',
+          withUnionDataToValidate3,
+          withUnionErrorDictionary3,
+          minimalSwaggerConfig,
+          withUnionsSubSchemas,
+          withUnionsName + '.',
+        );
+
+        // Assert
+        expect(withUnionErrorDictionary3).to.deep.equal({});
+        expect(validatedResult3).to.deep.equal(withUnionDataToValidate3);
       });
     });
   });
