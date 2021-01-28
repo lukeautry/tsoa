@@ -30,5 +30,5 @@ export function convertColonPathParams(path: string) {
 }
 
 export function convertBracesPathParams(path: string) {
-  return path.replace(/{([^\/]+)}/g, ':$1');
+  return path.replace(/{(\w*)}/g, ':$1');
 }
