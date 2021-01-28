@@ -168,8 +168,6 @@ export class MetadataGenerator {
         });
       });
 
-      // console.log('methodRouteGroup', JSON.stringify(methodRouteGroup, undefined, 1));
-
       Object.keys(methodRouteGroup).forEach((key: string) => {
         const methodRoutes = methodRouteGroup[key];
 
@@ -193,8 +191,7 @@ export class MetadataGenerator {
       });
     });
 
-    // group by collisions
-
+    // print warnings for each collision (grouped by route)
     collisions.forEach(collision => {
       let message = '';
       if (collision.type === PathDuplicationType.FULL) {
