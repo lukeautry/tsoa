@@ -36,7 +36,7 @@ OpenAPI-compliant REST APIs using TypeScript and Node
 ## Getting Started
 
 - [Documentation](https://tsoa-community.github.io/docs/index)
-- [API Reference](https://tsoa-community.github.io/reference/globals.html)
+- [API Reference](https://tsoa-community.github.io/reference)
 - [Getting started guide](https://tsoa-community.github.io/docs/getting-started)
 
 ## Examples
