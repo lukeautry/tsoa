@@ -14,12 +14,33 @@ describe('Overlapping routes', () => {
 
     new MetadataGenerator('./fixtures/controllers/duplicatePathParamController.ts').Generate();
 
-    expect(consoleWarn.calledWith('[Method headPathParamTest route: Head/{id}] may never be invoked, because its route is partially collides with [Method headPathParamTest2 route: Head/{id}/{id2}]'))
-      .to.be.true;
+    expect(
+      consoleWarn.calledWith(
+        'Duplicate path parameter definition signature found in controller DuplicatePathParamTestController [ method GET getPathParamTest2 route: {identifier} ] collides with [ method GET getPathParamTest route: {id} ]\n',
+      ),
+    ).to.be.true;
 
     expect(
       consoleWarn.calledWith(
-        'Duplicate path parameter definition signature found in controller DuplicatePathParamTestController at [method GET getPathParamTest, getPathParamTest2], [method POST postPathParamTest, postPathParamTest2, postPathParamTest3], [method DELETE deletePathParamTest, deletePathParamTest3]\n',
+        'Duplicate path parameter definition signature found in controller DuplicatePathParamTestController [ method POST postPathParamTest2 route: {identifier} ] collides with [ method POST postPathParamTest route: {id} ]\n',
+      ),
+    ).to.be.true;
+
+    expect(
+      consoleWarn.calledWith(
+        'Duplicate path parameter definition signature found in controller DuplicatePathParamTestController [ method POST postPathParamTest3 route: :anotherIdentifier ] collides with [ method POST postPathParamTest route: {id} ], [ method POST postPathParamTest2 route: {identifier} ]\n',
+      ),
+    ).to.be.true;
+
+    expect(
+      consoleWarn.calledWith(
+        'Overlapping path parameter definition signature found in controller DuplicatePathParamTestController [ method POST postPathParamTest4 route: {identifier}-{identifier2} ] collides with [ method POST postPathParamTest route: {id} ], [ method POST postPathParamTest2 route: {identifier} ], [ method POST postPathParamTest3 route: :anotherIdentifier ]\n',
+      ),
+    ).to.be.true;
+
+    expect(
+      consoleWarn.calledWith(
+        'Duplicate path parameter definition signature found in controller DuplicatePathParamTestController [ method DELETE deletePathParamTest3 route: Delete/:identifier ] collides with [ method DELETE deletePathParamTest route: Delete/{id} ]\n',
       ),
     ).to.be.true;
 

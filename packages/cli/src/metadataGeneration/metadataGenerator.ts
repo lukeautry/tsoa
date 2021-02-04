@@ -113,47 +113,40 @@ export class MetadataGenerator {
   };
 
   private checkForPathParamSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
-    const isParamRegExp = new RegExp('{|}|:');
-    const controllerDup: { [key: string]: { [key: string]: Tsoa.Method[] } } = {};
-    let message = '';
+    const paramRegExp = new RegExp('{(\\w*)}|:(\\w+)', 'g');
+    type RouteCollision = {
+      type: PathDuplicationType;
+      method: Tsoa.Method;
+      controller: Tsoa.Controller;
+      collidesWith: Tsoa.Method[];
+    };
 
     enum PathDuplicationType {
-      NONE, // No duplication.
       FULL, // Fully duplicate.
-      PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX, // subject's path is tester's prefix.
-      PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX, // tester's path is subject's prefix.
+      PARTIAL, // Collides, check order or fix route
     }
 
-    function _examinePaths(
-      tester: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
-      subject: { paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method },
-    ): PathDuplicationType {
-      const testLength = tester.paths.length > subject.paths.length ? subject.paths.length : tester.paths.length;
-      for (let i = 0; i < testLength; i += 1) {
-        if (
-          (tester.paths[i].isParam && !subject.paths[i].isParam) ||
-          (!tester.paths[i].isParam && subject.paths[i].isParam) ||
-          (!tester.paths[i].isParam && tester.paths[i].path !== subject.paths[i].path)
-        ) {
-          return PathDuplicationType.NONE;
-        }
+    const collisions: RouteCollision[] = [];
+
+    function addCollision(type: PathDuplicationType, method: Tsoa.Method, controller: Tsoa.Controller, collidesWith: Tsoa.Method) {
+      let existingCollision = collisions.find(collision => collision.type === type && collision.method === method && collision.controller === controller);
+      if (!existingCollision) {
+        existingCollision = {
+          type,
+          method,
+          controller,
+          collidesWith: [],
+        };
+        collisions.push(existingCollision);
       }
-      if (tester.paths.length === subject.paths.length) {
-        return PathDuplicationType.FULL;
-      } else if (tester.paths.length > subject.paths.length) {
-        return PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX;
-      } else {
-        return PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX;
-      }
+
+      existingCollision.collidesWith.push(collidesWith);
     }
 
     controllers.forEach(controller => {
       const methodRouteGroup: {
         [key: string]: Array<{
-          paths: Array<{
-            isParam: boolean;
-            path: string;
-          }>;
+          path: string;
           method: Tsoa.Method;
         }>;
       } = {};
@@ -162,77 +155,61 @@ export class MetadataGenerator {
         if (methodRouteGroup[method.method] === undefined) {
           methodRouteGroup[method.method] = [];
         }
+
+        const params = method.path.match(paramRegExp);
+
         methodRouteGroup[method.method].push({
-          paths: method.path.split('/').map((val: string) => {
-            return { isParam: isParamRegExp.test(val), path: val };
-          }),
-          method,
+          method, // method.name + ": " + method.path) as any,
+          path:
+            params?.reduce((s, a) => {
+              // replace all params with {} placeholder for comparison
+              return s.replace(a, '{}');
+            }, method.path) || method.path,
         });
       });
 
-      const dupRoute: { [key: string]: Tsoa.Method[] } = {};
       Object.keys(methodRouteGroup).forEach((key: string) => {
-        const methodRoutes: Array<{ paths: Array<{ isParam: boolean; path: string }>; method: Tsoa.Method }> = methodRouteGroup[key];
-        const duplicates: Tsoa.Method[] = [];
-        for (let i = 0; i < methodRoutes.length - 1; i += 1) {
-          const iMethodRoute = methodRoutes[i];
-          for (let j = i + 1; j < methodRoutes.length; j += 1) {
-            const jMethodRoute = methodRoutes[j];
-            switch (_examinePaths(iMethodRoute, jMethodRoute)) {
-              case PathDuplicationType.FULL:
-                if (!duplicates.includes(iMethodRoute.method)) {
-                  duplicates.push(iMethodRoute.method);
-                }
-                if (!duplicates.includes(jMethodRoute.method)) {
-                  duplicates.push(jMethodRoute.method);
-                }
-                break;
-              case PathDuplicationType.PARTIAL_SUBJECT_PATH_IS_TESTER_PREFIX:
-                console.warn(
-                  `[Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}] may never be invoked, because its route is partially collides with [Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}]`,
-                );
-                break;
-              case PathDuplicationType.PARTIAL_TESTER_PATH_IS_SUBJECT_PREFIX:
-                console.warn(
-                  `[Method ${iMethodRoute.method.name} route: ${iMethodRoute.method.path}] may never be invoked, because its route is partially collides with [Method ${jMethodRoute.method.name} route: ${jMethodRoute.method.path}]`,
-                );
-                break;
+        const methodRoutes = methodRouteGroup[key];
+
+        // check each route with the routes that are defined before it
+        for (let i = 0; i < methodRoutes.length; i += 1) {
+          for (let j = 0; j < i; j += 1) {
+            if (methodRoutes[i].path === methodRoutes[j].path) {
+              // full match
+              addCollision(PathDuplicationType.FULL, methodRoutes[i].method, controller, methodRoutes[j].method);
+            } else if (
+              methodRoutes[i].path.split('/').length === methodRoutes[j].path.split('/').length &&
+              methodRoutes[i].path.includes('{}') && // only check routes with params
+              methodRoutes[j].path && // ensure the comparison path has a value
+              methodRoutes[i].path.startsWith(methodRoutes[j].path)
+            ) {
+              // partial match - reorder routes!
+              addCollision(PathDuplicationType.PARTIAL, methodRoutes[i].method, controller, methodRoutes[j].method);
             }
           }
         }
-
-        if (duplicates.length > 1) {
-          dupRoute[key] = duplicates;
-        }
       });
-
-      if (Object.keys(dupRoute).length > 0) {
-        controllerDup[controller.name] = dupRoute;
-      }
     });
 
-    if (Object.keys(controllerDup).length > 0) {
-      message = `Duplicate path parameter definition signature found in controller `;
-      message += Object.keys(controllerDup)
-        .map((conKey: string) => {
-          const methodDup: { [key: string]: Tsoa.Method[] } = controllerDup[conKey];
-          return `${conKey} at ${Object.keys(methodDup)
-            .map((methodKey: string) => {
-              return `[method ${methodKey.toUpperCase()} ${methodDup[methodKey]
-                .map((method: Tsoa.Method) => {
-                  return method.name;
-                })
-                .join(', ')}]`;
-            })
-            .join(', ')}`;
+    // print warnings for each collision (grouped by route)
+    collisions.forEach(collision => {
+      let message = '';
+      if (collision.type === PathDuplicationType.FULL) {
+        message = `Duplicate path parameter definition signature found in controller `;
+      } else if (collision.type === PathDuplicationType.PARTIAL) {
+        message = `Overlapping path parameter definition signature found in controller `;
+      }
+      message += collision.controller.name;
+      message += ` [ method ${collision.method.method.toUpperCase()} ${collision.method.name} route: ${collision.method.path} ] collides with `;
+      message += collision.collidesWith
+        .map((method: Tsoa.Method) => {
+          return `[ method ${method.method.toUpperCase()} ${method.name} route: ${method.path} ]`;
         })
         .join(', ');
-      message += '\n';
-    }
 
-    if (message) {
+      message += '\n';
       console.warn(message);
-    }
+    });
   };
 
   public TypeChecker() {
