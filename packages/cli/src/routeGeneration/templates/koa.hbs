@@ -184,7 +184,7 @@ export function RegisterRoutes(router: KoaRouter) {
         if (!context.response.__tsoaResponded) {
             context.set(headers);
 
-            if (data || data === false) { 
+            if (data !== null && data !== undefined) { 
                 context.body = data;
                 context.status = 200;
             } else {
