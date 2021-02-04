@@ -174,7 +174,7 @@ export function RegisterRoutes(app: express.Router) {
         });
         if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
             data.pipe(response);
-        } else if (data || data === false) { // === false allows boolean result
+        } else if (data !== null && data !== undefined) {
             response.status(statusCode || 200).json(data);
         } else {
             response.status(statusCode || 204).end();

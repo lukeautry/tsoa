@@ -89,6 +89,16 @@ describe('Hapi Server with useSuccessResponseCode', () => {
       );
     });
 
+    it('should normal status code with 0 result', () => {
+      return verifyGetRequest(
+        basePath + `/Controller/zeroStatusCode`,
+        (err, res) => {
+          expect(res.status).to.equal(200);
+        },
+        200,
+      );
+    });
+
     it('should no content status code', () => {
       return verifyGetRequest(
         basePath + `/Controller/noContentStatusCode`,

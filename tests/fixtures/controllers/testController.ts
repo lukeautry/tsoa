@@ -21,6 +21,11 @@ export class TestController extends Controller {
     return false;
   }
 
+  @Get('zeroStatusCode')
+  public async zeroStatusCode(): Promise<number> {
+    return 0;
+  }
+
   @Get('customStatusCode')
   public async customNomalStatusCode(): Promise<TestModel> {
     const service = new ModelService();
