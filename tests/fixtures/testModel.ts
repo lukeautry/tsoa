@@ -158,11 +158,12 @@ export interface TestModel extends Model {
     justNull: null;
   };
 
-  templateLiteralString?: TemplateLiteralString,
-  inlineTLS?: `${Uppercase<OrderDirection>}`
-  inlineMappedType?: {[K in Exclude<TemplateLiteralString, 'firstname:asc'>]: boolean}
+  templateLiteralString?: TemplateLiteralString;
+  inlineTLS?: `${Uppercase<OrderDirection>}`;
+  inlineMappedType?: { [K in Exclude<TemplateLiteralString, 'firstname:asc'>]: boolean };
   inlineMappedTypeRemapped?: {
-    [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string}
+    [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string;
+  };
 }
 
 interface Generic<T> {
@@ -190,6 +191,20 @@ export class TypeAliasModel3 {
 }
 
 export type TypeAlias4 = { value4: string };
+
+export type TypeAliasDateTime = {
+  /**
+   * @isDateTime
+   */
+  dateTimeValue: Date;
+};
+
+export type TypeAliasDate = {
+  /**
+   * @isDate
+   */
+  dateValue: Date;
+};
 
 export type TypeAliasModelCase1 = TypeAliasModel1 & TypeAliasModel2;
 
@@ -785,7 +800,7 @@ interface TSameNameDifferentValue {
   str: string;
 }
 
-type OrderDirection = "asc" | "desc";
+type OrderDirection = 'asc' | 'desc';
 
 type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
 
