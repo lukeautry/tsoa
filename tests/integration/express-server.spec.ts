@@ -138,6 +138,18 @@ describe('Express Server', () => {
     );
   });
 
+  it('Should not modify the response after headers sent', () => {
+    return verifyGetRequest(
+      basePath + '/GetTest/MultipleRes',
+      (err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+        expect(res.get('custom-header')).to.eq('hello');
+      },
+      400,
+    );
+  });
+
   it('parses buffer parameter', () => {
     return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (err, res) => {
       return;
