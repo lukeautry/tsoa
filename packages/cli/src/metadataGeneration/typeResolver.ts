@@ -10,7 +10,7 @@ const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
 
 type OverrideToken = ts.Token<ts.SyntaxKind.QuestionToken> | ts.Token<ts.SyntaxKind.PlusToken> | ts.Token<ts.SyntaxKind.MinusToken> | undefined;
-type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration;
+type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
 interface Context {
   [name: string]: ts.TypeReferenceNode | ts.TypeNode;
 }
@@ -443,13 +443,33 @@ export class TypeResolver {
     }
   }
 
+  private getDesignatedModels(nodes: ts.Node[], typeName: string): ts.Node[] {
+    /**
+     * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
+     */
+    const designatedNodes = nodes.filter(enumNode => {
+      return isExistJSDocTag(enumNode, tag => tag.tagName.text === 'tsoaModel');
+    });
+    if (designatedNodes.length > 0) {
+      if (designatedNodes.length > 1) {
+        throw new GenerateMetadataError(`Multiple models for ${typeName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`);
+      }
+
+      return designatedNodes;
+    }
+    return nodes;
+  }
+
   private getEnumerateType(typeName: ts.EntityName): Tsoa.RefEnumType | undefined {
     const enumName = (typeName as ts.Identifier).text;
-    const enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
+    let enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
 
     if (!enumNodes.length) {
       return;
     }
+
+    enumNodes = this.getDesignatedModels(enumNodes, enumName);
+
     if (enumNodes.length > 1) {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${enumName}; please make enum names unique.`);
     }
@@ -768,6 +788,8 @@ export class TypeResolver {
   }
 
   private getModelTypeDeclaration(type: ts.EntityName) {
+    type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
+
     const leftmostIdentifier = this.resolveLeftmostIdentifier(type);
     const statements: any[] = this.resolveModelTypeScope(leftmostIdentifier, this.current.nodes);
 
@@ -778,9 +800,9 @@ export class TypeResolver {
         return false;
       }
 
-      const modelTypeDeclaration = node as UsableDeclaration | ts.EnumMember;
+      const modelTypeDeclaration = node as UsableDeclaration;
       return (modelTypeDeclaration.name as ts.Identifier)?.text === typeName;
-    }) as Array<Exclude<UsableDeclaration | ts.EnumMember, ts.PropertySignature>>;
+    }) as UsableDeclarationWithoutPropertySignature[];
 
     if (!modelTypes.length) {
       throw new GenerateMetadataError(
@@ -791,28 +813,10 @@ export class TypeResolver {
     if (modelTypes.length > 1) {
       // remove types that are from typescript e.g. 'Account'
       modelTypes = modelTypes.filter(modelType => {
-        if (modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') > -1) {
-          return false;
-        }
-
-        return true;
+        return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
 
-      /**
-       * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
-       */
-      const designatedModels = modelTypes.filter(modelType => {
-        const isDesignatedModel = isExistJSDocTag(modelType, tag => tag.tagName.text === 'tsoaModel');
-        return isDesignatedModel;
-      });
-
-      if (designatedModels.length > 0) {
-        if (designatedModels.length > 1) {
-          throw new GenerateMetadataError(`Multiple models for ${typeName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`);
-        }
-
-        modelTypes = designatedModels;
-      }
+      modelTypes = this.getDesignatedModels(modelTypes, typeName) as UsableDeclarationWithoutPropertySignature[];
     }
     if (modelTypes.length > 1) {
       const conflicts = modelTypes.map(modelType => modelType.getSourceFile().fileName).join('"; "');
@@ -965,7 +969,7 @@ export class TypeResolver {
     return context;
   }
 
-  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature | ts.TypeAliasDeclaration>): Tsoa.Property[] {
+  private getModelInheritedProperties(modelTypeDeclaration: Exclude<UsableDeclaration, ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember>): Tsoa.Property[] {
     let properties: Tsoa.Property[] = [];
 
     const heritageClauses = modelTypeDeclaration.heritageClauses;

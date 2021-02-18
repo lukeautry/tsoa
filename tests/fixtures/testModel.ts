@@ -264,6 +264,7 @@ export enum EnumNumberValue {
 
 /**
  * EnumStringNumberValue.
+ * @tsoaModel
  */
 export enum EnumStringNumberValue {
   VALUE_0 = '0',
