@@ -60,3 +60,12 @@ export function Header(name?: string): Function {
     return;
   };
 }
+
+/**
+ * Mark parameter as manually injected, which will not be generated
+ */
+export function Inject(): Function {
+  return () => {
+    return;
+  };
+}

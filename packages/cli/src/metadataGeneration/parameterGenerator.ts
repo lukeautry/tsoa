@@ -30,6 +30,8 @@ export class ParameterGenerator {
         return this.getPathParameter(this.parameter);
       case 'Res':
         return this.getResParameter(this.parameter);
+      case 'Inject':
+        return null;
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -262,7 +264,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
