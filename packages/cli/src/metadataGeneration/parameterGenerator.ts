@@ -22,6 +22,8 @@ export class ParameterGenerator {
         return this.getBodyParameter(this.parameter);
       case 'BodyProp':
         return this.getBodyPropParameter(this.parameter);
+      case 'FormField':
+        return this.getFormFieldParameter(this.parameter);
       case 'Header':
         return this.getHeaderParameter(this.parameter);
       case 'Query':
@@ -32,6 +34,10 @@ export class ParameterGenerator {
         return this.getResParameter(this.parameter);
       case 'Inject':
         return null;
+      case 'UploadedFile':
+        return this.getUploadedFileParameter(this.parameter);
+      case 'UploadedFiles':
+        return this.getUploadedFilesParameter(this.parameter);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -159,6 +165,63 @@ export class ParameterGenerator {
     };
   }
 
+  private getUploadedFileParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type: Tsoa.Type = { dataType: 'file' };
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as an uploaded file parameter in '${this.method.toUpperCase()}'.`, parameter);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'UploadedFile') ?? parameterName,
+      required: true,
+      type,
+      parameterName,
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getUploadedFilesParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type: Tsoa.Type = { dataType: 'file[]' };
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as an uploaded files parameter in '${this.method.toUpperCase()}'.`, parameter);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'UploadedFiles') ?? parameterName,
+      required: true,
+      type,
+      parameterName,
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getFormFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type: Tsoa.Type = { dataType: 'string' };
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as form field parameter in '${this.method.toUpperCase()}'.`, parameter);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'FormField') ?? parameterName,
+      required: true,
+      type,
+      parameterName,
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
   private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter | null {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
@@ -264,11 +327,11 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
-    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'any'];
+    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'file', 'file[]', 'any'];
     if (supportedPathDataTypes.find(t => t === parameterType.dataType)) {
       return true;
     }

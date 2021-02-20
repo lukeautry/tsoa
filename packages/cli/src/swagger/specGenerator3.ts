@@ -324,10 +324,17 @@ export class SpecGenerator3 extends SpecGenerator {
       }
     });
 
-    return {
+    const operation: Swagger.Operation3 = {
       operationId: this.getOperationId(method.name),
       responses: swaggerResponses,
     };
+
+    const hasFormData = method.parameters.some(p => p.in === 'formData');
+    if (hasFormData) {
+      operation.consumes = ['multipart/form-data'];
+    }
+
+    return operation;
   }
 
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {

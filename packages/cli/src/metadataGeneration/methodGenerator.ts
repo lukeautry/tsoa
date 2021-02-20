@@ -88,11 +88,17 @@ export class MethodGenerator {
     const bodyParameters = parameters.filter(p => p.in === 'body');
     const bodyProps = parameters.filter(p => p.in === 'body-prop');
 
+    const hasFormDataParameters = parameters.some(p => p.in === 'formData');
+    const hasBodyParameter = bodyProps.length + bodyParameters.length > 0;
+
     if (bodyParameters.length > 1) {
       throw new GenerateMetadataError(`Only one body parameter allowed in '${this.getCurrentLocation()}' method.`);
     }
     if (bodyParameters.length > 0 && bodyProps.length > 0) {
       throw new GenerateMetadataError(`Choose either during @Body or @BodyProp in '${this.getCurrentLocation()}' method.`);
+    }
+    if (hasBodyParameter && hasFormDataParameters) {
+      throw new Error(`@Body or @BodyProp cannot be used with @FormField, @UploadedFile, or @UploadedFiles in '${this.getCurrentLocation()}' method.`);
     }
     return parameters;
   }

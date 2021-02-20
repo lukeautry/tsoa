@@ -37,6 +37,7 @@ export abstract class SpecGenerator {
       guiltyUntilInnocent === 'array' ||
       guiltyUntilInnocent === 'boolean' ||
       guiltyUntilInnocent === 'integer' ||
+      guiltyUntilInnocent === 'file' ||
       guiltyUntilInnocent === 'number' ||
       guiltyUntilInnocent === 'object' ||
       guiltyUntilInnocent === 'string'
@@ -62,6 +63,8 @@ export abstract class SpecGenerator {
       type.dataType === 'datetime' ||
       type.dataType === 'double' ||
       type.dataType === 'float' ||
+      type.dataType === 'file' ||
+      type.dataType === 'file[]' ||
       type.dataType === 'integer' ||
       type.dataType === 'long' ||
       type.dataType === 'object' ||
@@ -160,6 +163,8 @@ export abstract class SpecGenerator {
       date: { type: 'string', format: 'date' },
       datetime: { type: 'string', format: 'date-time' },
       double: { type: 'number', format: 'double' },
+      file: { type: 'file' },
+      'file[]': { type: 'file' },
       float: { type: 'number', format: 'float' },
       integer: { type: 'integer', format: 'int32' },
       long: { type: 'integer', format: 'int64' },

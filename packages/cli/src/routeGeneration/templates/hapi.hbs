@@ -14,6 +14,7 @@ import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, Payload } from '@hapi/boom';
+import { Request } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -56,13 +57,38 @@ export function RegisterRoutes(server: any) {
             method: '{{method}}',
             path: '{{fullPath}}',
             options: {
-                {{#if security.length}}
                 pre: [
+                    {{#if security.length}}
                     {
                       method: authenticateMiddleware({{json security}}),
                       assign: "user"
+                    },
+                    {{/if}}
+                    {{#if uploadFile}}
+                    {
+                      method: fileUploadMiddleware('{{uploadFileName}}', false)
                     }
+                    {{/if}}
+                    {{#if uploadFiles}}
+                    {
+                      method: fileUploadMiddleware('{{uploadFilesName}}', true)
+                    }
+                    {{/if}}
                 ],
+                {{#if uploadFile}}
+                payload: {
+                  output: 'stream',
+                  parse: true,
+                  multipart: true,
+                  allow: 'multipart/form-data'
+                },
+                {{else if uploadFiles}}
+                payload: {
+                  output: 'stream',
+                  parse: true,
+                  multipart: true,
+                  allow: 'multipart/form-data'
+                },
                 {{/if}}
                 handler: function {{../name}}_{{name}}(request: any, h: any) {
                     const args = {
@@ -162,6 +188,53 @@ export function RegisterRoutes(server: any) {
         return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
     }
 
+    {{#if useFileUploads}}
+    function fileUploadMiddleware(fieldname: string, multiple: boolean = false) {
+      return (request: Request, h: any) => {
+        if (!request.payload[fieldname]) {
+          return h.response(`${fieldname} is a required file(s).`).code(400);
+        }
+
+        const calculateFileInfo = (reqFile: any) => new Promise((resolve, reject) => {
+          const originalname = reqFile.hapi.filename;
+          const headers = reqFile.hapi.headers;
+          const contentTransferEncoding = headers['content-transfer-encoding'];
+          const encoding = contentTransferEncoding &&
+            contentTransferEncoding[0] &&
+            contentTransferEncoding[0].toLowerCase() || '7bit';
+          const mimetype = headers['content-type'] || 'text/plain';
+          const buffer = reqFile._data
+          return resolve({
+            fieldname,
+            originalname,
+            buffer,
+            encoding,
+            mimetype,
+            filename: originalname,
+            size: buffer.toString().length,
+          })
+        });
+
+        if (!multiple) {
+          return calculateFileInfo(request.payload[fieldname])
+            .then(fileMetadata => {
+              request.payload[fieldname] = fileMetadata;
+              return h.continue;
+            })
+            .catch(err => h.response(err.toString()).code(500));
+        } else {
+          const promises = request.payload[fieldname].map((reqFile: any) => calculateFileInfo(reqFile));
+          return Promise.all(promises)
+            .then(filesMetadata => {
+              request.payload[fieldname] = filesMetadata;
+              return h.continue;
+            })
+            .catch(err => h.response(err.toString()).code(500));
+        }
+      };
+    }
+    {{/if}}
+
     function promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {
         return Promise.resolve(promise)
             .then((data: any) => {
@@ -194,7 +267,7 @@ export function RegisterRoutes(server: any) {
         Object.keys(headers).forEach((name: string) => {
             response.header(name, headers[name]);
         });
-        
+
         if (statusCode) {
             response.code(statusCode);
         }
@@ -223,6 +296,8 @@ export function RegisterRoutes(server: any) {
                 return validationService.ValidateParam(args[key], request.payload, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body-prop':
                 return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
+            case 'formData':
+                return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'res':
                 return responder(h);
             }

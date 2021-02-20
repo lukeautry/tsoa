@@ -1,4 +1,4 @@
-import { Body, Patch, Post, Query, Route } from '@tsoa/runtime';
+import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -45,6 +45,16 @@ export class PostTestController {
     augmentedModel.id = 700;
 
     return augmentedModel;
+  }
+
+  @Post('File')
+  public async postWithFile(@UploadedFile('someFile') aFile: File): Promise<File> {
+    return aFile;
+  }
+
+  @Post('ManyFilesAndFormFields')
+  public async postWithFiles(@UploadedFiles('someFiles') files: File[], @FormField('a') a: string, @FormField('c') c: string): Promise<File[]> {
+    return files;
   }
 
   @Post('Location')

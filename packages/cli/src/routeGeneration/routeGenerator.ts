@@ -75,12 +75,18 @@ export class RouteGenerator {
 
             const normalisedFullPath = normalisePath(`${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
 
+            const uploadFileParameter = method.parameters.find(parameter => parameter.type.dataType === 'file');
+            const uploadFilesParameter = method.parameters.find(parameter => parameter.type.dataType === 'file[]');
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
               parameters: parameterObjs,
               path: normalisedMethodPath,
+              uploadFile: !!uploadFileParameter,
+              uploadFileName: uploadFileParameter?.name,
+              uploadFiles: !!uploadFilesParameter,
+              uploadFilesName: uploadFilesParameter?.name,
               security: method.security,
               successStatus: this.options.useSuccessResponseCode && method.successStatus ? method.successStatus : 'undefined',
             };
@@ -94,6 +100,9 @@ export class RouteGenerator {
       iocModule,
       minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
       models: this.buildModels(),
+      useFileUploads: this.metadata.controllers.some(controller =>
+        controller.methods.some(method => !!method.parameters.find(parameter => parameter.type.dataType === 'file' || parameter.type.dataType === 'file[]')),
+      ),
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
     });
   }
