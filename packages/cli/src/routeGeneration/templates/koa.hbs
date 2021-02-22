@@ -19,7 +19,7 @@ import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
-import * as multer from '@koa/multer';
+const multer = require('@koa/multer');
 const upload = multer();
 {{/if}}
 

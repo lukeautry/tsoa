@@ -15,7 +15,7 @@ import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import * as express from 'express';
 {{#if useFileUploads}}
-import * as multer from 'multer';
+const multer = require('multer');
 const upload = multer();
 {{/if}}
 
