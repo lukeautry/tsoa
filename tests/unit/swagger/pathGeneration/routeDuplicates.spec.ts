@@ -44,6 +44,8 @@ describe('Overlapping routes', () => {
       ),
     ).to.be.true;
 
+    expect(consoleWarn.callCount).to.be.eq(6);
+
     consoleWarn.restore();
   });
 });

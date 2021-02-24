@@ -179,9 +179,19 @@ export class MetadataGenerator {
               addCollision(PathDuplicationType.FULL, methodRoutes[i].method, controller, methodRoutes[j].method);
             } else if (
               methodRoutes[i].path.split('/').length === methodRoutes[j].path.split('/').length &&
-              methodRoutes[i].path.includes('{}') && // only check routes with params
-              methodRoutes[j].path && // ensure the comparison path has a value
-              methodRoutes[i].path.startsWith(methodRoutes[j].path)
+              methodRoutes[j].path
+                .substr(methodRoutes[j].path.lastIndexOf('/')) // compare only the "last" part of the path
+                .split('/')
+                .some(v => !!v) && // ensure the comparison path has a value
+              methodRoutes[i].path.split('/').every((v, index) => {
+                const comparisonPathPart = methodRoutes[j].path.split('/')[index];
+                // if no params, compare values
+                if (!v.includes('{}')) {
+                  return v === comparisonPathPart;
+                }
+                // otherwise check if route starts with comparison route
+                return v.startsWith(methodRoutes[j].path.split('/')[index]);
+              })
             ) {
               // partial match - reorder routes!
               addCollision(PathDuplicationType.PARTIAL, methodRoutes[i].method, controller, methodRoutes[j].method);
