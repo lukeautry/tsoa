@@ -1,4 +1,3 @@
-import * as ts from 'typescript';
 import { Swagger } from './swagger/swagger';
 
 export interface Config {
@@ -35,10 +34,10 @@ export interface Config {
   /**
    * Typescript CompilerOptions to be used during generation
    *
-   * @type {ts.CompilerOptions}
+   * @type {Record<string, unknown>}
    * @memberof RoutesConfig
    */
-  compilerOptions?: ts.CompilerOptions;
+  compilerOptions?: Record<string, unknown>;
 }
 
 /**

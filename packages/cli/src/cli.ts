@@ -74,8 +74,8 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   return config;
 };
 
-const validateCompilerOptions = (config?: ts.CompilerOptions): ts.CompilerOptions => {
-  return config || {};
+const validateCompilerOptions = (config?: Record<string, unknown>): ts.CompilerOptions => {
+  return (config || {}) as ts.CompilerOptions;
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
