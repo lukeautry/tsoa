@@ -75,4 +75,32 @@ export class DuplicatePathParamTestController {
   @Head('Head-NoPartialCollision/{id}') public headNoPartialCollisionPathParamTest(@Path() id) {
     return id;
   }
+
+  // These two methods should not raise a warning,
+  @Get('/') public getTodos() {
+    return {};
+  }
+
+  @Get('/{id}') public getTodo(@Path() id) {
+    return id;
+  }
+
+  // These two methods should not raise a warning,
+  @Get('/sub/') public getSubTodos() {
+    return {};
+  }
+
+  @Get('/sub/{id}') public getSubTodo(@Path() id) {
+    return id;
+  }
+
+  // These two methods should not raise a warning,
+  @Post('{userId}/abc')
+  public async f1(@Path() userId: string): Promise<string> {
+    return userId;
+  }
+  @Post('{userId}/abcdef')
+  public async f2(@Path() userId: string): Promise<string> {
+    return userId;
+  }
 }
