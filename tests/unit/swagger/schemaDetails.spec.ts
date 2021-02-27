@@ -173,6 +173,30 @@ describe('Schema details generation', () => {
         expect(normalParam.type).to.equal('string');
       });
 
+      it('should not contain injected params', () => {
+        const metadataHidden = new MetadataGenerator('./fixtures/controllers/injectParameterController.ts').Generate();
+        const specHidden = new SpecGenerator2(metadataHidden, getDefaultExtendedOptions()).GetSpec();
+
+        if (!specHidden.paths) {
+          throw new Error('Paths are not defined.');
+        }
+        if (!specHidden.paths['/Controller/injectParameterMethod']) {
+          throw new Error('injectParameterMethod path not defined.');
+        }
+        if (!specHidden.paths['/Controller/injectParameterMethod'].get) {
+          throw new Error('injectParameterMethod get method not defined.');
+        }
+
+        const method = specHidden.paths['/Controller/injectParameterMethod'].get;
+        expect(method.parameters).to.have.lengthOf(1);
+
+        const normalParam = method.parameters![0];
+        expect(normalParam.in).to.equal('query');
+        expect(normalParam.name).to.equal('normalParam');
+        expect(normalParam.required).to.be.true;
+        expect(normalParam.type).to.equal('string');
+      });
+
       it('should not contain paths for hidden controller', () => {
         const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
         const specHiddenController = new SpecGenerator2(metadataHiddenController, getDefaultExtendedOptions()).GetSpec();
