@@ -177,7 +177,7 @@ export interface RoutesConfig {
   routesFileName?: string;
 
   /**
-   * Avoid writing the generate route file if the existing file is identical (useful to optimize watch processes); false by default
+   * Avoid writing the generated route file if the existing file is identical (useful to optimize watch processes); false by default
    */
   noWriteIfUnchanged?: boolean;
 
