@@ -260,6 +260,7 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     const bodyParams = method.parameters.filter(p => p.in === 'body');
+    const formParams = method.parameters.filter(p => p.in === 'formData');
 
     pathMethod.parameters = method.parameters
       .filter(p => {
@@ -271,8 +272,14 @@ export class SpecGenerator3 extends SpecGenerator {
       throw new Error('Only one body parameter allowed per controller method.');
     }
 
+    if (bodyParams.length > 0 && formParams.length > 0) {
+      throw new Error('Either body parameter or form parameters allowed per controller method - not both.');
+    }
+
     if (bodyParams.length > 0) {
       pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
+    } else if (formParams.length > 0) {
+      pathMethod.requestBody = this.buildRequestBodyWithFormData(controllerName, method, formParams);
     }
 
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
@@ -329,15 +336,46 @@ export class SpecGenerator3 extends SpecGenerator {
       responses: swaggerResponses,
     };
 
-    const hasFormData = method.parameters.some(p => p.in === 'formData');
-    if (hasFormData) {
-      operation.consumes = ['multipart/form-data'];
-    }
-
     return operation;
   }
 
+  private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody {
+    let required = false;
+    const properties: { [propertyName: string]: Swagger.Schema3 } = {};
+    for (const parameter of parameters) {
+      const mediaType = this.buildMediaType(controllerName, method, parameter);
+      properties[parameter.name] = mediaType.schema!;
+      required = required || !!parameter.required;
+    }
+    const requestBody: Swagger.RequestBody = {
+      required,
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties,
+          },
+        },
+      },
+    };
+    return requestBody;
+  }
+
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
+    const mediaType = this.buildMediaType(controllerName, method, parameter);
+
+    const requestBody: Swagger.RequestBody = {
+      description: parameter.description,
+      required: parameter.required,
+      content: {
+        'application/json': mediaType,
+      },
+    };
+
+    return requestBody;
+  }
+
+  private buildMediaType(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.MediaType {
     const validators = Object.keys(parameter.validators)
       .filter(key => {
         return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
@@ -370,15 +408,7 @@ export class SpecGenerator3 extends SpecGenerator {
       );
     }
 
-    const requestBody: Swagger.RequestBody = {
-      description: parameter.description,
-      required: parameter.required,
-      content: {
-        'application/json': mediaType,
-      },
-    };
-
-    return requestBody;
+    return mediaType;
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
@@ -477,6 +507,8 @@ export class SpecGenerator3 extends SpecGenerator {
       // Setting additionalProperties causes issues with code generators for OpenAPI 3
       // Therefore, we avoid setting it explicitly (since it's the implicit default already)
       return {};
+    } else if (dataType === 'file') {
+      return { type: 'string', format: 'binary' };
     }
 
     return super.getSwaggerTypeForPrimitiveType(dataType);
