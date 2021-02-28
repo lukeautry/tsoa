@@ -76,7 +76,7 @@ export class RouteGenerator {
             const normalisedFullPath = normalisePath(`${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
 
             const uploadFileParameter = method.parameters.find(parameter => parameter.type.dataType === 'file');
-            const uploadFilesParameter = method.parameters.find(parameter => parameter.type.dataType === 'file[]');
+            const uploadFilesParameter = method.parameters.find(parameter => parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file');
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
@@ -101,7 +101,17 @@ export class RouteGenerator {
       minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
       models: this.buildModels(),
       useFileUploads: this.metadata.controllers.some(controller =>
-        controller.methods.some(method => !!method.parameters.find(parameter => parameter.type.dataType === 'file' || parameter.type.dataType === 'file[]')),
+        controller.methods.some(
+          method =>
+            !!method.parameters.find(parameter => {
+              if (parameter.type.dataType === 'file') {
+                return true;
+              } else if (parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file') {
+                return true;
+              }
+              return false;
+            }),
+        ),
       ),
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
     });

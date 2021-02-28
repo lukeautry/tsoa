@@ -91,7 +91,6 @@ export namespace Tsoa {
     | 'double'
     | 'float'
     | 'file'
-    | 'file[]'
     | 'integer'
     | 'long'
     | 'enum'
@@ -130,7 +129,6 @@ export namespace Tsoa {
     | EnumType
     | ArrayType
     | FileType
-    | FileTypeArray
     | DateTimeType
     | DateType
     | BinaryType
@@ -195,10 +193,6 @@ export namespace Tsoa {
 
   export interface FileType extends TypeBase {
     dataType: 'file';
-  }
-
-  export interface FileTypeArray extends TypeBase {
-    dataType: 'file[]';
   }
 
   export interface DateTimeType extends TypeBase {

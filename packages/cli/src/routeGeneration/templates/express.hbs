@@ -221,7 +221,7 @@ export function RegisterRoutes(app: express.Router) {
                 case 'formData':
                     if (args[key].dataType === 'file') {
                         return validationService.ValidateParam(args[key], request.file, name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
-                    } else if (args[key].dataType === 'file[]') {
+                    } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
                         return validationService.ValidateParam(args[key], request.files, name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
                     } else {
                         return validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});

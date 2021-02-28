@@ -22,8 +22,6 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
       return false;
     case 'file':
       return false;
-    case 'file[]':
-      return false;
     case 'datetime':
       return false;
     case 'double':
