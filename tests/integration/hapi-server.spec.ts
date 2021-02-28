@@ -1132,6 +1132,24 @@ describe('Hapi Server', () => {
       });
     });
 
+    it('can post a file without name', () => {
+      const formData = { aFile: '@../package.json' };
+      return verifyFileUploadRequest(basePath + '/PostTest/FileWithoutName', formData, (err, res) => {
+        expect(res.body).to.not.be.undefined;
+        expect(res.body.fieldname).to.equal('aFile');
+      });
+    });
+
+    it('cannot post a file with wrong attribute name', async () => {
+      const formData = { wrongAttributeName: '@../package.json' };
+      try {
+        await verifyFileUploadRequest(basePath + '/PostTest/File', formData);
+      } catch (e) {
+        expect(e.response.status).to.equal(400);
+        expect(e.response.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Internal Server Error"}');
+      }
+    });
+
     it('can post multiple files with other form fields', () => {
       const formData = {
         a: 'b',
@@ -1153,7 +1171,14 @@ describe('Hapi Server', () => {
       });
     });
 
-    function verifyFileUploadRequest(path: string, formData: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+    function verifyFileUploadRequest(
+      path: string,
+      formData: any,
+      verifyResponse: (err: any, res: request.Response) => any = () => {
+        /**/
+      },
+      expectedStatus?: number,
+    ) {
       return verifyRequest(
         verifyResponse,
         request =>

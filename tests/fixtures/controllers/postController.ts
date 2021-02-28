@@ -52,6 +52,11 @@ export class PostTestController {
     return aFile;
   }
 
+  @Post('FileWithoutName')
+  public async postWithFileWithoutName(@UploadedFile() aFile: File): Promise<File> {
+    return aFile;
+  }
+
   @Post('ManyFilesAndFormFields')
   public async postWithFiles(@UploadedFiles('someFiles') files: File[], @FormField('a') a: string, @FormField('c') c: string): Promise<File[]> {
     return files;
