@@ -56,7 +56,7 @@ export function RegisterRoutes(app: express.Router) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            function (request: any, response: any, next: any) {
+            function {{../name}}_{{name}}(request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -95,7 +95,7 @@ export function RegisterRoutes(app: express.Router) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return (request: any, _response: any, next: any) => {
+        return function runAuthenticationMiddleware(request: any, _response: any, next: any) {
             let responded = 0;
             let success = false;
 

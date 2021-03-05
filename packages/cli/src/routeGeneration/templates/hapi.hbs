@@ -64,7 +64,7 @@ export function RegisterRoutes(server: any) {
                     }
                 ],
                 {{/if}}
-                handler: (request: any, h: any) => {
+                handler: function {{../name}}_{{name}}(request: any, h: any) {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},
@@ -107,7 +107,7 @@ export function RegisterRoutes(server: any) {
 
     {{#if useSecurity}}
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return (request: any, h: any) => {
+        return function runAuthenticationMiddleware(request: any, h: any) {
             let responded = 0;
             let success = false;
 

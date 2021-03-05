@@ -60,7 +60,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            async (context: any, next: any) => {
+            async function {{../name}}_{{name}}(context: any, next: any) {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -95,7 +95,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
   {{#if useSecurity}}
   function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-      return async (context: any, next: any) => {
+      return async function runAuthenticationMiddleware(context: any, next: any) {
           let responded = 0;
           let success = false;
 
