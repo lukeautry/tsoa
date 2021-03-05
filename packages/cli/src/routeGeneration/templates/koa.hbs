@@ -235,8 +235,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
                   return validationService.ValidateParam(args[key], context.request.files, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
                 } else {
-                  // When https://github.com/koa-modules/multer/pull/15 gets merged in, the conditional can be removed
-                  return validationService.ValidateParam(args[key], context.request.body[name] || context.req.body[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
+                  return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
                 }
             case 'res':
                 return responder(context, next);
