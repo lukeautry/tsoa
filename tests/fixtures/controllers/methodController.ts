@@ -6,7 +6,7 @@ const TEST_OBJECT_CONST = {
   unAuthCode: '401',
   unAuthText: 'Unauthorized',
   success: 'Created',
-};
+} as const;
 
 enum TEST_ENUM_CODES {
   BAD = 400,
