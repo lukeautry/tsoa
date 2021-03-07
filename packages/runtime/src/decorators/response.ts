@@ -1,5 +1,5 @@
 import { IsValidHeader } from '../utils/isHeaderType';
-import { HttpStatusCodeLiteral, HttpStatusCodeLiteralStr, OtherValidOpenApiHttpStatusCode } from '../interfaces/response';
+import { HttpStatusCodeLiteral, HttpStatusCodeStringLiteral, OtherValidOpenApiHttpStatusCode } from '../interfaces/response';
 
 export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = {}>(name: string | number, description?: string): Function {
   return () => {
@@ -8,7 +8,7 @@ export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = {
 }
 
 export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderType> = {}>(
-  name: HttpStatusCodeLiteral | HttpStatusCodeLiteralStr | OtherValidOpenApiHttpStatusCode,
+  name: HttpStatusCodeLiteral | HttpStatusCodeStringLiteral | OtherValidOpenApiHttpStatusCode,
   description?: string,
   example?: ExampleType,
 ): Function {
