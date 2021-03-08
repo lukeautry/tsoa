@@ -176,6 +176,11 @@ export interface RoutesConfig {
   routesFileName?: string;
 
   /**
+   * Avoid writing the generated route file if the existing file is identical (useful to optimize watch processes); false by default
+   */
+  noWriteIfUnchanged?: boolean;
+
+  /**
    * Base API path; e.g. the '/v1' in https://myapi.com/v1
    */
   basePath?: string;

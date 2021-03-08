@@ -3,7 +3,7 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { fsReadFile, fsWriteFile } from '../utils/fs';
+import { fsReadFile, fsWriteFile, fsExists } from '../utils/fs';
 import { isRefType } from '../utils/internalTypeGuards';
 import { normalisePath } from './../utils/pathUtils';
 
@@ -19,6 +19,15 @@ export class RouteGenerator {
 
     const fileName = `${this.options.routesDir}/${this.options.routesFileName || 'routes.ts'}`;
     const content = this.buildContent(middlewareTemplate, pathTransformer);
+
+    if (this.options.noWriteIfUnchanged) {
+      if (await fsExists(fileName)) {
+        const existingContent = (await fsReadFile(fileName)).toString();
+        if (content === existingContent) {
+          return;
+        }
+      }
+    }
 
     await fsWriteFile(fileName, content);
   }
