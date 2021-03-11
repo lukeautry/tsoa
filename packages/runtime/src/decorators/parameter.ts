@@ -69,3 +69,36 @@ export function Inject(): Function {
     return;
   };
 }
+
+/**
+ * Inject uploaded file
+ *
+ * @param {string} [name] The name of the uploaded file parameter
+ */
+export function UploadedFile(name?: string): any {
+  return () => {
+    return;
+  };
+}
+
+/**
+ * Inject uploaded files
+ *
+ * @param {string} [name] The name of the uploaded files parameter
+ */
+export function UploadedFiles(name?: string): any {
+  return () => {
+    return;
+  };
+}
+
+/**
+ * Inject uploaded files
+ *
+ * @param {string} [name] The name of the uploaded files parameter
+ */
+export function FormField(name?: string): any {
+  return () => {
+    return;
+  };
+}

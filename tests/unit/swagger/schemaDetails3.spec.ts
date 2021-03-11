@@ -9,7 +9,8 @@ import { TestModel } from '../../fixtures/testModel';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
   const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -28,15 +29,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   }
 
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator3(metadata, defaultOptions).GetSpec(),
+    spec: new SpecGenerator3(metadataGet, defaultOptions).GetSpec(),
     specName: 'specDefault',
   };
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec(),
+    spec: new SpecGenerator3(metadataGet, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
   };
   const specWithXEnumVarnames: SpecAndName = {
-    spec: new SpecGenerator3(metadata, optionsWithXEnumVarnames).GetSpec(),
+    spec: new SpecGenerator3(metadataGet, optionsWithXEnumVarnames).GetSpec(),
     specName: 'specWithXEnumVarnames',
   };
 
@@ -89,7 +90,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       const optionsWithNoHost = Object.assign<{}, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
-      const spec: Swagger.Spec3 = new SpecGenerator3(metadata, optionsWithNoHost).GetSpec();
+      const spec: Swagger.Spec3 = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });
@@ -356,9 +357,115 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   describe('paths', () => {
+    describe('uploadedFiles', () => {
+      /**
+       * Tests according to openapi v3 specs
+       * @link http://spec.openapis.org/oas/v3.0.0
+       * Validated and tested GUI with swagger.io
+       * @link https://editor.swagger.io/
+       */
+      it('should have requestBody with single multipart/form-data', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/File'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  someFile: {
+                    type: 'string',
+                    format: 'binary',
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it('should consume multipart/form-data and have formData parameter with no name', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/FileWithoutName'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  aFile: {
+                    type: 'string',
+                    format: 'binary',
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it('should consume multipart/form-data and have multiple formData parameter', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/ManyFilesAndFormFields'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  someFiles: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      format: 'binary',
+                    },
+                  },
+                  a: {
+                    type: 'string',
+                  },
+                  c: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+    });
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
-        const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
         const specPost = new SpecGenerator3(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specPost.paths) {

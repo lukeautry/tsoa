@@ -18,6 +18,10 @@ import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import * as KoaRouter from '@koa/router';
+{{#if useFileUploads}}
+const multer = require('@koa/multer');
+const upload = multer();
+{{/if}}
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -59,6 +63,12 @@ export function RegisterRoutes(router: KoaRouter) {
         router.{{method}}('{{fullPath}}',
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
+            {{/if}}
+            {{#if uploadFile}}
+            upload.single('{{uploadFileName}}'),
+            {{/if}}
+            {{#if uploadFiles}}
+            upload.array('{{uploadFilesName}}'),
             {{/if}}
             async function {{../name}}_{{name}}(context: any, next: any) {
             const args = {
@@ -184,7 +194,7 @@ export function RegisterRoutes(router: KoaRouter) {
         if (!context.response.__tsoaResponded) {
             context.set(headers);
 
-            if (data !== null && data !== undefined) { 
+            if (data !== null && data !== undefined) {
                 context.body = data;
                 context.status = 200;
             } else {
@@ -219,6 +229,14 @@ export function RegisterRoutes(router: KoaRouter) {
                 return validationService.ValidateParam(args[key], context.request.body, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'body-prop':
                 return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
+            case 'formData':
+                if (args[key].dataType === 'file') {
+                  return validationService.ValidateParam(args[key], context.request.file, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
+                } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
+                  return validationService.ValidateParam(args[key], context.request.files, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
+                } else {
+                  return validationService.ValidateParam(args[key], context.request.body[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
+                }
             case 'res':
                 return responder(context, next);
             }

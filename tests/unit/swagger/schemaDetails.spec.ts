@@ -9,9 +9,10 @@ import { Tsoa } from '@tsoa/runtime';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Schema details generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
 
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  const spec = new SpecGenerator2(metadataGet, getDefaultExtendedOptions()).GetSpec();
 
   if (!spec.info) {
     throw new Error('No spec info.');
@@ -141,6 +142,102 @@ describe('Schema details generation', () => {
   });
 
   describe('paths', () => {
+    describe('uploadedFiles', () => {
+      /**
+       * Test according to tsoa docs
+       * @link https://tsoa-community.github.io/docs/file-upload.html
+       * Validated and tested GUI with swagger.io
+       * @link https://editor.swagger.io/
+       */
+      it('should consume multipart/form-data and have formData parameter', () => {
+        // Act
+        const specPost = new SpecGenerator2(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/File'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.parameters?.length) {
+          throw new Error('PostTest file method has no parameters');
+        }
+
+        // Assert
+        expect(pathPost.consumes).to.include('multipart/form-data');
+        const [parameter] = pathPost.parameters;
+        expect(parameter).to.deep.equal({
+          default: undefined,
+          description: undefined,
+          enum: undefined,
+          items: undefined,
+          in: 'formData',
+          name: 'someFile',
+          required: true,
+          type: 'file',
+        });
+      });
+      it('should consume multipart/form-data and have formData parameter with no name', () => {
+        // Act
+        const specPost = new SpecGenerator2(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/FileWithoutName'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.parameters?.length) {
+          throw new Error('PostTest file method has no parameters');
+        }
+
+        // Assert
+        expect(pathPost.consumes).to.include('multipart/form-data');
+        const [parameter] = pathPost.parameters;
+        expect(parameter).to.deep.equal({
+          default: undefined,
+          description: undefined,
+          enum: undefined,
+          items: undefined,
+          in: 'formData',
+          name: 'aFile',
+          required: true,
+          type: 'file',
+        });
+      });
+      it('should consume multipart/form-data and have multiple formData parameter', () => {
+        // Act
+        const specPost = new SpecGenerator2(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/ManyFilesAndFormFields'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.parameters?.length) {
+          throw new Error('PostTest file method has no parameters');
+        }
+
+        // Assert
+        expect(pathPost.consumes).to.include('multipart/form-data');
+        const baseParameter = {
+          default: undefined,
+          description: undefined,
+          enum: undefined,
+          items: undefined,
+          required: true,
+          in: 'formData',
+        };
+        expect(pathPost.parameters[0]).to.deep.equal({
+          ...baseParameter,
+          name: 'someFiles',
+          type: 'array',
+          items: { type: 'file' },
+        });
+        expect(pathPost.parameters[1]).to.deep.equal({
+          ...baseParameter,
+          name: 'a',
+          type: 'string',
+        });
+        expect(pathPost.parameters[2]).to.deep.equal({
+          ...baseParameter,
+          name: 'c',
+          type: 'string',
+        });
+      });
+    });
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
         const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();

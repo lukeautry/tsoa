@@ -22,6 +22,8 @@ export class ParameterGenerator {
         return this.getBodyParameter(this.parameter);
       case 'BodyProp':
         return this.getBodyPropParameter(this.parameter);
+      case 'FormField':
+        return this.getFormFieldParameter(this.parameter);
       case 'Header':
         return this.getHeaderParameter(this.parameter);
       case 'Query':
@@ -32,6 +34,10 @@ export class ParameterGenerator {
         return this.getResParameter(this.parameter);
       case 'Inject':
         return null;
+      case 'UploadedFile':
+        return this.getUploadedFileParameter(this.parameter);
+      case 'UploadedFiles':
+        return this.getUploadedFileParameter(this.parameter, true);
       default:
         return this.getPathParameter(this.parameter);
     }
@@ -159,6 +165,56 @@ export class ParameterGenerator {
     };
   }
 
+  private getUploadedFileParameter(parameter: ts.ParameterDeclaration, isArray?: boolean): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const elementType: Tsoa.Type = { dataType: 'file' };
+    let type: Tsoa.Type;
+    if (isArray) {
+      type = { dataType: 'array', elementType };
+    } else {
+      type = elementType;
+    }
+
+    if (!this.supportPathDataType(elementType)) {
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as an uploaded file(s) parameter in '${this.method.toUpperCase()}'.`, parameter);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name:
+        getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => {
+          if (isArray) {
+            return ident.text === 'UploadedFiles';
+          }
+          return ident.text === 'UploadedFile';
+        }) ?? parameterName,
+      required: true,
+      type,
+      parameterName,
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
+  private getFormFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type: Tsoa.Type = { dataType: 'string' };
+
+    if (!this.supportPathDataType(type)) {
+      throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as form field parameter in '${this.method.toUpperCase()}'.`, parameter);
+    }
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'formData',
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'FormField') ?? parameterName,
+      required: true,
+      type,
+      parameterName,
+      validators: getParameterValidators(this.parameter, parameterName),
+    };
+  }
+
   private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter | null {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
@@ -264,11 +320,11 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
-    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'any'];
+    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'file', 'any'];
     if (supportedPathDataTypes.find(t => t === parameterType.dataType)) {
       return true;
     }
