@@ -245,8 +245,7 @@ export function RegisterRoutes(server: any) {
 
                 if (isController(controllerObj)) {
                     headers = controllerObj.getHeaders();
-
-                statusCode = controllerObj.getStatus();
+                    statusCode = controllerObj.getStatus() || statusCode;
                 }
                 return returnHandler(h, statusCode, data, headers);;
             })

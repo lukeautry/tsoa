@@ -177,8 +177,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             if (isController(controllerObj)) {
                 headers = controllerObj.getHeaders();
-
-                statusCode = controllerObj.getStatus();
+                statusCode = controllerObj.getStatus() || statusCode;
             }
             return returnHandler(context, next, statusCode, data, headers);
         })
