@@ -1,4 +1,4 @@
-import { Controller, Get, Route } from '@tsoa/runtime';
+import { Controller, Get, Route, SuccessResponse } from '@tsoa/runtime';
 import { TestModel } from '../testModel';
 import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';
@@ -48,5 +48,11 @@ export class TestController extends Controller {
         resolve();
       }, 1000);
     });
+  }
+
+  @SuccessResponse(418)
+  @Get('successResponse')
+  public async getSuccessResponse(): Promise<void> {
+    return;
   }
 }

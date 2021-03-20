@@ -118,5 +118,15 @@ describe('Express Server with useSuccessResponseCode', () => {
         205,
       );
     });
+
+    it('should use success response status code', () => {
+      return verifyGetRequest(
+        basePath + `/Controller/successResponse`,
+        (_err, res) => {
+          expect(res.status).to.equal(418);
+        },
+        418,
+      );
+    });
   });
 });
