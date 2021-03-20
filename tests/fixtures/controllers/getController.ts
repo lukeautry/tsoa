@@ -225,6 +225,19 @@ export class GetTestController extends Controller {
   public async getRes(@Res() res: TsoaResponse<400, TestModel, { 'custom-header': string }>): Promise<void> {
     res?.(400, new ModelService().getModel(), { 'custom-header': 'hello' });
   }
+
+  /**
+   * @param res The alternate response
+   * @param res Another alternate response
+   */
+  @Get('MultipleRes')
+  public async multipleRes(@Res() res: TsoaResponse<400, TestModel, { 'custom-header': string }>, @Res() anotherRes: TsoaResponse<401, TestModel, { 'custom-header': string }>): Promise<Result> {
+    res?.(400, new ModelService().getModel(), { 'custom-header': 'hello' });
+    anotherRes?.(401, new ModelService().getModel(), { 'custom-header': 'another hello' });
+    return {
+      value: 'success',
+    };
+  }
 }
 
 export interface ErrorResponse {
