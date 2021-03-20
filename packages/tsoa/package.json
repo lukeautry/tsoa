@@ -1,7 +1,7 @@
 {
   "name": "tsoa",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "3.5.2",
+  "version": "3.6.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
@@ -25,8 +25,8 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "@tsoa/cli": "^3.5.2",
-    "@tsoa/runtime": "^3.5.2"
+    "@tsoa/cli": "^3.6.0",
+    "@tsoa/runtime": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.1",
