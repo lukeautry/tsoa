@@ -2,6 +2,8 @@ import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as methodOverride from 'method-override';
 import '../controllers/rootController';
+import '../controllers/noExtendsController';
+import '../controllers/testController';
 
 import { RegisterRoutes } from './routes';
 
