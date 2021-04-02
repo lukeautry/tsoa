@@ -510,11 +510,13 @@ describe('Schema details generation', () => {
     expect(extensionPath).to.have.property('x-attKey1');
     expect(extensionPath).to.have.property('x-attKey2');
     expect(extensionPath).to.have.property('x-attKey3');
+    expect(extensionPath).to.have.property('x-attKey4');
 
     // Verify that extensions have correct values
     expect(extensionPath['x-attKey']).to.deep.equal('attValue');
     expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
     expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
     expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
+    expect(extensionPath['x-attKey4']).to.deep.equal({ test: ['testVal'] });
   });
 });
