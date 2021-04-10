@@ -52,6 +52,11 @@ export class PostTestController {
     return aFile;
   }
 
+  @Post('FileOptional')
+  public async postWithOptionalFile(@UploadedFile('optionalFile') optionalFile?: File): Promise<string> {
+    return optionalFile?.originalname ?? 'no file';
+  }
+
   @Post('FileWithoutName')
   public async postWithFileWithoutName(@UploadedFile() aFile: File): Promise<File> {
     return aFile;

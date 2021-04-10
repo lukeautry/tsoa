@@ -189,7 +189,7 @@ export class ParameterGenerator {
           }
           return ident.text === 'UploadedFile';
         }) ?? parameterName,
-      required: true,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -208,7 +208,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'formData',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'FormField') ?? parameterName,
-      required: true,
+      required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),

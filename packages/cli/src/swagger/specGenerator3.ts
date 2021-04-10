@@ -340,20 +340,25 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody {
-    let required = false;
+    const required: string[] = [];
     const properties: { [propertyName: string]: Swagger.Schema3 } = {};
     for (const parameter of parameters) {
       const mediaType = this.buildMediaType(controllerName, method, parameter);
       properties[parameter.name] = mediaType.schema!;
-      required = required || !!parameter.required;
+      if (parameter.required) {
+        required.push(parameter.name);
+      }
     }
     const requestBody: Swagger.RequestBody = {
-      required,
+      required: required.length > 0,
       content: {
         'multipart/form-data': {
           schema: {
             type: 'object',
             properties,
+            // An empty list required: [] is not valid.
+            // If all properties are optional, do not specify the required keyword.
+            ...(required && required.length && { required }),
           },
         },
       },

@@ -389,6 +389,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     format: 'binary',
                   },
                 },
+                required: ['someFile'],
               },
             },
           },
@@ -419,6 +420,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     format: 'binary',
                   },
                 },
+                required: ['aFile'],
               },
             },
           },
@@ -456,6 +458,37 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                   c: {
                     type: 'string',
+                  },
+                },
+                required: ['someFiles', 'a', 'c'],
+              },
+            },
+          },
+        });
+      });
+      it('should not treat optional file as required', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/FileOptional'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: false,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  optionalFile: {
+                    type: 'string',
+                    format: 'binary',
                   },
                 },
               },
