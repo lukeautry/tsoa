@@ -12,34 +12,34 @@ import { getHeaderType } from '../utils/headerTypeHelpers';
 export class ParameterGenerator {
   constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
 
-  public Generate(): Tsoa.Parameter | null {
+  public Generate(): Tsoa.Parameter[] {
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
       case 'Request':
-        return this.getRequestParameter(this.parameter);
+        return [this.getRequestParameter(this.parameter)];
       case 'Body':
-        return this.getBodyParameter(this.parameter);
+        return [this.getBodyParameter(this.parameter)];
       case 'BodyProp':
-        return this.getBodyPropParameter(this.parameter);
+        return [this.getBodyPropParameter(this.parameter)];
       case 'FormField':
-        return this.getFormFieldParameter(this.parameter);
+        return [this.getFormFieldParameter(this.parameter)];
       case 'Header':
-        return this.getHeaderParameter(this.parameter);
+        return [this.getHeaderParameter(this.parameter)];
       case 'Query':
-        return this.getQueryParameter(this.parameter);
+        return this.getQueryParameters(this.parameter);
       case 'Path':
-        return this.getPathParameter(this.parameter);
+        return [this.getPathParameter(this.parameter)];
       case 'Res':
-        return this.getResParameter(this.parameter);
+        return [this.getResParameter(this.parameter)];
       case 'Inject':
-        return null;
+        return [];
       case 'UploadedFile':
-        return this.getUploadedFileParameter(this.parameter);
+        return [this.getUploadedFileParameter(this.parameter)];
       case 'UploadedFiles':
-        return this.getUploadedFileParameter(this.parameter, true);
+        return [this.getUploadedFileParameter(this.parameter, true)];
       default:
-        return this.getPathParameter(this.parameter);
+        return [this.getPathParameter(this.parameter)];
     }
   }
 
@@ -215,7 +215,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getQueryParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter | null {
+  private getQueryParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter[] {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
@@ -234,7 +234,7 @@ export class ParameterGenerator {
       if (commonProperties.required) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support @Hidden because it is required (does not allow undefined and does not have a default value).`);
       }
-      return null;
+      return [];
     }
 
     if (type.dataType === 'array') {
@@ -242,21 +242,21 @@ export class ParameterGenerator {
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
-      return {
+      return [{
         ...commonProperties,
         collectionFormat: 'multi',
         type: arrayType,
-      } as Tsoa.ArrayParameter;
+      } as Tsoa.ArrayParameter];
     }
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
-    return {
+    return [{
       ...commonProperties,
       type,
-    };
+    }];
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
