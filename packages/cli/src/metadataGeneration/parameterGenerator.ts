@@ -31,7 +31,7 @@ export class ParameterGenerator {
       case 'Path':
         return [this.getPathParameter(this.parameter)];
       case 'Res':
-        return [this.getResParameter(this.parameter)];
+        return this.getResParameters(this.parameter);
       case 'Inject':
         return [];
       case 'UploadedFile':
@@ -56,7 +56,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getResParameter(parameter: ts.ParameterDeclaration): Tsoa.ResParameter {
+  private getResParameters(parameter: ts.ParameterDeclaration): Tsoa.ResParameter[] {
     const parameterName = (parameter.name as ts.Identifier).text;
     const decorator = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res') || parameterName;
     if (!decorator) {
@@ -74,33 +74,39 @@ export class ParameterGenerator {
     }
 
     const statusArgument = typeNode.typeArguments[0];
-    const statusArgumentType = this.current.typeChecker.getTypeAtLocation(statusArgument);
+    const bodyArgument = typeNode.typeArguments[1];
+
+    // support a union of status codes, all with the same response body
+    const statusArguments = (ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument]);
+    const statusArgumentTypes = statusArguments.map(a => this.current.typeChecker.getTypeAtLocation(a));
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
       // eslint-disable-next-line no-bitwise
       return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
-    if (!isNumberLiteralType(statusArgumentType)) {
-      throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
-    }
+    return statusArgumentTypes.map(statusArgumentType => {
+      if (!isNumberLiteralType(statusArgumentType)) {
+        throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
+      }
 
-    const status = String(statusArgumentType.value);
+      const status = String(statusArgumentType.value);
 
-    const type = new TypeResolver(typeNode.typeArguments[1], this.current, typeNode).resolve();
+      const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
 
-    return {
-      description: this.getParameterDescription(parameter) || '',
-      in: 'res',
-      name: status,
-      parameterName,
-      examples: this.getParameterExample(parameter, parameterName),
-      required: true,
-      type,
-      schema: type,
-      validators: {},
-      headers: getHeaderType(typeNode.typeArguments, 2, this.current),
-    };
+      return {
+        description: this.getParameterDescription(parameter) || '',
+        in: 'res',
+        name: status,
+        parameterName,
+        examples: this.getParameterExample(parameter, parameterName),
+        required: true,
+        type,
+        schema: type,
+        validators: {},
+        headers: getHeaderType(typeNode.typeArguments, 2, this.current),
+      };
+    });
   }
 
   private getBodyPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
