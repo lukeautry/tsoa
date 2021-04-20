@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
-import { Config, RoutesConfig, SpecConfig } from '@tsoa/runtime';
+import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
@@ -72,6 +72,10 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   }
 
   return config;
+};
+
+const resolveConfig = async (config?: string | Config) => {
+  return typeof config === 'object' ? config : await getConfig(config);
 };
 
 const validateCompilerOptions = (config?: Record<string, unknown>): ts.CompilerOptions => {
@@ -211,7 +215,7 @@ const jsonArgs: yargs.Options = {
 
 export interface ConfigArgs {
   basePath?: string;
-  configuration?: string;
+  configuration?: string | Config;
 }
 
 export interface SwaggerArgs extends ConfigArgs {
@@ -289,7 +293,7 @@ if (!module.parent) runCLI();
 
 async function SpecGenerator(args: SwaggerArgs) {
   try {
-    const config = await getConfig(args.configuration);
+    const config = await resolveConfig(args.configuration);
     if (args.basePath) {
       config.spec.basePath = args.basePath;
     }
@@ -316,7 +320,7 @@ async function SpecGenerator(args: SwaggerArgs) {
 
 async function routeGenerator(args: ConfigArgs) {
   try {
-    const config = await getConfig(args.configuration);
+    const config = await resolveConfig(args.configuration);
     if (args.basePath) {
       config.routes.basePath = args.basePath;
     }
@@ -332,9 +336,9 @@ async function routeGenerator(args: ConfigArgs) {
   }
 }
 
-export async function generateSpecAndRoutes(args: SwaggerArgs) {
+export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.Metadata) {
   try {
-    const config = await getConfig(args.configuration);
+    const config = await resolveConfig(args.configuration);
     if (args.basePath) {
       config.spec.basePath = args.basePath;
     }
@@ -352,9 +356,12 @@ export async function generateSpecAndRoutes(args: SwaggerArgs) {
     const routesConfig = await validateRoutesConfig(config);
     const swaggerConfig = await validateSpecConfig(config);
 
-    const metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
+    if (!metadata) {
+      metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, config.ignore, routesConfig.controllerPathGlobs).Generate();
+    }
 
-    return await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
+    const [routeMeta] = await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
+    return routeMeta;
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
