@@ -74,8 +74,8 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   return config;
 };
 
-const resolveConfig = async (config?: string | Config) => {
-  return typeof config === 'object' ? config : await getConfig(config);
+const resolveConfig = async (config?: string | Config): Promise<Config> => {
+  return typeof config === 'object' ? config : getConfig(config);
 };
 
 const validateCompilerOptions = (config?: Record<string, unknown>): ts.CompilerOptions => {
