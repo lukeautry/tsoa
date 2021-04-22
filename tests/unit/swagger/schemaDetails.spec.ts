@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { Tsoa } from '@tsoa/runtime';
+import { Swagger, Tsoa } from '@tsoa/runtime';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Schema details generation', () => {
@@ -518,5 +518,39 @@ describe('Schema details generation', () => {
     expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
     expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
     expect(extensionPath['x-attKey4']).to.deep.equal({ test: ['testVal'] });
+  });
+
+  describe('@Res responses', () => {
+    const expectTestModelSchema = (response?: Swagger.Response) => {
+      expect(response?.schema).to.deep.equal({
+        $ref: '#/definitions/TestModel',
+      });
+    };
+
+    it('creates a single error response for a single res parameter', () => {
+      const responses = spec.paths['/GetTest/Res']?.get?.responses;
+
+      expect(responses).to.have.all.keys('204', '400');
+
+      expectTestModelSchema(responses?.['400']);
+    });
+
+    it('creates multiple error responses for separate res parameters', () => {
+      const responses = spec.paths['/GetTest/MultipleRes']?.get?.responses;
+
+      expect(responses).to.have.all.keys('200', '400', '401');
+
+      expectTestModelSchema(responses?.['400']);
+      expectTestModelSchema(responses?.['401']);
+    });
+
+    it('creates multiple error responses for a combined res parameter', () => {
+      const responses = spec.paths['/GetTest/MultipleStatusCodeRes']?.get?.responses;
+
+      expect(responses).to.have.all.keys('204', '400', '500');
+
+      expectTestModelSchema(responses?.['400']);
+      expectTestModelSchema(responses?.['500']);
+    });
   });
 });

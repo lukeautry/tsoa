@@ -2104,4 +2104,42 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
     });
   });
+
+  describe('@Res responses', () => {
+    const expectTestModelContent = (response?: Swagger.Response3) => {
+      expect(response?.content).to.deep.equal({
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/TestModel',
+          },
+        },
+      });
+    };
+
+    it('creates a single error response for a single res parameter', () => {
+      const responses = specDefault.spec.paths['/GetTest/Res']?.get?.responses;
+
+      expect(responses).to.have.all.keys('204', '400');
+
+      expectTestModelContent(responses?.['400']);
+    });
+
+    it('creates multiple error responses for separate res parameters', () => {
+      const responses = specDefault.spec.paths['/GetTest/MultipleRes']?.get?.responses;
+
+      expect(responses).to.have.all.keys('200', '400', '401');
+
+      expectTestModelContent(responses?.['400']);
+      expectTestModelContent(responses?.['401']);
+    });
+
+    it('creates multiple error responses for a combined res parameter', () => {
+      const responses = specDefault.spec.paths['/GetTest/MultipleStatusCodeRes']?.get?.responses;
+
+      expect(responses).to.have.all.keys('204', '400', '500');
+
+      expectTestModelContent(responses?.['400']);
+      expectTestModelContent(responses?.['500']);
+    });
+  });
 });
