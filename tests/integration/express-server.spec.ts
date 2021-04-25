@@ -141,6 +141,20 @@ describe('Express Server', () => {
     );
   });
 
+  [400, 500].forEach(statusCode =>
+    it('Should support multiple status codes with the same @Res structure', () => {
+      return verifyGetRequest(
+        basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+        (err, res) => {
+          const model = res.body as TestModel;
+          expect(model.id).to.equal(1);
+          expect(res.get('custom-header')).to.eq('hello');
+        },
+        statusCode,
+      );
+    })
+  );
+
   it('Should not modify the response after headers sent', () => {
     return verifyGetRequest(
       basePath + '/GetTest/MultipleRes',

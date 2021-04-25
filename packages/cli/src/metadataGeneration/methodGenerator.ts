@@ -83,7 +83,7 @@ export class MethodGenerator {
           throw new GenerateMetadataError(`${String(e.message)} \n in '${controllerId.text}.${methodId.text}'`);
         }
       })
-      .filter((p): p is Tsoa.Parameter => p !== null);
+      .reduce((flattened, params) => [...flattened, ...params], []);
 
     const bodyParameters = parameters.filter(p => p.in === 'body');
     const bodyProps = parameters.filter(p => p.in === 'body-prop');

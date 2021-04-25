@@ -238,6 +238,14 @@ export class GetTestController extends Controller {
       value: 'success',
     };
   }
+
+  /**
+   * @param res The alternate response
+   */
+   @Get('MultipleStatusCodeRes')
+   public async multipleStatusCodeRes(@Res() res: TsoaResponse<400 | 500, TestModel, { 'custom-header': string }>, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
+     res?.(statusCode, new ModelService().getModel(), { 'custom-header': 'hello' });
+   }
 }
 
 export interface ErrorResponse {
