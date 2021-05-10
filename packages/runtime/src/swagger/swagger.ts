@@ -128,6 +128,7 @@ export namespace Swagger {
   }
 
   export type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
+  export type Parameter3 = Parameter & { deprecated?: boolean };
 
   export interface Path {
     $ref?: string;
@@ -177,7 +178,7 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
     operationId: string;
     consumes?: string[];
-    parameters?: Parameter[];
+    parameters?: Parameter3[];
     responses: { [name: string]: Response3 };
     schemes?: Protocol[];
     deprecated?: boolean;
@@ -241,6 +242,7 @@ export namespace Swagger {
     nullable?: boolean;
     anyOf?: BaseSchema[];
     allOf?: BaseSchema[];
+    deprecated?: boolean;
   }
 
   export interface Schema2 extends Schema {

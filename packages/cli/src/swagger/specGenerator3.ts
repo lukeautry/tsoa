@@ -416,7 +416,7 @@ export class SpecGenerator3 extends SpecGenerator {
     return mediaType;
   }
 
-  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
+  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter3 {
     const parameter = {
       description: source.description,
       in: source.in,
@@ -426,7 +426,10 @@ export class SpecGenerator3 extends SpecGenerator {
         default: source.default,
         format: undefined,
       },
-    } as Swagger.Parameter;
+    } as Swagger.Parameter3;
+    if (source.deprecated) {
+      parameter.deprecated = true;
+    }
 
     const parameterType = this.getSwaggerType(source.type);
     if (parameterType.format) {
@@ -495,6 +498,9 @@ export class SpecGenerator3 extends SpecGenerator {
           .forEach(key => {
             swaggerType[key] = property.validators[key].value;
           });
+      }
+      if (property.deprecated) {
+        swaggerType.deprecated = true;
       }
 
       properties[property.name] = swaggerType as Swagger.Schema;

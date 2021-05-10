@@ -24,6 +24,7 @@ describe('RouteGenerator', () => {
                   required: true,
                   type: stringType,
                   validators: {},
+                  deprecated: false,
                 },
               ],
               refName: refThatShouldNotAllowExtras,
