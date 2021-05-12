@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
@@ -255,8 +254,7 @@ export class ValidationService {
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
-    const momentDate = moment(String(value), moment.ISO_8601, true);
-    if (!momentDate.isValid()) {
+    if (!validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
@@ -293,8 +291,7 @@ export class ValidationService {
   }
 
   public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, validators?: DateTimeValidator, parent = '') {
-    const momentDateTime = moment(String(value), moment.ISO_8601, true);
-    if (!momentDateTime.isValid()) {
+    if (!validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
