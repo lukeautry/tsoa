@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import validator from 'validator';
 import * as ts from 'typescript';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { Tsoa } from '@tsoa/runtime';
@@ -64,7 +64,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
         break;
       case 'minDate':
       case 'maxDate':
-        if (!moment(value, moment.ISO_8601, true).isValid()) {
+        if (!validator.isISO8601(String(value), { strict: true })) {
           throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
         }
         validateObj[name] = {
@@ -151,7 +151,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
         break;
       case 'minDate':
       case 'maxDate':
-        if (!moment(value, moment.ISO_8601, true).isValid()) {
+        if (!validator.isISO8601(String(value), { strict: true })) {
           throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
         }
         validateObj[name] = {
