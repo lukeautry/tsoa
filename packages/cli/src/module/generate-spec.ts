@@ -5,7 +5,7 @@ import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa, Swagger } from '@tsoa/runtime';
 import { SpecGenerator2 } from '../swagger/specGenerator2';
 import { SpecGenerator3 } from '../swagger/specGenerator3';
-import { fsExists, fsMkDir, fsWriteFile } from '../utils/fs';
+import { fsMkDir, fsWriteFile } from '../utils/fs';
 
 export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
   const ext = swaggerConfig.yaml ? 'yaml' : 'json';
@@ -34,10 +34,7 @@ export const generateSpec = async (
     spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
   }
 
-  const exists = await fsExists(swaggerConfig.outputDirectory);
-  if (!exists) {
-    await fsMkDir(swaggerConfig.outputDirectory);
-  }
+  await fsMkDir(swaggerConfig.outputDirectory, { recursive: true });
 
   let data = JSON.stringify(spec, null, '\t');
   if (swaggerConfig.yaml) {
