@@ -857,6 +857,22 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`required unique array`);
     });
+
+    it('Should validate refEnum Arrays', () => {
+      const enumModel: TsoaRoute.RefEnumModelSchema = {
+        dataType: 'refEnum',
+        enums: ['foo', 'bar'],
+      };
+      const v = new ValidationService({ enumModel });
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const fieldErrors = {};
+      const result = v.validateArray('name', ['foo', 'bar', 'foo', 'foobar'], fieldErrors, minimalSwaggerConfig, { dataType: 'refEnum', ref: 'enumModel' });
+      expect(Object.keys(fieldErrors)).to.not.be.empty;
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.deep.equal({ 'name.$3': { message: "should be one of the following; ['foo','bar']", value: 'foobar' } });
+    });
   });
 
   describe('Union validate', () => {
