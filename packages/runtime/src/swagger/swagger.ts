@@ -21,7 +21,7 @@ export namespace Swagger {
     consumes?: string[];
     produces?: string[];
     paths: { [name: string]: Path };
-    definitions?: { [name: string]: Schema };
+    definitions?: { [name: string]: Schema2 };
     parameters?: { [name: string]: Parameter };
     responses?: { [name: string]: Response };
     security?: Security[];
@@ -43,7 +43,7 @@ export namespace Swagger {
     parameters?: { [name: string]: Parameter };
     requestBodies?: { [name: string]: any };
     responses?: { [name: string]: Response };
-    schemas?: { [name: string]: Schema | Schema3 };
+    schemas?: { [name: string]: Schema3 };
     securitySchemes?: { [name: string]: Security };
   }
 
@@ -102,6 +102,7 @@ export namespace Swagger {
     schema: Schema;
     type: DataType;
     format?: DataFormat;
+    deprecated?: boolean;
   }
 
   export interface BodyParameter extends BaseParameter {
@@ -112,6 +113,10 @@ export namespace Swagger {
     in: 'query';
     allowEmptyValue?: boolean;
     collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
+  }
+
+  export function isQueryParameter(parameter: BaseParameter): parameter is QueryParameter {
+    return parameter.in === 'query';
   }
 
   export interface PathParameter extends BaseParameter {
@@ -128,7 +133,8 @@ export namespace Swagger {
   }
 
   export type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
-  export type Parameter3 = Parameter & { deprecated?: boolean };
+  export type Parameter2 = Omit<Parameter & { 'x-deprecated'?: boolean }, 'deprecated'>;
+  export type Parameter3 = Parameter;
 
   export interface Path {
     $ref?: string;
@@ -139,7 +145,7 @@ export namespace Swagger {
     options?: Operation;
     head?: Operation;
     patch?: Operation;
-    parameters?: Parameter[];
+    parameters?: Parameter2[];
   }
 
   export interface Path3 {
@@ -151,7 +157,7 @@ export namespace Swagger {
     options?: Operation3;
     head?: Operation3;
     patch?: Operation3;
-    parameters?: Parameter[];
+    parameters?: Parameter3[];
   }
 
   export interface Operation {
@@ -162,7 +168,7 @@ export namespace Swagger {
     operationId: string;
     consumes?: string[];
     produces?: string[];
-    parameters?: Parameter[];
+    parameters?: Parameter2[];
     responses: { [name: string]: Response };
     schemes?: Protocol[];
     deprecated?: boolean;
@@ -246,7 +252,9 @@ export namespace Swagger {
   }
 
   export interface Schema2 extends Schema {
+    properties?: { [propertyName: string]: Schema2 };
     ['x-nullable']?: boolean;
+    ['x-deprecated']?: boolean;
   }
 
   export interface Schema extends BaseSchema {

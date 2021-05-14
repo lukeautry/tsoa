@@ -192,7 +192,7 @@ describe('Definition generation', () => {
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
-        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema) => void> = {
+        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema2) => void> = {
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
@@ -588,8 +588,7 @@ describe('Definition generation', () => {
               example: undefined,
               properties: {
                 name: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
-                // `deprecated` only exists in OpenAPI 3
-                deprecatedSubProperty: { type: 'number', default: undefined, description: undefined, format: 'double', example: undefined },
+                deprecatedSubProperty: { type: 'number', default: undefined, description: undefined, format: 'double', example: undefined, 'x-deprecated': true },
                 nested: {
                   properties: {
                     additionals: {
@@ -630,28 +629,34 @@ describe('Definition generation', () => {
             });
           },
           notDeprecatedProperty: (propertyName, propertySchema) => {
-            expect(propertySchema).not.to.haveOwnProperty('deprecated', `for property ${propertyName}`);
+            expect(propertySchema).not.to.haveOwnProperty('x-deprecated', `for property ${propertyName}`);
           },
-          notDeprecatedPropertyWithDeprecatedType: (propertyName, propertySchema) => {
-            expect(propertySchema).not.to.haveOwnProperty('deprecated', `for property ${propertyName}`);
+          propertyOfDeprecatedType: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
+            expect(propertySchema).not.to.haveOwnProperty('x-deprecated', `for property ${propertyName}`);
+            const typeSchema = getValidatedDefinition('DeprecatedType', currentSpec);
+            expect(typeSchema['x-deprecated']).to.eq(true, `for DeprecatedType`);
+          },
+          propertyOfDeprecatedClass: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
+            expect(propertySchema).not.to.haveOwnProperty('x-deprecated', `for property ${propertyName}`);
+            const typeSchema = getValidatedDefinition('DeprecatedClass', currentSpec);
+            expect(typeSchema['x-deprecated']).to.eq(true, `for DeprecatedClass`);
           },
           deprecatedProperty: (propertyName, propertySchema) => {
-            // `deprecated` only exists in OpenAPI 3
-            expect(propertySchema).not.to.haveOwnProperty('deprecated', `for property ${propertyName}`);
+            expect(propertySchema['x-deprecated']).to.eq(true, `for property ${propertyName}[x-deprecated]`);
           },
           deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
-            // `deprecated` only exists in OpenAPI 3
-            expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
           },
           deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
-            // `deprecated` only exists in OpenAPI 3
-            expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
-            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(undefined, `for property stillNotOkProp.deprecated`);
+            expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.stillNotOkProp['x-deprecated']).to.eql(true, `for property stillNotOkProp[x-deprecated]`);
           },
           notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
-            expect(propertySchema.properties!.notOk.deprecated).to.eql(undefined, `for property notOk.deprecated`);
+            expect(propertySchema.properties!.notOk).not.to.haveOwnProperty('x-deprecated', `for property notOk`);
           },
           typeAliases: (propertyName, propertySchema) => {
             expect(propertyName).to.equal('typeAliases');
@@ -1051,11 +1056,10 @@ describe('Definition generation', () => {
                   },
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
-                  // `deprecated` only exists in OpenAPI 3
-                  deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined },
-                  deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined },
-                  deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined },
-                  deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined },
+                  deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+                  deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+                  deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+                  deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                 },
                 required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',
@@ -1753,13 +1757,12 @@ describe('Definition generation', () => {
         expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
       });
 
-      // `deprecated` parameters only exists in OpenAPI 3
-      it("doesn't mark deprecated parameters as deprecated", () => {
+      it('mark deprecated parameters as x-deprecated', () => {
         const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
         const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
         const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-        expect(parameters.map(param => ((param as unknown) as Record<string, unknown>).deprecated)).to.eql([undefined, undefined, undefined]);
+        expect(parameters.map(param => ((param as unknown) as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
       });
     });
   });

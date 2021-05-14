@@ -144,8 +144,9 @@ export interface TestModel extends Model {
 
   /** not deprecated */
   notDeprecatedProperty?: number;
-  /** type is deprecated, but this property is not */
-  notDeprecatedPropertyWithDeprecatedType?: DeprecatedType;
+  /** although the properties won't be explicity deprecated in the spec, they'll be implicitly deprecated due to the ref pulling it in */
+  propertyOfDeprecatedType?: DeprecatedType;
+  propertyOfDeprecatedClass?: DeprecatedClass;
   /** @deprecated */
   deprecatedProperty?: number;
   deprecatedFieldsOnInlineMappedTypeFromSignature?: {
@@ -190,6 +191,9 @@ export interface TestModel extends Model {
 interface DeprecatedType {
   value: string;
 }
+
+@Deprecated()
+class DeprecatedClass {}
 
 interface TypeWithDeprecatedProperty {
   ok: boolean;

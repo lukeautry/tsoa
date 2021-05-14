@@ -495,6 +495,7 @@ export class TypeResolver {
       enums,
       enumVarnames,
       refName: enumName,
+      deprecated: isExistJSDocTag(enumDeclaration, tag => tag.tagName.text === 'deprecated'),
     };
   }
 
@@ -556,6 +557,7 @@ export class TypeResolver {
           refName: this.getRefTypeName(name),
           enums: [this.current.typeChecker.getConstantValue(declaration)!],
           enumVarnames: [declaration.name.getText()],
+          deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
         };
       } else {
         referenceType = this.getModelReference(declaration, name);
@@ -589,6 +591,7 @@ export class TypeResolver {
   private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, name: string) {
     const example = this.getNodeExample(modelType);
     const description = this.getNodeDescription(modelType);
+    const deprecated = isExistJSDocTag(modelType, tag => tag.tagName.text === 'deprecated') || isDecorator(modelType, identifier => identifier.text === 'Deprecated');
 
     // Handle toJSON methods
     if (!modelType.name) {
@@ -610,6 +613,7 @@ export class TypeResolver {
         description,
         type,
         validators: {},
+        deprecated,
         ...(example && { example }),
       };
       return referenceType;
@@ -625,6 +629,7 @@ export class TypeResolver {
       description,
       properties: inheritedProperties,
       refName: this.getRefTypeName(name),
+      deprecated,
       ...(example && { example }),
     };
 

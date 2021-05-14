@@ -217,6 +217,9 @@ export class SpecGenerator3 extends SpecGenerator {
       } else {
         assertNever(referenceType);
       }
+      if (referenceType.deprecated) {
+        schema[referenceType.refName].deprecated = true;
+      }
     });
 
     return schema;

@@ -888,8 +888,17 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           notDeprecatedProperty: (propertyName, propertySchema) => {
             expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
           },
-          notDeprecatedPropertyWithDeprecatedType: (propertyName, propertySchema) => {
+          propertyOfDeprecatedType: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
             expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            const typeSchema = currentSpec.spec.components.schemas!['DeprecatedType'];
+            expect(typeSchema.deprecated).to.eq(true, `for DeprecatedType`);
+          },
+          propertyOfDeprecatedClass: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
+            expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            const typeSchema = currentSpec.spec.components.schemas!['DeprecatedClass'];
+            expect(typeSchema.deprecated).to.eq(true, `for DeprecatedClass`);
           },
           deprecatedProperty: (propertyName, propertySchema) => {
             expect(propertySchema.deprecated).to.eq(true, `for property ${propertyName}.deprecated`);
@@ -2108,6 +2117,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             refName: schemaName,
             dataType: 'refEnum',
             enums: [1, 'two', 3, 'four'],
+            deprecated: false,
           },
         },
       };

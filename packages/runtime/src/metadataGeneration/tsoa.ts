@@ -250,6 +250,7 @@ export namespace Tsoa {
     dataType: RefTypeLiteral;
     refName: string;
     example?: unknown;
+    deprecated: boolean;
   }
 
   export interface UnionType extends TypeBase {
