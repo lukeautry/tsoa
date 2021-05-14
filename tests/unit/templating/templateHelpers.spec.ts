@@ -163,7 +163,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
     value1: 'this is value 1',
     value2: 'this is value 2',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';
@@ -315,7 +315,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     value1: 'this is value 1',
     value2: 'this is value 2',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';
@@ -372,7 +372,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     value1: 'this is value 1',
     value2: 'this is value 2',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';
