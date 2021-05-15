@@ -35,6 +35,14 @@ export class SecurityTestController {
     return Promise.resolve(request.user);
   }
 
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Security('slow_auth')
+  @Get('ApiKeyOrTimesOut')
+  public async GetWithTimedOutSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
+
   @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Security('api_key')
@@ -57,6 +65,24 @@ export class SecurityTestController {
   @Security('api_key')
   @Get('ServerError')
   public async GetServerError(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.reject(new Error('Unexpected'));
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key', [])
+  @Security('tsoa_auth', ['write:pets', 'read:pets'])
+  @Get('ServerErrorOauthOrApiKey')
+  public async GetServerErrorOrAuth(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.reject(new Error('Unexpected'));
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security({
+    api_key: [],
+    tsoa_auth: ['write:pets', 'read:pets'],
+  })
+  @Get('ServerErrorOauthAndApiKey')
+  public async GetServerErrorAndAuth(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.reject(new Error('Unexpected'));
   }
 }

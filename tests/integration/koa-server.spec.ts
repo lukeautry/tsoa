@@ -907,6 +907,10 @@ describe('Koa Server', () => {
   });
 
   describe('Security', () => {
+    const emptyHandler = (err, res) => {
+      // This is an empty handler
+    };
+
     it('can handle get request with access_token user id == 1', () => {
       return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=abc123456', (err, res) => {
         const model = res.body as Model;
@@ -921,14 +925,95 @@ describe('Koa Server', () => {
       });
     });
 
-    it('should pass through error if controller method crashes', () => {
+    it('resolves right away after first success', () => {
+      const path = '/SecurityTest/ApiKeyOrTimesOut?access_token=abc123456';
       return verifyGetRequest(
-        basePath + `/SecurityTest/ServerError?access_token=abc123456`,
+        basePath + path,
         (err, res) => {
-          expect(res.status).to.equal(500);
+          const model = res.body as Model;
+          expect(model.id).to.equal(1);
         },
-        500,
+        200,
       );
+    });
+
+    describe('API key or tsoa auth', () => {
+      it('returns 200 if the API key is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(
+          basePath + path,
+          (err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 200 if tsoa auth is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 200 if multiple auth handlers are correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
+        return verifyGetRequest(
+          basePath + path,
+          err => {
+            expect(err.text).to.equal('api_key');
+          },
+          401,
+        );
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          basePath + `/SecurityTest/ServerErrorOauthOrApiKey?access_token=abc123456`,
+          (err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
+      });
+    });
+
+    describe('API key and tsoa auth', () => {
+      it('returns 200 if API and tsoa auth pass validation, resolved with user from first key in object', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(
+          basePath + path,
+          (err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 401 if API key is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(basePath + path, emptyHandler, 401);
+      });
+
+      it('returns 401 if tsoa auth is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 401);
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          basePath + `/SecurityTest/ServerErrorOauthAndApiKey?access_token=abc123456&tsoa=abc123456`,
+          (err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
+      });
     });
   });
 

@@ -12,6 +12,8 @@ import { {{name}} } from '{{modulePath}}';
 {{/each}}
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
+// @ts-ignore - no great way to install types from subpackage
+const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
@@ -103,61 +105,71 @@ export function RegisterRoutes(router: KoaRouter) {
     {{/each}}
     {{/each}}
 
-  {{#if useSecurity}}
-  function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-      return async function runAuthenticationMiddleware(context: any, next: any) {
-          let responded = 0;
-          let success = false;
+    {{#if useSecurity}}
 
-          const succeed = async (user: any) => {
-              if (!success) {
-                  success = true;
-                  responded++;
-                  context.request['user'] = user;
-                  await next();
-              }
-          };
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return async function runAuthenticationMiddleware(context: any, next: any) {
 
-          const fail = async (error: any) => {
-              responded++;
-              if (responded == security.length && !success) {
-                  // this is an authentication error
-                  context.status = error.status || 401;
-                  context.throw(context.status, error.message, error);
-              } else if (success) {
-                  // the authentication was a success but arriving here means the controller
-                  // probably threw an error that we caught as well
-                  // so just pass it on
-                  throw error;
-              }
-          };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            // keep track of failed auth attempts so we can hand back the most
+            // recent one.  This behavior was previously existing so preserving it
+            // here
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
+            };
 
-          for (const secMethod of security) {
-              if (Object.keys(secMethod).length > 1) {
-                  let promises: Promise<any>[] = [];
+            const secMethodOrPromises: Promise<any>[] = [];
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    const secMethodAndPromises: Promise<any>[] = [];
 
-                  for (const name in secMethod) {
-                      promises.push(koaAuthentication(context.request, name, secMethod[name]));
-                  }
+                    for (const name in secMethod) {
+                        secMethodAndPromises.push(
+                            koaAuthentication(context.request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
+                    }
 
-                  return Promise.all(promises)
-                      .then((users) => succeed(users[0]))
-                      .catch(fail);
-              } else {
-                  for (const name in secMethod) {
-                      return koaAuthentication(context.request, name, secMethod[name])
-                          .then(succeed)
-                          .catch(fail);
-                  }
-              }
-          }
-      }
-  }
-  {{/if}}
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                        .then(users => { return users[0]; }));
+                } else {
+                    for (const name in secMethod) {
+                        secMethodOrPromises.push(
+                            koaAuthentication(context.request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
+                    }
+                }
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let success;
+            try {
+                const user = await promiseAny(secMethodOrPromises);
+                success = true;
+                context.request['user'] = user;
+            }
+            catch(err) {
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                context.status = error.status || 401;
+                context.throw(context.status, error.message, error);
+            }
+
+            if (success) {
+                await next();
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        }
+    }
+    {{/if}}
 
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 

@@ -25,6 +25,7 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "promise.any": "^2.0.2",
     "validator": "^13.6.0"
   },
   "devDependencies": {

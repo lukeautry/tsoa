@@ -1067,9 +1067,15 @@ describe('Express Server', () => {
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
-      it('returns 401 if neither API key nor tsoa auth are correct', () => {
+      it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(
+          basePath + path,
+          err => {
+            expect(JSON.parse(err.text).message).to.equal('api_key');
+          },
+          401,
+        );
       });
     });
 
