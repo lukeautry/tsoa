@@ -1058,34 +1058,34 @@ describe('Express Server', () => {
 
     describe('API key or tsoa auth', () => {
       it('returns 200 if the API key is correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=abc123456&tsoa=invalid';
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
       it('returns 200 if tsoa auth is correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=invalid&tsoa=abc123456';
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if neither API key nor tsoa auth are correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=invalid&tsoa=invalid';
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
         return verifyGetRequest(basePath + path, emptyHandler, 401);
       });
     });
 
     describe('API key and tsoa auth', () => {
       it('returns 200 if API and tsoa auth are correct', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=abc123456&tsoa=abc123456';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if API key is incorrect', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=abc123456&tsoa=invalid';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(basePath + path, emptyHandler, 401);
       });
 
       it('returns 401 if tsoa auth is incorrect', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=invalid&tsoa=abc123456';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 401);
       });
     });

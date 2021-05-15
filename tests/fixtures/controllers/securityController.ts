@@ -38,7 +38,7 @@ export class SecurityTestController {
   @Response<ErrorResponseModel>('404', 'Not Found')
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Security('api_key')
-  @Get('OauthOrAPIkey')
+  @Get('OauthOrApiKey')
   public async GetWithOrSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }
@@ -48,7 +48,7 @@ export class SecurityTestController {
     api_key: [],
     tsoa_auth: ['write:pets', 'read:pets'],
   })
-  @Get('OauthAndAPIkey')
+  @Get('OauthAndApiKey')
   public async GetWithAndSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }

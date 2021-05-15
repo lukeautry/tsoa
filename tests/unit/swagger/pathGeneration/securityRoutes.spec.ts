@@ -30,7 +30,7 @@ describe('Security route generation', () => {
   });
 
   it('should generate a route with security A OR security B', () => {
-    const path = verifyPath('/SecurityTest/OauthOrAPIkey');
+    const path = verifyPath('/SecurityTest/OauthOrApiKey');
 
     if (!path.get) {
       throw new Error('No get operation.');
@@ -40,7 +40,7 @@ describe('Security route generation', () => {
   });
 
   it('should generate a route with security A AND security B', () => {
-    const path = verifyPath('/SecurityTest/OauthAndAPIkey');
+    const path = verifyPath('/SecurityTest/OauthAndApiKey');
 
     if (!path.get) {
       throw new Error('No get operation.');
