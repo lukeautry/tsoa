@@ -1097,7 +1097,7 @@ describe('Koa Server', () => {
           },
           statusCode,
         );
-      })
+      }),
     );
 
     it('Should not modify the response after headers sent', () => {

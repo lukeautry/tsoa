@@ -23,6 +23,7 @@
 <!--- If this is related to a TypeScript issue, then include the way that you expected to be able to write the code  -->
 
 ```ts
+
 ```
 
 ## Current Behavior
@@ -37,6 +38,7 @@
 <!--- If this is related to a TypeScript issue, then include the way that you had to write the code  -->
 
 ```ts
+
 ```
 
 ## Possible Solution
