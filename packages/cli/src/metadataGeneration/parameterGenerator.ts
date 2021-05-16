@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
-import { getJSDocTags } from './../utils/jsDocUtils';
+import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
+import { getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -53,6 +53,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -77,7 +78,7 @@ export class ParameterGenerator {
     const bodyArgument = typeNode.typeArguments[1];
 
     // support a union of status codes, all with the same response body
-    const statusArguments = (ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument]);
+    const statusArguments = ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument];
     const statusArgumentTypes = statusArguments.map(a => this.current.typeChecker.getTypeAtLocation(a));
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
@@ -105,6 +106,7 @@ export class ParameterGenerator {
         schema: type,
         validators: {},
         headers: getHeaderType(typeNode.typeArguments, 2, this.current),
+        deprecated: this.getParameterDeprecation(parameter),
       };
     });
   }
@@ -127,6 +129,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -147,6 +150,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -168,6 +172,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -199,6 +204,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -218,6 +224,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -234,6 +241,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
 
     if (this.getQueryParamterIsHidden(parameter)) {
@@ -248,21 +256,25 @@ export class ParameterGenerator {
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
-      return [{
-        ...commonProperties,
-        collectionFormat: 'multi',
-        type: arrayType,
-      } as Tsoa.ArrayParameter];
+      return [
+        {
+          ...commonProperties,
+          collectionFormat: 'multi',
+          type: arrayType,
+        } as Tsoa.ArrayParameter,
+      ];
     }
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
-    return [{
-      ...commonProperties,
-      type,
-    }];
+    return [
+      {
+        ...commonProperties,
+        type,
+      },
+    ];
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
@@ -288,6 +300,7 @@ export class ParameterGenerator {
       required: true,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -303,6 +316,10 @@ export class ParameterGenerator {
     }
 
     return undefined;
+  }
+
+  private getParameterDeprecation(node: ts.ParameterDeclaration) {
+    return isExistJSDocTag(node, tag => tag.tagName.text === 'deprecated') || isDecorator(node, identifier => identifier.text === 'Deprecated');
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {

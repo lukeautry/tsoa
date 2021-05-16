@@ -738,6 +738,22 @@ describe('Metadata generation', () => {
       expect(genderParam.required).to.be.true;
       expect(genderParam.enum).to.deep.equal(['MALE', 'FEMALE']);
     });
+
+    it('should mark deprecated params as deprecated', () => {
+      const method = controller.methods.find(m => m.name === 'postDeprecated');
+      if (!method) {
+        throw new Error('Method postDeprecated not defined!');
+      }
+
+      const supportedParam = method.parameters[0];
+      expect(supportedParam.deprecated).to.be.false;
+
+      const deprecatedParam = method.parameters[1];
+      expect(deprecatedParam.deprecated).to.be.true;
+
+      const deprecatedParam2 = method.parameters[2];
+      expect(deprecatedParam2.deprecated).to.be.true;
+    });
   });
 
   describe('HiddenMethodGenerator', () => {

@@ -14,4 +14,10 @@ export class DeprecatedController extends Controller {
   public async deprecatedGetMethod(): Promise<TestModel> {
     return Promise.resolve(new ModelService().getModel());
   }
+
+  /** @deprecated */
+  @Get('deprecatedGetMethod2')
+  public async deprecatedGetMethod2(): Promise<TestModel> {
+    return Promise.resolve(new ModelService().getModel());
+  }
 }

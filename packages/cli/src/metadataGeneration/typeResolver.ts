@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
+import { isDecorator } from './../utils/decoratorUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -110,6 +111,7 @@ export class TypeResolver {
             required: !propertySignature.questionToken,
             type,
             validators: getPropertyValidators(propertySignature) || {},
+            deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
           };
 
           return [property, ...res];
@@ -180,6 +182,10 @@ export class TypeResolver {
           return {
             name: property.getName(),
             required,
+            // Mapped types with any amount of indirection (template strings, unions, Exclude<>, etc.)
+            // don't provide an underlying declaration in the AST, thus we cannot know if the original
+            // property is deprecated. This matches intellisense's behavior in vscode.
+            deprecated: false,
             type: new TypeResolver(typeNode, this.current, this.typeNode, this.context, this.referencer).resolve(),
             validators: {},
           };
@@ -489,6 +495,7 @@ export class TypeResolver {
       enums,
       enumVarnames,
       refName: enumName,
+      deprecated: isExistJSDocTag(enumDeclaration, tag => tag.tagName.text === 'deprecated'),
     };
   }
 
@@ -550,6 +557,7 @@ export class TypeResolver {
           refName: this.getRefTypeName(name),
           enums: [this.current.typeChecker.getConstantValue(declaration)!],
           enumVarnames: [declaration.name.getText()],
+          deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
         };
       } else {
         referenceType = this.getModelReference(declaration, name);
@@ -583,6 +591,7 @@ export class TypeResolver {
   private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, name: string) {
     const example = this.getNodeExample(modelType);
     const description = this.getNodeDescription(modelType);
+    const deprecated = isExistJSDocTag(modelType, tag => tag.tagName.text === 'deprecated') || isDecorator(modelType, identifier => identifier.text === 'Deprecated');
 
     // Handle toJSON methods
     if (!modelType.name) {
@@ -604,6 +613,7 @@ export class TypeResolver {
         description,
         type,
         validators: {},
+        deprecated,
         ...(example && { example }),
       };
       return referenceType;
@@ -619,6 +629,7 @@ export class TypeResolver {
       description,
       properties: inheritedProperties,
       refName: this.getRefTypeName(name),
+      deprecated,
       ...(example && { example }),
     };
 
@@ -878,6 +889,7 @@ export class TypeResolver {
       required,
       type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
+      deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
     };
     return property;
   }
@@ -913,6 +925,8 @@ export class TypeResolver {
       required,
       type,
       validators: getPropertyValidators(propertyDeclaration) || {},
+      // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
+      deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
     };
     return property;
   }

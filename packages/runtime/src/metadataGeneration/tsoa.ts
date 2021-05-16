@@ -41,6 +41,7 @@ export namespace Tsoa {
     type: Type;
     default?: any;
     validators: Validators;
+    deprecated: boolean;
   }
 
   export interface ResParameter extends Response, Parameter {
@@ -83,6 +84,7 @@ export namespace Tsoa {
     type: Type;
     required: boolean;
     validators: Validators;
+    deprecated: boolean;
   }
 
   export type TypeStringLiteral =
@@ -248,6 +250,7 @@ export namespace Tsoa {
     dataType: RefTypeLiteral;
     refName: string;
     example?: unknown;
+    deprecated: boolean;
   }
 
   export interface UnionType extends TypeBase {
