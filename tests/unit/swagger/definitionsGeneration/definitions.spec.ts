@@ -1166,7 +1166,7 @@ describe('Definition generation', () => {
               properties: {
                 maybeString: { $ref: '#/definitions/Maybe_string_', description: undefined, format: undefined, example: undefined },
                 wordOrNull: { $ref: '#/definitions/Maybe_Word_', description: undefined, format: undefined, example: undefined },
-                numberOrNull: { type: 'number', format: 'double', description: undefined, default: undefined, ['x-nullable']: true, example: undefined },
+                numberOrNull: { type: 'integer', format: 'int32', minimum: 5, description: undefined, default: undefined, ['x-nullable']: true, example: undefined },
                 justNull: {
                   default: undefined,
                   description: undefined,

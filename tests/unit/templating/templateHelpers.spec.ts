@@ -13,16 +13,16 @@ it('ValidateError should be an instanceof ValidateError', () => {
 it('should allow additionalProperties (on a union) if noImplicitAdditionalProperties is set to silently-remove-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
+  const unionProperty: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }],
+    required: true,
+  };
   const models: TsoaRoute.Models = {
     [refName]: {
       dataType: 'refObject',
       properties: {
-        or: {
-          dataType: 'union',
-          subSchemas,
-          required: true,
-        },
+        or: unionProperty,
       },
     },
     TypeAliasModel1: {
@@ -53,7 +53,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+  const result = v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, unionProperty, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -66,16 +66,16 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
 it('should throw if the data has additionalProperties (on a union) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
-  const subSchemas: TsoaRoute.PropertySchema[] = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }];
+  const unionPropertySchema: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasModel2' }],
+    required: true,
+  };
   const models: TsoaRoute.Models = {
     [refName]: {
       dataType: 'refObject',
       properties: {
-        or: {
-          dataType: 'union',
-          subSchemas,
-          required: true,
-        },
+        or: unionPropertySchema,
       },
     },
     TypeAliasModel1: {
@@ -106,7 +106,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
 
   // Act
   const name = 'dataToValidate';
-  v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+  v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, unionPropertySchema, name + '.');
 
   // Assert
   const errorKeys = Object.keys(errorDictionary);

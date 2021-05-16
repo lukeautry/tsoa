@@ -59,7 +59,7 @@ export class ValidationService {
       case 'buffer':
         return this.validateBuffer(name, value);
       case 'union':
-        return this.validateUnion(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
+        return this.validateUnion(name, value, fieldErrors, minimalSwaggerConfig, property, parent);
       case 'intersection':
         return this.validateIntersection(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
       case 'any':
@@ -458,8 +458,8 @@ export class ValidationService {
     return Buffer.from(value);
   }
 
-  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
-    if (!subSchemas) {
+  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, property: TsoaRoute.PropertySchema, parent = ''): any {
+    if (!property.subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
           'the metadata that was generated should have had sub schemas since it’s for a union, however it did not. ' +
@@ -469,9 +469,16 @@ export class ValidationService {
 
     const subFieldErrors: FieldErrors[] = [];
 
-    for (const subSchema of subSchemas) {
+    for (const subSchema of property.subSchemas) {
       const subFieldError: FieldErrors = {};
-      const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, swaggerConfig);
+      const cleanValue = this.ValidateParam(
+        { ...subSchema, validators: { ...property.validators, ...subSchema.validators } },
+        JSON.parse(JSON.stringify(value)),
+        name,
+        subFieldError,
+        parent,
+        swaggerConfig,
+      );
       subFieldErrors.push(subFieldError);
 
       if (Object.keys(subFieldError).length === 0) {
