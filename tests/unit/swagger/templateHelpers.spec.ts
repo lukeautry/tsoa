@@ -898,11 +898,29 @@ describe('ValidationService', () => {
       const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       };
-      const subSchemas = [{ ref: 'TypeA' }, { ref: 'TypeB' }];
-      const resultA = v.validateUnion(name, { type: 'A', a: 100 }, error, minimalSwaggerConfig, subSchemas);
-      const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, minimalSwaggerConfig, subSchemas);
+      const schema: TsoaRoute.PropertySchema = { subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeB' }] };
+      const resultA = v.validateUnion(name, { type: 'A', a: 100 }, error, minimalSwaggerConfig, schema);
+      const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, minimalSwaggerConfig, schema);
       expect(resultA).to.deep.equal({ type: 'A', a: 100 });
       expect(resultB).to.deep.equal({ type: 'B', b: 20 });
+    });
+
+    it('validates parent validators', () => {
+      const v = new ValidationService({});
+      const errors = {};
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+      };
+      const schema: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ dataType: 'integer' }, { dataType: 'string' }], required: true, validators: { minimum: { value: 5 } } };
+
+      const result = v.validateUnion('union', 2, errors, minimalSwaggerConfig, schema);
+      expect(errors).to.deep.equal({
+        union: {
+          message: 'Could not match the union against any of the items. Issues: [{"union":{"message":"min 5","value":2}},{"union":{"message":"invalid string value","value":2}}]',
+          value: 2,
+        },
+      });
+      expect(result).to.be.undefined;
     });
   });
 

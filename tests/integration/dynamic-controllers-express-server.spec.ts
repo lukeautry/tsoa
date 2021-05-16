@@ -709,7 +709,7 @@ describe('Express Server', () => {
       } as any;
 
       bodyModel.nullableTypes = {
-        // numberOrNull
+        numberOrNull: 4,
         wordOrNull: '',
         maybeString: 1,
         justNull: undefined,
@@ -817,7 +817,9 @@ describe('Express Server', () => {
           expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
           expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
           expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
-          expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal("'numberOrNull' is required");
+          expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal(
+            'Could not match the union against any of the items. Issues: [{"body.nullableTypes.numberOrNull":{"message":"min 5","value":4}},{"body.nullableTypes.numberOrNull":{"message":"should be one of the following; [null]","value":4}}]',
+          );
           expect(body.fields['body.nullableTypes.maybeString'].message).to.equal(
             `Could not match the union against any of the items. Issues: [{"body.nullableTypes.maybeString":{"message":"invalid string value","value":1}},{"body.nullableTypes.maybeString":{"message":"should be one of the following; [null]","value":1}}]`,
           );

@@ -175,6 +175,10 @@ export interface TestModel extends Model {
    * }
    */
   nullableTypes?: {
+    /**
+     * @isInt
+     * @minimum 5
+     */
     numberOrNull: number | null;
     wordOrNull: Maybe<Word>;
     maybeString: Maybe<string>;
@@ -533,6 +537,10 @@ export class ValidateModel {
   };
 
   public nullableTypes: {
+    /**
+     * @isInt
+     * @minimum 5
+     */
     numberOrNull: number | null;
     wordOrNull: Maybe<Word>;
     maybeString: Maybe<string>;
