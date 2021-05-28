@@ -710,6 +710,24 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
         });
       });
+
+      describe('deprecation', () => {
+        it('marks deprecated methods as deprecated', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+        });
+
+        it('marks deprecated parameters as deprecated', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+          const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
+          expect(parameters.map(param => param.deprecated)).to.eql([undefined, true, true]);
+        });
+      });
     });
   });
 
@@ -838,6 +856,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   format: undefined,
                   example: undefined,
                 },
+                deprecatedSubProperty: { type: 'number', default: undefined, description: undefined, format: 'double', example: undefined, deprecated: true },
                 nested: {
                   properties: {
                     additionals: {
@@ -876,6 +895,37 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               required: ['name'],
               type: 'object',
             });
+          },
+          notDeprecatedProperty: (propertyName, propertySchema) => {
+            expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+          },
+          propertyOfDeprecatedType: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
+            expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            const typeSchema = currentSpec.spec.components.schemas!['DeprecatedType'];
+            expect(typeSchema.deprecated).to.eq(true, `for DeprecatedType`);
+          },
+          propertyOfDeprecatedClass: (propertyName, propertySchema) => {
+            // property is not explicitly deprecated, but the type's schema is
+            expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            const typeSchema = currentSpec.spec.components.schemas!['DeprecatedClass'];
+            expect(typeSchema.deprecated).to.eq(true, `for DeprecatedClass`);
+          },
+          deprecatedProperty: (propertyName, propertySchema) => {
+            expect(propertySchema.deprecated).to.eq(true, `for property ${propertyName}.deprecated`);
+          },
+          deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
+            expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
+          },
+          deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
+            expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(true, `for property stillNotOkProp.deprecated`);
+          },
+          notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
+            // See corresponding `deprecated: false` in TypeResolver#resolve
+            expect(propertySchema.properties!.notOk.deprecated).to.eql(undefined, `for property notOk.deprecated`);
           },
           object: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
@@ -1581,9 +1631,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   'optionalPublicStringProperty',
                   'emailPattern',
                   'stringProperty',
+                  'deprecated1',
+                  'deprecated2',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
+                  'deprecatedPublicConstructorVar',
+                  'deprecatedPublicConstructorVar2',
                   'myIgnoredMethod',
                   'defaultValue1',
                 ],
@@ -1724,6 +1778,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
+                  deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
+                  deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
+                  deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
+                  deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                 },
                 required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
                 type: 'object',
@@ -2029,6 +2087,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('Deprecated class properties', () => {
+    allSpecs.forEach(currentSpec => {
+      const modelName = 'TestClassModel';
+      // Assert
+      if (!currentSpec.spec.components.schemas) {
+        throw new Error('spec.components.schemas should have been truthy');
+      }
+      const definition = currentSpec.spec.components.schemas[modelName];
+
+      if (!definition.properties) {
+        throw new Error('Definition has no properties.');
+      }
+
+      const properties = definition.properties;
+
+      describe(`for ${currentSpec}`, () => {
+        it('should only mark deprecated properties as deprecated', () => {
+          const deprecatedPropertyNames = ['deprecated1', 'deprecated2', 'deprecatedPublicConstructorVar', 'deprecatedPublicConstructorVar2'];
+          Object.entries(properties).forEach(([propertyName, property]) => {
+            if (deprecatedPropertyNames.includes(propertyName)) {
+              expect(property.deprecated).to.eq(true, `for property ${propertyName}.deprecated`);
+            } else {
+              expect(property.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            }
+          });
+        });
+      });
+    });
+  });
+
   describe('mixed Enums', () => {
     it('should combine to metaschema', () => {
       // Arrange
@@ -2040,6 +2128,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             refName: schemaName,
             dataType: 'refEnum',
             enums: [1, 'two', 3, 'four'],
+            deprecated: false,
           },
         },
       };

@@ -5,6 +5,7 @@ import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { RouteGenerator } from '../routeGeneration/routeGenerator';
 import { convertBracesPathParams } from '../utils/pathUtils';
+import { fsMkDir } from '../utils/fs';
 
 export const generateRoutes = async (
   routesConfig: ExtendedRoutesConfig,
@@ -43,6 +44,7 @@ export const generateRoutes = async (
     template = routesConfig.middlewareTemplate;
   }
 
+  await fsMkDir(routesConfig.routesDir, { recursive: true });
   await routeGenerator.GenerateCustomRoutes(template, pathTransformer);
 
   return metadata;

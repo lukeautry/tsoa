@@ -66,7 +66,7 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   private buildDefinitions() {
-    const definitions: { [definitionsName: string]: Swagger.Schema } = {};
+    const definitions: { [definitionsName: string]: Swagger.Schema2 } = {};
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
@@ -114,7 +114,7 @@ export class SpecGenerator2 extends SpecGenerator {
           }, {});
 
         definitions[referenceType.refName] = {
-          ...(swaggerType as Swagger.Schema),
+          ...(swaggerType as Swagger.Schema2),
           default: referenceType.default || swaggerType.default,
           example: referenceType.example,
           format: format || swaggerType.format,
@@ -123,6 +123,9 @@ export class SpecGenerator2 extends SpecGenerator {
         };
       } else {
         assertNever(referenceType);
+      }
+      if (referenceType.deprecated) {
+        definitions[referenceType.refName]['x-deprecated'] = true;
       }
     });
 
@@ -228,7 +231,7 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   private buildBodyPropParameter(controllerName: string, method: Tsoa.Method) {
-    const properties = {} as { [name: string]: Swagger.Schema };
+    const properties = {} as { [name: string]: Swagger.Schema2 };
     const required: string[] = [];
 
     method.parameters
@@ -263,14 +266,17 @@ export class SpecGenerator2 extends SpecGenerator {
     return parameter;
   }
 
-  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter {
+  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {
     let parameter = {
       default: source.default,
       description: source.description,
       in: source.in,
       name: source.name,
       required: source.required,
-    } as Swagger.Parameter;
+    } as Swagger.Parameter2;
+    if (source.deprecated) {
+      parameter['x-deprecated'] = true;
+    }
 
     let type = source.type;
 
@@ -289,12 +295,12 @@ export class SpecGenerator2 extends SpecGenerator {
       parameter.format = this.throwIfNotDataFormat(parameterType.format);
     }
 
-    if (parameter.in === 'query' && parameterType.type === 'array') {
+    if (Swagger.isQueryParameter(parameter) && parameterType.type === 'array') {
       parameter.collectionFormat = 'multi';
     }
 
     if (parameterType.$ref) {
-      parameter.schema = parameterType as Swagger.Schema;
+      parameter.schema = parameterType as Swagger.Schema2;
       return parameter;
     }
 
@@ -338,7 +344,7 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected buildProperties(source: Tsoa.Property[]) {
-    const properties: { [propertyName: string]: Swagger.Schema } = {};
+    const properties: { [propertyName: string]: Swagger.Schema2 } = {};
 
     source.forEach(property => {
       const swaggerType = this.getSwaggerType(property.type) as Swagger.Schema2;
@@ -357,8 +363,11 @@ export class SpecGenerator2 extends SpecGenerator {
             swaggerType[key] = property.validators[key].value;
           });
       }
+      if (property.deprecated) {
+        swaggerType['x-deprecated'] = true;
+      }
 
-      properties[property.name] = swaggerType as Swagger.Schema;
+      properties[property.name] = swaggerType;
     });
 
     return properties;

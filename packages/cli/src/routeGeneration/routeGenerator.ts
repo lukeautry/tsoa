@@ -224,30 +224,10 @@ export class RouteGenerator {
       const arrayType = type;
 
       if (isRefType(arrayType.elementType)) {
-        switch (arrayType.elementType.dataType) {
-          case 'refObject': {
-            schema.array = {
-              ref: arrayType.elementType.refName,
-            };
-            break;
-          }
-          case 'refEnum': {
-            schema.array = {
-              dataType: arrayType.elementType.dataType,
-              enums: arrayType.elementType.enums,
-            };
-            break;
-          }
-          case 'refAlias': {
-            schema.array = {
-              dataType: arrayType.elementType.dataType,
-              ref: arrayType.elementType.refName,
-            };
-            break;
-          }
-          default:
-            assertNever(arrayType.elementType);
-        }
+        schema.array = {
+          dataType: arrayType.elementType.dataType,
+          ref: arrayType.elementType.refName,
+        };
       } else {
         schema.array = this.buildProperty(arrayType.elementType);
       }

@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -323,5 +323,14 @@ export class ParameterController {
   @Get('Res')
   public async getRes(@Res() res: TsoaResponse<400, { name: string }>): Promise<void> {
     res?.(400, { name: 'alternate response' });
+  }
+
+  @Post('ParameterDeprecated')
+  public async postDeprecated(
+    @Query('supportedSetting') supportedSetting = true,
+    @Deprecated() @Query('deprecatedSetting') deprecatedSetting = false,
+    /** @deprecated */ @Query('anotherDeprecatedSetting') anotherDeprecatedSetting = false,
+  ): Promise<void> {
+    //
   }
 }

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue } from './../utils/decoratorUtils';
-import { getJSDocTags } from './../utils/jsDocUtils';
+import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
+import { getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -53,6 +53,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -106,6 +107,7 @@ export class ParameterGenerator {
         schema: type,
         validators: {},
         headers: getHeaderType(typeNode.typeArguments, 2, this.current),
+        deprecated: this.getParameterDeprecation(parameter),
       };
     });
   }
@@ -128,6 +130,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -148,6 +151,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -169,6 +173,7 @@ export class ParameterGenerator {
       required: !parameter.questionToken && !parameter.initializer,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -200,6 +205,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -219,6 +225,7 @@ export class ParameterGenerator {
       type,
       parameterName,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -235,6 +242,7 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
 
     if (this.getQueryParamterIsHidden(parameter)) {
@@ -293,6 +301,7 @@ export class ParameterGenerator {
       required: true,
       type,
       validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
     };
   }
 
@@ -308,6 +317,10 @@ export class ParameterGenerator {
     }
 
     return undefined;
+  }
+
+  private getParameterDeprecation(node: ts.ParameterDeclaration) {
+    return isExistJSDocTag(node, tag => tag.tagName.text === 'deprecated') || isDecorator(node, identifier => identifier.text === 'Deprecated');
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {

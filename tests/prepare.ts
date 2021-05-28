@@ -8,7 +8,7 @@ const spec = async () => {
   const result = await generateSpecAndRoutes({
     configuration: 'tsoa.json',
   });
-  return result[0];
+  return result;
 };
 
 const log = async <T>(label: string, fn: () => Promise<T>) => {

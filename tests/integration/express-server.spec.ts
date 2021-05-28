@@ -152,7 +152,7 @@ describe('Express Server', () => {
         },
         statusCode,
       );
-    })
+    }),
   );
 
   it('Should not modify the response after headers sent', () => {

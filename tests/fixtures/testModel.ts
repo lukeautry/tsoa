@@ -1,3 +1,5 @@
+import { Deprecated } from '@tsoa/runtime';
+
 /**
  * This is a description of a model
  * @tsoaModel
@@ -136,6 +138,25 @@ export interface TestModel extends Model {
         [name: string]: TypeAliasModel1;
       };
     };
+    /** @deprecated */
+    deprecatedSubProperty?: number;
+  };
+
+  /** not deprecated */
+  notDeprecatedProperty?: number;
+  /** although the properties won't be explicity deprecated in the spec, they'll be implicitly deprecated due to the ref pulling it in */
+  propertyOfDeprecatedType?: DeprecatedType;
+  propertyOfDeprecatedClass?: DeprecatedClass;
+  /** @deprecated */
+  deprecatedProperty?: number;
+  deprecatedFieldsOnInlineMappedTypeFromSignature?: {
+    [K in keyof TypeWithDeprecatedProperty as `${K}Prop`]: boolean;
+  };
+  deprecatedFieldsOnInlineMappedTypeFromDeclaration?: {
+    [K in keyof ClassWithDeprecatedProperty as `${K}Prop`]: boolean;
+  };
+  notDeprecatedFieldsOnInlineMappedTypeWithIndirection?: {
+    [K in Exclude<keyof TypeWithDeprecatedProperty, 'ok'>]: boolean;
   };
 
   defaultGenericModel?: GenericModel;
@@ -164,6 +185,28 @@ export interface TestModel extends Model {
   inlineMappedTypeRemapped?: {
     [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string;
   };
+}
+
+/** @deprecated */
+interface DeprecatedType {
+  value: string;
+}
+
+@Deprecated()
+class DeprecatedClass {}
+
+interface TypeWithDeprecatedProperty {
+  ok: boolean;
+  /** @deprecated */
+  notOk?: boolean;
+}
+
+class ClassWithDeprecatedProperty {
+  ok: boolean;
+  @Deprecated()
+  notOk?: boolean;
+  /** @deprecated */
+  stillNotOk?: boolean;
 }
 
 interface Generic<T> {
@@ -703,6 +746,10 @@ export class TestClassModel extends TestClassBaseModel {
   stringProperty: string;
   protected protectedStringProperty: string;
   public static staticStringProperty: string;
+  @Deprecated()
+  public deprecated1?: boolean;
+  /** @deprecated */
+  public deprecated2?: boolean;
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar
    */
@@ -712,6 +759,9 @@ export class TestClassModel extends TestClassBaseModel {
     defaultConstructorArgument: string,
     readonly readonlyConstructorArgument: string,
     public optionalPublicConstructorVar?: string,
+    @Deprecated() public deprecatedPublicConstructorVar?: boolean,
+    /** @deprecated */ public deprecatedPublicConstructorVar2?: boolean,
+    @Deprecated() deprecatedNonPublicConstructorVar?: boolean,
   ) {
     super();
   }
