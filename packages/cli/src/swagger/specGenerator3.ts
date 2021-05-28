@@ -301,8 +301,10 @@ export class SpecGenerator3 extends SpecGenerator {
         };
 
         if (res.examples) {
+          let exampleCounter = 1;
           const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
-            return { ...acc, [res.exampleLabels?.[currentIndex] ?? `Example ${currentIndex + 1}`]: { value: ex } };
+            const exampleLabel = res.exampleLabels?.[currentIndex] ?? `Example ${exampleCounter++}`;
+            return { ...acc, [exampleLabel]: { value: ex } };
           }, {});
           /* eslint-disable @typescript-eslint/dot-notation */
           (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
