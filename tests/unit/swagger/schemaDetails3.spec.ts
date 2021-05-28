@@ -706,6 +706,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
           expect(examples).to.deep.eq({
             NoSuchCountry: { value: { errorMessage: 'No such country', errorCode: 40000 } },
+            '': {
+              value: {
+                errorCode: 40000,
+                errorMessage: 'No custom label',
+              },
+            },
+            'Example 1': {
+              value: {
+                errorCode: 40000,
+                errorMessage: 'No custom label',
+              },
+            },
+
             NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
           });
         });
