@@ -698,6 +698,17 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
           });
         });
+
+        it('Supports custom example labels', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            NoSuchCountry: { value: { errorMessage: 'No such country', errorCode: 40000 } },
+            NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
+          });
+        });
       });
 
       describe('deprecation', () => {
