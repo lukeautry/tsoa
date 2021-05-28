@@ -77,7 +77,7 @@ export class ParameterGenerator {
     const bodyArgument = typeNode.typeArguments[1];
 
     // support a union of status codes, all with the same response body
-    const statusArguments = (ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument]);
+    const statusArguments = ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument];
     const statusArgumentTypes = statusArguments.map(a => this.current.typeChecker.getTypeAtLocation(a));
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
@@ -93,15 +93,16 @@ export class ParameterGenerator {
       const status = String(statusArgumentType.value);
 
       const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
-
+      const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
       return {
         description: this.getParameterDescription(parameter) || '',
         in: 'res',
         name: status,
         parameterName,
-        examples: this.getParameterExample(parameter, parameterName),
+        examples,
         required: true,
         type,
+        exampleLabels,
         schema: type,
         validators: {},
         headers: getHeaderType(typeNode.typeArguments, 2, this.current),
@@ -120,7 +121,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'body-prop',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
@@ -142,7 +143,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -161,7 +162,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'header',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
       parameterName,
@@ -228,7 +229,7 @@ export class ParameterGenerator {
     const commonProperties = {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'query' as const,
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
       parameterName,
@@ -248,21 +249,25 @@ export class ParameterGenerator {
       if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
-      return [{
-        ...commonProperties,
-        collectionFormat: 'multi',
-        type: arrayType,
-      } as Tsoa.ArrayParameter];
+      return [
+        {
+          ...commonProperties,
+          collectionFormat: 'multi',
+          type: arrayType,
+        } as Tsoa.ArrayParameter,
+      ];
     }
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
-    return [{
-      ...commonProperties,
-      type,
-    }];
+    return [
+      {
+        ...commonProperties,
+        type,
+      },
+    ];
   }
 
   private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
@@ -277,11 +282,11 @@ export class ParameterGenerator {
     if (!this.path.includes(`{${pathName}}`) && !this.path.includes(`:${pathName}`)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
     }
-
+    const { examples } = this.getParameterExample(parameter, parameterName);
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: examples,
       in: 'path',
       name: pathName,
       parameterName,
@@ -306,15 +311,28 @@ export class ParameterGenerator {
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
-    const examples = getJSDocTags(node.parent, tag => (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag =>
-      (tag.comment || '').replace(`${parameterName} `, '').replace(/\r/g, ''),
-    );
+    const exampleLabels: string[] = [];
+    const examples = getJSDocTags(node.parent, tag => {
+      const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName);
+      const hasExampleLabel = (tag.comment?.indexOf('.') || -1) > 0;
 
+      if (isExample && hasExampleLabel) {
+        // custom example label is delimited by first '.' and the rest will all be included as example label
+        exampleLabels.push(tag.comment!.split(' ')[0].split('.').slice(1).join('.'));
+      }
+      return isExample;
+    }).map(tag => (tag.comment || '').replace(`${tag.comment?.split(' ')[0] || ''}`, '').replace(/\r/g, ''));
     if (examples.length === 0) {
-      return undefined;
+      return {
+        exmaples: undefined,
+        exampleLabels: undefined,
+      };
     } else {
       try {
-        return examples.map(example => JSON.parse(example));
+        return {
+          examples: examples.map(example => JSON.parse(example)),
+          exampleLabels,
+        };
       } catch (e) {
         throw new GenerateMetadataError(`JSON format is incorrect: ${String(e.message)}`);
       }
