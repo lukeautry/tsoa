@@ -185,6 +185,11 @@ export interface TestModel extends Model {
   inlineMappedTypeRemapped?: {
     [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string;
   };
+
+  /** @readonly */
+  readOnlyFieldAnnotation?: string;
+  readonly readOnlyFieldKeyword?: string;
+  notReadOnlyField?: string;
 }
 
 /** @deprecated */

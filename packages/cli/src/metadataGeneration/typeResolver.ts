@@ -890,6 +890,7 @@ export class TypeResolver {
       type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+      readOnly: this.getNodeReadOnly(propertySignature),
     };
     return property;
   }
@@ -1108,6 +1109,10 @@ export class TypeResolver {
     } else {
       return undefined;
     }
+  }
+
+  private getNodeReadOnly(node: ts.PropertySignature) {
+    return node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword) || isExistJSDocTag(node, tag => tag.tagName.text === 'readonly');
   }
 }
 

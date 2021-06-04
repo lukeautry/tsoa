@@ -505,6 +505,9 @@ export class SpecGenerator3 extends SpecGenerator {
       if (property.deprecated) {
         swaggerType.deprecated = true;
       }
+      if (property.readOnly) {
+        swaggerType.readOnly = true;
+      }
 
       properties[property.name] = swaggerType as Swagger.Schema;
     });

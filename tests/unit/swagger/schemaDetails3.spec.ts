@@ -885,6 +885,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               type: 'object',
             });
           },
+          notReadOnlyField: (propertyName, propertySchema) => {
+            expect(propertySchema.readOnly).to.eq(undefined, `for property ${propertyName}.readOnly`);
+          },
+          readOnlyFieldAnnotation: (propertyName, propertySchema) => {
+            expect(propertySchema.readOnly).to.eq(true, `for property ${propertyName}.readOnly`);
+          },
+          readOnlyFieldKeyword: (propertyName, propertySchema) => {
+            expect(propertySchema.readOnly).to.eq(true, `for property ${propertyName}.readOnly`);
+          },
           notDeprecatedProperty: (propertyName, propertySchema) => {
             expect(propertySchema.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
           },

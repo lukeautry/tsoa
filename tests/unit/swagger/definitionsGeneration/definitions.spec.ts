@@ -628,6 +628,15 @@ describe('Definition generation', () => {
               type: 'object',
             });
           },
+          notReadOnlyField: (propertyName, propertySchema) => {
+            expect(propertySchema).not.to.haveOwnProperty('readOnly', `for property ${propertyName}`);
+          },
+          readOnlyFieldAnnotation: (propertyName, propertySchema) => {
+            expect(propertySchema['readOnly']).to.eq(true, `for property ${propertyName}[readOnly]`);
+          },
+          readOnlyFieldKeyword: (propertyName, propertySchema) => {
+            expect(propertySchema['readOnly']).to.eq(true, `for property ${propertyName}[readOnly]`);
+          },
           notDeprecatedProperty: (propertyName, propertySchema) => {
             expect(propertySchema).not.to.haveOwnProperty('x-deprecated', `for property ${propertyName}`);
           },

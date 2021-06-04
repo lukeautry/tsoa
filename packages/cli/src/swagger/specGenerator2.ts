@@ -366,6 +366,9 @@ export class SpecGenerator2 extends SpecGenerator {
       if (property.deprecated) {
         swaggerType['x-deprecated'] = true;
       }
+      if (property.readOnly) {
+        swaggerType.readOnly = true;
+      }
 
       properties[property.name] = swaggerType;
     });
