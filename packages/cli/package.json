@@ -34,7 +34,7 @@
     "handlebars": "^4.7.6",
     "merge": "^2.1.0",
     "minimatch": "^3.0.4",
-    "typescript": "^4.1.2",
+    "typescript": "^4.3.2",
     "validator": "^13.6.0",
     "yamljs": "^0.3.0",
     "yargs": "^14.0.0"
