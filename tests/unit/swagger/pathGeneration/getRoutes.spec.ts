@@ -184,7 +184,7 @@ describe('GET route generation', () => {
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
     }).to.throw(
-      "Unable to parse Header Type 'Header values must be string or string[]'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'Header values must be string or string[]'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
+      "Unable to parse Header Type 'Header names must be of type string'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'Header names must be of type string'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
     );
 
     expect(() => {

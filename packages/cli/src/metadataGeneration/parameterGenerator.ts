@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
-import { getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
+import { commentToString, getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -323,9 +323,10 @@ export class ParameterGenerator {
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
-    const examples = getJSDocTags(node.parent, tag => (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName)).map(tag =>
-      (tag.comment || '').replace(`${parameterName} `, '').replace(/\r/g, ''),
-    );
+    const examples = getJSDocTags(
+      node.parent,
+      tag => (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && (commentToString(tag.comment) || '').startsWith(parameterName),
+    ).map(tag => (commentToString(tag.comment) || '').replace(`${parameterName} `, '').replace(/\r/g, ''));
 
     if (examples.length === 0) {
       return undefined;
