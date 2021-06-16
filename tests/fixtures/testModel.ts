@@ -70,6 +70,7 @@ export interface TestModel extends Model {
   unknownType?: unknown;
   genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
   indexed?: Partial<Indexed['foo']>;
+  indexedKeyOf?: Partial<IndexedKeyOf>;
   record?: Record<'record-foo' | 'record-bar', { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
@@ -217,6 +218,10 @@ interface Indexed {
   foo: {
     bar: string;
   };
+}
+
+interface IndexedKeyOf {
+  array: Array<typeof EnumStringNumberValue[keyof typeof EnumStringNumberValue]>;
 }
 
 type Maybe<T> = T | null;

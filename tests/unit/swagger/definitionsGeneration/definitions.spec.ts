@@ -462,6 +462,9 @@ describe('Definition generation', () => {
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Partial_Indexed-at-foo_');
           },
+          indexedKeyOf: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/Partial_IndexedKeyOf_');
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo-or-record-bar._data-string__');
             const schema = getValidatedDefinition('Record_record-foo-or-record-bar._data-string__', currentSpec);

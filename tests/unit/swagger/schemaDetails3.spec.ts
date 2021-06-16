@@ -1127,6 +1127,23 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed-at-foo_');
           },
+          indexedKeyOf: (propertyName, propertySchema) => {
+            const schema = getComponentSchema('Partial_IndexedKeyOf_', currentSpec);
+            expect(schema).to.be.deep.eq({
+              properties: {
+                array: {
+                  items: {
+                    type: 'string',
+                    enum: ['VALUE_0', 'VALUE_1', 'VALUE_2'],
+                  },
+                  type: 'array',
+                },
+              },
+              type: 'object',
+              description: 'Make all properties in T optional',
+            });
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_IndexedKeyOf_');
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);

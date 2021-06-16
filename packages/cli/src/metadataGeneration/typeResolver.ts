@@ -288,6 +288,11 @@ export class TypeResolver {
       }
     }
 
+    // All remaining IndexAccess Types
+    if (ts.isIndexedAccessTypeNode(this.typeNode)) {
+      return new TypeResolver(this.typeNode.indexType, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (this.typeNode.kind === ts.SyntaxKind.TemplateLiteralType) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer || this.typeNode);
       if (type.isUnion() && type.types.every(unionElementType => unionElementType.isStringLiteral())) {
