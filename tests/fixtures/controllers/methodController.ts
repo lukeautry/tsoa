@@ -160,6 +160,7 @@ export class MethodController extends Controller {
   @Extension('x-attKey2', ['y0', 'y1'])
   @Extension('x-attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
   @Extension('x-attKey4', { test: ['testVal'] })
+  @Extension('x-attKey5', { test: { testArray: ['testVal1', ['testVal2', 'testVal3']] } })
   @Get('Extension')
   public async extension(): Promise<TestModel> {
     return new ModelService().getModel();
