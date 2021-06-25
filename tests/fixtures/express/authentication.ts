@@ -6,7 +6,7 @@ export function expressAuthentication(req: express.Request, name: string, scopes
     if (req.query && req.query.access_token) {
       token = req.query.access_token;
     } else {
-      return Promise.reject({});
+      return Promise.reject({ message: 'api_key' });
     }
 
     if (token === 'abc123456') {
@@ -20,13 +20,13 @@ export function expressAuthentication(req: express.Request, name: string, scopes
         name: 'Thor',
       });
     } else {
-      return Promise.reject({});
+      return Promise.reject({ message: 'api_key' });
     }
   } else {
     if (req.query && req.query.tsoa && req.query.tsoa === 'abc123456') {
       return Promise.resolve({});
     } else {
-      return Promise.reject({});
+      return Promise.reject({ message: 'other' });
     }
   }
 }

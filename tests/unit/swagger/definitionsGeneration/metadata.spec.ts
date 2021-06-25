@@ -263,7 +263,7 @@ describe('Metadata generation', () => {
     it('should generate oauth2 or api key security', () => {
       const method = controller.methods.find(m => m.name === 'oauthOrAPIkeySecurity');
       if (!method) {
-        throw new Error('Method OauthOrAPIkeySecurity not defined!');
+        throw new Error('Method OauthOrApiKeySecurity not defined!');
       }
       if (!method.security) {
         throw new Error('Security decorator not defined!');
@@ -275,7 +275,7 @@ describe('Metadata generation', () => {
     it('should generate oauth2 and api key security', () => {
       const method = controller.methods.find(m => m.name === 'oauthAndAPIkeySecurity');
       if (!method) {
-        throw new Error('Method OauthAndAPIkeySecurity not defined!');
+        throw new Error('Method OauthAndApiKeySecurity not defined!');
       }
       if (!method.security) {
         throw new Error('Security decorator not defined!');
