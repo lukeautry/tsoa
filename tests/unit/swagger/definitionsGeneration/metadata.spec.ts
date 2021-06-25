@@ -299,6 +299,7 @@ describe('Metadata generation', () => {
         { key: 'x-attKey2', value: ['y0', 'y1'] },
         { key: 'x-attKey3', value: [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }] },
         { key: 'x-attKey4', value: { test: ['testVal'] } },
+        { key: 'x-attKey5', value: { test: { testArray: ['testVal1', ['testVal2', 'testVal3']] } } },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
