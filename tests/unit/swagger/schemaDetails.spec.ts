@@ -434,6 +434,19 @@ describe('Schema details generation', () => {
 
           expect(responses?.[200]?.examples?.['application/json']).to.eq('test 1');
         });
+
+        it('ignores example label in OpenAPI 2 due to lack of support', () => {
+          const originalWarn = console.warn;
+          const warningMessages: string[] = [];
+          const mockedWarn = (output: string) => warningMessages.push(output);
+          console.warn = mockedWarn;
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.examples?.['application/json'];
+          expect(warningMessages[0]).eq('Example labels are not supported in OpenAPI 2');
+          expect(examples).not.to.haveOwnProperty('No country');
+          console.warn = originalWarn;
+        });
       });
     });
   });
