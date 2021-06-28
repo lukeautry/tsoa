@@ -131,6 +131,8 @@ export class ExampleTestController {
    * @param res The alternate response
    * @example res.NoSuchCountry { "errorMessage":"No such country", "errorCode": 40000 }
    * @example res. { "errorMessage":"No custom label", "errorCode": 40000 }
+   * @example res "Unlabeled 1"
+   * @example res "Another unlabeled one"
    * @example res.NoSuchCity {
    *     "errorMessage":"No such city",
    *     "errorCode": 40000

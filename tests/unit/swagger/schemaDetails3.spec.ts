@@ -712,14 +712,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 errorMessage: 'No custom label',
               },
             },
-            'Example 1': {
+            'Example 1': { value: 'Unlabeled 1' },
+            'Example 2': { value: 'Another unlabeled one' },
+            NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
+            'Example 3': {
               value: {
                 errorCode: 40000,
                 errorMessage: 'No custom label',
               },
             },
-
-            NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
           });
         });
       });

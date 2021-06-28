@@ -324,14 +324,14 @@ export class ParameterGenerator {
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
-    const exampleLabels: string[] = [];
+    const exampleLabels: Array<string | undefined> = [];
     const examples = getJSDocTags(node.parent, tag => {
       const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName);
       const hasExampleLabel = (tag.comment?.indexOf('.') || -1) > 0;
 
-      if (isExample && hasExampleLabel) {
+      if (isExample) {
         // custom example label is delimited by first '.' and the rest will all be included as example label
-        exampleLabels.push(tag.comment!.split(' ')[0].split('.').slice(1).join('.'));
+        exampleLabels.push(hasExampleLabel ? tag.comment!.split(' ')[0].split('.').slice(1).join('.') : undefined);
       }
       return isExample;
     }).map(tag => (tag.comment || '').replace(`${tag.comment?.split(' ')[0] || ''}`, '').replace(/\r/g, ''));
