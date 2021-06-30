@@ -42,6 +42,7 @@ export namespace Tsoa {
     default?: any;
     validators: Validators;
     deprecated: boolean;
+    exampleLabels?: Array<string | undefined>;
   }
 
   export interface ResParameter extends Response, Parameter {
@@ -72,6 +73,7 @@ export namespace Tsoa {
     name: string;
     schema?: Type;
     examples?: unknown[];
+    exampleLabels?: Array<string | undefined>;
     headers?: HeaderType;
   }
 

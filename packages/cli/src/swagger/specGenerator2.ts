@@ -197,6 +197,9 @@ export class SpecGenerator2 extends SpecGenerator {
         swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema;
       }
       if (res.examples && res.examples[0]) {
+        if ((res.exampleLabels?.filter(e => e).length || 0) > 0) {
+          console.warn('Example labels are not supported in OpenAPI 2');
+        }
         swaggerResponses[res.name].examples = { 'application/json': res.examples[0] } as Swagger.Example;
       }
 

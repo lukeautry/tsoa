@@ -126,4 +126,22 @@ export class ExampleTestController {
     res?.(400, 123, { 'custom-header': 'hello' });
     return 'test 1';
   }
+
+  /**
+   * @param res The alternate response
+   * @example res.NoSuchCountry { "errorMessage":"No such country", "errorCode": 40000 }
+   * @example res. { "errorMessage":"No custom label", "errorCode": 40000 }
+   * @example res "Unlabeled 1"
+   * @example res "Another unlabeled one"
+   * @example res.NoSuchCity {
+   *     "errorMessage":"No such city",
+   *     "errorCode": 40000
+   * }
+   * @example res { "errorMessage":"No custom label", "errorCode": 40000 }
+   */
+  @Get('CustomExampleLabels')
+  public async customExampleLabels(@Res() res: TsoaResponse<400, number, { 'custom-header': string }>): Promise<string> {
+    res?.(400, 123, { 'custom-header': 'hello' });
+    return 'test 1';
+  }
 }
