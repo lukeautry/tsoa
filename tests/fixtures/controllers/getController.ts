@@ -1,6 +1,6 @@
 ///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
-import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
+import { Controller, Example, Get, OperationId, Query, Request, Response, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
 import '../duplicateTestModel';
 import {
   GenericModel,
@@ -172,6 +172,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('ThrowsError')
+  @Response<CustomError>('400')
   public async getThrowsError(): Promise<TestModel> {
     throw {
       message: 'error thrown',
