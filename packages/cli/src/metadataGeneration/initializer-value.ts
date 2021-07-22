@@ -39,6 +39,8 @@ export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: t
         return dateString;
       }
       return;
+    case ts.SyntaxKind.NullKeyword:
+      return null;
     case ts.SyntaxKind.ObjectLiteralExpression:
       const objectLiteral = initializer as ts.ObjectLiteralExpression;
       const nestedObject: any = {};

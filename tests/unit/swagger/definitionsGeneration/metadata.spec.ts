@@ -292,14 +292,17 @@ describe('Metadata generation', () => {
       if (!method.extensions || method.extensions.length <= 0) {
         throw new Error('No extension decorators defined!');
       }
-
+      
       const expectedExtensions = [
         { key: 'x-attKey', value: 'attValue' },
-        { key: 'x-attKey1', value: { test: 'testVal' } },
-        { key: 'x-attKey2', value: ['y0', 'y1'] },
-        { key: 'x-attKey3', value: [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }] },
-        { key: 'x-attKey4', value: { test: ['testVal'] } },
-        { key: 'x-attKey5', value: { test: { testArray: ['testVal1', ['testVal2', 'testVal3']] } } },
+        { key: 'x-attKey1', value: 123 },
+        { key: 'x-attKey2', value: true },
+        { key: 'x-attKey3', value: null },
+        { key: 'x-attKey4', value: { test: 'testVal' } },
+        { key: 'x-attKey5', value: ['y0', 'y1', 123, true, null] },
+        { key: 'x-attKey6', value: [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }] },
+        { key: 'x-attKey7', value: { test: ['testVal', 123, true, null] } },
+        { key: 'x-attKey8', value: { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } } },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
