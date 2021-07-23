@@ -292,7 +292,7 @@ describe('Metadata generation', () => {
       if (!method.extensions || method.extensions.length <= 0) {
         throw new Error('No extension decorators defined!');
       }
-      
+
       const expectedExtensions = [
         { key: 'x-attKey', value: 'attValue' },
         { key: 'x-attKey1', value: 123 },
