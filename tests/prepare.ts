@@ -218,5 +218,15 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routesDir: './fixtures/inversify-dynamic-container',
       }),
     ),
+    log('Inversify Async IoC Route Generation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        basePath: '/v1',
+        entryFile: './fixtures/inversify-async/server.ts',
+        iocModule: './fixtures/inversify-async/ioc.ts',
+        middleware: 'express',
+        routesDir: './fixtures/inversify-async',
+      }),
+    ),
   ]);
 })();
