@@ -91,7 +91,7 @@ export function RegisterRoutes(server: any) {
                   allow: 'multipart/form-data'
                 },
                 {{/if}}
-                handler: function {{../name}}_{{name}}(request: any, h: any) {
+                handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, h: any) {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},
@@ -119,7 +119,7 @@ export function RegisterRoutes(server: any) {
                     {{#if ../../iocModule}}
                     const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-                    const controller: any = container.get<{{../name}}>({{../name}});
+                    const controller: any = await container.get<{{../name}}>({{../name}});
                     if (typeof controller['setStatus'] === 'function') {
                         controller.setStatus(undefined);
                     }
