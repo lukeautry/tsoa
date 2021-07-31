@@ -90,7 +90,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if ../../iocModule}}
             const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
 
-            const controller: any = container.get<{{../name}}>({{../name}});
+            const controller: any = await container.get<{{../name}}>({{../name}});
             if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
             }

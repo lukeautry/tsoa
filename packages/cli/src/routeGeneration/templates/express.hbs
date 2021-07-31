@@ -68,7 +68,8 @@ export function RegisterRoutes(app: express.Router) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
-            function {{../name}}_{{name}}(request: any, response: any, next: any) {
+
+            {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, response: any, next: any) {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -87,7 +88,7 @@ export function RegisterRoutes(app: express.Router) {
             {{#if ../../iocModule}}
             const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-            const controller: any = container.get<{{../name}}>({{../name}});
+            const controller: any = await container.get<{{../name}}>({{../name}});
             if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
             }
