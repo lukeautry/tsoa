@@ -4,4 +4,4 @@ export function Extension(_name: string, _value: ExtensionType | ExtensionType[]
   };
 }
 
-export type ExtensionType = string | string[] | { [name: string]: ExtensionType | ExtensionType[] };
+export type ExtensionType = string | number | boolean | null | ExtensionType[] | { [name: string]: ExtensionType | ExtensionType[] };

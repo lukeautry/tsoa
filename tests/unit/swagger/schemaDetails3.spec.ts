@@ -2180,21 +2180,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       throw new Error('extension method was not rendered');
     }
 
-    // Verify that extensions are appended to the path
-    expect(extensionPath).to.have.property('x-attKey');
-    expect(extensionPath).to.have.property('x-attKey1');
-    expect(extensionPath).to.have.property('x-attKey2');
-    expect(extensionPath).to.have.property('x-attKey3');
-    expect(extensionPath).to.have.property('x-attKey4');
-    expect(extensionPath).to.have.property('x-attKey5');
-
-    // Verify that extensions have correct values
-    expect(extensionPath['x-attKey']).to.deep.equal('attValue');
-    expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
-    expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
-    expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
-    expect(extensionPath['x-attKey4']).to.deep.equal({ test: ['testVal'] });
-    expect(extensionPath['x-attKey5']).to.deep.equal({ test: { testArray: ['testVal1', ['testVal2', 'testVal3']] } });
+     // Verify that extensions are appended to the path
+     expect(extensionPath).to.have.property('x-attKey');
+     expect(extensionPath).to.have.property('x-attKey1');
+     expect(extensionPath).to.have.property('x-attKey2');
+     expect(extensionPath).to.have.property('x-attKey3');
+     expect(extensionPath).to.have.property('x-attKey4');
+     expect(extensionPath).to.have.property('x-attKey5');
+     expect(extensionPath).to.have.property('x-attKey6');
+     expect(extensionPath).to.have.property('x-attKey7');
+     expect(extensionPath).to.have.property('x-attKey8');
+ 
+     // Verify that extensions have correct values
+     expect(extensionPath['x-attKey']).to.deep.equal('attValue');
+     expect(extensionPath['x-attKey1']).to.deep.equal(123);
+     expect(extensionPath['x-attKey2']).to.deep.equal(true);
+     expect(extensionPath['x-attKey3']).to.deep.equal(null);
+     expect(extensionPath['x-attKey4']).to.deep.equal({ test: 'testVal' });
+     expect(extensionPath['x-attKey5']).to.deep.equal(['y0', 'y1', 123, true, null]);
+     expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
+     expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
+     expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
   });
 
   describe('module declarations with namespaces', () => {
