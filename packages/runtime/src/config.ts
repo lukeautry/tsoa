@@ -212,4 +212,11 @@ export interface RoutesConfig {
    * @default false
    */
   useSuccessResponseCode?: boolean;
+
+  /**
+   * When enabled, the imports in the routes files will have a `.js` extention to support esm.
+   *
+   * @default false
+   */
+  esm?: boolean;
 }
