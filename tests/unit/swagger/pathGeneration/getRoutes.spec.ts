@@ -237,6 +237,7 @@ describe('GET route generation', () => {
     expect(jsonExample.modelValue.id).to.equal(100);
     expect(jsonExample.modelsArray).to.be.undefined;
     expect(jsonExample.numberArray).to.deep.equal([1, 2, 3]);
+    expect(jsonExample.numberArrayReadonly).to.deep.equal([1, 2, 3]);
     expect(jsonExample.numberValue).to.equal(1);
     expect(jsonExample.optionalString).to.equal('optional string');
     expect(jsonExample.stringArray).to.deep.equal(['string one', 'string two']);

@@ -217,6 +217,17 @@ describe('Definition generation', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          // tslint:disable-next-line: object-literal-sort-keys
+          numberArrayReadonly: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.type).to.eq('number', `for property ${propertyName}.items.type`);
+            expect(propertySchema.items.format).to.eq('double', `for property ${propertyName}.items.format`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
           stringValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
             expect(propertySchema.example).to.eq('letmein', `for property ${propertyName}.example`);
@@ -1402,6 +1413,7 @@ describe('Definition generation', () => {
             },
             modelsArray: [],
             numberArray: [1, 2, 3],
+            numberArrayReadonly: [1, 2, 3],
             numberValue: 1,
             optionalString: 'optional string',
             strLiteralArr: ['Foo', 'Bar'],
