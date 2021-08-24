@@ -64,3 +64,13 @@ export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifie
 function isObject(v: any) {
   return typeof v === 'object' && v !== null;
 }
+
+export function getPath(decorator: ts.Identifier, typeChecker: ts.TypeChecker): string {
+  const [path] = getDecoratorValues(decorator, typeChecker);
+
+  if (path === undefined) {
+    return '';
+  }
+
+  return path;
+}

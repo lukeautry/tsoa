@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
-import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getPath, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getExtensions } from './extension';
 import { GenerateMetadataError } from './exceptions';
@@ -128,14 +128,12 @@ export class MethodGenerator {
     }
 
     const decorator = pathDecorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-    const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
     this.method = decorator.text.toLowerCase() as any;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
-    this.path = decoratorArgument ? `${decoratorArgument.text}` : '';
+    this.path = getPath(decorator, this.current.typeChecker);
   }
 
   private getMethodResponses(): Tsoa.Response[] {
