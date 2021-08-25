@@ -83,6 +83,16 @@ describe('GET route generation', () => {
     verifyPath(actionRoute);
   });
 
+  it('should generate a path for a GET route with const argument', () => {
+    const actionRoute = `${baseRoute}/PathFromConstantValue`;
+    verifyPath(actionRoute);
+  });
+
+  it('should generate a path for a GET route with Enum argument', () => {
+    const actionRoute = `${baseRoute}/PathFromEnumValue`;
+    verifyPath(actionRoute);
+  });
+
   it('should generate a parameter for path parameters', () => {
     const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
     const parameters = getValidatedParameters(actionRoute);
