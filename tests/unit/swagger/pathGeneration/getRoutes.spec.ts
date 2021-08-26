@@ -193,13 +193,11 @@ describe('GET route generation', () => {
   it('should reject invalid header types', () => {
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
-    }).to.throw(
-      "Unable to parse Header Type 'Header values must be string or string[]'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'Header values must be string or string[]'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
-    );
+    }).to.throw(/^Unable to parse Header Type \'Header values must be string or string\[\].*/);
 
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-    }).to.throw("Unable to parse Header Type any\nAt: fixtures/controllers/incorrectResponseHeaderController.ts:4:4.\nThis was caused by 'Response<null, any>(200)'");
+    }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
   it('should generate a path description from jsdoc comment', () => {
