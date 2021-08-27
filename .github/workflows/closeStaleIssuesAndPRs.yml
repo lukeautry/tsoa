@@ -15,4 +15,4 @@ jobs:
           days-before-stale: 30
           days-before-close: 5
           exempt-issue-labels: 'help wanted,Pending feedback'
-          exempt-pr-labels: 'help wanted'
+          exempt-pr-labels: 'help wanted,breaking change'
