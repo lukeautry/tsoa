@@ -1,5 +1,5 @@
 import { Controller, Get, Route, SuccessResponse } from '@tsoa/runtime';
-import { TestModel } from 'fixtures/duplicateTestModel';
+import { TestModel } from '../testModel';
 import { ModelService } from 'fixtures/services/modelService';
 
 @Route('Controller')
