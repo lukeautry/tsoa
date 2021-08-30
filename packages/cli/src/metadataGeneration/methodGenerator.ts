@@ -161,9 +161,10 @@ export class MethodGenerator {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
 
     if (!decorators || !decorators.length) {
+      const description = getJSDocComment(this.node, 'returns') || 'Ok';
       return {
         response: {
-          description: isVoidType(type) ? 'No content' : 'Ok',
+          description: isVoidType(type) ? 'No content' : description,
           examples: this.getMethodSuccessExamples(),
           name: isVoidType(type) ? '204' : '200',
           schema: type,

@@ -10,10 +10,8 @@ export class CustomResponseDescController extends Controller {
     return new ModelService().getModel();
   }
 
+  /** @returns custom description with jsdoc annotation */
   @Get('descriptionWithJsDocAnnotation')
-  /**
-   * @returns custom description with jsdoc annotation
-   */
   public async descriptionWithJsDocAnnotation(): Promise<TestModel> {
     return new ModelService().getModel();
   }
