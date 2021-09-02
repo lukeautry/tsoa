@@ -946,4 +946,38 @@ describe('Metadata generation', () => {
       ]);
     });
   });
+
+  describe('controllerWithJsDocResponseDescriptionGeneration', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithJsDocResponseDescription.ts').Generate();
+    const controller = metadata.controllers[0];
+
+    it('has success response description', () => {
+      const description = 'SuccessResponse description';
+      const method = controller.methods.find(m => m.name === 'descriptionWithSuccessResponse');
+      if (!method) {
+        throw new Error('method descriptionWithSuccessResponse not defined');
+      }
+      expect(method.responses[0].name).to.equal(200);
+      expect(method.responses[0].description).to.equal(description);
+    });
+
+    it('has a custom description when @returns is used on response 200', () => {
+      const description = 'custom description with jsdoc annotation';
+      const method = controller.methods.find(m => m.name === 'descriptionWithJsDocAnnotation');
+      if (!method) {
+        throw new Error('method descriptionWithJsDocAnnotation not defined');
+      }
+      expect(method.responses[0].name).to.equal('200');
+      expect(method.responses[0].description).to.equal(description);
+    });
+    it("should not override @SuccessResponse's description even if @returns is present", () => {
+      const description = 'Success Response description';
+      const method = controller.methods.find(m => m.name === 'successResponseAndJsDocAnnotation');
+      if (!method) {
+        throw new Error('method successResponseAndJsDocAnnotation not defined');
+      }
+      expect(method.responses[0].name).to.equal(200);
+      expect(method.responses[0].description).to.equal(description);
+    });
+  });
 });
