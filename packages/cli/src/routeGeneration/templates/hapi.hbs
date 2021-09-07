@@ -186,7 +186,7 @@ export function RegisterRoutes(server: any) {
                 request['user'] = await promiseAny(secMethodOrPromises);
                 return request['user'];
             }
-            catch(err) {
+            catch(err: any) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 if (isBoom(error)) {

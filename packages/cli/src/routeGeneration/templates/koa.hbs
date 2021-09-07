@@ -155,7 +155,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 success = true;
                 context.request['user'] = user;
             }
-            catch(err) {
+            catch(err: any) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 context.status = error.status || 401;
