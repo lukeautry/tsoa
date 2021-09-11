@@ -156,7 +156,7 @@ export function RegisterRoutes(app: express.Router) {
                 request['user'] = await promiseAny(secMethodOrPromises);
                 next();
             }
-            catch(err) {
+            catch(err: any) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 error.status = error.status || 401;
