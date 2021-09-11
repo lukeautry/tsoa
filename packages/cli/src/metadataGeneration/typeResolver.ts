@@ -249,6 +249,11 @@ export class TypeResolver {
       }
     }
 
+    // Handle `readonly` arrays
+    if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.ReadonlyKeyword) {
+      return new TypeResolver(this.typeNode.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+    }
+
     if (ts.isIndexedAccessTypeNode(this.typeNode) && (this.typeNode.indexType.kind === ts.SyntaxKind.NumberKeyword || this.typeNode.indexType.kind === ts.SyntaxKind.StringKeyword)) {
       const numberIndexType = this.typeNode.indexType.kind === ts.SyntaxKind.NumberKeyword;
       const objectType = this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType);

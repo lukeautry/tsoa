@@ -31,6 +31,7 @@ export class GetTestController extends Controller {
     },
     modelsArray: new Array<TestSubModel>(),
     numberArray: [1, 2, 3],
+    numberArrayReadonly: [1, 2, 3],
     numberValue: 1,
     objLiteral: {
       name: 'a string',

@@ -1435,6 +1435,7 @@ describe('Express Server', () => {
         },
       },
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

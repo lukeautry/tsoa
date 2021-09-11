@@ -15,6 +15,7 @@ import { Deprecated } from '@tsoa/runtime';
  *   },
  *   "modelsArray": [],
  *   "numberArray": [1, 2, 3],
+ *   "numberArrayReadonly": [1, 2, 3],
  *   "numberValue": 1,
  *   "optionalString": "optional string",
  *   "strLiteralArr": ["Foo", "Bar"],
@@ -34,6 +35,7 @@ export interface TestModel extends Model {
    */
   numberValue: number;
   numberArray: number[];
+  readonly numberArrayReadonly: readonly number[];
   /**
    * @example "letmein"
    * @example "letmein(example)2"
