@@ -81,7 +81,7 @@ export function RegisterRoutes(app: express.Router) {
             let validatedArgs: any[] = [];
             try {
                 validatedArgs = getValidatedArgs(args, request, response);
-            } catch (err) {
+            } catch (err: any) {
                 return next(err);
             }
 
