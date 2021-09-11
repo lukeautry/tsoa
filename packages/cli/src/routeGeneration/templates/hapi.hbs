@@ -101,7 +101,7 @@ export function RegisterRoutes(server: any) {
                     let validatedArgs: any[] = [];
                     try {
                         validatedArgs = getValidatedArgs(args, request, h);
-                    } catch (error) {
+                    } catch (error: any) {
                         if (isBoom(error)) {
                             throw error;
                         }
