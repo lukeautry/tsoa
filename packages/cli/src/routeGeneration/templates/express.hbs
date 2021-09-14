@@ -81,7 +81,7 @@ export function RegisterRoutes(app: express.Router) {
             let validatedArgs: any[] = [];
             try {
                 validatedArgs = getValidatedArgs(args, request, response);
-            } catch (err: any) {
+            } catch (err) {
                 return next(err);
             }
 
@@ -156,7 +156,7 @@ export function RegisterRoutes(app: express.Router) {
                 request['user'] = await promiseAny(secMethodOrPromises);
                 next();
             }
-            catch(err: any) {
+            catch(err) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 error.status = error.status || 401;

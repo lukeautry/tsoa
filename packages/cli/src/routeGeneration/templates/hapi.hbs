@@ -101,7 +101,8 @@ export function RegisterRoutes(server: any) {
                     let validatedArgs: any[] = [];
                     try {
                         validatedArgs = getValidatedArgs(args, request, h);
-                    } catch (error: any) {
+                    } catch (err) {
+                        const error = err as any;
                         if (isBoom(error)) {
                             throw error;
                         }
@@ -186,7 +187,7 @@ export function RegisterRoutes(server: any) {
                 request['user'] = await promiseAny(secMethodOrPromises);
                 return request['user'];
             }
-            catch(err: any) {
+            catch(err) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 if (isBoom(error)) {

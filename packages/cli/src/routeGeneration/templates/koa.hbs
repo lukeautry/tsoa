@@ -82,7 +82,8 @@ export function RegisterRoutes(router: KoaRouter) {
             let validatedArgs: any[] = [];
             try {
               validatedArgs = getValidatedArgs(args, context, next);
-            } catch (error: any) {
+            } catch (err) {
+              const error = err as any;
               context.status = error.status;
               context.throw(error.status, JSON.stringify({ fields: error.fields }));
             }
@@ -155,7 +156,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 success = true;
                 context.request['user'] = user;
             }
-            catch(err: any) {
+            catch(err) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 context.status = error.status || 401;
