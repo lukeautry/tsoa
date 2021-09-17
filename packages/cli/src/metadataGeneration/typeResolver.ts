@@ -761,57 +761,17 @@ export class TypeResolver {
     }
   }
 
-  private resolveLeftmostIdentifier(type: ts.EntityName): ts.Identifier {
-    while (type.kind !== ts.SyntaxKind.Identifier) {
-      type = type.left;
-    }
-    return type;
-  }
-
-  private resolveModelTypeScope(leftmost: ts.EntityName, statements: any): any[] {
-    while (leftmost.parent && leftmost.parent.kind === ts.SyntaxKind.QualifiedName) {
-      const leftmostName = leftmost.kind === ts.SyntaxKind.Identifier ? leftmost.text : leftmost.right.text;
-      const moduleDeclarations = statements.filter(node => {
-        if ((node.kind !== ts.SyntaxKind.ModuleDeclaration || !this.current.IsExportedNode(node)) && !ts.isEnumDeclaration(node)) {
-          return false;
-        }
-
-        const moduleDeclaration = node as ts.ModuleDeclaration | ts.EnumDeclaration;
-        return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
-      }) as Array<ts.ModuleDeclaration | ts.EnumDeclaration>;
-
-      if (!moduleDeclarations.length) {
-        throw new GenerateMetadataError(`No matching module declarations found for ${leftmostName}.`);
-      }
-
-      statements = Array.prototype.concat(
-        ...moduleDeclarations.map(declaration => {
-          if (ts.isEnumDeclaration(declaration)) {
-            return declaration.members;
-          } else {
-            if (!declaration.body || !ts.isModuleBlock(declaration.body)) {
-              throw new GenerateMetadataError(`Module declaration found for ${leftmostName} has no body.`);
-            }
-            return declaration.body.statements;
-          }
-        }),
-      );
-
-      leftmost = leftmost.parent as ts.EntityName;
-    }
-
-    return statements;
-  }
-
   private getModelTypeDeclaration(type: ts.EntityName) {
     type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
 
-    const leftmostIdentifier = this.resolveLeftmostIdentifier(type);
-    const statements: any[] = this.resolveModelTypeScope(leftmostIdentifier, this.current.nodes);
-
     const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
-    let modelTypes = statements.filter(node => {
+    const symbol = this.current.typeChecker.getSymbolAtLocation(type) || (type as any).symbol;
+    // resolve alias if it is an alias, otherwise take symbol directly
+    const aliasedSymbol = (symbol && symbol.flags & ts.SymbolFlags.Alias && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
+    const declarations = aliasedSymbol?.getDeclarations();
+
+    let modelTypes: UsableDeclarationWithoutPropertySignature[] = declarations?.filter(node => {
       if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
         return false;
       }
@@ -821,9 +781,7 @@ export class TypeResolver {
     }) as UsableDeclarationWithoutPropertySignature[];
 
     if (!modelTypes.length) {
-      throw new GenerateMetadataError(
-        `No matching model found for referenced type ${typeName}. If ${typeName} comes from a dependency, please create an interface in your own code that has the same structure. Tsoa can not utilize interfaces from external dependencies. Read more at https://github.com/lukeautry/tsoa/blob/master/docs/ExternalInterfacesExplanation.MD`,
-      );
+      throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
     }
 
     if (modelTypes.length > 1) {
