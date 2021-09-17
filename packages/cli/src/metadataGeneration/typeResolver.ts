@@ -471,27 +471,50 @@ export class TypeResolver {
     return nodes;
   }
 
+  private hasFlag(type: ts.Symbol | ts.Declaration, flag) {
+    return (type.flags & flag) === flag;
+  }
+
   private getEnumerateType(typeName: ts.EntityName): Tsoa.RefEnumType | undefined {
     const enumName = (typeName as ts.Identifier).text;
-    let enumNodes = this.current.nodes.filter(node => node.kind === ts.SyntaxKind.EnumDeclaration).filter(node => (node as any).name.text === enumName);
+
+    const symbol = this.getSymbolAtLocation(typeName);
+
+    // resolve value
+    let declaredType = (this.current.typeChecker.getDeclaredTypeOfSymbol(symbol)?.symbol || symbol) as ts.Symbol & { parent?: ts.Symbol };
+
+    // if we are a EnumMember, return parent instead (this happens if a enum has only one entry, not quite sure why though...)
+    if (this.hasFlag(declaredType, ts.SymbolFlags.EnumMember) && declaredType.parent?.valueDeclaration.kind === ts.SyntaxKind.EnumDeclaration) {
+      declaredType = declaredType.parent;
+    }
+
+    const allNodes = declaredType.getDeclarations() as ts.DeclarationStatement[];
+
+    let enumNodes = allNodes.filter(node => {
+      if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
+        return false;
+      }
+
+      return node.kind === ts.SyntaxKind.EnumDeclaration && node.name?.text === enumName;
+    }) as ts.EnumDeclaration[];
 
     if (!enumNodes.length) {
       return;
     }
 
-    enumNodes = this.getDesignatedModels(enumNodes, enumName);
+    enumNodes = this.getDesignatedModels(enumNodes, enumName) as ts.EnumDeclaration[];
 
     if (enumNodes.length > 1) {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${enumName}; please make enum names unique.`);
     }
 
-    const enumDeclaration = enumNodes[0] as ts.EnumDeclaration;
+    const enumDeclaration = enumNodes[0];
 
     const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
       return item === undefined ? false : true;
     };
 
-    const enums = enumDeclaration.members.map(this.current.typeChecker.getConstantValue.bind(this.current.typeChecker)).filter(isNotUndefined);
+    const enums = enumDeclaration.members.map(e => this.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
     const enumVarnames = enumDeclaration.members.map(e => e.name.getText()).filter(isNotUndefined);
 
     return {
@@ -766,10 +789,8 @@ export class TypeResolver {
 
     const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
-    const symbol = this.current.typeChecker.getSymbolAtLocation(type) || (type as any).symbol;
-    // resolve alias if it is an alias, otherwise take symbol directly
-    const aliasedSymbol = (symbol && symbol.flags & ts.SymbolFlags.Alias && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
-    const declarations = aliasedSymbol?.getDeclarations();
+    const symbol = this.getSymbolAtLocation(type);
+    const declarations = symbol?.getDeclarations();
 
     let modelTypes: UsableDeclarationWithoutPropertySignature[] = declarations?.filter(node => {
       if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
@@ -798,6 +819,12 @@ export class TypeResolver {
     }
 
     return modelTypes[0];
+  }
+
+  private getSymbolAtLocation(type: ts.Node) {
+    const symbol = this.current.typeChecker.getSymbolAtLocation(type) || ((type as any).symbol as ts.Symbol);
+    // resolve alias if it is an alias, otherwise take symbol directly
+    return (symbol && this.hasFlag(symbol, ts.SymbolFlags.Alias) && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
   }
 
   private getModelProperties(node: ts.InterfaceDeclaration | ts.ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
@@ -1033,7 +1060,7 @@ export class TypeResolver {
   }
 
   private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
-    const symbol = this.current.typeChecker.getSymbolAtLocation(node.name as ts.Node);
+    const symbol = this.getSymbolAtLocation(node.name as ts.Node);
     if (!symbol) {
       return undefined;
     }
