@@ -5,9 +5,10 @@ import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
+import { getDecorators } from '../utils/decoratorUtils';
 
 export class MetadataGenerator {
-  public readonly nodes = new Array<ts.Node>();
+  public readonly controllerNodes = new Array<ts.Node>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
@@ -58,28 +59,9 @@ export class MetadataGenerator {
       }
 
       ts.forEachChild(sf, node => {
-        /**
-         * If we declare a namespace within a module, like we do in `tsoaTestModule.d.ts`,
-         * we need to explicitly get the children of the module declaration
-         * (`declare module 'tsoaTest'`) - which are the moduleBlock statements,
-         * because otherwise our type resolver cannot iterate over namespaces defined in that module.
-         */
-        if (ts.isModuleDeclaration(node)) {
-          /**
-           * For some reason unknown to me, TS resolves both `declare module` and `namespace` to
-           * the same kind (`ModuleDeclaration`). In order to figure out whether it's one or the other,
-           * we check the node flags. They tell us whether it is a namespace or not.
-           */
-          // eslint-disable-next-line no-bitwise
-          if ((node.flags & ts.NodeFlags.Namespace) === 0 && node.body && ts.isModuleBlock(node.body)) {
-            node.body.statements.forEach(statement => {
-              this.nodes.push(statement);
-            });
-            return;
-          }
+        if (node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration) && getDecorators(node, identifier => identifier.text === 'Route').length) {
+          this.controllerNodes.push(node);
         }
-
-        this.nodes.push(node);
       });
     });
   }
@@ -242,8 +224,7 @@ export class MetadataGenerator {
   }
 
   private buildControllers() {
-    return this.nodes
-      .filter(node => node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration))
+    return this.controllerNodes
       .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
