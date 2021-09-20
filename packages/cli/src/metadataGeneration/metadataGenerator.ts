@@ -8,7 +8,7 @@ import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
 
 export class MetadataGenerator {
-  public readonly controllerNodes = new Array<ts.Node>();
+  public readonly controllerNodes = new Array<ts.ClassDeclaration>();
   public readonly typeChecker: ts.TypeChecker;
   private readonly program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
@@ -59,7 +59,7 @@ export class MetadataGenerator {
       }
 
       ts.forEachChild(sf, node => {
-        if (node.kind === ts.SyntaxKind.ClassDeclaration && this.IsExportedNode(node as ts.ClassDeclaration) && getDecorators(node, identifier => identifier.text === 'Route').length) {
+        if (ts.isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
           this.controllerNodes.push(node);
         }
       });
@@ -225,7 +225,7 @@ export class MetadataGenerator {
 
   private buildControllers() {
     return this.controllerNodes
-      .map((classDeclaration: ts.ClassDeclaration) => new ControllerGenerator(classDeclaration, this))
+      .map(classDeclaration => new ControllerGenerator(classDeclaration, this))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
