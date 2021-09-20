@@ -1,4 +1,4 @@
-import { Deprecated } from '@tsoa/runtime';
+import { Deprecated, Extension } from '@tsoa/runtime';
 
 /**
  * This is a description of a model
@@ -752,6 +752,10 @@ export class TestClassModel extends TestClassBaseModel {
   public deprecated1?: boolean;
   /** @deprecated */
   public deprecated2?: boolean;
+  @Extension('x-key-1', 'value-1')
+  @Extension('x-key-2', 'value-2')
+  public extensionTest?: boolean;
+
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar
    */

@@ -1658,6 +1658,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   'stringProperty',
                   'deprecated1',
                   'deprecated2',
+                  'extensionTest',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
@@ -1805,6 +1806,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
                   deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
+                  extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                 },
@@ -2135,6 +2137,39 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               expect(property.deprecated).to.eq(true, `for property ${propertyName}.deprecated`);
             } else {
               expect(property.deprecated).to.eq(undefined, `for property ${propertyName}.deprecated`);
+            }
+          });
+        });
+      });
+    });
+  });
+
+  describe('Extension class properties', () => {
+    allSpecs.forEach(currentSpec => {
+      const modelName = 'TestClassModel';
+      // Assert
+      if (!currentSpec.spec.components.schemas) {
+        throw new Error('spec.components.schemas should have been truthy');
+      }
+      const definition = currentSpec.spec.components.schemas[modelName];
+
+      if (!definition.properties) {
+        throw new Error('Definition has no properties.');
+      }
+
+      const properties = definition.properties;
+
+      describe(`for ${currentSpec}`, () => {
+        it('should put vendor extension on selected attribute', () => {
+          const extensionPropertyName = 'extensionTest';
+
+          Object.entries(properties).forEach(([propertyName, property]) => {
+            if (extensionPropertyName === propertyName) {
+              expect(property).to.have.property('x-key-1');
+              expect(property).to.have.property('x-key-2');
+
+              expect(property['x-key-1']).to.deep.equal('value-1');
+              expect(property['x-key-2']).to.deep.equal('value-2');
             }
           });
         });
