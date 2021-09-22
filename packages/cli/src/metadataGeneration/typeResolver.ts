@@ -49,10 +49,10 @@ export class TypeResolver {
       return enumType;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.ArrayType) {
+    if (ts.isArrayTypeNode(this.typeNode)) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
-        elementType: new TypeResolver((this.typeNode as ts.ArrayTypeNode).elementType, this.current, this.parentNode, this.context).resolve(),
+        elementType: new TypeResolver(this.typeNode.elementType, this.current, this.parentNode, this.context).resolve(),
       };
       return arrayMetaType;
     }
@@ -293,7 +293,7 @@ export class TypeResolver {
       }
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.TemplateLiteralType) {
+    if (ts.isTemplateLiteralTypeNode(this.typeNode)) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer || this.typeNode);
       if (type.isUnion() && type.types.every(unionElementType => unionElementType.isStringLiteral())) {
         const stringLiteralEnum: Tsoa.EnumType = {
@@ -495,7 +495,7 @@ export class TypeResolver {
         return false;
       }
 
-      return node.kind === ts.SyntaxKind.EnumDeclaration && node.name?.text === enumName;
+      return ts.isEnumDeclaration(node) && node.name?.text === enumName;
     }) as ts.EnumDeclaration[];
 
     if (!enumNodes.length) {
