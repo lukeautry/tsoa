@@ -12,6 +12,7 @@ const inProgressTypes: { [typeName: string]: boolean } = {};
 
 type OverrideToken = ts.Token<ts.SyntaxKind.QuestionToken> | ts.Token<ts.SyntaxKind.PlusToken> | ts.Token<ts.SyntaxKind.MinusToken> | undefined;
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
+type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
 interface Context {
   [name: string]: ts.TypeReferenceNode | ts.TypeNode;
 }
@@ -454,7 +455,7 @@ export class TypeResolver {
     }
   }
 
-  private getDesignatedModels(nodes: ts.Node[], typeName: string): ts.Node[] {
+  private getDesignatedModels<T extends ts.Node>(nodes: T[], typeName: string): T[] {
     /**
      * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
      */
@@ -488,21 +489,22 @@ export class TypeResolver {
       declaredType = declaredType.parent;
     }
 
-    const allNodes = declaredType.getDeclarations() as ts.DeclarationStatement[];
+    const declarations = declaredType.getDeclarations();
 
-    let enumNodes = allNodes.filter(node => {
-      if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
-        return false;
-      }
+    if (!declarations) {
+      return;
+    }
 
-      return ts.isEnumDeclaration(node) && node.name?.text === enumName;
-    }) as ts.EnumDeclaration[];
+    let enumNodes = declarations.filter((node): node is ts.EnumDeclaration => {
+      // console.log('node.name.getText()', ts.isEnumDeclaration(node) &&  node.name.getText(), enumName)
+      return ts.isEnumDeclaration(node) && node.name.getText() === enumName;
+    });
 
     if (!enumNodes.length) {
       return;
     }
 
-    enumNodes = this.getDesignatedModels(enumNodes, enumName) as ts.EnumDeclaration[];
+    enumNodes = this.getDesignatedModels(enumNodes, enumName);
 
     if (enumNodes.length > 1) {
       throw new GenerateMetadataError(`Multiple matching enum found for enum ${enumName}; please make enum names unique.`);
@@ -765,13 +767,13 @@ export class TypeResolver {
         referenceType.properties = realReferenceType.properties;
       }
       referenceType.dataType = realReferenceType.dataType;
-      referenceType.refName = referenceType.refName;
+      referenceType.refName = realReferenceType.refName;
     });
 
     return referenceType;
   }
 
-  private nodeIsUsable(node: ts.Node) {
+  private nodeIsUsable(node: ts.Node): node is UsableDeclarationWithoutPropertySignature {
     switch (node.kind) {
       case ts.SyntaxKind.InterfaceDeclaration:
       case ts.SyntaxKind.ClassDeclaration:
@@ -785,21 +787,19 @@ export class TypeResolver {
   }
 
   private getModelTypeDeclaration(type: ts.EntityName) {
-    type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
-
     const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
     const symbol = this.getSymbolAtLocation(type);
     const declarations = symbol?.getDeclarations();
 
-    let modelTypes: UsableDeclarationWithoutPropertySignature[] = declarations?.filter(node => {
-      if (!this.nodeIsUsable(node) || !this.current.IsExportedNode(node)) {
-        return false;
-      }
+    if (!declarations) {
+      throw new GenerateMetadataError(`No declarations found for referenced type ${typeName}.`);
+    }
 
-      const modelTypeDeclaration = node as UsableDeclaration;
-      return (modelTypeDeclaration.name as ts.Identifier)?.text === typeName;
-    }) as UsableDeclarationWithoutPropertySignature[];
+    let modelTypes = declarations.filter((node): node is UsableDeclarationWithoutPropertySignature => {
+      // console.log('node.name?.getText()',this.nodeIsUsable(node) && node.name?.getText());
+      return this.nodeIsUsable(node) && node.name?.getText() === typeName;
+    });
 
     if (!modelTypes.length) {
       throw new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`);
@@ -811,7 +811,7 @@ export class TypeResolver {
         return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
 
-      modelTypes = this.getDesignatedModels(modelTypes, typeName) as UsableDeclarationWithoutPropertySignature[];
+      modelTypes = this.getDesignatedModels(modelTypes, typeName);
     }
     if (modelTypes.length > 1) {
       const conflicts = modelTypes.map(modelType => modelType.getSourceFile().fileName).join('"; "');
