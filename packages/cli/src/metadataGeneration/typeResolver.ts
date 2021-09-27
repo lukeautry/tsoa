@@ -496,7 +496,6 @@ export class TypeResolver {
     }
 
     let enumNodes = declarations.filter((node): node is ts.EnumDeclaration => {
-      // console.log('node.name.getText()', ts.isEnumDeclaration(node) &&  node.name.getText(), enumName)
       return ts.isEnumDeclaration(node) && node.name.getText() === enumName;
     });
 
@@ -797,7 +796,6 @@ export class TypeResolver {
     }
 
     let modelTypes = declarations.filter((node): node is UsableDeclarationWithoutPropertySignature => {
-      // console.log('node.name?.getText()',this.nodeIsUsable(node) && node.name?.getText());
       return this.nodeIsUsable(node) && node.name?.getText() === typeName;
     });
 
