@@ -723,6 +723,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
           });
         });
+
+        it('uses the correct imported value for the @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: 'test example response',
+            },
+          });
+        });
       });
 
       describe('deprecation', () => {
