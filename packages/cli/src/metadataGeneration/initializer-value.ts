@@ -49,16 +49,20 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
       });
       return nestedObject;
     case ts.SyntaxKind.ImportSpecifier:
-      const importSymbol = typeChecker.getSymbolAtLocation((initializer as ts.ImportSpecifier).name)!;
+      const importSpecifier = initializer as ts.ImportSpecifier;
+      const importSymbol = typeChecker.getSymbolAtLocation(importSpecifier.name);
+      if (!importSymbol) return;
       const aliasedSymbol = typeChecker.getAliasedSymbol(importSymbol);
-      const dec = aliasedSymbol.getDeclarations()![0] as any;
-      return getInitializerValue(dec.initializer ? dec.initializer : undefined, typeChecker);
+      const declarations = aliasedSymbol.getDeclarations();
+      const declaration = declarations && declarations.length > 0 ? declarations[0] : undefined;
+      return getInitializerValue(extractInitializer(declaration), typeChecker);
     default:
       const symbol = typeChecker.getSymbolAtLocation(initializer);
-      const extractedInitializer = symbol && symbol.valueDeclaration && hasInitializer(symbol.valueDeclaration) && (symbol.valueDeclaration.initializer as ts.Expression);
-      const extractedImportSpecifier = symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] as ts.ImportSpecifier);
-      return getInitializerValue(extractedInitializer || extractedImportSpecifier || undefined, typeChecker);
+      return getInitializerValue(extractInitializer(symbol?.valueDeclaration) || extractImportSpecifier(symbol), typeChecker);
   }
 };
 
 const hasInitializer = (node: ts.Node): node is ts.HasInitializer => node.hasOwnProperty('initializer');
+const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
+const extractImportSpecifier = (symbol?: ts.Symbol) =>
+  (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] as ts.ImportSpecifier)) || undefined;
