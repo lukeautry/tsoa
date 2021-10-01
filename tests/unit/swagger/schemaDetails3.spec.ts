@@ -1659,6 +1659,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   'deprecated1',
                   'deprecated2',
                   'extensionTest',
+                  'extensionComment',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
@@ -1807,6 +1808,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  extensionComment: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                 },
@@ -2080,6 +2082,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
+          extensionComment: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'boolean',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                example: undefined,
+                'x-key-1': 'value-1',
+                'x-key-2': 'value-2',
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
@@ -2160,8 +2176,22 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       const properties = definition.properties;
 
       describe(`for ${currentSpec}`, () => {
-        it('should put vendor extension on selected attribute', () => {
+        it('should put vendor extension on extension field with decorator', () => {
           const extensionPropertyName = 'extensionTest';
+
+          Object.entries(properties).forEach(([propertyName, property]) => {
+            if (extensionPropertyName === propertyName) {
+              expect(property).to.have.property('x-key-1');
+              expect(property).to.have.property('x-key-2');
+
+              expect(property['x-key-1']).to.deep.equal('value-1');
+              expect(property['x-key-2']).to.deep.equal('value-2');
+            }
+          });
+        });
+
+        it('should put vendor extension on extension field with commetn', () => {
+          const extensionPropertyName = 'extensionComment';
 
           Object.entries(properties).forEach(([propertyName, property]) => {
             if (extensionPropertyName === propertyName) {

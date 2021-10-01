@@ -87,6 +87,7 @@ export namespace Tsoa {
     required: boolean;
     validators: Validators;
     deprecated: boolean;
+    extensions?: Extension[];
   }
 
   export type TypeStringLiteral =

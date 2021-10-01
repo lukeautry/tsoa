@@ -21,9 +21,7 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
       throw new Error(`Extension '${attributeKey}' must contain a value`);
     }
 
-    if (attributeKey.indexOf('x-') !== 0) {
-      throw new Error('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
-    }
+    validateExtensionKey(attributeKey);
 
     const attributeValue = getInitializerValue(decoratorValueArg, metadataGenerator.typeChecker);
 
@@ -31,4 +29,35 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
   });
 
   return extensions;
+}
+
+export function getExtensionsFromJSDocComments(comments: string[]): Tsoa.Extension[] {
+  const extensions: Tsoa.Extension[] = [];
+  comments.forEach(comment => {
+    const extensionData = safeFromJson(comment);
+    if (extensionData) {
+      const keys = Object.keys(extensionData);
+      keys.forEach(key => {
+        validateExtensionKey(key);
+
+        extensions.push({ key: key, value: extensionData[key] });
+      });
+    }
+  });
+
+  return extensions;
+}
+
+function validateExtensionKey(key: string) {
+  if (key.indexOf('x-') !== 0) {
+    throw new Error('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+  }
+}
+
+function safeFromJson(json: string) {
+  try {
+    return JSON.parse(json);
+  } catch {
+    return undefined;
+  }
 }

@@ -1,11 +1,12 @@
 import * as ts from 'typescript';
-import { getJSDocComment, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
-import { isDecorator } from './../utils/decoratorUtils';
+import { getJSDocComment, getJSDocComments, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
+import { getDecorators, isDecorator } from './../utils/decoratorUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa, assertNever } from '@tsoa/runtime';
+import { getExtensions, getExtensionsFromJSDocComments } from './extension';
 
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
@@ -112,6 +113,7 @@ export class TypeResolver {
             type,
             validators: getPropertyValidators(propertySignature) || {},
             deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+            extensions: this.getNodeExtension(propertySignature),
           };
 
           return [property, ...res];
@@ -895,6 +897,7 @@ export class TypeResolver {
       type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context, propertySignature.type).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+      extensions: this.getNodeExtension(propertySignature),
     };
     return property;
   }
@@ -932,6 +935,7 @@ export class TypeResolver {
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
       deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
+      extensions: this.getNodeExtension(propertyDeclaration),
     };
     return property;
   }
@@ -1113,6 +1117,20 @@ export class TypeResolver {
     } else {
       return undefined;
     }
+  }
+
+  private getNodeExtension(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+    const decorators = this.getDecoratorsByIdentifier(node, 'Extension');
+    const extensionDecorator = getExtensions(decorators, this.current);
+
+    const extensionComments = getJSDocComments(node, 'extension');
+    const extensionJSDoc = extensionComments ? getExtensionsFromJSDocComments(extensionComments) : [];
+
+    return extensionDecorator.concat(extensionJSDoc);
+  }
+
+  private getDecoratorsByIdentifier(node: ts.Node, id: string) {
+    return getDecorators(node, identifier => identifier.text === id);
   }
 }
 

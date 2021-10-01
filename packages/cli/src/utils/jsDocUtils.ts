@@ -18,6 +18,18 @@ export function getJSDocComment(node: ts.Node, tagName: string) {
   return tags[0].comment;
 }
 
+export function getJSDocComments(node: ts.Node, tagName: string) {
+  const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || tag.tagName.escapedText === tagName);
+  if (tags.length === 0) {
+    return;
+  }
+  const comments: string[] = [];
+  tags.forEach(tag => {
+    if (tag.comment) comments.push(tag.comment);
+  });
+  return comments;
+}
+
 export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
   let tags: ts.JSDocTag[];
   if (node.kind === ts.SyntaxKind.Parameter) {

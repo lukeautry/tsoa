@@ -370,6 +370,12 @@ export class SpecGenerator2 extends SpecGenerator {
         swaggerType['x-deprecated'] = true;
       }
 
+      if (property.extensions) {
+        property.extensions.forEach(property => {
+          swaggerType[property.key] = property.value;
+        });
+      }
+
       properties[property.name] = swaggerType;
     });
 
