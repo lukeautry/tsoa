@@ -758,6 +758,19 @@ describe('Metadata generation', () => {
       const deprecatedParam2 = method.parameters[2];
       expect(deprecatedParam2.deprecated).to.be.true;
     });
+
+    it('should generate example of 0 for parameter ', () => {
+      const method = controller.methods.find(m => m.name === 'getPath');
+      if (!method) {
+        throw new Error('Method getPath not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(6);      
+
+      const weightParam = method.parameters[3];
+      expect(weightParam.example).to.deep.equal([0, 1]);
+      expect((weightParam.example as unknown[]).length).to.be.equal(2);
+    });
   });
 
   describe('HiddenMethodGenerator', () => {

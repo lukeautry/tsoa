@@ -82,6 +82,8 @@ export class ParameterController {
    *
    * @example lastname "name1"
    * @example lastname "name2"
+   * @example weight 0
+   * @example weight 1
    */
   @Get('Path/{firstname}/{last_name}/{age}/{weight}/{human}/{gender}')
   public async getPath(
