@@ -5,10 +5,10 @@
     "sourceMap": true,
     "noImplicitAny": false,
     "baseUrl": ".",
-    "module": "commonjs",
-    "target": "es6",
+    "module": "ES2020",
+    "target": "ES2020",
     "lib": ["es2020"],
-    "typeRoots": ["node_modules/@types", "./typings"],
+    "typeRoots": ["node_modules/@types", "../typings"],
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "declaration": true,
@@ -21,13 +21,12 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "strictBindCallApply": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "paths": {
-      "@tsoa/cli/*": ["../packages/cli/src/*"],
-      "@tsoa/runtime/*": ["../packages/runtime/src/*"]
+      "@tsoa/cli/*": ["../../packages/cli/src/*"],
+      "@tsoa/runtime/*": ["../../packages/runtime/src/*"]
     }
   },
-  "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }],
-  "exclude": [
-    "esm"
-  ]
+  "references": [{ "path": "../../packages/runtime" }, { "path": "../../packages/cli" }]
 }

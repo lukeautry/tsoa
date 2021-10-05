@@ -1,0 +1,34 @@
+{
+  "name": "tsoa-tests-esm",
+  "private": true,
+  "description": "Build swagger-compliant REST APIs using TypeScript and Node",
+  "version": "3.9.0",
+  "type": "module",
+  "keywords": [
+    "typescript",
+    "openapi",
+    "swagger",
+    "server",
+    "node",
+    "node.js",
+    "codegen",
+    "generation",
+    "express",
+    "hapi.js",
+    "koa"
+  ],
+  "scripts": {
+    "test": "cross-env NODE_ENV=tsoa_test mocha '**/*.spec.ts' --exit --require ts-node/register --require tsconfig-paths/register --loader=ts-node/esm --timeout 5000"
+  },
+  "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/tsoa.git"
+  },
+  "engines": {
+    "yarn": ">=1.9.4",
+    "node": ">=6.0.0"
+  },
+  "engineStrict": true
+}
