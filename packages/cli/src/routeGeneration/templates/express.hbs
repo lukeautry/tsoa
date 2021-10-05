@@ -81,24 +81,24 @@ export function RegisterRoutes(app: express.Router) {
             let validatedArgs: any[] = [];
             try {
                 validatedArgs = getValidatedArgs(args, request, response);
+
+              {{#if ../../iocModule}}
+                const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+                const controller: any = await container.get<{{../name}}>({{../name}});
+                if (typeof controller['setStatus'] === 'function') {
+                controller.setStatus(undefined);
+                }
+              {{else}}
+                const controller = new {{../name}}();
+              {{/if}}
+
+
+              const promise = controller.{{name}}.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, {{successStatus}}, next);
             } catch (err) {
                 return next(err);
             }
-
-            {{#if ../../iocModule}}
-            const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-            const controller: any = await container.get<{{../name}}>({{../name}});
-            if (typeof controller['setStatus'] === 'function') {
-                controller.setStatus(undefined);
-            }
-            {{else}}
-            const controller = new {{../name}}();
-            {{/if}}
-
-
-            const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-            promiseHandler(controller, promise, response, {{successStatus}}, next);
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
