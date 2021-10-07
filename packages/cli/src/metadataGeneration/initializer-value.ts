@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
-export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: ts.TypeChecker, type?: Tsoa.Type) => {
+export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.TypeChecker, type?: Tsoa.Type) => {
   if (!initializer || !typeChecker) {
     return;
   }
@@ -48,11 +48,21 @@ export const getInitializerValue = (initializer?: ts.Expression, typeChecker?: t
         nestedObject[p.name.text] = getInitializerValue(p.initializer, typeChecker);
       });
       return nestedObject;
+    case ts.SyntaxKind.ImportSpecifier:
+      const importSpecifier = initializer as ts.ImportSpecifier;
+      const importSymbol = typeChecker.getSymbolAtLocation(importSpecifier.name);
+      if (!importSymbol) return;
+      const aliasedSymbol = typeChecker.getAliasedSymbol(importSymbol);
+      const declarations = aliasedSymbol.getDeclarations();
+      const declaration = declarations && declarations.length > 0 ? declarations[0] : undefined;
+      return getInitializerValue(extractInitializer(declaration), typeChecker);
     default:
       const symbol = typeChecker.getSymbolAtLocation(initializer);
-      const extractedInitializer = symbol && symbol.valueDeclaration && hasInitializer(symbol.valueDeclaration) && (symbol.valueDeclaration.initializer as ts.Expression);
-      return extractedInitializer ? getInitializerValue(extractedInitializer, typeChecker) : undefined;
+      return getInitializerValue(extractInitializer(symbol?.valueDeclaration) || extractImportSpecifier(symbol), typeChecker);
   }
 };
 
 const hasInitializer = (node: ts.Node): node is ts.HasInitializer => node.hasOwnProperty('initializer');
+const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
+const extractImportSpecifier = (symbol?: ts.Symbol) =>
+  (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] as ts.ImportSpecifier)) || undefined;

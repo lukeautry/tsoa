@@ -447,6 +447,14 @@ describe('Schema details generation', () => {
           expect(examples).not.to.haveOwnProperty('No country');
           console.warn = originalWarn;
         });
+
+        it('uses the correct imported value for the @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test example response');
+        });
       });
     });
   });

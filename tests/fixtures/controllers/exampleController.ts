@@ -1,4 +1,5 @@
 import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse } from '@tsoa/runtime';
+import { exampleResponse } from './consts';
 
 /**
  * @example {
@@ -142,6 +143,16 @@ export class ExampleTestController {
   @Get('CustomExampleLabels')
   public async customExampleLabels(@Res() res: TsoaResponse<400, number, { 'custom-header': string }>): Promise<string> {
     res?.(400, 123, { 'custom-header': 'hello' });
+    return 'test 1';
+  }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Example<string>(exampleResponse)
+  @Get('ResponseExampleWithImportedValue')
+  public async responseExamplesWithImportedValue(): Promise<string> {
     return 'test 1';
   }
 }
