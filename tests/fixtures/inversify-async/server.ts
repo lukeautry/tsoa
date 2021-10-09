@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as methodOverride from 'method-override';
 
 import './asyncController';
+import './asyncErrorController';
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();

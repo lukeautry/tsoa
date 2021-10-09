@@ -15,6 +15,16 @@ describe('Inversify async IoC Express Server', () => {
     });
   });
 
+  it('can handle errors in DI', () => {
+    return verifyGetRequest(
+      basePath + '/AsyncIocErrorTest',
+      err => {
+        expect(err.text).to.equal('DI Error');
+      },
+      500,
+    );
+  });
+
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
