@@ -7,6 +7,7 @@ import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa, assertNever } from '@tsoa/runtime';
 import { getExtensions, getExtensionsFromJSDocComments } from './extension';
+import { safeFromJson } from '../utils/jsonUtils';
 
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: boolean } = {};
@@ -1109,14 +1110,10 @@ export class TypeResolver {
     const example = getJSDocComment(node, 'example');
 
     if (example) {
-      try {
-        return JSON.parse(example);
-      } catch {
-        return undefined;
-      }
-    } else {
-      return undefined;
+      return safeFromJson(example);
     }
+
+    return undefined;
   }
 
   private getNodeExtension(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {

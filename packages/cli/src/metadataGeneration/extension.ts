@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
+import { safeFromJson } from '../utils/jsonUtils';
 
 export function getExtensions(decorators: ts.Identifier[], metadataGenerator: MetadataGenerator): Tsoa.Extension[] {
   const extensions: Tsoa.Extension[] = decorators.map(extensionDecorator => {
@@ -51,13 +52,5 @@ export function getExtensionsFromJSDocComments(comments: string[]): Tsoa.Extensi
 function validateExtensionKey(key: string) {
   if (key.indexOf('x-') !== 0) {
     throw new Error('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
-  }
-}
-
-function safeFromJson(json: string) {
-  try {
-    return JSON.parse(json);
-  } catch {
-    return undefined;
   }
 }
