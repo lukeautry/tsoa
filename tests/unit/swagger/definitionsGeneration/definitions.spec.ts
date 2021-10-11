@@ -925,6 +925,8 @@ describe('Definition generation', () => {
                   'stringProperty',
                   'deprecated1',
                   'deprecated2',
+                  'extensionTest',
+                  'extensionComment',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
@@ -1069,6 +1071,8 @@ describe('Definition generation', () => {
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
                   deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                   deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+                  extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  extensionComment: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                 },
@@ -1369,6 +1373,20 @@ describe('Definition generation', () => {
             expect(propertySchema.items.format).to.eq(undefined, `for property ${propertyName}.items.format`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
+          extensionComment: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'boolean',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                example: undefined,
+                'x-key-1': 'value-1',
+                'x-key-2': 'value-2',
+              },
+              `for property ${propertyName}`,
+            );
           },
         };
 

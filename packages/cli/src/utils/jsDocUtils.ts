@@ -11,11 +11,24 @@ export function getJSDocDescription(node: ts.Node) {
 }
 
 export function getJSDocComment(node: ts.Node, tagName: string) {
+  const comments = getJSDocComments(node, tagName);
+  if (comments && comments.length !== 0) {
+    return comments[0];
+  }
+
+  return;
+}
+
+export function getJSDocComments(node: ts.Node, tagName: string) {
   const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || tag.tagName.escapedText === tagName);
   if (tags.length === 0) {
     return;
   }
-  return tags[0].comment;
+  const comments: string[] = [];
+  tags.forEach(tag => {
+    if (tag.comment) comments.push(tag.comment);
+  });
+  return comments;
 }
 
 export function getJSDocTagNames(node: ts.Node, requireTagName = false) {

@@ -508,6 +508,12 @@ export class SpecGenerator3 extends SpecGenerator {
         swaggerType.deprecated = true;
       }
 
+      if (property.extensions) {
+        property.extensions.forEach(property => {
+          swaggerType[property.key] = property.value;
+        });
+      }
+
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 

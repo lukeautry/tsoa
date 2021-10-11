@@ -22,6 +22,12 @@ describe('Metadata generation', () => {
         new MetadataGenerator('./fixtures/controllers/invalidExtensionController.ts').Generate();
       }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
     });
+
+    it('should throw an Error when an model attribute is not prefixed with "x-"', () => {
+      expect(() => {
+        new MetadataGenerator('./fixtures/controllers/invalidExtensionModelController.ts').Generate();
+      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+    });
   });
 
   describe('DynamicControllerGenerator', () => {
