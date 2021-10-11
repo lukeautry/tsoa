@@ -289,7 +289,7 @@ export function runCLI(): void {
     .alias('help', 'h').argv;
 }
 
-if (!module.parent) runCLI();
+if (require.main === module) runCLI();
 
 async function SpecGenerator(args: SwaggerArgs) {
   try {
