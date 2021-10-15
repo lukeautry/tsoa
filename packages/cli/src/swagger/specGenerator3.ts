@@ -162,7 +162,7 @@ export class SpecGenerator3 extends SpecGenerator {
           schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
-        if (typeof referenceType.example !== 'undefined') {
+        if (referenceType.example !== undefined) {
           schema[referenceType.refName].example = referenceType.example;
         }
       } else if (referenceType.dataType === 'refEnum') {
