@@ -87,7 +87,7 @@ export class SpecGenerator2 extends SpecGenerator {
           definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
-        if (typeof referenceType.example !== 'undefined') {
+        if (referenceType.example !== undefined) {
           definitions[referenceType.refName].example = referenceType.example;
         }
       } else if (referenceType.dataType === 'refEnum') {
