@@ -280,7 +280,11 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     if (bodyParams.length > 0) {
-      pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
+      if (bodyParams[0].type.dataType === 'buffer') {
+        pathMethod.requestBody = this.buildRequestBodyWithStream(controllerName, method, bodyParams[0]);
+      } else {
+        pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
+      }
     } else if (formParams.length > 0) {
       pathMethod.requestBody = this.buildRequestBodyWithFormData(controllerName, method, formParams);
     }
@@ -343,6 +347,20 @@ export class SpecGenerator3 extends SpecGenerator {
 
     return operation;
   }
+
+  private buildRequestBodyWithStream(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter) {
+    const mediaType = this.buildMediaType(controllerName, method, parameter);
+
+    const requestBody: Swagger.RequestBody = {
+      description: parameter.description,
+      required: parameter.required,
+      content: {
+        'application/octet-stream': mediaType,
+      },
+    };
+
+    return requestBody;
+  } 
 
   private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody {
     const required: string[] = [];

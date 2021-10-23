@@ -1,4 +1,5 @@
 import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@tsoa/runtime';
+import { Readable } from 'stream';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -86,6 +87,11 @@ export class PostTestController {
 
   @Post('WithBodyAndQueryParams')
   public async postWithBodyAndQueryParams(@Body() model: TestModel, @Query() query: string): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Post('WithStreamBody')
+  public async postWithStreamBody(@Body() stream: Readable): Promise<TestModel> {
     return new ModelService().getModel();
   }
 
