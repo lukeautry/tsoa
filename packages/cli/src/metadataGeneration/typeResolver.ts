@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getJSDocComment, getJSDocComments, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
-import { getDecorators, isDecorator } from './../utils/decoratorUtils';
+import { getDecorators, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -1090,13 +1090,12 @@ export class TypeResolver {
   }
 
   private getNodeExample(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
-    const example = getJSDocComment(node, 'example');
-
-    if (example) {
-      return safeFromJson(example);
+    const exampleJSDoc = getJSDocComment(node, 'example');
+    if (exampleJSDoc) {
+      return safeFromJson(exampleJSDoc);
     }
 
-    return undefined;
+    return getNodeFirstDecoratorValue(node, this.current.typeChecker, dec => dec.text === 'Example');
   }
 
   private getNodeExtension(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
