@@ -6,6 +6,10 @@ import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
 function getValue(type: 'string' | 'number' | 'integer' | 'boolean', member: any) {
+  if (member === null) {
+    return null;
+  }
+
   switch (type) {
     case 'integer':
     case 'number':
@@ -652,7 +656,7 @@ export class SpecGenerator3 extends SpecGenerator {
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { type, enum: enumType.enums.map(member => (member === null ? null : getValue(type, member))), nullable };
+      return { type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
