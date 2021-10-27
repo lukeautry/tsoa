@@ -2,6 +2,7 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
+import { getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
@@ -462,6 +463,6 @@ export class SpecGenerator2 extends SpecGenerator {
     const types = this.determineTypesUsedInEnum(enumType.enums);
     const type = types.size === 1 ? types.values().next().value : 'string';
     const nullable = enumType.enums.includes(null) ? true : false;
-    return { type, enum: enumType.enums.map(member => (member === null ? null : String(member))), ['x-nullable']: nullable };
+    return { type, enum: enumType.enums.map(member => getValue(type, member)), ['x-nullable']: nullable };
   }
 }

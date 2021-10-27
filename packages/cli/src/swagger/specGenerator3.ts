@@ -2,25 +2,9 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
+import { getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
-
-function getValue(type: 'string' | 'number' | 'integer' | 'boolean', member: any) {
-  if (member === null) {
-    return null;
-  }
-
-  switch (type) {
-    case 'integer':
-    case 'number':
-      return Number(member);
-    case 'boolean':
-      return member;
-    case 'string':
-    default:
-      return String(member);
-  }
-}
 
 /**
  * TODO:
