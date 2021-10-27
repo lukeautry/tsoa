@@ -5,6 +5,19 @@ import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
+function getValue(type: 'string' | 'number' | 'integer' | 'boolean', member: any) {
+  switch (type) {
+    case 'integer':
+    case 'number':
+      return Number(member);
+    case 'boolean':
+      return member;
+    case 'string':
+    default:
+      return String(member);
+  }
+}
+
 /**
  * TODO:
  * Handle formData parameters
@@ -639,7 +652,7 @@ export class SpecGenerator3 extends SpecGenerator {
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { type, enum: enumType.enums.map(member => (member === null ? null : String(member))), nullable };
+      return { type, enum: enumType.enums.map(member => (member === null ? null : getValue(type, member))), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
