@@ -20,7 +20,7 @@
     "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
     "pretest": "yarn clean && cross-env NODE_ENV=tsoa_test ts-node --require tsconfig-paths/register ./prepare.ts",
     "loading-msg-for-tests": "echo '... starting a test run to ensure quality. Note this takes some time as tests do not run in parallel (by design) ...' ",
-    "test": "node ../ensureYarn.js && tsc -b tsconfig.build.json && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha '**/*.spec.ts' --exit --require ts-node/register --require tsconfig-paths/register --timeout 5000",
+    "test": "node ../ensureYarn.js && tsc -b tsconfig.build.json && yarn loading-msg-for-tests && cross-env NODE_ENV=tsoa_test mocha '**/*.spec.ts' --exit --require ts-node/register --require tsconfig-paths/register --timeout 10000",
     "tsc": "tsc -b"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
