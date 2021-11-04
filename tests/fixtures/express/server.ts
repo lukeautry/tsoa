@@ -21,6 +21,8 @@ import '../controllers/tagController';
 import '../controllers/noExtendsController';
 import '../controllers/subresourceController';
 
+import '../controllers/middlewareController';
+
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();

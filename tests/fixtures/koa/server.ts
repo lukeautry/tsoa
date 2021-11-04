@@ -18,6 +18,8 @@ import '../controllers/validateController';
 import '../controllers/noExtendsController';
 import '../controllers/subresourceController';
 
+import '../controllers/middlewareController';
+
 import * as bodyParser from 'koa-bodyparser';
 import { RegisterRoutes } from './routes';
 

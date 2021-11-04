@@ -72,6 +72,9 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
+            ...(({{../name}} as any)['_koaMiddlewares'] || []),
+            ...(({{../name}}.prototype.{{name}} as any)['_koaMiddlewares'] || []),
+
             async function {{../name}}_{{name}}(context: any, next: any) {
             const args = {
                 {{#each parameters}}

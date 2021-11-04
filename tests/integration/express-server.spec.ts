@@ -16,6 +16,7 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewareController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -360,6 +361,19 @@ describe('Express Server', () => {
         expect(body.message).to.equal('error thrown');
       },
       400,
+    );
+  });
+
+  it('can invoke middlewares installed in routes and paths', () => {
+    const middlewareState = (key: string) => stateOf('express', key);
+    expect(middlewareState('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTest/test1',
+      (err, res) => {
+        expect(middlewareState('route')).to.be.true;
+        expect(middlewareState('test1')).to.be.true;
+      },
+      204,
     );
   });
 

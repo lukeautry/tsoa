@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewareController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { File } from '@tsoa/runtime';
@@ -257,6 +258,19 @@ describe('Hapi Server', () => {
         expect(JSON.parse(err.text).message).to.equal('error thrown');
       },
       400,
+    );
+  });
+
+  it('can invoke middlewares installed in routes and paths', () => {
+    const middlewareState = (key: string) => stateOf('hapi', key);
+    expect(middlewareState('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTest/test1',
+      (err, res) => {
+        expect(middlewareState('route')).to.be.true;
+        expect(middlewareState('test1')).to.be.true;
+      },
+      204,
     );
   });
 

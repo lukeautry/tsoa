@@ -68,13 +68,15 @@ export function RegisterRoutes(server: any) {
                     {{#if uploadFile}}
                     {
                       method: fileUploadMiddleware('{{uploadFileName}}', false)
-                    }
+                    },
                     {{/if}}
                     {{#if uploadFiles}}
                     {
                       method: fileUploadMiddleware('{{uploadFilesName}}', true)
-                    }
+                    },
                     {{/if}}
+                    ...(({{../name}} as any)['_hapiMiddlewares'] || []),
+                    ...(({{../name}}.prototype.{{name}} as any)['_hapiMiddlewares'] || [])
                 ],
                 {{#if uploadFile}}
                 payload: {

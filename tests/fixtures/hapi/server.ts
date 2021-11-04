@@ -16,6 +16,8 @@ import '../controllers/validateController';
 import '../controllers/noExtendsController';
 import '../controllers/subresourceController';
 
+import '../controllers/middlewareController';
+
 import { RegisterRoutes } from './routes';
 
 export const server = new Server({});
