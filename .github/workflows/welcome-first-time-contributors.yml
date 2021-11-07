@@ -18,9 +18,7 @@ jobs:
         issue-message: |
           Hello there ${{ github.actor }} 👋
 
-          Welcome to tsoa !!💖🥳
-
-          Thank you and congratulations 🎉 for opening your very first issue in this project. 
+          Thank you for opening your very first issue in this project. 
 
           We will try to get back to you as soon as we can.👀
 
