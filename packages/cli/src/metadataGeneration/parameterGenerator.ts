@@ -86,6 +86,8 @@ export class ParameterGenerator {
       return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
+    const headers = getHeaderType(typeNode.typeArguments, 2, this.current);
+
     return statusArgumentTypes.map(statusArgumentType => {
       if (!isNumberLiteralType(statusArgumentType)) {
         throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
@@ -99,6 +101,7 @@ export class ParameterGenerator {
         description: this.getParameterDescription(parameter) || '',
         in: 'res',
         name: status,
+        produces: headers ? this.getProducesFromResHeaders(headers) : undefined,
         parameterName,
         examples,
         required: true,
@@ -106,10 +109,21 @@ export class ParameterGenerator {
         exampleLabels,
         schema: type,
         validators: {},
-        headers: getHeaderType(typeNode.typeArguments, 2, this.current),
+        headers,
         deprecated: this.getParameterDeprecation(parameter),
       };
     });
+  }
+
+  private getProducesFromResHeaders(headers: Tsoa.HeaderType): string | undefined {
+    const { properties } = headers;
+    const [contentTypeProp] = (properties || []).filter(p => p.name.toLowerCase() === 'content-type' && p.type.dataType === 'enum');
+    if (contentTypeProp) {
+      const type = contentTypeProp.type as Tsoa.EnumType;
+      const [produces] = type.enums as string[];
+      return produces;
+    }
+    return;
   }
 
   private getBodyPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {

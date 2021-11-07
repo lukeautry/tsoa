@@ -15,6 +15,7 @@ import { getHeaderType } from '../utils/headerTypeHelpers';
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
+  private produces?: string;
 
   constructor(
     private readonly node: ts.MethodDeclaration,
@@ -62,6 +63,7 @@ export class MethodGenerator {
       operationId: this.getOperationId(),
       parameters,
       path: this.path,
+      produces: this.produces,
       responses,
       successStatus: successStatus,
       security: this.getSecurity(),
@@ -134,6 +136,22 @@ export class MethodGenerator {
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
     this.path = getPath(decorator, this.current.typeChecker);
+    this.produces = this.getProduces();
+  }
+
+  private getProduces(): string | undefined {
+    const producesDecorators = this.getDecoratorsByIdentifier(this.node, 'Produces');
+
+    if (!producesDecorators || !producesDecorators.length) {
+      return;
+    }
+    if (producesDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Produces decorator in '${this.getCurrentLocation()}' method, Found: ${producesDecorators.map(d => d.text).join(', ')}`);
+    }
+
+    const [decorator] = producesDecorators;
+    const [produces] = getDecoratorValues(decorator, this.current.typeChecker);
+    return produces;
   }
 
   private getMethodResponses(): Tsoa.Response[] {
@@ -145,12 +163,13 @@ export class MethodGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
+      const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name: name || '200',
+        produces,
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
@@ -167,6 +186,7 @@ export class MethodGenerator {
           description: isVoidType(type) ? 'No content' : description,
           examples: this.getMethodSuccessExamples(),
           name: isVoidType(type) ? '204' : '200',
+          produces: this.produces,
           schema: type,
         },
       };
@@ -175,7 +195,7 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
-    const [name, description] = getDecoratorValues(decorators[0], this.current.typeChecker);
+    const [name, description, produces] = getDecoratorValues(decorators[0], this.current.typeChecker);
     const examples = this.getMethodSuccessExamples();
 
     const expression = decorators[0].parent as ts.CallExpression;
@@ -186,6 +206,7 @@ export class MethodGenerator {
         description: description || '',
         examples,
         name: name || '200',
+        produces,
         schema: type,
         headers,
       },
