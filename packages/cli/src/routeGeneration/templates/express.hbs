@@ -68,8 +68,8 @@ export function RegisterRoutes(app: express.Router) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
-            ...(({{../name}} as any)['_expressMiddlewares'] || []),
-            ...(({{../name}}.prototype.{{name}} as any)['_expressMiddlewares'] || []),
+            ...(Reflect.get({{../name}}, '_expressMiddlewares') || []),
+            ...(Reflect.get({{../name}}.prototype.{{name}}, '_expressMiddlewares') || []),
 
             {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, response: any, next: any) {
             const args = {

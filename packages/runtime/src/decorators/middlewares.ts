@@ -10,6 +10,10 @@ export type Middlewares = {
   hapi?: HapiMiddleware[];
 };
 
+const expressKey = '_expressMiddlewares';
+const koaKey = '_koaMiddlewares';
+const hapiKey = '_hapiMiddlewares';
+
 /**
  * Helper function to create a decorator
  * that can act as a class and method decorator.
@@ -34,6 +38,18 @@ function decorator(fn: (value: any) => void) {
   };
 }
 
+function installMiddlewares(target: any, key: string, value?: any): void {
+  if (!value) {
+    return;
+  }
+  Reflect.defineProperty(target, key, {
+    configurable: false,
+    enumerable: false,
+    writable: false,
+    value,
+  });
+}
+
 /**
  * Install `express`, `koa` and `hapi` middlewares
  * to the Controller or a specific method.
@@ -42,9 +58,9 @@ function decorator(fn: (value: any) => void) {
  */
 export function Middlewares(middlewares: Middlewares) {
   return decorator(target => {
-    target._expressMiddlewares = middlewares.express || [];
-    target._koaMiddlewares = middlewares.koa || [];
-    target._hapiMiddlewares = middlewares.hapi || [];
+    installMiddlewares(target, expressKey, middlewares.express);
+    installMiddlewares(target, koaKey, middlewares.koa);
+    installMiddlewares(target, hapiKey, middlewares.hapi);
   });
 }
 
@@ -55,7 +71,7 @@ export function Middlewares(middlewares: Middlewares) {
  */
 export function ExpressMiddlewares(...middlewares: ExpressMiddleware[]) {
   return decorator(target => {
-    target._expressMiddlewares = middlewares;
+    installMiddlewares(target, expressKey, middlewares);
   });
 }
 
@@ -66,7 +82,7 @@ export function ExpressMiddlewares(...middlewares: ExpressMiddleware[]) {
  */
 export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
   return decorator(target => {
-    target._koaMiddlewares = middlewares;
+    installMiddlewares(target, koaKey, middlewares);
   });
 }
 
@@ -77,6 +93,6 @@ export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
  */
 export function HapiMiddlewares(...middlewares: HapiMiddleware[]) {
   return decorator(target => {
-    target._hapiMiddlewares = middlewares;
+    installMiddlewares(target, hapiKey, middlewares);
   });
 }

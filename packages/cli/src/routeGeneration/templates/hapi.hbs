@@ -75,8 +75,8 @@ export function RegisterRoutes(server: any) {
                       method: fileUploadMiddleware('{{uploadFilesName}}', true)
                     },
                     {{/if}}
-                    ...(({{../name}} as any)['_hapiMiddlewares'] || []),
-                    ...(({{../name}}.prototype.{{name}} as any)['_hapiMiddlewares'] || [])
+                    ...(Reflect.get({{../name}}, '_hapiMiddlewares') || []),
+                    ...(Reflect.get({{../name}}.prototype.{{name}}, '_hapiMiddlewares') || [])
                 ],
                 {{#if uploadFile}}
                 payload: {
