@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
+import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchExpressMiddlewares } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -68,8 +68,8 @@ export function RegisterRoutes(app: express.Router) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
-            ...(Reflect.get({{../name}}, '_expressMiddlewares') || []),
-            ...(Reflect.get({{../name}}.prototype.{{name}}, '_expressMiddlewares') || []),
+            ...(fetchExpressMiddlewares({{../name}})),
+            ...(fetchExpressMiddlewares({{../name}}.prototype.{{name}})),
 
             {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, response: any, next: any) {
             const args = {

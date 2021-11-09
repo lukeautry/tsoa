@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 export type ExpressMiddleware = (req: any, res: any, next: any) => Promise<any>;
 export type KoaMiddleware = (ctx: any, next: any) => Promise<any>;
 export type HapiMiddlewareBase = (request: any, h: any) => Promise<any>;
@@ -10,9 +11,9 @@ export type Middlewares = {
   hapi?: HapiMiddleware[];
 };
 
-const expressKey = '_expressMiddlewares';
-const koaKey = '_koaMiddlewares';
-const hapiKey = '_hapiMiddlewares';
+const TSOA_EXPRESS_MIDDLEWARES = Symbol('tsoa:expressMiddlewares');
+const TSOA_KOA_MIDDLEWARES = Symbol('tsoa:koaMiddlewares');
+const TSOA_HAPI_MIDDLEWARES = Symbol('tsoa:hapiMiddlewares');
 
 /**
  * Helper function to create a decorator
@@ -38,16 +39,12 @@ function decorator(fn: (value: any) => void) {
   };
 }
 
-function installMiddlewares(target: any, key: string, value?: any): void {
+function installMiddlewares(target: any, key: symbol, value?: any): void {
   if (!value) {
     return;
   }
-  Reflect.defineProperty(target, key, {
-    configurable: false,
-    enumerable: false,
-    writable: false,
-    value,
-  });
+
+  Reflect.defineMetadata(key, value, target);
 }
 
 /**
@@ -58,9 +55,9 @@ function installMiddlewares(target: any, key: string, value?: any): void {
  */
 export function Middlewares(middlewares: Middlewares) {
   return decorator(target => {
-    installMiddlewares(target, expressKey, middlewares.express);
-    installMiddlewares(target, koaKey, middlewares.koa);
-    installMiddlewares(target, hapiKey, middlewares.hapi);
+    installMiddlewares(target, TSOA_EXPRESS_MIDDLEWARES, middlewares.express);
+    installMiddlewares(target, TSOA_KOA_MIDDLEWARES, middlewares.koa);
+    installMiddlewares(target, TSOA_HAPI_MIDDLEWARES, middlewares.hapi);
   });
 }
 
@@ -71,7 +68,7 @@ export function Middlewares(middlewares: Middlewares) {
  */
 export function ExpressMiddlewares(...middlewares: ExpressMiddleware[]) {
   return decorator(target => {
-    installMiddlewares(target, expressKey, middlewares);
+    installMiddlewares(target, TSOA_EXPRESS_MIDDLEWARES, middlewares);
   });
 }
 
@@ -82,7 +79,7 @@ export function ExpressMiddlewares(...middlewares: ExpressMiddleware[]) {
  */
 export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
   return decorator(target => {
-    installMiddlewares(target, koaKey, middlewares);
+    installMiddlewares(target, TSOA_KOA_MIDDLEWARES, middlewares);
   });
 }
 
@@ -93,6 +90,36 @@ export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
  */
 export function HapiMiddlewares(...middlewares: HapiMiddleware[]) {
   return decorator(target => {
-    installMiddlewares(target, hapiKey, middlewares);
+    installMiddlewares(target, TSOA_HAPI_MIDDLEWARES, middlewares);
   });
+}
+
+/**
+ * Internal function used to retrieve installed middlewares
+ * in controller and methods
+ * @param target
+ * @returns list of express middlewares
+ */
+export function fetchExpressMiddlewares(target: any) {
+  return Reflect.getMetadata(TSOA_EXPRESS_MIDDLEWARES, target) || [];
+}
+
+/**
+ * Internal function used to retrieve installed middlewares
+ * in controller and methods
+ * @param target
+ * @returns list of koa middlewares
+ */
+export function fetchKoaMiddlewares(target: any) {
+  return Reflect.getMetadata(TSOA_KOA_MIDDLEWARES, target) || [];
+}
+
+/**
+ * Internal function used to retrieve installed middlewares
+ * in controller and methods
+ * @param target
+ * @returns list of hapi middlewares
+ */
+export function fetchHapiMiddlewares(target: any) {
+  return Reflect.getMetadata(TSOA_HAPI_MIDDLEWARES, target) || [];
 }
