@@ -3,7 +3,7 @@ const { expect } = chai;
 import request from 'supertest';
 import { it, describe } from 'mocha';
 import { app } from '../fixtures/express/server.js';
-import type { TestModel } from '../../fixtures/testModel.js';
+import type { TestModel } from '../fixtures/testModel';
 
 const basePath = '/v1';
 
@@ -11,7 +11,7 @@ describe('Express Server', () => {
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(basePath + '/', (err, res) => {
       const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
+      expect(model.str).to.equal('str');
     });
   });
 
