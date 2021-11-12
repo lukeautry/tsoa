@@ -1,5 +1,5 @@
-import bodyParser from 'body-parser';
-import express from 'express';
+import { json, urlencoded } from 'body-parser';
+import express, { RequestHandler } from 'express';
 import methodOverride from 'method-override';
 
 import './rootController.js';
@@ -7,8 +7,8 @@ import './rootController.js';
 import { RegisterRoutes } from './routes.js';
 
 export const app: express.Express = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(urlencoded({ extended: true }) as RequestHandler);
+app.use(json() as RequestHandler);
 app.use(methodOverride());
 app.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
