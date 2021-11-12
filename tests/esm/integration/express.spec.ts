@@ -3,7 +3,7 @@ const { expect } = chai;
 import request from 'supertest';
 import { it, describe } from 'mocha';
 import { app } from '../fixtures/express/server.js';
-import type { TestModel } from '../fixtures/testModel';
+import type { TestModel } from '../fixtures/testModel.js';
 
 const basePath = '/v1';
 
