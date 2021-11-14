@@ -35,7 +35,7 @@ export class MediaTypeTestController extends Controller {
 
     const body = { id: model.name.length, name: model.name };
     this.setStatus(202);
-    this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v2+json'); // express and hapi returns it, koa ignores
+    this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v2+json');
     return body;
   }
 }

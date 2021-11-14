@@ -204,8 +204,6 @@ export function RegisterRoutes(router: KoaRouter) {
 
     function returnHandler(context: any, next: () => any, statusCode?: number, data?: any, headers: any={}) {
         if (!context.headerSent && !context.response.__tsoaResponded) {
-            context.set(headers);
-
             if (data !== null && data !== undefined) {
                 context.body = data;
                 context.status = 200;
@@ -217,6 +215,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 context.status = statusCode;
             }
 
+            context.set(headers);
             context.response.__tsoaResponded = true;
             return next();
         }
