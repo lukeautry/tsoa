@@ -222,7 +222,7 @@ export class SpecGenerator2 extends SpecGenerator {
       }
     });
 
-    produces = Array.from(new Set(produces.filter(p => p)));
+    produces = Array.from(new Set(produces.filter(p => p !== undefined)));
     if (produces.length === 0) {
       produces = [defaultProduces || DEFAULT_RESPONSE_MEDIA_TYPE];
     }
