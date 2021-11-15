@@ -1,13 +1,11 @@
-export type ExpressMiddleware = (req: any, res: any, next: any) => Promise<any>;
-export type KoaMiddleware = (ctx: any, next: any) => Promise<any>;
-export type HapiMiddlewareBase = (request: any, h: any) => Promise<any>;
-export type HapiMiddlewareSimple = HapiMiddlewareBase | { method: HapiMiddlewareBase; assign?: string; failAction?: HapiMiddlewareBase | string };
-export type HapiMiddleware = HapiMiddlewareSimple | HapiMiddlewareSimple[];
+import type { RequestHandler as ExpressMiddleware } from 'express';
+import type { Middleware as KoaMiddleware } from 'koa';
+import type { RouteOptionsPreArray as HapiMiddlewares } from 'hapi';
 
 export type Middlewares = {
   express?: ExpressMiddleware[];
   koa?: KoaMiddleware[];
-  hapi?: HapiMiddleware[];
+  hapi?: HapiMiddlewares;
 };
 
 const TSOA_EXPRESS_MIDDLEWARES = Symbol('tsoa:expressMiddlewares');
@@ -87,7 +85,7 @@ export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
  * @param middlewares
  * @returns
  */
-export function HapiMiddlewares(...middlewares: HapiMiddleware[]) {
+export function HapiMiddlewares(...middlewares: HapiMiddlewares) {
   return decorator(target => {
     installMiddlewares(target, TSOA_HAPI_MIDDLEWARES, middlewares);
   });

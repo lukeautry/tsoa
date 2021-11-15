@@ -1200,6 +1200,23 @@
   dependencies:
     "@octokit/openapi-types" "^10.1.0"
 
+"@sideway/address@^4.1.0":
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/@sideway/address/-/address-4.1.2.tgz#811b84333a335739d3969cfc434736268170cad1"
+  integrity sha512-idTz8ibqWFrPU8kMirL0CoPH/A29XOzzAzpyN3zQ4kAWnzmNfFmRaoMNN6VI8ske5M73HZyhIaW4OuSFIdM4oA==
+  dependencies:
+    "@hapi/hoek" "^9.0.0"
+
+"@sideway/formula@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@sideway/formula/-/formula-3.0.0.tgz#fe158aee32e6bd5de85044be615bc08478a0a13c"
+  integrity sha512-vHe7wZ4NOXVfkoRb8T5otiENVlT7a3IAiw7H5M2+GO+9CDgcVUUsX1zalAztCmwyOr2RUTGJdgB+ZvSVqmdHmg==
+
+"@sideway/pinpoint@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@sideway/pinpoint/-/pinpoint-2.0.0.tgz#cff8ffadc372ad29fd3f78277aeb29e632cc70df"
+  integrity sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==
+
 "@sinonjs/commons@^1.6.0", "@sinonjs/commons@^1.7.0", "@sinonjs/commons@^1.8.1":
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.2.tgz#858f5c4b48d80778fde4b9d541f27edc0d56488b"
@@ -1247,6 +1264,16 @@
   dependencies:
     "@types/connect" "*"
     "@types/node" "*"
+
+"@types/boom@*":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@types/boom/-/boom-7.3.1.tgz#afec3ee9ed56ac22f5dffc45ae33a93fc0f9a481"
+  integrity sha512-9952U+NySPQ35Xr8CU0lHrC3vBuqjh2xmK87l06uW8PN4ePHOqhtjrJV5+e7lqgb4UtzwUHELkbxEXxnPXLlTA==
+
+"@types/catbox@*":
+  version "10.0.7"
+  resolved "https://registry.yarnpkg.com/@types/catbox/-/catbox-10.0.7.tgz#50a0f927924ace358cc0193c6d9f1790d4219fa6"
+  integrity sha512-8vjnM1eyHKwWfcbq7qb2NN4ltUgm4nVsT9QIM6IW4KqxbQbfQLbRApNTN+B3hvHvuFTHyvhJjZrBY3wNPp4tjA==
 
 "@types/chai@^4.2.0":
   version "4.2.11"
@@ -1313,6 +1340,20 @@
     "@types/express-serve-static-core" "*"
     "@types/serve-static" "*"
 
+"@types/hapi@^18.0.6":
+  version "18.0.6"
+  resolved "https://registry.yarnpkg.com/@types/hapi/-/hapi-18.0.6.tgz#092ef4afbb7f5e32fcad429c4d3341cb696fdf15"
+  integrity sha512-0UvpE7afOsWbDuSWv1W2kLAacEvhDGNnGwsiNe0IIw6o4XumZxH9Z850ZBLc4DywzwwJ8FDPneCpy2hJ1OzmSg==
+  dependencies:
+    "@types/boom" "*"
+    "@types/catbox" "*"
+    "@types/iron" "*"
+    "@types/mimos" "*"
+    "@types/node" "*"
+    "@types/podium" "*"
+    "@types/shot" "*"
+    joi "^17.3.0"
+
 "@types/hapi__catbox@*":
   version "10.2.2"
   resolved "https://registry.yarnpkg.com/@types/hapi__catbox/-/hapi__catbox-10.2.2.tgz#b13fbdd6006c8793eb80919158593bc2bf8307c4"
@@ -1360,6 +1401,13 @@
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/@types/http-assert/-/http-assert-1.5.1.tgz#d775e93630c2469c2f980fc27e3143240335db3b"
   integrity sha512-PGAK759pxyfXE78NbKxyfRcWYA/KwW17X290cNev/qAsn9eQIxkH4shoNBafH37wewhDG/0p1cHPbK6+SzZjWQ==
+
+"@types/iron@*":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@types/iron/-/iron-5.0.2.tgz#d64771b5c1d87d3c1a8a5bcaa3e02259069b8672"
+  integrity sha512-u1l5xO5BtLlPfeiy60vrC9Y30cR8gM7chD5npIAETZaOlGoT8KHqtQQpmlU5dZejhJSfIBSX0zBHnKW+0fw5qA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/json-schema@^7.0.7":
   version "7.0.9"
@@ -1427,6 +1475,13 @@
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.1.tgz#dc488842312a7f075149312905b5e3c0b054c79d"
   integrity sha512-FwI9gX75FgVBJ7ywgnq/P7tw+/o1GUbtP0KzbtusLigAOgIgNISRK0ZPl4qertvXSIE8YbsVJueQ90cDt9YYyw==
 
+"@types/mimos@*":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/mimos/-/mimos-3.0.3.tgz#c1a35a5c31ae99eb86e6607962280c05989f3e57"
+  integrity sha512-jtStUPuHpJ+LVK+e1K9SbD2V00IOAqAKgVVkBRmCdHG20VQaE3KOt7FincknY1uyyZNq7MKF44Gs0fon2v9oig==
+  dependencies:
+    "@types/mime-db" "*"
+
 "@types/minimatch@^3.0.3":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
@@ -1474,6 +1529,11 @@
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
   integrity sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==
 
+"@types/podium@*":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@types/podium/-/podium-1.0.1.tgz#f51a419959584f2ffb8f849e5b33f2b99f7ee1f9"
+  integrity sha512-dcg8V5wKgrvNIBk2hzgK3gHobZ0u7pXW36NigfJq+lBA+/fqI6GAI0bdjLAEkZC67EsaVErtePkqipJPsszN7Q==
+
 "@types/qs@*":
   version "6.9.2"
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.9.2.tgz#faab98ec4f96ee72c829b7ec0983af4f4d343113"
@@ -1491,6 +1551,13 @@
   dependencies:
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
+
+"@types/shot@*":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@types/shot/-/shot-4.0.1.tgz#a50f56bde37db57184cdb43174ba4fea9c0c7897"
+  integrity sha512-LUJWxDKYWmmUpVXDWZ78hFIrqb/ho9RoKqBAFRJw4OHOS3qCKCoXCyzrfmf24lbO4COYfqL0iEWNArOfKEYW9g==
+  dependencies:
+    "@types/node" "*"
 
 "@types/sinon@^9.0.10":
   version "9.0.10"
@@ -4145,6 +4212,17 @@ iterate-value@^1.0.2:
   dependencies:
     es-get-iterator "^1.0.2"
     iterate-iterator "^1.0.1"
+
+joi@^17.3.0:
+  version "17.4.2"
+  resolved "https://registry.yarnpkg.com/joi/-/joi-17.4.2.tgz#02f4eb5cf88e515e614830239379dcbbe28ce7f7"
+  integrity sha512-Lm56PP+n0+Z2A2rfRvsfWVDXGEWjXxatPopkQ8qQ5mxCEhwHG+Ettgg5o98FFaxilOxozoa14cFhrE/hOzh/Nw==
+  dependencies:
+    "@hapi/hoek" "^9.0.0"
+    "@hapi/topo" "^5.0.0"
+    "@sideway/address" "^4.1.0"
+    "@sideway/formula" "^3.0.0"
+    "@sideway/pinpoint" "^2.0.0"
 
 js-tokens@^4.0.0:
   version "4.0.0"

@@ -1,5 +1,11 @@
 import { Route, Get, Middlewares, ExpressMiddlewares, KoaMiddlewares, HapiMiddlewares } from '@tsoa/runtime';
 
+import type { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction } from 'express';
+
+import type { Context as KoaContext, Next as KoaNext } from 'koa';
+
+import type { Request as HapiRequest, ResponseToolkit as HapiResponseToolkit } from 'hapi';
+
 const middlewaresState = {
   express: {},
   koa: {},
@@ -11,19 +17,19 @@ export function stateOf(serverType: 'express' | 'koa' | 'hapi', key: string): bo
 }
 
 function testMiddlewareExpress(key: string) {
-  return async (req: any, res: any, next: any) => {
+  return async (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
     middlewaresState.express[key] = true;
     next();
   };
 }
 function testMiddlewareKoa(key: string) {
-  return async (ctx: any, next: any) => {
+  return async (ctx: KoaContext, next: KoaNext) => {
     middlewaresState.koa[key] = true;
     next();
   };
 }
 function testMiddlewareHapi(key: string) {
-  return async (request: any, h: any) => {
+  return async (request: HapiRequest, h: HapiResponseToolkit) => {
     middlewaresState.hapi[key] = true;
     return key;
   };
