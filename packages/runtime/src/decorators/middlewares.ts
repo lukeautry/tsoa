@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 export type ExpressMiddleware = (req: any, res: any, next: any) => Promise<any>;
 export type KoaMiddleware = (ctx: any, next: any) => Promise<any>;
 export type HapiMiddlewareBase = (request: any, h: any) => Promise<any>;
@@ -24,7 +23,7 @@ const TSOA_HAPI_MIDDLEWARES = Symbol('tsoa:hapiMiddlewares');
  *           method
  * @returns
  */
-function decorator(fn: (value: any) => void) {
+function decorator(fn: (value: any) => void): ClassDecorator & MethodDecorator {
   return (...args: any[]) => {
     // class decorator
     if (args.length === 1) {
