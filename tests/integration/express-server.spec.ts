@@ -460,6 +460,19 @@ describe('Express Server', () => {
     });
   });
 
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
+      );
+    });
+  });
+
   describe('Validate', () => {
     it('should valid minDate and maxDate validation of date type', () => {
       const minDate = '2019-01-01';

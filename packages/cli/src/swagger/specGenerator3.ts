@@ -2,7 +2,7 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
-import { getValue } from './../utils/swaggerUtils';
+import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
@@ -239,15 +239,15 @@ export class SpecGenerator3 extends SpecGenerator {
           let path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
           path = convertColonPathParams(path);
           paths[path] = paths[path] || {};
-          this.buildMethod(controller.name, method, paths[path]);
+          this.buildMethod(controller.name, method, paths[path], controller.produces);
         });
     });
 
     return paths;
   }
 
-  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method));
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string) {
+    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -289,7 +289,7 @@ export class SpecGenerator3 extends SpecGenerator {
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
-  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation3 {
+  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string): Swagger.Operation3 {
     const swaggerResponses: { [name: string]: Swagger.Response3 } = {};
 
     method.responses.forEach((res: Tsoa.Response) => {
@@ -298,8 +298,9 @@ export class SpecGenerator3 extends SpecGenerator {
       };
 
       if (res.schema && !isVoidType(res.schema)) {
+        const produces = res.produces || defaultProduces || DEFAULT_RESPONSE_MEDIA_TYPE;
         swaggerResponses[res.name].content = {
-          'application/json': {
+          [produces]: {
             schema: this.getSwaggerType(res.schema),
           } as Swagger.Schema3,
         };
@@ -311,7 +312,7 @@ export class SpecGenerator3 extends SpecGenerator {
             return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
           }, {});
           /* eslint-disable @typescript-eslint/dot-notation */
-          (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
+          (swaggerResponses[res.name].content || {})[DEFAULT_RESPONSE_MEDIA_TYPE]['examples'] = examples;
         }
       }
 
@@ -379,7 +380,7 @@ export class SpecGenerator3 extends SpecGenerator {
       description: parameter.description,
       required: parameter.required,
       content: {
-        'application/json': mediaType,
+        [DEFAULT_REQUEST_MEDIA_TYPE]: mediaType,
       },
     };
 

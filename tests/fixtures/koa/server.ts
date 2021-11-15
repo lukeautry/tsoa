@@ -11,6 +11,7 @@ import '../controllers/postController';
 import '../controllers/putController';
 
 import '../controllers/methodController';
+import '../controllers/mediaTypeController';
 import '../controllers/parameterController';
 import '../controllers/securityController';
 import '../controllers/testController';

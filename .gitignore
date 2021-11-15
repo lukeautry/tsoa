@@ -4,5 +4,6 @@ node_modules
 routes.ts
 customRoutes.ts
 .idea/
+*.swp
 yarn-error.log
 tsconfig.tsbuildinfo
