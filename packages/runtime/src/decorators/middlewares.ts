@@ -1,16 +1,6 @@
-import type { RequestHandler as ExpressMiddleware } from 'express';
-import type { Middleware as KoaMiddleware } from 'koa';
-import type { RouteOptionsPreArray as HapiMiddlewares } from 'hapi';
+type Middleware<T extends Function | Object> = T;
 
-export type Middlewares = {
-  express?: ExpressMiddleware[];
-  koa?: KoaMiddleware[];
-  hapi?: HapiMiddlewares;
-};
-
-const TSOA_EXPRESS_MIDDLEWARES = Symbol('tsoa:expressMiddlewares');
-const TSOA_KOA_MIDDLEWARES = Symbol('tsoa:koaMiddlewares');
-const TSOA_HAPI_MIDDLEWARES = Symbol('tsoa:hapiMiddlewares');
+const TSOA_MIDDLEWARES = Symbol('@tsoa:middlewares');
 
 /**
  * Helper function to create a decorator
@@ -21,7 +11,7 @@ const TSOA_HAPI_MIDDLEWARES = Symbol('tsoa:hapiMiddlewares');
  *           method
  * @returns
  */
-function decorator(fn: (value: any) => void): ClassDecorator & MethodDecorator {
+ function decorator(fn: (value: any) => void) {
   return (...args: any[]) => {
     // class decorator
     if (args.length === 1) {
@@ -36,87 +26,26 @@ function decorator(fn: (value: any) => void): ClassDecorator & MethodDecorator {
   };
 }
 
-function installMiddlewares(target: any, key: symbol, value?: any): void {
-  if (!value) {
-    return;
-  }
-
-  Reflect.defineMetadata(key, value, target);
-}
-
 /**
- * Install `express`, `koa` and `hapi` middlewares
- * to the Controller or a specific method.
+ * Install middlewares to the Controller or a specific method.
  * @param middlewares
  * @returns
  */
-export function Middlewares(middlewares: Middlewares) {
+export function Middlewares<T>(...mws: Middleware<T>[]): ClassDecorator & MethodDecorator {
   return decorator(target => {
-    installMiddlewares(target, TSOA_EXPRESS_MIDDLEWARES, middlewares.express);
-    installMiddlewares(target, TSOA_KOA_MIDDLEWARES, middlewares.koa);
-    installMiddlewares(target, TSOA_HAPI_MIDDLEWARES, middlewares.hapi);
-  });
-}
-
-/**
- * Install `express` middlewares to the Controller or a specific method.
- * @param middlewares
- * @returns
- */
-export function ExpressMiddlewares(...middlewares: ExpressMiddleware[]) {
-  return decorator(target => {
-    installMiddlewares(target, TSOA_EXPRESS_MIDDLEWARES, middlewares);
-  });
-}
-
-/**
- * Install `koa` middlewares to the Controller or a specific method.
- * @param middlewares
- * @returns
- */
-export function KoaMiddlewares(...middlewares: KoaMiddleware[]) {
-  return decorator(target => {
-    installMiddlewares(target, TSOA_KOA_MIDDLEWARES, middlewares);
-  });
-}
-
-/**
- * Install `hapi` middlewares to the Controller or a specific method.
- * @param middlewares
- * @returns
- */
-export function HapiMiddlewares(...middlewares: HapiMiddlewares) {
-  return decorator(target => {
-    installMiddlewares(target, TSOA_HAPI_MIDDLEWARES, middlewares);
+    if (mws) {
+      const current = fetchMiddlewares<T>(target);
+      Reflect.defineMetadata(TSOA_MIDDLEWARES, [...current, ...mws], target);
+    }
   });
 }
 
 /**
  * Internal function used to retrieve installed middlewares
- * in controller and methods
+ * in controller and methods (used during routes generation)
  * @param target
- * @returns list of express middlewares
+ * @returns list of middlewares
  */
-export function fetchExpressMiddlewares(target: any) {
-  return Reflect.getMetadata(TSOA_EXPRESS_MIDDLEWARES, target) || [];
-}
-
-/**
- * Internal function used to retrieve installed middlewares
- * in controller and methods
- * @param target
- * @returns list of koa middlewares
- */
-export function fetchKoaMiddlewares(target: any) {
-  return Reflect.getMetadata(TSOA_KOA_MIDDLEWARES, target) || [];
-}
-
-/**
- * Internal function used to retrieve installed middlewares
- * in controller and methods
- * @param target
- * @returns list of hapi middlewares
- */
-export function fetchHapiMiddlewares(target: any) {
-  return Reflect.getMetadata(TSOA_HAPI_MIDDLEWARES, target) || [];
+export function fetchMiddlewares<T>(target: any): Middleware<T>[] {
+  return Reflect.getMetadata(TSOA_MIDDLEWARES, target) || [];
 }

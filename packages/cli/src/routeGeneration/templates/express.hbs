@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchExpressMiddlewares } from '@tsoa/runtime';
+import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -15,6 +15,7 @@ const promiseAny = require('promise.any');
 import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
+import type { RequestHandler } from 'express';
 import * as express from 'express';
 {{#if useFileUploads}}
 const multer = require('multer');
@@ -68,8 +69,8 @@ export function RegisterRoutes(app: express.Router) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
-            ...(fetchExpressMiddlewares({{../name}})),
-            ...(fetchExpressMiddlewares({{../name}}.prototype.{{name}})),
+            ...(fetchMiddlewares<RequestHandler>({{../name}})),
+            ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
 
             {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, response: any, next: any) {
             const args = {

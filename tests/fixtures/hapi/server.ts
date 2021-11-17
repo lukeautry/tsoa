@@ -16,7 +16,7 @@ import '../controllers/validateController';
 import '../controllers/noExtendsController';
 import '../controllers/subresourceController';
 
-import '../controllers/middlewareController';
+import '../controllers/middlewaresHapiController';
 
 import { RegisterRoutes } from './routes';
 

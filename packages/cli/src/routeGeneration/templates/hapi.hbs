@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchHapiMiddlewares } from '@tsoa/runtime';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -16,7 +16,7 @@ import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, isBoom, Payload } from '@hapi/boom';
-import { Request } from '@hapi/hapi';
+import { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -75,8 +75,8 @@ export function RegisterRoutes(server: any) {
                       method: fileUploadMiddleware('{{uploadFilesName}}', true)
                     },
                     {{/if}}
-                    ...(fetchHapiMiddlewares({{../name}})),
-                    ...(fetchHapiMiddlewares({{../name}}.prototype.{{name}})),
+                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}})),
+                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}}.prototype.{{name}})),
                 ],
                 {{#if uploadFile}}
                 payload: {

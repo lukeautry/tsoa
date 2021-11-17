@@ -21,7 +21,8 @@ import '../controllers/tagController';
 import '../controllers/noExtendsController';
 import '../controllers/subresourceController';
 
-import '../controllers/middlewareController';
+import '../controllers/middlewaresExpressController';
+import '../controllers/middlewaresHierarchyController';
 
 import { RegisterRoutes } from './routes';
 

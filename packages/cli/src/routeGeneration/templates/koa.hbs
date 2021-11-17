@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchKoaMiddlewares } from '@tsoa/runtime';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 {{else}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, TsoaResponse, HttpStatusCodeLiteral } from '../../../src';
 {{/if}}
@@ -19,6 +19,7 @@ const promiseAny = require('promise.any');
 import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
+import type { Middleware } from 'koa';
 import * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
 const multer = require('@koa/multer');
@@ -72,8 +73,8 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
-            ...(fetchKoaMiddlewares({{../name}})),
-            ...(fetchKoaMiddlewares({{../name}}.prototype.{{name}})),
+            ...(fetchMiddlewares<Middleware>({{../name}})),
+            ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
 
             async function {{../name}}_{{name}}(context: any, next: any) {
             const args = {
