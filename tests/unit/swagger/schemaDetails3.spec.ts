@@ -708,6 +708,43 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
         });
 
+        describe('media types', () => {
+          let mediaTypeTest;
+
+          before(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          });
+
+          it('Should use controller Produces decorator as a default media type', () => {
+            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content);
+            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content);
+
+            expect(mediaTypeOk).to.eql('application/vnd.mycompany.myapp+json');
+            expect(mediaTypeNotFound).to.eql('application/vnd.mycompany.myapp+json');
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content);
+
+            expect(mediaType).to.eql('text/plain');
+          });
+
+          it('Should generate custom media types from method reponse decorators', () => {
+            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content);
+            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content);
+
+            expect(mediaTypeAccepted).to.eql('application/vnd.mycompany.myapp.v2+json');
+            expect(mediaTypeBadRequest).to.eql('application/problem+json');
+          });
+
+          it('Should generate custom media types from header in @Res decorator', () => {
+            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content);
+
+            expect(mediaTypeConflict).to.eql('application/problem+json');
+          });
+        });
+
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
@@ -1139,8 +1176,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq({
               anyOf: [
                 { type: 'string', enum: ['String'] },
-                { type: 'number', enum: ['1', '20'] },
-                { type: 'boolean', enum: ['true', 'false'] },
+                { type: 'number', enum: [1, 20] },
+                { type: 'boolean', enum: [true, false] },
               ],
               default: undefined,
               description: undefined,
@@ -1152,8 +1189,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq({
               anyOf: [
                 { type: 'string', enum: ['String'] },
-                { type: 'number', enum: ['1', '20'] },
-                { type: 'boolean', enum: ['true', 'false'] },
+                { type: 'number', enum: [1, 20] },
+                { type: 'boolean', enum: [true, false] },
               ],
               default: undefined,
               description: undefined,
@@ -1169,7 +1206,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
             expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('3.1415', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include(3.1415, `for property ${propertyName}.enum`);
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);

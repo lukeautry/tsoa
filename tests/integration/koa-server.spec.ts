@@ -303,6 +303,19 @@ describe('Koa Server', () => {
     });
   });
 
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
+      );
+    });
+  });
+
   describe('NoExtends', () => {
     it('should ignore SuccessResponse code and use default code', () => {
       return verifyGetRequest(

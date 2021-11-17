@@ -427,6 +427,33 @@ describe('Schema details generation', () => {
           });
         });
 
+        describe('media types', () => {
+          let mediaTypeTest;
+
+          before(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          });
+
+          it('Should use controller Produces decorator as a default media type', () => {
+            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get;
+
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json']);
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get;
+
+            expect(produces).to.deep.eq(['text/plain']);
+          });
+
+          it('Should generate custom media types from method reponse decorators and Res decorator', () => {
+            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+
+            expect(produces).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
+          });
+        });
+
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
