@@ -2,7 +2,7 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
-import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
+import { APPLICATION_OCTET_STREAM, DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
@@ -281,7 +281,7 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     if (bodyParams.length > 0) {
-      if (bodyParams[0].type.dataType === 'buffer') {
+      if (bodyParams[0].type.dataType === 'binary') {
         pathMethod.requestBody = this.buildRequestBodyWithStream(controllerName, method, bodyParams[0]);
       } else {
         pathMethod.requestBody = this.buildRequestBody(controllerName, method, bodyParams[0]);
@@ -302,7 +302,7 @@ export class SpecGenerator3 extends SpecGenerator {
       };
 
       if (res.schema && !isVoidType(res.schema)) {
-        const produces = res.produces || defaultProduces || DEFAULT_RESPONSE_MEDIA_TYPE;
+        const produces = res.produces || defaultProduces || (res.schema.dataType === 'binary' ? APPLICATION_OCTET_STREAM : DEFAULT_RESPONSE_MEDIA_TYPE);
         swaggerResponses[res.name].content = {
           [produces]: {
             schema: this.getSwaggerType(res.schema),
@@ -357,12 +357,12 @@ export class SpecGenerator3 extends SpecGenerator {
       description: parameter.description,
       required: parameter.required,
       content: {
-        'application/octet-stream': mediaType,
+        [APPLICATION_OCTET_STREAM]: mediaType,
       },
     };
 
     return requestBody;
-  } 
+  }
 
   private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody {
     const required: string[] = [];

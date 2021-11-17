@@ -330,7 +330,7 @@ export class TypeResolver {
       }
 
       if (typeReference.typeName.text === 'Readable') {
-        const streamMetaType: Tsoa.BufferType = { dataType: 'buffer' };
+        const streamMetaType: Tsoa.BinaryType = { dataType: 'binary' };
         return streamMetaType;
       }
 

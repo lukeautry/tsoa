@@ -465,30 +465,28 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
           },
         });
-        it('should have requestBody with application/octet-stream', () => {
-          // Act
-          const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
-          const pathPost = specPost.paths['/PostTest/WithStreamBody'].post;
-          if (!pathPost) {
-            throw new Error('PostTest file method not defined');
-          }
-          if (!pathPost.requestBody) {
-            throw new Error('PostTest file method has no requestBody');
-          }
-  
-          // Assert
-          expect(pathPost.parameters).to.have.length(0);
-          expect(pathPost.requestBody).to.deep.equal({
-            required: true,
-            content: {
-              'application/octet-stream': {
-                schema: {
-                  type: 'string',
-                  format: 'binary',
-                },
-              },
+      });
+      it('should have requestBody with application/octet-stream', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/WithStreamBody'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody.content).to.deep.equal({
+          'application/octet-stream': {
+            example: undefined,
+            schema: {
+              format: 'binary',
+              type: 'string',
             },
-          });
+          },
         });
       });
       it('should not treat optional file as required', () => {
@@ -2442,6 +2440,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       expectTestModelContent(responses?.['400']);
       expectTestModelContent(responses?.['500']);
+    });
+    it('creates proper response type for stream', () => {
+      const responses = specDefault.spec.paths['/GetTest/HandleStreamType']?.get?.responses;
+
+      expect(responses?.['200'].content).to.deep.equal({
+        'application/octet-stream': {
+          schema: {
+            format: 'binary',
+            type: 'string',
+          },
+        },
+      });
     });
   });
 });
