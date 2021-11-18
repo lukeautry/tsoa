@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 export * from './decorators/deprecated';
 export * from './decorators/example';
 export * from './decorators/parameter';
@@ -7,6 +8,7 @@ export * from './decorators/operationid';
 export * from './decorators/route';
 export * from './decorators/security';
 export * from './decorators/extension';
+export * from './decorators/middlewares';
 export * from './interfaces/controller';
 export * from './interfaces/response';
 export * from './interfaces/iocModule';

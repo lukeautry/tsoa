@@ -26,6 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "promise.any": "^2.0.2",
+    "reflect-metadata": "^0.1.13",
     "validator": "^13.6.0"
   },
   "devDependencies": {

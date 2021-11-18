@@ -16,6 +16,8 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
+import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -361,6 +363,30 @@ describe('Express Server', () => {
       },
       400,
     );
+  });
+
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTestExpress/test1',
+      (err, res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+      },
+      204,
+    );
+  });
+
+  it('can invoke middlewares in the order they are defined by controller class hierarchy', () => {
+    expect(state()).to.be.empty;
+    return verifyGetRequest(
+      basePath + '/MiddlewareHierarchyTestExpress/test1',
+      (err, res) => {
+          const expected = ['base', 'intermediate', 'route', 'test1'];
+          expect(state()).to.eql(expected);
+      },
+      204,
+    )
   });
 
   describe('Controller', () => {
