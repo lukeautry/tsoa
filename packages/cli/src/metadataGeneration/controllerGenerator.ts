@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getProduces, getSecurites } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
@@ -13,7 +13,7 @@ export class ControllerGenerator {
   private readonly security?: Tsoa.Security[];
   private readonly isHidden?: boolean;
   private readonly commonResponses: Tsoa.Response[];
-  private readonly produces?: string;
+  private readonly produces?: string[];
 
   constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
     this.path = this.getPath();
@@ -136,18 +136,8 @@ export class ControllerGenerator {
     return true;
   }
 
-  private getProduces(): string | undefined {
-    const producesDecorators = getDecorators(this.node, identifier => identifier.text === 'Produces');
-
-    if (!producesDecorators || !producesDecorators.length) {
-      return;
-    }
-    if (producesDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Produces decorator allowed in '${this.node.name!.text}' class.`);
-    }
-
-    const [decorator] = producesDecorators;
-    const [produces] = getDecoratorValues(decorator, this.current.typeChecker);
-    return produces;
+  private getProduces(): string[] | undefined {
+    const produces = getProduces(this.node, this.current.typeChecker);
+    return produces.length ? produces : undefined;
   }
 }

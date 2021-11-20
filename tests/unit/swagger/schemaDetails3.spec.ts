@@ -685,10 +685,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         describe('media types', () => {
           let mediaTypeTest;
+          let requestAcceptHeaderTest;
 
           before(() => {
-            const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
-            mediaTypeTest = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+            const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator3(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
+
+            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+            requestAcceptHeaderTest = new SpecGenerator3(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
@@ -699,18 +703,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(mediaTypeNotFound).to.eql('application/vnd.mycompany.myapp+json');
           });
 
+          it('Should be possible to define multiple media types on controller level', () => {
+            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content);
+
+            expect(v1).to.eql('application/vnd.mycompany.myapp+json');
+            expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
+          });
+
           it('Should generate custom media type from method Produces decorator', () => {
             const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content);
+            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content);
 
             expect(mediaType).to.eql('text/plain');
+            expect(v1).to.eql('application/vnd.mycompany.myapp+json');
+            expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
+            expect(v3).to.eql('application/vnd.mycompany.myapp.v3+json');
+            expect(v4).to.eql('application/vnd.mycompany.myapp.v4+json');
           });
 
           it('Should generate custom media types from method reponse decorators', () => {
             const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content);
             const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content);
+            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content);
+            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content);
 
             expect(mediaTypeAccepted).to.eql('application/vnd.mycompany.myapp.v2+json');
             expect(mediaTypeBadRequest).to.eql('application/problem+json');
+            expect(v3).to.eql('application/vnd.mycompany.myapp.v3+json');
+            expect(v4).to.eql('application/vnd.mycompany.myapp.v4+json');
+            expect(br1).to.eql('application/problem+json');
+            expect(br2).to.eql('application/json');
           });
 
           it('Should generate custom media types from header in @Res decorator', () => {

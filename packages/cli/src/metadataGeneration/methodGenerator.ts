@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
-import { getDecorators, getDecoratorValues, getPath, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getPath, getProduces, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getExtensions } from './extension';
 import { GenerateMetadataError } from './exceptions';
@@ -15,7 +15,7 @@ import { getHeaderType } from '../utils/headerTypeHelpers';
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
-  private produces?: string;
+  private produces?: string[];
 
   constructor(
     private readonly node: ts.MethodDeclaration,
@@ -139,19 +139,9 @@ export class MethodGenerator {
     this.produces = this.getProduces();
   }
 
-  private getProduces(): string | undefined {
-    const producesDecorators = this.getDecoratorsByIdentifier(this.node, 'Produces');
-
-    if (!producesDecorators || !producesDecorators.length) {
-      return;
-    }
-    if (producesDecorators.length > 1) {
-      throw new GenerateMetadataError(`Only one Produces decorator in '${this.getCurrentLocation()}' method, Found: ${producesDecorators.map(d => d.text).join(', ')}`);
-    }
-
-    const [decorator] = producesDecorators;
-    const [produces] = getDecoratorValues(decorator, this.current.typeChecker);
-    return produces;
+  private getProduces(): string[] | undefined {
+    const produces = getProduces(this.node, this.current.typeChecker);
+    return produces.length ? produces : undefined;
   }
 
   private getMethodResponses(): Tsoa.Response[] {
@@ -169,7 +159,7 @@ export class MethodGenerator {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name: name || '200',
-        produces,
+        produces: this.getProducesAdapter(produces),
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
@@ -206,7 +196,7 @@ export class MethodGenerator {
         description: description || '',
         examples,
         name: name || '200',
-        produces,
+        produces: this.getProducesAdapter(produces),
         schema: type,
         headers,
       },
@@ -315,5 +305,14 @@ export class MethodGenerator {
 
   private getDecoratorsByIdentifier(node: ts.Node, id: string) {
     return getDecorators(node, identifier => identifier.text === id);
+  }
+
+  private getProducesAdapter(produces?: string[] | string): string[] | undefined {
+    if (Array.isArray(produces)) {
+      return produces;
+    } else if (typeof produces === 'string') {
+      return [produces];
+    }
+    return;
   }
 }

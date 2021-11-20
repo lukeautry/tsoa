@@ -115,13 +115,12 @@ export class ParameterGenerator {
     });
   }
 
-  private getProducesFromResHeaders(headers: Tsoa.HeaderType): string | undefined {
+  private getProducesFromResHeaders(headers: Tsoa.HeaderType): string[] | undefined {
     const { properties } = headers;
     const [contentTypeProp] = (properties || []).filter(p => p.name.toLowerCase() === 'content-type' && p.type.dataType === 'enum');
     if (contentTypeProp) {
       const type = contentTypeProp.type as Tsoa.EnumType;
-      const [produces] = type.enums as string[];
-      return produces;
+      return type.enums as string[];
     }
     return;
   }

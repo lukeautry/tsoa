@@ -382,11 +382,11 @@ describe('Express Server', () => {
     return verifyGetRequest(
       basePath + '/MiddlewareHierarchyTestExpress/test1',
       (err, res) => {
-          const expected = ['base', 'intermediate', 'route', 'test1'];
-          expect(state()).to.eql(expected);
+        const expected = ['base', 'intermediate', 'route', 'test1'];
+        expect(state()).to.eql(expected);
       },
       204,
-    )
+    );
   });
 
   describe('Controller', () => {
@@ -495,6 +495,22 @@ describe('Express Server', () => {
           expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
         },
         202,
+      );
+    });
+
+    it('should return custom content-type based on "Accept" header', () => {
+      return verifyRequest(
+        (err, res) => {
+          const { body, type } = res;
+          expect(body.codename).to.eq('foo');
+          expect(type).to.eq('application/vnd.mycompany.myapp.v4+json');
+        },
+        request => {
+          return request.get(basePath + '/RequestAcceptHeaderTest/Multi/1').set({
+            Accept: 'application/vnd.mycompany.myapp.v4+json',
+          });
+        },
+        200,
       );
     });
   });

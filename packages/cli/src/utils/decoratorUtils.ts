@@ -74,3 +74,13 @@ export function getPath(decorator: ts.Identifier, typeChecker: ts.TypeChecker): 
 
   return path;
 }
+
+export function getProduces(node: ts.Node, typeChecker: ts.TypeChecker): string[] {
+  const producesDecorators = getDecorators(node, identifier => identifier.text === 'Produces');
+
+  if (!producesDecorators || !producesDecorators.length) {
+    return [];
+  }
+
+  return producesDecorators.map(decorator => getDecoratorValues(decorator, typeChecker)[0]);
+}
