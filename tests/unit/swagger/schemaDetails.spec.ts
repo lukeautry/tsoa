@@ -429,10 +429,14 @@ describe('Schema details generation', () => {
 
         describe('media types', () => {
           let mediaTypeTest;
+          let requestAcceptHeaderTest;
 
           before(() => {
             const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
             mediaTypeTest = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+            requestAcceptHeaderTest = new SpecGenerator2(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
@@ -441,16 +445,31 @@ describe('Schema details generation', () => {
             expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json']);
           });
 
-          it('Should generate custom media type from method Produces decorator', () => {
-            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get;
+          it('Should be possible to define multiple media types on controller level', () => {
+            const { produces } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get;
 
-            expect(produces).to.deep.eq(['text/plain']);
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json', 'application/vnd.mycompany.myapp.v2+json']);
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get;
+
+            expect(mediaTypeTestCustom).to.deep.eq(['text/plain']);
+            expect(requestAcceptHeaderMulti).to.deep.eq([
+              'application/vnd.mycompany.myapp+json',
+              'application/vnd.mycompany.myapp.v2+json',
+              'application/vnd.mycompany.myapp.v3+json',
+              'application/vnd.mycompany.myapp.v4+json',
+            ]);
           });
 
           it('Should generate custom media types from method reponse decorators and Res decorator', () => {
-            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post;
 
-            expect(produces).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
+            expect(mediaTypeTestCustom).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
+            expect(requestAcceptHeaderMulti).to.deep.eq(['application/problem+json', 'application/json', 'application/vnd.mycompany.myapp.v3+json', 'application/vnd.mycompany.myapp.v4+json']);
           });
         });
 

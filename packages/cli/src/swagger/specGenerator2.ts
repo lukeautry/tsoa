@@ -153,7 +153,7 @@ export class SpecGenerator2 extends SpecGenerator {
     return paths;
   }
 
-  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string) {
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
     const pathMethod: Swagger.Operation = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
@@ -187,7 +187,7 @@ export class SpecGenerator2 extends SpecGenerator {
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
-  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string): Swagger.Operation {
+  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string[]): Swagger.Operation {
     const swaggerResponses: { [name: string]: Swagger.Response } = {};
 
     let produces: Array<string | undefined> = [];
@@ -196,7 +196,9 @@ export class SpecGenerator2 extends SpecGenerator {
         description: res.description,
       };
       if (res.schema && !isVoidType(res.schema)) {
-        produces.push(res.produces);
+        if (res.produces) {
+          produces.push(...res.produces);
+        }
         swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema;
       }
       if (res.examples && res.examples[0]) {
@@ -224,7 +226,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     produces = Array.from(new Set(produces.filter(p => p !== undefined)));
     if (produces.length === 0) {
-      produces = [defaultProduces || DEFAULT_RESPONSE_MEDIA_TYPE];
+      produces = defaultProduces || [DEFAULT_RESPONSE_MEDIA_TYPE];
     }
 
     const operation: Swagger.Operation = {
