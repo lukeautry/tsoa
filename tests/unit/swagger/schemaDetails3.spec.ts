@@ -740,6 +740,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             expect(mediaTypeConflict).to.eql('application/problem+json');
           });
+
+          it('Should generate custom media type of request body from method Consumes decorator', () => {
+            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content);
+            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content);
+
+            expect(bodyMediaTypeDefault).to.eql('application/json');
+            expect(bodyMediaTypeCustom).to.eql('application/vnd.mycompany.myapp.v2+json');
+          });
         });
 
         it('Supports multiple examples', () => {

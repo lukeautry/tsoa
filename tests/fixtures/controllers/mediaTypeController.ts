@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 type UserRequestModel = Pick<UserResponseModel, 'name'>;
@@ -16,6 +16,14 @@ export class MediaTypeTestController extends Controller {
     });
   }
 
+  @SuccessResponse('202', 'Accepted')
+  @Post('Default')
+  async postDefaultProduces(@Body() model: UserRequestModel): Promise<UserResponseModel> {
+    const body = { id: model.name.length, name: model.name };
+    this.setStatus(202);
+    return body;
+  }
+
   @Get('Custom/security.txt')
   @Produces('text/plain')
   public async getCustomProduces(): Promise<string> {
@@ -24,6 +32,7 @@ export class MediaTypeTestController extends Controller {
     return securityTxt;
   }
 
+  @Consumes('application/vnd.mycompany.myapp.v2+json')
   @SuccessResponse('202', 'Accepted', 'application/vnd.mycompany.myapp.v2+json')
   @Response<ErrorResponseModel>('400', 'Bad Request', undefined, 'application/problem+json')
   @Post('Custom')

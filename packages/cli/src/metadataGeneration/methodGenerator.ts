@@ -16,6 +16,7 @@ export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
   private produces?: string[];
+  private consumes?: string;
 
   constructor(
     private readonly node: ts.MethodDeclaration,
@@ -64,6 +65,7 @@ export class MethodGenerator {
       parameters,
       path: this.path,
       produces: this.produces,
+      consumes: this.consumes,
       responses,
       successStatus: successStatus,
       security: this.getSecurity(),
@@ -137,11 +139,27 @@ export class MethodGenerator {
     // we need to throw an error there
     this.path = getPath(decorator, this.current.typeChecker);
     this.produces = this.getProduces();
+    this.consumes = this.getConsumes();
   }
 
   private getProduces(): string[] | undefined {
     const produces = getProduces(this.node, this.current.typeChecker);
     return produces.length ? produces : undefined;
+  }
+
+  private getConsumes(): string | undefined {
+    const consumesDecorators = this.getDecoratorsByIdentifier(this.node, 'Consumes');
+
+    if (!consumesDecorators || !consumesDecorators.length) {
+      return;
+    }
+    if (consumesDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Consumes decorator in '${this.getCurrentLocation()}' method, Found: ${consumesDecorators.map(d => d.text).join(', ')}`);
+    }
+
+    const [decorator] = consumesDecorators;
+    const [consumes] = getDecoratorValues(decorator, this.current.typeChecker);
+    return consumes;
   }
 
   private getMethodResponses(): Tsoa.Response[] {
