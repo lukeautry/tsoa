@@ -380,12 +380,13 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
     const mediaType = this.buildMediaType(controllerName, method, parameter);
+    const consumes = method.consumes || DEFAULT_REQUEST_MEDIA_TYPE;
 
     const requestBody: Swagger.RequestBody = {
       description: parameter.description,
       required: parameter.required,
       content: {
-        [DEFAULT_REQUEST_MEDIA_TYPE]: mediaType,
+        [consumes]: mediaType,
       },
     };
 

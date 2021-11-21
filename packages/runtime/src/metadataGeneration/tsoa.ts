@@ -23,6 +23,7 @@ export namespace Tsoa {
     parameters: Parameter[];
     path: string;
     produces?: string[];
+    consumes?: string;
     type: Type;
     tags?: string[];
     responses: Response[];

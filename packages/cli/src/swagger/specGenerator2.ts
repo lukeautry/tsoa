@@ -235,9 +235,16 @@ export class SpecGenerator2 extends SpecGenerator {
       responses: swaggerResponses,
     };
 
+    const hasBody = method.parameters.some(p => p.in === 'body');
     const hasFormData = method.parameters.some(p => p.in === 'formData');
-    if (hasFormData) {
-      operation.consumes = ['multipart/form-data'];
+    if (hasBody || hasFormData) {
+      operation.consumes = [];
+      if (hasBody) {
+        operation.consumes.push(method.consumes || DEFAULT_REQUEST_MEDIA_TYPE);
+      }
+      if (hasFormData) {
+        operation.consumes.push('multipart/form-data');
+      }
     }
 
     return operation;

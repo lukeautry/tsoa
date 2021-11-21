@@ -102,3 +102,16 @@ export function FormField(name?: string): any {
     return;
   };
 }
+
+/**
+ * Overrides the default media type of request.
+ * Can be used on specific method.
+ * Can't be used on controller level.
+ *
+ * @link https://swagger.io/docs/specification/media-types/
+ */
+export function Consumes(value: string): Function {
+  return () => {
+    return;
+  };
+}

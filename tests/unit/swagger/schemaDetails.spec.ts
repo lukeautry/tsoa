@@ -471,6 +471,14 @@ describe('Schema details generation', () => {
             expect(mediaTypeTestCustom).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
             expect(requestAcceptHeaderMulti).to.deep.eq(['application/problem+json', 'application/json', 'application/vnd.mycompany.myapp.v3+json', 'application/vnd.mycompany.myapp.v4+json']);
           });
+
+          it('Should generate custom media type of request body from method Consumes decorator', () => {
+            const { consumes: consumesDefault } = mediaTypeTest.paths['/MediaTypeTest/Default']?.post;
+            const { consumes: consumesCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+
+            expect(consumesDefault).to.deep.eq(['application/json']);
+            expect(consumesCustom).to.deep.eq(['application/vnd.mycompany.myapp.v2+json']);
+          });
         });
 
         it('Falls back to the first @Example<>', () => {
