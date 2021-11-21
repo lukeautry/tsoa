@@ -117,17 +117,18 @@ export namespace Tsoa {
     | 'refAlias'
     | 'nestedObjectLiteral'
     | 'union'
-    | 'intersection';
+    | 'intersection'
+    | 'undefined';
 
   export type RefTypeLiteral = 'refObject' | 'refEnum' | 'refAlias';
 
-  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
+  export type PrimitiveTypeLiteral = Exclude<TypeStringLiteral, RefTypeLiteral | 'enum' | 'array' | 'void' | 'undefined' | 'nestedObjectLiteral' | 'union' | 'intersection'>;
 
   export interface TypeBase {
     dataType: TypeStringLiteral;
   }
 
-  export type PrimitiveType = StringType | BooleanType | DoubleType | FloatType | IntegerType | LongType | VoidType;
+  export type PrimitiveType = StringType | BooleanType | DoubleType | FloatType | IntegerType | LongType | VoidType | UndefinedType;
 
   /**
    * This is one of the possible objects that tsoa creates that helps the code store information about the type it found in the code.
@@ -222,6 +223,10 @@ export namespace Tsoa {
 
   export interface VoidType extends TypeBase {
     dataType: 'void';
+  }
+
+  export interface UndefinedType extends TypeBase {
+    dataType: 'undefined';
   }
 
   export interface AnyType extends TypeBase {

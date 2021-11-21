@@ -30,6 +30,7 @@ export class GetTestController extends Controller {
    */
   @Get()
   @SuccessResponse('200', 'Returns TestModel')
+  // Have to give also values that are not part of the Swagger schema to get example to caller.
   @Example<TestModel>({
     and: { value1: 'foo', value2: 'bar' },
     boolArray: [true, false],
@@ -62,6 +63,8 @@ export class GetTestController extends Controller {
     strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
     stringValue: 'a string',
+    undefineableUnionPrimitiveType: undefined,
+    undefinedValue: undefined,
   })
   public async getModel(): Promise<TestModel> {
     return new ModelService().getModel();

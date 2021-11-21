@@ -70,9 +70,8 @@ export class SpecGenerator2 extends SpecGenerator {
     const definitions: { [definitionsName: string]: Swagger.Schema2 } = {};
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
-
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p)).map(p => p.name);
         definitions[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -125,6 +124,7 @@ export class SpecGenerator2 extends SpecGenerator {
       } else {
         assertNever(referenceType);
       }
+
       if (referenceType.deprecated) {
         definitions[referenceType.refName]['x-deprecated'] = true;
       }
@@ -400,18 +400,19 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+    const typesWithoutUndefined = type.types.filter(x => x.dataType !== 'undefined');
     // Backwards compatible representation of a literal enumeration
-    if (type.types.every(subType => subType.dataType === 'enum')) {
+    if (typesWithoutUndefined.every(subType => subType.dataType === 'enum')) {
       const mergedEnum: Tsoa.EnumType = { dataType: 'enum', enums: [] };
-      type.types.forEach(t => {
+      typesWithoutUndefined.forEach(t => {
         mergedEnum.enums = [...mergedEnum.enums, ...(t as Tsoa.EnumType).enums];
       });
       return this.getSwaggerTypeForEnumType(mergedEnum);
-    } else if (type.types.length === 2 && type.types.find(typeInUnion => typeInUnion.dataType === 'enum' && typeInUnion.enums.includes(null))) {
+    } else if (typesWithoutUndefined.length === 2 && typesWithoutUndefined.find(typeInUnion => typeInUnion.dataType === 'enum' && typeInUnion.enums.includes(null))) {
       // Backwards compatible representation of dataType or null, $ref does not allow any sibling attributes, so we have to bail out
-      const nullEnumIndex = type.types.findIndex(type => type.dataType === 'enum' && type.enums.includes(null));
+      const nullEnumIndex = typesWithoutUndefined.findIndex(type => type.dataType === 'enum' && type.enums.includes(null));
       const typeIndex = nullEnumIndex === 1 ? 0 : 1;
-      const swaggerType = this.getSwaggerType(type.types[typeIndex]);
+      const swaggerType = this.getSwaggerType(typesWithoutUndefined[typeIndex]);
       const isRef = !!swaggerType.$ref;
 
       if (isRef) {

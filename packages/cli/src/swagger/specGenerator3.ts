@@ -147,7 +147,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => p.required).map(p => p.name);
+        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p)).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -581,7 +581,7 @@ export class SpecGenerator3 extends SpecGenerator {
     return returnTypes;
   }
 
-  protected removeDuplicateSwaggerTypes(types: Array<Swagger.Schema | Swagger.BaseSchema>) {
+  protected removeDuplicateSwaggerTypes(types: Array<Swagger.Schema | Swagger.BaseSchema>): Array<Swagger.Schema | Swagger.BaseSchema> {
     if (types.length === 1) {
       return types;
     } else {
@@ -594,45 +594,35 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
-    const notNullSwaggerTypes = this.removeDuplicateSwaggerTypes(this.groupEnums(type.types.filter(x => !this.isNull(x)).map(x => this.getSwaggerType(x))));
+    // Filter out nulls and undefineds
+    const actualSwaggerTypes = this.removeDuplicateSwaggerTypes(
+      this.groupEnums(
+        type.types
+          .filter(x => !this.isNull(x))
+          .filter(x => x.dataType !== 'undefined')
+          .map(x => this.getSwaggerType(x)),
+      ),
+    );
     const nullable = type.types.some(x => this.isNull(x));
 
-    if (nullable && notNullSwaggerTypes.length === 1) {
-      const [swaggerType] = notNullSwaggerTypes;
-
-      // let special case of ref union with null to use an allOf with a single
-      // element since you can't attach nullable directly to a ref.
-      // https://swagger.io/docs/specification/using-ref/#syntax
-      //
-      // Using this format has the benefit that its already supported by the
-      // openapi typescript-fetch generation.
-      if (swaggerType.$ref) {
-        return { allOf: [swaggerType], nullable: true };
-      } else {
-        swaggerType['nullable'] = true;
-        return swaggerType;
-      }
-    }
-
     if (nullable) {
-      if (notNullSwaggerTypes.length === 1) {
-        const [swaggerType] = notNullSwaggerTypes;
+      if (actualSwaggerTypes.length === 1) {
+        const [swaggerType] = actualSwaggerTypes;
         // for ref union with null, use an allOf with a single
         // element since you can't attach nullable directly to a ref.
         // https://swagger.io/docs/specification/using-ref/#syntax
         if (swaggerType.$ref) {
           return { allOf: [swaggerType], nullable };
         }
-
         return { ...swaggerType, nullable };
       } else {
-        return { anyOf: notNullSwaggerTypes, nullable };
+        return { anyOf: actualSwaggerTypes, nullable };
       }
     } else {
-      if (notNullSwaggerTypes.length === 1) {
-        return notNullSwaggerTypes[0];
+      if (actualSwaggerTypes.length === 1) {
+        return actualSwaggerTypes[0];
       } else {
-        return { anyOf: notNullSwaggerTypes };
+        return { anyOf: actualSwaggerTypes };
       }
     }
   }

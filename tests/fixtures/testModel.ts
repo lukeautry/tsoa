@@ -50,6 +50,7 @@ export interface TestModel extends Model {
   boolArray: boolean[];
   object: object;
   objectArray: object[];
+  undefinedValue: undefined;
   enumValue?: EnumIndexValue;
   enumArray?: EnumIndexValue[];
   enumNumberValue?: EnumNumberValue;
@@ -65,6 +66,7 @@ export interface TestModel extends Model {
   strLiteralArr: StrLiteral[];
   unionPrimitiveType?: 'String' | 1 | 20.0 | true | false;
   nullableUnionPrimitiveType?: 'String' | 1 | 20.0 | true | false | null;
+  undefineableUnionPrimitiveType: 'String' | 1 | 20.0 | true | false | undefined;
   singleFloatLiteralType?: 3.1415;
   dateValue?: Date;
   optionalString?: string;

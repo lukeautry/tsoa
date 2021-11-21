@@ -2,7 +2,7 @@ import { TestClassModel, TestModel, TestSubModel } from '../testModel';
 
 export class ModelService {
   public getModel(): TestModel {
-    return {
+    const testModel: Partial<TestModel> = {
       and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: true,
@@ -34,6 +34,7 @@ export class ModelService {
       stringArray: ['string one', 'string two'],
       stringValue: 'a string',
     };
+    return testModel as TestModel;
   }
 
   public getModelPromise(): Promise<TestModel> {
