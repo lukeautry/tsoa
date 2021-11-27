@@ -47,10 +47,12 @@ const authorInformation: Promise<
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
+  const ext = path.extname(configPath);
   try {
-    const ext = path.extname(configPath);
     if (ext === '.yaml' || ext === '.yml') {
       config = YAML.load(configPath);
+    } else if (ext === '.js') {
+      config = await import(`${workingDir}/${configPath}`);
     } else {
       const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
       config = JSON.parse(configRaw.toString('utf8'));
@@ -61,8 +63,9 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
     } else if (err.name === 'SyntaxError') {
       // eslint-disable-next-line no-console
       console.error(err);
+      const errorType = ext === '.js' ? 'JS' : 'JSON';
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw Error(`Invalid JSON syntax in config at '${configPath}': ${err.message}`);
+      throw Error(`Invalid ${errorType} syntax in config at '${configPath}': ${err.message}`);
     } else {
       // eslint-disable-next-line no-console
       console.error(err);
