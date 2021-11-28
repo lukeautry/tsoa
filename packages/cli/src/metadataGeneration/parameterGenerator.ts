@@ -86,6 +86,8 @@ export class ParameterGenerator {
       return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
+    const headers = getHeaderType(typeNode.typeArguments, 2, this.current);
+
     return statusArgumentTypes.map(statusArgumentType => {
       if (!isNumberLiteralType(statusArgumentType)) {
         throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
@@ -94,21 +96,33 @@ export class ParameterGenerator {
       const status = String(statusArgumentType.value);
 
       const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
-
+      const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
       return {
         description: this.getParameterDescription(parameter) || '',
         in: 'res',
         name: status,
+        produces: headers ? this.getProducesFromResHeaders(headers) : undefined,
         parameterName,
-        examples: this.getParameterExample(parameter, parameterName),
+        examples,
         required: true,
         type,
+        exampleLabels,
         schema: type,
         validators: {},
-        headers: getHeaderType(typeNode.typeArguments, 2, this.current),
+        headers,
         deprecated: this.getParameterDeprecation(parameter),
       };
     });
+  }
+
+  private getProducesFromResHeaders(headers: Tsoa.HeaderType): string[] | undefined {
+    const { properties } = headers;
+    const [contentTypeProp] = (properties || []).filter(p => p.name.toLowerCase() === 'content-type' && p.type.dataType === 'enum');
+    if (contentTypeProp) {
+      const type = contentTypeProp.type as Tsoa.EnumType;
+      return type.enums as string[];
+    }
+    return;
   }
 
   private getBodyPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
@@ -122,7 +136,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'body-prop',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
@@ -145,7 +159,7 @@ export class ParameterGenerator {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -165,7 +179,7 @@ export class ParameterGenerator {
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'header',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
       parameterName,
@@ -235,7 +249,7 @@ export class ParameterGenerator {
     const commonProperties = {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: this.getParameterExample(parameter, parameterName).examples,
       in: 'query' as const,
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
       parameterName,
@@ -289,11 +303,11 @@ export class ParameterGenerator {
     if (!this.path.includes(`{${pathName}}`) && !this.path.includes(`:${pathName}`)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
     }
-
+    const { examples } = this.getParameterExample(parameter, parameterName);
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName),
+      example: examples,
       in: 'path',
       name: pathName,
       parameterName,
@@ -323,16 +337,30 @@ export class ParameterGenerator {
   }
 
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
-    const examples = getJSDocTags(
-      node.parent,
-      tag => (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && (commentToString(tag.comment) || '').startsWith(parameterName),
-    ).map(tag => (commentToString(tag.comment) || '').replace(`${parameterName} `, '').replace(/\r/g, ''));
+    const exampleLabels: Array<string | undefined> = [];
+    const examples = getJSDocTags(node.parent, tag => {
+      const comment = commentToString(tag.comment);
+      const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && comment?.startsWith(parameterName);
+      const hasExampleLabel = (comment?.indexOf('.') || -1) > 0;
+
+      if (isExample) {
+        // custom example label is delimited by first '.' and the rest will all be included as example label
+        exampleLabels.push(hasExampleLabel ? comment?.split(' ')[0].split('.').slice(1).join('.') : undefined);
+      }
+      return isExample ?? false;
+    }).map(tag => (commentToString(tag.comment) || '').replace(`${commentToString(tag.comment)?.split(' ')[0] || ''}`, '').replace(/\r/g, ''));
 
     if (examples.length === 0) {
-      return undefined;
+      return {
+        exmaples: undefined,
+        exampleLabels: undefined,
+      };
     } else {
       try {
-        return examples.map(example => JSON.parse(example));
+        return {
+          examples: examples.map(example => JSON.parse(example)),
+          exampleLabels,
+        };
       } catch (e) {
         throw new GenerateMetadataError(`JSON format is incorrect: ${String(e.message)}`);
       }

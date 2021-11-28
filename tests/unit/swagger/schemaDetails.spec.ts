@@ -427,12 +427,87 @@ describe('Schema details generation', () => {
           });
         });
 
+        describe('media types', () => {
+          let mediaTypeTest;
+          let requestAcceptHeaderTest;
+
+          before(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+            requestAcceptHeaderTest = new SpecGenerator2(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+          });
+
+          it('Should use controller Produces decorator as a default media type', () => {
+            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get;
+
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json']);
+          });
+
+          it('Should be possible to define multiple media types on controller level', () => {
+            const { produces } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get;
+
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json', 'application/vnd.mycompany.myapp.v2+json']);
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get;
+
+            expect(mediaTypeTestCustom).to.deep.eq(['text/plain']);
+            expect(requestAcceptHeaderMulti).to.deep.eq([
+              'application/vnd.mycompany.myapp+json',
+              'application/vnd.mycompany.myapp.v2+json',
+              'application/vnd.mycompany.myapp.v3+json',
+              'application/vnd.mycompany.myapp.v4+json',
+            ]);
+          });
+
+          it('Should generate custom media types from method reponse decorators and Res decorator', () => {
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post;
+
+            expect(mediaTypeTestCustom).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
+            expect(requestAcceptHeaderMulti).to.deep.eq(['application/problem+json', 'application/json', 'application/vnd.mycompany.myapp.v3+json', 'application/vnd.mycompany.myapp.v4+json']);
+          });
+
+          it('Should generate custom media type of request body from method Consumes decorator', () => {
+            const { consumes: consumesDefault } = mediaTypeTest.paths['/MediaTypeTest/Default']?.post;
+            const { consumes: consumesCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+
+            expect(consumesDefault).to.deep.eq(['application/json']);
+            expect(consumesCustom).to.deep.eq(['application/vnd.mycompany.myapp.v2+json']);
+          });
+        });
+
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
           const responses = exampleSpec.paths['/ExampleTest/MultiResponseExamples'].get?.responses;
 
           expect(responses?.[200]?.examples?.['application/json']).to.eq('test 1');
+        });
+
+        it('ignores example label in OpenAPI 2 due to lack of support', () => {
+          const originalWarn = console.warn;
+          const warningMessages: string[] = [];
+          const mockedWarn = (output: string) => warningMessages.push(output);
+          console.warn = mockedWarn;
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.examples?.['application/json'];
+          expect(warningMessages[0]).eq('Example labels are not supported in OpenAPI 2');
+          expect(examples).not.to.haveOwnProperty('No country');
+          console.warn = originalWarn;
+        });
+
+        it('uses the correct imported value for the @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test example response');
         });
       });
     });
@@ -506,19 +581,27 @@ describe('Schema details generation', () => {
       throw new Error('extension method was not rendered');
     }
 
-    // Verify that extensions are appeneded to the path
+    // Verify that extensions are appended to the path
     expect(extensionPath).to.have.property('x-attKey');
     expect(extensionPath).to.have.property('x-attKey1');
     expect(extensionPath).to.have.property('x-attKey2');
     expect(extensionPath).to.have.property('x-attKey3');
     expect(extensionPath).to.have.property('x-attKey4');
+    expect(extensionPath).to.have.property('x-attKey5');
+    expect(extensionPath).to.have.property('x-attKey6');
+    expect(extensionPath).to.have.property('x-attKey7');
+    expect(extensionPath).to.have.property('x-attKey8');
 
     // Verify that extensions have correct values
     expect(extensionPath['x-attKey']).to.deep.equal('attValue');
-    expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
-    expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
-    expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
-    expect(extensionPath['x-attKey4']).to.deep.equal({ test: ['testVal'] });
+    expect(extensionPath['x-attKey1']).to.deep.equal(123);
+    expect(extensionPath['x-attKey2']).to.deep.equal(true);
+    expect(extensionPath['x-attKey3']).to.deep.equal(null);
+    expect(extensionPath['x-attKey4']).to.deep.equal({ test: 'testVal' });
+    expect(extensionPath['x-attKey5']).to.deep.equal(['y0', 'y1', 123, true, null]);
+    expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
+    expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
+    expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
   });
 
   describe('@Res responses', () => {

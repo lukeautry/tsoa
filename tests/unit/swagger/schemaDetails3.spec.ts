@@ -683,6 +683,73 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
         });
 
+        describe('media types', () => {
+          let mediaTypeTest;
+          let requestAcceptHeaderTest;
+
+          before(() => {
+            const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator3(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
+
+            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+            requestAcceptHeaderTest = new SpecGenerator3(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+          });
+
+          it('Should use controller Produces decorator as a default media type', () => {
+            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content);
+            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content);
+
+            expect(mediaTypeOk).to.eql('application/vnd.mycompany.myapp+json');
+            expect(mediaTypeNotFound).to.eql('application/vnd.mycompany.myapp+json');
+          });
+
+          it('Should be possible to define multiple media types on controller level', () => {
+            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content);
+
+            expect(v1).to.eql('application/vnd.mycompany.myapp+json');
+            expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content);
+            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content);
+
+            expect(mediaType).to.eql('text/plain');
+            expect(v1).to.eql('application/vnd.mycompany.myapp+json');
+            expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
+            expect(v3).to.eql('application/vnd.mycompany.myapp.v3+json');
+            expect(v4).to.eql('application/vnd.mycompany.myapp.v4+json');
+          });
+
+          it('Should generate custom media types from method reponse decorators', () => {
+            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content);
+            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content);
+            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content);
+            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content);
+
+            expect(mediaTypeAccepted).to.eql('application/vnd.mycompany.myapp.v2+json');
+            expect(mediaTypeBadRequest).to.eql('application/problem+json');
+            expect(v3).to.eql('application/vnd.mycompany.myapp.v3+json');
+            expect(v4).to.eql('application/vnd.mycompany.myapp.v4+json');
+            expect(br1).to.eql('application/problem+json');
+            expect(br2).to.eql('application/json');
+          });
+
+          it('Should generate custom media types from header in @Res decorator', () => {
+            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content);
+
+            expect(mediaTypeConflict).to.eql('application/problem+json');
+          });
+
+          it('Should generate custom media type of request body from method Consumes decorator', () => {
+            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content);
+            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content);
+
+            expect(bodyMediaTypeDefault).to.eql('application/json');
+            expect(bodyMediaTypeCustom).to.eql('application/vnd.mycompany.myapp.v2+json');
+          });
+        });
+
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
@@ -695,6 +762,43 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
             'Example 2': {
               value: 'test 2',
+            },
+          });
+        });
+
+        it('Supports custom example labels', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            NoSuchCountry: { value: { errorMessage: 'No such country', errorCode: 40000 } },
+            '': {
+              value: {
+                errorCode: 40000,
+                errorMessage: 'No custom label',
+              },
+            },
+            'Example 1': { value: 'Unlabeled 1' },
+            'Example 2': { value: 'Another unlabeled one' },
+            NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
+            'Example 3': {
+              value: {
+                errorCode: 40000,
+                errorMessage: 'No custom label',
+              },
+            },
+          });
+        });
+
+        it('uses the correct imported value for the @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: 'test example response',
             },
           });
         });
@@ -796,6 +900,17 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           // tslint:disable-next-line: object-literal-sort-keys
           numberArray: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.type).to.eq('number', `for property ${propertyName}.items.type`);
+            expect(propertySchema.items.format).to.eq('double', `for property ${propertyName}.items.format`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
+          // tslint:disable-next-line: object-literal-sort-keys
+          numberArrayReadonly: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
             if (!propertySchema.items) {
               throw new Error(`There was no 'items' property on ${propertyName}.`);
@@ -1066,8 +1181,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq({
               anyOf: [
                 { type: 'string', enum: ['String'] },
-                { type: 'number', enum: ['1', '20'] },
-                { type: 'boolean', enum: ['true', 'false'] },
+                { type: 'number', enum: [1, 20] },
+                { type: 'boolean', enum: [true, false] },
               ],
               default: undefined,
               description: undefined,
@@ -1079,8 +1194,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema).to.deep.eq({
               anyOf: [
                 { type: 'string', enum: ['String'] },
-                { type: 'number', enum: ['1', '20'] },
-                { type: 'boolean', enum: ['true', 'false'] },
+                { type: 'number', enum: [1, 20] },
+                { type: 'boolean', enum: [true, false] },
               ],
               default: undefined,
               description: undefined,
@@ -1096,7 +1211,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
             expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('3.1415', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include(3.1415, `for property ${propertyName}.enum`);
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
@@ -1622,6 +1737,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   'stringProperty',
                   'deprecated1',
                   'deprecated2',
+                  'extensionTest',
+                  'extensionComment',
+                  'stringExample',
+                  'objectExample',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
@@ -1769,6 +1888,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
                   deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
+                  extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  extensionComment: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  stringExample: { type: 'string', default: undefined, description: undefined, format: undefined, example: 'stringValue' },
+                  objectExample: {
+                    type: 'object',
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    example: {
+                      id: 1,
+                      label: 'labelValue',
+                    },
+                    properties: {
+                      id: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: 'double',
+                        type: 'number',
+                      },
+                      label: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: undefined,
+                        type: 'string',
+                      },
+                    },
+                    required: ['label', 'id'],
+                  },
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, deprecated: true },
                 },
@@ -2042,6 +2191,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
+          extensionComment: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'boolean',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                example: undefined,
+                'x-key-1': 'value-1',
+                'x-key-2': 'value-2',
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
@@ -2106,6 +2269,53 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('Extension class properties', () => {
+    allSpecs.forEach(currentSpec => {
+      const modelName = 'TestClassModel';
+      // Assert
+      if (!currentSpec.spec.components.schemas) {
+        throw new Error('spec.components.schemas should have been truthy');
+      }
+      const definition = currentSpec.spec.components.schemas[modelName];
+
+      if (!definition.properties) {
+        throw new Error('Definition has no properties.');
+      }
+
+      const properties = definition.properties;
+
+      describe(`for ${currentSpec}`, () => {
+        it('should put vendor extension on extension field with decorator', () => {
+          const extensionPropertyName = 'extensionTest';
+
+          Object.entries(properties).forEach(([propertyName, property]) => {
+            if (extensionPropertyName === propertyName) {
+              expect(property).to.have.property('x-key-1');
+              expect(property).to.have.property('x-key-2');
+
+              expect(property['x-key-1']).to.deep.equal('value-1');
+              expect(property['x-key-2']).to.deep.equal('value-2');
+            }
+          });
+        });
+
+        it('should put vendor extension on extension field with commetn', () => {
+          const extensionPropertyName = 'extensionComment';
+
+          Object.entries(properties).forEach(([propertyName, property]) => {
+            if (extensionPropertyName === propertyName) {
+              expect(property).to.have.property('x-key-1');
+              expect(property).to.have.property('x-key-2');
+
+              expect(property['x-key-1']).to.deep.equal('value-1');
+              expect(property['x-key-2']).to.deep.equal('value-2');
+            }
+          });
+        });
+      });
+    });
+  });
+
   describe('mixed Enums', () => {
     it('should combine to metaschema', () => {
       // Arrange
@@ -2155,19 +2365,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       throw new Error('extension method was not rendered');
     }
 
-    // Verify that extensions are appeneded to the path
+    // Verify that extensions are appended to the path
     expect(extensionPath).to.have.property('x-attKey');
     expect(extensionPath).to.have.property('x-attKey1');
     expect(extensionPath).to.have.property('x-attKey2');
     expect(extensionPath).to.have.property('x-attKey3');
     expect(extensionPath).to.have.property('x-attKey4');
+    expect(extensionPath).to.have.property('x-attKey5');
+    expect(extensionPath).to.have.property('x-attKey6');
+    expect(extensionPath).to.have.property('x-attKey7');
+    expect(extensionPath).to.have.property('x-attKey8');
 
     // Verify that extensions have correct values
     expect(extensionPath['x-attKey']).to.deep.equal('attValue');
-    expect(extensionPath['x-attKey1']).to.deep.equal({ test: 'testVal' });
-    expect(extensionPath['x-attKey2']).to.deep.equal(['y0', 'y1']);
-    expect(extensionPath['x-attKey3']).to.deep.equal([{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }]);
-    expect(extensionPath['x-attKey4']).to.deep.equal({ test: ['testVal'] });
+    expect(extensionPath['x-attKey1']).to.deep.equal(123);
+    expect(extensionPath['x-attKey2']).to.deep.equal(true);
+    expect(extensionPath['x-attKey3']).to.deep.equal(null);
+    expect(extensionPath['x-attKey4']).to.deep.equal({ test: 'testVal' });
+    expect(extensionPath['x-attKey5']).to.deep.equal(['y0', 'y1', 123, true, null]);
+    expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
+    expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
+    expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
   });
 
   describe('module declarations with namespaces', () => {

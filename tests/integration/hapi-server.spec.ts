@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { File } from '@tsoa/runtime';
@@ -260,6 +261,18 @@ describe('Hapi Server', () => {
     );
   });
 
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTestHapi/test1',
+      (err, res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+      },
+      204,
+    );
+  });
+
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
@@ -353,6 +366,19 @@ describe('Hapi Server', () => {
           expect(res.status).to.equal(204);
         },
         204,
+      );
+    });
+  });
+
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
       );
     });
   });
@@ -928,6 +954,10 @@ describe('Hapi Server', () => {
   });
 
   describe('Security', () => {
+    const emptyHandler = (err, res) => {
+      // This is an empty handler
+    };
+
     it('can handle get request with access_token user id == 1', () => {
       return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=abc123456', (err, res) => {
         const model = res.body as Model;
@@ -939,6 +969,97 @@ describe('Hapi Server', () => {
       return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=xyz123456', (err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
+      });
+    });
+
+    it('resolves right away after first success', () => {
+      const path = '/SecurityTest/ApiKeyOrTimesOut?access_token=abc123456';
+      return verifyGetRequest(
+        basePath + path,
+        (err, res) => {
+          const model = res.body as Model;
+          expect(model.id).to.equal(1);
+        },
+        200,
+      );
+    });
+
+    describe('API key or tsoa auth', () => {
+      it('returns 200 if the API key is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(
+          basePath + path,
+          (err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 200 if tsoa auth is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 200 if multiple auth handlers are correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
+        return verifyGetRequest(
+          basePath + path,
+          err => {
+            expect(JSON.parse(err.text).message).to.equal('api_key');
+          },
+          401,
+        );
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          basePath + `/SecurityTest/ServerErrorOauthOrApiKey?access_token=abc123456`,
+          (err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
+      });
+    });
+
+    describe('API key and tsoa auth', () => {
+      it('returns 200 if API and tsoa auth are correct, resolved with user from first key in object', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(
+          basePath + path,
+          (err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 401 if API key is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(basePath + path, emptyHandler, 401);
+      });
+
+      it('returns 401 if tsoa auth is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(basePath + path, emptyHandler, 401);
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          basePath + `/SecurityTest/ServerErrorOauthAndApiKey?access_token=abc123456&tsoa=abc123456`,
+          (err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
       });
     });
   });
@@ -1268,6 +1389,7 @@ describe('Hapi Server', () => {
         },
       },
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

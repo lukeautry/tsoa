@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
-import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getPath, getProduces, getSecurites } from './../utils/decoratorUtils';
 import { getJSDocComment, getJSDocDescription, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getExtensions } from './extension';
 import { GenerateMetadataError } from './exceptions';
@@ -15,6 +15,8 @@ import { getHeaderType } from '../utils/headerTypeHelpers';
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
   private path: string;
+  private produces?: string[];
+  private consumes?: string;
 
   constructor(
     private readonly node: ts.MethodDeclaration,
@@ -62,6 +64,8 @@ export class MethodGenerator {
       operationId: this.getOperationId(),
       parameters,
       path: this.path,
+      produces: this.produces,
+      consumes: this.consumes,
       responses,
       successStatus: successStatus,
       security: this.getSecurity(),
@@ -128,14 +132,34 @@ export class MethodGenerator {
     }
 
     const decorator = pathDecorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-    const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
 
     this.method = decorator.text.toLowerCase() as any;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
-    this.path = decoratorArgument ? `${decoratorArgument.text}` : '';
+    this.path = getPath(decorator, this.current.typeChecker);
+    this.produces = this.getProduces();
+    this.consumes = this.getConsumes();
+  }
+
+  private getProduces(): string[] | undefined {
+    const produces = getProduces(this.node, this.current.typeChecker);
+    return produces.length ? produces : undefined;
+  }
+
+  private getConsumes(): string | undefined {
+    const consumesDecorators = this.getDecoratorsByIdentifier(this.node, 'Consumes');
+
+    if (!consumesDecorators || !consumesDecorators.length) {
+      return;
+    }
+    if (consumesDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Consumes decorator in '${this.getCurrentLocation()}' method, Found: ${consumesDecorators.map(d => d.text).join(', ')}`);
+    }
+
+    const [decorator] = consumesDecorators;
+    const [consumes] = getDecoratorValues(decorator, this.current.typeChecker);
+    return consumes;
   }
 
   private getMethodResponses(): Tsoa.Response[] {
@@ -147,12 +171,13 @@ export class MethodGenerator {
     return decorators.map(decorator => {
       const expression = decorator.parent as ts.CallExpression;
 
-      const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
+      const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name: name || '200',
+        produces: this.getProducesAdapter(produces),
         schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
@@ -163,11 +188,13 @@ export class MethodGenerator {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
 
     if (!decorators || !decorators.length) {
+      const description = getJSDocComment(this.node, 'returns') || 'Ok';
       return {
         response: {
-          description: isVoidType(type) ? 'No content' : 'Ok',
+          description: isVoidType(type) ? 'No content' : description,
           examples: this.getMethodSuccessExamples(),
           name: isVoidType(type) ? '204' : '200',
+          produces: this.produces,
           schema: type,
         },
       };
@@ -176,7 +203,7 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
-    const [name, description] = getDecoratorValues(decorators[0], this.current.typeChecker);
+    const [name, description, produces] = getDecoratorValues(decorators[0], this.current.typeChecker);
     const examples = this.getMethodSuccessExamples();
 
     const expression = decorators[0].parent as ts.CallExpression;
@@ -187,6 +214,7 @@ export class MethodGenerator {
         description: description || '',
         examples,
         name: name || '200',
+        produces: this.getProducesAdapter(produces),
         schema: type,
         headers,
       },
@@ -295,5 +323,14 @@ export class MethodGenerator {
 
   private getDecoratorsByIdentifier(node: ts.Node, id: string) {
     return getDecorators(node, identifier => identifier.text === id);
+  }
+
+  private getProducesAdapter(produces?: string[] | string): string[] | undefined {
+    if (Array.isArray(produces)) {
+      return produces;
+    } else if (typeof produces === 'string') {
+      return [produces];
+    }
+    return;
   }
 }

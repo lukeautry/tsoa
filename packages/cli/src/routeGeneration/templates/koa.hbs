@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 {{else}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, TsoaResponse, HttpStatusCodeLiteral } from '../../../src';
 {{/if}}
@@ -12,11 +12,14 @@ import { {{name}} } from '{{modulePath}}';
 {{/each}}
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
+// @ts-ignore - no great way to install types from subpackage
+const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
+import type { Middleware } from 'koa';
 import * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
 const multer = require('@koa/multer');
@@ -70,6 +73,9 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if uploadFiles}}
             upload.array('{{uploadFilesName}}'),
             {{/if}}
+            ...(fetchMiddlewares<Middleware>({{../name}})),
+            ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
+
             async function {{../name}}_{{name}}(context: any, next: any) {
             const args = {
                 {{#each parameters}}
@@ -80,7 +86,8 @@ export function RegisterRoutes(router: KoaRouter) {
             let validatedArgs: any[] = [];
             try {
               validatedArgs = getValidatedArgs(args, context, next);
-            } catch (error) {
+            } catch (err) {
+              const error = err as any;
               context.status = error.status;
               context.throw(error.status, JSON.stringify({ fields: error.fields }));
             }
@@ -88,7 +95,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if ../../iocModule}}
             const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
 
-            const controller: any = container.get<{{../name}}>({{../name}});
+            const controller: any = await container.get<{{../name}}>({{../name}});
             if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
             }
@@ -103,61 +110,71 @@ export function RegisterRoutes(router: KoaRouter) {
     {{/each}}
     {{/each}}
 
-  {{#if useSecurity}}
-  function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-      return async function runAuthenticationMiddleware(context: any, next: any) {
-          let responded = 0;
-          let success = false;
+    {{#if useSecurity}}
 
-          const succeed = async (user: any) => {
-              if (!success) {
-                  success = true;
-                  responded++;
-                  context.request['user'] = user;
-                  await next();
-              }
-          };
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return async function runAuthenticationMiddleware(context: any, next: any) {
 
-          const fail = async (error: any) => {
-              responded++;
-              if (responded == security.length && !success) {
-                  // this is an authentication error
-                  context.status = error.status || 401;
-                  context.throw(context.status, error.message, error);
-              } else if (success) {
-                  // the authentication was a success but arriving here means the controller
-                  // probably threw an error that we caught as well
-                  // so just pass it on
-                  throw error;
-              }
-          };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-          // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            // keep track of failed auth attempts so we can hand back the most
+            // recent one.  This behavior was previously existing so preserving it
+            // here
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
+            };
 
-          for (const secMethod of security) {
-              if (Object.keys(secMethod).length > 1) {
-                  let promises: Promise<any>[] = [];
+            const secMethodOrPromises: Promise<any>[] = [];
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    const secMethodAndPromises: Promise<any>[] = [];
 
-                  for (const name in secMethod) {
-                      promises.push(koaAuthentication(context.request, name, secMethod[name]));
-                  }
+                    for (const name in secMethod) {
+                        secMethodAndPromises.push(
+                            koaAuthentication(context.request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
+                    }
 
-                  return Promise.all(promises)
-                      .then((users) => succeed(users[0]))
-                      .catch(fail);
-              } else {
-                  for (const name in secMethod) {
-                      return koaAuthentication(context.request, name, secMethod[name])
-                          .then(succeed)
-                          .catch(fail);
-                  }
-              }
-          }
-      }
-  }
-  {{/if}}
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                        .then(users => { return users[0]; }));
+                } else {
+                    for (const name in secMethod) {
+                        secMethodOrPromises.push(
+                            koaAuthentication(context.request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
+                    }
+                }
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let success;
+            try {
+                const user = await promiseAny(secMethodOrPromises);
+                success = true;
+                context.request['user'] = user;
+            }
+            catch(err) {
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                context.status = error.status || 401;
+                context.throw(context.status, error.message, error);
+            }
+
+            if (success) {
+                await next();
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        }
+    }
+    {{/if}}
 
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -191,8 +208,6 @@ export function RegisterRoutes(router: KoaRouter) {
 
     function returnHandler(context: any, next: () => any, statusCode?: number, data?: any, headers: any={}) {
         if (!context.headerSent && !context.response.__tsoaResponded) {
-            context.set(headers);
-
             if (data !== null && data !== undefined) {
                 context.body = data;
                 context.status = 200;
@@ -204,6 +219,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 context.status = statusCode;
             }
 
+            context.set(headers);
             context.response.__tsoaResponded = true;
             return next();
         }

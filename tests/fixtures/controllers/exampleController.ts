@@ -1,4 +1,5 @@
 import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse } from '@tsoa/runtime';
+import { exampleResponse } from './consts';
 
 /**
  * @example {
@@ -124,6 +125,34 @@ export class ExampleTestController {
   @Get('MultiResponseExamples')
   public async responseExamples(@Res() res: TsoaResponse<400, number, { 'custom-header': string }>): Promise<string> {
     res?.(400, 123, { 'custom-header': 'hello' });
+    return 'test 1';
+  }
+
+  /**
+   * @param res The alternate response
+   * @example res.NoSuchCountry { "errorMessage":"No such country", "errorCode": 40000 }
+   * @example res. { "errorMessage":"No custom label", "errorCode": 40000 }
+   * @example res "Unlabeled 1"
+   * @example res "Another unlabeled one"
+   * @example res.NoSuchCity {
+   *     "errorMessage":"No such city",
+   *     "errorCode": 40000
+   * }
+   * @example res { "errorMessage":"No custom label", "errorCode": 40000 }
+   */
+  @Get('CustomExampleLabels')
+  public async customExampleLabels(@Res() res: TsoaResponse<400, number, { 'custom-header': string }>): Promise<string> {
+    res?.(400, 123, { 'custom-header': 'hello' });
+    return 'test 1';
+  }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Example<string>(exampleResponse)
+  @Get('ResponseExampleWithImportedValue')
+  public async responseExamplesWithImportedValue(): Promise<string> {
     return 'test 1';
   }
 }

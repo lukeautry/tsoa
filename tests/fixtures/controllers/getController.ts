@@ -6,6 +6,11 @@ import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, Tes
 import { ModelService } from './../services/modelService';
 import TsoaTest from 'tsoaTest';
 
+export const PathFromConstant = 'PathFromConstantValue';
+export enum EnumPaths {
+  PathFromEnum = 'PathFromEnumValue',
+}
+
 @Route('GetTest')
 export class GetTestController extends Controller {
   /**
@@ -26,6 +31,7 @@ export class GetTestController extends Controller {
     },
     modelsArray: new Array<TestSubModel>(),
     numberArray: [1, 2, 3],
+    numberArrayReadonly: [1, 2, 3],
     numberValue: 1,
     objLiteral: {
       name: 'a string',
@@ -245,6 +251,16 @@ export class GetTestController extends Controller {
   @Get('MultipleStatusCodeRes')
   public async multipleStatusCodeRes(@Res() res: TsoaResponse<400 | 500, TestModel, { 'custom-header': string }>, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
     res?.(statusCode, new ModelService().getModel(), { 'custom-header': 'hello' });
+  }
+
+  @Get(PathFromConstant)
+  public async getPathFromConstantValue(): Promise<TestModel> {
+    return new ModelService().getModel();
+  }
+
+  @Get(EnumPaths.PathFromEnum)
+  public async getPathFromEnumValue(): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 }
 

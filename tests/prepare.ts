@@ -101,50 +101,35 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       ),
     ),
     log('Koa Route Generation', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'silently-remove-extras',
-          authenticationModule: './fixtures/koa/authentication.ts',
-          basePath: '/v1',
-          entryFile: './fixtures/koa/server.ts',
-          middleware: 'koa',
-          routesDir: './fixtures/koa',
-        },
-        undefined,
-        undefined,
-        metadata,
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './fixtures/koa/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/koa/server.ts',
+        middleware: 'koa',
+        routesDir: './fixtures/koa',
+      }),
     ),
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'throw-on-extras',
-          authenticationModule: './fixtures/koaNoAdditional/authentication.ts',
-          basePath: '/v1',
-          entryFile: './fixtures/server.ts',
-          middleware: 'koa',
-          routesDir: './fixtures/koaNoAdditional',
-        },
-        undefined,
-        undefined,
-        metadata,
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'throw-on-extras',
+        authenticationModule: './fixtures/koaNoAdditional/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/koaNoAdditional/server.ts',
+        middleware: 'koa',
+        routesDir: './fixtures/koaNoAdditional',
+      }),
     ),
     log('Koa Route Generation with useSuccessResponseCode feature', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'silently-remove-extras',
-          authenticationModule: './fixtures/koa/authentication.ts',
-          basePath: '/v1',
-          entryFile: './fixtures/koa-success-code/server.ts',
-          middleware: 'koa',
-          routesDir: './fixtures/koa-success-code',
-          useSuccessResponseCode: true,
-        },
-        undefined,
-        undefined,
-        metadata,
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './fixtures/koa/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/koa-success-code/server.ts',
+        middleware: 'koa',
+        routesDir: './fixtures/koa-success-code',
+        useSuccessResponseCode: true,
+      }),
     ),
     log('Hapi Route Generation', () =>
       generateRoutes({
@@ -216,6 +201,16 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         iocModule: './fixtures/inversify-dynamic-container/ioc.ts',
         middleware: 'express',
         routesDir: './fixtures/inversify-dynamic-container',
+      }),
+    ),
+    log('Inversify Async IoC Route Generation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        basePath: '/v1',
+        entryFile: './fixtures/inversify-async/server.ts',
+        iocModule: './fixtures/inversify-async/ioc.ts',
+        middleware: 'express',
+        routesDir: './fixtures/inversify-async',
       }),
     ),
   ]);

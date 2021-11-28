@@ -1,20 +1,22 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
+// @ts-ignore - no great way to install types from subpackage
+const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, isBoom, Payload } from '@hapi/boom';
-import { Request } from '@hapi/hapi';
+import { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -60,20 +62,21 @@ export function RegisterRoutes(server: any) {
                 pre: [
                     {{#if security.length}}
                     {
-                      method: authenticateMiddleware({{json security}}),
-                      assign: "user"
+                      method: authenticateMiddleware({{json security}})
                     },
                     {{/if}}
                     {{#if uploadFile}}
                     {
                       method: fileUploadMiddleware('{{uploadFileName}}', false)
-                    }
+                    },
                     {{/if}}
                     {{#if uploadFiles}}
                     {
                       method: fileUploadMiddleware('{{uploadFilesName}}', true)
-                    }
+                    },
                     {{/if}}
+                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}})),
+                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}}.prototype.{{name}})),
                 ],
                 {{#if uploadFile}}
                 payload: {
@@ -90,7 +93,7 @@ export function RegisterRoutes(server: any) {
                   allow: 'multipart/form-data'
                 },
                 {{/if}}
-                handler: function {{../name}}_{{name}}(request: any, h: any) {
+                handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, h: any) {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},
@@ -100,7 +103,8 @@ export function RegisterRoutes(server: any) {
                     let validatedArgs: any[] = [];
                     try {
                         validatedArgs = getValidatedArgs(args, request, h);
-                    } catch (error) {
+                    } catch (err) {
+                        const error = err as any;
                         if (isBoom(error)) {
                             throw error;
                         }
@@ -118,7 +122,7 @@ export function RegisterRoutes(server: any) {
                     {{#if ../../iocModule}}
                     const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-                    const controller: any = container.get<{{../name}}>({{../name}});
+                    const controller: any = await container.get<{{../name}}>({{../name}});
                     if (typeof controller['setStatus'] === 'function') {
                         controller.setStatus(undefined);
                     }
@@ -136,62 +140,73 @@ export function RegisterRoutes(server: any) {
     {{/each}}
 
     {{#if useSecurity}}
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return function runAuthenticationMiddleware(request: any, h: any) {
-            let responded = 0;
-            let success = false;
-
-            const succeed = function(user: any) {
-                if (!success) {
-                    success = true;
-                    responded++;
-                    request['user'] = user;
-                }
-                return user;
-            };
+        return async function runAuthenticationMiddleware(request: any, h: any) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-            const fail = function(error: any) {
-                responded++;
-                if (responded == security.length && !success) {
-                    if (isBoom(error)) {
-                        throw error;
-                    }
-
-                    const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-                    boomErr.output.statusCode = error.status || 401;
-                    boomErr.output.payload = {
-                        name: error.name,
-                        message: error.message,
-                    } as unknown as Payload;
-                    throw boomErr;
-                }
-                return error;
+            // keep track of failed auth attempts so we can hand back the most
+            // recent one.  This behavior was previously existing so preserving it
+            // here
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
             };
 
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
+            const secMethodOrPromises: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
-                    let promises: Promise<any>[] = [];
+                    const secMethodAndPromises: Promise<any>[] = [];
 
                     for (const name in secMethod) {
-                        promises.push(hapiAuthentication(request, name, secMethod[name]));
+                        secMethodAndPromises.push(
+                            hapiAuthentication(request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
                     }
 
-                    return Promise.all(promises)
-                        .then((users) => { succeed(users[0]); })
-                        .catch(fail);
+                    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                        .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        return hapiAuthentication(request, name, secMethod[name])
-                            .then(succeed)
-                            .catch(fail);
+                        secMethodOrPromises.push(
+                            hapiAuthentication(request, name, secMethod[name])
+                                .catch(pushAndRethrow)
+                        );
                     }
                 }
             }
-            return null;
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            try {
+                request['user'] = await promiseAny(secMethodOrPromises);
+                return request['user'];
+            }
+            catch(err) {
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                if (isBoom(error)) {
+                    throw error;
+                }
+
+                const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+                boomErr.output.statusCode = error.status || 401;
+                boomErr.output.payload = {
+                    name: error.name,
+                    message: error.message,
+                } as unknown as Payload;
+
+                throw boomErr;
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         }
     }
     {{/if}}

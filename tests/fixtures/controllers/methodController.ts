@@ -114,7 +114,7 @@ export class MethodController extends Controller {
 
   @Security('tsoa_auth', ['write:pets', 'read:pets'])
   @Security('api_key')
-  @Get('OauthOrAPIkeySecurity')
+  @Get('OauthOrApiKeySecurity')
   public async oauthOrAPIkeySecurity(): Promise<TestModel> {
     return new ModelService().getModel();
   }
@@ -123,7 +123,7 @@ export class MethodController extends Controller {
     api_key: [],
     tsoa_auth: ['write:pets', 'read:pets'],
   })
-  @Get('OauthAndAPIkeySecurity')
+  @Get('OauthAndApiKeySecurity')
   public async oauthAndAPIkeySecurity(): Promise<TestModel> {
     return new ModelService().getModel();
   }
@@ -156,10 +156,14 @@ export class MethodController extends Controller {
   }
 
   @Extension('x-attKey', 'attValue')
-  @Extension('x-attKey1', { test: 'testVal' })
-  @Extension('x-attKey2', ['y0', 'y1'])
-  @Extension('x-attKey3', [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }])
-  @Extension('x-attKey4', { test: ['testVal'] })
+  @Extension('x-attKey1', 123)
+  @Extension('x-attKey2', true)
+  @Extension('x-attKey3', null)
+  @Extension('x-attKey4', { test: 'testVal' })
+  @Extension('x-attKey5', ['y0', 'y1', 123, true, null])
+  @Extension('x-attKey6', [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }])
+  @Extension('x-attKey7', { test: ['testVal', 123, true, null] })
+  @Extension('x-attKey8', { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } })
   @Get('Extension')
   public async extension(): Promise<TestModel> {
     return new ModelService().getModel();

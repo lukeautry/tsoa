@@ -2,6 +2,7 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
+import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
@@ -13,13 +14,13 @@ export class SpecGenerator2 extends SpecGenerator {
   public GetSpec() {
     let spec: Swagger.Spec2 = {
       basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
-      consumes: ['application/json'],
+      consumes: [DEFAULT_REQUEST_MEDIA_TYPE],
       definitions: this.buildDefinitions(),
       info: {
         title: '',
       },
       paths: this.buildPaths(),
-      produces: ['application/json'],
+      produces: [DEFAULT_RESPONSE_MEDIA_TYPE],
       swagger: '2.0',
     };
 
@@ -145,15 +146,15 @@ export class SpecGenerator2 extends SpecGenerator {
           let path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
           path = convertColonPathParams(path);
           paths[path] = paths[path] || {};
-          this.buildMethod(controller.name, method, paths[path]);
+          this.buildMethod(controller.name, method, paths[path], controller.produces);
         });
     });
 
     return paths;
   }
 
-  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation = (pathObject[method.method] = this.buildOperation(controllerName, method));
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
+    const pathMethod: Swagger.Operation = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -186,18 +187,25 @@ export class SpecGenerator2 extends SpecGenerator {
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
-  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation {
+  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string[]): Swagger.Operation {
     const swaggerResponses: { [name: string]: Swagger.Response } = {};
 
+    let produces: Array<string | undefined> = [];
     method.responses.forEach((res: Tsoa.Response) => {
       swaggerResponses[res.name] = {
         description: res.description,
       };
       if (res.schema && !isVoidType(res.schema)) {
+        if (res.produces) {
+          produces.push(...res.produces);
+        }
         swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema;
       }
       if (res.examples && res.examples[0]) {
-        swaggerResponses[res.name].examples = { 'application/json': res.examples[0] } as Swagger.Example;
+        if ((res.exampleLabels?.filter(e => e).length || 0) > 0) {
+          console.warn('Example labels are not supported in OpenAPI 2');
+        }
+        swaggerResponses[res.name].examples = { [DEFAULT_RESPONSE_MEDIA_TYPE]: res.examples[0] } as Swagger.Example;
       }
 
       if (res.headers) {
@@ -216,15 +224,27 @@ export class SpecGenerator2 extends SpecGenerator {
       }
     });
 
+    produces = Array.from(new Set(produces.filter(p => p !== undefined)));
+    if (produces.length === 0) {
+      produces = defaultProduces || [DEFAULT_RESPONSE_MEDIA_TYPE];
+    }
+
     const operation: Swagger.Operation = {
       operationId: this.getOperationId(method.name),
-      produces: ['application/json'],
+      produces: produces as string[],
       responses: swaggerResponses,
     };
 
+    const hasBody = method.parameters.some(p => p.in === 'body');
     const hasFormData = method.parameters.some(p => p.in === 'formData');
-    if (hasFormData) {
-      operation.consumes = ['multipart/form-data'];
+    if (hasBody || hasFormData) {
+      operation.consumes = [];
+      if (hasBody) {
+        operation.consumes.push(method.consumes || DEFAULT_REQUEST_MEDIA_TYPE);
+      }
+      if (hasFormData) {
+        operation.consumes.push('multipart/form-data');
+      }
     }
 
     return operation;
@@ -367,6 +387,12 @@ export class SpecGenerator2 extends SpecGenerator {
         swaggerType['x-deprecated'] = true;
       }
 
+      if (property.extensions) {
+        property.extensions.forEach(property => {
+          swaggerType[property.key] = property.value;
+        });
+      }
+
       properties[property.name] = swaggerType;
     });
 
@@ -453,6 +479,6 @@ export class SpecGenerator2 extends SpecGenerator {
     const types = this.determineTypesUsedInEnum(enumType.enums);
     const type = types.size === 1 ? types.values().next().value : 'string';
     const nullable = enumType.enums.includes(null) ? true : false;
-    return { type, enum: enumType.enums.map(member => (member === null ? null : String(member))), ['x-nullable']: nullable };
+    return { type, enum: enumType.enums.map(member => getValue(type, member)), ['x-nullable']: nullable };
   }
 }

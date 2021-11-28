@@ -2,6 +2,7 @@ import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
+import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
@@ -238,15 +239,15 @@ export class SpecGenerator3 extends SpecGenerator {
           let path = normalisePath(`${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
           path = convertColonPathParams(path);
           paths[path] = paths[path] || {};
-          this.buildMethod(controller.name, method, paths[path]);
+          this.buildMethod(controller.name, method, paths[path], controller.produces);
         });
     });
 
     return paths;
   }
 
-  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {
-    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method));
+  private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
+    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -288,7 +289,7 @@ export class SpecGenerator3 extends SpecGenerator {
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
-  protected buildOperation(controllerName: string, method: Tsoa.Method): Swagger.Operation3 {
+  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string[]): Swagger.Operation3 {
     const swaggerResponses: { [name: string]: Swagger.Response3 } = {};
 
     method.responses.forEach((res: Tsoa.Response) => {
@@ -297,18 +298,26 @@ export class SpecGenerator3 extends SpecGenerator {
       };
 
       if (res.schema && !isVoidType(res.schema)) {
-        swaggerResponses[res.name].content = {
-          'application/json': {
-            schema: this.getSwaggerType(res.schema),
-          } as Swagger.Schema3,
-        };
+        swaggerResponses[res.name].content = {};
+        const produces: string[] = res.produces || defaultProduces || [DEFAULT_RESPONSE_MEDIA_TYPE];
+        for (const p of produces) {
+          const { content } = swaggerResponses[res.name];
+          swaggerResponses[res.name].content = {
+            ...content,
+            [p]: {
+              schema: this.getSwaggerType(res.schema),
+            } as Swagger.Schema3,
+          };
+        }
 
         if (res.examples) {
+          let exampleCounter = 1;
           const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
-            return { ...acc, [`Example ${currentIndex + 1}`]: { value: ex } };
+            const exampleLabel = res.exampleLabels?.[currentIndex];
+            return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
           }, {});
           /* eslint-disable @typescript-eslint/dot-notation */
-          (swaggerResponses[res.name].content || {})['application/json']['examples'] = examples;
+          (swaggerResponses[res.name].content || {})[DEFAULT_RESPONSE_MEDIA_TYPE]['examples'] = examples;
         }
       }
 
@@ -371,12 +380,13 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
     const mediaType = this.buildMediaType(controllerName, method, parameter);
+    const consumes = method.consumes || DEFAULT_REQUEST_MEDIA_TYPE;
 
     const requestBody: Swagger.RequestBody = {
       description: parameter.description,
       required: parameter.required,
       content: {
-        'application/json': mediaType,
+        [consumes]: mediaType,
       },
     };
 
@@ -506,6 +516,12 @@ export class SpecGenerator3 extends SpecGenerator {
         swaggerType.deprecated = true;
       }
 
+      if (property.extensions) {
+        property.extensions.forEach(property => {
+          swaggerType[property.key] = property.value;
+        });
+      }
+
       properties[property.name] = swaggerType as Swagger.Schema;
     });
 
@@ -631,7 +647,7 @@ export class SpecGenerator3 extends SpecGenerator {
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { type, enum: enumType.enums.map(member => (member === null ? null : String(member))), nullable };
+      return { type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);

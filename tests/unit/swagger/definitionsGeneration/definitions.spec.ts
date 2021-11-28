@@ -217,6 +217,17 @@ describe('Definition generation', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          // tslint:disable-next-line: object-literal-sort-keys
+          numberArrayReadonly: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
+            if (!propertySchema.items) {
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
+            }
+            expect(propertySchema.items.type).to.eq('number', `for property ${propertyName}.items.type`);
+            expect(propertySchema.items.format).to.eq('double', `for property ${propertyName}.items.format`);
+            expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
           stringValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
             expect(propertySchema.example).to.eq('letmein', `for property ${propertyName}.example`);
@@ -431,7 +442,7 @@ describe('Definition generation', () => {
               throw new Error(`There was no 'enum' property on ${propertyName}.`);
             }
             expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
-            expect(propertySchema.enum).to.include('3.1415', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include(3.1415, `for property ${propertyName}.enum`);
           },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
@@ -914,6 +925,10 @@ describe('Definition generation', () => {
                   'stringProperty',
                   'deprecated1',
                   'deprecated2',
+                  'extensionTest',
+                  'extensionComment',
+                  'stringExample',
+                  'objectExample',
                   'publicConstructorVar',
                   'readonlyConstructorArgument',
                   'optionalPublicConstructorVar',
@@ -1058,6 +1073,36 @@ describe('Definition generation', () => {
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
                   deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                   deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+                  extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  extensionComment: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+                  stringExample: { type: 'string', default: undefined, description: undefined, format: undefined, example: 'stringValue' },
+                  objectExample: {
+                    type: 'object',
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    example: {
+                      id: 1,
+                      label: 'labelValue',
+                    },
+                    properties: {
+                      id: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: 'double',
+                        type: 'number',
+                      },
+                      label: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: undefined,
+                        type: 'string',
+                      },
+                    },
+                    required: ['label', 'id'],
+                  },
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                 },
@@ -1359,6 +1404,20 @@ describe('Definition generation', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          extensionComment: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'boolean',
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                example: undefined,
+                'x-key-1': 'value-1',
+                'x-key-2': 'value-2',
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
@@ -1402,6 +1461,7 @@ describe('Definition generation', () => {
             },
             modelsArray: [],
             numberArray: [1, 2, 3],
+            numberArrayReadonly: [1, 2, 3],
             numberValue: 1,
             optionalString: 'optional string',
             strLiteralArr: ['Foo', 'Bar'],

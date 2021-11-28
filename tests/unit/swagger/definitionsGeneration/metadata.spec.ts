@@ -22,6 +22,12 @@ describe('Metadata generation', () => {
         new MetadataGenerator('./fixtures/controllers/invalidExtensionController.ts').Generate();
       }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
     });
+
+    it('should throw an Error when an model attribute is not prefixed with "x-"', () => {
+      expect(() => {
+        new MetadataGenerator('./fixtures/controllers/invalidExtensionModelController.ts').Generate();
+      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+    });
   });
 
   describe('DynamicControllerGenerator', () => {
@@ -263,7 +269,7 @@ describe('Metadata generation', () => {
     it('should generate oauth2 or api key security', () => {
       const method = controller.methods.find(m => m.name === 'oauthOrAPIkeySecurity');
       if (!method) {
-        throw new Error('Method OauthOrAPIkeySecurity not defined!');
+        throw new Error('Method OauthOrApiKeySecurity not defined!');
       }
       if (!method.security) {
         throw new Error('Security decorator not defined!');
@@ -275,7 +281,7 @@ describe('Metadata generation', () => {
     it('should generate oauth2 and api key security', () => {
       const method = controller.methods.find(m => m.name === 'oauthAndAPIkeySecurity');
       if (!method) {
-        throw new Error('Method OauthAndAPIkeySecurity not defined!');
+        throw new Error('Method OauthAndApiKeySecurity not defined!');
       }
       if (!method.security) {
         throw new Error('Security decorator not defined!');
@@ -295,10 +301,14 @@ describe('Metadata generation', () => {
 
       const expectedExtensions = [
         { key: 'x-attKey', value: 'attValue' },
-        { key: 'x-attKey1', value: { test: 'testVal' } },
-        { key: 'x-attKey2', value: ['y0', 'y1'] },
-        { key: 'x-attKey3', value: [{ y0: 'yt0', y1: 'yt1' }, { y2: 'yt2' }] },
-        { key: 'x-attKey4', value: { test: ['testVal'] } },
+        { key: 'x-attKey1', value: 123 },
+        { key: 'x-attKey2', value: true },
+        { key: 'x-attKey3', value: null },
+        { key: 'x-attKey4', value: { test: 'testVal' } },
+        { key: 'x-attKey5', value: ['y0', 'y1', 123, true, null] },
+        { key: 'x-attKey6', value: [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }] },
+        { key: 'x-attKey7', value: { test: ['testVal', 123, true, null] } },
+        { key: 'x-attKey8', value: { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } } },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
@@ -940,6 +950,40 @@ describe('Metadata generation', () => {
         'demo20',
         'demo21',
       ]);
+    });
+  });
+
+  describe('controllerWithJsDocResponseDescriptionGeneration', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithJsDocResponseDescription.ts').Generate();
+    const controller = metadata.controllers[0];
+
+    it('has success response description', () => {
+      const description = 'SuccessResponse description';
+      const method = controller.methods.find(m => m.name === 'descriptionWithSuccessResponse');
+      if (!method) {
+        throw new Error('method descriptionWithSuccessResponse not defined');
+      }
+      expect(method.responses[0].name).to.equal(200);
+      expect(method.responses[0].description).to.equal(description);
+    });
+
+    it('has a custom description when @returns is used on response 200', () => {
+      const description = 'custom description with jsdoc annotation';
+      const method = controller.methods.find(m => m.name === 'descriptionWithJsDocAnnotation');
+      if (!method) {
+        throw new Error('method descriptionWithJsDocAnnotation not defined');
+      }
+      expect(method.responses[0].name).to.equal('200');
+      expect(method.responses[0].description).to.equal(description);
+    });
+    it("should not override @SuccessResponse's description even if @returns is present", () => {
+      const description = 'Success Response description';
+      const method = controller.methods.find(m => m.name === 'successResponseAndJsDocAnnotation');
+      if (!method) {
+        throw new Error('method successResponseAndJsDocAnnotation not defined');
+      }
+      expect(method.responses[0].name).to.equal(200);
+      expect(method.responses[0].description).to.equal(description);
     });
   });
 });

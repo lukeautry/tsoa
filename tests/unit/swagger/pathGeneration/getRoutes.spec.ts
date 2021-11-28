@@ -83,6 +83,16 @@ describe('GET route generation', () => {
     verifyPath(actionRoute);
   });
 
+  it('should generate a path for a GET route with const argument', () => {
+    const actionRoute = `${baseRoute}/PathFromConstantValue`;
+    verifyPath(actionRoute);
+  });
+
+  it('should generate a path for a GET route with Enum argument', () => {
+    const actionRoute = `${baseRoute}/PathFromEnumValue`;
+    verifyPath(actionRoute);
+  });
+
   it('should generate a parameter for path parameters', () => {
     const actionRoute = `${baseRoute}/{numberPathParam}/{booleanPathParam}/{stringPathParam}`;
     const parameters = getValidatedParameters(actionRoute);
@@ -183,13 +193,11 @@ describe('GET route generation', () => {
   it('should reject invalid header types', () => {
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
-    }).to.throw(
-      "Unable to parse Header Type 'Header names must be of type string'\nAt: fixtures/controllers/invalidHeaderController.ts:6:6.\nThis was caused by 'TsoaResponse<404, void, 'Header names must be of type string'>' \n in 'InvalidHeaderTestController.getWithInvalidHeader'",
-    );
+    }).to.throw(/^Unable to parse Header Type \'Header names must be of type string.*/);
 
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-    }).to.throw("Unable to parse Header Type any\nAt: fixtures/controllers/incorrectResponseHeaderController.ts:4:4.\nThis was caused by 'Response<null, any>(200)'");
+    }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
   it('should generate a path description from jsdoc comment', () => {
@@ -237,6 +245,7 @@ describe('GET route generation', () => {
     expect(jsonExample.modelValue.id).to.equal(100);
     expect(jsonExample.modelsArray).to.be.undefined;
     expect(jsonExample.numberArray).to.deep.equal([1, 2, 3]);
+    expect(jsonExample.numberArrayReadonly).to.deep.equal([1, 2, 3]);
     expect(jsonExample.numberValue).to.equal(1);
     expect(jsonExample.optionalString).to.equal('optional string');
     expect(jsonExample.stringArray).to.deep.equal(['string one', 'string two']);

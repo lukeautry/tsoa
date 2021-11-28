@@ -16,6 +16,8 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
+import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -363,6 +365,30 @@ describe('Express Server', () => {
     );
   });
 
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTestExpress/test1',
+      (err, res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+      },
+      204,
+    );
+  });
+
+  it('can invoke middlewares in the order they are defined by controller class hierarchy', () => {
+    expect(state()).to.be.empty;
+    return verifyGetRequest(
+      basePath + '/MiddlewareHierarchyTestExpress/test1',
+      (err, res) => {
+        const expected = ['base', 'intermediate', 'route', 'test1'];
+        expect(state()).to.eql(expected);
+      },
+      204,
+    );
+  });
+
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
@@ -456,6 +482,35 @@ describe('Express Server', () => {
           expect(res.status).to.equal(204);
         },
         204,
+      );
+    });
+  });
+
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
+      );
+    });
+
+    it('should return custom content-type based on "Accept" header', () => {
+      return verifyRequest(
+        (err, res) => {
+          const { body, type } = res;
+          expect(body.codename).to.eq('foo');
+          expect(type).to.eq('application/vnd.mycompany.myapp.v4+json');
+        },
+        request => {
+          return request.get(basePath + '/RequestAcceptHeaderTest/Multi/1').set({
+            Accept: 'application/vnd.mycompany.myapp.v4+json',
+          });
+        },
+        200,
       );
     });
   });
@@ -1058,34 +1113,40 @@ describe('Express Server', () => {
 
     describe('API key or tsoa auth', () => {
       it('returns 200 if the API key is correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=abc123456&tsoa=invalid';
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
       it('returns 200 if tsoa auth is correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=invalid&tsoa=abc123456';
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
-      it('returns 401 if neither API key nor tsoa auth are correct', () => {
-        const path = '/SecurityTest/OauthOrAPIkey?access_token=invalid&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+      it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
+        return verifyGetRequest(
+          basePath + path,
+          err => {
+            expect(JSON.parse(err.text).message).to.equal('api_key');
+          },
+          401,
+        );
       });
     });
 
     describe('API key and tsoa auth', () => {
       it('returns 200 if API and tsoa auth are correct', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=abc123456&tsoa=abc123456';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if API key is incorrect', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=abc123456&tsoa=invalid';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(basePath + path, emptyHandler, 401);
       });
 
       it('returns 401 if tsoa auth is incorrect', () => {
-        const path = '/SecurityTest/OauthAndAPIkey?access_token=invalid&tsoa=abc123456';
+        const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
         return verifyGetRequest(basePath + path, emptyHandler, 401);
       });
     });
@@ -1429,6 +1490,7 @@ describe('Express Server', () => {
         },
       },
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

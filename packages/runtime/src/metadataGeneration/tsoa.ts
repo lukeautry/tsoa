@@ -11,6 +11,7 @@ export namespace Tsoa {
     methods: Method[];
     name: string;
     path: string;
+    produces?: string[];
   }
 
   export interface Method {
@@ -21,6 +22,8 @@ export namespace Tsoa {
     name: string;
     parameters: Parameter[];
     path: string;
+    produces?: string[];
+    consumes?: string;
     type: Type;
     tags?: string[];
     responses: Response[];
@@ -42,6 +45,7 @@ export namespace Tsoa {
     default?: any;
     validators: Validators;
     deprecated: boolean;
+    exampleLabels?: Array<string | undefined>;
   }
 
   export interface ResParameter extends Response, Parameter {
@@ -70,8 +74,10 @@ export namespace Tsoa {
   export interface Response {
     description: string;
     name: string;
+    produces?: string[];
     schema?: Type;
     examples?: unknown[];
+    exampleLabels?: Array<string | undefined>;
     headers?: HeaderType;
   }
 
@@ -85,6 +91,7 @@ export namespace Tsoa {
     required: boolean;
     validators: Validators;
     deprecated: boolean;
+    extensions?: Extension[];
   }
 
   export type TypeStringLiteral =

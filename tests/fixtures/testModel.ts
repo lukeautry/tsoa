@@ -1,4 +1,4 @@
-import { Deprecated } from '@tsoa/runtime';
+import { Deprecated, Example, Extension } from '@tsoa/runtime';
 
 /**
  * This is a description of a model
@@ -15,6 +15,7 @@ import { Deprecated } from '@tsoa/runtime';
  *   },
  *   "modelsArray": [],
  *   "numberArray": [1, 2, 3],
+ *   "numberArrayReadonly": [1, 2, 3],
  *   "numberValue": 1,
  *   "optionalString": "optional string",
  *   "strLiteralArr": ["Foo", "Bar"],
@@ -34,6 +35,7 @@ export interface TestModel extends Model {
    */
   numberValue: number;
   numberArray: number[];
+  readonly numberArrayReadonly: readonly number[];
   /**
    * @example "letmein"
    * @example "letmein(example)2"
@@ -185,6 +187,12 @@ export interface TestModel extends Model {
   inlineMappedTypeRemapped?: {
     [K in keyof ParameterTestModel as `${Capitalize<K>}Prop`]?: string;
   };
+
+  /**
+   * @extension {"x-key-1": "value-1"}
+   * @extension {"x-key-2": "value-2"}
+   */
+  extensionComment?: boolean;
 }
 
 /** @deprecated */
@@ -750,6 +758,25 @@ export class TestClassModel extends TestClassBaseModel {
   public deprecated1?: boolean;
   /** @deprecated */
   public deprecated2?: boolean;
+  @Extension('x-key-1', 'value-1')
+  @Extension('x-key-2', 'value-2')
+  public extensionTest?: boolean;
+  /**
+   * @extension {"x-key-1": "value-1"}
+   * @extension {"x-key-2": "value-2"}
+   */
+  public extensionComment?: boolean;
+  @Example('stringValue')
+  public stringExample?: string;
+  @Example({
+    id: 1,
+    label: 'labelValue',
+  })
+  public objectExample?: {
+    id: number;
+    label: string;
+  };
+
   /**
    * @param publicConstructorVar This is a description for publicConstructorVar
    */
