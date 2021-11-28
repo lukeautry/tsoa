@@ -206,7 +206,7 @@ export class TypeResolver {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer);
 
       if (type.aliasSymbol) {
-        let declaration = type.aliasSymbol.declarations[0] as ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.DeclarationStatement;
+        let declaration = type.aliasSymbol.declarations?.[0] as ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.DeclarationStatement;
         if (declaration.name) {
           declaration = this.getModelTypeDeclaration(declaration.name as ts.EntityName) as ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.DeclarationStatement;
         }
@@ -225,7 +225,7 @@ export class TypeResolver {
           }
         });
       } else if (type.isClassOrInterface()) {
-        let declaration = type.symbol.declarations[0] as ts.InterfaceDeclaration | ts.ClassDeclaration;
+        let declaration = type.symbol.declarations?.[0] as ts.InterfaceDeclaration | ts.ClassDeclaration;
         if (declaration.name) {
           declaration = this.getModelTypeDeclaration(declaration.name) as ts.InterfaceDeclaration | ts.ClassDeclaration;
         }
@@ -488,7 +488,7 @@ export class TypeResolver {
     let declaredType = (this.current.typeChecker.getDeclaredTypeOfSymbol(symbol)?.symbol || symbol) as ts.Symbol & { parent?: ts.Symbol };
 
     // if we are a EnumMember, return parent instead (this happens if a enum has only one entry, not quite sure why though...)
-    if (this.hasFlag(declaredType, ts.SymbolFlags.EnumMember) && declaredType.parent?.valueDeclaration.kind === ts.SyntaxKind.EnumDeclaration) {
+    if (this.hasFlag(declaredType, ts.SymbolFlags.EnumMember) && declaredType.parent?.valueDeclaration?.kind === ts.SyntaxKind.EnumDeclaration) {
       declaredType = declaredType.parent;
     }
 

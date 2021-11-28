@@ -11,7 +11,7 @@ const TSOA_MIDDLEWARES = Symbol('@tsoa:middlewares');
  *           method
  * @returns
  */
- function decorator(fn: (value: any) => void) {
+function decorator(fn: (value: any) => void) {
   return (...args: any[]) => {
     // class decorator
     if (args.length === 1) {

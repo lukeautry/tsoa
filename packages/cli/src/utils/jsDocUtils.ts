@@ -7,7 +7,7 @@ export function getJSDocDescription(node: ts.Node) {
     return undefined;
   }
 
-  return jsDocs[0].comment || undefined;
+  return commentToString(jsDocs[0].comment) || undefined;
 }
 
 export function getJSDocComment(node: ts.Node, tagName: string) {
@@ -26,7 +26,8 @@ export function getJSDocComments(node: ts.Node, tagName: string) {
   }
   const comments: string[] = [];
   tags.forEach(tag => {
-    if (tag.comment) comments.push(tag.comment);
+    const comment = commentToString(tag.comment);
+    if (comment) comments.push(comment);
   });
   return comments;
 }
@@ -41,7 +42,8 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
       } else if (tag.comment === undefined) {
         throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.escapedText)} should have a parameter name follows with.`);
       }
-      return tag.comment.startsWith(parameterName);
+
+      return commentToString(tag.comment)?.startsWith(parameterName) || false;
     });
   } else {
     tags = getJSDocTags(node as any, tag => {
@@ -73,4 +75,14 @@ export function isExistJSDocTag(node: ts.Node, isMatching: (tag: ts.JSDocTag) =>
     return false;
   }
   return true;
+}
+
+export function commentToString(comment?: string | ts.NodeArray<ts.JSDocText | ts.JSDocLink>): string | undefined {
+  if (typeof comment === 'string') {
+    return comment;
+  } else if (comment) {
+    return comment.map(node => node.text).join(' ');
+  }
+
+  return undefined;
 }

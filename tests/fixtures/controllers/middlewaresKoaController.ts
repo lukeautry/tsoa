@@ -3,7 +3,7 @@ import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
 import type { Context as KoaContext, Next as KoaNext, Middleware } from 'koa';
 
 function Middlewares(...mws: Middleware[]) {
-    return GenericMiddlewares<Middleware>(...mws);
+  return GenericMiddlewares<Middleware>(...mws);
 }
 
 const middlewaresState = {};
@@ -19,9 +19,7 @@ function testMiddleware(key: string) {
   };
 }
 
-@GenericMiddlewares<Middleware>(
-  testMiddleware('route'),
-)
+@GenericMiddlewares<Middleware>(testMiddleware('route'))
 @Route('MiddlewareTestKoa')
 export class MiddlewareKoaController {
   @Middlewares(testMiddleware('test1'))

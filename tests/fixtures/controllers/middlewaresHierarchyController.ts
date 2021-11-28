@@ -3,7 +3,7 @@ import { Route, Get, Middlewares as GenericMiddlewares, Controller } from '@tsoa
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 function Middlewares(...mws: RequestHandler[]) {
-    return GenericMiddlewares<RequestHandler>(...mws);
+  return GenericMiddlewares<RequestHandler>(...mws);
 }
 
 const middlewaresState: string[] = [];
@@ -30,9 +30,7 @@ class IntermediateController extends BaseController {}
 // intermediate controller class without middlewares
 class NoopController extends IntermediateController {}
 
-@GenericMiddlewares<RequestHandler>(
-  testMiddleware('route'),
-)
+@GenericMiddlewares<RequestHandler>(testMiddleware('route'))
 @Route('MiddlewareHierarchyTestExpress')
 export class MiddlewareHierarchyTestExpress extends NoopController {
   @Middlewares(testMiddleware('test1'))

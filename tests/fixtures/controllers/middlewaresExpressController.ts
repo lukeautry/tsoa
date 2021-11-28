@@ -1,14 +1,9 @@
 import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
 
-import type { 
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-  NextFunction as ExpressNextFunction,
-  RequestHandler,
-} from 'express';
+import type { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction, RequestHandler } from 'express';
 
 function Middlewares(...mws: RequestHandler[]) {
-    return GenericMiddlewares<RequestHandler>(...mws);
+  return GenericMiddlewares<RequestHandler>(...mws);
 }
 
 const middlewaresState = {};
@@ -24,9 +19,7 @@ function testMiddleware(key: string) {
   };
 }
 
-@GenericMiddlewares<RequestHandler>(
-  testMiddleware('route'),
-)
+@GenericMiddlewares<RequestHandler>(testMiddleware('route'))
 @Route('MiddlewareTestExpress')
 export class MiddlewareExpressController {
   @Middlewares(testMiddleware('test1'))

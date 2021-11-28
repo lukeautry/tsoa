@@ -65,4 +65,4 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
 const hasInitializer = (node: ts.Node): node is ts.HasInitializer => node.hasOwnProperty('initializer');
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
 const extractImportSpecifier = (symbol?: ts.Symbol) =>
-  (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] as ts.ImportSpecifier)) || undefined;
+  (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] )) || undefined;

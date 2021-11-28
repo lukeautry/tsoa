@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
-import { getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
+import { commentToString, getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -339,15 +339,17 @@ export class ParameterGenerator {
   private getParameterExample(node: ts.ParameterDeclaration, parameterName: string) {
     const exampleLabels: Array<string | undefined> = [];
     const examples = getJSDocTags(node.parent, tag => {
-      const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && tag.comment.startsWith(parameterName);
-      const hasExampleLabel = (tag.comment?.indexOf('.') || -1) > 0;
+      const comment = commentToString(tag.comment);
+      const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && comment?.startsWith(parameterName);
+      const hasExampleLabel = (comment?.indexOf('.') || -1) > 0;
 
       if (isExample) {
         // custom example label is delimited by first '.' and the rest will all be included as example label
-        exampleLabels.push(hasExampleLabel ? tag.comment!.split(' ')[0].split('.').slice(1).join('.') : undefined);
+        exampleLabels.push(hasExampleLabel ? comment?.split(' ')[0].split('.').slice(1).join('.') : undefined);
       }
-      return isExample;
-    }).map(tag => (tag.comment || '').replace(`${tag.comment?.split(' ')[0] || ''}`, '').replace(/\r/g, ''));
+      return isExample ?? false;
+    }).map(tag => (commentToString(tag.comment) || '').replace(`${commentToString(tag.comment)?.split(' ')[0] || ''}`, '').replace(/\r/g, ''));
+
     if (examples.length === 0) {
       return {
         exmaples: undefined,

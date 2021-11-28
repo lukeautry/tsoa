@@ -3,7 +3,7 @@ import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
 import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
 function Middlewares(...mws: RouteOptionsPreAllOptions[]) {
-    return GenericMiddlewares<RouteOptionsPreAllOptions>(...mws);
+  return GenericMiddlewares<RouteOptionsPreAllOptions>(...mws);
 }
 
 const middlewaresState = {};
@@ -19,10 +19,7 @@ function testMiddleware(key: string) {
   };
 }
 
-
-@GenericMiddlewares<RouteOptionsPreAllOptions>(
-  testMiddleware('route'),
-)
+@GenericMiddlewares<RouteOptionsPreAllOptions>(testMiddleware('route'))
 @Route('MiddlewareTestHapi')
 export class MiddlewareHapiController {
   @Middlewares(testMiddleware('test1'))
