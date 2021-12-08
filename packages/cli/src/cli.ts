@@ -3,8 +3,9 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
-import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
+import { Config, RoutesConfig, SpecConfig, MetadataConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
+import { generateMetadata } from './module/generate-metadata';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
@@ -147,6 +148,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
 
 export interface ExtendedRoutesConfig extends RoutesConfig {
   entryFile: Config['entryFile'];
+  metadataFile: Config['metadataFile'];
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
 }
@@ -177,7 +179,52 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
   return {
     ...config.routes,
     entryFile: config.entryFile,
+    metadataFile: config.metadataFile,
     noImplicitAdditionalProperties,
+    controllerPathGlobs: config.controllerPathGlobs,
+  };
+};
+
+export interface ExtendedMetadataConfig extends MetadataConfig {
+  entryFile: Config['entryFile'];
+  controllerPathGlobs?: Config['controllerPathGlobs'];
+}
+
+export const validateMetadataConfig = async (config: Config): Promise<ExtendedMetadataConfig> => {
+  if (!config.metadata) {
+    throw new Error('Missing metadata: configuration must contain metadata to save Metadata file.');
+  }
+  if (!config.metadata.outputDirectory) {
+    throw new Error('Missing outputDirectory: configuration must contain output directory.');
+  }
+  if (!config.entryFile && (!config.controllerPathGlobs || !config.controllerPathGlobs.length)) {
+    throw new Error('Missing entryFile and controllerPathGlobs: Configuration must contain an entry point file or controller path globals.');
+  }
+  if (!!config.entryFile && !(await fsExists(config.entryFile))) {
+    throw new Error(`EntryFile not found: ${config.entryFile} - please check your tsoa config.`);
+  }
+
+  if (!config.metadata.contact) {
+    config.metadata.contact = {};
+  }
+
+  const author = await authorInformation;
+
+  if (typeof author === 'string') {
+    const contact = /^([^<(]*)?\s*(?:<([^>(]*)>)?\s*(?:\(([^)]*)\)|$)/m.exec(author);
+
+    config.metadata.contact.name = config.metadata.contact.name || contact?.[1];
+    config.metadata.contact.email = config.metadata.contact.email || contact?.[2];
+    config.metadata.contact.url = config.metadata.contact.url || contact?.[3];
+  } else if (typeof author === 'object') {
+    config.metadata.contact.name = config.metadata.contact.name || author?.name;
+    config.metadata.contact.email = config.metadata.contact.email || author?.email;
+    config.metadata.contact.url = config.metadata.contact.url || author?.url;
+  }
+
+  return {
+    ...config.metadata,
+    entryFile: config.entryFile,
     controllerPathGlobs: config.controllerPathGlobs,
   };
 };
@@ -224,10 +271,26 @@ export interface SwaggerArgs extends ConfigArgs {
   yaml?: boolean;
 }
 
+export interface MetadataArgs extends ConfigArgs {
+  json?: boolean;
+  yaml?: boolean;
+}
+
 export function runCLI(): void {
   yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
+    .command(
+      'metadata',
+      'Generate Metadata file',
+      {
+        basePath: basePathArgs,
+        configuration: configurationArgs,
+        json: jsonArgs,
+        yaml: yarmlArgs,
+      },
+      MetadataFileGenerator as any,
+    )
     .command(
       'spec',
       'Generate OpenAPI spec',
@@ -291,7 +354,7 @@ export function runCLI(): void {
 
 if (!module.parent) runCLI();
 
-async function SpecGenerator(args: SwaggerArgs) {
+async function SpecGenerator(args: SwaggerArgs, metadata?: Tsoa.Metadata) {
   try {
     const config = await resolveConfig(args.configuration);
     if (args.basePath) {
@@ -310,7 +373,15 @@ async function SpecGenerator(args: SwaggerArgs) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = await validateSpecConfig(config);
 
-    await generateSpec(swaggerConfig, compilerOptions, config.ignore);
+    if (config.metadataFile) {
+      if (!(await fsExists(config.metadataFile))) {
+        throw new Error('Missing metadata file');
+      }
+
+      metadata = JSON.parse((await fsReadFile(config.metadataFile)).toString());
+    }
+
+    await generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate swagger error.\n', err);
@@ -318,7 +389,7 @@ async function SpecGenerator(args: SwaggerArgs) {
   }
 }
 
-async function routeGenerator(args: ConfigArgs) {
+async function routeGenerator(args: ConfigArgs, metadata?: Tsoa.Metadata) {
   try {
     const config = await resolveConfig(args.configuration);
     if (args.basePath) {
@@ -328,10 +399,42 @@ async function routeGenerator(args: ConfigArgs) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config);
 
-    await generateRoutes(routesConfig, compilerOptions, config.ignore);
+    if (routesConfig.metadataFile) {
+      if (!(await fsExists(routesConfig.metadataFile))) {
+        throw new Error('Missing metadata file');
+      }
+
+      metadata = JSON.parse((await fsReadFile(routesConfig.metadataFile)).toString());
+    }
+
+    await generateRoutes(routesConfig, compilerOptions, config.ignore, metadata);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
+    process.exit(1);
+  }
+}
+
+async function MetadataFileGenerator(args: MetadataArgs) {
+  try {
+    const config = await resolveConfig(args.configuration);
+    if (args.basePath) {
+      config.metadata.basePath = args.basePath;
+    }
+    if (args.yaml) {
+      config.metadata.yaml = args.yaml;
+    }
+    if (args.json) {
+      config.metadata.yaml = false;
+    }
+
+    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const metadataConfig = await validateMetadataConfig(config);
+
+    await generateMetadata(metadataConfig, compilerOptions, config.ignore);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Generate metadata error.\n', err);
     process.exit(1);
   }
 }
@@ -355,6 +458,14 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config);
     const swaggerConfig = await validateSpecConfig(config);
+
+    if (config.metadataFile) {
+      if (!(await fsExists(config.metadataFile))) {
+        throw new Error('Missing metadata file');
+      }
+
+      metadata = JSON.parse((await fsReadFile(config.metadataFile)).toString());
+    }
 
     if (!metadata) {
       metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs).Generate();

@@ -12,6 +12,11 @@ export interface Config {
   routes: RoutesConfig;
 
   /**
+   * Metadata configuration object
+   */
+  metadata: MetadataConfig;
+
+  /**
    * Directories to ignore during TypeScript metadata scan
    */
   ignore?: string[];
@@ -20,6 +25,11 @@ export interface Config {
    * The entry point to your API
    */
   entryFile: string;
+
+  /**
+   * The Metadata file to read in
+   */
+  metadataFile: string;
 
   /**
    * An array of path globs that point to your route controllers that you would like to have tsoa include.
@@ -212,4 +222,49 @@ export interface RoutesConfig {
    * @default false
    */
   useSuccessResponseCode?: boolean;
+}
+
+export interface MetadataConfig {
+  /**
+   * Generated Metadata.json will output here
+   */
+  outputDirectory: string;
+
+  /**
+   * Base-name of swagger.json or swagger.yaml.
+   *
+   * @default: "metadata"
+   */
+  metadataFileBaseName?: string;
+
+  /**
+   * Contact Information
+   */
+  contact?: {
+    /**
+     * The identifying name of the contact person/organization.
+     * @default npm package author
+     */
+    name?: string;
+
+    /**
+     * The email address of the contact person/organization.
+     * @default npm package author email
+     */
+    email?: string;
+
+    /**
+     * API Info url
+     * The URL pointing to the contact information.
+     * @default npm package author url
+     */
+    url?: string;
+  };
+
+  /**
+   * Base API path; e.g. the 'v1' in https://myapi.com/v1
+   */
+  basePath?: string;
+
+  yaml?: boolean;
 }
