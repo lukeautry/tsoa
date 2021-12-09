@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { getDecorators, getDecoratorValues, getSecurites } from './../utils/decoratorUtils';
+import { getDecorators, getDecoratorValues, getProduces, getSecurites } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
@@ -13,6 +13,7 @@ export class ControllerGenerator {
   private readonly security?: Tsoa.Security[];
   private readonly isHidden?: boolean;
   private readonly commonResponses: Tsoa.Response[];
+  private readonly produces?: string[];
 
   constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
     this.path = this.getPath();
@@ -20,6 +21,7 @@ export class ControllerGenerator {
     this.security = this.getSecurity();
     this.isHidden = this.getIsHidden();
     this.commonResponses = this.getCommonResponses();
+    this.produces = this.getProduces();
   }
 
   public IsValid() {
@@ -41,6 +43,7 @@ export class ControllerGenerator {
       methods: this.buildMethods(),
       name: this.node.name.text,
       path: this.path || '',
+      produces: this.produces,
     };
   }
 
@@ -131,5 +134,10 @@ export class ControllerGenerator {
     }
 
     return true;
+  }
+
+  private getProduces(): string[] | undefined {
+    const produces = getProduces(this.node, this.current.typeChecker);
+    return produces.length ? produces : undefined;
   }
 }

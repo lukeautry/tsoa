@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { File } from '@tsoa/runtime';
@@ -260,6 +261,18 @@ describe('Hapi Server', () => {
     );
   });
 
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTestHapi/test1',
+      (err, res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+      },
+      204,
+    );
+  });
+
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
@@ -353,6 +366,19 @@ describe('Hapi Server', () => {
           expect(res.status).to.equal(204);
         },
         204,
+      );
+    });
+  });
+
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
       );
     });
   });
@@ -1363,6 +1389,7 @@ describe('Hapi Server', () => {
         },
       },
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

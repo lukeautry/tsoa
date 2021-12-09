@@ -501,6 +501,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       modelValue: { email: 'test@test.com', id: 2 },
       modelsArray: [{ email: 'test@test.com', id: 1 }],
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

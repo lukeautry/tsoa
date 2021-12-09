@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { server } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { File } from '@tsoa/runtime';
@@ -238,6 +239,18 @@ describe('Koa Server', () => {
     );
   });
 
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      basePath + '/MiddlewareTestKoa/test1',
+      (err, res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+      },
+      204,
+    );
+  });
+
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
@@ -299,6 +312,19 @@ describe('Koa Server', () => {
           expect(res.header['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
         },
         204,
+      );
+    });
+  });
+
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
       );
     });
   });
@@ -1338,6 +1364,7 @@ describe('Koa Server', () => {
       modelValue: { email: 'test@test.com', id: 2 },
       modelsArray: [{ email: 'test@test.com', id: 1 }],
       numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
       numberValue: 5,
       objLiteral: {
         name: 'hello',

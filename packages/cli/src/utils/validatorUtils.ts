@@ -2,7 +2,7 @@ import validator from 'validator';
 import * as ts from 'typescript';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { Tsoa } from '@tsoa/runtime';
-import { getJSDocTags } from './jsDocUtils';
+import { commentToString, getJSDocTags } from './jsDocUtils';
 
 export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Tsoa.Validators {
   if (!parameter.parent) {
@@ -13,7 +13,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
 
   const tags = getJSDocTags(parameter.parent, tag => {
     const { comment } = tag;
-    return getParameterTagSupport().some(value => !!comment && value === tag.tagName.text && getCommentValue(comment) === parameterName);
+    return getParameterTagSupport().some(value => !!commentToString(comment) && value === tag.tagName.text && getCommentValue(commentToString(comment)) === parameterName);
   });
 
   function getErrorMsg(comment?: string, isValue = true) {
@@ -38,7 +38,9 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
     }
 
     const name = tag.tagName.text;
-    const comment = tag.comment.substr(tag.comment.indexOf(' ') + 1).trim();
+    const comment = commentToString(tag.comment)
+      ?.substr((commentToString(tag.comment)?.indexOf(' ') || -1) + 1)
+      .trim();
     const value = getCommentValue(comment);
 
     switch (name) {
@@ -126,12 +128,12 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
   return tags.reduce((validateObj, tag) => {
     const name = tag.tagName.text;
     const comment = tag.comment;
-    const value = getValue(comment);
+    const value = getValue(commentToString(comment));
 
     switch (name) {
       case 'uniqueItems':
         validateObj[name] = {
-          errorMsg: getErrorMsg(comment, false),
+          errorMsg: getErrorMsg(commentToString(comment), false),
           value: undefined,
         };
         break;
@@ -145,7 +147,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
           throw new GenerateMetadataError(`${name} parameter use number.`);
         }
         validateObj[name] = {
-          errorMsg: getErrorMsg(comment),
+          errorMsg: getErrorMsg(commentToString(comment)),
           value: Number(value),
         };
         break;
@@ -155,7 +157,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
           throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
         }
         validateObj[name] = {
-          errorMsg: getErrorMsg(comment),
+          errorMsg: getErrorMsg(commentToString(comment)),
           value,
         };
         break;
@@ -164,13 +166,13 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
           throw new GenerateMetadataError(`${name} parameter use string.`);
         }
         validateObj[name] = {
-          errorMsg: getErrorMsg(comment),
+          errorMsg: getErrorMsg(commentToString(comment)),
           value: removeSurroundingQuotes(value),
         };
         break;
       default:
         if (name.startsWith('is')) {
-          const errorMsg = getErrorMsg(comment, false);
+          const errorMsg = getErrorMsg(commentToString(comment), false);
           if (errorMsg) {
             validateObj[name] = {
               errorMsg,

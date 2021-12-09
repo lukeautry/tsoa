@@ -3,18 +3,32 @@ name: Build and Test
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [12, 14, 16, 17]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
     steps:
       - uses: actions/checkout@master
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install
+        run: yarn install --ignore-scripts
+
       - name: Build
-        uses: Borales/actions-yarn@master
-        with:
-          cmd: install
+        run: yarn run build
+
       - name: Lint
-        uses: Borales/actions-yarn@master
-        with:
-          cmd: lint
+        run: yarn run lint
+
       - name: Test
-        uses: Borales/actions-yarn@master
-        with:
-          cmd: test
+        run: yarn run test

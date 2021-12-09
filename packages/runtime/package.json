@@ -1,7 +1,7 @@
 {
   "name": "@tsoa/runtime",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "3.9.0",
+  "version": "4.0.0-alpha.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "keywords": [
@@ -26,12 +26,13 @@
   "license": "MIT",
   "dependencies": {
     "promise.any": "^2.0.2",
+    "reflect-metadata": "^0.1.13",
     "validator": "^13.6.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.1",
     "@types/validator": "^13.1.3",
-    "typescript": "^4.1.2"
+    "typescript": "^4.3.2"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": ">=6.0.0"
+    "node": ">=12.0.0"
   },
   "engineStrict": true,
   "publishConfig": {

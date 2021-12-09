@@ -427,6 +427,60 @@ describe('Schema details generation', () => {
           });
         });
 
+        describe('media types', () => {
+          let mediaTypeTest;
+          let requestAcceptHeaderTest;
+
+          before(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+            mediaTypeTest = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+            requestAcceptHeaderTest = new SpecGenerator2(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+          });
+
+          it('Should use controller Produces decorator as a default media type', () => {
+            const { produces } = mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get;
+
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json']);
+          });
+
+          it('Should be possible to define multiple media types on controller level', () => {
+            const { produces } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get;
+
+            expect(produces).to.deep.eq(['application/vnd.mycompany.myapp+json', 'application/vnd.mycompany.myapp.v2+json']);
+          });
+
+          it('Should generate custom media type from method Produces decorator', () => {
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get;
+
+            expect(mediaTypeTestCustom).to.deep.eq(['text/plain']);
+            expect(requestAcceptHeaderMulti).to.deep.eq([
+              'application/vnd.mycompany.myapp+json',
+              'application/vnd.mycompany.myapp.v2+json',
+              'application/vnd.mycompany.myapp.v3+json',
+              'application/vnd.mycompany.myapp.v4+json',
+            ]);
+          });
+
+          it('Should generate custom media types from method reponse decorators and Res decorator', () => {
+            const { produces: mediaTypeTestCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+            const { produces: requestAcceptHeaderMulti } = requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post;
+
+            expect(mediaTypeTestCustom).to.deep.eq(['application/problem+json', 'application/vnd.mycompany.myapp.v2+json']);
+            expect(requestAcceptHeaderMulti).to.deep.eq(['application/problem+json', 'application/json', 'application/vnd.mycompany.myapp.v3+json', 'application/vnd.mycompany.myapp.v4+json']);
+          });
+
+          it('Should generate custom media type of request body from method Consumes decorator', () => {
+            const { consumes: consumesDefault } = mediaTypeTest.paths['/MediaTypeTest/Default']?.post;
+            const { consumes: consumesCustom } = mediaTypeTest.paths['/MediaTypeTest/Custom']?.post;
+
+            expect(consumesDefault).to.deep.eq(['application/json']);
+            expect(consumesCustom).to.deep.eq(['application/vnd.mycompany.myapp.v2+json']);
+          });
+        });
+
         it('Falls back to the first @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
@@ -446,6 +500,14 @@ describe('Schema details generation', () => {
           expect(warningMessages[0]).eq('Example labels are not supported in OpenAPI 2');
           expect(examples).not.to.haveOwnProperty('No country');
           console.warn = originalWarn;
+        });
+
+        it('uses the correct imported value for the @Example<>', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responses = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue'].get?.responses;
+
+          expect(responses?.[200]?.examples?.['application/json']).to.eq('test example response');
         });
       });
     });
