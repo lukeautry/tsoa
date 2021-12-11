@@ -64,7 +64,8 @@
   "workspaces": {
     "packages": [
       "packages/*",
-      "tests"
+      "tests",
+      "tests/esm"
     ]
   }
 }
