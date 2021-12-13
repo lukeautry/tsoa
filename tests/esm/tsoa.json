@@ -1,0 +1,16 @@
+{
+  "entryFile": "./esm/fixtures/express/server.ts",
+  "noImplicitAdditionalProperties": "silently-remove-extras",
+  "spec": {
+    "outputDirectory": "./dist",
+    "host": "localhost:3000",
+    "basePath": "/v1",
+    "yaml": true,
+    "specVersion": 2
+  },
+  "routes": {
+    "basePath": "/v1",
+    "routesDir": "./esm/fixtures/express",
+    "middleware": "express"
+  }
+}

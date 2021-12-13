@@ -179,7 +179,7 @@ export class RouteGenerator {
 
   private getRelativeImportPath(fileLocation: string) {
     fileLocation = fileLocation.replace(/.ts$/, ''); // no ts extension in import
-    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}`;
+    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}${this.options.esm ? '.js' : ''}`;
   }
 
   private buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {

@@ -11,6 +11,13 @@ const spec = async () => {
   return result;
 };
 
+const specESM = async () => {
+  const result = await generateSpecAndRoutes({
+    configuration: 'esm/tsoa.json',
+  });
+  return result;
+};
+
 const log = async <T>(label: string, fn: () => Promise<T>) => {
   console.log(chalk.dim(chalk.green(`↻ Starting ${label}...`)));
   const timer = new Timer();
@@ -22,7 +29,8 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
 };
 
 (async () => {
-  const metadata = await log('Swagger Spec Generation', spec);
+  const [metadata, metadataESM] = await Promise.all([log('Swagger Spec Generation', spec), log('Swagger ESM Spec Generation', specESM)]);
+
   await Promise.all([
     log('Express Route Generation', () =>
       generateRoutes(
@@ -37,6 +45,21 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         undefined,
         undefined,
         metadata,
+      ),
+    ),
+    log('Express ESM Route Generation', () =>
+      generateRoutes(
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          basePath: '/v1',
+          entryFile: './esm/fixtures/express/server.ts',
+          middleware: 'express',
+          routesDir: './esm/fixtures/express',
+          esm: true,
+        },
+        undefined,
+        undefined,
+        metadataESM,
       ),
     ),
     log('Express Router Route Generation', () =>

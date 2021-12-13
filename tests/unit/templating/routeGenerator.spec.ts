@@ -96,5 +96,31 @@ describe('RouteGenerator', () => {
 
       expect(models).to.equal('./controllerWith.tsInPath');
     });
+
+    it('adds js for routes if esm is true', () => {
+      const generator = new RouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controller.ts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          esm: true,
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}', s => s);
+
+      expect(models).to.equal('./controller.js');
+    });
   });
 });
