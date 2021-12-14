@@ -455,27 +455,27 @@ describe('Express Server', () => {
   });
 
   describe('NoExtends', () => {
-    it('should ignore SuccessResponse code and use default code', () => {
+    it('should apply custom code from success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/customSuccessResponseCode`,
         (err, res) => {
-          expect(res.status).to.equal(204);
+          expect(res.status).to.equal(202);
         },
-        204,
+        202,
       );
     });
 
-    it('should ignore SuccessResponse enum code and use default code', () => {
+    it('should apply enum code from success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/enumSuccessResponseCode`,
         (err, res) => {
-          expect(res.status).to.equal(204);
+          expect(res.status).to.equal(202);
         },
-        204,
+        202,
       );
     });
 
-    it('should ignore SuccessResponse 2XX code and use default code', () => {
+    it('should ignore 2XX code range from success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/rangedSuccessResponse`,
         (err, res) => {

@@ -107,22 +107,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         metadata,
       ),
     ),
-    log('Express Route Generation with useSuccessResponseCode feature', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'silently-remove-extras',
-          authenticationModule: './fixtures/express/authentication.ts',
-          basePath: '/v1',
-          entryFile: './fixtures/express-success-code/server.ts',
-          middleware: 'express',
-          routesDir: './fixtures/express-success-code',
-          useSuccessResponseCode: true,
-        },
-        undefined,
-        undefined,
-        metadata,
-      ),
-    ),
     log('Koa Route Generation', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -143,17 +127,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routesDir: './fixtures/koaNoAdditional',
       }),
     ),
-    log('Koa Route Generation with useSuccessResponseCode feature', () =>
-      generateRoutes({
-        noImplicitAdditionalProperties: 'silently-remove-extras',
-        authenticationModule: './fixtures/koa/authentication.ts',
-        basePath: '/v1',
-        entryFile: './fixtures/koa-success-code/server.ts',
-        middleware: 'koa',
-        routesDir: './fixtures/koa-success-code',
-        useSuccessResponseCode: true,
-      }),
-    ),
     log('Hapi Route Generation', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -162,17 +135,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './fixtures/hapi/server.ts',
         middleware: 'hapi',
         routesDir: './fixtures/hapi',
-      }),
-    ),
-    log('Hapi Route Generation with useSuccessResponseCode feature', () =>
-      generateRoutes({
-        noImplicitAdditionalProperties: 'silently-remove-extras',
-        authenticationModule: './fixtures/hapi/authentication.ts',
-        basePath: '/v1',
-        entryFile: './fixtures/hapi-success-code/server.ts',
-        middleware: 'hapi',
-        routesDir: './fixtures/hapi-success-code',
-        useSuccessResponseCode: true,
       }),
     ),
     log('Custom Route Generation', () =>

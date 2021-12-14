@@ -334,9 +334,9 @@ describe('Koa Server', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/customSuccessResponseCode`,
         (err, res) => {
-          expect(res.status).to.equal(204);
+          expect(res.status).to.equal(202);
         },
-        204,
+        202,
       );
     });
 
@@ -344,9 +344,9 @@ describe('Koa Server', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/enumSuccessResponseCode`,
         (err, res) => {
-          expect(res.status).to.equal(204);
+          expect(res.status).to.equal(202);
         },
-        204,
+        202,
       );
     });
 
