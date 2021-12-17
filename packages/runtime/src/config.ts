@@ -206,14 +206,6 @@ export interface RoutesConfig {
   authenticationModule?: string;
 
   /**
-   * When enabled, the `@SuccessResponse` annotations' code is used for responses by default.
-   * Otherwise, non-empty responses default to 200 and empty responses to 204.
-   *
-   * @default false
-   */
-  useSuccessResponseCode?: boolean;
-
-  /**
    * When enabled, the imports in the routes files will have a `.js` extention to support esm.
    *
    * @default false

@@ -97,7 +97,7 @@ export class RouteGenerator {
               uploadFiles: !!uploadFilesParameter,
               uploadFilesName: uploadFilesParameter?.name,
               security: method.security,
-              successStatus: this.options.useSuccessResponseCode && method.successStatus ? method.successStatus : 'undefined',
+              successStatus: method.successStatus ? method.successStatus : 'undefined',
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
