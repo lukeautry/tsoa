@@ -182,7 +182,7 @@ export abstract class SpecGenerator {
     };
   }
 
-  protected determineTypesUsedInEnum(anEnum: Array<string | number | boolean | null>) {
+  protected determineTypesUsedInEnum(anEnum: (string | number | boolean | null)[]) {
     const typesUsedInEnum = anEnum.reduce((theSet, curr) => {
       const typeUsed = curr === null ? 'number' : typeof curr;
       theSet.add(typeUsed);

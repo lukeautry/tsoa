@@ -108,10 +108,10 @@ export interface TestModel extends Model {
 
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
   // tslint:disable-next-line: array-type
-  genericNestedArrayKeyword1?: GenericRequest<Array<TypeAliasModel1>>;
+  genericNestedArrayKeyword1?: GenericRequest<TypeAliasModel1[]>;
   genericNestedArrayCharacter1?: GenericRequest<TypeAliasModel1[]>;
   // tslint:disable-next-line: array-type
-  genericNestedArrayKeyword2?: GenericRequest<Array<TypeAliasModel2>>;
+  genericNestedArrayKeyword2?: GenericRequest<TypeAliasModel2[]>;
   genericNestedArrayCharacter2?: GenericRequest<TypeAliasModel2[]>;
   mixedUnion?: string | TypeAliasModel1;
 

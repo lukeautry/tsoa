@@ -454,13 +454,13 @@ describe('Definition generation', () => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_GenericRequest_TypeAliasModel1__', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword1: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel1__', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter1: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel1Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayKeyword2: (propertyName, propertySchema) => {
-            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_Array_TypeAliasModel2__', `for property ${propertyName}.$ref`);
+            expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);
           },
           genericNestedArrayCharacter2: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/GenericRequest_TypeAliasModel2Array_', `for property ${propertyName}.$ref`);

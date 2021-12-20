@@ -222,7 +222,7 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: Array<string | number>;
+    enum?: (string | number)[];
     items?: BaseSchema;
   }
 

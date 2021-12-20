@@ -390,7 +390,7 @@ export class SpecGenerator2 extends SpecGenerator {
     return { $ref: `#/definitions/${referenceType.refName}` };
   }
 
-  private decideEnumType(anEnum: Array<string | number>, nameOfEnum: string): 'string' | 'number' {
+  private decideEnumType(anEnum: (string | number)[], nameOfEnum: string): 'string' | 'number' {
     const typesUsedInEnum = this.determineTypesUsedInEnum(anEnum);
 
     const badEnumErrorMessage = () => {
