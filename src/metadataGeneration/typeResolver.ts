@@ -657,7 +657,7 @@ export class TypeResolver {
 
         const moduleDeclaration = node as ts.ModuleDeclaration | ts.EnumDeclaration;
         return (moduleDeclaration.name as ts.Identifier).text.toLowerCase() === leftmostName.toLowerCase();
-      }) as [ts.ModuleDeclaration | ts.EnumDeclaration];
+      }) as (ts.ModuleDeclaration | ts.EnumDeclaration)[];
 
       if (!moduleDeclarations.length) {
         throw new GenerateMetadataError(`No matching module declarations found for ${leftmostName}.`);
@@ -758,7 +758,7 @@ export class TypeResolver {
       .filter(member => !isIgnored(member))
       .filter(member => member.kind === ts.SyntaxKind.PropertyDeclaration)
       .filter(member => !this.hasStaticModifier(member))
-      .filter(member => this.hasPublicModifier(member)) as [ts.PropertyDeclaration | ts.ParameterDeclaration];
+      .filter(member => this.hasPublicModifier(member)) as (ts.PropertyDeclaration | ts.ParameterDeclaration)[];
 
     const classConstructor = node.members.find(member => ts.isConstructorDeclaration(member)) as ts.ConstructorDeclaration;
 
