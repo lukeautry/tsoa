@@ -1242,6 +1242,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           indexed: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Partial_Indexed-at-foo_');
           },
+          indexedValue: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValue');
+            const schema = getComponentSchema('IndexedValue', currentSpec);
+            expect(schema).to.deep.eq({
+              type: 'string',
+              enum: ['FOO', 'BAR'],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+            });
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);

@@ -2,7 +2,7 @@
 import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
 import '../duplicateTestModel';
-import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON } from '../testModel';
+import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON, IndexedValue } from '../testModel';
 import { ModelService } from './../services/modelService';
 import TsoaTest from 'tsoaTest';
 
@@ -261,6 +261,11 @@ export class GetTestController extends Controller {
   @Get(EnumPaths.PathFromEnum)
   public async getPathFromEnumValue(): Promise<TestModel> {
     return new ModelService().getModel();
+  }
+
+  @Get('IndexedValue')
+  public async getIndexedValue(): Promise<IndexedValue> {
+    return 'FOO';
   }
 }
 
