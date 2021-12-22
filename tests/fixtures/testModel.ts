@@ -243,6 +243,12 @@ export type IndexedValue = typeof indexedValue[keyof typeof indexedValue];
 // prettier-ignore
 export type ParenthesizedIndexedValue = (typeof indexedValue)[keyof typeof indexedValue];
 
+const otherIndexedValue = {
+  foo: 'fOO',
+} as const;
+
+export type ForeignIndexedValue = typeof indexedValue[keyof typeof otherIndexedValue];
+
 type Maybe<T> = T | null;
 
 export interface TypeAliasModel1 {
