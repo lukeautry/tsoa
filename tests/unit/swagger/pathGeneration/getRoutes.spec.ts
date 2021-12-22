@@ -200,6 +200,13 @@ describe('GET route generation', () => {
     }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
+  it('should reject unsupported indexed types', () => {
+    expect(() => {
+      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
+      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+    }).to.throw(/^Unknown type: IndexedAccessType.*/);
+  });
+
   it('should generate a path description from jsdoc comment', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) {

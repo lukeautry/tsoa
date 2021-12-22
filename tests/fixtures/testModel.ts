@@ -72,6 +72,8 @@ export interface TestModel extends Model {
   unknownType?: unknown;
   genericTypeObject?: Generic<{ foo: string; bar: boolean }>;
   indexed?: Partial<Indexed['foo']>;
+  indexedValue?: IndexedValue;
+  parenthesizedIndexedValue?: ParenthesizedIndexedValue;
   record?: Record<'record-foo' | 'record-bar', { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
@@ -230,6 +232,22 @@ interface Indexed {
     bar: string;
   };
 }
+
+const indexedValue = {
+  foo: 'FOO',
+  bar: 'BAR',
+} as const;
+
+export type IndexedValue = typeof indexedValue[keyof typeof indexedValue];
+
+// prettier-ignore
+export type ParenthesizedIndexedValue = (typeof indexedValue)[keyof typeof indexedValue];
+
+const otherIndexedValue = {
+  foo: 'fOO',
+} as const;
+
+export type ForeignIndexedValue = typeof indexedValue[keyof typeof otherIndexedValue];
 
 type Maybe<T> = T | null;
 
