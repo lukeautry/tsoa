@@ -2,7 +2,18 @@
 import { Readable } from 'stream';
 import { Controller, Example, Get, OperationId, Query, Request, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
 import '../duplicateTestModel';
-import { GenericModel, GetterClass, GetterInterface, GetterInterfaceHerited, TestClassModel, TestModel, TestSubModel, SimpleClassWithToJSON, IndexedValue } from '../testModel';
+import {
+  GenericModel,
+  GetterClass,
+  GetterInterface,
+  GetterInterfaceHerited,
+  TestClassModel,
+  TestModel,
+  TestSubModel,
+  SimpleClassWithToJSON,
+  IndexedValue,
+  ParenthesizedIndexedValue,
+} from '../testModel';
 import { ModelService } from './../services/modelService';
 import TsoaTest from 'tsoaTest';
 
@@ -265,6 +276,11 @@ export class GetTestController extends Controller {
 
   @Get('IndexedValue')
   public async getIndexedValue(): Promise<IndexedValue> {
+    return 'FOO';
+  }
+
+  @Get('ParenthesizedIndexedValue')
+  public async getParenthesizedIndexedValue(): Promise<ParenthesizedIndexedValue> {
     return 'FOO';
   }
 }

@@ -1254,6 +1254,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
+          parenthesizedIndexedValue: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/ParenthesizedIndexedValue');
+            const schema = getComponentSchema('ParenthesizedIndexedValue', currentSpec);
+            expect(schema).to.deep.eq({
+              type: 'string',
+              enum: ['FOO', 'BAR'],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+            });
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);

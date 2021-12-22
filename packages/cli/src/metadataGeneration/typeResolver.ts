@@ -299,18 +299,16 @@ export class TypeResolver {
       }
     }
 
-    // Indexed by keyof typeof self
-    if (
-      ts.isIndexedAccessTypeNode(this.typeNode) &&
-      ts.isTypeOperatorNode(this.typeNode.indexType) &&
-      this.typeNode.indexType.operator === ts.SyntaxKind.KeyOfKeyword &&
-      ts.isTypeQueryNode(this.typeNode.objectType) &&
-      ts.isTypeQueryNode(this.typeNode.indexType.type) &&
-      this.typeNode.indexType.type.exprName.getText() === this.typeNode.objectType.exprName.getText()
-    ) {
-      const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
-      const node = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.InTypeAlias)!;
-      return new TypeResolver(node, this.current, this.typeNode, this.context, this.referencer).resolve();
+    // Indexed by keyof typeof value
+    if (ts.isIndexedAccessTypeNode(this.typeNode) && ts.isTypeOperatorNode(this.typeNode.indexType) && this.typeNode.indexType.operator === ts.SyntaxKind.KeyOfKeyword) {
+      const resolveParenthesis = (node: ts.TypeNode) => (ts.isParenthesizedTypeNode(node) ? node.type : node);
+      const objectType = resolveParenthesis(this.typeNode.objectType);
+      const indexType = this.typeNode.indexType.type;
+      if (ts.isTypeQueryNode(objectType) && ts.isTypeQueryNode(indexType) && objectType.exprName.getText() === indexType.exprName.getText()) {
+        const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
+        const node = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.InTypeAlias)!;
+        return new TypeResolver(node, this.current, this.typeNode, this.context, this.referencer).resolve();
+      }
     }
 
     if (ts.isTemplateLiteralTypeNode(this.typeNode)) {
