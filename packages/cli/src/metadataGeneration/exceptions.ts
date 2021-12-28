@@ -10,6 +10,14 @@ export class GenerateMetadataError extends Error {
   }
 }
 
+export class GenerateMetaDataWarning {
+  constructor(private message: string, private node: Node | TypeNode, private onlyCurrent = false) {}
+
+  toString() {
+    return `Warning: ${this.message}\n${prettyLocationOfNode(this.node)}\n${prettyTroubleCause(this.node, this.onlyCurrent)}`;
+  }
+}
+
 export function prettyLocationOfNode(node: Node | TypeNode) {
   const sourceFile = node.getSourceFile();
   const token = node.getFirstToken() || node.parent.getFirstToken();
