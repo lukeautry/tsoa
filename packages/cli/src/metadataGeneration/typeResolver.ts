@@ -243,9 +243,31 @@ export class TypeResolver {
       }
     }
 
+    // keyof
     if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
       try {
+        if (type.isUnionOrIntersection()) {
+          const literals = type.types.filter(t => t.isLiteral()).reduce((acc, t: ts.LiteralType) => [...acc, t.value.toString()], []);
+          return {
+            dataType: 'enum',
+            enums: literals,
+          };
+        } else if (type.isLiteral()) {
+          return {
+            dataType: 'enum',
+            enums: [type.value.toString()],
+          };
+        } else {
+          const warning = new GenerateMetadataError(
+            `Couldn't resolve keyof reliably, please check the resulting type carefully.
+            Reason: Type was not a literal or an array of literals.`,
+            this.typeNode,
+          );
+
+          console.warn(warning);
+        }
+
         return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
       } catch (err) {
         const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));

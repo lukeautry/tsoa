@@ -199,7 +199,14 @@ export interface TestModel extends Model {
    * @extension {"x-key-2": "value-2"}
    */
   extensionComment?: boolean;
+
+  keyofLiteral?: keyof Items;
 }
+
+type Items = {
+  type1: unknown;
+  type2: unknown;
+};
 
 /** @deprecated */
 interface DeprecatedType {

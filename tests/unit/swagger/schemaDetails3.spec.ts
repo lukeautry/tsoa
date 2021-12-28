@@ -1854,6 +1854,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     default: undefined,
                     description: undefined,
                     enum: ['OK', 'KO'],
+                    nullable: false,
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -2226,6 +2227,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 example: undefined,
                 'x-key-1': 'value-1',
                 'x-key-2': 'value-2',
+              },
+              `for property ${propertyName}`,
+            );
+          },
+          keyofLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['type1', 'type2'],
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                nullable: false,
+                example: undefined,
               },
               `for property ${propertyName}`,
             );
