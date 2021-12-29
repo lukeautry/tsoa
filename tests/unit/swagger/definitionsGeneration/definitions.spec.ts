@@ -665,12 +665,12 @@ describe('Definition generation', () => {
           },
           deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
-            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(undefined, `for property notOkProp[x-deprecated]`);
           },
           deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
-            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
-            expect(propertySchema.properties!.stillNotOkProp['x-deprecated']).to.eql(true, `for property stillNotOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(undefined, `for property notOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.stillNotOkProp['x-deprecated']).to.eql(undefined, `for property stillNotOkProp[x-deprecated]`);
           },
           notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.notOk).not.to.haveOwnProperty('x-deprecated', `for property notOk`);

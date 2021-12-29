@@ -133,7 +133,7 @@ export namespace Swagger {
   }
 
   export type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
-  export type Parameter2 = Omit<Parameter & { 'x-deprecated'?: boolean }, 'deprecated'>;
+  export type Parameter2 = Parameter & { 'x-deprecated'?: boolean };
   export type Parameter3 = Parameter;
 
   export interface Path {
@@ -190,6 +190,8 @@ export namespace Swagger {
     deprecated?: boolean;
     security?: Security[];
     requestBody?: RequestBody;
+
+    [ext: `x-${string}`]: unknown;
   }
 
   export interface RequestBody {
@@ -241,6 +243,8 @@ export namespace Swagger {
     enum?: Array<string | number | null>;
     'x-enum-varnames'?: string[];
     items?: BaseSchema;
+
+    [ext: `x-${string}`]: unknown;
   }
 
   export interface Schema3 extends Omit<Schema, 'type'> {

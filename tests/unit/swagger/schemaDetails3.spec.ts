@@ -1020,12 +1020,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
           },
           deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
-            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(true, `for property stillNotOkProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(undefined, `for property stillNotOkProp.deprecated`);
           },
           notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
             // See corresponding `deprecated: false` in TypeResolver#resolve

@@ -77,7 +77,7 @@ export function isExistJSDocTag(node: ts.Node, isMatching: (tag: ts.JSDocTag) =>
   return true;
 }
 
-export function commentToString(comment?: string | ts.NodeArray<ts.JSDocText | ts.JSDocLink>): string | undefined {
+export function commentToString(comment?: string | ts.NodeArray<ts.JSDocText | ts.JSDocLink | ts.JSDocComment>): string | undefined {
   if (typeof comment === 'string') {
     return comment;
   } else if (comment) {
