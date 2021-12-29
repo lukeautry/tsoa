@@ -1,5 +1,5 @@
 {
-  "entryFile": "./esm/fixtures/express/server.ts",
+  "entryFile": "./fixtures/express/server.ts",
   "noImplicitAdditionalProperties": "silently-remove-extras",
   "spec": {
     "outputDirectory": "./dist",
@@ -10,7 +10,7 @@
   },
   "routes": {
     "basePath": "/v1",
-    "routesDir": "./esm/fixtures/express",
+    "routesDir": "./fixtures/express",
     "middleware": "express"
   }
 }
