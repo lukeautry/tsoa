@@ -684,8 +684,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
 
         describe('media types', () => {
-          let mediaTypeTest;
-          let requestAcceptHeaderTest;
+          let mediaTypeTest: Swagger.Spec3;
+          let requestAcceptHeaderTest: Swagger.Spec3;
 
           before(() => {
             const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
@@ -696,23 +696,23 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
-            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content);
-            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content);
+            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content ?? {});
+            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content ?? {});
 
             expect(mediaTypeOk).to.eql('application/vnd.mycompany.myapp+json');
             expect(mediaTypeNotFound).to.eql('application/vnd.mycompany.myapp+json');
           });
 
           it('Should be possible to define multiple media types on controller level', () => {
-            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content);
+            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content ?? {});
 
             expect(v1).to.eql('application/vnd.mycompany.myapp+json');
             expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
           });
 
           it('Should generate custom media type from method Produces decorator', () => {
-            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content);
-            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content);
+            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content ?? {});
+            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content ?? {});
 
             expect(mediaType).to.eql('text/plain');
             expect(v1).to.eql('application/vnd.mycompany.myapp+json');
@@ -722,10 +722,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should generate custom media types from method reponse decorators', () => {
-            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content);
-            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content);
-            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content);
-            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content);
+            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content ?? {});
+            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content ?? {});
+            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content ?? {});
+            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content ?? {});
 
             expect(mediaTypeAccepted).to.eql('application/vnd.mycompany.myapp.v2+json');
             expect(mediaTypeBadRequest).to.eql('application/problem+json');
@@ -736,14 +736,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should generate custom media types from header in @Res decorator', () => {
-            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content);
+            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content ?? {});
 
             expect(mediaTypeConflict).to.eql('application/problem+json');
           });
 
           it('Should generate custom media type of request body from method Consumes decorator', () => {
-            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content);
-            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content);
+            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content ?? {});
+            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content ?? {});
 
             expect(bodyMediaTypeDefault).to.eql('application/json');
             expect(bodyMediaTypeCustom).to.eql('application/vnd.mycompany.myapp.v2+json');
@@ -2248,7 +2248,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
-        Object.keys(assertionsPerProperty).forEach(aPropertyName => {
+        (Object.keys(assertionsPerProperty) as Array<keyof typeof assertionsPerProperty>).forEach(aPropertyName => {
           if (!testModel) {
             throw new Error(`There was no schema generated for the ${currentSpec.specName}`);
           }

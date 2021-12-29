@@ -18,9 +18,10 @@
   ],
   "scripts": {
     "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
-    "pretest": "yarn clean && cross-env NODE_ENV=tsoa_test ts-node --require tsconfig-paths/register ./prepare.ts",
-    "test": "tsc -b tsconfig.build.json && cross-env NODE_ENV=tsoa_test mocha '**/*.spec.ts' --exclude 'esm/**/*' --exit --require ts-node/register --require tsconfig-paths/register --timeout 5000",
-    "tsc": "tsc -b"
+    "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
+    "pretest": "yarn clean && yarn prepare-test && yarn typecheck",
+    "test": "cross-env NODE_ENV=tsoa_test mocha --require=ts-node/register --require=tsconfig-paths/register --exit",
+    "typecheck": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -59,7 +60,7 @@
     "supertest": "^4.0.2",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.3.2"
+    "typescript": "^4.5.4"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import chalk from 'chalk';
-import { generateSpecAndRoutes } from '@tsoa/cli/cli';
-import { generateRoutes } from '@tsoa/cli/module/generate-routes';
+import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
 
 const spec = async () => {

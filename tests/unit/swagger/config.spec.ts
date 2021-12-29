@@ -18,7 +18,7 @@ describe('Configuration', () => {
     it('should reject when outputDirectory is not set', done => {
       const config: Config = getDefaultOptions();
       validateSpecConfig(config).then(
-        result => {
+        _result => {
           throw new Error('Should not get here, expecting error regarding outputDirectory');
         },
         err => {

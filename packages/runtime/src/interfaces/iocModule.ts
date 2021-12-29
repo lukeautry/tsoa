@@ -4,4 +4,4 @@ export interface IocContainer {
   get<T>(controller: { prototype: T }): Promise<T>;
 }
 
-export type IocContainerFactory = (request: unknown) => IocContainer;
+export type IocContainerFactory<T = any> = (request: T) => IocContainer;

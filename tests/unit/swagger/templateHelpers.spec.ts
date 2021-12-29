@@ -16,7 +16,7 @@ describe('ValidationService', () => {
       const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'ignore',
       };
-      const error = {};
+      const error: FieldErrors = {};
       const result = v.validateModel({
         fieldErrors: error,
         minimalSwaggerConfig,
@@ -150,7 +150,7 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const error = {};
+      const error: FieldErrors = {};
       const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'ignore',
       };
@@ -166,7 +166,7 @@ describe('ValidationService', () => {
         additionalProperties: { dataType: 'any' },
       };
       const v = new ValidationService({});
-      const error = {};
+      const error: FieldErrors = {};
       const minimalSwaggerConfig: AdditionalProps = {
         // we're setting this to the "throw" to demonstrate that explicit additionalProperties should always be allowed
         noImplicitAdditionalProperties: 'throw-on-extras',
@@ -185,7 +185,7 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const error = {};
+      const error: FieldErrors = {};
       const minimalSwaggerConfig: AdditionalProps = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
@@ -208,7 +208,7 @@ describe('ValidationService', () => {
         },
       };
       const v = new ValidationService({});
-      const error = {};
+      const error: FieldErrors = {};
       const minimalSwaggerConfig: AdditionalProps = {
         // This test should ignore this, otherwise there's a problem the code
         //      when the model has additionalProperties, that should take precedence since it's explicit
@@ -236,7 +236,7 @@ describe('ValidationService', () => {
         },
       });
 
-      const error = {};
+      const error: FieldErrors = {};
 
       const result = v.ValidateParam(
         { required: true, ref: 'General' },
@@ -327,7 +327,7 @@ describe('ValidationService', () => {
     it('should invalid integer format', () => {
       const name = 'name';
       const value = '10.0';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateInt(name, value, error);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid integer number`);
@@ -336,7 +336,7 @@ describe('ValidationService', () => {
     it('should integer validate', () => {
       const name = 'name';
       const value = '11';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { minimum: { value: 10 }, maximum: { value: 12 } };
       const result = new ValidationService({}).validateInt(name, value, error, validator);
       expect(result).to.equal(Number(value));
@@ -345,7 +345,7 @@ describe('ValidationService', () => {
     it('should invalid integer min validate', () => {
       const name = 'name';
       const value = '11';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { minimum: { value: 12 } };
       const result = new ValidationService({}).validateInt(name, value, error, validator);
       expect(result).to.equal(undefined);
@@ -355,7 +355,7 @@ describe('ValidationService', () => {
     it('should invalid integer max validate', () => {
       const name = 'name';
       const value = '11';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { maximum: { value: 10 } };
       const result = new ValidationService({}).validateInt(name, value, error, validator);
       expect(result).to.equal(undefined);
@@ -373,7 +373,7 @@ describe('ValidationService', () => {
     it('should invalid float format', () => {
       const name = 'name';
       const value = 'Hello';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateFloat(name, value, error);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid float number`);
@@ -382,7 +382,7 @@ describe('ValidationService', () => {
     it('should float validate', () => {
       const name = 'name';
       const value = '11.5';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { minimum: { value: 10 }, maximum: { value: 12 } };
       const result = new ValidationService({}).validateFloat(name, value, error, validator);
       expect(result).to.equal(Number(value));
@@ -391,7 +391,7 @@ describe('ValidationService', () => {
     it('should invalid float min validate', () => {
       const name = 'name';
       const value = '12.4';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { minimum: { value: 12.5 } };
       const result = new ValidationService({}).validateFloat(name, value, error, validator);
       expect(result).to.equal(undefined);
@@ -401,7 +401,7 @@ describe('ValidationService', () => {
     it('should invalid float max validate', () => {
       const name = 'name';
       const value = '10.6';
-      const error = {};
+      const error: FieldErrors = {};
       const validator = { maximum: { value: 10.5 } };
       const result = new ValidationService({}).validateFloat(name, value, error, validator);
       expect(result).to.equal(undefined);
@@ -415,7 +415,7 @@ describe('ValidationService', () => {
     it('should enum number value', () => {
       const name = 'name';
       const value = 1;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
@@ -429,7 +429,7 @@ describe('ValidationService', () => {
 
     it('should enum null is not empty string value', () => {
       const value = null;
-      const error = {};
+      const error: FieldErrors = {};
       const name = 'name';
       const result = new ValidationService({}).validateEnum(name, value, error, [''] as any);
       expect(result).to.equal(undefined);
@@ -439,7 +439,7 @@ describe('ValidationService', () => {
     it('should enum string value', () => {
       const name = 'name';
       const value = 'HELLO';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = ['HELLO'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(value);
@@ -448,7 +448,7 @@ describe('ValidationService', () => {
     it('should enum no member', () => {
       const name = 'name';
       const value = 'HI';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = [];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -458,7 +458,7 @@ describe('ValidationService', () => {
     it('should enum out of member', () => {
       const name = 'name';
       const value = 'SAY';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = ['HELLO', 'HI'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -468,7 +468,7 @@ describe('ValidationService', () => {
     it('does accept a string value for a numeric enum', () => {
       const name = 'name';
       const value = '1';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(1);
@@ -478,7 +478,7 @@ describe('ValidationService', () => {
     it('does not accept a wrong string value for a numeric enum', () => {
       const name = 'name';
       const value = '2';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = [0, 1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -488,7 +488,7 @@ describe('ValidationService', () => {
     it('does accept a numeric value for a string-numeric enum', () => {
       const name = 'name';
       const value = 1;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = ['0', '1'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal('1');
@@ -498,7 +498,7 @@ describe('ValidationService', () => {
     it('does not accept an improper numeric value for a string-numeric enum', () => {
       const name = 'name';
       const value = 2;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = ['0', '1'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -508,7 +508,7 @@ describe('ValidationService', () => {
     it('should fail if the value is a non-numeric string for a numeric enum', () => {
       const name = 'name';
       const value = 'foo';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration: Enumeration = [1, 2];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -518,7 +518,7 @@ describe('ValidationService', () => {
     it('does accept a boolean value for a boolean enum', () => {
       const name = 'name';
       const value = false;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [false];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(false);
@@ -528,7 +528,7 @@ describe('ValidationService', () => {
     it('does accept a stringified boolean value for a boolean enum', () => {
       const name = 'name';
       const value = 'true';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [true];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(true);
@@ -538,7 +538,7 @@ describe('ValidationService', () => {
     it('does not accept a wrong members of a boolean enum', () => {
       const name = 'name';
       const value = false;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [true];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -548,7 +548,7 @@ describe('ValidationService', () => {
     it('does not accept a wrong members of a boolean enum', () => {
       const name = 'name';
       const value = 'false';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [true];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -558,7 +558,7 @@ describe('ValidationService', () => {
     it('accepts null in null enum', () => {
       const name = 'name';
       const value = null;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [null];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(null);
@@ -568,7 +568,7 @@ describe('ValidationService', () => {
     it('accepts stringified null in null enum', () => {
       const name = 'name';
       const value = 'null';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [null];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(null);
@@ -578,7 +578,7 @@ describe('ValidationService', () => {
     it('does not coerce null to 0', () => {
       const name = 'name';
       const value = 'null';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [0];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -588,7 +588,7 @@ describe('ValidationService', () => {
     it('does not coerce 0 to null', () => {
       const name = 'name';
       const value = 0;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [null];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -598,7 +598,7 @@ describe('ValidationService', () => {
     it('does not coerce null to false', () => {
       const name = 'name';
       const value = null;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [false];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -608,7 +608,7 @@ describe('ValidationService', () => {
     it('does not coerce false to null', () => {
       const name = 'name';
       const value = false;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [null];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -618,7 +618,7 @@ describe('ValidationService', () => {
     it('does not coerce 0 to false', () => {
       const name = 'name';
       const value = 0;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [false];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -628,7 +628,7 @@ describe('ValidationService', () => {
     it('does not coerce false to 0', () => {
       const name = 'name';
       const value = false;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [0];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -638,7 +638,7 @@ describe('ValidationService', () => {
     it("does not coerce null to ''", () => {
       const name = 'name';
       const value = null;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [''];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -648,7 +648,7 @@ describe('ValidationService', () => {
     it("does not coerce '' to null", () => {
       const name = 'name';
       const value = '';
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [null];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -658,7 +658,7 @@ describe('ValidationService', () => {
     it('does not coerce 1 to true', () => {
       const name = 'name';
       const value = 1;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [true];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -668,7 +668,7 @@ describe('ValidationService', () => {
     it('does not coerce true to 1', () => {
       const name = 'name';
       const value = true;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = [1];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -678,7 +678,7 @@ describe('ValidationService', () => {
     it("does not coerce true to '1'", () => {
       const name = 'name';
       const value = true;
-      const error = {};
+      const error: FieldErrors = {};
       const enumeration = ['1'];
       const result = new ValidationService({}).validateEnum(name, value, error, enumeration);
       expect(result).to.equal(undefined);
@@ -696,7 +696,7 @@ describe('ValidationService', () => {
     it('should string minLength validate', () => {
       const name = 'name';
       const value = 'AB';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateString(name, value, error, { minLength: { value: 5 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minLength 5`);
@@ -705,7 +705,7 @@ describe('ValidationService', () => {
     it('should string maxLength validate', () => {
       const name = 'name';
       const value = 'ABCDE';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateString(name, value, error, { maxLength: { value: 3 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxLength 3`);
@@ -714,7 +714,7 @@ describe('ValidationService', () => {
     it('should string pattern validate', () => {
       const name = 'name';
       const value = 'ABC';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateString(name, value, error, { pattern: { value: 'a-z' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`Not match in 'a-z'`);
@@ -731,7 +731,7 @@ describe('ValidationService', () => {
     it('should invalid date format', () => {
       const name = 'name';
       const value = '2017-33-11';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDate(name, value, error);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid ISO 8601 date format, i.e. YYYY-MM-DD`);
@@ -740,7 +740,7 @@ describe('ValidationService', () => {
     it('should date minDate validate', () => {
       const name = 'name';
       const value = '2017-06-01';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDate(name, value, error, { minDate: { value: '2017-07-01' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minDate '2017-07-01'`);
@@ -749,7 +749,7 @@ describe('ValidationService', () => {
     it('should string maxDate validate', () => {
       const name = 'name';
       const value = '2017-06-01';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDate(name, value, error, { maxDate: { value: '2017-05-01' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-05-01'`);
@@ -766,7 +766,7 @@ describe('ValidationService', () => {
     it('should invalid datetime format', () => {
       const name = 'name';
       const value = '2017-12-309i';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDateTime(name, value, error);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`);
@@ -775,7 +775,7 @@ describe('ValidationService', () => {
     it('should datetime minDate validate', () => {
       const name = 'name';
       const value = '2017-12-30T00:00:00';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDateTime(name, value, error, { minDate: { value: '2017-12-31T00:00:00' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minDate '2017-12-31T00:00:00'`);
@@ -784,7 +784,7 @@ describe('ValidationService', () => {
     it('should datetime maxDate validate', () => {
       const name = 'name';
       const value = '2017-12-30T00:00:00';
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateDateTime(name, value, error, { maxDate: { value: '2017-12-29T00:00:00' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-12-29T00:00:00'`);
@@ -801,7 +801,7 @@ describe('ValidationService', () => {
     it('should invalid array value', () => {
       const name = 'name';
       const value = ['A', 10, true];
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' });
       expect(result).to.deep.equal(undefined);
       expect(error[`${name}.$0`].message).to.equal('invalid integer number');
@@ -813,7 +813,7 @@ describe('ValidationService', () => {
     it('should invalid array nested value', () => {
       const name = 'name';
       const value = [{ a: 123 }, { a: 'bcd' }];
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({
         ExampleModel: {
           dataType: 'refObject',
@@ -834,7 +834,7 @@ describe('ValidationService', () => {
     it('should array minItems validate', () => {
       const name = 'name';
       const value = [80, 10, 199];
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { minItems: { value: 4 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minItems 4`);
@@ -843,7 +843,7 @@ describe('ValidationService', () => {
     it('should array maxItems validate', () => {
       const name = 'name';
       const value = [80, 10, 199];
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { maxItems: { value: 2 } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxItems 2`);
@@ -852,7 +852,7 @@ describe('ValidationService', () => {
     it('should array uniqueItems validate', () => {
       const name = 'name';
       const value = [10, 10, 20];
-      const error = {};
+      const error: FieldErrors = {};
       const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'integer' }, { uniqueItems: {} });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`required unique array`);
@@ -894,7 +894,7 @@ describe('ValidationService', () => {
         },
       });
       const name = 'name';
-      const error = {};
+      const error: FieldErrors = {};
       const minimalSwaggerConfig: AdditionalProps = {
         noImplicitAdditionalProperties: 'silently-remove-extras',
       };

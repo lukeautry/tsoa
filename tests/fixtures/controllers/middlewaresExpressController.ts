@@ -6,7 +6,7 @@ function Middlewares(...mws: RequestHandler[]) {
   return GenericMiddlewares<RequestHandler>(...mws);
 }
 
-const middlewaresState = {};
+const middlewaresState: Record<string, boolean> = {};
 
 export function stateOf(key: string): boolean | undefined {
   return middlewaresState[key];

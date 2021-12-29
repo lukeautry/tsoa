@@ -12,35 +12,35 @@ const basePath = '/v1';
 
 describe('Hapi Server', () => {
   it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath, (err, res) => {
+    return verifyGetRequest(basePath, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request to root controller`s method path', () => {
-    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (err, res) => {
+    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest/Current', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest/Current', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('respects toJSON for class serialization', () => {
-    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
       const getterClass = res.body;
       expect(getterClass).to.haveOwnProperty('a');
       expect(getterClass.a).to.equal('hello, world');
@@ -49,7 +49,7 @@ describe('Hapi Server', () => {
   });
 
   it('can handle get request with collection return value', () => {
-    return verifyGetRequest(basePath + '/GetTest/Multi', (err, res) => {
+    return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
       models.forEach(m => {
@@ -59,7 +59,7 @@ describe('Hapi Server', () => {
   });
 
   it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -68,7 +68,7 @@ describe('Hapi Server', () => {
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(
       basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
       },
@@ -79,7 +79,7 @@ describe('Hapi Server', () => {
   it('returns error and custom error message', () => {
     return verifyGetRequest(
       basePath + `/GetTest/${1}/${true}/test?booleanParam=true&numberParam=1234`,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields.stringParam.message).to.equal(`Custom error message`);
       },
@@ -92,7 +92,7 @@ describe('Hapi Server', () => {
     const boolValue = false;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.numberValue).to.equal(numberValue);
       expect(model.boolValue).to.equal(boolValue);
@@ -104,7 +104,7 @@ describe('Hapi Server', () => {
     const numberValue = 10;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
     });
@@ -113,7 +113,7 @@ describe('Hapi Server', () => {
   it('parsed body parameters', () => {
     const data = getFakeModel();
 
-    return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => {
+    return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
       const model = res.body as TestModel;
       expect(model).to.deep.equal(model);
     });
@@ -125,7 +125,7 @@ describe('Hapi Server', () => {
     return verifyPostRequest(
       path,
       data,
-      (err, res) => {
+      (_err, _res) => {
         return;
       },
       201,
@@ -135,7 +135,7 @@ describe('Hapi Server', () => {
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
-    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (err: any, res: any) => {
+    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
       const model = res.body as TestClassModel;
       expect(model.id).to.equal(700); // this gets changed on the server
     });
@@ -144,7 +144,7 @@ describe('Hapi Server', () => {
   it('correctly handles OPTIONS requests', () => {
     const path = basePath + '/OptionsTest/Current';
     return verifyRequest(
-      (err, res) => {
+      (_err, res) => {
         expect(res.text).to.equal('');
       },
       request => request.options(path),
@@ -160,7 +160,7 @@ describe('Hapi Server', () => {
         const data = getFakeModel();
         data.stringValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -172,7 +172,7 @@ describe('Hapi Server', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (_err: any, res: any) => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
       },
       200,
@@ -182,7 +182,7 @@ describe('Hapi Server', () => {
   it('should parse valid date as query param', () => {
     return verifyGetRequest(
       basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z',
-      (err: any, res: any) => {
+      (_err: any, res: any) => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
       },
       200,
@@ -194,7 +194,7 @@ describe('Hapi Server', () => {
 
     return Promise.all(
       invalidValues.map((value: any) => {
-        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -207,7 +207,7 @@ describe('Hapi Server', () => {
         const data = getFakeModel();
         data.dateValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -220,7 +220,7 @@ describe('Hapi Server', () => {
         const data = getFakeModel();
         data.numberValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -228,7 +228,7 @@ describe('Hapi Server', () => {
   it('returns error if missing required path parameter', () => {
     return verifyGetRequest(
       basePath + `/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         expect(JSON.parse(err.text).error).to.equal('Not Found');
       },
       404,
@@ -242,7 +242,7 @@ describe('Hapi Server', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
         expect(body.fields['model.dateValue'].value).to.equal(1);
@@ -254,7 +254,7 @@ describe('Hapi Server', () => {
   it('returns error if thrown in controller', () => {
     return verifyGetRequest(
       basePath + '/GetTest/ThrowsError',
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         expect(JSON.parse(err.text).message).to.equal('error thrown');
       },
       400,
@@ -265,7 +265,7 @@ describe('Hapi Server', () => {
     expect(stateOf('route')).to.be.undefined;
     return verifyGetRequest(
       basePath + '/MiddlewareTestHapi/test1',
-      (err, res) => {
+      (_err, _res) => {
         expect(stateOf('route')).to.be.true;
         expect(stateOf('test1')).to.be.true;
       },
@@ -277,7 +277,7 @@ describe('Hapi Server', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
         basePath + `/Controller/normalStatusCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(200);
         },
         200,
@@ -287,7 +287,7 @@ describe('Hapi Server', () => {
     it('should normal status code with false boolean result', () => {
       return verifyGetRequest(
         basePath + `/Controller/falseStatusCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(200);
         },
         200,
@@ -297,7 +297,7 @@ describe('Hapi Server', () => {
     it('should normal status code with 0 result', () => {
       return verifyGetRequest(
         basePath + `/Controller/zeroStatusCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(200);
         },
         200,
@@ -307,7 +307,7 @@ describe('Hapi Server', () => {
     it('should no content status code', () => {
       return verifyGetRequest(
         basePath + `/Controller/noContentStatusCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(204);
         },
         204,
@@ -317,7 +317,7 @@ describe('Hapi Server', () => {
     it('should custom status code', () => {
       return verifyGetRequest(
         basePath + `/Controller/customStatusCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(205);
         },
         205,
@@ -327,7 +327,7 @@ describe('Hapi Server', () => {
     it('should custom header', () => {
       return verifyGetRequest(
         basePath + `/Controller/customHeader`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(204);
           expect(res.header.hero).to.equal('IronMan');
           expect(res.header.name).to.equal('Tony Stark');
@@ -342,7 +342,7 @@ describe('Hapi Server', () => {
     it('should apply custom code from success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/customSuccessResponseCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(202);
         },
         202,
@@ -352,7 +352,7 @@ describe('Hapi Server', () => {
     it('should apply enum code from success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/enumSuccessResponseCode`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(202);
         },
         202,
@@ -362,7 +362,7 @@ describe('Hapi Server', () => {
     it('should ignore named success response', () => {
       return verifyGetRequest(
         basePath + `/NoExtends/rangedSuccessResponse`,
-        (err, res) => {
+        (_err, res) => {
           expect(res.status).to.equal(204);
         },
         204,
@@ -375,7 +375,7 @@ describe('Hapi Server', () => {
       return verifyPostRequest(
         basePath + '/MediaTypeTest/Custom',
         { name: 'foo' },
-        (err, res) => {
+        (_err, res) => {
           expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
         },
         202,
@@ -389,7 +389,7 @@ describe('Hapi Server', () => {
       const maxDate = '2015-01-01';
       return verifyGetRequest(
         basePath + `/Validate/parameter/date?minDateValue=${minDate}&maxDateValue=${maxDate}`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
           expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
           expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
@@ -402,7 +402,7 @@ describe('Hapi Server', () => {
       const date = '2017-01-01';
       return verifyGetRequest(
         basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01'`);
           expect(body.fields.minDateValue.value).to.equal(date);
@@ -418,7 +418,7 @@ describe('Hapi Server', () => {
       const maxDate = '2015-01-01T00:00:00';
       return verifyGetRequest(
         basePath + `/Validate/parameter/datetime?minDateValue=${minDate}&maxDateValue=${maxDate}`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
           expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
           expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
@@ -431,7 +431,7 @@ describe('Hapi Server', () => {
       const date = '2017-01-01T00:00:00';
       return verifyGetRequest(
         basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01T00:00:00'`);
           expect(body.fields.minDateValue.value).to.equal(date);
@@ -445,7 +445,7 @@ describe('Hapi Server', () => {
     it('should valid max and min validation of integer type', () => {
       return verifyGetRequest(
         basePath + `/Validate/parameter/integer?value=6&value_max=2`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
           expect(body.minValue).to.equal(6);
           expect(body.maxValue).to.equal(2);
@@ -458,7 +458,7 @@ describe('Hapi Server', () => {
       const value = 4;
       return verifyGetRequest(
         basePath + `/Validate/parameter/integer?value=${value}&value_max=${value}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.value.message).to.equal('min 5');
           expect(body.fields.value.value).to.equal(String(value));
@@ -472,7 +472,7 @@ describe('Hapi Server', () => {
     it('should valid max and min validation of float type', () => {
       return verifyGetRequest(
         basePath + `/Validate/parameter/float?minValue=5.6&maxValue=3.4`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
           expect(body.minValue).to.equal(5.6);
           expect(body.maxValue).to.equal(3.4);
@@ -485,7 +485,7 @@ describe('Hapi Server', () => {
       const value = 4.5;
       return verifyGetRequest(
         basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.minValue.message).to.equal('min 5.5');
           expect(body.fields.minValue.value).to.equal(String(value));
@@ -499,7 +499,7 @@ describe('Hapi Server', () => {
     it('should valid validation of boolean type', () => {
       return verifyGetRequest(
         basePath + `/Validate/parameter/boolean?boolValue=true`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
           expect(body.boolValue).to.equal(true);
         },
@@ -511,7 +511,7 @@ describe('Hapi Server', () => {
       const value = 'true0001';
       return verifyGetRequest(
         basePath + `/Validate/parameter/boolean?boolValue=${value}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.boolValue.message).to.equal('invalid boolean value');
           expect(body.fields.boolValue.value).to.equal(value);
@@ -523,7 +523,7 @@ describe('Hapi Server', () => {
     it('should valid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       return verifyGetRequest(
         basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf&quotedPatternValue=A`,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
 
           expect(body.minLength).to.equal('abcdef');
@@ -539,7 +539,7 @@ describe('Hapi Server', () => {
       const value = '1234';
       return verifyGetRequest(
         basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}&quotedPatternValue=A@`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
 
           expect(body.fields.minLength.message).to.equal('minLength 5');
@@ -629,7 +629,7 @@ describe('Hapi Server', () => {
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
 
           expect(body.floatValue).to.equal(bodyModel.floatValue);
@@ -763,7 +763,7 @@ describe('Hapi Server', () => {
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
 
           expect(body.fields['body.floatValue'].message).to.equal('Invalid float error message.');
@@ -877,7 +877,7 @@ describe('Hapi Server', () => {
     it('should custom required error message', () => {
       return verifyGetRequest(
         basePath + `/Validate/parameter/customRequiredErrorMsg`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.longValue.message).to.equal('Required long number.');
         },
@@ -889,7 +889,7 @@ describe('Hapi Server', () => {
       const value = '112ab';
       return verifyGetRequest(
         basePath + `/Validate/parameter/customInvalidErrorMsg?longValue=${value}`,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields.longValue.message).to.equal('Invalid long number.');
         },
@@ -903,7 +903,7 @@ describe('Hapi Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => {
+      return verifyPostRequest(basePath + '/Validate/map', data, (_err, res) => {
         const response = res.body as number[];
         expect(response.sort()).to.eql([-1, 0, 1]);
       });
@@ -918,7 +918,7 @@ describe('Hapi Server', () => {
       return verifyPostRequest(
         basePath + '/Validate/map',
         data,
-        (err, res) => {
+        (err, _res) => {
           const body = JSON.parse(err.text);
           expect(body.fields['map.key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
         },
@@ -932,7 +932,7 @@ describe('Hapi Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
+      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([-1, '0', 1]);
       });
@@ -946,7 +946,7 @@ describe('Hapi Server', () => {
         string: '',
         zero: 0,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => {
+      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([[], '', 0, false, null]);
       });
@@ -954,19 +954,19 @@ describe('Hapi Server', () => {
   });
 
   describe('Security', () => {
-    const emptyHandler = (err, res) => {
+    const emptyHandler = (_err: unknown, _res: unknown) => {
       // This is an empty handler
     };
 
     it('can handle get request with access_token user id == 1', () => {
-      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=abc123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=abc123456', (_err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(1);
       });
     });
 
     it('can handle get request with access_token user id == 2', () => {
-      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=xyz123456', (err, res) => {
+      return verifyGetRequest(basePath + '/SecurityTest/Hapi?access_token=xyz123456', (_err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
       });
@@ -976,7 +976,7 @@ describe('Hapi Server', () => {
       const path = '/SecurityTest/ApiKeyOrTimesOut?access_token=abc123456';
       return verifyGetRequest(
         basePath + path,
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as Model;
           expect(model.id).to.equal(1);
         },
@@ -989,7 +989,7 @@ describe('Hapi Server', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(
           basePath + path,
-          (err, res) => {
+          (_err, res) => {
             const model = res.body as Model;
             expect(model.id).to.equal(1);
           },
@@ -1021,7 +1021,7 @@ describe('Hapi Server', () => {
       it('should pass through error if controller method crashes', () => {
         return verifyGetRequest(
           basePath + `/SecurityTest/ServerErrorOauthOrApiKey?access_token=abc123456`,
-          (err, res) => {
+          (_err, res) => {
             expect(res.status).to.equal(500);
           },
           500,
@@ -1034,7 +1034,7 @@ describe('Hapi Server', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
         return verifyGetRequest(
           basePath + path,
-          (err, res) => {
+          (_err, res) => {
             const model = res.body as Model;
             expect(model.id).to.equal(1);
           },
@@ -1055,7 +1055,7 @@ describe('Hapi Server', () => {
       it('should pass through error if controller method crashes', () => {
         return verifyGetRequest(
           basePath + `/SecurityTest/ServerErrorOauthAndApiKey?access_token=abc123456&tsoa=abc123456`,
-          (err, res) => {
+          (_err, res) => {
             expect(res.status).to.equal(500);
           },
           500,
@@ -1066,7 +1066,7 @@ describe('Hapi Server', () => {
 
   describe('Parameter data', () => {
     it('parses query parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1079,7 +1079,7 @@ describe('Hapi Server', () => {
     });
 
     it('parses path parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1092,7 +1092,7 @@ describe('Hapi Server', () => {
 
     it('parses header parameters', () => {
       return verifyRequest(
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as ParameterTestModel;
           expect(model.firstname).to.equal('Tony');
           expect(model.lastname).to.equal('Stark');
@@ -1116,7 +1116,7 @@ describe('Hapi Server', () => {
     });
 
     it('parses request parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (err, res) => {
+      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1136,7 +1136,7 @@ describe('Hapi Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (err, res) => {
+      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1156,7 +1156,7 @@ describe('Hapi Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (err, res) => {
+      return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1168,28 +1168,28 @@ describe('Hapi Server', () => {
     });
 
     it('can get request with generic type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModel', (err, res) => {
+      return verifyGetRequest(basePath + '/GetTest/GenericModel', (_err, res) => {
         const model = res.body as GenericModel<TestModel>;
         expect(model.result.id).to.equal(1);
       });
     });
 
     it('can get request with generic array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (err, res) => {
+      return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (_err, res) => {
         const model = res.body as GenericModel<TestModel[]>;
         expect(model.result[0].id).to.equal(1);
       });
     });
 
     it('can get request with generic primative type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (err, res) => {
+      return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (_err, res) => {
         const model = res.body as GenericModel<string>;
         expect(model.result).to.equal('a string');
       });
     });
 
     it('can get request with generic primative array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (err, res) => {
+      return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
         const model = res.body as GenericModel<string[]>;
         expect(model.result[0]).to.equal('string one');
       });
@@ -1200,7 +1200,7 @@ describe('Hapi Server', () => {
         name: 'something',
         value: getFakeModel(),
       };
-      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
+      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
       });
@@ -1209,7 +1209,7 @@ describe('Hapi Server', () => {
     it('Should return on @Res', () => {
       return verifyGetRequest(
         basePath + '/GetTest/Res',
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as TestModel;
           expect(model.id).to.equal(1);
           expect(res.get('custom-header')).to.eq('hello');
@@ -1222,7 +1222,7 @@ describe('Hapi Server', () => {
       it('Should support multiple status codes with the same @Res structure', () => {
         return verifyGetRequest(
           basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
-          (err, res) => {
+          (_err, res) => {
             const model = res.body as TestModel;
             expect(model.id).to.equal(1);
             expect(res.get('custom-header')).to.eq('hello');
@@ -1235,7 +1235,7 @@ describe('Hapi Server', () => {
     it('Should not modify the response after headers sent', () => {
       return verifyGetRequest(
         basePath + '/GetTest/MultipleRes',
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as TestModel;
           expect(model.id).to.equal(1);
           expect(res.get('custom-header')).to.eq('hello');
@@ -1249,7 +1249,7 @@ describe('Hapi Server', () => {
     it('parses path parameters from the controller description', () => {
       const mainResourceId = 'main-123';
 
-      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (err, res) => {
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
         expect(res.text).to.equal(mainResourceId);
       });
     });
@@ -1258,7 +1258,7 @@ describe('Hapi Server', () => {
       const mainResourceId = 'main-123';
       const subResourceId = 'sub-456';
 
-      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (err, res) => {
+      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
         expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
       });
     });
@@ -1267,7 +1267,7 @@ describe('Hapi Server', () => {
   describe('file upload', () => {
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/File', formData, (err, res) => {
+      return verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
         const packageJsonBuffer = readFileSync(resolve(__dirname, '../package.json'));
         const returnedBuffer = Buffer.from(res.body.buffer);
         expect(res.body).to.not.be.undefined;
@@ -1281,7 +1281,7 @@ describe('Hapi Server', () => {
 
     it('can post a file without name', () => {
       const formData = { aFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/FileWithoutName', formData, (err, res) => {
+      return verifyFileUploadRequest(basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
         expect(res.body).to.not.be.undefined;
         expect(res.body.fieldname).to.equal('aFile');
       });
@@ -1291,7 +1291,7 @@ describe('Hapi Server', () => {
       const formData = { wrongAttributeName: '@../package.json' };
       try {
         await verifyFileUploadRequest(basePath + '/PostTest/File', formData);
-      } catch (e) {
+      } catch (e: any) {
         expect(e.response.status).to.equal(400);
         expect(e.response.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Internal Server Error"}');
       }
@@ -1304,7 +1304,7 @@ describe('Hapi Server', () => {
         someFiles: ['@../package.json', '@../tsconfig.json'],
       };
 
-      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (err, res) => {
+      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
         for (const file of res.body as File[]) {
           const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
           const returnedBuffer = Buffer.from(file.buffer);
