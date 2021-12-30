@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Swagger {
   export type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object' | 'file';
 
@@ -36,12 +37,12 @@ export namespace Swagger {
   }
 
   export interface Components {
-    callbacks?: { [name: string]: any };
+    callbacks?: { [name: string]: unknown };
     examples?: { [name: string]: Example3 | string };
-    headers?: { [name: string]: any };
-    links?: { [name: string]: any };
+    headers?: { [name: string]: unknown };
+    links?: { [name: string]: unknown };
     parameters?: { [name: string]: Parameter };
-    requestBodies?: { [name: string]: any };
+    requestBodies?: { [name: string]: unknown };
     responses?: { [name: string]: Response };
     schemas?: { [name: string]: Schema3 };
     securitySchemes?: { [name: string]: Security };
@@ -204,7 +205,7 @@ export namespace Swagger {
     schema?: Schema3;
     example?: unknown;
     examples?: { [name: string]: Example3 | string };
-    encoding?: { [name: string]: any };
+    encoding?: { [name: string]: unknown };
   }
 
   export interface Response {
@@ -226,7 +227,7 @@ export namespace Swagger {
     $ref?: string;
     title?: string;
     description?: string;
-    default?: string | boolean | number | any;
+    default?: string | boolean | number | unknown;
     multipleOf?: number;
     maximum?: number;
     exclusiveMaximum?: number;
@@ -240,7 +241,7 @@ export namespace Swagger {
     uniqueItems?: boolean;
     maxProperties?: number;
     minProperties?: number;
-    enum?: Array<string | number | null>;
+    enum?: Array<boolean | string | number | null>;
     'x-enum-varnames'?: string[];
     items?: BaseSchema;
 
@@ -280,7 +281,7 @@ export namespace Swagger {
     format?: string;
     items?: BaseSchema;
     collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
-    default?: string | boolean | number | any;
+    default?: string | boolean | number | unknown;
     maximum?: number;
     exclusiveMaximum?: boolean;
     minimum?: number;

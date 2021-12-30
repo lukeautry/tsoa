@@ -1,5 +1,6 @@
 import { ExtensionType } from '../decorators/extension';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tsoa {
   export interface Metadata {
     controllers: Controller[];
@@ -42,7 +43,7 @@ export namespace Tsoa {
     name: string;
     required?: boolean;
     type: Type;
-    default?: any;
+    default?: unknown;
     validators: Validators;
     deprecated: boolean;
     exampleLabels?: Array<string | undefined>;
@@ -59,7 +60,7 @@ export namespace Tsoa {
   }
 
   export interface Validators {
-    [key: string]: { value?: any; errorMsg?: string };
+    [key: string]: { value?: unknown; errorMsg?: string };
   }
 
   export interface Security {
@@ -82,7 +83,7 @@ export namespace Tsoa {
   }
 
   export interface Property {
-    default?: any;
+    default?: unknown;
     description?: string;
     format?: string;
     example?: unknown;

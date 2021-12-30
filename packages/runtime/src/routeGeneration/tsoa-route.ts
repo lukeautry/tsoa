@@ -8,6 +8,7 @@ export function isDefaultForAdditionalPropertiesAllowed(test: TsoaRoute.RefObjec
   return test === undefined;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TsoaRoute {
   export interface Models {
     [name: string]: ModelSchema;
@@ -49,7 +50,7 @@ export namespace TsoaRoute {
     type?: PropertySchema;
     subSchemas?: PropertySchema[];
     validators?: ValidatorSchema;
-    default?: any;
+    default?: unknown;
     additionalProperties?: boolean | PropertySchema;
     nestedProperties?: { [name: string]: PropertySchema };
   }

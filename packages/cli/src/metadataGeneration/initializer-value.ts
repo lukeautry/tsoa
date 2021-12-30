@@ -1,15 +1,20 @@
 import * as ts from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
+const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prototype.hasOwnProperty.call(node, 'initializer');
+const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
+const extractImportSpecifier = (symbol?: ts.Symbol) => (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && symbol.declarations[0]) || undefined;
+
 export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.TypeChecker, type?: Tsoa.Type) => {
   if (!initializer || !typeChecker) {
     return;
   }
 
   switch (initializer.kind) {
-    case ts.SyntaxKind.ArrayLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression: {
       const arrayLiteral = initializer as ts.ArrayLiteralExpression;
       return arrayLiteral.elements.map(element => getInitializerValue(element, typeChecker));
+    }
     case ts.SyntaxKind.StringLiteral:
       return (initializer as ts.StringLiteral).text;
     case ts.SyntaxKind.TrueKeyword:
@@ -19,7 +24,7 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
     case ts.SyntaxKind.NumberKeyword:
     case ts.SyntaxKind.FirstLiteralToken:
       return Number((initializer as ts.NumericLiteral).text);
-    case ts.SyntaxKind.NewExpression:
+    case ts.SyntaxKind.NewExpression: {
       const newExpression = initializer as ts.NewExpression;
       const ident = newExpression.expression as ts.Identifier;
 
@@ -39,16 +44,18 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
         return dateString;
       }
       return;
+    }
     case ts.SyntaxKind.NullKeyword:
       return null;
-    case ts.SyntaxKind.ObjectLiteralExpression:
+    case ts.SyntaxKind.ObjectLiteralExpression: {
       const objectLiteral = initializer as ts.ObjectLiteralExpression;
       const nestedObject: any = {};
       objectLiteral.properties.forEach((p: any) => {
         nestedObject[p.name.text] = getInitializerValue(p.initializer, typeChecker);
       });
       return nestedObject;
-    case ts.SyntaxKind.ImportSpecifier:
+    }
+    case ts.SyntaxKind.ImportSpecifier: {
       const importSpecifier = initializer as ts.ImportSpecifier;
       const importSymbol = typeChecker.getSymbolAtLocation(importSpecifier.name);
       if (!importSymbol) return;
@@ -56,13 +63,10 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
       const declarations = aliasedSymbol.getDeclarations();
       const declaration = declarations && declarations.length > 0 ? declarations[0] : undefined;
       return getInitializerValue(extractInitializer(declaration), typeChecker);
-    default:
+    }
+    default: {
       const symbol = typeChecker.getSymbolAtLocation(initializer);
       return getInitializerValue(extractInitializer(symbol?.valueDeclaration) || extractImportSpecifier(symbol), typeChecker);
+    }
   }
 };
-
-const hasInitializer = (node: ts.Node): node is ts.HasInitializer => node.hasOwnProperty('initializer');
-const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
-const extractImportSpecifier = (symbol?: ts.Symbol) =>
-  (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && (symbol.declarations[0] )) || undefined;

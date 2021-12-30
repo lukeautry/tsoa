@@ -125,7 +125,7 @@ export interface SpecConfig {
    * Extend generated swagger spec with this object
    * Note that generated properties will always take precedence over what get specified here
    */
-  spec?: any;
+  spec?: unknown;
 
   /**
    * Alter how the spec is merged to generated swagger spec.
