@@ -620,7 +620,7 @@ describe('Hapi Server', () => {
       };
 
       bodyModel.nullableTypes = {
-        numberOrNull: ('null' as unknown) as null,
+        numberOrNull: 'null' as unknown as null,
         wordOrNull: null,
         maybeString: null,
         justNull: null,

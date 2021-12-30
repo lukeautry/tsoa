@@ -784,8 +784,7 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref:
-                      '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1842,7 +1841,7 @@ describe('Definition generation', () => {
         const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
         const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-        expect(parameters.map(param => ((param as unknown) as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+        expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
       });
     });
   });

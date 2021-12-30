@@ -523,7 +523,7 @@ describe('Schema details generation', () => {
           [schemaName]: {
             refName: schemaName,
             dataType: 'refEnum',
-            enums: [1, 'two', 3, 'four', ({} as unknown) as number],
+            enums: [1, 'two', 3, 'four', {} as unknown as number],
             deprecated: false,
           },
         },

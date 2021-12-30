@@ -977,7 +977,7 @@ describe('ValidationService', () => {
         const dataToValidate: TypeAliasModel1 & TypeAliasModel2 & TypeAliasDateTime = {
           value1: 'this is value 1',
           value2: 'this is value 2',
-          dateTimeValue: ('2017-01-01T00:00:00' as unknown) as Date,
+          dateTimeValue: '2017-01-01T00:00:00' as unknown as Date,
         };
 
         // Act
@@ -992,7 +992,7 @@ describe('ValidationService', () => {
         const errorDictionary2: FieldErrors = {};
         const dataToValidate2: TypeAliasModel1 & TypeAliasModel2 & TypeAliasDateTime & TypeAliasDate = {
           ...dataToValidate,
-          dateValue: ('2017-01-01' as unknown) as Date,
+          dateValue: '2017-01-01' as unknown as Date,
         };
 
         const subSchemas2 = subSchemas.concat([{ ref: 'TypeAliasModelDate' }]);
@@ -1057,7 +1057,7 @@ describe('ValidationService', () => {
         const errorDictionary: FieldErrors = {};
         const dataToValidate: TypeAliasModel1 & (TypeAliasModel2 | TypeAliasDateTime | TypeAliasDate) = {
           value1: 'this is value 1',
-          dateValue: ('2017-01-01' as unknown) as Date,
+          dateValue: '2017-01-01' as unknown as Date,
         };
 
         // Act
@@ -1072,7 +1072,7 @@ describe('ValidationService', () => {
         const errorDictionary2: FieldErrors = {};
         const dataToValidate2: TypeAliasModel1 & (TypeAliasModel2 | TypeAliasDateTime | TypeAliasDate) = {
           value1: 'this is value 1',
-          dateTimeValue: ('2017-01-01T00:00:00' as unknown) as Date,
+          dateTimeValue: '2017-01-01T00:00:00' as unknown as Date,
         };
 
         // Act
