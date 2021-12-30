@@ -59,7 +59,7 @@ describe('Hapi Server', () => {
   });
 
   it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -67,7 +67,7 @@ describe('Hapi Server', () => {
 
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(
-      basePath + `/GetTest/${1}/${true}/test?booleanParam=true&stringParam=test1234`,
+      basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
@@ -78,7 +78,7 @@ describe('Hapi Server', () => {
 
   it('returns error and custom error message', () => {
     return verifyGetRequest(
-      basePath + `/GetTest/${1}/${true}/test?booleanParam=true&numberParam=1234`,
+      basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields.stringParam.message).to.equal(`Custom error message`);
@@ -92,7 +92,7 @@ describe('Hapi Server', () => {
     const boolValue = false;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue.toString()}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.numberValue).to.equal(numberValue);
       expect(model.boolValue).to.equal(boolValue);
@@ -227,7 +227,7 @@ describe('Hapi Server', () => {
 
   it('returns error if missing required path parameter', () => {
     return verifyGetRequest(
-      basePath + `/GetTest/${1}/${true}?booleanParam=true&stringParam=test1234`,
+      basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         expect(JSON.parse(err.text).error).to.equal('Not Found');
       },

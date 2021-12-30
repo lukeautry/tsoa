@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Swagger } from '@tsoa/runtime';
 
-export function VerifyPathableParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
+export function VerifyPathableParameter(params: Swagger.Parameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (formatType) {
@@ -37,12 +37,12 @@ export function VerifyPathableNumberParameter(params: Swagger.PathParameter[], p
   }
 }
 
-export function VerifyBodyParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string) {
-  const parameter = verifyParameter(params, paramValue, paramIn) as any;
+export function VerifyBodyParameter(params: Swagger.Parameter[], paramValue: string, paramType: string, paramIn: string) {
+  const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.schema.$ref).to.equal(paramType);
 }
 
-function verifyParameter(params: Swagger.PathParameter[], paramValue: string, paramIn: string) {
+function verifyParameter(params: Swagger.Parameter[], paramValue: string, paramIn: string) {
   const parameter = params.filter(p => p.name === paramValue)[0];
   expect(parameter, `Path parameter '${paramValue}' wasn't generated.`).to.exist;
   expect(parameter.in).to.equal(paramIn);

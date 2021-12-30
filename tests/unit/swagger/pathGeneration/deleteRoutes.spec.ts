@@ -4,6 +4,7 @@ import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
+import { Swagger } from '@tsoa/runtime';
 
 describe('DELETE route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/deleteController.ts').Generate();
@@ -41,7 +42,7 @@ describe('DELETE route generation', () => {
     return VerifyPath(spec, route, path => path.delete, isCollection, isNoContent);
   }
 
-  function getVerifiedParameters(actionRoute: string) {
+  function getVerifiedParameters(actionRoute: string): Swagger.Parameter[] {
     const path = verifyPath(actionRoute, false, true);
     if (!path.delete) {
       throw new Error('No delete operation.');
@@ -50,6 +51,6 @@ describe('DELETE route generation', () => {
       throw new Error('No operation parameters.');
     }
 
-    return path.delete.parameters as any;
+    return path.delete.parameters;
   }
 });

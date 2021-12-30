@@ -1043,7 +1043,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}`);
             // Now check the items on the array of objects
             if (!propertySchema.items) {
-              throw new Error(`There was no \'items\' property on ${propertyName}.`);
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
             }
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
@@ -2294,7 +2294,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should only mark deprecated properties as deprecated', () => {
           const deprecatedPropertyNames = ['deprecated1', 'deprecated2', 'deprecatedPublicConstructorVar', 'deprecatedPublicConstructorVar2'];
           Object.entries(properties).forEach(([propertyName, property]) => {
@@ -2324,7 +2324,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should put vendor extension on extension field with decorator', () => {
           const extensionPropertyName = 'extensionTest';
 

@@ -377,11 +377,13 @@ export interface TestSubEnumModelContainer {
   [key: string]: EnumStringValue;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TestSubModelContainerNamespace {
   export interface TestSubModelContainer {
     [key: string]: TestSubModelNamespace.TestSubModelNS;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace InnerNamespace {
     export interface TestSubModelContainer2 {
       [key: string]: TestSubModelNamespace.TestSubModelNS;
@@ -407,6 +409,7 @@ export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status
   u: DefaultArgs<U>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TestSubModelNamespace {
   export interface TestSubModelNS extends TestSubModel {
     testSubModelNS: boolean;

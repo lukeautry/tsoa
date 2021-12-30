@@ -33,7 +33,7 @@ describe('Configuration', () => {
       expect(config.entryFile).not.to.be.ok;
       expect(config.controllerPathGlobs).to.be.an('array').that.has.length(0);
       validateSpecConfig(config).then(
-        result => {
+        _result => {
           throw new Error('Should not get here, expecting error regarding entryFile');
         },
         err => {
@@ -75,7 +75,7 @@ describe('Configuration', () => {
       // Do any cast to ignore compile error due to Swagger.SupportedSpecVersion not supporting -2
       config.spec.specVersion = -2 as any;
       validateSpecConfig(config).then(
-        (configResult: ExtendedSpecConfig) => {
+        (_configResult: ExtendedSpecConfig) => {
           throw new Error('Should not get here, expecting error regarding unsupported Spec version');
         },
         err => {

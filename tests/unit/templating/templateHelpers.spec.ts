@@ -49,7 +49,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
   const dataToValidate: TypeAliasModel1 = {
     value1: 'this is value 1',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';

@@ -271,7 +271,7 @@ describe('Definition generation', () => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}`);
             // Now check the items on the array of objects
             if (!propertySchema.items) {
-              throw new Error(`There was no \'items\' property on ${propertyName}.`);
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
             }
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
@@ -1686,7 +1686,7 @@ describe('Definition generation', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should not generate a property for a non-public constructor var', () => {
           const propertyNames = ['defaultConstructorArgument', 'deprecatedNonPublicConstructorVar'];
           propertyNames.forEach(propertyName => {

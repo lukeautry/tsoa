@@ -268,7 +268,7 @@ describe('ValidationService', () => {
         },
       });
 
-      const error: any = {};
+      const error: FieldErrors = {};
 
       v.ValidateParam(
         { required: true, ref: 'General' },
@@ -423,7 +423,7 @@ describe('ValidationService', () => {
 
     it('should enum empty string value', () => {
       const value = '';
-      const result = new ValidationService({}).validateEnum('name', value, {}, [''] as any);
+      const result = new ValidationService({}).validateEnum('name', value, {}, ['']);
       expect(result).to.equal(value);
     });
 
@@ -431,7 +431,7 @@ describe('ValidationService', () => {
       const value = null;
       const error: FieldErrors = {};
       const name = 'name';
-      const result = new ValidationService({}).validateEnum(name, value, error, [''] as any);
+      const result = new ValidationService({}).validateEnum(name, value, error, ['']);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`should be one of the following; ['']`);
     });
