@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import * as os from 'os';
 import chalk from 'chalk';
 import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
@@ -92,6 +93,19 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './fixtures/koa/server.ts',
         middleware: 'koa',
         routesDir: './fixtures/koa',
+      }),
+    ),
+
+    log('Koa Route Generation (with multerOpts)', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        basePath: '/v1',
+        entryFile: './fixtures/koa-multer-options/server.ts',
+        middleware: 'koa',
+        routesDir: './fixtures/koa-multer-options',
+        multerOpts: {
+          dest: os.tmpdir(),
+        },
       }),
     ),
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () =>
