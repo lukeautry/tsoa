@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { getJSDocComment, getJSDocComments, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getDecorators, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
-import { GenerateMetadataError } from './exceptions';
+import { GenerateMetadataError, GenerateMetaDataWarning } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa, assertNever } from '@tsoa/runtime';
@@ -243,13 +243,45 @@ export class TypeResolver {
       }
     }
 
+    // keyof
     if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
-      try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
-      } catch (err) {
-        const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
-        throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
+
+      if (type.isUnion()) {
+        const literals = type.types.filter(t => t.isLiteral()).reduce((acc, t: ts.LiteralType) => [...acc, t.value.toString()], []);
+
+        // Warn on nonsense (`number`, `typeof Symbol.iterator`)
+        if (type.types.find(t => !t.isLiteral()) !== undefined) {
+          const problems = type.types.filter(t => !t.isLiteral()).map(t => this.current.typeChecker.typeToString(t));
+          console.warn(new GenerateMetaDataWarning(`Skipped non-literal type(s) ${problems.join(', ')}`, this.typeNode).toString());
+        }
+
+        return {
+          dataType: 'enum',
+          enums: literals,
+        };
+      } else if (type.isLiteral()) {
+        return {
+          dataType: 'enum',
+          enums: [type.value.toString()],
+        };
+      } else if ((type.getFlags() & ts.TypeFlags.Never) !== 0) {
+        throw new GenerateMetadataError(`TypeOperator 'keyof' on node produced a never type`, this.typeNode);
+      } else {
+        const warning = new GenerateMetaDataWarning(
+          `Couldn't resolve keyof reliably, please check the resulting type carefully.
+            Reason: Type was not a literal or an array of literals.`,
+          this.typeNode,
+        );
+
+        console.warn(warning.toString());
+
+        try {
+          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        } catch (err) {
+          const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
+          throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
+        }
       }
     }
 

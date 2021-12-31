@@ -1424,6 +1424,20 @@ describe('Definition generation', () => {
               `for property ${propertyName}`,
             );
           },
+          keyofLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['type1', 'type2'],
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                example: undefined,
+                'x-nullable': false,
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
