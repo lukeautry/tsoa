@@ -152,6 +152,7 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   entryFile: Config['entryFile'];
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
+  multerOpts?: Config['multerOpts'];
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
@@ -182,6 +183,7 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
     entryFile: config.entryFile,
     noImplicitAdditionalProperties,
     controllerPathGlobs: config.controllerPathGlobs,
+    multerOpts: config.multerOpts,
   };
 };
 
