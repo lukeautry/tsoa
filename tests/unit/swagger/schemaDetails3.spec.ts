@@ -802,6 +802,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
           });
         });
+
+        it('uses the correct imported value for the @Example<> with label', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            Custom_label: {
+              value: 'test example response',
+            },
+          });
+        });
+
+        it('uses the correct imported value for multiple @Example<> with label', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseMultiExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            OneExample: {
+              value: 'test example response',
+            },
+            AnotherExample: {
+              value: 'another example',
+            },
+            'Example 1': {
+              value: 'no label example',
+            },
+          });
+        });
       });
 
       describe('deprecation', () => {
