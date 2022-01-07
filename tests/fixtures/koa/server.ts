@@ -1,4 +1,5 @@
 import * as Koa from 'koa';
+import * as multer from '@koa/multer';
 import * as KoaRouter from '@koa/router';
 import '../controllers/rootController';
 
@@ -28,6 +29,13 @@ const app = new Koa();
 app.use(bodyParser());
 
 const router = new KoaRouter();
+
+router.post('/v1/PostTest/FileAndJsonFormField', async (ctx, next) => {
+  await multer().single('file')(ctx, () => {
+    ctx.request.body.json = JSON.parse(ctx.request.body.json);
+  });
+  await next();
+});
 
 RegisterRoutes(router);
 

@@ -1,4 +1,5 @@
-import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@tsoa/runtime';
+import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField, Request } from '@tsoa/runtime';
+import { Request as ExpressRequest } from 'express';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -65,6 +66,11 @@ export class PostTestController {
   @Post('ManyFilesAndFormFields')
   public async postWithFiles(@UploadedFiles('someFiles') files: File[], @FormField('a') a: string, @FormField('c') c: string): Promise<File[]> {
     return files;
+  }
+
+  @Post('FileAndJsonFormField')
+  public async postWithFileAndJsonFormField(@Request() req: ExpressRequest, @FormField('json') json: { property: string }): Promise<{ hasFile: boolean; json: { property: string } }> {
+    return { hasFile: !!req.file, json };
   }
 
   @Post('Location')

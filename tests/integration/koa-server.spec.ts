@@ -1297,6 +1297,18 @@ describe('Koa Server', () => {
       });
     });
 
+    it('can post a file with a JSON form field', () => {
+      const formData = {
+        json: JSON.stringify({ property: 'value' }),
+        file: '@../package.json',
+      };
+
+      return verifyFileUploadRequest(basePath + '/PostTest/FileAndJsonFormField', formData, (err, res) => {
+        expect(res.body.hasFile).to.be.true;
+        expect(res.body.json).to.deep.equal({ property: 'value' });
+      });
+    });
+
     function verifyFileUploadRequest(
       path: string,
       formData: any,

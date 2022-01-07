@@ -1,6 +1,7 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as methodOverride from 'method-override';
+import * as multer from 'multer';
 import '../controllers/rootController';
 
 import '../controllers/optionsController';
@@ -36,6 +37,13 @@ app.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });
+app.post('/v1/PostTest/FileAndJsonFormField', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  multer().single('file')(req, res, () => {
+    req.body.json = JSON.parse(req.body.json);
+    next();
+  });
+});
+
 RegisterRoutes(app);
 
 // It's important that this come after the main routes are registered
