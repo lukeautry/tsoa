@@ -33,7 +33,6 @@ module.exports = {
         },
       },
     ],
-    '@typescript-eslint/member-ordering': 'off',
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -46,24 +45,19 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
-    '@typescript-eslint/no-unused-expressions': 'off',
     '@typescript-eslint/no-unused-vars': [
       'warn',
       {
         argsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-use-before-define': ['error', { functions: false, classes: false }],
     '@typescript-eslint/no-var-requires': 'off',
-    '@typescript-eslint/semi': ['off', null],
     '@typescript-eslint/triple-slash-reference': [
       'error',
       {
@@ -72,22 +66,13 @@ module.exports = {
         lib: 'always',
       },
     ],
-    'arrow-parens': 'off',
-    complexity: 'off',
     eqeqeq: ['error', 'smart'],
-    'max-classes-per-file': 'off',
-    'no-array-constructor': 'off',
-    'no-empty-function': 'off',
-    'no-fallthrough': 'off',
-    'no-invalid-this': 'off',
     'no-shadow': [
       'off',
       {
         hoist: 'all',
       },
     ],
-    'require-await': 'off',
-    'valid-typeof': 'off',
   },
   overrides: [
     {
@@ -99,7 +84,6 @@ module.exports = {
     {
       files: 'tests/**/*.ts',
       rules: {
-        'prefer-spread': 'warn',
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
