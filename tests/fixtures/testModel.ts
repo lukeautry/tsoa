@@ -223,7 +223,7 @@ interface TypeWithDeprecatedProperty {
 }
 
 class ClassWithDeprecatedProperty {
-  ok: boolean;
+  ok!: boolean;
   @Deprecated()
   notOk?: boolean;
   /** @deprecated */
@@ -267,7 +267,7 @@ export interface TypeAliasModel2 {
 }
 
 export class TypeAliasModel3 {
-  public value3: string;
+  public value3!: string;
 }
 
 export type TypeAlias4 = { value4: string };
@@ -377,11 +377,13 @@ export interface TestSubEnumModelContainer {
   [key: string]: EnumStringValue;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TestSubModelContainerNamespace {
   export interface TestSubModelContainer {
     [key: string]: TestSubModelNamespace.TestSubModelNS;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace InnerNamespace {
     export interface TestSubModelContainer2 {
       [key: string]: TestSubModelNamespace.TestSubModelNS;
@@ -407,6 +409,7 @@ export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status
   u: DefaultArgs<U>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TestSubModelNamespace {
   export interface TestSubModelNS extends TestSubModel {
     testSubModelNS: boolean;
@@ -444,20 +447,20 @@ export interface UserResponseModel {
 }
 
 export class ParameterTestModel {
-  public firstname: string;
-  public lastname: string;
+  public firstname!: string;
+  public lastname!: string;
   /**
    * @isInt
    * @minimum 1
    * @maximum 100
    */
-  public age: number;
+  public age!: number;
   /**
    * @isFloat
    */
-  public weight: number;
-  public human: boolean;
-  public gender: Gender;
+  public weight!: number;
+  public human!: boolean;
+  public gender!: Gender;
   public nicknames?: string[];
 }
 
@@ -467,79 +470,79 @@ export class ValidateModel {
   /**
    * @isFloat Invalid float error message.
    */
-  public floatValue: number;
+  public floatValue!: number;
   /**
    * @isDouble Invalid double error message.
    */
-  public doubleValue: number;
+  public doubleValue!: number;
   /**
    * @isInt invalid integer number
    */
-  public intValue: number;
+  public intValue!: number;
   /**
    * @isLong Custom Required long number.
    */
-  public longValue: number;
+  public longValue!: number;
   /**
    * @isBoolean
    */
-  public booleanValue: boolean;
+  public booleanValue!: boolean;
   /**
    * @isArray
    */
-  public arrayValue: number[];
+  public arrayValue!: number[];
   /**
    * @isDate invalid ISO 8601 date format, i.e. YYYY-MM-DD
    */
-  public dateValue: Date;
+  public dateValue!: Date;
   /**
    * @isDateTime
    */
-  public datetimeValue: Date;
+  public datetimeValue!: Date;
 
   /**
    * @maximum 10
    */
-  public numberMax10: number;
+  public numberMax10!: number;
   /**
    * @minimum 5
    */
-  public numberMin5: number;
+  public numberMin5!: number;
   /**
    * @maxLength 10
    */
-  public stringMax10Lenght: string;
+  public stringMax10Lenght!: string;
   /**
    * @minLength 5
    */
-  public stringMin5Lenght: string;
+  public stringMin5Lenght!: string;
   /**
    *  @pattern ^[a-zA-Z]+$
    */
-  public stringPatternAZaz: string;
+  public stringPatternAZaz!: string;
   /**
    * @pattern `^([A-Z])(?!@)$`
    */
-  public quotedStringPatternA: string;
+  public quotedStringPatternA!: string;
   /**
    * @maxItems 5
    */
-  public arrayMax5Item: number[];
+  public arrayMax5Item!: number[];
   /**
    * @minItems 2
    */
-  public arrayMin2Item: number[];
+  public arrayMin2Item!: number[];
   /**
    * @uniqueItems
    */
-  public arrayUniqueItem: number[];
+  public arrayUniqueItem!: number[];
 
   /**
    * @ignore
    */
-  public ignoredProperty: string;
+  public ignoredProperty!: string;
 
-  public model: TypeAliasModel1;
+  public model!: TypeAliasModel1;
   public intersection?: TypeAliasModel1 & TypeAliasModel2;
   public intersectionNoAdditional?: TypeAliasModel1 & TypeAliasModel2;
   public mixedUnion?: string | TypeAliasModel1;
@@ -561,7 +564,7 @@ export class ValidateModel {
     forwardGenericAlias: ForwardGenericAlias<boolean, TypeAliasModel1>;
   };
 
-  public nullableTypes: {
+  public nullableTypes!: {
     /**
      * @isInt
      * @minimum 5
@@ -572,7 +575,7 @@ export class ValidateModel {
     justNull: null;
   };
 
-  public nestedObject: {
+  public nestedObject!: {
     /**
      * @isFloat Invalid float error message.
      */
@@ -685,29 +688,29 @@ export interface Model {
 }
 
 export class TestClassBaseModel {
-  public id: number;
+  public id!: number;
   public defaultValue1 = 'Default Value 1';
 }
 
 // bug #158
 export class Account {
-  public id: number;
+  public id!: number;
 }
 
 export class PrivateModel {
-  public stringPropDec1: string;
+  public stringPropDec1!: string;
 
   /**
    * @minLength 2
    */
-  public stringPropDec2: string;
+  public stringPropDec2!: string;
 
   /**
    * @ignore
    */
-  public stringPropDec3: string;
+  public stringPropDec3!: string;
 
-  private hidden: string;
+  private hidden!: string;
 
   constructor(public id: number, arg: boolean, private privArg: boolean) {
     this.hidden && this.privArg ? '' : '';
@@ -724,7 +727,7 @@ interface IndexedInterface {
 }
 type IndexedInterfaceAlias = IndexedInterface;
 class IndexedClass {
-  public foo: 'bar';
+  public foo!: 'bar';
 }
 
 interface Indexed {
@@ -753,9 +756,9 @@ type IndexRecordAlias<T> = ResponseDistribute<Names, T>;
  * This is a description of TestClassModel
  */
 export class TestClassModel extends TestClassBaseModel {
-  public account: Account;
+  public account!: Account;
   public defaultValue2 = 'Default Value 2';
-  public enumKeys: keyof typeof MyEnum;
+  public enumKeys!: keyof typeof MyEnum;
   public keyInterface?: keyof Model;
   public indexedType?: Indexed[IndexType]['bar'];
   public indexedTypeToInterface?: Indexed['interface'];
@@ -773,7 +776,7 @@ export class TestClassModel extends TestClassBaseModel {
    * @pattern ^[a-zA-Z]+$
    * @example "classPropExample"
    */
-  public publicStringProperty: string;
+  public publicStringProperty!: string;
   /**
    * @minLength 0
    * @maxLength 10
@@ -784,8 +787,8 @@ export class TestClassModel extends TestClassBaseModel {
    * @pattern `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`
    */
   public emailPattern?: string;
-  stringProperty: string;
-  protected protectedStringProperty: string;
+  stringProperty!: string;
+  protected protectedStringProperty!: string;
   public static staticStringProperty: string;
   @Deprecated()
   public deprecated1?: boolean;
@@ -836,7 +839,7 @@ type NonFunctionPropertyNames<T> = {
 }[keyof T];
 type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
 export class GetterClass {
-  public a: 'b';
+  public a!: 'b';
 
   get foo() {
     return 'bar';

@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   root: true,
-  extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier', 'prettier/@typescript-eslint'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json'],
@@ -47,11 +47,11 @@ module.exports = {
     ],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
-    '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
     '@typescript-eslint/no-unused-expressions': 'off',
@@ -61,11 +61,11 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/no-use-before-define': ['error', { functions: false, classes: false }],
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/semi': ['off', null],
     '@typescript-eslint/triple-slash-reference': [
-      'off',
+      'error',
       {
         path: 'always',
         types: 'prefer-import',
@@ -86,7 +86,6 @@ module.exports = {
         hoist: 'all',
       },
     ],
-    'no-unused-vars': 'off',
     'require-await': 'off',
     'valid-typeof': 'off',
   },
@@ -100,11 +99,16 @@ module.exports = {
     {
       files: 'tests/**/*.ts',
       rules: {
-        'prefer-spread': 'off',
+        'prefer-spread': 'warn',
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'warn',
+        // for expectations
+        '@typescript-eslint/no-unused-expressions': 'off',
+        // Crashes also fail the test
+        'no-unsafe-optional-chaining': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
   ],

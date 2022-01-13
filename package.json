@@ -35,7 +35,7 @@
     "clean": "lerna run clean --stream",
     "prepare": "yarn build",
     "preversion": "yarn test",
-    "test": "yarn --cwd tests test",
+    "test": "lerna run test --stream",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run lint --fix",
     "watch": "lerna run watch --parallel",
@@ -43,14 +43,14 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.8.1",
-    "@typescript-eslint/parser": "^4.8.1",
-    "eslint": "^7.13.0",
-    "eslint-config-prettier": "^6.11.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.1",
+    "@typescript-eslint/parser": "^5.8.1",
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.3.0",
     "husky": "^4.3.0",
     "lerna": "^4.0.0",
     "lint-staged": "^10.4.0",
-    "prettier": "^2.2.0"
+    "prettier": "^2.5.1"
   },
   "repository": {
     "type": "git",
@@ -61,11 +61,9 @@
     "node": ">=12.0.0"
   },
   "engineStrict": true,
-  "workspaces": {
-    "packages": [
-      "packages/*",
-      "tests",
-      "tests/esm"
-    ]
-  }
+  "workspaces": [
+    "packages/*",
+    "tests",
+    "tests/esm"
+  ]
 }

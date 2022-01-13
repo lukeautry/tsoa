@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
     "rootDir": ".",
-    "sourceMap": true,
-    "noImplicitAny": false,
     "baseUrl": ".",
     "module": "commonjs",
     "target": "es6",
@@ -11,23 +8,20 @@
     "typeRoots": ["node_modules/@types", "./typings"],
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "declaration": true,
-    "noUnusedLocals": true,
-    "strictNullChecks": true,
-    "newLine": "LF",
-    "noUnusedParameters": false,
     "emitDecoratorMetadata": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "strictBindCallApply": true,
+    "newLine": "LF",
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
     "paths": {
       "@tsoa/cli/*": ["../packages/cli/src/*"],
       "@tsoa/runtime/*": ["../packages/runtime/src/*"]
     }
   },
   "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }],
-  "exclude": [
-    "esm"
-  ]
+  "exclude": ["esm", "fixtures/**/routes.ts"],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }

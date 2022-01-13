@@ -6,7 +6,7 @@ function Middlewares(...mws: RouteOptionsPreAllOptions[]) {
   return GenericMiddlewares<RouteOptionsPreAllOptions>(...mws);
 }
 
-const middlewaresState = {};
+const middlewaresState: Record<string, boolean> = {};
 
 export function stateOf(key: string): boolean | undefined {
   return middlewaresState[key];

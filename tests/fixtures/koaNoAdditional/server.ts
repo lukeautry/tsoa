@@ -31,7 +31,7 @@ RegisterRoutes(router);
 app.use(async (context, next) => {
   try {
     await next();
-  } catch (err) {
+  } catch (err: any) {
     context.status = err.status || 500;
     context.body = err.message || 'An error occurred during the request.';
   }

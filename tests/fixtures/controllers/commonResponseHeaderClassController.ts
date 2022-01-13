@@ -7,12 +7,12 @@ class CommonResponseHeader {
   /**
    * a common link string
    */
-  CommonLink: string;
+  CommonLink!: string;
 
   /**
    * b common link str[]
    */
-  CommonLinkB: string[];
+  CommonLinkB!: string[];
 
   /**
    * c common link string, optional

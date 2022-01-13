@@ -9,7 +9,7 @@ const basePath = '/v1';
 describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
   // While the purpose of this file (koa-server-no-additional-allowed.spec.ts) is to test the validation of POST bodies, we should have at least one GET test
   it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath, (err, res) => {
+    return verifyGetRequest(basePath, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -20,7 +20,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
     return Promise.all(
       invalidValues.map((value: any) => {
-        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -33,7 +33,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.someExtraProperty'].message).to.eql('"someExtraProperty" is an excess property and therefore is not allowed');
       },
@@ -50,7 +50,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.mixedUnion'].message).to.include('Could not match the union against any of the items.');
       },
@@ -71,7 +71,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.objLiteral'].message).to.eql('"extra" is an excess property and therefore is not allowed');
         expect(body.fields['model.objLiteral.nested'].message).to.eql('"anotherExtra" is an excess property and therefore is not allowed');
@@ -129,7 +129,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
   it('correctly handles OPTIONS requests', () => {
     const path = basePath + '/OptionsTest/Current';
     return verifyRequest(
-      (err, res) => {
+      (_err, res) => {
         expect(res.text).to.equal('');
       },
       request => request.options(path),
@@ -158,7 +158,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         const data = getFakeModel();
         data.dateValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -171,7 +171,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         const data = getFakeModel();
         data.numberValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (err: any, res: any) => null, 400);
+        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -183,7 +183,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     return verifyPostRequest(
       basePath + '/PostTest',
       data,
-      (err: any, res: any) => {
+      (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
         expect(body.fields['model.dateValue'].value).to.equal(1);
@@ -258,7 +258,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       };
 
       bodyModel.nullableTypes = {
-        numberOrNull: ('null' as unknown) as null,
+        numberOrNull: 'null' as unknown as null,
         wordOrNull: null,
         maybeString: null,
         justNull: null,
@@ -267,7 +267,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       return verifyPostRequest(
         basePath + `/Validate/body`,
         bodyModel,
-        (err, res) => {
+        (_err, res) => {
           const { body } = res;
 
           expect(body.floatValue).to.equal(bodyModel.floatValue);
@@ -336,7 +336,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         key3: -1,
       };
       const SUCCESS_BECAUSE_DICTIONARIES_ALLOW_ADDITIONAL_PROPERTIES = 200;
-      return verifyPostRequest(basePath + '/Validate/map', data, (err, res) => null, SUCCESS_BECAUSE_DICTIONARIES_ALLOW_ADDITIONAL_PROPERTIES);
+      return verifyPostRequest(basePath + '/Validate/map', data, (_err, _res) => null, SUCCESS_BECAUSE_DICTIONARIES_ALLOW_ADDITIONAL_PROPERTIES);
     });
 
     it('should reject string-to-string dictionary body', () => {
@@ -369,7 +369,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       };
 
       const SUCCESS_BECAUSE_ANY_ACCEPTS_ADDITIONAL_PROPERTIES = 200;
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (err, res) => null, SUCCESS_BECAUSE_ANY_ACCEPTS_ADDITIONAL_PROPERTIES);
+      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, _res) => null, SUCCESS_BECAUSE_ANY_ACCEPTS_ADDITIONAL_PROPERTIES);
     });
 
     it('should validate string-to-any dictionary body with falsy values', () => {
@@ -383,7 +383,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       return verifyPostRequest(
         basePath + '/Validate/mapAny',
         data,
-        (err, res) => {
+        (_err, res) => {
           const response = res.body as any[];
           expect(response.sort()).to.eql([[], '', 0, false, null]);
         },
@@ -405,7 +405,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       return verifyPostRequest(
         basePath + '/ParameterTest/Body',
         data,
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as ParameterTestModel;
           expect(model.firstname).to.equal('Tony');
           expect(model.lastname).to.equal('Stark');
@@ -430,7 +430,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       return verifyPostRequest(
         basePath + '/ParameterTest/BodyProps',
         data,
-        (err, res) => {
+        (_err, res) => {
           const model = res.body as ParameterTestModel;
           expect(model.firstname).to.equal('Tony');
           expect(model.lastname).to.equal('Stark');
@@ -448,7 +448,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         name: 'something',
         value: getFakeModel(),
       };
-      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (err, res) => {
+      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
       });

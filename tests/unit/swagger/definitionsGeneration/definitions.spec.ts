@@ -271,7 +271,7 @@ describe('Definition generation', () => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}`);
             // Now check the items on the array of objects
             if (!propertySchema.items) {
-              throw new Error(`There was no \'items\' property on ${propertyName}.`);
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
             }
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
@@ -665,12 +665,12 @@ describe('Definition generation', () => {
           },
           deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
-            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(undefined, `for property notOkProp[x-deprecated]`);
           },
           deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp['x-deprecated']).to.eql(undefined, `for property okProp[x-deprecated]`);
-            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(true, `for property notOkProp[x-deprecated]`);
-            expect(propertySchema.properties!.stillNotOkProp['x-deprecated']).to.eql(true, `for property stillNotOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.notOkProp['x-deprecated']).to.eql(undefined, `for property notOkProp[x-deprecated]`);
+            expect(propertySchema.properties!.stillNotOkProp['x-deprecated']).to.eql(undefined, `for property stillNotOkProp[x-deprecated]`);
           },
           notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.notOk).not.to.haveOwnProperty('x-deprecated', `for property notOk`);
@@ -784,8 +784,7 @@ describe('Definition generation', () => {
                   excludeToEnum: { $ref: '#/definitions/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/definitions/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref:
-                      '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
+                    $ref: '#/definitions/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1686,7 +1685,7 @@ describe('Definition generation', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should not generate a property for a non-public constructor var', () => {
           const propertyNames = ['defaultConstructorArgument', 'deprecatedNonPublicConstructorVar'];
           propertyNames.forEach(propertyName => {
@@ -1842,7 +1841,7 @@ describe('Definition generation', () => {
         const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
         const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-        expect(parameters.map(param => ((param as unknown) as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+        expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
       });
     });
   });

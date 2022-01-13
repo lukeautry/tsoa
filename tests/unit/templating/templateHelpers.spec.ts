@@ -49,7 +49,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
   const dataToValidate: TypeAliasModel1 = {
     value1: 'this is value 1',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';
@@ -98,11 +98,11 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
     noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
-  const nameOfAdditionalProperty = 'I am the bad key name';
+  const nameOfAdditionalProperty = 'I am the bad key name' as keyof TypeAliasModel1;
   const dataToValidate: TypeAliasModel1 = {
     value1: 'valueOne',
   };
-  (dataToValidate as any)[nameOfAdditionalProperty] = 'something extra';
+  dataToValidate[nameOfAdditionalProperty] = 'something extra';
 
   // Act
   const name = 'dataToValidate';
@@ -157,7 +157,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
     noImplicitAdditionalProperties: 'throw-on-extras',
   };
   const errorDictionary: FieldErrors = {};
-  const nameOfAdditionalProperty = 'extraKeyName';
+  const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const expectedErrorMsg = `Could not match intersection against any of the possible combinations: [["value1","value2"]]`;
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
     value1: 'this is value 1',
@@ -310,7 +310,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     noImplicitAdditionalProperties: 'silently-remove-extras',
   };
   const errorDictionary: FieldErrors = {};
-  const nameOfAdditionalProperty = 'extraKeyName';
+  const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
     value1: 'this is value 1',
     value2: 'this is value 2',
@@ -367,7 +367,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
     noImplicitAdditionalProperties: 'ignore',
   };
   const errorDictionary: FieldErrors = {};
-  const nameOfAdditionalProperty = 'extraKeyName';
+  const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
     value1: 'this is value 1',
     value2: 'this is value 2',

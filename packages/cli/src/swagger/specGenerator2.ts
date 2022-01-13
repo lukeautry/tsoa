@@ -477,8 +477,10 @@ export class SpecGenerator2 extends SpecGenerator {
 
   protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema2 {
     const types = this.determineTypesUsedInEnum(enumType.enums);
-    const type = types.size === 1 ? types.values().next().value : 'string';
+    const type = types.size === 1 ? (types.values().next().value as SetTypes<typeof types>) : 'string';
     const nullable = enumType.enums.includes(null) ? true : false;
     return { type, enum: enumType.enums.map(member => getValue(type, member)), ['x-nullable']: nullable };
   }
 }
+
+type SetTypes<Type> = Type extends Set<infer Item> ? Item : never;

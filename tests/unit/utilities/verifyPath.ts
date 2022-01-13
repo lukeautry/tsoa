@@ -13,32 +13,32 @@ export function VerifyPath(
 ) {
   const modelName = givenModelName || defaultModelName;
   const path = spec.paths[route];
-  expect(path, `Path object for ${route} route wasn\'t generated.`).to.exist;
+  expect(path, `Path object for ${route} route wasn't generated.`).to.exist;
 
   const operation = getOperation(path);
   if (!operation) {
-    throw new Error(`Method for ${route} route wasn\'t generated.`);
+    throw new Error(`Method for ${route} route wasn't generated.`);
   }
   if (!operation.responses) {
-    throw new Error(`Response object for ${route} route wasn\'t generated.`);
+    throw new Error(`Response object for ${route} route wasn't generated.`);
   }
 
   if (isNoContent) {
     const successResponse = operation.responses['204'];
-    expect(successResponse, `204 response for ${route} route wasn\'t generated.`).to.exist;
+    expect(successResponse, `204 response for ${route} route wasn't generated.`).to.exist;
     return path;
   }
 
   const successResponse = operation.responses['200'];
-  expect(successResponse, `200 response for ${route} route wasn\'t generated.`).to.exist;
+  expect(successResponse, `200 response for ${route} route wasn't generated.`).to.exist;
 
   if (!successResponse.schema) {
-    throw new Error(`Schema for 200 response ${route} route wasn\'t generated.`);
+    throw new Error(`Schema for 200 response ${route} route wasn't generated.`);
   }
 
   if (isCollection) {
     expect(successResponse.schema.type).to.equal('array');
-    expect((successResponse.schema.items as any).$ref).to.equal(modelName);
+    expect(successResponse.schema.items?.$ref).to.equal(modelName);
   } else {
     expect(successResponse.schema.$ref).to.equal(modelName);
   }

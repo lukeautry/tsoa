@@ -307,7 +307,7 @@ export class TypeResolver {
       ts.isLiteralTypeNode(this.typeNode.indexType) &&
       (ts.isStringLiteral(this.typeNode.indexType.literal) || ts.isNumericLiteral(this.typeNode.indexType.literal))
     ) {
-      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && node.hasOwnProperty('type');
+      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && Object.prototype.hasOwnProperty.call(node, 'type');
       const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
       if (symbol === undefined) {
         throw new GenerateMetadataError(
@@ -427,7 +427,7 @@ export class TypeResolver {
         value = null;
         break;
       default:
-        if (typeNode.literal.hasOwnProperty('text')) {
+        if (Object.prototype.hasOwnProperty.call(typeNode.literal, 'text')) {
           value = (typeNode.literal as ts.LiteralExpression).text;
         } else {
           throw new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`);
@@ -722,8 +722,8 @@ export class TypeResolver {
         .replace(/<|>/g, '_')
         .replace(/\s+/g, '')
         .replace(/,/g, '.')
-        .replace(/\'([^']*)\'/g, '$1')
-        .replace(/\"([^"]*)\"/g, '$1')
+        .replace(/'([^']*)'/g, '$1')
+        .replace(/"([^"]*)"/g, '$1')
         .replace(/&/g, '-and-')
         .replace(/\|/g, '-or-')
         .replace(/\[\]/g, '-Array')
