@@ -1,4 +1,5 @@
 import { Swagger } from './swagger/swagger';
+import { Options as MulterOpts } from 'multer';
 
 export interface Config {
   /**
@@ -38,6 +39,16 @@ export interface Config {
    * @memberof RoutesConfig
    */
   compilerOptions?: Record<string, unknown>;
+
+  /**
+   * Multer's options to generate multer's middleware.
+   * It doesn't support storage option
+   *
+   * @example {
+   *   "dest": "/tmp"
+   * } Allow multer to write to file instead of using Memory's buffer
+   */
+  multerOpts?: MulterOpts;
 }
 
 /**
@@ -125,7 +136,7 @@ export interface SpecConfig {
    * Extend generated swagger spec with this object
    * Note that generated properties will always take precedence over what get specified here
    */
-  spec?: any;
+  spec?: unknown;
 
   /**
    * Alter how the spec is merged to generated swagger spec.

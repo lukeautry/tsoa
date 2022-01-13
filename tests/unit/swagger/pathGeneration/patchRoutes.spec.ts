@@ -4,6 +4,7 @@ import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
+import { Swagger } from '@tsoa/runtime';
 
 describe('PATCH route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/patchController.ts').Generate();
@@ -24,7 +25,7 @@ describe('PATCH route generation', () => {
     verifyPath(actionRoute, true);
   });
 
-  const getValidatedParameters = (actionRoute: string) => {
+  const getValidatedParameters = (actionRoute: string): Swagger.Parameter[] => {
     const path = verifyPath(actionRoute);
     if (!path.patch) {
       throw new Error('No patch operation.');
@@ -33,7 +34,7 @@ describe('PATCH route generation', () => {
       throw new Error('No parameters');
     }
 
-    return path.patch.parameters as any;
+    return path.patch.parameters;
   };
 
   it('should generate a parameter for path parameters', () => {

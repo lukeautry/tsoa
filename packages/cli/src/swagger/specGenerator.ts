@@ -185,10 +185,10 @@ export abstract class SpecGenerator {
 
   protected determineTypesUsedInEnum(anEnum: Array<string | number | boolean | null>) {
     const typesUsedInEnum = anEnum.reduce((theSet, curr) => {
-      const typeUsed = curr === null ? 'number' : typeof curr;
+      const typeUsed = curr === null ? 'number' : (typeof curr as 'string' | 'number' | 'boolean');
       theSet.add(typeUsed);
       return theSet;
-    }, new Set<'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'>());
+    }, new Set<'string' | 'number' | 'boolean'>());
 
     return typesUsedInEnum;
   }

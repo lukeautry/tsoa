@@ -84,7 +84,7 @@ describe('Schema details generation', () => {
       try {
         const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidTagController.ts').Generate();
         new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-      } catch (err) {
+      } catch (err: any) {
         errToTest = err;
       }
 
@@ -132,7 +132,7 @@ describe('Schema details generation', () => {
       try {
         const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidExampleController.ts').Generate();
         new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-      } catch (err) {
+      } catch (err: any) {
         errToTest = err;
       }
 
@@ -523,7 +523,7 @@ describe('Schema details generation', () => {
           [schemaName]: {
             refName: schemaName,
             dataType: 'refEnum',
-            enums: [1, 'two', 3, 'four', ({} as unknown) as number],
+            enums: [1, 'two', 3, 'four', {} as unknown as number],
             deprecated: false,
           },
         },
@@ -538,7 +538,7 @@ describe('Schema details generation', () => {
       let errToTest: Error | null = null;
       try {
         new SpecGenerator2(metadataForEnums, swaggerConfig).GetSpec();
-      } catch (err) {
+      } catch (err: any) {
         errToTest = err;
       }
 
@@ -558,12 +558,12 @@ describe('Schema details generation', () => {
       let errToTest: Error | null = null;
       try {
         new SpecGenerator2(mixedEnumMetadata, swaggerConfig).GetSpec();
-      } catch (err) {
+      } catch (err: any) {
         errToTest = err;
       }
 
       // Assert
-      expect(errToTest!.message).to.eq(`Enums can only have string or number values, but enum MixedStringAndNumberEnum had number,string`);
+      expect(errToTest?.message).to.eq(`Enums can only have string or number values, but enum MixedStringAndNumberEnum had number,string`);
     });
   });
 

@@ -10,7 +10,7 @@ describe('OpenAPI3 Express Server', () => {
   it('Should return on @Res', () => {
     return verifyGetRequest(
       basePath + '/GetTest/Res',
-      (err, res) => {
+      (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
         expect(res.header['custom-header']).to.eq('hello');
@@ -89,7 +89,7 @@ describe('OpenAPI3 Express Server', () => {
     };
 
     bodyModel.nullableTypes = {
-      numberOrNull: ('null' as unknown) as null,
+      numberOrNull: 'null' as unknown as null,
       wordOrNull: null,
       maybeString: null,
       justNull: null,
@@ -241,7 +241,7 @@ describe('OpenAPI3 Express Server', () => {
     return verifyPostRequest(
       basePath + `/Validate/body`,
       bodyModel,
-      (err, res) => {
+      (err, _res) => {
         const body = JSON.parse(err.text);
 
         expect(body.fields['body.floatValue'].message).to.equal('Invalid float error message.');

@@ -684,8 +684,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
 
         describe('media types', () => {
-          let mediaTypeTest;
-          let requestAcceptHeaderTest;
+          let mediaTypeTest: Swagger.Spec3;
+          let requestAcceptHeaderTest: Swagger.Spec3;
 
           before(() => {
             const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
@@ -696,23 +696,23 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
-            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content);
-            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content);
+            const [mediaTypeOk] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[200]?.content ?? {});
+            const [mediaTypeNotFound] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default/{userId}']?.get?.responses?.[404]?.content ?? {});
 
             expect(mediaTypeOk).to.eql('application/vnd.mycompany.myapp+json');
             expect(mediaTypeNotFound).to.eql('application/vnd.mycompany.myapp+json');
           });
 
           it('Should be possible to define multiple media types on controller level', () => {
-            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content);
+            const [v1, v2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Default/{userId}']?.get?.responses?.[200]?.content ?? {});
 
             expect(v1).to.eql('application/vnd.mycompany.myapp+json');
             expect(v2).to.eql('application/vnd.mycompany.myapp.v2+json');
           });
 
           it('Should generate custom media type from method Produces decorator', () => {
-            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content);
-            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content);
+            const [mediaType] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom/security.txt']?.get?.responses?.[200]?.content ?? {});
+            const [v1, v2, v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi/{userId}']?.get?.responses?.[200]?.content ?? {});
 
             expect(mediaType).to.eql('text/plain');
             expect(v1).to.eql('application/vnd.mycompany.myapp+json');
@@ -722,10 +722,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should generate custom media types from method reponse decorators', () => {
-            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content);
-            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content);
-            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content);
-            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content);
+            const [mediaTypeAccepted] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[202]?.content ?? {});
+            const [mediaTypeBadRequest] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[400]?.content ?? {});
+            const [v3, v4] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[202]?.content ?? {});
+            const [br1, br2] = Object.keys(requestAcceptHeaderTest.paths['/RequestAcceptHeaderTest/Multi']?.post?.responses?.[400]?.content ?? {});
 
             expect(mediaTypeAccepted).to.eql('application/vnd.mycompany.myapp.v2+json');
             expect(mediaTypeBadRequest).to.eql('application/problem+json');
@@ -736,14 +736,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
 
           it('Should generate custom media types from header in @Res decorator', () => {
-            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content);
+            const [mediaTypeConflict] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.responses?.[409]?.content ?? {});
 
             expect(mediaTypeConflict).to.eql('application/problem+json');
           });
 
           it('Should generate custom media type of request body from method Consumes decorator', () => {
-            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content);
-            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content);
+            const [bodyMediaTypeDefault] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Default']?.post?.requestBody?.content ?? {});
+            const [bodyMediaTypeCustom] = Object.keys(mediaTypeTest.paths['/MediaTypeTest/Custom']?.post?.requestBody?.content ?? {});
 
             expect(bodyMediaTypeDefault).to.eql('application/json');
             expect(bodyMediaTypeCustom).to.eql('application/vnd.mycompany.myapp.v2+json');
@@ -1020,12 +1020,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           deprecatedFieldsOnInlineMappedTypeFromSignature: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
           },
           deprecatedFieldsOnInlineMappedTypeFromDeclaration: (propertyName, propertySchema) => {
             expect(propertySchema.properties!.okProp.deprecated).to.eql(undefined, `for property okProp.deprecated`);
-            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(true, `for property notOkProp.deprecated`);
-            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(true, `for property stillNotOkProp.deprecated`);
+            expect(propertySchema.properties!.notOkProp.deprecated).to.eql(undefined, `for property notOkProp.deprecated`);
+            expect(propertySchema.properties!.stillNotOkProp.deprecated).to.eql(undefined, `for property stillNotOkProp.deprecated`);
           },
           notDeprecatedFieldsOnInlineMappedTypeWithIndirection: (propertyName, propertySchema) => {
             // See corresponding `deprecated: false` in TypeResolver#resolve
@@ -1043,7 +1043,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}`);
             // Now check the items on the array of objects
             if (!propertySchema.items) {
-              throw new Error(`There was no \'items\' property on ${propertyName}.`);
+              throw new Error(`There was no 'items' property on ${propertyName}.`);
             }
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
@@ -1521,8 +1521,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   excludeToEnum: { $ref: '#/components/schemas/Exclude_EnumUnion.EnumNumberValue_', description: undefined, format: undefined, example: undefined },
                   excludeToAlias: { $ref: '#/components/schemas/Exclude_ThreeOrFour.TypeAliasModel3_', description: undefined, format: undefined, example: undefined },
                   excludeLiteral: {
-                    $ref:
-                      '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
+                    $ref: '#/components/schemas/Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
                     description: undefined,
                     format: undefined,
                     example: undefined,
@@ -1854,6 +1853,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     default: undefined,
                     description: undefined,
                     enum: ['OK', 'KO'],
+                    nullable: false,
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -2230,10 +2230,24 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for property ${propertyName}`,
             );
           },
+          keyofLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['type1', 'type2'],
+                default: undefined,
+                description: undefined,
+                format: undefined,
+                nullable: false,
+                example: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
-        Object.keys(assertionsPerProperty).forEach(aPropertyName => {
+        (Object.keys(assertionsPerProperty) as Array<keyof typeof assertionsPerProperty>).forEach(aPropertyName => {
           if (!testModel) {
             throw new Error(`There was no schema generated for the ${currentSpec.specName}`);
           }
@@ -2279,7 +2293,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should only mark deprecated properties as deprecated', () => {
           const deprecatedPropertyNames = ['deprecated1', 'deprecated2', 'deprecatedPublicConstructorVar', 'deprecatedPublicConstructorVar2'];
           Object.entries(properties).forEach(([propertyName, property]) => {
@@ -2309,7 +2323,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       const properties = definition.properties;
 
-      describe(`for ${currentSpec}`, () => {
+      describe(`for ${currentSpec.specName}`, () => {
         it('should put vendor extension on extension field with decorator', () => {
           const extensionPropertyName = 'extensionTest';
 

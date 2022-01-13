@@ -1,19 +1,12 @@
 /* eslint-disable no-console */
+import * as os from 'os';
 import chalk from 'chalk';
-import { generateSpecAndRoutes } from '@tsoa/cli/cli';
-import { generateRoutes } from '@tsoa/cli/module/generate-routes';
+import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
 
 const spec = async () => {
   const result = await generateSpecAndRoutes({
     configuration: 'tsoa.json',
-  });
-  return result;
-};
-
-const specESM = async () => {
-  const result = await generateSpecAndRoutes({
-    configuration: 'esm/tsoa.json',
   });
   return result;
 };
@@ -29,7 +22,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
 };
 
 (async () => {
-  const [metadata, metadataESM] = await Promise.all([log('Swagger Spec Generation', spec), log('Swagger ESM Spec Generation', specESM)]);
+  const metadata = await log('Swagger Spec Generation', spec);
 
   await Promise.all([
     log('Express Route Generation', () =>
@@ -45,21 +38,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         undefined,
         undefined,
         metadata,
-      ),
-    ),
-    log('Express ESM Route Generation', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'silently-remove-extras',
-          basePath: '/v1',
-          entryFile: './esm/fixtures/express/server.ts',
-          middleware: 'express',
-          routesDir: './esm/fixtures/express',
-          esm: true,
-        },
-        undefined,
-        undefined,
-        metadataESM,
       ),
     ),
     log('Express Router Route Generation', () =>
@@ -115,6 +93,19 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './fixtures/koa/server.ts',
         middleware: 'koa',
         routesDir: './fixtures/koa',
+      }),
+    ),
+
+    log('Koa Route Generation (with multerOpts)', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        basePath: '/v1',
+        entryFile: './fixtures/koa-multer-options/server.ts',
+        middleware: 'koa',
+        routesDir: './fixtures/koa-multer-options',
+        multerOpts: {
+          dest: os.tmpdir(),
+        },
       }),
     ),
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () =>

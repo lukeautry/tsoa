@@ -15,7 +15,7 @@ const iface = sourceFile
   .find(child => isInterfaceDeclaration(child)) as InterfaceDeclaration;
 
 const propertySignature = iface.members[2] as PropertySignature;
-const type = propertySignature.type!;
+const type = propertySignature.type;
 
 describe('GenerateMetadataError', () => {
   it(`Should have a given text`, () => {

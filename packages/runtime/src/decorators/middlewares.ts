@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type Middleware<T extends Function | Object> = T;
 
 const TSOA_MIDDLEWARES = Symbol('@tsoa:middlewares');
@@ -16,6 +18,7 @@ function decorator(fn: (value: any) => void) {
     // class decorator
     if (args.length === 1) {
       fn(args[0]);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     } else if (args.length === 3 && args[2].value) {
       // method decorator
       const descriptor = args[2] as PropertyDescriptor;

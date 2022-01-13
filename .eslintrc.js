@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   root: true,
-  extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier', 'prettier/@typescript-eslint'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json'],
@@ -45,10 +45,10 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
     '@typescript-eslint/no-unused-vars': [
@@ -59,7 +59,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/triple-slash-reference': [
-      'warn',
+      'error',
       {
         path: 'always',
         types: 'prefer-import',
@@ -87,7 +87,12 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'warn',
+        // for expectations
+        '@typescript-eslint/no-unused-expressions': 'off',
+        // Crashes also fail the test
+        'no-unsafe-optional-chaining': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
   ],

@@ -75,7 +75,7 @@ export function Inject(): Function {
  *
  * @param {string} [name] The name of the uploaded file parameter
  */
-export function UploadedFile(name?: string): any {
+export function UploadedFile(name?: string): Function {
   return () => {
     return;
   };
@@ -86,7 +86,7 @@ export function UploadedFile(name?: string): any {
  *
  * @param {string} [name] The name of the uploaded files parameter
  */
-export function UploadedFiles(name?: string): any {
+export function UploadedFiles(name?: string): Function {
   return () => {
     return;
   };
@@ -97,7 +97,7 @@ export function UploadedFiles(name?: string): any {
  *
  * @param {string} [name] The name of the uploaded files parameter
  */
-export function FormField(name?: string): any {
+export function FormField(name?: string): Function {
   return () => {
     return;
   };

@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { getJSDocComment, getJSDocComments, getJSDocTagNames, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getDecorators, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
 import { getPropertyValidators } from './../utils/validatorUtils';
-import { GenerateMetadataError } from './exceptions';
+import { GenerateMetadataError, GenerateMetaDataWarning } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa, assertNever } from '@tsoa/runtime';
@@ -243,13 +243,45 @@ export class TypeResolver {
       }
     }
 
+    // keyof
     if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
-      try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
-      } catch (err) {
-        const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
-        throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
+
+      if (type.isUnion()) {
+        const literals = type.types.filter(t => t.isLiteral()).reduce((acc, t: ts.LiteralType) => [...acc, t.value.toString()], []);
+
+        // Warn on nonsense (`number`, `typeof Symbol.iterator`)
+        if (type.types.find(t => !t.isLiteral()) !== undefined) {
+          const problems = type.types.filter(t => !t.isLiteral()).map(t => this.current.typeChecker.typeToString(t));
+          console.warn(new GenerateMetaDataWarning(`Skipped non-literal type(s) ${problems.join(', ')}`, this.typeNode).toString());
+        }
+
+        return {
+          dataType: 'enum',
+          enums: literals,
+        };
+      } else if (type.isLiteral()) {
+        return {
+          dataType: 'enum',
+          enums: [type.value.toString()],
+        };
+      } else if ((type.getFlags() & ts.TypeFlags.Never) !== 0) {
+        throw new GenerateMetadataError(`TypeOperator 'keyof' on node produced a never type`, this.typeNode);
+      } else {
+        const warning = new GenerateMetaDataWarning(
+          `Couldn't resolve keyof reliably, please check the resulting type carefully.
+            Reason: Type was not a literal or an array of literals.`,
+          this.typeNode,
+        );
+
+        console.warn(warning.toString());
+
+        try {
+          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        } catch (err) {
+          const indexedTypeName = this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.type));
+          throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, this.typeNode);
+        }
       }
     }
 
@@ -275,7 +307,7 @@ export class TypeResolver {
       ts.isLiteralTypeNode(this.typeNode.indexType) &&
       (ts.isStringLiteral(this.typeNode.indexType.literal) || ts.isNumericLiteral(this.typeNode.indexType.literal))
     ) {
-      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && node.hasOwnProperty('type');
+      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && Object.prototype.hasOwnProperty.call(node, 'type');
       const symbol = this.current.typeChecker.getPropertyOfType(this.current.typeChecker.getTypeFromTypeNode(this.typeNode.objectType), this.typeNode.indexType.literal.text);
       if (symbol === undefined) {
         throw new GenerateMetadataError(
@@ -395,7 +427,7 @@ export class TypeResolver {
         value = null;
         break;
       default:
-        if (typeNode.literal.hasOwnProperty('text')) {
+        if (Object.prototype.hasOwnProperty.call(typeNode.literal, 'text')) {
           value = (typeNode.literal as ts.LiteralExpression).text;
         } else {
           throw new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`);
@@ -690,8 +722,8 @@ export class TypeResolver {
         .replace(/<|>/g, '_')
         .replace(/\s+/g, '')
         .replace(/,/g, '.')
-        .replace(/\'([^']*)\'/g, '$1')
-        .replace(/\"([^"]*)\"/g, '$1')
+        .replace(/'([^']*)'/g, '$1')
+        .replace(/"([^"]*)"/g, '$1')
         .replace(/&/g, '-and-')
         .replace(/\|/g, '-or-')
         .replace(/\[\]/g, '-Array')
