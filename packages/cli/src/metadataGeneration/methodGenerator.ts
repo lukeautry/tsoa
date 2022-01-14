@@ -169,8 +169,6 @@ export class MethodGenerator {
     }
 
     return decorators.map(decorator => {
-      const expression = decorator.parent as ts.CallExpression;
-
       const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
@@ -178,8 +176,8 @@ export class MethodGenerator {
         examples: example === undefined ? undefined : [example],
         name: name || '200',
         produces: this.getProducesAdapter(produces),
-        schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
-        headers: getHeaderType(expression.typeArguments, 1, this.current),
+        schema: this.getSchemaFromDecorator(decorator, 0),
+        headers: this.getHeadersFromDecorator(decorator, 1),
       } as Tsoa.Response;
     });
   }
@@ -207,8 +205,7 @@ export class MethodGenerator {
 
     const [firstDecorator] = decorators;
     const [name, description, produces] = getDecoratorValues(firstDecorator, this.current.typeChecker);
-    const expression = firstDecorator.parent as ts.CallExpression;
-    const headers = getHeaderType(expression.typeArguments, 0, this.current);
+    const headers = this.getHeadersFromDecorator(firstDecorator, 0);
 
     return {
       response: {
@@ -222,6 +219,20 @@ export class MethodGenerator {
       },
       status: name && /^\d+$/.test(name) ? parseInt(name, 10) : undefined,
     };
+  }
+
+  private getHeadersFromDecorator({ parent: expression }: ts.Identifier, headersIndex: number) {
+    if (!ts.isCallExpression(expression)) {
+      return undefined;
+    }
+    return getHeaderType(expression.typeArguments, headersIndex, this.current);
+  }
+
+  private getSchemaFromDecorator({ parent: expression }: ts.Identifier, schemaIndex: number): Tsoa.Type | undefined {
+    if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
+      return undefined;
+    }
+    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
   }
 
   private getMethodSuccessExamples() {
