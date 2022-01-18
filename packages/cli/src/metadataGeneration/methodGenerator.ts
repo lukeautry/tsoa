@@ -67,7 +67,7 @@ export class MethodGenerator {
       produces: this.produces,
       consumes: this.consumes,
       responses,
-      successStatus: successStatus,
+      successStatus,
       security: this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
       tags: this.getTags(),
@@ -169,8 +169,6 @@ export class MethodGenerator {
     }
 
     return decorators.map(decorator => {
-      const expression = decorator.parent as ts.CallExpression;
-
       const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
 
       return {
@@ -178,21 +176,23 @@ export class MethodGenerator {
         examples: example === undefined ? undefined : [example],
         name: name || '200',
         produces: this.getProducesAdapter(produces),
-        schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
-        headers: getHeaderType(expression.typeArguments, 1, this.current),
+        schema: this.getSchemaFromDecorator(decorator, 0),
+        headers: this.getHeadersFromDecorator(decorator, 1),
       } as Tsoa.Response;
     });
   }
 
   private getMethodSuccessResponse(type: Tsoa.Type): { response: Tsoa.Response; status?: number } {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
+    const examplesWithLabels = this.getMethodSuccessExamples();
 
     if (!decorators || !decorators.length) {
-      const description = getJSDocComment(this.node, 'returns') || 'Ok';
+      const returnsDescription = getJSDocComment(this.node, 'returns') || 'Ok';
       return {
         response: {
-          description: isVoidType(type) ? 'No content' : description,
-          examples: this.getMethodSuccessExamples(),
+          description: isVoidType(type) ? 'No content' : returnsDescription,
+          examples: examplesWithLabels?.map(ex => ex.example),
+          exampleLabels: examplesWithLabels?.map(ex => ex.label),
           name: isVoidType(type) ? '204' : '200',
           produces: this.produces,
           schema: type,
@@ -203,16 +203,15 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one SuccessResponse decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
-    const [name, description, produces] = getDecoratorValues(decorators[0], this.current.typeChecker);
-    const examples = this.getMethodSuccessExamples();
-
-    const expression = decorators[0].parent as ts.CallExpression;
-    const headers = getHeaderType(expression.typeArguments, 0, this.current);
+    const [firstDecorator] = decorators;
+    const [name, description, produces] = getDecoratorValues(firstDecorator, this.current.typeChecker);
+    const headers = this.getHeadersFromDecorator(firstDecorator, 0);
 
     return {
       response: {
         description: description || '',
-        examples,
+        examples: examplesWithLabels?.map(ex => ex.example),
+        exampleLabels: examplesWithLabels?.map(ex => ex.label),
         name: name || '200',
         produces: this.getProducesAdapter(produces),
         schema: type,
@@ -222,15 +221,32 @@ export class MethodGenerator {
     };
   }
 
+  private getHeadersFromDecorator({ parent: expression }: ts.Identifier, headersIndex: number) {
+    if (!ts.isCallExpression(expression)) {
+      return undefined;
+    }
+    return getHeaderType(expression.typeArguments, headersIndex, this.current);
+  }
+
+  private getSchemaFromDecorator({ parent: expression }: ts.Identifier, schemaIndex: number): Tsoa.Type | undefined {
+    if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
+      return undefined;
+    }
+    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
+  }
+
   private getMethodSuccessExamples() {
     const exampleDecorators = this.getDecoratorsByIdentifier(this.node, 'Example');
     if (!exampleDecorators || !exampleDecorators.length) {
       return undefined;
     }
 
-    const examples = exampleDecorators.map(exampleDecorator => getDecoratorValues(exampleDecorator, this.current.typeChecker)?.[0]);
+    const examples = exampleDecorators.map(exampleDecorator => {
+      const [example, label] = getDecoratorValues(exampleDecorator, this.current.typeChecker);
+      return { example, label };
+    });
 
-    return examples || [];
+    return examples || undefined;
   }
 
   private supportsPathMethod(method: string) {

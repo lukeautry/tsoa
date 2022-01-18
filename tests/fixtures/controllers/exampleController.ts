@@ -155,4 +155,26 @@ export class ExampleTestController {
   public async responseExamplesWithImportedValue(): Promise<string> {
     return 'test 1';
   }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Example<string>(exampleResponse, 'Custom_label')
+  @Get('ResponseExampleWithLabel')
+  public async responseExamplesWithLabel(): Promise<string> {
+    return 'test 1';
+  }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Example<string>(exampleResponse, 'OneExample')
+  @Example<string>('another example', 'AnotherExample')
+  @Example<string>('no label example')
+  @Get('ResponseMultiExampleWithLabel')
+  public async responseMultiExampleWithLabel(): Promise<string> {
+    return 'test 1';
+  }
 }

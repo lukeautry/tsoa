@@ -509,6 +509,22 @@ describe('Schema details generation', () => {
 
           expect(responses?.[200]?.examples?.['application/json']).to.eq('test example response');
         });
+
+        it('uses the correct imported value for the @Example<> with label', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithLabel']?.get?.responses?.[200]?.examples?.['application/json'];
+
+          expect(examples).to.deep.eq('test example response');
+        });
+
+        it('uses the correct imported value for multiple @Example<> with label', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseMultiExampleWithLabel']?.get?.responses?.[200]?.examples?.['application/json'];
+
+          expect(examples).to.deep.eq('test example response');
+        });
       });
     });
   });
