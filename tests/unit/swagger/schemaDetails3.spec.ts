@@ -980,6 +980,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          undefinedValue: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
+          },
           objLiteral: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.include({
               properties: {
@@ -1232,6 +1235,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               example: undefined,
               format: undefined,
               nullable: true,
+            });
+          },
+          undefineableUnionPrimitiveType: (propertyName, propertySchema) => {
+            expect(propertySchema).to.deep.eq({
+              anyOf: [
+                { type: 'string', enum: ['String'] },
+                { type: 'number', enum: [1, 20] },
+                { type: 'boolean', enum: [true, false] },
+              ],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
             });
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {

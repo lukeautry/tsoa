@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Swagger {
-  export type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object' | 'file';
+  export type DataType = 'integer' | 'number' | 'boolean' | 'string' | 'array' | 'object' | 'file' | 'undefined';
 
   export type DataFormat = 'int32' | 'int64' | 'float' | 'double' | 'byte' | 'binary' | 'date' | 'date-time' | 'password';
 

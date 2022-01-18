@@ -1475,7 +1475,9 @@ describe('Express Server', () => {
   }
 
   function getFakeModel(): TestModel {
-    return {
+    // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation
+    // (typed either as undefined or union with undefined typed member)
+    const testModel: Partial<TestModel> = {
       and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: false,
@@ -1505,6 +1507,7 @@ describe('Express Server', () => {
       stringArray: ['test', 'testtwo'],
       stringValue: 'test1234',
     };
+    return testModel as TestModel;
   }
 
   function getFakeClassModel() {

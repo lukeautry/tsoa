@@ -22,7 +22,9 @@ describe('Inversify Express Server', () => {
     const oldGetModel = managedService.getModel.bind(managedService);
     // hook in a new getModel method returning id = 2
     managedService.getModel = () => {
-      return {
+      // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation
+      // (typed either as undefined or union with undefined typed member)
+      const testModel: Partial<TestModel> = {
         and: { value1: 'foo', value2: 'bar' },
         boolArray: [true, false],
         boolValue: true,
@@ -61,6 +63,7 @@ describe('Inversify Express Server', () => {
         stringArray: ['string one', 'string two'],
         stringValue: 'a string',
       };
+      return testModel as TestModel;
     };
     return verifyGetRequest(basePath + '/ManagedTest?tsoa=abc123456', (err, res) => {
       const model = res.body as TestModel;

@@ -40,7 +40,8 @@ export abstract class SpecGenerator {
       guiltyUntilInnocent === 'file' ||
       guiltyUntilInnocent === 'number' ||
       guiltyUntilInnocent === 'object' ||
-      guiltyUntilInnocent === 'string'
+      guiltyUntilInnocent === 'string' ||
+      guiltyUntilInnocent === 'undefined'
     ) {
       return guiltyUntilInnocent;
     } else {
@@ -49,7 +50,7 @@ export abstract class SpecGenerator {
   }
 
   protected getSwaggerType(type: Tsoa.Type): Swagger.Schema | Swagger.BaseSchema {
-    if (type.dataType === 'void') {
+    if (type.dataType === 'void' || type.dataType === 'undefined') {
       return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject' || type.dataType === 'refAlias') {
       return this.getSwaggerTypeForReferenceType(type);
@@ -96,7 +97,7 @@ export abstract class SpecGenerator {
 
     const additionalProperties = objectLiteral.additionalProperties && this.getSwaggerType(objectLiteral.additionalProperties);
 
-    const required = objectLiteral.properties.filter(prop => prop.required).map(prop => prop.name);
+    const required = objectLiteral.properties.filter(prop => prop.required && !this.hasUndefined(prop)).map(prop => prop.name);
 
     // An empty list required: [] is not valid.
     // If all properties are optional, do not specify the required keyword.
@@ -114,7 +115,7 @@ export abstract class SpecGenerator {
     };
   }
 
-  protected getSwaggerTypeForVoid(_dataType: 'void'): Swagger.BaseSchema {
+  protected getSwaggerTypeForVoid(_dataType: 'void' | 'undefined'): Swagger.BaseSchema {
     // Described here: https://swagger.io/docs/specification/describing-responses/#empty
     const voidSchema = {
       // isn't allowed to have additionalProperties at all (meaning not a boolean or object)
@@ -194,4 +195,8 @@ export abstract class SpecGenerator {
   }
 
   protected abstract getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema2 | Swagger.Schema3;
+
+  protected hasUndefined(property: Tsoa.Property): boolean {
+    return property.type.dataType === 'undefined' || (property.type.dataType === 'union' && property.type.types.some(type => type.dataType === 'undefined'));
+  }
 }

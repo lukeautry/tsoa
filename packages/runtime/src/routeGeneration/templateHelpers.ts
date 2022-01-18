@@ -13,10 +13,13 @@ export class ValidationService {
 
   public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: AdditionalProps) {
     let value = rawValue;
-    if (value === undefined) {
-      if (property.default !== undefined) {
+    // If undefined is alowed type, we can move to value validation
+    if (value === undefined && property.dataType !== 'undefined') {
+      // If there's either default value or datatype is union with undefined valid, we can just set it and move to validation
+      if (property.default !== undefined || (property.dataType === 'union' && property.subSchemas?.some(p => p.dataType === 'undefined'))) {
         value = property.default;
       } else if (property.required) {
+        // If value can be typed as undefined, there's no need to check mandatoriness here.
         let message = `'${name}' is required`;
         if (property.validators) {
           const validators = property.validators;
@@ -62,6 +65,8 @@ export class ValidationService {
         return this.validateUnion(name, value, fieldErrors, minimalSwaggerConfig, property, parent);
       case 'intersection':
         return this.validateIntersection(name, value, fieldErrors, minimalSwaggerConfig, property.subSchemas, parent);
+      case 'undefined':
+        return this.validateUndefined(name, value, fieldErrors, parent);
       case 'any':
         return value;
       case 'nestedObjectLiteral':
@@ -122,7 +127,9 @@ export class ValidationService {
 
     Object.keys(nestedProperties).forEach(key => {
       const validatedProp = this.ValidateParam(nestedProperties[key], value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
-      if (validatedProp !== undefined) {
+
+      // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+      if (validatedProp !== undefined || (nestedProperties[key].dataType === 'undefined' && nestedProperties[key].required)) {
         value[key] = validatedProp;
       }
     });
@@ -131,7 +138,8 @@ export class ValidationService {
       const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined');
       keys.forEach(key => {
         const validatedProp = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, parent + name + '.', swaggerConfig);
-        if (validatedProp !== undefined) {
+        // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+        if (validatedProp !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
           value[key] = validatedProp;
         }
       });
@@ -393,6 +401,19 @@ export class ValidationService {
     return;
   }
 
+  public validateUndefined(name: string, value: any, fieldErrors: FieldErrors, parent = '') {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    const message = 'invalid undefined value';
+    fieldErrors[parent + name] = {
+      message,
+      value,
+    };
+    return;
+  }
+
   public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
     if (!schema || value === undefined) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
@@ -471,9 +492,13 @@ export class ValidationService {
 
     for (const subSchema of property.subSchemas) {
       const subFieldError: FieldErrors = {};
+
+      // Clean value if it's not undefined or use undefined directly if it's undefined.
+      // Value can be undefined if undefined is allowed datatype of the union
+      const validateableValue = value ? JSON.parse(JSON.stringify(value)) : value;
       const cleanValue = this.ValidateParam(
         { ...subSchema, validators: { ...property.validators, ...subSchema.validators } },
-        JSON.parse(JSON.stringify(value)),
+        validateableValue,
         name,
         subFieldError,
         parent,
@@ -678,7 +703,8 @@ export class ValidationService {
       Object.entries(properties).forEach(([key, property]) => {
         const validatedParam = this.ValidateParam(property, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
 
-        if (validatedParam !== undefined) {
+        // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+        if (validatedParam !== undefined || (property.dataType === 'undefined' && property.required)) {
           value[key] = validatedParam;
         }
       });
@@ -712,7 +738,8 @@ export class ValidationService {
         Object.keys(value).forEach((key: string) => {
           if (isAnExcessProperty(key)) {
             const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, fieldPath + '.', swaggerConfig);
-            if (validatedValue !== undefined) {
+            // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+            if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
               value[key] = validatedValue;
             } else {
               fieldErrors[`${fieldPath}.${key}`] = {

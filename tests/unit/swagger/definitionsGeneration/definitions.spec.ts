@@ -259,6 +259,9 @@ describe('Definition generation', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          undefinedValue: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq(undefined, `for property ${propertyName}.type`);
+          },
           object: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('object', `for property ${propertyName}`);
             if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
@@ -434,6 +437,18 @@ describe('Definition generation', () => {
             expect(propertySchema.enum).to.include('true', `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include(null, `for property ${propertyName}.enum`);
+          },
+          undefineableUnionPrimitiveType: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
+            if (!propertySchema.enum) {
+              throw new Error(`There was no 'enum' property on ${propertyName}.`);
+            }
+            expect(propertySchema.enum).to.have.length(5, `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('String', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('1', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('20', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('true', `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include('false', `for property ${propertyName}.enum`);
           },
           singleFloatLiteralType: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);

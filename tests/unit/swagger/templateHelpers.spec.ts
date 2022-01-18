@@ -1207,4 +1207,80 @@ describe('ValidationService', () => {
       });
     });
   });
+
+  describe('undefined validate', () => {
+    const replacer = (key, value) => (typeof value === 'undefined' ? null : value);
+
+    it('returns undefined when not optional', () => {
+      const value = undefined;
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'undefined', required: true, validators: {} };
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      expect(Object.keys(fieldErrors)).to.be.empty;
+      expect(result).to.be.undefined;
+    });
+
+    it('fail if value required and not undefined', () => {
+      const value = 'undefined';
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'undefined', required: true, validators: {} };
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      expect(Object.keys(fieldErrors)).to.not.be.empty;
+      expect(result).to.be.undefined;
+    });
+
+    it('should not return undefined when optional inside object', () => {
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        properties: {
+          a: { dataType: 'undefined' },
+        },
+      };
+      const v = new ValidationService({});
+      const error = {};
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      expect(Object.keys(error)).to.be.empty;
+      // use JSON strngify to allow comparison of undefined values
+      expect(JSON.stringify(result, replacer)).to.equal(JSON.stringify(result));
+    });
+
+    it('should return undefined when required in object', () => {
+      const modelDefinition: TsoaRoute.ModelSchema = {
+        dataType: 'refObject',
+        properties: {
+          a: { dataType: 'undefined', required: true },
+        },
+      };
+      const v = new ValidationService({});
+      const error = {};
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      expect(Object.keys(error)).to.be.empty;
+      // use JSON strngify to allow comparison of undefined values
+      expect(JSON.stringify(result, replacer)).to.equal(JSON.stringify({ a: undefined }, replacer));
+    });
+
+    it('fail if value optional and not undefined', () => {
+      const value = 'undefined';
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'undefined', required: false, validators: {} };
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+      };
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      expect(Object.keys(fieldErrors)).to.not.be.empty;
+      expect(result).to.be.undefined;
+    });
+  });
 });

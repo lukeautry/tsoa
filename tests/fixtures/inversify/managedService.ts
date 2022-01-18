@@ -4,7 +4,9 @@ import { TestModel, TestSubModel } from '../testModel';
 @injectable()
 export class ManagedService {
   public getModel(): TestModel {
-    return {
+    // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation
+    // (typed either as undefined or union with undefined typed member)
+    const testModel: Partial<TestModel> = {
       and: { value1: 'foo', value2: 'bar' },
       boolArray: [true, false],
       boolValue: true,
@@ -36,5 +38,6 @@ export class ManagedService {
       stringArray: ['string one', 'string two'],
       stringValue: 'a string',
     };
+    return testModel as TestModel;
   }
 }

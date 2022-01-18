@@ -52,6 +52,8 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
       return false;
     case 'void':
       return false;
+    case 'undefined':
+      return false;
     default: {
       return assertNever(metaType);
     }

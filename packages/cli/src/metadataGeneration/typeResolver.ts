@@ -52,6 +52,13 @@ export class TypeResolver {
       return enumType;
     }
 
+    if (this.typeNode.kind === ts.SyntaxKind.UndefinedKeyword) {
+      const undefinedType: Tsoa.UndefinedType = {
+        dataType: 'undefined',
+      };
+      return undefinedType;
+    }
+
     if (ts.isArrayTypeNode(this.typeNode)) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
@@ -478,6 +485,10 @@ export class TypeResolver {
       return {
         dataType: 'void',
       };
+    } else if (resolution.resolvedType === 'undefined') {
+      return {
+        dataType: 'undefined',
+      };
     } else {
       return assertNever(resolution.resolvedType);
     }
@@ -755,6 +766,11 @@ export class TypeResolver {
         foundMatch: true,
         resolvedType: 'void',
       };
+    } else if (syntaxKind === ts.SyntaxKind.UndefinedKeyword) {
+      return {
+        foundMatch: true,
+        resolvedType: 'undefined',
+      };
     } else {
       return {
         foundMatch: false,
@@ -876,8 +892,7 @@ export class TypeResolver {
 
   private getModelProperties(node: ts.InterfaceDeclaration | ts.ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
     const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
-      const ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
-      return ignore;
+      return isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
     };
 
     // Interface model
@@ -1161,7 +1176,7 @@ export class TypeResolver {
 
 interface ResolvesToPrimitive {
   foundMatch: true;
-  resolvedType: 'number' | 'string' | 'boolean' | 'void';
+  resolvedType: 'number' | 'string' | 'boolean' | 'void' | 'undefined';
 }
 interface DoesNotResolveToPrimitive {
   foundMatch: false;
