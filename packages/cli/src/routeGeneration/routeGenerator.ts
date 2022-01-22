@@ -124,6 +124,7 @@ export class RouteGenerator {
       ),
       multerOpts: this.options.multerOpts,
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
+      esm: this.options.esm,
     });
   }
 

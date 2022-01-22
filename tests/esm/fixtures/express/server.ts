@@ -3,6 +3,7 @@ import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
 
 import './rootController.js';
+import '../controllers/securityController';
 
 import { RegisterRoutes } from './routes.js';
 
