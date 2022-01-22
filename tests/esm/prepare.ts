@@ -33,6 +33,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './esm/fixtures/express/server.ts',
         middleware: 'express',
         routesDir: './esm/fixtures/express',
+        authenticationModule: './esm/fixtures/express/authentication.ts',
         esm: true,
       },
       undefined,
