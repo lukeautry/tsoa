@@ -30,10 +30,10 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       {
         noImplicitAdditionalProperties: 'silently-remove-extras',
         basePath: '/v1',
-        entryFile: './esm/fixtures/express/server.ts',
+        entryFile: './fixtures/express/server.ts',
         middleware: 'express',
-        routesDir: './esm/fixtures/express',
-        authenticationModule: './esm/fixtures/express/authentication.ts',
+        routesDir: './fixtures/express',
+        authenticationModule: './fixtures/express/authentication.ts',
         esm: true,
       },
       undefined,
