@@ -263,8 +263,9 @@ export class SpecGenerator3 extends SpecGenerator {
       pathMethod.security = method.security as any[];
     }
 
-    const bodyParams = method.parameters.filter(p => p.in === 'body');
-    const formParams = method.parameters.filter(p => p.in === 'formData');
+    const bodyParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'body');
+    const bodyPropParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'body-prop');
+    const formParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'formData');
 
     pathMethod.parameters = method.parameters
       .filter(p => {
@@ -278,6 +279,28 @@ export class SpecGenerator3 extends SpecGenerator {
 
     if (bodyParams.length > 0 && formParams.length > 0) {
       throw new Error('Either body parameter or form parameters allowed per controller method - not both.');
+    }
+
+    if (bodyPropParams.length > 1) {
+      if (!bodyParams.length) {
+        bodyParams.push({
+          in: 'body',
+          name: 'body',
+          parameterName: 'body',
+          required: true,
+          type: {
+            dataType: 'nestedObjectLiteral',
+            properties: [],
+          } as Tsoa.NestedObjectLiteralType,
+          validators: {},
+          deprecated: false,
+        });
+      }
+
+      const type: Tsoa.NestedObjectLiteralType = bodyParams[0].type as Tsoa.NestedObjectLiteralType;
+      bodyPropParams.forEach((bodyParam: Tsoa.Parameter) => {
+        type.properties.push(bodyParam as Tsoa.Property);
+      });
     }
 
     if (bodyParams.length > 0) {
