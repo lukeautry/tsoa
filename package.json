@@ -35,7 +35,6 @@
     "clean": "lerna run clean --stream",
     "prepare": "yarn build",
     "preversion": "yarn test",
-    "pretest": "lerna run pretest --stream",
     "test": "lerna run test --stream",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run lint --fix",
