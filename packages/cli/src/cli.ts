@@ -121,6 +121,9 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   config.spec.description = config.spec.description || (await descriptionDefault());
   config.spec.license = config.spec.license || (await licenseDefault());
   config.spec.basePath = config.spec.basePath || '/';
+  // defaults to template that may generate non-unique operation ids.
+  // @see https://github.com/lukeautry/tsoa/issues/1005
+  config.spec.operationIdTemplate = config.spec.operationIdTemplate || '{{titleCase method.name}}';
 
   if (!config.spec.contact) {
     config.spec.contact = {};
