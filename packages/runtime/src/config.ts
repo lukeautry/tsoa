@@ -150,6 +150,17 @@ export interface SpecConfig {
   specMerging?: 'immediate' | 'recursive' | 'deepmerge';
 
   /**
+   * Template string for generating operation ids.
+   * This should be a valid handlebars template and is provided
+   * with the following context:
+   *   - 'controllerName' - String name of controller class.
+   *   - 'method' - Tsoa.Method object.
+   *
+   * @default '{{titleCase method.name}}'
+   */
+  operationIdTemplate?: string;
+
+  /**
    * Security Definitions Object
    * A declaration of the security schemes available to be used in the
    * specification. This does not enforce the security schemes on the operations
