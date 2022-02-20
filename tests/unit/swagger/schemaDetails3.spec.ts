@@ -19,13 +19,16 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const optionsWithXEnumVarnames = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     xEnumVarnames: true,
   });
+  const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+    operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
+  });
 
   interface SpecAndName {
     spec: Swagger.Spec3;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames';
+    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
   }
 
   const specDefault: SpecAndName = {
@@ -576,6 +579,22 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     describe('methods', () => {
+      describe('operationId', () => {
+        // for backwards compatibility.
+        it('should default to title-cased method name.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+          expect(operationId).to.eq('Post');
+        });
+        it('should utilize operationIdTemplate if set.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, optionsWithOperationIdTemplate).GetSpec();
+          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+          expect(operationId).to.eq('ExampleTest_Post');
+        });
+      });
+
       describe('responses', () => {
         describe('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
