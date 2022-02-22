@@ -131,9 +131,8 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildServers() {
-    const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
     const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
-    const url = this.config.host ? `${scheme}://${this.config.host}${basePath}` : basePath;
+    const url = this.config.host ? `${scheme}://${this.config.host}` : '/';
     return [
       {
         url,
@@ -228,9 +227,10 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildPaths() {
     const paths: { [pathName: string]: Swagger.Path3 } = {};
+    const basePath = normalisePath(this.config.basePath as string, '/', '/', false);
 
     this.metadata.controllers.forEach(controller => {
-      const normalisedControllerPath = normalisePath(controller.path, '/');
+      const normalisedControllerPath = normalisePath(controller.path, basePath);
       // construct documentation using all methods except @Hidden
       controller.methods
         .filter(method => !method.isHidden)

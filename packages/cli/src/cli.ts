@@ -121,6 +121,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   config.spec.description = config.spec.description || (await descriptionDefault());
   config.spec.license = config.spec.license || (await licenseDefault());
   config.spec.basePath = config.spec.basePath || '/';
+  config.spec.baseUrl = config.spec.baseUrl || '/';
 
   if (!config.spec.contact) {
     config.spec.contact = {};

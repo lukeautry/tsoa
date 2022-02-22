@@ -7,13 +7,15 @@ import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 
 export class SpecGenerator2 extends SpecGenerator {
+  private readonly basePath: string;
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {
     super(metadata, config);
+    this.basePath = normalisePath(this.config.basePath as string, '/', '/', false);
   }
 
   public GetSpec() {
     let spec: Swagger.Spec2 = {
-      basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
+      basePath: normalisePath(this.config.baseUrl as string, '/', undefined, false),
       consumes: [DEFAULT_REQUEST_MEDIA_TYPE],
       definitions: this.buildDefinitions(),
       info: {
@@ -137,7 +139,7 @@ export class SpecGenerator2 extends SpecGenerator {
     const paths: { [pathName: string]: Swagger.Path } = {};
 
     this.metadata.controllers.forEach(controller => {
-      const normalisedControllerPath = normalisePath(controller.path, '/');
+      const normalisedControllerPath = normalisePath(controller.path, this.basePath);
       // construct documentation using all methods except @Hidden
       controller.methods
         .filter(method => !method.isHidden)

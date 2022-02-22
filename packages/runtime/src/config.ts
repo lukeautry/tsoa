@@ -133,6 +133,11 @@ export interface SpecConfig {
   basePath?: string;
 
   /**
+   *  Base URL path (used only in specVersion 2)
+   */
+  baseUrl?: string;
+
+  /**
    * Extend generated swagger spec with this object
    * Note that generated properties will always take precedence over what get specified here
    */
