@@ -475,7 +475,7 @@ export class ValidationService {
     return arrayValue;
   }
 
-  public validateBuffer(name: string, value: string) {
+  public validateBuffer(_name: string, value: string) {
     return Buffer.from(value);
   }
 
@@ -496,14 +496,7 @@ export class ValidationService {
       // Clean value if it's not undefined or use undefined directly if it's undefined.
       // Value can be undefined if undefined is allowed datatype of the union
       const validateableValue = value ? JSON.parse(JSON.stringify(value)) : value;
-      const cleanValue = this.ValidateParam(
-        { ...subSchema, validators: { ...property.validators, ...subSchema.validators } },
-        validateableValue,
-        name,
-        subFieldError,
-        parent,
-        swaggerConfig,
-      );
+      const cleanValue = this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, validateableValue, name, subFieldError, parent, swaggerConfig);
       subFieldErrors.push(subFieldError);
 
       if (Object.keys(subFieldError).length === 0) {
