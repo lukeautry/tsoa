@@ -283,6 +283,27 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
+    if ((type as Tsoa.RefObjectType).properties?.length) {
+      return (type as Tsoa.RefObjectType).properties.map(property => {
+        const subCommonProperties = {
+          default: property.default,
+          description: property.description,
+          example: property.example,
+          in: commonProperties.in,
+          name: `${commonProperties.name as string}[${property.name}]`,
+          parameterName: commonProperties.parameterName,
+          required: property.required,
+          validators: property.validators,
+          deprecated: property.deprecated,
+        };
+
+        return {
+          ...subCommonProperties,
+          type: property.type,
+        } as Tsoa.Parameter;
+      });
+    }
+
     return [
       {
         ...commonProperties,
@@ -376,7 +397,7 @@ export class ParameterGenerator {
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {
-    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'file', 'any'];
+    const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'file', 'any', 'refObject'];
     if (supportedPathDataTypes.find(t => t === parameterType.dataType)) {
       return true;
     }
