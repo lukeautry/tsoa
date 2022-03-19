@@ -14,7 +14,7 @@ import { {{name}} } from '{{modulePath}}';
 import { koaAuthentication } from '{{authenticationModule}}';
 // @ts-ignore - no great way to install types from subpackage
 {{#if esm}}
-import * as promiseAny from 'promise.any';
+import promiseAny from 'promise.any';
 {{else}}
 const promiseAny = require('promise.any');
 {{/if}}
