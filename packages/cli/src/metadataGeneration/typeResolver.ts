@@ -327,7 +327,13 @@ export class TypeResolver {
       }
       const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
       try {
-        return new TypeResolver(this.current.typeChecker.typeToTypeNode(declaration, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+        return new TypeResolver(
+          this.current.typeChecker.typeToTypeNode(declaration, undefined, ts.NodeBuilderFlags.NoTruncation)!,
+          this.current,
+          this.typeNode,
+          this.context,
+          this.referencer,
+        ).resolve();
       } catch {
         throw new GenerateMetadataError(
           `Could not determine the keys on ${this.current.typeChecker.typeToString(
@@ -343,8 +349,10 @@ export class TypeResolver {
       const resolveParenthesis = (node: ts.TypeNode) => (ts.isParenthesizedTypeNode(node) ? node.type : node);
       const objectType = resolveParenthesis(this.typeNode.objectType);
       const indexType = this.typeNode.indexType.type;
-      if (ts.isTypeQueryNode(objectType) && ts.isTypeQueryNode(indexType) && objectType.exprName.getText() === indexType.exprName.getText()) {
-        const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
+      const isSameTypeQuery = ts.isTypeQueryNode(objectType) && ts.isTypeQueryNode(indexType) && objectType.exprName.getText() === indexType.exprName.getText();
+      const isSameTypeReference = ts.isTypeReferenceNode(objectType) && ts.isTypeReferenceNode(indexType) && objectType.typeName.getText() === indexType.typeName.getText();
+      if (isSameTypeQuery || isSameTypeReference) {
+        const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer || this.typeNode);
         const node = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.InTypeAlias | ts.NodeBuilderFlags.NoTruncation)!;
         return new TypeResolver(node, this.current, this.typeNode, this.context, this.referencer).resolve();
       }

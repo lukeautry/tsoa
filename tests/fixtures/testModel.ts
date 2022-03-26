@@ -76,6 +76,8 @@ export interface TestModel extends Model {
   indexed?: Partial<Indexed['foo']>;
   indexedValue?: IndexedValue;
   parenthesizedIndexedValue?: ParenthesizedIndexedValue;
+  indexedValueReference?: IndexedValueReference;
+  indexedValueGeneric?: IndexedValueGeneric<IndexedValueTypeReference>;
   record?: Record<'record-foo' | 'record-bar', { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
@@ -246,11 +248,16 @@ const indexedValue = {
   foo: 'FOO',
   bar: 'BAR',
 } as const;
+export type IndexedValueTypeReference = typeof indexedValue;
 
 export type IndexedValue = typeof indexedValue[keyof typeof indexedValue];
 
 // prettier-ignore
 export type ParenthesizedIndexedValue = (typeof indexedValue)[keyof typeof indexedValue];
+
+export type IndexedValueReference = IndexedValueTypeReference[keyof IndexedValueTypeReference];
+
+export type IndexedValueGeneric<Value> = Value[keyof Value];
 
 const otherIndexedValue = {
   foo: 'fOO',
