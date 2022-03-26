@@ -1,5 +1,6 @@
 import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
+import * as handlebars from 'handlebars';
 
 export abstract class SpecGenerator {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {}
@@ -8,8 +9,17 @@ export abstract class SpecGenerator {
     return this.getSwaggerType(type);
   }
 
-  protected getOperationId(methodName: string) {
-    return methodName.charAt(0).toUpperCase() + methodName.substr(1);
+  protected buildOperationIdTemplate(inlineTemplate: string) {
+    handlebars.registerHelper('titleCase', (value: string) => (value ? value.charAt(0).toUpperCase() + value.slice(1) : value));
+    handlebars.registerHelper('replace', (subject: string, searchValue: string, withValue = '') => (subject ? subject.replace(searchValue, withValue) : subject));
+    return handlebars.compile(inlineTemplate, { noEscape: true });
+  }
+
+  protected getOperationId(controllerName: string, method: Tsoa.Method) {
+    return this.buildOperationIdTemplate(this.config.operationIdTemplate ?? '{{titleCase method.name}}')({
+      method,
+      controllerName,
+    });
   }
 
   public throwIfNotDataFormat(strToTest: string): Swagger.DataFormat {

@@ -18,6 +18,7 @@ export function getDefaultOptions(outputDirectory = '', entryFile = ''): Config 
         name: 'Jane Doe',
         url: 'www.jane-doe.com',
       },
+      operationIdTemplate: '{{titleCase method.name}}',
       outputDirectory,
       securityDefinitions: {
         basic: {

@@ -93,5 +93,14 @@ describe('Configuration', () => {
         done();
       });
     });
+
+    it('should set the default spec operationIdTemplate when not specified', done => {
+      const config: Config = getDefaultOptions('some/output/directory', 'tsoa.json');
+      delete config.spec.operationIdTemplate;
+      validateSpecConfig(config).then((configResult: ExtendedSpecConfig) => {
+        expect(configResult.operationIdTemplate).to.equal('{{titleCase method.name}}');
+        done();
+      });
+    });
   });
 });

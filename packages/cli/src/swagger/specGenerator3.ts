@@ -367,7 +367,7 @@ export class SpecGenerator3 extends SpecGenerator {
     });
 
     const operation: Swagger.Operation3 = {
-      operationId: this.getOperationId(method.name),
+      operationId: this.getOperationId(controllerName, method),
       responses: swaggerResponses,
     };
 

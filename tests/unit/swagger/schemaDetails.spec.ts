@@ -303,6 +303,26 @@ describe('Schema details generation', () => {
     });
 
     describe('methods', () => {
+      describe('operationId', () => {
+        const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, getDefaultExtendedOptions(), {
+          operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
+        });
+
+        // for backwards compatibility.
+        it('should default to title-cased method name.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+          expect(operationId).to.eq('Post');
+        });
+        it('should utilize operationIdTemplate if set.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, optionsWithOperationIdTemplate).GetSpec();
+          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+          expect(operationId).to.eq('ExampleTest_Post');
+        });
+      });
+
       describe('responses', () => {
         describe('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
