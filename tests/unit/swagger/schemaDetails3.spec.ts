@@ -103,6 +103,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(specDefault.spec.info).to.deep.equal({
         title: 'Test API',
         description: 'Description of a test API',
+        termsOfService: 'https://example.com/terms/',
         contact: { email: 'jane@doe.com', name: 'Jane Doe', url: 'www.jane-doe.com' },
         license: { name: 'MIT' },
         version: '1.0.0',

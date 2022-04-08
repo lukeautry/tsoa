@@ -23,6 +23,9 @@ describe('Schema details generation', () => {
   if (!spec.info.description) {
     throw new Error('No spec info description.');
   }
+  if (!spec.info.termsOfService) {
+    throw new Error('No spec info termsOfService.');
+  }
   if (!spec.info.version) {
     throw new Error('No spec info version.');
   }
@@ -35,6 +38,9 @@ describe('Schema details generation', () => {
   });
   it('should set API description if provided', () => {
     expect(spec.info.description).to.equal(getDefaultExtendedOptions().description);
+  });
+  it('should set API termsOfService if provided', () => {
+    expect(spec.info.termsOfService).to.equal(getDefaultExtendedOptions().termsOfService);
   });
   it('should set API version if provided', () => {
     expect(spec.info.version).to.equal(getDefaultExtendedOptions().version);
