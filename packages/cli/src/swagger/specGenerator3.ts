@@ -54,6 +54,9 @@ export class SpecGenerator3 extends SpecGenerator {
     if (this.config.description) {
       info.description = this.config.description;
     }
+    if (this.config.termsOfService) {
+      info.termsOfService = this.config.termsOfService;
+    }
     if (this.config.license) {
       info.license = { name: this.config.license };
     }

@@ -99,6 +99,12 @@ export interface SpecConfig {
   description?: string;
 
   /**
+   * Link to the page that describes the terms of service.
+   * Must be in the URL format.
+   */
+  termsOfService?: string;
+
+  /**
    * Contact Information
    */
   contact?: {

@@ -38,6 +38,9 @@ export class SpecGenerator2 extends SpecGenerator {
     if (this.config.description) {
       spec.info.description = this.config.description;
     }
+    if (this.config.termsOfService) {
+      spec.info.termsOfService = this.config.termsOfService;
+    }
     if (this.config.tags) {
       spec.tags = this.config.tags;
     }
