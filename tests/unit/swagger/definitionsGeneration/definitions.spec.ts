@@ -494,6 +494,12 @@ describe('Definition generation', () => {
           parenthesizedIndexedValue: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/ParenthesizedIndexedValue');
           },
+          indexedValueReference: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/IndexedValueReference');
+          },
+          indexedValueGeneric: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/IndexedValueGeneric_IndexedValueTypeReference_');
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo-or-record-bar._data-string__');
             const schema = getValidatedDefinition('Record_record-foo-or-record-bar._data-string__', currentSpec);

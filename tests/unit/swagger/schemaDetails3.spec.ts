@@ -1338,6 +1338,30 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
+          indexedValueReference: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValueReference');
+            const schema = getComponentSchema('IndexedValueReference', currentSpec);
+            expect(schema).to.deep.eq({
+              type: 'string',
+              enum: ['FOO', 'BAR'],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+            });
+          },
+          indexedValueGeneric: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValueGeneric_IndexedValueTypeReference_');
+            const schema = getComponentSchema('IndexedValueGeneric_IndexedValueTypeReference_', currentSpec);
+            expect(schema).to.deep.eq({
+              type: 'string',
+              enum: ['FOO', 'BAR'],
+              default: undefined,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+            });
+          },
           record: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);

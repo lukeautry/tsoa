@@ -12,7 +12,10 @@ import {
   TestSubModel,
   SimpleClassWithToJSON,
   IndexedValue,
+  IndexedValueReference,
   ParenthesizedIndexedValue,
+  IndexedValueGeneric,
+  IndexedValueTypeReference,
 } from '../testModel';
 import { ModelService } from './../services/modelService';
 import TsoaTest from 'tsoaTest';
@@ -285,6 +288,16 @@ export class GetTestController extends Controller {
 
   @Get('ParenthesizedIndexedValue')
   public async getParenthesizedIndexedValue(): Promise<ParenthesizedIndexedValue> {
+    return 'FOO';
+  }
+
+  @Get('IndexedValueReference')
+  public async getIndexedValueReference(): Promise<IndexedValueReference> {
+    return 'FOO';
+  }
+
+  @Get('IndexedValueGeneric')
+  public async getIndexedValueGeneric(): Promise<IndexedValueGeneric<IndexedValueTypeReference>> {
     return 'FOO';
   }
 }
