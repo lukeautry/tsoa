@@ -436,17 +436,17 @@ export class SpecGenerator3 extends SpecGenerator {
     };
 
     const parameterExamples = parameter.example;
+    const parameterExampleLabels = parameter.exampleLabels;
     if (parameterExamples === undefined) {
       mediaType.example = parameterExamples;
     } else if (parameterExamples.length === 1) {
       mediaType.example = parameterExamples[0];
     } else {
-      mediaType.examples = {};
-      parameterExamples.forEach((example, index) =>
-        Object.assign(mediaType.examples, {
-          [`Example ${index + 1}`]: { value: example } as Swagger.Example3,
-        }),
-      );
+      let exampleCounter = 1;
+      mediaType.examples = parameterExamples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+        const exampleLabel = parameterExampleLabels?.[currentIndex];
+        return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
+      }, {});
     }
 
     return mediaType;
@@ -499,17 +499,17 @@ export class SpecGenerator3 extends SpecGenerator {
     parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
 
     const parameterExamples = source.example;
+    const parameterExampleLabels = source.exampleLabels;
     if (parameterExamples === undefined) {
       parameter.example = parameterExamples;
     } else if (parameterExamples.length === 1) {
       parameter.example = parameterExamples[0];
     } else {
-      parameter.examples = {};
-      parameterExamples.forEach((example, index) =>
-        Object.assign(parameter.examples, {
-          [`Example ${index + 1}`]: { value: example } as Swagger.Example3,
-        }),
-      );
+      let exampleCounter = 1;
+      parameter.examples = parameterExamples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+        const exampleLabel = parameterExampleLabels?.[currentIndex];
+        return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
+      }, {});
     }
 
     return parameter;

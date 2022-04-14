@@ -364,6 +364,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
     });
+
+    it('Supports custom example labels', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+      const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const examples = exampleSpec.paths['/ExampleTest/CustomBodyExampleLabels']?.post?.requestBody!.content!['application/json'].examples;
+
+      expect(examples).to.deep.eq({
+        '': {
+          value: 'No Custom Label',
+        },
+        CustomLabel: { value: 'CustomLabel' },
+        CustomLabel2: { value: 'CustomLabel2' },
+        'Example 1': { value: 'Unlabeled 1' },
+        'Example 2': { value: 'Another unlabeled one' },
+        'Example 3': {
+          value: 'Unlabeled 2',
+        },
+      });
+    });
   });
 
   describe('paths', () => {
