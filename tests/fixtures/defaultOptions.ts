@@ -10,6 +10,7 @@ export function getDefaultOptions(outputDirectory = '', entryFile = ''): Config 
     spec: {
       basePath: '/v1',
       description: 'Description of a test API',
+      termsOfService: 'https://example.com/terms/',
       host: 'localhost:3000',
       license: 'MIT',
       name: 'Test API',
