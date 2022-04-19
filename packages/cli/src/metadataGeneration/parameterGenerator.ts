@@ -132,11 +132,12 @@ export class ParameterGenerator {
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@BodyProp('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
     }
-
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName).examples,
+      example,
+      exampleLabels,
       in: 'body-prop',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
       parameterName,
@@ -155,11 +156,14 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(`@Body('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
     }
 
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
     return {
       description: this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
-      example: this.getParameterExample(parameter, parameterName).examples,
+      example,
+      exampleLabels,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -176,10 +180,13 @@ export class ParameterGenerator {
       throw new GenerateMetadataError(`@Header('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName).examples,
+      example,
+      exampleLabels,
       in: 'header',
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
       parameterName,
@@ -246,10 +253,13 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
     const commonProperties = {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
-      example: this.getParameterExample(parameter, parameterName).examples,
+      example,
+      exampleLabels,
       in: 'query' as const,
       name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
       parameterName,
@@ -303,11 +313,12 @@ export class ParameterGenerator {
     if (!this.path.includes(`{${pathName}}`) && !this.path.includes(`:${pathName}`)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't match in URL: '${this.path}'.`);
     }
-    const { examples } = this.getParameterExample(parameter, parameterName);
+    const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
       example: examples,
+      exampleLabels,
       in: 'path',
       name: pathName,
       parameterName,

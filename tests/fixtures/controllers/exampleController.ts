@@ -147,6 +147,19 @@ export class ExampleTestController {
   }
 
   /**
+   * @example requestBody.CustomLabel "CustomLabel"
+   * @example requestBody. "No Custom Label"
+   * @example requestBody "Unlabeled 1"
+   * @example requestBody "Another unlabeled one"
+   * @example requestBody.CustomLabel2 "CustomLabel2"
+   * @example requestBody "Unlabeled 2"
+   */
+  @Post('CustomBodyExampleLabels')
+  public async customBodyExampleLabels(@Body() requestBody: string): Promise<string> {
+    return 'test custom body labels';
+  }
+
+  /**
    * @example res 123
    * @example res 1
    */
