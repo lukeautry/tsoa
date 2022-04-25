@@ -112,7 +112,7 @@ export abstract class SpecGenerator {
     // An empty list required: [] is not valid.
     // If all properties are optional, do not specify the required keyword.
     return {
-      title,
+      ...(title && { title }),
       properties,
       ...(additionalProperties && { additionalProperties }),
       ...(required && required.length && { required }),

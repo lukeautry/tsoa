@@ -640,21 +640,21 @@ export class SpecGenerator3 extends SpecGenerator {
         if (swaggerType.$ref) {
           return { allOf: [swaggerType], nullable };
         }
-        return { title, ...swaggerType, nullable };
+        return { ...(title && { title }), ...swaggerType, nullable };
       } else {
-        return { title, anyOf: actualSwaggerTypes, nullable };
+        return { ...(title && { title }), anyOf: actualSwaggerTypes, nullable };
       }
     } else {
       if (actualSwaggerTypes.length === 1) {
-        return { title, ...actualSwaggerTypes[0] };
+        return { ...(title && { title }), ...actualSwaggerTypes[0] };
       } else {
-        return { title, anyOf: actualSwaggerTypes };
+        return { ...(title && { title }), anyOf: actualSwaggerTypes };
       }
     }
   }
 
   protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string) {
-    return { allOf: type.types.map(x => this.getSwaggerType(x)), title };
+    return { allOf: type.types.map(x => this.getSwaggerType(x)), ...(title && { title }) };
   }
 
   protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType, title?: string): Swagger.Schema3 {
@@ -663,7 +663,7 @@ export class SpecGenerator3 extends SpecGenerator {
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { title, type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
+      return { ...(title && { title }), type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
