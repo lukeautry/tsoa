@@ -2,7 +2,7 @@
   "name": "tsoa-tests-esm",
   "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "4.0.0-beta.0",
+  "version": "4.0.0",
   "type": "module",
   "sideEffects": false,
   "scripts": {
