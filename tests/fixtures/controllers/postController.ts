@@ -67,6 +67,17 @@ export class PostTestController {
     return files;
   }
 
+  /**
+   *
+   * @param aFile File description of multipart
+   * @param a FormField description of multipart
+   * @param c
+   */
+  @Post('DescriptionOfFileAndFormFields')
+  public async postWithFileAndParams(@UploadedFile('file') aFile: File, @FormField('a') a: string, @FormField('c') c: string): Promise<File> {
+    return aFile;
+  }
+
   @Post('Location')
   public async postModelAtLocation(): Promise<TestModel> {
     return new ModelService().getModel();

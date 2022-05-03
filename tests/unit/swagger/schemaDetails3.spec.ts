@@ -527,6 +527,40 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
         });
       });
+      it('should consume multipart/form-data and have multiple formData parameter with optional descriptions', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/DescriptionOfFileAndFormFields'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'File description of multipart',
+                  },
+                  a: { type: 'string', description: 'FormField description of multipart' },
+                  c: { type: 'string' },
+                },
+                required: ['file', 'a', 'c'],
+              },
+            },
+          },
+        });
+      });
     });
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {

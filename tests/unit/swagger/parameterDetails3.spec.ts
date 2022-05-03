@@ -52,6 +52,7 @@ describe('Parameter generation for OpenAPI 3.0.0', () => {
               $ref: '#/components/schemas/ParameterTestModel',
             },
             type: 'array',
+            description: 'Body description',
           },
           `for spec ${forSpec(currentSpec)}`,
         );
