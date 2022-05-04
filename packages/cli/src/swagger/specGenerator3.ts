@@ -331,7 +331,7 @@ export class SpecGenerator3 extends SpecGenerator {
           swaggerResponses[res.name].content = {
             ...content,
             [p]: {
-              schema: this.getSwaggerType(res.schema, this.getOperationId(controllerName, method) + 'Response'),
+              schema: this.getSwaggerType(res.schema, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'Response' : undefined),
             } as Swagger.Schema3,
           };
         }
@@ -433,7 +433,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     const mediaType: Swagger.MediaType = {
       schema: {
-        ...this.getSwaggerType(parameter.type, this.getOperationId(controllerName, method) + 'RequestBody'),
+        ...this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined),
         ...validators,
       },
     };

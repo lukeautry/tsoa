@@ -190,6 +190,12 @@ export interface SpecConfig {
    * @default false
    */
   xEnumVarnames?: boolean;
+
+  /**
+   * Sets a title for inline objects for responses and requestBodies
+   * This helps to generate more consistent clients
+   */
+  useTitleTagsForInlineObjects?: boolean;
 }
 
 export interface RoutesConfig {
