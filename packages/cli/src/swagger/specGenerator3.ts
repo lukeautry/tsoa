@@ -435,6 +435,7 @@ export class SpecGenerator3 extends SpecGenerator {
       schema: {
         ...this.getSwaggerType(parameter.type),
         ...validators,
+        ...(parameter.description && { description: parameter.description }),
       },
     };
 

@@ -243,6 +243,45 @@ describe('Schema details generation', () => {
           type: 'string',
         });
       });
+      it('should consume multipart/form-data and have multiple formData parameter with optional descriptions', () => {
+        // Act
+        const specPost = new SpecGenerator2(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/DescriptionOfFileAndFormFields'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.parameters?.length) {
+          throw new Error('PostTest file method has no parameters');
+        }
+
+        // Assert
+        expect(pathPost.consumes).to.include('multipart/form-data');
+        const baseParameter = {
+          default: undefined,
+          description: undefined,
+          enum: undefined,
+          items: undefined,
+          required: true,
+          in: 'formData',
+        };
+        expect(pathPost.parameters[0]).to.deep.equal({
+          ...baseParameter,
+          description: 'File description of multipart',
+          name: 'file',
+          type: 'file',
+        });
+        expect(pathPost.parameters[1]).to.deep.equal({
+          ...baseParameter,
+          description: 'FormField description of multipart',
+          name: 'a',
+          type: 'string',
+        });
+        expect(pathPost.parameters[2]).to.deep.equal({
+          ...baseParameter,
+          name: 'c',
+          type: 'string',
+        });
+      });
     });
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
