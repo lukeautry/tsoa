@@ -334,7 +334,7 @@ export class ParameterController {
     //
   }
 
-  @Post('Inline1}')
+  @Post('Inline1')
   public async inline1(@Body() body: { requestString: string; requestNumber: number }): Promise<{ resultString: string; responseNumber: number }> {
     return { resultString: 'a', responseNumber: 1 };
   }
