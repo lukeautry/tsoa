@@ -217,7 +217,7 @@ export namespace Swagger {
 
   export interface Response3 {
     description: string;
-    content?: { [name: string]: Schema & Example };
+    content?: { [name: string]: Schema3 & { schema?: Schema } & Example };
     headers?: { [name: string]: Header3 };
   }
 
