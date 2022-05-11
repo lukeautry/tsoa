@@ -754,7 +754,8 @@ export class TypeResolver {
   }
 
   private attemptToResolveKindToPrimitive = (syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive => {
-    if (syntaxKind === ts.SyntaxKind.NumberKeyword) {
+    // bigint to number
+    if (syntaxKind === ts.SyntaxKind.NumberKeyword || syntaxKind === 157) {
       return {
         foundMatch: true,
         resolvedType: 'number',
