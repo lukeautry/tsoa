@@ -208,7 +208,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if ((res.exampleLabels?.filter(e => e).length || 0) > 0) {
           console.warn('Example labels are not supported in OpenAPI 2');
         }
-        swaggerResponses[res.name].examples = { [DEFAULT_RESPONSE_MEDIA_TYPE]: res.examples[0] } as Swagger.Example;
+        swaggerResponses[res.name].examples = { [DEFAULT_RESPONSE_MEDIA_TYPE]: res.examples[0] };
       }
 
       if (res.headers) {

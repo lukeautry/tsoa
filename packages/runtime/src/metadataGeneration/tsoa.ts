@@ -1,4 +1,5 @@
 import { ExtensionType } from '../decorators/extension';
+import type { Swagger } from '../swagger/swagger';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tsoa {
@@ -37,7 +38,7 @@ export namespace Tsoa {
 
   export interface Parameter {
     parameterName: string;
-    example?: unknown[];
+    example?: Array<{ [exampleName: string]: Swagger.Example3 }>;
     description?: string;
     in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'res';
     name: string;
@@ -77,7 +78,7 @@ export namespace Tsoa {
     name: string;
     produces?: string[];
     schema?: Type;
-    examples?: unknown[];
+    examples?: Array<{ [exampleName: string]: Swagger.Example3 }>;
     exampleLabels?: Array<string | undefined>;
     headers?: HeaderType;
   }
