@@ -331,14 +331,14 @@ export class SpecGenerator3 extends SpecGenerator {
           swaggerResponses[res.name].content = {
             ...content,
             [p]: {
-              schema: this.getSwaggerType(res.schema),
-            } as Swagger.Schema3,
+              schema: this.getSwaggerType(res.schema) as Swagger.Schema3,
+            },
           };
         }
 
         if (res.examples) {
           let exampleCounter = 1;
-          const examples = res.examples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+          const examples = res.examples.reduce((acc, ex, currentIndex) => {
             const exampleLabel = res.exampleLabels?.[currentIndex];
             return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
           }, {});
@@ -447,7 +447,7 @@ export class SpecGenerator3 extends SpecGenerator {
       mediaType.example = parameterExamples[0];
     } else {
       let exampleCounter = 1;
-      mediaType.examples = parameterExamples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+      mediaType.examples = parameterExamples.reduce((acc, ex, currentIndex) => {
         const exampleLabel = parameterExampleLabels?.[currentIndex];
         return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
       }, {});
@@ -510,7 +510,7 @@ export class SpecGenerator3 extends SpecGenerator {
       parameter.example = parameterExamples[0];
     } else {
       let exampleCounter = 1;
-      parameter.examples = parameterExamples.reduce<Swagger.Example['examples']>((acc, ex, currentIndex) => {
+      parameter.examples = parameterExamples.reduce((acc, ex, currentIndex) => {
         const exampleLabel = parameterExampleLabels?.[currentIndex];
         return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
       }, {});

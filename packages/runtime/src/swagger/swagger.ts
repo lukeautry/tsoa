@@ -83,10 +83,6 @@ export namespace Swagger {
     externalDocs?: ExternalDocs;
   }
 
-  export interface Example {
-    examples?: { [exampleName: string]: Swagger.Example3 };
-  }
-
   export interface Example3 {
     value: unknown;
     summary?: string;
@@ -196,7 +192,7 @@ export namespace Swagger {
   }
 
   export interface RequestBody {
-    content: { [name: string]: MediaType };
+    content: { [requestMediaType: string]: MediaType };
     description?: string;
     required?: boolean;
   }
@@ -212,12 +208,17 @@ export namespace Swagger {
     description: string;
     schema?: Schema;
     headers?: { [name: string]: Header };
-    examples?: Example;
+    examples?: { [responseMediaType: string]: { [exampleName: string]: Example3 | string } };
   }
 
   export interface Response3 {
     description: string;
-    content?: { [name: string]: Schema & Example };
+    content?: {
+      [responseMediaType: string]: {
+        schema: Schema3;
+        examples?: { [name: string]: Example3 | string };
+      };
+    };
     headers?: { [name: string]: Header3 };
   }
 
