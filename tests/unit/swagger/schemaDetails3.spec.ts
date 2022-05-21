@@ -2581,7 +2581,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('module declarations with namespaces', () => {
     it('should generate the proper schema for a model declared in a namespace in a module', () => {
       /* tslint:disable:no-string-literal */
-      const ref = specDefault.spec.paths['/GetTest/ModuleRedeclarationAndNamespace'].get?.responses['200'].content?.['application/json']['schema']['$ref'];
+      const ref = specDefault.spec.paths['/GetTest/ModuleRedeclarationAndNamespace'].get?.responses['200'].content?.['application/json']['schema']?.['$ref'];
       /* tslint:enable:no-string-literal */
       expect(ref).to.equal('#/components/schemas/TsoaTest.TestModel73');
       expect(getComponentSchema('TsoaTest.TestModel73', specDefault)).to.deep.equal({
@@ -2637,6 +2637,22 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       expectTestModelContent(responses?.['400']);
       expectTestModelContent(responses?.['500']);
+    });
+  });
+
+  describe('inline title tag generation', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+
+    it('should generate title tag for request', () => {
+      const currentSpec = new SpecGenerator3(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: true }).GetSpec();
+      expect(currentSpec.paths['/ParameterTest/Inline1'].post?.responses['200'].content?.['application/json'].schema?.title).to.equal('Inline1Response');
+      expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal('Inline1RequestBody');
+    });
+
+    it('should not generate title tag for request', () => {
+      const currentSpec = new SpecGenerator3(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: false }).GetSpec();
+      expect(currentSpec.paths['/ParameterTest/Inline1'].post?.responses['200'].content?.['application/json'].schema?.title).to.equal(undefined);
+      expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
     });
   });
 });

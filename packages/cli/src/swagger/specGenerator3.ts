@@ -331,7 +331,7 @@ export class SpecGenerator3 extends SpecGenerator {
           swaggerResponses[res.name].content = {
             ...content,
             [p]: {
-              schema: this.getSwaggerType(res.schema) as Swagger.Schema3,
+              schema: this.getSwaggerType(res.schema, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'Response' : undefined) as Swagger.Schema3,
             },
           };
         }
@@ -433,7 +433,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     const mediaType: Swagger.MediaType = {
       schema: {
-        ...this.getSwaggerType(parameter.type),
+        ...this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined),
         ...validators,
         ...(parameter.description && { description: parameter.description }),
       },
@@ -620,7 +620,7 @@ export class SpecGenerator3 extends SpecGenerator {
     }
   }
 
-  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType) {
+  protected getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string) {
     // Filter out nulls and undefineds
     const actualSwaggerTypes = this.removeDuplicateSwaggerTypes(
       this.groupEnums(
@@ -641,30 +641,30 @@ export class SpecGenerator3 extends SpecGenerator {
         if (swaggerType.$ref) {
           return { allOf: [swaggerType], nullable };
         }
-        return { ...swaggerType, nullable };
+        return { ...(title && { title }), ...swaggerType, nullable };
       } else {
-        return { anyOf: actualSwaggerTypes, nullable };
+        return { ...(title && { title }), anyOf: actualSwaggerTypes, nullable };
       }
     } else {
       if (actualSwaggerTypes.length === 1) {
-        return actualSwaggerTypes[0];
+        return { ...(title && { title }), ...actualSwaggerTypes[0] };
       } else {
-        return { anyOf: actualSwaggerTypes };
+        return { ...(title && { title }), anyOf: actualSwaggerTypes };
       }
     }
   }
 
-  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType) {
-    return { allOf: type.types.map(x => this.getSwaggerType(x)) };
+  protected getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string) {
+    return { allOf: type.types.map(x => this.getSwaggerType(x)), ...(title && { title }) };
   }
 
-  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType): Swagger.Schema3 {
+  protected getSwaggerTypeForEnumType(enumType: Tsoa.EnumType, title?: string): Swagger.Schema3 {
     const types = this.determineTypesUsedInEnum(enumType.enums);
 
     if (types.size === 1) {
       const type = types.values().next().value;
       const nullable = enumType.enums.includes(null) ? true : false;
-      return { type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
+      return { ...(title && { title }), type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
     } else {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
