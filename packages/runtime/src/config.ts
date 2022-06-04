@@ -1,5 +1,9 @@
-import { Swagger } from './swagger/swagger';
-import { Options as MulterOpts } from 'multer';
+import type { Swagger } from './swagger/swagger';
+import type { Options as MulterOpts } from 'multer';
+export interface JsonSchema extends Config {
+  /** ./node_modules/tsoa/schema.json */
+  $schema?: string;
+}
 
 export interface Config {
   /**
@@ -171,18 +175,24 @@ export interface SpecConfig {
    * A declaration of the security schemes available to be used in the
    * specification. This does not enforce the security schemes on the operations
    * and only serves to provide the relevant details for each scheme.
+   *
+   * You can use them in your controllers with `@Security(name)` decorator.
    */
-  securityDefinitions?: {
-    [name: string]: Swagger.Security;
-  };
+  securityDefinitions?: Record<string, Swagger.Security>;
 
   /**
    * Swagger Tags Information for your API
    */
   tags?: Swagger.Tag[];
 
+  /**
+   * If you want to output a YAML version of the spec, set this to true.
+   */
   yaml?: boolean;
 
+  /**
+   * All communication protocols that your API supports.
+   */
   schemes?: Swagger.Protocol[];
 
   /**
