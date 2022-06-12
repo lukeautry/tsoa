@@ -98,6 +98,7 @@ export class RouteGenerator {
               uploadFilesName: uploadFilesParameter?.name,
               security: method.security,
               successStatus: method.successStatus ? method.successStatus : 'undefined',
+              koaNext: normalisedFullPath.includes(':') ? 'next' : 'async()=>null',
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
