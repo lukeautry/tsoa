@@ -108,7 +108,7 @@ export function RegisterRoutes(router: KoaRouter) {
             {{/if}}
 
             const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-            return promiseHandler(controller, promise, context, {{successStatus}}, next);
+            return promiseHandler(controller, promise, context, {{successStatus}}, undefined);
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
@@ -188,7 +188,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-  function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, successStatus: any, next: () => Promise<any>) {
+  function promiseHandler(controllerObj: any, promise: Promise<any>, context: any, successStatus: any, next?: () => Promise<any>) {
       return Promise.resolve(promise)
         .then((data: any) => {
             let statusCode = successStatus;
@@ -210,7 +210,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-    function returnHandler(context: any, next: () => any, statusCode?: number, data?: any, headers: any={}) {
+    function returnHandler(context: any, next?: () => any, statusCode?: number, data?: any, headers: any={}) {
         if (!context.headerSent && !context.response.__tsoaResponded) {
             if (data !== null && data !== undefined) {
                 context.body = data;
@@ -225,7 +225,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             context.set(headers);
             context.response.__tsoaResponded = true;
-            return next();
+            return next ? next() : context;
         }
     }
 
