@@ -22,7 +22,7 @@ import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 import type { RequestHandler } from 'express';
 import * as express from 'express';
 {{#if useFileUploads}}
-const multer = require('multer');
+import multer from 'multer';
 const upload = multer({{{json multerOpts}}});
 {{/if}}
 
