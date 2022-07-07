@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import 'reflect-metadata';
-import * as request from 'supertest';
+import request from 'supertest';
 import { app } from '../fixtures/inversify-dynamic-container/server';
 
 const basePath = '/v1';

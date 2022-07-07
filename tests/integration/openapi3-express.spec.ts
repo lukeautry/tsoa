@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
+import request from 'supertest';
 import { app } from '../fixtures/express-openapi3/server';
 import { TestModel, ValidateModel } from '../fixtures/testModel';
 

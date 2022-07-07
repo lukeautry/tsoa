@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import 'reflect-metadata';
-import * as request from 'supertest';
+import request from 'supertest';
 import { iocContainer } from '../fixtures/inversify/ioc';
 import { ManagedService } from '../fixtures/inversify/managedService';
 import { app } from '../fixtures/inversify/server';

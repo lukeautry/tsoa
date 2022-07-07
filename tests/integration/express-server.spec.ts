@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
+import request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
 import { File } from '@tsoa/runtime';

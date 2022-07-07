@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
+import request from 'supertest';
 import { server } from '../fixtures/koa-multer-options/server';
 import { resolve } from 'path';
-import * as os from 'os';
+import os from 'os';
 
 const basePath = '/v1';
 

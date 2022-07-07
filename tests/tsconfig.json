@@ -9,6 +9,7 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
     "newLine": "LF",
     "noEmit": true,
     "strict": true,

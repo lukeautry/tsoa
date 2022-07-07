@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
+import request from 'supertest';
 import { app } from '../fixtures/inversify-cpg/server';
 import { TestModel } from '../fixtures/testModel';
 

@@ -1,6 +1,6 @@
-import * as bodyParser from 'body-parser';
-import * as express from 'express';
-import * as methodOverride from 'method-override';
+import bodyParser from 'body-parser';
+import express from 'express';
+import methodOverride from 'method-override';
 import '../controllers/optionsController';
 import '../controllers/deleteController';
 import '../controllers/getController';

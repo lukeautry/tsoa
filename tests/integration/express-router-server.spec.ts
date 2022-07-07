@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
+import request from 'supertest';
 import { app } from '../fixtures/express-router/server';
 import { TestModel } from '../fixtures/testModel';
 

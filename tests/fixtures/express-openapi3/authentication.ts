@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 
 export function expressAuthentication(req: express.Request, name: string, scopes?: string[]): Promise<any> {
   if (name === 'api_key') {
