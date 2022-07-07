@@ -305,7 +305,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     if (source.in !== 'body' && source.type.dataType === 'refEnum') {
       // swagger does not support referencing enums
-      // (exept for body parameters), so we have to inline it
+      // (except for body parameters), so we have to inline it
 
       type = {
         dataType: 'enum',

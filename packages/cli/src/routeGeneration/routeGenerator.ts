@@ -62,7 +62,7 @@ export class RouteGenerator {
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
 
-    // Left in for backwards compatability, previously if we're working locally then tsoa runtime code wasn't an importable module but now it is.
+    // Left in for backwards compatibility, previously if we're working locally then tsoa runtime code wasn't an importable module but now it is.
     const canImportByAlias = true;
 
     const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
