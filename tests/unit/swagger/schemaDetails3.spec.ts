@@ -872,6 +872,53 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
         });
 
+        it('Supports example with produces', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithProduces']?.get?.responses?.[200]?.content?.['text/plain'].examples;
+
+          expect(examples).to.deep.eq({
+            OneExample: {
+              value: 'test example response',
+            },
+          });
+        });
+
+        it('Supports mutli examples with produces', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const produces = exampleSpec.paths['/ExampleTest/ResponseMultiExamplesWithProduces']?.get?.responses?.[200]?.content;
+
+          expect(produces).to.deep.eq({
+            'application/json': {
+              examples: {
+                OneExample: {
+                  value: 'test example response',
+                },
+                TwoExample: {
+                  value: 'test example response',
+                },
+              },
+              schema: {
+                type: 'string',
+              },
+            },
+            'text/plain': {
+              examples: {
+                OneExample: {
+                  value: 'test example response',
+                },
+                TwoExample: {
+                  value: 'test example response',
+                },
+              },
+              schema: {
+                type: 'string',
+              },
+            },
+          });
+        });
+
         it('uses the correct imported value for the @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
           const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();

@@ -342,8 +342,10 @@ export class SpecGenerator3 extends SpecGenerator {
             const exampleLabel = res.exampleLabels?.[currentIndex];
             return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
           }, {});
-          /* eslint-disable @typescript-eslint/dot-notation */
-          (swaggerResponses[res.name].content || {})[DEFAULT_RESPONSE_MEDIA_TYPE]['examples'] = examples;
+          for (const p of produces) {
+            /* eslint-disable @typescript-eslint/dot-notation */
+            (swaggerResponses[res.name].content || {})[p]['examples'] = examples;
+          }
         }
       }
 
