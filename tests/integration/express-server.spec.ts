@@ -365,17 +365,6 @@ describe('Express Server', () => {
     );
   });
 
-  it('returns 451 error if thrown in controller', () => {
-    return verifyGetRequest(
-      basePath + '/GetTest/UnavailableForLegalReasonsError',
-      (err: any, _res: any) => {
-        const body = JSON.parse(err.text);
-        expect(body.message).to.equal('error thrown');
-      },
-      451,
-    );
-  });
-
   it('can invoke middlewares installed in routes and paths', () => {
     expect(stateOf('route')).to.be.undefined;
     return verifyGetRequest(
