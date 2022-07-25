@@ -57,6 +57,14 @@ export class ExampleTestController {
   }
 
   /**
+   * @example prop1 "prop1"
+   */
+  @Post('/post_body_prop_single')
+  public async postBodyPropSingle(@BodyProp() prop1: string): Promise<void> {
+    return;
+  }
+
+  /**
    * @example prop1 "prop1_1"
    * @example prop1 "prop1_2"
    * @example prop1 "prop1_3"

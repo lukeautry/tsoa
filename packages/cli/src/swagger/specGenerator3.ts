@@ -284,7 +284,7 @@ export class SpecGenerator3 extends SpecGenerator {
       throw new Error('Either body parameter or form parameters allowed per controller method - not both.');
     }
 
-    if (bodyPropParams.length > 1) {
+    if (bodyPropParams.length > 0) {
       if (!bodyParams.length) {
         bodyParams.push({
           in: 'body',
