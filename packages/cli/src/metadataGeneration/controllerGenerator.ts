@@ -4,7 +4,7 @@ import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { TypeResolver } from './typeResolver';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ControllerGenerator {

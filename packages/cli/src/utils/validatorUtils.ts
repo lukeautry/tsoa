@@ -1,7 +1,7 @@
 import validator from 'validator';
 import * as ts from 'typescript';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
 export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Tsoa.Validators {

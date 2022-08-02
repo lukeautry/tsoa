@@ -1,10 +1,10 @@
 import 'mocha';
 import { expect } from 'chai';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import { ExtendedSpecConfig } from '@tsoa/cli/cli';
-import { Swagger } from '@tsoa/runtime';
-import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { MetadataGenerator } from '@namecheap/tsoa-cli/metadataGeneration/metadataGenerator';
+import { ExtendedSpecConfig } from '@namecheap/tsoa-cli/cli';
+import { Swagger } from '@namecheap/tsoa-runtime';
+import { SpecGenerator3 } from '@namecheap/tsoa-cli/swagger/specGenerator3';
 
 describe('specMergins', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();

@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 
 const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prototype.hasOwnProperty.call(node, 'initializer');
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;

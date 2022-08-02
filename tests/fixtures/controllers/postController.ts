@@ -1,4 +1,4 @@
-import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@tsoa/runtime';
+import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@namecheap/tsoa-runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 

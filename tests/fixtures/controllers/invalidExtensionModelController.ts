@@ -1,4 +1,4 @@
-import { Get, Route } from '@tsoa/runtime';
+import { Get, Route } from '@namecheap/tsoa-runtime';
 
 interface InvalidExtension {
   /**

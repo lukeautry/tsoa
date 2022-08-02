@@ -5,7 +5,7 @@ import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 

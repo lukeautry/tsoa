@@ -1,5 +1,5 @@
 import { ExtendedSpecConfig } from '../cli';
-import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
+import { Tsoa, assertNever, Swagger } from '@namecheap/tsoa-runtime';
 import * as handlebars from 'handlebars';
 
 export abstract class SpecGenerator {
@@ -9,7 +9,7 @@ export abstract class SpecGenerator {
     return this.getSwaggerType(type);
   }
 
-  protected buildOperationIdTemplate(inlineTemplate: string) {
+  protected buildOperationIdTemplate(inlineTemplate: string): handlebars.TemplateDelegate<any> {
     handlebars.registerHelper('titleCase', (value: string) => (value ? value.charAt(0).toUpperCase() + value.slice(1) : value));
     handlebars.registerHelper('replace', (subject: string, searchValue: string, withValue = '') => (subject ? subject.replace(searchValue, withValue) : subject));
     return handlebars.compile(inlineTemplate, { noEscape: true });

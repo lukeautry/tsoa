@@ -1,4 +1,4 @@
-import { Controller, Get, Hidden, Post, Route } from '@tsoa/runtime';
+import { Controller, Get, Hidden, Post, Route } from '@namecheap/tsoa-runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

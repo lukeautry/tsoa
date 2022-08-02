@@ -1,4 +1,4 @@
-import { Head, Query, Route } from '@tsoa/runtime';
+import { Head, Query, Route } from '@namecheap/tsoa-runtime';
 
 @Route('HeadTest')
 export class HeadTestController {

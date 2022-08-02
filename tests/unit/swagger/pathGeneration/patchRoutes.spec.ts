@@ -1,10 +1,10 @@
 import 'mocha';
-import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
+import { MetadataGenerator } from '@namecheap/tsoa-cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@namecheap/tsoa-cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyBodyParameter, VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
-import { Swagger } from '@tsoa/runtime';
+import { Swagger } from '@namecheap/tsoa-runtime';
 
 describe('PATCH route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/patchController.ts').Generate();

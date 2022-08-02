@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Route } from '@tsoa/runtime';
+import { Body, Controller, Post, Route } from '@namecheap/tsoa-runtime';
 
 export enum MixedStringAndNumberEnum {
   one = 1,

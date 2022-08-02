@@ -1,4 +1,4 @@
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { NodeArray, TypeNode } from 'typescript';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';

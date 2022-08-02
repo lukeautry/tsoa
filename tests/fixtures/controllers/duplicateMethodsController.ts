@@ -1,4 +1,4 @@
-import { Route, Get } from '@tsoa/runtime';
+import { Route, Get } from '@namecheap/tsoa-runtime';
 import { ModelService } from '../services/modelService';
 
 @Route('GetTest')

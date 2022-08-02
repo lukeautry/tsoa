@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Middleware<T extends Function | Object> = T;
 
-const TSOA_MIDDLEWARES = Symbol('@tsoa:middlewares');
+const TSOA_MIDDLEWARES = Symbol('@namecheap-tsoa:middlewares');
 
 /**
  * Helper function to create a decorator

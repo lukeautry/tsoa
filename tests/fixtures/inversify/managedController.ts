@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Get, Route, Security } from '@tsoa/runtime';
+import { Get, Route, Security } from '@namecheap/tsoa-runtime';
 import { TestModel } from '../testModel';
 import { ManagedService } from './managedService';
 
