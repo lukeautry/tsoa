@@ -1,4 +1,4 @@
-import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@namecheap/tsoa-runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 type UserRequestModel = Pick<UserResponseModel, 'name'>;

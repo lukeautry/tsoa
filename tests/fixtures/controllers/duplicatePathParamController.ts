@@ -1,4 +1,4 @@
-import { Route, Get, Post, Path, Delete, Head } from '@tsoa/runtime';
+import { Route, Get, Post, Path, Delete, Head } from '@namecheap/tsoa-runtime';
 
 @Route('GetTest')
 export class DuplicatePathParamTestController {

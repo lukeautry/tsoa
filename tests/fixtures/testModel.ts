@@ -1,4 +1,4 @@
-import { Deprecated, Example, Extension } from '@tsoa/runtime';
+import { Deprecated, Example, Extension } from '@namecheap/tsoa-runtime';
 
 /**
  * This is a description of a model

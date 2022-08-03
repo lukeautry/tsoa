@@ -1,4 +1,4 @@
-import { Controller, Get, Route } from '@tsoa/runtime';
+import { Controller, Get, Route } from '@namecheap/tsoa-runtime';
 import type { TestModel } from '../testModel.js';
 
 @Route()

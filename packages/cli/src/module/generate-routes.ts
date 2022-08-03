@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import { ExtendedRoutesConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { RouteGenerator } from '../routeGeneration/routeGenerator';
 import { convertBracesPathParams } from '../utils/pathUtils';
 import { fsMkDir } from '../utils/fs';

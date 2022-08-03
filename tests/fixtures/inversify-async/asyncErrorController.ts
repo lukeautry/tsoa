@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Get, Route } from '@tsoa/runtime';
+import { Get, Route } from '@namecheap/tsoa-runtime';
 
 @injectable()
 @Route('AsyncIocErrorTest')

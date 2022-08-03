@@ -1,4 +1,4 @@
-import { Route, Get, Middlewares as GenericMiddlewares, Controller } from '@tsoa/runtime';
+import { Route, Get, Middlewares as GenericMiddlewares, Controller } from '@namecheap/tsoa-runtime';
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 

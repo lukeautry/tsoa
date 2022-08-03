@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import * as yargs from 'yargs';
-import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
+import { Config, RoutesConfig, SpecConfig, Tsoa } from '@namecheap/tsoa-runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';

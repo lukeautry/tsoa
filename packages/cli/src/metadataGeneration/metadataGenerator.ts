@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@namecheap/tsoa-runtime';
 import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
 

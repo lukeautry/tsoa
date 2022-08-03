@@ -1,5 +1,5 @@
 import { Request as ExRequest } from 'express';
-import { Body, Controller, Get, Produces, Path, Post, Response, Res, Request, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Controller, Get, Produces, Path, Post, Response, Res, Request, Route, SuccessResponse, TsoaResponse } from '@namecheap/tsoa-runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 interface UserResponseV2Model {

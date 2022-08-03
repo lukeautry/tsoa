@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
-import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
+import { Tsoa, TsoaRoute, assertNever } from '@namecheap/tsoa-runtime';
 import { fsReadFile, fsWriteFile, fsExists } from '../utils/fs';
 import { isRefType } from '../utils/internalTypeGuards';
 import { normalisePath } from './../utils/pathUtils';

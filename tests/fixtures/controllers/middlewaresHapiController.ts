@@ -1,4 +1,4 @@
-import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
+import { Route, Get, Middlewares as GenericMiddlewares } from '@namecheap/tsoa-runtime';
 
 import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
 

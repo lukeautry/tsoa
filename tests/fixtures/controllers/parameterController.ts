@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated } from '@namecheap/tsoa-runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')

@@ -1,4 +1,4 @@
-import { Controller, Get, Route, SuccessResponse, Response } from '@tsoa/runtime';
+import { Controller, Get, Route, SuccessResponse, Response } from '@namecheap/tsoa-runtime';
 import { ErrorResponseModel, TestModel } from '../testModel';
 import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';
@@ -61,7 +61,7 @@ export class TestController extends Controller {
   public async getUnavailableForLegalReasonsError(): Promise<ErrorResponseModel> {
     throw {
       status: 451,
-      messgage: 'error'
+      messgage: 'error',
     };
   }
 }

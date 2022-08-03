@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
+import { generateSpecAndRoutes, generateRoutes } from '@namecheap/tsoa-cli';
 import { hrtime } from 'process';
 
 const specESM = async () => {

@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 {{#if canImportByAlias}}
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
+  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@namecheap/tsoa-runtime';
 {{else}}
   import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, TsoaResponse, HttpStatusCodeLiteral } from '../../../src';
 {{/if}}
@@ -21,7 +21,7 @@ const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+import { IocContainer, IocContainerFactory } from '@namecheap/tsoa-runtime';
 {{/if}}
 import type { Middleware } from 'koa';
 import * as KoaRouter from '@koa/router';
