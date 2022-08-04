@@ -21,18 +21,12 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
-  constructor(
-    entryFile: string,
-    private readonly compilerOptions?: ts.CompilerOptions,
-    private readonly ignorePaths?: string[],
-    controllers?: string[],
-    public readonly generatorOptions?: MetadataGeneratorOptions,
-  ) {
+  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[], generatorOptions?: MetadataGeneratorOptions) {
     TypeResolver.clearCache();
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
 
-    this.securityGenerator = this.generatorOptions?.securityGenerator;
+    this.securityGenerator = generatorOptions?.securityGenerator;
   }
 
   public Generate(): Tsoa.Metadata {
