@@ -302,7 +302,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
 
-      it('@BodyProp parameter in Post method', () => {
+      it('Single @BodyProp parameters in Post method', () => {
+        const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop_single'].post?.requestBody?.content?.['application/json'];
+        expect(postBodyParams?.schema?.required).to.have.lengthOf(1);
+        expect(postBodyParams?.schema?.properties).to.have.property('prop1');
+      });
+
+      it('Two @BodyProp parameters in Post method', () => {
         const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop'].post?.requestBody?.content?.['application/json'];
         expect(postBodyParams?.schema?.required).to.have.lengthOf(2);
         expect(postBodyParams?.schema?.properties).to.have.property('prop1');
