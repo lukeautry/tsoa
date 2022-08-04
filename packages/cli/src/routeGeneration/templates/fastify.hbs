@@ -1,0 +1,345 @@
+/* tslint:disable */
+/* eslint-disable */
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import {
+  Controller,
+  fetchMiddlewares,
+  FieldErrors,
+  HttpStatusCodeLiteral,
+  TsoaResponse,
+  TsoaRoute,
+  ValidateError,
+  ValidationService,
+} from "@tsoa/runtime";
+import { FastifyInstance, FastifyReply, FastifyRequest, HookHandlerDoneFunction } from "fastify";
+{{#each controllers}}
+import { {{name}} } from "{{modulePath}}";
+{{/each}}
+{{#if authenticationModule}}
+import { expressAuthentication } from "{{authenticationModule}}";
+{{/if}}
+{{#if iocModule}}
+import { DependencyInjection } from "{{iocModule}}";
+import { IocContainer } from "@tsoa/runtime";
+{{/if}}
+{{#if useFileUploads}}
+const multer = require("multer");
+const upload = multer({{{json multerOpts}}});
+{{/if}}
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+const models: TsoaRoute.Models = {
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}
+      "{{@key}}": {{{json this}}},
+      {{/each}}
+    },
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+
+  {{/each}}
+};
+
+const validationService = new ValidationService(models);
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+export function RegisterRoutes(app: FastifyInstance): void {
+  // ###################################################################################################################
+  //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of
+  //  where to look. Please look into the "controllerPathGlobs" config option described in the readme:
+  //  https://github.com/lukeautry/tsoa
+  // ###################################################################################################################
+{{#if useSecurity}}
+  app.decorateRequest("user", null);
+{{/if}}
+
+{{#each controllers}}
+  {{#each actions}}
+  app.{{method}}(
+    "{{fullPath}}",
+    {{#if uploadFile}}
+    upload.single("{{uploadFileName}}"),
+    {{/if}}
+    {{#if uploadFiles}}
+    upload.array("{{uploadFilesName}}"),
+    {{/if}}
+    {
+      schema: {
+        description: `{{description}}`,
+        summary: "{{summary}}",
+      {{#if tags}}
+        tags: {{json tags}},
+      {{/if}}
+        response: {
+        {{#each responses}}
+          {{name}}: {
+            {{#if schema.refName}}
+            $ref: "{{schema.refName}}#",
+            {{/if}}
+            {{#if schema.description}}
+            description: "{{schema.description}}",
+            {{/if}}
+          },
+        {{/each}}
+        },
+      },
+    {{#if security.length}}
+      onRequest: authenticateMiddleware({{json security}}),
+    {{/if}}
+    },
+    async (request: FastifyRequest, response: FastifyReply): Promise<any> => {
+      const args = {
+    {{#each parameters}}
+        {{@key}}: {{{json this}}},
+    {{/each}}
+      };
+
+      let validatedArgs: any[] = [];
+      validatedArgs = getValidatedArgs(args, request, response);
+
+      {{#if ../../iocModule}}
+      const container: IocContainer = DependencyInjection;
+
+      const controller: {{../name}} = container.get<{{../name}}>({{../name}});
+      if (isController(controller)) {
+        controller.setStatus(undefined as any);
+      }
+      {{else}}
+      const controller = new {{../name}}();
+      {{/if}}
+
+      // eslint-disable-next-line prefer-spread
+      const promise = controller.{{name}}.apply(controller, validatedArgs as any);
+      return await promiseHandler(controller, promise, response, {{successStatus}});
+    },
+  );
+  {{/each}}
+
+  {{/each}}
+  {{#if useSecurity}}
+
+  function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+    return function runAuthenticationMiddleware(
+      request: FastifyRequest,
+      _response: any,
+      next: HookHandlerDoneFunction,
+    ) {
+      let responded = 0;
+      let success = false;
+
+      const succeed = function(user: any) {
+        if (!success) {
+          success = true;
+          responded++;
+          request.user = user;
+          next();
+        }
+      }
+
+      const fail = function(error: { status?: number }) {
+        responded++;
+        if (responded == security.length && !success) {
+          error.status = error.status || 401;
+          next(error)
+        }
+      }
+
+      for (const secMethod of security) {
+        if (Object.keys(secMethod).length > 1) {
+          const promises: Promise<any>[] = [];
+
+          for (const name in secMethod) {
+            promises.push(expressAuthentication(request as any, name, secMethod[name]));
+          }
+
+          Promise.all(promises)
+            .then((users) => { succeed(users[0]); })
+            .catch(fail);
+        } else {
+          for (const name in secMethod) {
+            expressAuthentication(request as any, name, secMethod[name])
+              .then(succeed)
+              .catch(fail);
+          }
+        }
+      }
+    }
+  }
+
+  {{/if}}
+  function isController(object: any): object is Controller {
+    return "getHeaders" in object && "getStatus" in object && "setStatus" in object;
+  }
+
+  async function promiseHandler<T>(
+    controllerObj: Controller,
+    promise: Promise<T>,
+    response: FastifyReply,
+    successStatus?: number,
+  ): Promise<T | undefined> {
+    const data: T = await promise;
+    let statusCode = successStatus;
+    const headers = controllerObj.getHeaders();
+    statusCode = controllerObj.getStatus() || statusCode;
+
+    return returnHandler(response, statusCode, data, headers);
+  }
+
+  function returnHandler<T>(
+    response: FastifyReply, 
+    statusCode?: number, 
+    data?: any, 
+    headers: Record<string, string | string[] | undefined> = {},
+  ): T | undefined {
+    if (response.sent) {
+      return undefined as any;
+    }
+
+    Object.keys(headers).forEach((name: string) => {
+      response.header(name, headers[name]);
+    });
+
+    if (data && isStream(data)) {
+      response.status(statusCode || 200);
+      response.send(data);
+    } else if (data !== null && data !== undefined) {
+      response.status(statusCode || 200);
+    } else {
+      response.status(statusCode || 204);
+    }
+
+    return data;
+  }
+
+  function responder(response: FastifyReply): TsoaResponse<HttpStatusCodeLiteral, unknown> {
+    return function (status, data, headers) {
+      returnHandler(response, status, data, headers);
+    };
+  }
+
+  function getValidatedArgs(
+    args: any,
+    request: FastifyRequest,
+    response: FastifyReply,
+  ): any[] {
+    const fieldErrors: FieldErrors = {};
+    const values = Object.keys(args).map((key) => {
+      const name = args[key].name;
+      switch (args[key].in) {
+        case "request":
+          return request;
+        case "query":
+          return validationService.ValidateParam(
+            args[key],
+            (request.query as Record<string, unknown>)[name],
+            name,
+            fieldErrors,
+            undefined,
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "queries":
+          return validationService.ValidateParam(
+            args[key],
+            request.query,
+            name,
+            fieldErrors,
+            undefined,
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "path":
+          return validationService.ValidateParam(
+            args[key],
+            (request.params as Record<string, unknown>)[name],
+            name,
+            fieldErrors,
+            undefined,
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "header":
+          return validationService.ValidateParam(
+            args[key],
+            request.headers[name],
+            name,
+            fieldErrors,
+            undefined,
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "body":
+          return validationService.ValidateParam(
+            args[key],
+            request.body,
+            name,
+            fieldErrors,
+            undefined,
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "body-prop":
+          return validationService.ValidateParam(
+            args[key],
+            (request.body as Record<string, unknown>)[name],
+            name,
+            fieldErrors,
+            "body.",
+            {{{json minimalSwaggerConfig}}},
+          );
+        case "formData":
+          if (args[key].dataType === "file") {
+            return validationService.ValidateParam(
+              args[key],
+              (request as any).file,
+              name,
+              fieldErrors,
+              undefined,
+              {{{json minimalSwaggerConfig}}},
+            );
+          } else if (args[key].dataType === "array" && args[key].array?.dataType === "file") {
+            return validationService.ValidateParam(
+              args[key],
+              (request as any).files,
+              name,
+              fieldErrors,
+              undefined,
+              {{{json minimalSwaggerConfig}}},
+            );
+          } else {
+            return validationService.ValidateParam(
+              args[key],
+              (request.body as Record<string, unknown>)[name],
+              name,
+              fieldErrors,
+              undefined,
+              {{{json minimalSwaggerConfig}}},
+            );
+          }
+        case "res":
+          return responder(response);
+      }
+    });
+
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new ValidateError(fieldErrors, "");
+    }
+
+    return values;
+  }
+
+  function isStream(data: any): data is NodeJS.ReadableStream {
+    return typeof data.pipe === "function" && data.readable && typeof data._read === "function";
+  }
+}
+

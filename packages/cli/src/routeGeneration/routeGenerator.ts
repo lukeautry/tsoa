@@ -95,6 +95,24 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
             const uploadFileParameter = method.parameters.find(parameter => parameter.type.dataType === 'file');
             const uploadFilesParameter = method.parameters.find(parameter => parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file');
+
+            // deep clone to prevent changes on original tsoa object
+            const responses: Tsoa.Response[] = method.responses ? JSON.parse(JSON.stringify(method.responses)) : [];
+            for (const response of responses) {
+              const schema = response.schema as Tsoa.RefObjectType;
+              if (schema?.properties) {
+                const properties: Tsoa.Property[] = [];
+                for (const prop of schema.properties) {
+                  // Filter duplicate properties
+                  if (!properties.find(x => x.name === prop.name)) {
+                    properties.push(prop);
+                  }
+                }
+
+                schema.properties = properties;
+              }
+            }
+
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
@@ -107,6 +125,10 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               uploadFilesName: uploadFilesParameter?.name,
               security: method.security,
               successStatus: method.successStatus ? method.successStatus : 'undefined',
+              responses: responses,
+              description: method.description,
+              summary: method.summary,
+              tags: method.tags,
             };
           }),
           modulePath: this.getRelativeImportPath(controller.location),
@@ -150,6 +172,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     if (Object.keys(source.validators).length > 0) {
       propertySchema.validators = source.validators;
     }
+
     return propertySchema;
   }
 

@@ -18,7 +18,8 @@
     "generation",
     "express",
     "hapi.js",
-    "koa"
+    "koa",
+    "fastify"
   ],
   "scripts": {
     "build": "yarn tsc",
