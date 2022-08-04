@@ -298,6 +298,10 @@ export class MethodGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
+    if (this.current.securityGenerator) {
+      return this.current.securityGenerator(this.node, this.current.typeChecker, this.parentSecurity);
+    }
+
     const noSecurityDecorators = this.getDecoratorsByIdentifier(this.node, 'NoSecurity');
     const securityDecorators = this.getDecoratorsByIdentifier(this.node, 'Security');
 

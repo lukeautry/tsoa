@@ -986,4 +986,28 @@ describe('Metadata generation', () => {
       expect(method.responses[0].description).to.equal(description);
     });
   });
+
+  describe.only('SecurityGenerator', () => {
+    const metadataSecurityGenerator = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, undefined, {
+      securityGenerator(): Tsoa.Security[] {
+        return [
+          {
+            TestSecurity: ['TestSecurityValue'],
+          },
+        ];
+      },
+    }).Generate();
+
+    it('should delegate security generation to security generator', () => {
+      metadataSecurityGenerator.controllers.forEach(controller => {
+        controller.methods.forEach(method => {
+          expect(method.security).to.have.deep.members([
+            {
+              TestSecurity: ['TestSecurityValue'],
+            },
+          ]);
+        });
+      });
+    });
+  });
 });
