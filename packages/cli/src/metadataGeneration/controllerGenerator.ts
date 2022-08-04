@@ -110,6 +110,10 @@ export class ControllerGenerator {
   }
 
   private getSecurity(): Tsoa.Security[] {
+    if (this.current.securityGenerator) {
+      return this.current.securityGenerator(this.node, this.current.typeChecker);
+    }
+
     const noSecurityDecorators = getDecorators(this.node, identifier => identifier.text === 'NoSecurity');
     const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
 

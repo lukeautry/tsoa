@@ -6,18 +6,33 @@ import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from '@namecheap/tsoa-runtime';
 import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
+import { SecurityGenerator } from './securityGenerator';
+
+export interface MetadataGeneratorOptions {
+  securityGenerator?: SecurityGenerator;
+}
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ts.ClassDeclaration>();
   public readonly typeChecker: ts.TypeChecker;
+  public readonly securityGenerator: SecurityGenerator | undefined;
+
   private readonly program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
-  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
+  constructor(
+    entryFile: string,
+    private readonly compilerOptions?: ts.CompilerOptions,
+    private readonly ignorePaths?: string[],
+    controllers?: string[],
+    public readonly generatorOptions?: MetadataGeneratorOptions,
+  ) {
     TypeResolver.clearCache();
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
+
+    this.securityGenerator = this.generatorOptions?.securityGenerator;
   }
 
   public Generate(): Tsoa.Metadata {
