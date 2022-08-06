@@ -302,7 +302,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
 
-      it('@BodyProp parameter in Post method', () => {
+      it('Single @BodyProp parameters in Post method', () => {
+        const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop_single'].post?.requestBody?.content?.['application/json'];
+        expect(postBodyParams?.schema?.required).to.have.lengthOf(1);
+        expect(postBodyParams?.schema?.properties).to.have.property('prop1');
+      });
+
+      it('Two @BodyProp parameters in Post method', () => {
         const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop'].post?.requestBody?.content?.['application/json'];
         expect(postBodyParams?.schema?.required).to.have.lengthOf(2);
         expect(postBodyParams?.schema?.properties).to.have.property('prop1');
@@ -867,6 +873,53 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               value: {
                 errorCode: 40000,
                 errorMessage: 'No custom label',
+              },
+            },
+          });
+        });
+
+        it('Supports example with produces', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithProduces']?.get?.responses?.[200]?.content?.['text/plain'].examples;
+
+          expect(examples).to.deep.eq({
+            OneExample: {
+              value: 'test example response',
+            },
+          });
+        });
+
+        it('Supports mutli examples with produces', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const produces = exampleSpec.paths['/ExampleTest/ResponseMultiExamplesWithProduces']?.get?.responses?.[200]?.content;
+
+          expect(produces).to.deep.eq({
+            'application/json': {
+              examples: {
+                OneExample: {
+                  value: 'test example response',
+                },
+                TwoExample: {
+                  value: 'test example response',
+                },
+              },
+              schema: {
+                type: 'string',
+              },
+            },
+            'text/plain': {
+              examples: {
+                OneExample: {
+                  value: 'test example response',
+                },
+                TwoExample: {
+                  value: 'test example response',
+                },
+              },
+              schema: {
+                type: 'string',
               },
             },
           });

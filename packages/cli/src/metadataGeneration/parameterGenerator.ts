@@ -268,7 +268,7 @@ export class ParameterGenerator {
       deprecated: this.getParameterDeprecation(parameter),
     };
 
-    if (this.getQueryParamterIsHidden(parameter)) {
+    if (this.getQueryParameterIsHidden(parameter)) {
       if (commonProperties.required) {
         throw new GenerateMetadataError(`@Query('${parameterName}') Can't support @Hidden because it is required (does not allow undefined and does not have a default value).`);
       }
@@ -363,7 +363,7 @@ export class ParameterGenerator {
 
     if (examples.length === 0) {
       return {
-        exmaples: undefined,
+        examples: undefined,
         exampleLabels: undefined,
       };
     } else {
@@ -412,7 +412,7 @@ export class ParameterGenerator {
     return new TypeResolver(typeNode, this.current, parameter).resolve();
   }
 
-  private getQueryParamterIsHidden(parameter: ts.ParameterDeclaration) {
+  private getQueryParameterIsHidden(parameter: ts.ParameterDeclaration) {
     const hiddenDecorators = getDecorators(parameter, identifier => identifier.text === 'Hidden');
     if (!hiddenDecorators || !hiddenDecorators.length) {
       return false;

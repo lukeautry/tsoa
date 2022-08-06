@@ -1013,10 +1013,10 @@ export class TypeResolver {
     return undefined;
   }
 
-  private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntitiy: ts.EntityName, context: Context): Context {
+  private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntity: ts.EntityName, context: Context): Context {
     this.context = {};
 
-    const declaration = this.getModelTypeDeclaration(targetEntitiy);
+    const declaration = this.getModelTypeDeclaration(targetEntity);
     const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
 
     if (typeParameters) {

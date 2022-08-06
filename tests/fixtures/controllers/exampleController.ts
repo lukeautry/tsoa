@@ -1,4 +1,4 @@
-import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse } from '@tsoa/runtime';
+import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse, Produces } from '@tsoa/runtime';
 import { exampleResponse } from './consts';
 
 /**
@@ -53,6 +53,14 @@ export class ExampleTestController {
    */
   @Post('/post_body')
   public async post(@Body() location: Location): Promise<void> {
+    return;
+  }
+
+  /**
+   * @example prop1 "prop1"
+   */
+  @Post('/post_body_prop_single')
+  public async postBodyPropSingle(@BodyProp() prop1: string): Promise<void> {
     return;
   }
 
@@ -188,6 +196,30 @@ export class ExampleTestController {
   @Example<string>('no label example')
   @Get('ResponseMultiExampleWithLabel')
   public async responseMultiExampleWithLabel(): Promise<string> {
+    return 'test 1';
+  }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Produces('text/plain')
+  @Example<string>(exampleResponse, 'OneExample')
+  @Get('ResponseExampleWithProduces')
+  public async responseExampleWithProduces(): Promise<string> {
+    return 'test 1';
+  }
+
+  /**
+   * @example res 123
+   * @example res 1
+   */
+  @Produces('text/plain')
+  @Produces('application/json')
+  @Example<string>(exampleResponse, 'OneExample')
+  @Example<string>(exampleResponse, 'TwoExample')
+  @Get('ResponseMultiExamplesWithProduces')
+  public async responseMultiExamplesWithProduces(): Promise<string> {
     return 'test 1';
   }
 }

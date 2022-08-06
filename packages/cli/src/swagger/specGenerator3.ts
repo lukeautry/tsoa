@@ -284,7 +284,7 @@ export class SpecGenerator3 extends SpecGenerator {
       throw new Error('Either body parameter or form parameters allowed per controller method - not both.');
     }
 
-    if (bodyPropParams.length > 1) {
+    if (bodyPropParams.length > 0) {
       if (!bodyParams.length) {
         bodyParams.push({
           in: 'body',
@@ -342,8 +342,10 @@ export class SpecGenerator3 extends SpecGenerator {
             const exampleLabel = res.exampleLabels?.[currentIndex];
             return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
           }, {});
-          /* eslint-disable @typescript-eslint/dot-notation */
-          (swaggerResponses[res.name].content || {})[DEFAULT_RESPONSE_MEDIA_TYPE]['examples'] = examples;
+          for (const p of produces) {
+            /* eslint-disable @typescript-eslint/dot-notation */
+            (swaggerResponses[res.name].content || {})[p]['examples'] = examples;
+          }
         }
       }
 
