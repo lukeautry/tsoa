@@ -987,7 +987,7 @@ describe('Metadata generation', () => {
     });
   });
 
-  describe.only('SecurityGenerator', () => {
+  describe('SecurityGenerator', () => {
     const metadataSecurityGenerator = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, undefined, {
       securityGenerator(): Tsoa.Security[] {
         return [
