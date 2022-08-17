@@ -859,13 +859,17 @@ export class TypeResolver {
   }
 
   private getModelTypeDeclaration(type: ts.EntityName) {
-    const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
+    let typeName: string = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
     const symbol = this.getSymbolAtLocation(type);
     const declarations = symbol?.getDeclarations();
 
     if (!declarations) {
       throw new GenerateMetadataError(`No declarations found for referenced type ${typeName}.`);
+    }
+
+    if (symbol.escapedName !== typeName && symbol.escapedName !== 'default') {
+      typeName = symbol.escapedName as string;
     }
 
     let modelTypes = declarations.filter((node): node is UsableDeclarationWithoutPropertySignature => {
@@ -1053,43 +1057,48 @@ export class TypeResolver {
       return properties;
     }
 
-    heritageClauses.forEach(clause => {
-      if (!clause.types) {
-        return;
-      }
-
-      clause.types.forEach(t => {
-        const baseEntityName = t.expression as ts.EntityName;
-
-        // create subContext
-        const resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
-
-        const referenceType = this.getReferenceType(t);
-        if (referenceType) {
-          if (referenceType.dataType === 'refEnum') {
-            // since it doesn't have properties to iterate over, then we don't do anything with it
-          } else if (referenceType.dataType === 'refAlias') {
-            let type: Tsoa.Type = referenceType;
-            while (type.dataType === 'refAlias') {
-              type = type.type;
-            }
-
-            if (type.dataType === 'refObject') {
-              properties = [...properties, ...type.properties];
-            } else if (type.dataType === 'nestedObjectLiteral') {
-              properties = [...properties, ...type.properties];
-            }
-          } else if (referenceType.dataType === 'refObject') {
-            referenceType.properties.forEach(property => properties.push(property));
-          } else {
-            assertNever(referenceType);
-          }
+    try {
+      heritageClauses.forEach(clause => {
+        if (!clause.types) {
+          return;
         }
 
-        // reset subContext
-        this.context = resetCtx;
+        clause.types.forEach(t => {
+          const baseEntityName = t.expression as ts.EntityName;
+
+          // create subContext
+          const resetCtx = this.typeArgumentsToContext(t, baseEntityName, this.context);
+
+          const referenceType = this.getReferenceType(t);
+          if (referenceType) {
+            if (referenceType.dataType === 'refEnum') {
+              // since it doesn't have properties to iterate over, then we don't do anything with it
+            } else if (referenceType.dataType === 'refAlias') {
+              let type: Tsoa.Type = referenceType;
+              while (type.dataType === 'refAlias') {
+                type = type.type;
+              }
+
+              if (type.dataType === 'refObject') {
+                properties = [...properties, ...type.properties];
+              } else if (type.dataType === 'nestedObjectLiteral') {
+                properties = [...properties, ...type.properties];
+              }
+            } else if (referenceType.dataType === 'refObject') {
+              (referenceType.properties || []).forEach(property => properties.push(property));
+            } else {
+              assertNever(referenceType);
+            }
+          }
+
+          // reset subContext
+          this.context = resetCtx;
+        });
       });
-    });
+    } catch (error) {
+      console.log('HERITAGE =', heritageClauses);
+      throw error;
+    }
 
     return properties;
   }
