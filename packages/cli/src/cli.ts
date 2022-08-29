@@ -295,7 +295,7 @@ export function runCLI(): void {
       generateSpecAndRoutes as any,
     )
     .help('help')
-    .alias('help', 'h').argv;
+    .alias('help', 'h');
 }
 
 if (require.main === module) runCLI();
