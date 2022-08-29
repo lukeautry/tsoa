@@ -1348,7 +1348,7 @@ describe('Koa Server', () => {
           try {
             parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error;
+            parsedError = res && res.error;
           }
 
           if (err) {
