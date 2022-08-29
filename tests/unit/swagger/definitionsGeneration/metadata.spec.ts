@@ -14,6 +14,12 @@ describe('Metadata generation', () => {
       expect(metadata.controllers[0].name).to.equal('GetTestController');
       expect(metadata.controllers[0].path).to.equal('GetTest');
     });
+
+    it('should fail if there are no controllers', () => {
+      expect(() => {
+        new MetadataGenerator('./fixtures/controllers/noController.ts').Generate();
+      }).to.throw('no controllers found, check tsoa configuration');
+    });
   });
 
   describe('InvalidExtensionControllerGenerator', () => {
