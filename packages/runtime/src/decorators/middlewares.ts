@@ -34,7 +34,7 @@ function decorator(fn: (value: any) => void) {
  * @param middlewares
  * @returns
  */
-export function Middlewares<T>(...mws: Array<Middleware<T>>): ClassDecorator & MethodDecorator {
+export function Middlewares<T extends Function | Object>(...mws: Array<Middleware<T>>): ClassDecorator & MethodDecorator {
   return decorator(target => {
     if (mws) {
       const current = fetchMiddlewares<T>(target);
@@ -49,6 +49,6 @@ export function Middlewares<T>(...mws: Array<Middleware<T>>): ClassDecorator & M
  * @param target
  * @returns list of middlewares
  */
-export function fetchMiddlewares<T>(target: any): Array<Middleware<T>> {
+export function fetchMiddlewares<T extends Function | Object>(target: any): Array<Middleware<T>> {
   return Reflect.getMetadata(TSOA_MIDDLEWARES, target) || [];
 }

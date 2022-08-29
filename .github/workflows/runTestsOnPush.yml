@@ -8,6 +8,7 @@ jobs:
       matrix:
         node-version: [12, 14, 16, 17]
         os: [macos-latest, ubuntu-latest, windows-latest]
+        typescript-version: [4.6, 4.8]
 
     steps:
       - uses: actions/checkout@master
@@ -21,8 +22,23 @@ jobs:
       - name: Install Yarn
         run: npm install -g yarn
 
+      - name: Set resolutions to correct typescript version
+        uses: jossef/action-set-json-field@v2
+        with:
+          file: package.json
+          field: resolutions
+          value: "{ \"typescript\": \"${{ matrix.typescript-version }}\"}"
+          parse_json: true
+
+      # for yarn3
+      # - name: Set Typescript version
+      #  run: yarn set resolution typescript ${{ matrix.typescript-version }}
+
       - name: Install
         run: yarn install --ignore-scripts
+
+      - name: Output ts version
+        run: npx tsc --version
 
       - name: Build
         run: yarn run build
