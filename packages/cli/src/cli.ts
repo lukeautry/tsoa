@@ -2,13 +2,13 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
-import { hideBin } from 'yargs/helpers';
 
 const workingDir: string = process.cwd();
 
@@ -191,36 +191,36 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
   };
 };
 
-const configurationArgs: yargs.Options = {
+const configurationArgs = {
   alias: 'c',
   describe: 'tsoa configuration file; default is tsoa.json in the working directory',
   required: false,
-  type: 'string',
-};
+  string: true,
+} as const;
 
-const hostArgs: yargs.Options = {
+const hostArgs = {
   describe: 'API host',
   required: false,
-  type: 'string',
-};
+  string: true,
+} as const;
 
-const basePathArgs: yargs.Options = {
+const basePathArgs = {
   describe: 'Base API path',
   required: false,
-  type: 'string',
-};
+  string: true,
+} as const;
 
-const yarmlArgs: yargs.Options = {
+const yarmlArgs = {
   describe: 'Swagger spec yaml format',
   required: false,
-  type: 'boolean',
-};
+  boolean: true,
+} as const;
 
-const jsonArgs: yargs.Options = {
+const jsonArgs = {
   describe: 'Swagger spec json format',
   required: false,
-  type: 'boolean',
-};
+  boolean: true,
+} as const;
 
 export interface ConfigArgs {
   basePath?: string;
@@ -233,10 +233,9 @@ export interface SwaggerArgs extends ConfigArgs {
   yaml?: boolean;
 }
 
-export function runCLI(): void {
-  yargs(hideBin(process.argv))
+export function runCLI() {
+  void yargs(hideBin(process.argv))
     .usage('Usage: $0 <command> [options]')
-    .demand(1)
     .command(
       'spec',
       'Generate OpenAPI spec',
@@ -247,19 +246,7 @@ export function runCLI(): void {
         json: jsonArgs,
         yaml: yarmlArgs,
       },
-      SpecGenerator as any,
-    )
-    .command(
-      'swagger',
-      'Generate OpenAPI spec',
-      {
-        basePath: basePathArgs,
-        configuration: configurationArgs,
-        host: hostArgs,
-        json: jsonArgs,
-        yaml: yarmlArgs,
-      },
-      SpecGenerator as any,
+      args => SpecGenerator(args),
     )
     .command(
       'routes',
@@ -268,7 +255,7 @@ export function runCLI(): void {
         basePath: basePathArgs,
         configuration: configurationArgs,
       },
-      routeGenerator as any,
+      args => routeGenerator(args),
     )
     .command(
       'spec-and-routes',
@@ -280,22 +267,12 @@ export function runCLI(): void {
         json: jsonArgs,
         yaml: yarmlArgs,
       },
-      generateSpecAndRoutes as any,
+      args => void generateSpecAndRoutes(args),
     )
-    .command(
-      'swagger-and-routes',
-      'Generate OpenAPI spec and routes',
-      {
-        basePath: basePathArgs,
-        configuration: configurationArgs,
-        host: hostArgs,
-        json: jsonArgs,
-        yaml: yarmlArgs,
-      },
-      generateSpecAndRoutes as any,
-    )
+    .demandCommand(1, 1, 'Must provide a valid command.')
     .help('help')
-    .alias('help', 'h');
+    .alias('help', 'h')
+    .parse();
 }
 
 if (require.main === module) runCLI();
