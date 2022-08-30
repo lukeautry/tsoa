@@ -336,7 +336,7 @@ describe('Express Server', () => {
         204,
       );
     });
-    
+
     it('should unavailable for legal reasons status code', () => {
       return verifyGetRequest(
         basePath + `/Controller/unavailableForLegalReasonsStatusCode`,
@@ -1140,7 +1140,7 @@ describe('Express Server', () => {
           try {
             parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error;
+            parsedError = res?.error;
           }
 
           if (err) {

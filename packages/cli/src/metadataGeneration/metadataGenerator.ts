@@ -220,6 +220,9 @@ export class MetadataGenerator {
   }
 
   private buildControllers() {
+    if (this.controllerNodes.length === 0) {
+      throw new Error('no controllers found, check tsoa configuration');
+    }
     return this.controllerNodes
       .map(classDeclaration => new ControllerGenerator(classDeclaration, this))
       .filter(generator => generator.IsValid())
