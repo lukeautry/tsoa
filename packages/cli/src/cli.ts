@@ -8,6 +8,7 @@ import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
+import { hideBin } from 'yargs/helpers';
 
 const workingDir: string = process.cwd();
 
@@ -233,7 +234,7 @@ export interface SwaggerArgs extends ConfigArgs {
 }
 
 export function runCLI(): void {
-  yargs
+  yargs(hideBin(process.argv))
     .usage('Usage: $0 <command> [options]')
     .demand(1)
     .command(
@@ -294,7 +295,7 @@ export function runCLI(): void {
       generateSpecAndRoutes as any,
     )
     .help('help')
-    .alias('help', 'h').argv;
+    .alias('help', 'h');
 }
 
 if (require.main === module) runCLI();

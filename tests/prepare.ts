@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import * as os from 'os';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
 

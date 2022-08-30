@@ -35,7 +35,7 @@ describe('Inversify Express Server with ControllerPathGlob', () => {
           try {
             parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error;
+            parsedError = res?.error;
           }
 
           if (err) {
