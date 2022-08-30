@@ -1463,11 +1463,13 @@ describe('Express Server', () => {
       methodOperation(request(app))
         .expect(expectedStatus)
         .end((err: any, res: any) => {
+          console.log('err', err);
+          console.log('res', res);
           let parsedError: any;
           try {
             parsedError = JSON.parse(res.error);
           } catch (err) {
-            parsedError = res.error;
+            parsedError = res?.error;
           }
 
           if (err) {
