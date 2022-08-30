@@ -240,7 +240,13 @@ export class TypeResolver {
         return this.handleCachingAndCircularReferences(name, () => this.getModelReference(declaration, this.current.typeChecker.typeToString(type)));
       } else {
         try {
-          return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+          return new TypeResolver(
+            this.current.typeChecker.typeToTypeNode(type, this.typeNode, ts.NodeBuilderFlags.NoTruncation)!,
+            this.current,
+            this.typeNode,
+            this.context,
+            this.referencer,
+          ).resolve();
         } catch {
           throw new GenerateMetadataError(
             `Couldn't resolve Conditional to TypeNode. If you think this should be resolvable, please file an Issue. The flags on the result of the ConditionalType was ${type.flags}`,
