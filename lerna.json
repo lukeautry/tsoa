@@ -4,10 +4,10 @@
   "useWorkspaces": true,
   "command": {
     "version": {
-      "allowBranch": "master"
+      "allowBranch": "4.x"
     },
     "publish": {
-      "allowBranch": "master"
+      "allowBranch": "4.x"
     }
   }
 }
