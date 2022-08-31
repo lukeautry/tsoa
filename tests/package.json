@@ -52,14 +52,14 @@
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
     "method-override": "^3.0.0",
-    "mocha": "^7.1.1",
+    "mocha": "^10.0.0",
     "multer": "^1.4.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "sinon": "^9.2.3",
     "supertest": "^4.0.2",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "^3.9.0",
+    "tsconfig-paths": "^4.1.0",
     "typescript": "<4.8.0"
   },
   "repository": {
@@ -70,5 +70,6 @@
     "yarn": ">=1.9.4",
     "node": ">=12.0.0"
   },
-  "engineStrict": true
+  "engineStrict": true,
+  "dependencies": {}
 }
