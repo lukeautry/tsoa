@@ -233,7 +233,7 @@ export interface SwaggerArgs extends ConfigArgs {
 }
 
 export function runCLI(): void {
-  yargs
+  void yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
     .command(
