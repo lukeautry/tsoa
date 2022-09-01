@@ -210,6 +210,12 @@ const basePathArgs = {
   string: true,
 } as const;
 
+const entryFileArgs = {
+  describe: 'Entry file path',
+  required: false,
+  string: true,
+} as const;
+
 const yarmlArgs = {
   describe: 'Swagger spec yaml format',
   required: false,
@@ -224,6 +230,7 @@ const jsonArgs = {
 
 export interface ConfigArgs {
   basePath?: string;
+  entryFile?: string;
   configuration?: string | Config;
 }
 
@@ -241,6 +248,7 @@ export function runCLI() {
       'Generate OpenAPI spec',
       {
         basePath: basePathArgs,
+        entryFile: entryFileArgs,
         configuration: configurationArgs,
         host: hostArgs,
         json: jsonArgs,
@@ -253,6 +261,7 @@ export function runCLI() {
       'Generate routes',
       {
         basePath: basePathArgs,
+        entryFile: entryFileArgs,
         configuration: configurationArgs,
       },
       args => routeGenerator(args),
@@ -262,6 +271,7 @@ export function runCLI() {
       'Generate OpenAPI spec and routes',
       {
         basePath: basePathArgs,
+        entryFile: entryFileArgs,
         configuration: configurationArgs,
         host: hostArgs,
         json: jsonArgs,
@@ -282,6 +292,9 @@ async function SpecGenerator(args: SwaggerArgs) {
     const config = await resolveConfig(args.configuration);
     if (args.basePath) {
       config.spec.basePath = args.basePath;
+    }
+    if (args.entryFile) {
+      config.entryFile = args.entryFile;
     }
     if (args.host) {
       config.spec.host = args.host;
@@ -310,6 +323,9 @@ async function routeGenerator(args: ConfigArgs) {
     if (args.basePath) {
       config.routes.basePath = args.basePath;
     }
+    if (args.entryFile) {
+      config.entryFile = args.entryFile;
+    }
 
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config);
@@ -327,6 +343,9 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     const config = await resolveConfig(args.configuration);
     if (args.basePath) {
       config.spec.basePath = args.basePath;
+    }
+    if (args.entryFile) {
+      config.entryFile = args.entryFile;
     }
     if (args.host) {
       config.spec.host = args.host;
