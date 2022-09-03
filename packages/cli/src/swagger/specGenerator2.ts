@@ -170,7 +170,7 @@ export class SpecGenerator2 extends SpecGenerator {
     }
 
     if (method.security) {
-      pathMethod.security = method.security as any[];
+      pathMethod.security = method.security;
     }
 
     pathMethod.parameters = method.parameters

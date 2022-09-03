@@ -15,7 +15,7 @@ export class ControllerGenerator {
   private readonly commonResponses: Tsoa.Response[];
   private readonly produces?: string[];
 
-  constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator) {
+  constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator, private readonly parentSecurity: Tsoa.Security[] = []) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
@@ -113,12 +113,16 @@ export class ControllerGenerator {
     const noSecurityDecorators = getDecorators(this.node, identifier => identifier.text === 'NoSecurity');
     const securityDecorators = getDecorators(this.node, identifier => identifier.text === 'Security');
 
+    if (noSecurityDecorators?.length && securityDecorators?.length) {
+      throw new GenerateMetadataError(`NoSecurity decorator cannot be used in conjunction with Security decorator in '${this.node.name!.text}' class.`);
+    }
+
     if (noSecurityDecorators?.length) {
-      throw new GenerateMetadataError(`NoSecurity decorator is unnecessary in '${this.node.name!.text}' class.`);
+      return [];
     }
 
     if (!securityDecorators || !securityDecorators.length) {
-      return [];
+      return this.parentSecurity;
     }
 
     return securityDecorators.map(d => getSecurites(d, this.current.typeChecker));

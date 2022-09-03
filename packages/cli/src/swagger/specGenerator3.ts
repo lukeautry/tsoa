@@ -86,8 +86,8 @@ export class SpecGenerator3 extends SpecGenerator {
     return components;
   }
 
-  private translateSecurityDefinitions(definitions: { [name: string]: Swagger.Security }) {
-    const defs: { [name: string]: Swagger.Security } = {};
+  private translateSecurityDefinitions(definitions: { [name: string]: Swagger.SecuritySchemes }) {
+    const defs: { [name: string]: Swagger.SecuritySchemes } = {};
     Object.keys(definitions).forEach(key => {
       if (definitions[key].type === 'basic') {
         defs[key] = {
@@ -263,7 +263,7 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     if (method.security) {
-      pathMethod.security = method.security as any[];
+      pathMethod.security = method.security;
     }
 
     const bodyParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'body');

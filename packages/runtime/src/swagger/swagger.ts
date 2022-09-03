@@ -26,7 +26,7 @@ export namespace Swagger {
     parameters?: { [name: string]: Parameter };
     responses?: { [name: string]: Response };
     security?: Security[];
-    securityDefinitions?: { [name: string]: Security };
+    securityDefinitions?: { [name: string]: SecuritySchemes };
   }
 
   export interface Spec3 extends Spec {
@@ -45,7 +45,7 @@ export namespace Swagger {
     requestBodies?: { [name: string]: unknown };
     responses?: { [name: string]: Response };
     schemas?: { [name: string]: Schema3 };
-    securitySchemes?: { [name: string]: Security };
+    securitySchemes?: { [name: string]: SecuritySchemes };
   }
 
   export interface Server {
@@ -385,5 +385,8 @@ export namespace Swagger {
     [flowName in OAuth2FlowTypes]?: OAuth2SecurityFlow3;
   };
   export type OAuth2FlowTypes = 'authorizationCode' | 'implicit' | 'password' | 'clientCredentials';
-  export type Security = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity | OAuth2Security3;
+  export type SecuritySchemes = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity | OAuth2Security3;
+  export interface Security {
+    [key: string]: string[];
+  }
 }

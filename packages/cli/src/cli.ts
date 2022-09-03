@@ -144,6 +144,22 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
     config.spec.contact.url = config.spec.contact.url || author?.url;
   }
 
+  if (config.spec.rootSecurity) {
+    if (!Array.isArray(config.spec.rootSecurity)) {
+      throw new Error("spec.rootSecurity must be an array");
+    }
+
+    if (config.spec.rootSecurity) {
+      const ok = config.spec.rootSecurity.every(
+        (security) => typeof security === 'object' && security !== null &&
+          Object.values(security).every(scope => Array.isArray(scope)));
+
+      if (!ok) {
+        throw new Error("spec.rootSecurity must be an array of objects whose keys are security scheme names and values are arrays of scopes");
+      }
+    }
+  }
+
   return {
     ...config.spec,
     noImplicitAdditionalProperties,
@@ -157,6 +173,7 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
+  rootSecurity?: Config['spec']['rootSecurity'];
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
@@ -188,6 +205,7 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
     noImplicitAdditionalProperties,
     controllerPathGlobs: config.controllerPathGlobs,
     multerOpts: config.multerOpts,
+    rootSecurity: config.spec.rootSecurity,
   };
 };
 
@@ -343,7 +361,7 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     const swaggerConfig = await validateSpecConfig(config);
 
     if (!metadata) {
-      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs).Generate();
+      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity).Generate();
     }
 
     await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
