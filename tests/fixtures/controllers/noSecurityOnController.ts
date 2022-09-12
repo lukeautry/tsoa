@@ -15,15 +15,13 @@ export class NoSecurityOnController {
     return Promise.resolve(request.user);
   }
 
-  @Response<ErrorResponseModel>('404', 'Not Found')
   @Get('UndefinedSecurity')
   public async GetWithImplicitSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
-    return Promise.resolve(request.user);
+    return Promise.resolve({ id: 1, name: "static" });
   }
 
-  @Response<ErrorResponseModel>('404', 'Not Found')
-  @Get('NoSecurity')
   @NoSecurity()
+  @Get('NoSecurity')
   public async GetWithNoSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user);
   }

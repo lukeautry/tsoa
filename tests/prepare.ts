@@ -85,6 +85,21 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         metadata,
       ),
     ),
+    log('Express Route Generation, rootSecurity', () =>
+      generateRoutes(
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          authenticationModule: './fixtures/express/authentication.ts',
+          basePath: '/v1',
+          entryFile: './fixtures/express-root-security/server.ts',
+          middleware: 'express',
+          routesDir: './fixtures/express-root-security',
+          rootSecurity: [
+            { api_key: [], },
+          ],
+        },
+      ),
+    ),
     log('Koa Route Generation', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
