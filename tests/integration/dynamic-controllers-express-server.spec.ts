@@ -126,6 +126,21 @@ describe('Express Server', () => {
     });
   });
 
+  it('parses queries parameters in one single object', () => {
+    const numberValue = 10;
+    const boolValue = true;
+    const stringValue = 'the-string';
+
+    return verifyGetRequest(basePath + `/GetTest/AllQueriesInOneObject?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
+      const queryParams = res.body as TestModel;
+
+      expect(queryParams.numberValue).to.equal(numberValue);
+      expect(queryParams.boolValue).to.equal(boolValue);
+      expect(queryParams.stringValue).to.equal(stringValue);
+      expect(queryParams.optionalString).to.be.undefined;
+    });
+  });
+
   it('should reject invalid additionalProperties', () => {
     const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
@@ -984,6 +999,19 @@ describe('Express Server', () => {
   describe('Parameter data', () => {
     it('parses query parameters', () => {
       return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
+      });
+    });
+
+    it('parses queries parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');

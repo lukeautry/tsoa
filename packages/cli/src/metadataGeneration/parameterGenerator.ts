@@ -28,6 +28,8 @@ export class ParameterGenerator {
         return [this.getHeaderParameter(this.parameter)];
       case 'Query':
         return this.getQueryParameters(this.parameter);
+      case 'Queries':
+        return [this.getQueriesParameters(this.parameter)];
       case 'Path':
         return [this.getPathParameter(this.parameter)];
       case 'Res':
@@ -249,6 +251,26 @@ export class ParameterGenerator {
     };
   }
 
+  private getQueriesParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'queries',
+      name: parameterName,
+      example,
+      exampleLabels,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type,
+      validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
+    };
+  }
+
   private getQueryParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter[] {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
@@ -383,7 +405,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

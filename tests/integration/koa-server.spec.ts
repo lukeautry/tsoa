@@ -1067,6 +1067,19 @@ describe('Koa Server', () => {
       });
     });
 
+    it('parses queries parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
+      });
+    });
+
     it('parses path parameters', () => {
       return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;

@@ -1,6 +1,6 @@
 ///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
-import { Controller, Example, Get, OperationId, Query, Request, Response, Route, SuccessResponse, Tags, Res, TsoaResponse } from '@tsoa/runtime';
+import { Controller, Example, Get, OperationId, Query, Request, Response, Route, SuccessResponse, Tags, Res, TsoaResponse, Queries } from '@tsoa/runtime';
 import '../duplicateTestModel';
 import {
   GenericModel,
@@ -142,6 +142,17 @@ export class GetTestController extends Controller {
     model.numberValue = numberPathParam;
     model.boolValue = booleanPathParam;
     model.stringValue = stringPathParam;
+
+    return model;
+  }
+
+  @Get('AllQueriesInOneObject')
+  public async getAllQueriesInOneObject(@Queries() queryParams: QueryParams) {
+    const model = new ModelService().getModel();
+    model.optionalString = queryParams.optionalStringParam;
+    model.numberValue = queryParams.numberParam;
+    model.boolValue = queryParams.booleanParam;
+    model.stringValue = queryParams.stringParam;
 
     return model;
   }
@@ -314,4 +325,11 @@ export interface CustomError extends Error {
 
 export interface Result {
   value: 'success' | 'failure';
+}
+
+export interface QueryParams {
+  numberParam: number;
+  stringParam: string;
+  booleanParam: boolean;
+  optionalStringParam?: string;
 }

@@ -463,6 +463,38 @@ describe('Metadata generation', () => {
       expect(nicknamesParam.example).to.be.undefined;
     });
 
+    it('should generate a queries parameter', () => {
+      const method = controller.methods.find(m => m.name === 'getQueries');
+      if (!method) {
+        throw new Error('Method getQueries not defined!');
+      }
+      const parameter = method.parameters.find(param => param.parameterName === 'queryParams');
+      if (!parameter) {
+        throw new Error('Parameter queryParams not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(1);
+      expect(parameter.description).to.equal('Queries description');
+      expect(parameter.in).to.equal('queries');
+      expect(parameter.name).to.equal('queryParams');
+      expect(parameter.parameterName).to.equal('queryParams');
+      expect(parameter.required).to.be.true;
+      expect(parameter.example).not.to.be.undefined;
+      expect(parameter.example).to.deep.equal([
+        {
+          firstname: 'first1',
+          lastname: 'last1',
+          age: 1,
+        },
+        {
+          firstname: 'first2',
+          lastname: 'last2',
+          age: 2,
+        },
+      ]);
+      expect((parameter.example as unknown[]).length).to.be.equal(2);
+    });
+
     it('should generate a path parameter', () => {
       const method = controller.methods.find(m => m.name === 'getPath');
       if (!method) {
