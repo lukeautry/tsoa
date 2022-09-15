@@ -17,7 +17,7 @@
       "label": "prepareFiles",
       "group": "none",
       "args": ["run", "pretest"],
-      "options": { "cwd": "tests" }
+      "options": { "cwd": "${workspaceFolder}/tests" }
     },
     {
       "label": "watch",
