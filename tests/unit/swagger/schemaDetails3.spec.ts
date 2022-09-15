@@ -7,6 +7,7 @@ import { Swagger } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/testModel';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
+import { versionMajorMinor } from 'typescript';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -1996,16 +1997,37 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
 
             const excludeTypeToPrimitive = getComponentSchema('NonNullable_number-or-null_', currentSpec);
-            expect(excludeTypeToPrimitive).to.deep.eq(
-              {
-                type: 'number',
-                format: 'double',
+
+            if (['4.7', '4.6'].includes(versionMajorMinor)) {
+              expect(excludeTypeToPrimitive).to.deep.eq(
+                {
+                  type: 'number',
+                  format: 'double',
+                  default: undefined,
+                  example: undefined,
+                  description: 'Exclude null and undefined from T',
+                },
+                `for a schema linked by property ${propertyName}`,
+              );
+            } else {
+              expect(excludeTypeToPrimitive).to.deep.eq({
+                allOf: [
+                  {
+                    format: 'double',
+                    nullable: true,
+                    type: 'number',
+                  },
+                  {
+                    properties: {},
+                    type: 'object',
+                  },
+                ],
+                description: 'Exclude null and undefined from T',
                 default: undefined,
                 example: undefined,
-                description: 'Exclude null and undefined from T',
-              },
-              `for a schema linked by property ${propertyName}`,
-            );
+                format: undefined,
+              });
+            }
 
             const pick = getComponentSchema('Pick_ThingContainerWithTitle_string_.list_', currentSpec);
             expect(pick).to.deep.eq(
