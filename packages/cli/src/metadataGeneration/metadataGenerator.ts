@@ -14,7 +14,13 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
-  constructor(entryFile: string, private readonly compilerOptions?: ts.CompilerOptions, private readonly ignorePaths?: string[], controllers?: string[]) {
+  constructor(
+    entryFile: string,
+    private readonly compilerOptions?: ts.CompilerOptions,
+    private readonly ignorePaths?: string[],
+    controllers?: string[],
+    private readonly rootSecurity: Tsoa.Security[] = [],
+  ) {
     TypeResolver.clearCache();
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : ts.createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
@@ -224,7 +230,7 @@ export class MetadataGenerator {
       throw new Error('no controllers found, check tsoa configuration');
     }
     return this.controllerNodes
-      .map(classDeclaration => new ControllerGenerator(classDeclaration, this))
+      .map(classDeclaration => new ControllerGenerator(classDeclaration, this, this.rootSecurity))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }

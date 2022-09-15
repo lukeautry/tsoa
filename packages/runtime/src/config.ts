@@ -173,7 +173,7 @@ export interface SpecConfig {
    * and only serves to provide the relevant details for each scheme.
    */
   securityDefinitions?: {
-    [name: string]: Swagger.Security;
+    [name: string]: Swagger.SecuritySchemes;
   };
 
   /**
@@ -196,6 +196,12 @@ export interface SpecConfig {
    * This helps to generate more consistent clients
    */
   useTitleTagsForInlineObjects?: boolean;
+
+  /**
+   * Applies a default security to the entire API.
+   * Can be overridden with @Security or @NoSecurity decorators on controllers or methods
+   */
+  rootSecurity?: Swagger.Security[];
 }
 
 export interface RoutesConfig {

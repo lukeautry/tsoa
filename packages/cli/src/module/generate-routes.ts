@@ -17,7 +17,7 @@ export const generateRoutes = async (
   metadata?: Tsoa.Metadata,
 ) => {
   if (!metadata) {
-    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs).Generate();
+    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity).Generate();
   }
 
   const routeGenerator = new RouteGenerator(metadata, routesConfig);
