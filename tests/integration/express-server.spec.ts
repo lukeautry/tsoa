@@ -1470,6 +1470,7 @@ describe('Express Server', () => {
           } catch (err) {
             parsedError = res?.error;
             console.log(parsedError);
+            console.log(res);
           }
 
           if (err) {
