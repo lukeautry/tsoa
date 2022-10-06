@@ -1398,7 +1398,7 @@ describe('Express Server', () => {
       });
     });
 
-    it.only('cannot post a file with wrong attribute name', async () => {
+    it('cannot post a file with wrong attribute name', async () => {
       const formData = { wrongAttributeName: '@../package.json' };
       verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
@@ -1464,11 +1464,8 @@ describe('Express Server', () => {
           let parsedError: any;
           try {
             parsedError = JSON.parse(res.error);
-            console.log(parsedError);
           } catch (err) {
             parsedError = res?.error;
-            console.log(parsedError);
-            console.log(res);
           }
 
           if (err) {

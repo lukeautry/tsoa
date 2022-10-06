@@ -1278,12 +1278,10 @@ describe('Koa Server', () => {
 
     it('cannot post a file with wrong attribute name', async () => {
       const formData = { wrongAttributeName: '@../package.json' };
-      try {
-        await verifyFileUploadRequest(basePath + '/PostTest/File', formData);
-      } catch (e: any) {
-        expect(e.response.status).to.equal(500);
-        expect(e.response.text).to.equal('Unexpected field');
-      }
+      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+        expect(res.status).to.equal(500);
+        expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
+      });
     });
 
     it('can post multiple files with other form fields', () => {
