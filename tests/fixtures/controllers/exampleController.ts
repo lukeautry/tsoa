@@ -12,6 +12,11 @@ export interface Location {
   city: string;
 }
 
+export interface Doc {
+  id: number;
+  description: string;
+}
+
 @Route('ExampleTest')
 export class ExampleTestController {
   /**
@@ -221,5 +226,29 @@ export class ExampleTestController {
   @Get('ResponseMultiExamplesWithProduces')
   public async responseMultiExamplesWithProduces(): Promise<string> {
     return 'test 1';
+  }
+
+  @Example<Doc>({
+    id: -1,
+    description: 'test doc des',
+  })
+  @Get('ResponseExampleWithMinusOperatorPrefixValue')
+  public async responseExampleWithMinusOperatorPrefixValue(): Promise<Doc> {
+    return {
+      id: -1,
+      description: 'test doc des',
+    };
+  }
+
+  @Example<Doc>({
+    id: +1,
+    description: 'test doc des',
+  })
+  @Get('ResponseExampleWithPlusOperatorPrefixValue')
+  public async responseExampleWithPlusOperatorPrefixValue(): Promise<Doc> {
+    return {
+      id: 1,
+      description: 'test doc des',
+    };
   }
 }

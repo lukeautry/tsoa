@@ -590,6 +590,28 @@ describe('Schema details generation', () => {
 
           expect(examples).to.deep.eq('test example response');
         });
+
+        it('uses minus prefix token number value at @Example model', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithMinusOperatorPrefixValue']?.get?.responses?.[200]?.examples?.['application/json'];
+
+          expect(examples).to.deep.eq({
+            id: -1,
+            description: 'test doc des',
+          });
+        });
+
+        it('uses plus prefix token number value at @Example model', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithPlusOperatorPrefixValue']?.get?.responses?.[200]?.examples?.['application/json'];
+
+          expect(examples).to.deep.eq({
+            id: 1,
+            description: 'test doc des',
+          });
+        });
       });
     });
   });
