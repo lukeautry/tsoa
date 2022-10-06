@@ -21,6 +21,17 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
       return true;
     case ts.SyntaxKind.FalseKeyword:
       return false;
+    case ts.SyntaxKind.PrefixUnaryExpression: {
+      const prefixUnary = initializer as ts.PrefixUnaryExpression;
+      switch (prefixUnary.operator) {
+        case ts.SyntaxKind.PlusToken:
+          return Number((prefixUnary.operand as ts.NumericLiteral).text);
+        case ts.SyntaxKind.MinusToken:
+          return Number(`-${(prefixUnary.operand as ts.NumericLiteral).text}`);
+        default:
+          throw new Error(`Unsupport prefix operator token: ${prefixUnary.operator}`);
+      }
+    }
     case ts.SyntaxKind.NumberKeyword:
     case ts.SyntaxKind.FirstLiteralToken:
       return Number((initializer as ts.NumericLiteral).text);
