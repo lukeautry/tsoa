@@ -967,6 +967,36 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             },
           });
         });
+
+        it('uses minus prefix token number value at @Example model', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithMinusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: {
+                id: -1,
+                description: 'test doc des',
+              },
+            },
+          });
+        });
+
+        it('uses plus prefix token number value at @Example model', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithPlusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+
+          expect(examples).to.deep.eq({
+            'Example 1': {
+              value: {
+                id: 1,
+                description: 'test doc des',
+              },
+            },
+          });
+        });
       });
 
       describe('deprecation', () => {
