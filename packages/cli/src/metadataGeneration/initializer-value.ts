@@ -16,6 +16,7 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
       return arrayLiteral.elements.map(element => getInitializerValue(element, typeChecker));
     }
     case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
       return (initializer as ts.StringLiteral).text;
     case ts.SyntaxKind.TrueKeyword:
       return true;
