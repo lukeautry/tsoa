@@ -40,6 +40,9 @@ jobs:
       - name: Output ts version
         run: yarn tsc --version
 
+      - name: Output packages version
+        run: yarn list
+
       - name: Build
         run: yarn run build
 
