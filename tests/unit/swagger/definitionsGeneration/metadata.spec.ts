@@ -463,7 +463,7 @@ describe('Metadata generation', () => {
       expect(nicknamesParam.example).to.be.undefined;
     });
 
-    it('should generate an path parameter', () => {
+    it('should generate a path parameter', () => {
       const method = controller.methods.find(m => m.name === 'getPath');
       if (!method) {
         throw new Error('Method getPath not defined!');
@@ -523,7 +523,7 @@ describe('Metadata generation', () => {
       expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
-    it('should generate an path parameter from colon delimiter path params', () => {
+    it('should generate a path parameter from colon delimiter path params', () => {
       const method = controller.methods.find(m => m.name === 'getPathColonDelimiter');
       if (!method) {
         throw new Error('Method getPathColonDelimiter not defined!');
@@ -578,6 +578,23 @@ describe('Metadata generation', () => {
       expect(genderParam.description).to.equal('Gender description');
       expect(genderParam.required).to.be.true;
       expect(genderParam.type.dataType).to.equal('refEnum');
+    });
+
+    it('should generate a path parameter from template literal', () => {
+      const method = controller.methods.find(m => m.name === 'getPathTemplateLiteral');
+      if (!method) {
+        throw new Error('Method getPathTemplateLiteral not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(1);
+
+      const idParam = method.parameters[0];
+      expect(idParam.in).to.equal('path');
+      expect(idParam.name).to.equal('id');
+      expect(idParam.parameterName).to.equal('id');
+      expect(idParam.description).to.equal('ID description');
+      expect(idParam.required).to.be.true;
+      expect(idParam.type.dataType).to.equal('string');
     });
 
     it('should generate an header parameter', () => {

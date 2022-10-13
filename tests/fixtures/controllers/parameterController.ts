@@ -135,6 +135,16 @@ export class ParameterController {
   }
 
   /**
+   * Path test paramater
+   *
+   * @param {string} id ID description
+   */
+  @Get(`PathTemplateLiteral/{id}`)
+  public async getPathTemplateLiteral(@Path() id: string): Promise<void> {
+    return;
+  }
+
+  /**
    * Header test paramater
    *
    * @param {string} firstname Firstname description
