@@ -36,7 +36,7 @@ In situations where the code is very hard to extend, we may want to refactor mod
 ## Contributing bug fixes
 
 Your pull request should include a link to the bug that you are fixing. If you've submitted a PR for a bug, please post a comment in the bug to avoid duplication of effort.
-
+ 
 ## Contributing features
 
 Features (things that add new or improved functionality to tsoa) may be accepted, but will need to **first** be approved by having the (["help wanted" label](https://github.com/lukeautry/tsoa/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) by a tsoa project maintainer) in the suggestion issue.

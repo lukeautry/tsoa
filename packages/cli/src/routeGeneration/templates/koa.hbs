@@ -160,7 +160,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             let success;
             try {
-                const user = await promiseAny(secMethodOrPromises);
+                const user = await promiseAny.call(Promise, secMethodOrPromises);
                 success = true;
                 context.request['user'] = user;
             }
