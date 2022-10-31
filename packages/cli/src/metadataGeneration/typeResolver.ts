@@ -26,7 +26,7 @@ export class TypeResolver {
     private readonly parentNode?: ts.Node,
     private context: Context = {},
     private readonly referencer?: ts.TypeNode,
-    private readonly add: boolean = true,
+    private readonly addToRefTypeMap: boolean = true,
   ) {}
 
   public static clearCache() {
@@ -420,7 +420,7 @@ export class TypeResolver {
 
     const referenceType = this.getReferenceType(typeReference);
 
-    if (this.add) {
+    if (this.addToRefTypeMap) {
       this.current.AddReferenceType(referenceType);
     }
 
@@ -600,7 +600,7 @@ export class TypeResolver {
     };
   }
 
-  private getReferenceType(node: ts.TypeReferenceType, add = true): Tsoa.ReferenceType {
+  private getReferenceType(node: ts.TypeReferenceType, addToRefTypeMap = true): Tsoa.ReferenceType {
     let type: ts.EntityName;
     if (ts.isTypeReferenceNode(node)) {
       type = node.typeName;
@@ -651,7 +651,7 @@ export class TypeResolver {
 
       let referenceType: Tsoa.ReferenceType;
       if (ts.isTypeAliasDeclaration(declaration)) {
-        referenceType = this.getTypeAliasReference(declaration, name, node, add);
+        referenceType = this.getTypeAliasReference(declaration, name, node, addToRefTypeMap);
       } else if (ts.isEnumMember(declaration)) {
         referenceType = {
           dataType: 'refEnum',
@@ -674,7 +674,7 @@ export class TypeResolver {
     }
   }
 
-  private getTypeAliasReference(declaration: ts.TypeAliasDeclaration, name: string, referencer: ts.TypeReferenceType, add = true): Tsoa.ReferenceType {
+  private getTypeAliasReference(declaration: ts.TypeAliasDeclaration, name: string, referencer: ts.TypeReferenceType, addToRefTypeMap = true): Tsoa.ReferenceType {
     const example = this.getNodeExample(declaration);
 
     return {
@@ -683,7 +683,7 @@ export class TypeResolver {
       description: this.getNodeDescription(declaration),
       refName: this.getRefTypeName(name),
       format: this.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer, add).resolve(),
+      type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer, addToRefTypeMap).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
     };
