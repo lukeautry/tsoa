@@ -98,17 +98,27 @@ describe('Definition generation', () => {
 
   describe('Interface-based generation', () => {
     it('should not generate a definition for heritage interfaces', () => {
-      allSpecs.forEach(currentSpec => {
-        const expectedModels = [
-          // TypeAlias4 is a herritage interface for HeritageTestModel, so it should not be found.
-          // If typeAlias4 is ever added to the test model itself, this test may fail even if the it is still working.
-          // In case of failure, check to see if TypeAlias4 is being used not as a heritage type.
-          'TypeAlias4',
-        ];
-        expectedModels.forEach(modelName => {
-          ValidateOmitted(modelName, currentSpec);
-        });
-      });
+      const expectedModel = 'HeritageTestModel2';
+      let modelFound = false;
+
+      for (const currentSpec of allSpecs) {
+        // HeritageBaseModel is a herritage interface for HeritageTestModel2, so it should not be found.
+        // If HeritageBaseModel is ever added to the test model itself, this test may fail even if the it is still working.
+        // In case of failure, check to see if HeritageBaseModel is being used not as a heritage type.
+
+        const notExpectedModels = ['HeritageBaseModel'];
+
+        if (currentSpec.spec.definitions && currentSpec.spec.definitions[expectedModel]) {
+          for (const modelName of notExpectedModels) {
+            modelFound = true;
+            ValidateOmitted(modelName, currentSpec);
+          }
+        }
+      }
+
+      if (!modelFound) {
+        throw new Error(`${expectedModel} should not have been automatically generated in at least one model.  False positive averted.`);
+      }
     });
 
     it('should generate a definition for referenced models', () => {
@@ -842,6 +852,7 @@ describe('Definition generation', () => {
                   readonlyClass: { $ref: '#/definitions/Readonly_TestClassModel_', description: undefined, format: undefined, example: undefined },
                   defaultArgs: { $ref: '#/definitions/DefaultTestModel', description: undefined, format: undefined, example: undefined },
                   heritageCheck: { $ref: '#/definitions/HeritageTestModel', description: undefined, format: undefined, example: undefined },
+                  heritageCheck2: { $ref: '#/definitions/HeritageTestModel2', description: undefined, format: undefined, example: undefined },
                 },
                 type: 'object',
                 default: undefined,
@@ -1253,6 +1264,26 @@ describe('Definition generation', () => {
                   },
                 },
                 required: ['value4'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
+                description: undefined,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const heritageCheck2 = getValidatedDefinition('HeritageTestModel2', currentSpec);
+            expect(heritageCheck2).to.deep.eq(
+              {
+                properties: {
+                  value: {
+                    default: undefined,
+                    description: undefined,
+                    format: undefined,
+                    example: undefined,
+                    type: 'string',
+                  },
+                },
+                required: ['value'],
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras' ? false : true,
                 description: undefined,

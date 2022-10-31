@@ -122,6 +122,7 @@ export interface TestModel extends Model {
 
     defaultArgs?: DefaultTestModel;
     heritageCheck?: HeritageTestModel;
+    heritageCheck2?: HeritageTestModel2;
   };
 
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
@@ -412,6 +413,12 @@ export interface TestSubModel2 extends TestSubModel {
 }
 
 export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> {}
+
+export interface HeritageBaseModel {
+  value: string;
+}
+
+export type HeritageTestModel2 = HeritageBaseModel
 
 export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status'>> {
   t: GenericRequest<T>;
