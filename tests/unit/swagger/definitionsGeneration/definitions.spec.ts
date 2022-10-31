@@ -100,7 +100,9 @@ describe('Definition generation', () => {
     it('should not generate a definition for heritage interfaces', () => {
       allSpecs.forEach(currentSpec => {
         const expectedModels = [
-          //TypeAlias4 is a herritage interface for HeritageTestModel
+          // TypeAlias4 is a herritage interface for HeritageTestModel, so it should not be found.
+          // If typeAlias4 is ever added to the test model itself, this test may fail even if the it is still working.
+          // In case of failure, check to see if TypeAlias4 is being used not as a heritage type.
           'TypeAlias4',
         ];
         expectedModels.forEach(modelName => {
