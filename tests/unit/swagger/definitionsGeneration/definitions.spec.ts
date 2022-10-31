@@ -66,6 +66,17 @@ describe('Definition generation', () => {
     return definition;
   };
 
+  const ValidateOmitted = (name: string, chosenSpec: SpecAndName) => {
+    if (!chosenSpec.spec.definitions) {
+      return;
+    }
+
+    const definition = chosenSpec.spec.definitions[name];
+    if (definition) {
+      throw new Error(`${name} should not have been automatically generated in ${chosenSpec.specName}.`);
+    }
+  };
+
   function forSpec(chosenSpec: SpecAndName): string {
     return `for the ${chosenSpec.specName} spec`;
   }
@@ -86,6 +97,18 @@ describe('Definition generation', () => {
   });
 
   describe('Interface-based generation', () => {
+    it('should not generate a definition for heritage interfaces', () => {
+      allSpecs.forEach(currentSpec => {
+        const expectedModels = [
+          //TypeAlias4 is a herritage interface for HeritageTestModel
+          'TypeAlias4',
+        ];
+        expectedModels.forEach(modelName => {
+          ValidateOmitted(modelName, currentSpec);
+        });
+      });
+    });
+
     it('should generate a definition for referenced models', () => {
       allSpecs.forEach(currentSpec => {
         const expectedModels = [
