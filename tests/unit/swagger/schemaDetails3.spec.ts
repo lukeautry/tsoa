@@ -1767,6 +1767,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   readonlyClass: { $ref: '#/components/schemas/Readonly_TestClassModel_', description: undefined, format: undefined, example: undefined },
                   defaultArgs: { $ref: '#/components/schemas/DefaultTestModel', description: undefined, format: undefined, example: undefined },
                   heritageCheck: { $ref: '#/components/schemas/HeritageTestModel', description: undefined, format: undefined, example: undefined },
+                  heritageCheck2: { $ref: '#/components/schemas/HeritageTestModel2', description: undefined, format: undefined, example: undefined },
                 },
                 type: 'object',
                 default: undefined,
@@ -2234,6 +2235,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   name: { type: 'string', description: undefined, format: undefined, example: undefined, default: undefined },
                 },
                 required: ['value4'],
+                type: 'object',
+                additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
+                description: undefined,
+              },
+              `for schema linked by property ${propertyName}`,
+            );
+
+            const heritageCheck2 = getComponentSchema('HeritageTestModel2', currentSpec);
+            expect(heritageCheck2).to.deep.eq(
+              {
+                properties: {
+                  value: { type: 'string', description: undefined, format: undefined, example: undefined, default: undefined },
+                },
+                required: ['value'],
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,

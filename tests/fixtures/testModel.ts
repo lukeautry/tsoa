@@ -122,6 +122,7 @@ export interface TestModel extends Model {
 
     defaultArgs?: DefaultTestModel;
     heritageCheck?: HeritageTestModel;
+    heritageCheck2?: HeritageTestModel2;
   };
 
   genericMultiNested?: GenericRequest<GenericRequest<TypeAliasModel1>>;
@@ -412,6 +413,13 @@ export interface TestSubModel2 extends TestSubModel {
 }
 
 export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> {}
+
+export interface HeritageBaseModel {
+  value: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HeritageTestModel2 extends HeritageBaseModel {}
 
 export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status'>> {
   t: GenericRequest<T>;
