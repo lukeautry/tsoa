@@ -151,6 +151,9 @@ export class ExampleTestController {
    *     "errorMessage":"No such city",
    *     "errorCode": 40000
    * }
+   * @example res {
+   *      "session": "asd.f"
+   * }
    * @example res { "errorMessage":"No custom label", "errorCode": 40000 }
    */
   @Get('CustomExampleLabels')
