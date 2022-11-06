@@ -190,7 +190,8 @@ describe('GET route generation', () => {
     }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });
 
-  it('should reject invalid header types', () => {
+  it('should reject invalid header types', function () {
+    this.timeout(10_000);
     expect(() => {
       new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
     }).to.throw(/^Unable to parse Header Type 'Header names must be of type string.*/);
