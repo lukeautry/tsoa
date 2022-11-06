@@ -38,7 +38,7 @@
     "test": "lerna run test --stream",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run lint --fix",
-    "watch": "lerna run watch --parallel",
+    "watch": "lerna run watch",
     "lerna": "lerna"
   },
   "dependencies": {},
@@ -48,7 +48,7 @@
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",
     "husky": "^4.3.0",
-    "lerna": "^5.4.3",
+    "lerna": "^6.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1"
   },
