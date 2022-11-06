@@ -23,7 +23,7 @@ jobs:
         run: npm install -g yarn
 
       - name: Set resolutions to correct typescript version
-        uses: jossef/action-set-json-field@v2
+        uses: jossef/action-set-json-field@v2.1
         with:
           file: package.json
           field: resolutions
