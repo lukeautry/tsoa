@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { Tsoa } from '@tsoa/runtime';
-import { RouteGenerator } from '@tsoa/cli/routeGeneration/routeGenerator';
+import { SingleFileRouteGenerator } from '@tsoa/cli/routeGeneration/routeGenerator';
 
 describe('RouteGenerator', () => {
   describe('.buildModels', () => {
@@ -12,7 +12,7 @@ describe('RouteGenerator', () => {
       };
       const refThatShouldNotAllowExtras = 'refThatShouldNotAllowExtras';
       const refWithExtraStrings = 'refWithExtraStrings';
-      const generator = new RouteGenerator(
+      const generator = new SingleFileRouteGenerator(
         {
           controllers: [],
           referenceTypeMap: {
@@ -73,7 +73,7 @@ describe('RouteGenerator', () => {
 
   describe('.buildContent', () => {
     it('strips .ts from the end of module paths but not from the middle', () => {
-      const generator = new RouteGenerator(
+      const generator = new SingleFileRouteGenerator(
         {
           controllers: [
             {
@@ -98,7 +98,7 @@ describe('RouteGenerator', () => {
     });
 
     it('adds js for routes if esm is true', () => {
-      const generator = new RouteGenerator(
+      const generator = new SingleFileRouteGenerator(
         {
           controllers: [
             {
