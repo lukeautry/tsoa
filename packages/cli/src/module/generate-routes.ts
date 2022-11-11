@@ -41,9 +41,7 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
     } catch (_err) {
       // try to find a relative import path
       const relativePath = path.relative(__dirname, routesConfig.routeGenerator);
-      // console.log('Custom Route generator relative path', relativePath);
       const module = await import(relativePath);
-      // console.log('Imported', Object.keys(module));
       return new module.default(metadata, routesConfig);
     }
   }
