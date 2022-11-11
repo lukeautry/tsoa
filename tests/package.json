@@ -17,7 +17,7 @@
     "koa"
   ],
   "scripts": {
-    "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
+    "clean": "rimraf dist fixtures/*/routes.ts fixtures/*/customRoutes.ts fixtures/*/custom-route-generator/routes/*",
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
     "pretest": "yarn clean && yarn prepare-test && yarn typecheck",
     "test": "cross-env NODE_ENV=tsoa_test mocha --require=ts-node/register --require=tsconfig-paths/register --exit",
