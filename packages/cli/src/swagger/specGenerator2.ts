@@ -299,13 +299,13 @@ export class SpecGenerator2 extends SpecGenerator {
     return parameter;
   }
 
-  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter3[] {
-    if (source.type.dataType === 'refAlias' && source.type.type.dataType === 'nestedObjectLiteral') {
-      const properties = source.type.type.properties;
+  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter2[] {
+    if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
+      const properties = source.type.properties;
 
       return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
     }
-    return [];
+    throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {

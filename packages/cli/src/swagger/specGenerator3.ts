@@ -468,12 +468,12 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter3[] {
-    if (source.type.dataType === 'refAlias' && source.type.type.dataType === 'nestedObjectLiteral') {
-      const properties = source.type.type.properties;
+    if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
+      const properties = source.type.properties;
 
       return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
     }
-    return [];
+    throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter3 {
@@ -534,8 +534,6 @@ export class SpecGenerator3 extends SpecGenerator {
         const exampleLabel = parameterExampleLabels?.[currentIndex];
         return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
       }, {});
-
-      console.log(parameter.examples);
     }
 
     return parameter;

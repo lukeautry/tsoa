@@ -204,6 +204,13 @@ describe('GET route generation', () => {
     }).to.throw("Only one queries parameter allowed in 'InvalidQueriesTestController.getWithMultipleQueriesParams' method.");
   });
 
+  it('should reject nested Query object inside Queries decorator', () => {
+    expect(() => {
+      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
+      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+    }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
+  });
+
   it('should reject invalid header types', function () {
     this.timeout(10_000);
     expect(() => {

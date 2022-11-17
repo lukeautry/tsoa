@@ -255,6 +255,14 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
+    if (type.dataType !== 'refObject' && type.dataType !== 'nestedObjectLiteral') {
+      throw new GenerateMetadataError(`@Queries('${parameterName}') only support 'refObject' or 'nestedObjectLiteral' types. If you want only one query parameter, please use the '@Query' decorator.`);
+    }
+
+    for (const property of type.properties) {
+      this.validateQueriesProperties(property, parameterName);
+    }
+
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
 
     return {
@@ -269,6 +277,17 @@ export class ParameterGenerator {
       validators: getParameterValidators(this.parameter, parameterName),
       deprecated: this.getParameterDeprecation(parameter),
     };
+  }
+
+  private validateQueriesProperties(property: Tsoa.Property, parentName: string) {
+    if (property.type.dataType === 'array') {
+      const arrayType = property.type;
+      if (!this.supportPathDataType(arrayType.elementType)) {
+        throw new GenerateMetadataError(`@Queries('${parentName}') property '${property.name}' can't support array '${arrayType.elementType.dataType}' type.`);
+      }
+    } else if (!this.supportPathDataType(property.type)) {
+      throw new GenerateMetadataError(`@Queries('${parentName}') nested property '${property.name}' Can't support '${property.type.dataType}' type.`);
+    }
   }
 
   private getQueryParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter[] {
