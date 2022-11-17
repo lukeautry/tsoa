@@ -157,6 +157,22 @@ export class GetTestController extends Controller {
     return model;
   }
 
+  @Get('WildcardQueries')
+  public async getWildcardQueries(@Queries() queryParams: { [name: string]: any }) {
+    const model = new ModelService().getModel();
+    model.anyType = queryParams;
+
+    return model;
+  }
+
+  @Get('TypedRecordQueries')
+  public async getTypedRecordQueries(@Queries() queryParams: { [name: string]: number }) {
+    const model = new ModelService().getModel();
+    model.anyType = queryParams;
+
+    return model;
+  }
+
   @Get('ResponseWithUnionTypeProperty')
   public async getResponseWithUnionTypeProperty(): Promise<Result> {
     return {

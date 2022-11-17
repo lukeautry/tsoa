@@ -141,6 +141,53 @@ describe('Express Server', () => {
     });
   });
 
+  it('accepts any parameter using a wildcard', () => {
+    const object = {
+      foo: 'foo',
+      bar: 10,
+      baz: true,
+    };
+
+    return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+      const queryParams = res.body as TestModel;
+
+      expect(queryParams.anyType.foo).to.equal(object.foo);
+      expect(queryParams.anyType.bar).to.equal(String(object.bar));
+      expect(queryParams.anyType.baz).to.equal(String(object.baz));
+    });
+  });
+
+  it('should reject incompatible entries for typed wildcard', () => {
+    const object = {
+      foo: '2',
+      bar: 10,
+      baz: true,
+    };
+
+    return verifyGetRequest(
+      basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
+      (err, _res) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['queryParams.baz'].message).to.equal('invalid float number');
+      },
+      400,
+    );
+  });
+
+  it('accepts numbered parameters using a wildcard', () => {
+    const object = {
+      foo: '3',
+      bar: 10,
+    };
+
+    return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+      const queryParams = res.body as TestModel;
+
+      expect(queryParams.anyType.foo).to.equal(Number(object.foo));
+      expect(queryParams.anyType.bar).to.equal(object.bar);
+    });
+  });
+
   it('should reject invalid additionalProperties', () => {
     const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
