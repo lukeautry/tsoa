@@ -206,7 +206,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         basePath: '/v1',
         entryFile: './fixtures/custom/server.ts',
         routesDir: './fixtures/custom/custom-route-generator/routes',
-        // routeGenerator: 'pclements',
         routeGenerator: './fixtures/custom/custom-route-generator/serverlessRouteGenerator',
         modelsTemplate: './fixtures/custom/custom-route-generator/templates/models.hbs',
         handlerTemplate: './fixtures/custom/custom-route-generator/templates/handler.hbs',
