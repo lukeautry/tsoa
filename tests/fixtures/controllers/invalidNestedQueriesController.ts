@@ -4,7 +4,7 @@ import { ModelService } from '../services/modelService';
 @Route('Controller')
 export class InvalidNestedQueriesController extends Controller {
   @Get('nestedQueriesMethod')
-  public nestedQueriesMethod(@Queries() _nestedQueries: QueriesObject) {
+  public nestedQueriesMethod(@Queries() nestedQueries: QueriesObject) {
     return new ModelService().getModel();
   }
 }
