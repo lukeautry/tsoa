@@ -352,9 +352,9 @@ export class ParameterGenerator {
     const examples = getJSDocTags(node.parent, tag => {
       const comment = commentToString(tag.comment);
       const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && comment?.startsWith(parameterName);
-      const hasExampleLabel = (comment?.indexOf('.') || -1) > 0;
 
       if (isExample) {
+        const hasExampleLabel = (comment?.split(' ')[0].indexOf('.') || -1) > 0;
         // custom example label is delimited by first '.' and the rest will all be included as example label
         exampleLabels.push(hasExampleLabel ? comment?.split(' ')[0].split('.').slice(1).join('.') : undefined);
       }

@@ -872,6 +872,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
             'Example 3': {
               value: {
+                session: 'asd.f',
+              },
+            },
+            'Example 4': {
+              value: {
                 errorCode: 40000,
                 errorMessage: 'No custom label',
               },
