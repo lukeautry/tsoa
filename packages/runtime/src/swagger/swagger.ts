@@ -321,6 +321,12 @@ export namespace Swagger {
     description?: string;
   }
 
+  export interface ApiKeySecurity extends BaseSecurity {
+    type: 'apiKey';
+    name: string;
+    in: 'query' | 'header';
+  }
+
   interface BaseOAuthSecurity extends BaseSecurity {
     scopes?: OAuthScope;
   }
@@ -334,10 +340,10 @@ export namespace Swagger {
     type: 'basic';
   }
 
-  export interface ApiKeySecurity extends BaseSecurity {
-    type: 'apiKey';
-    name: string;
-    in: 'query' | 'header';
+  export interface BearerSecurity3 extends BaseSecurity {
+    type: 'http';
+    scheme: 'bearer';
+    bearerFormat?: string;
   }
 
   export interface OAuth2Security3 extends BaseSecurity {
@@ -385,7 +391,16 @@ export namespace Swagger {
     [flowName in OAuth2FlowTypes]?: OAuth2SecurityFlow3;
   };
   export type OAuth2FlowTypes = 'authorizationCode' | 'implicit' | 'password' | 'clientCredentials';
-  export type SecuritySchemes = BasicSecurity | BasicSecurity3 | ApiKeySecurity | OAuth2AccessCodeSecurity | OAuth2ApplicationSecurity | OAuth2ImplicitSecurity | OAuth2PasswordSecurity | OAuth2Security3;
+  export type SecuritySchemes =
+    | ApiKeySecurity
+    | BasicSecurity
+    | BasicSecurity3
+    | BearerSecurity3
+    | OAuth2AccessCodeSecurity
+    | OAuth2ApplicationSecurity
+    | OAuth2ImplicitSecurity
+    | OAuth2PasswordSecurity
+    | OAuth2Security3;
   export interface Security {
     [key: string]: string[];
   }

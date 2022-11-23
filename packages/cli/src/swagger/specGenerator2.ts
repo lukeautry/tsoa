@@ -24,7 +24,14 @@ export class SpecGenerator2 extends SpecGenerator {
       swagger: '2.0',
     };
 
-    spec.securityDefinitions = this.config.securityDefinitions ? this.config.securityDefinitions : {};
+    const securityDefinitions = this.config.securityDefinitions ? this.config.securityDefinitions : {};
+    const supportedSchemes = ['basic', 'apiKey', 'oauth2'];
+    for (const { type } of Object.values(securityDefinitions)) {
+      if (!supportedSchemes.includes(type)) {
+        throw new Error(`Swagger 2.0 does not support "${type}" security scheme (allowed values: ${supportedSchemes.join(',')})`);
+      }
+    }
+    spec.securityDefinitions = securityDefinitions;
 
     if (this.config.name) {
       spec.info.title = this.config.name;
