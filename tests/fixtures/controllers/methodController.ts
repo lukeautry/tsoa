@@ -1,6 +1,6 @@
 import { Controller, Extension, Options, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags, Example } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
-import { ErrorResponseModel, TestModel } from '../testModel';
+import { ErrorResponseModel, TestModel, TestModel as RenamedModel } from '../testModel';
 
 const TEST_OBJECT_CONST = {
   unAuthCode: '401',
@@ -35,7 +35,7 @@ export class MethodController extends Controller {
   }
 
   @Get('Get')
-  public async getMethod(): Promise<TestModel> {
+  public async getMethod(): Promise<RenamedModel> {
     return new ModelService().getModel();
   }
 

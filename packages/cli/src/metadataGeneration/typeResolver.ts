@@ -863,13 +863,17 @@ export class TypeResolver {
   }
 
   private getModelTypeDeclaration(type: ts.EntityName) {
-    const typeName = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
+    let typeName: string = type.kind === ts.SyntaxKind.Identifier ? type.text : type.right.text;
 
     const symbol = this.getSymbolAtLocation(type);
     const declarations = symbol?.getDeclarations();
 
     if (!declarations) {
       throw new GenerateMetadataError(`No declarations found for referenced type ${typeName}.`);
+    }
+
+    if (symbol.escapedName !== typeName && symbol.escapedName !== 'default') {
+      typeName = symbol.escapedName as string;
     }
 
     let modelTypes = declarations.filter((node): node is UsableDeclarationWithoutPropertySignature => {
@@ -1084,7 +1088,7 @@ export class TypeResolver {
               properties = [...properties, ...type.properties];
             }
           } else if (referenceType.dataType === 'refObject') {
-            referenceType.properties.forEach(property => properties.push(property));
+            (referenceType.properties || []).forEach(property => properties.push(property));
           } else {
             assertNever(referenceType);
           }
