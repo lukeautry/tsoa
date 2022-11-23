@@ -740,4 +740,28 @@ describe('Schema details generation', () => {
       expectTestModelSchema(responses?.['500']);
     });
   });
+
+  describe('security definitions', () => {
+    it('should reject http security scheme for OAS2', () => {
+      // Act
+      const optionsWithBearer = Object.assign({}, getDefaultExtendedOptions(), {
+        securityDefinitions: {
+          bearer: {
+            type: 'http',
+            scheme: 'bearer',
+          },
+        },
+      });
+      let errToTest: Error | null = null;
+      try {
+        const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        new SpecGenerator2(metadata, optionsWithBearer).GetSpec();
+      } catch (err: any) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/Swagger 2.0 does not support "http" security scheme/);
+    });
+  });
 });
