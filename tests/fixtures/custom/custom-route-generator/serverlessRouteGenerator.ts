@@ -50,7 +50,6 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
     if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
       throw new Error(`routesDir should be a directory`);
     }
-    console.log('Generating models');
     await this.generateModels();
     await this.generateRoutes();
     await this.generateStack();
