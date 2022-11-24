@@ -3,6 +3,7 @@ import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
 import { isRefType } from '../utils/internalTypeGuards';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
+import { fsExists, fsReadFile } from '../utils/fs';
 
 export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig> {
   constructor(protected readonly metadata: Tsoa.Metadata, protected readonly options: Config) {}
@@ -211,5 +212,15 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     }
 
     return schema;
+  }
+
+  protected async shouldWriteFile(fileName: string, content: string) {
+    if (this.options.noWriteIfUnchanged) {
+      if (await fsExists(fileName)) {
+        const existingContent = (await fsReadFile(fileName)).toString();
+        return content !== existingContent;
+      }
+    }
+    return true;
   }
 }
