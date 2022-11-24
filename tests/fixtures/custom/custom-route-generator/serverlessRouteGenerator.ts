@@ -11,6 +11,7 @@ export interface ServerlessRoutesConfig extends ExtendedRoutesConfig {
   modelsTemplate?: string;
   modelsFileName?: string;
   handlerTemplate?: string;
+  stackTemplate: string;
 }
 
 export default class ServerlessRouteGenerator extends AbstractRouteGenerator<ServerlessRoutesConfig> {
@@ -55,16 +56,6 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
     await this.generateStack();
   }
 
-  async shouldWriteFile(fileName: string, content: string) {
-    if (this.options.noWriteIfUnchanged) {
-      if (await fsExists(fileName)) {
-        const existingContent = (await fsReadFile(fileName)).toString();
-        return content !== existingContent;
-      }
-    }
-    return true;
-  }
-
   async generateFileFromTemplate(templateName: string, templateContext: object, outputFileName: string) {
     const data = await fsReadFile(path.join(templateName));
     const file = data.toString();
@@ -79,9 +70,25 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
     return Promise.resolve();
   }
 
-  generateStack(): Promise<void> {
-    // TODO: generate stack
-    return Promise.resolve();
+  /**
+   * Generate the CDK infrastructure stack that ties API Gateway to generated Handlers
+   * @returns 
+   */
+  async generateStack(): Promise<void> {
+    // This would need to generate a CDK "Stack" that takes the tsoa metadata as input and generates a valid serverless CDK infrastructure stack from template
+    const templateFileName = this.options.stackTemplate;
+    const fileName = `${this.options.routesDir}/stack.ts`;
+    const context = this.buildContext() as unknown as any;
+    context.controllers = context.controllers.map((controller) => {
+      controller.actions = controller.actions.map((action) => {
+        return {
+          ...action,
+          handlerFolderName:`${this.options.routesDir}/${controller.name}`
+        }
+      });
+      return controller;
+    });
+    await this.generateFileFromTemplate(templateFileName, context, fileName);
   }
 
   async generateModels(): Promise<void> {

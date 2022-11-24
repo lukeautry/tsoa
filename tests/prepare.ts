@@ -209,6 +209,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routeGenerator: './fixtures/custom/custom-route-generator/serverlessRouteGenerator',
         modelsTemplate: './fixtures/custom/custom-route-generator/templates/models.hbs',
         handlerTemplate: './fixtures/custom/custom-route-generator/templates/handler.hbs',
+        stackTemplate: './fixtures/custom/custom-route-generator/templates/api-stack.hbs',
       }),
     ),
   ]);

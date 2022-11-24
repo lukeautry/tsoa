@@ -1,0 +1,61 @@
+import * as cdk from "aws-cdk-lib";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as path from "path";
+import { Construct } from "constructs";
+
+export class RoutesStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: any) {
+    super(scope, id, props);
+    // Generate an API Gateway
+    const api = new apigateway.RestApi(this, "tsoa-api", {
+      restApiName: "TSOA Generated Service"
+    });
+
+    {{#each controllers}}
+    // Controller - {{name}}
+    {{#each actions}}
+    // {{../name}} - {{name}}
+    // create a lambda using the generated handler template code
+    const handler_{{../name}}_{{name}} = new lambda.Function(this, "{{../name}}_{{name}}", {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      // Directory name of Lambda handler file
+      code: lambda.Code.fromAsset("{{handlerFolderName}}"),
+      // Format: {fileName}.{handlerMethod}
+      handler: "{{name}}.handler",
+    });
+
+    // create an API Gateway path resource for the action using the tsoa path metadata
+    const resource_{{../name}}_{{name}} = this.createApiGatewayResource("{{fullPath}}", api);
+
+    // attach the lamdba to the resource
+    resource_{{../name}}_{{name}}.addMethod("{{method}}", new apigateway.LambdaIntegration(handler_{{../name}}_{{name}})); 
+   
+    {{/each}}
+    {{/each}}
+  }
+
+  private resources: Record<string, apigateway.IResource> = {};
+  /**
+   *   Resources in API Gateway are needed for each path "part"
+   *   Use this method to create each resource for a given nested path
+   *   Re-uses existing path parts to prevent possible duplication errors
+   */
+  createApiGatewayResource(fullPath: string, api: apigateway.IRestApi) {
+    const pathParts = fullPath.split("/");
+    return pathParts.reduce((parentResource: apigateway.IResource, resourceName: string) => {
+      let resource;
+      if (resourceName === "") return parentResource;
+      const resourcePath = path.join(parentResource.path, resourceName);
+      // find a previously declared Resource for this path if it exists to prevent dupes
+      if (this.resources[resourcePath] !== undefined) {
+        resource = this.resources[resourcePath];
+      } else {
+        // otherwise create a new resource for this path part
+        resource = parentResource.addResource(resourceName);
+      }
+      this.resources[resourcePath] = resource;
+      return resource;
+    }, api.root);
+  }
+}

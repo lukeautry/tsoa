@@ -37,7 +37,14 @@ export async function handler(event, context) {
     let validatedArgs: any[] = [];
     try {
         validatedArgs = getValidatedArgs(args, event);
-
+    } catch(err) {
+        const error = err as any;
+        return {
+            statusCode: error.status,
+            body: JSON.stringify(error)
+        };
+    }
+    try {
         // eslint-disable-next-line prefer-spread
         const result = await controller.{{action.name}}.apply(controller, validatedArgs as any);
         return {
