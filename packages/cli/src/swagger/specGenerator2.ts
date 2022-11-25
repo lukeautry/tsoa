@@ -180,11 +180,21 @@ export class SpecGenerator2 extends SpecGenerator {
       pathMethod.security = method.security;
     }
 
+    const queriesParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'queries');
+
     pathMethod.parameters = method.parameters
       .filter(p => {
-        return !(p.in === 'request' || p.in === 'body-prop' || p.in === 'res');
+        return ['request', 'body-prop', 'res', 'queries'].indexOf(p.in) === -1;
       })
       .map(p => this.buildParameter(p));
+
+    if (queriesParams.length > 1) {
+      throw new Error('Only one queries parameter allowed per controller method.');
+    }
+
+    if (queriesParams.length === 1) {
+      pathMethod.parameters.push(...this.buildQueriesParameter(queriesParams[0]));
+    }
 
     const bodyPropParameter = this.buildBodyPropParameter(controllerName, method);
     if (bodyPropParameter) {
@@ -294,6 +304,15 @@ export class SpecGenerator2 extends SpecGenerator {
       parameter.schema.required = required;
     }
     return parameter;
+  }
+
+  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter2[] {
+    if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
+      const properties = source.type.properties;
+
+      return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
+    }
+    throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {

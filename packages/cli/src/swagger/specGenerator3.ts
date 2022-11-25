@@ -269,12 +269,21 @@ export class SpecGenerator3 extends SpecGenerator {
     const bodyParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'body');
     const bodyPropParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'body-prop');
     const formParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'formData');
+    const queriesParams: Tsoa.Parameter[] = method.parameters.filter(p => p.in === 'queries');
 
     pathMethod.parameters = method.parameters
       .filter(p => {
-        return ['body', 'formData', 'request', 'body-prop', 'res'].indexOf(p.in) === -1;
+        return ['body', 'formData', 'request', 'body-prop', 'res', 'queries'].indexOf(p.in) === -1;
       })
       .map(p => this.buildParameter(p));
+
+    if (queriesParams.length > 1) {
+      throw new Error('Only one queries parameter allowed per controller method.');
+    }
+
+    if (queriesParams.length === 1) {
+      pathMethod.parameters.push(...this.buildQueriesParameter(queriesParams[0]));
+    }
 
     if (bodyParams.length > 1) {
       throw new Error('Only one body parameter allowed per controller method.');
@@ -456,6 +465,15 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     return mediaType;
+  }
+
+  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter3[] {
+    if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
+      const properties = source.type.properties;
+
+      return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
+    }
+    throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter3 {

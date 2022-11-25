@@ -332,6 +332,8 @@ export function RegisterRoutes(server: any) {
                 return request;
             case 'query':
                 return validationService.ValidateParam(args[key], request.query[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
+            case 'queries':
+                return validationService.ValidateParam(args[key], request.query, name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
             case 'path':
                 return validationService.ValidateParam(args[key], request.params[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
             case 'header':

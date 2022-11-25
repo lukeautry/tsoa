@@ -240,6 +240,8 @@ export function RegisterRoutes(router: KoaRouter) {
                 return context.request;
             case 'query':
                 return validationService.ValidateParam(args[key], context.request.query[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
+            case 'queries':
+                return validationService.ValidateParam(args[key], context.request.query, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'path':
                 return validationService.ValidateParam(args[key], context.params[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
             case 'header':

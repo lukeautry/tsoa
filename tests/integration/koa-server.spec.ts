@@ -1067,6 +1067,66 @@ describe('Koa Server', () => {
       });
     });
 
+    it('parses queries parameters', () => {
+      return verifyGetRequest(basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
+      });
+    });
+
+    it('accepts any parameter using a wildcard', () => {
+      const object = {
+        foo: 'foo',
+        bar: 10,
+        baz: true,
+      };
+
+      return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.anyType.foo).to.equal(object.foo);
+        expect(queryParams.anyType.bar).to.equal(String(object.bar));
+        expect(queryParams.anyType.baz).to.equal(String(object.baz));
+      });
+    });
+
+    it('should reject incompatible entries for typed wildcard', () => {
+      const object = {
+        foo: '2',
+        bar: 10,
+        baz: true,
+      };
+
+      return verifyGetRequest(
+        basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields['queryParams.baz'].message).to.equal('invalid float number');
+        },
+        400,
+      );
+    });
+
+    it('accepts numbered parameters using a wildcard', () => {
+      const object = {
+        foo: '3',
+        bar: 10,
+      };
+
+      return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.anyType.foo).to.equal(Number(object.foo));
+        expect(queryParams.anyType.bar).to.equal(object.bar);
+      });
+    });
+
     it('parses path parameters', () => {
       return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;

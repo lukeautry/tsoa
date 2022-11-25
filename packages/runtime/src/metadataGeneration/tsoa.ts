@@ -40,7 +40,7 @@ export namespace Tsoa {
     parameterName: string;
     example?: Array<{ [exampleName: string]: Swagger.Example3 }>;
     description?: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'res';
+    in: 'query' | 'queries' | 'header' | 'path' | 'formData' | 'body' | 'body-prop' | 'request' | 'res';
     name: string;
     required?: boolean;
     type: Type;
