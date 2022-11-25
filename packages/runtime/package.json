@@ -29,7 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/multer": "^1.4.7",
-    "promise.any": "^2.0.4",
+    "promise.any": "^2.0.5",
     "reflect-metadata": "^0.1.13",
     "validator": "^13.7.0"
   },

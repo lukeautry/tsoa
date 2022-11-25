@@ -43,14 +43,14 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.39.0",
-    "@typescript-eslint/parser": "^5.35.1",
-    "eslint": "^8.23.0",
+    "@typescript-eslint/eslint-plugin": "5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
+    "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
     "husky": "^4.3.0",
-    "lerna": "^6.0.1",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1"
+    "lerna": "^6.0.3",
+    "lint-staged": "^13.0.4",
+    "prettier": "^2.8.0"
   },
   "resolutions": {
     "typescript": "^4.9.3"
