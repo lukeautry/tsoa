@@ -146,16 +146,14 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
 
   if (config.spec.rootSecurity) {
     if (!Array.isArray(config.spec.rootSecurity)) {
-      throw new Error("spec.rootSecurity must be an array");
+      throw new Error('spec.rootSecurity must be an array');
     }
 
     if (config.spec.rootSecurity) {
-      const ok = config.spec.rootSecurity.every(
-        (security) => typeof security === 'object' && security !== null &&
-          Object.values(security).every(scope => Array.isArray(scope)));
+      const ok = config.spec.rootSecurity.every(security => typeof security === 'object' && security !== null && Object.values(security).every(scope => Array.isArray(scope)));
 
       if (!ok) {
-        throw new Error("spec.rootSecurity must be an array of objects whose keys are security scheme names and values are arrays of scopes");
+        throw new Error('spec.rootSecurity must be an array of objects whose keys are security scheme names and values are arrays of scopes');
       }
     }
   }
@@ -174,6 +172,7 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
+  routeGenerator?: string;
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
