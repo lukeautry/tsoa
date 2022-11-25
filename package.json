@@ -37,7 +37,7 @@
     "preversion": "yarn test",
     "test": "lerna run test --stream",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "yarn run lint --fix",
+    "lint:fix": "yarn run eslint --ext .ts --fix",
     "watch": "lerna run watch",
     "lerna": "lerna"
   },
