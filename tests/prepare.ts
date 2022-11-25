@@ -86,19 +86,15 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       ),
     ),
     log('Express Route Generation, rootSecurity', () =>
-      generateRoutes(
-        {
-          noImplicitAdditionalProperties: 'silently-remove-extras',
-          authenticationModule: './fixtures/express/authentication.ts',
-          basePath: '/v1',
-          entryFile: './fixtures/express-root-security/server.ts',
-          middleware: 'express',
-          routesDir: './fixtures/express-root-security',
-          rootSecurity: [
-            { api_key: [], },
-          ],
-        },
-      ),
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        authenticationModule: './fixtures/express/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/express-root-security/server.ts',
+        middleware: 'express',
+        routesDir: './fixtures/express-root-security',
+        rootSecurity: [{ api_key: [] }],
+      }),
     ),
     log('Koa Route Generation', () =>
       generateRoutes({
@@ -202,6 +198,18 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         iocModule: './fixtures/inversify-async/ioc.ts',
         middleware: 'express',
         routesDir: './fixtures/inversify-async',
+      }),
+    ),
+    log('Serverless Route Generation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        basePath: '/v1',
+        entryFile: './fixtures/custom/server.ts',
+        routesDir: './fixtures/custom/custom-route-generator/routes',
+        routeGenerator: './fixtures/custom/custom-route-generator/serverlessRouteGenerator',
+        modelsTemplate: './fixtures/custom/custom-route-generator/templates/models.hbs',
+        handlerTemplate: './fixtures/custom/custom-route-generator/templates/handler.hbs',
+        stackTemplate: './fixtures/custom/custom-route-generator/templates/api-stack.hbs',
       }),
     ),
   ]);

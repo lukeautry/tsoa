@@ -89,6 +89,13 @@ export class MethodGenerator {
       })
       .reduce((flattened, params) => [...flattened, ...params], []);
 
+    this.validateBodyParameters(parameters);
+    this.validateQueryParameters(parameters);
+
+    return parameters;
+  }
+
+  private validateBodyParameters(parameters: Tsoa.Parameter[]) {
     const bodyParameters = parameters.filter(p => p.in === 'body');
     const bodyProps = parameters.filter(p => p.in === 'body-prop');
 
@@ -104,7 +111,18 @@ export class MethodGenerator {
     if (hasBodyParameter && hasFormDataParameters) {
       throw new Error(`@Body or @BodyProp cannot be used with @FormField, @UploadedFile, or @UploadedFiles in '${this.getCurrentLocation()}' method.`);
     }
-    return parameters;
+  }
+
+  private validateQueryParameters(parameters: Tsoa.Parameter[]) {
+    const queryParameters = parameters.filter(p => p.in === 'query');
+    const queriesParameters = parameters.filter(p => p.in === 'queries');
+
+    if (queriesParameters.length > 1) {
+      throw new GenerateMetadataError(`Only one queries parameter allowed in '${this.getCurrentLocation()}' method.`);
+    }
+    if (queriesParameters.length > 0 && queryParameters.length > 0) {
+      throw new GenerateMetadataError(`Choose either during @Query or @Queries in '${this.getCurrentLocation()}' method.`);
+    }
   }
 
   private getExtensions() {

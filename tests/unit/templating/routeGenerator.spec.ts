@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { Tsoa } from '@tsoa/runtime';
-import { RouteGenerator } from '@tsoa/cli/routeGeneration/routeGenerator';
+import { DefaultRouteGenerator } from '@tsoa/cli/routeGeneration/defaultRouteGenerator';
 
 describe('RouteGenerator', () => {
   describe('.buildModels', () => {
@@ -12,7 +12,7 @@ describe('RouteGenerator', () => {
       };
       const refThatShouldNotAllowExtras = 'refThatShouldNotAllowExtras';
       const refWithExtraStrings = 'refWithExtraStrings';
-      const generator = new RouteGenerator(
+      const generator = new DefaultRouteGenerator(
         {
           controllers: [],
           referenceTypeMap: {
@@ -73,7 +73,7 @@ describe('RouteGenerator', () => {
 
   describe('.buildContent', () => {
     it('strips .ts from the end of module paths but not from the middle', () => {
-      const generator = new RouteGenerator(
+      const generator = new DefaultRouteGenerator(
         {
           controllers: [
             {
@@ -92,13 +92,13 @@ describe('RouteGenerator', () => {
         },
       );
 
-      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}', s => s);
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
 
       expect(models).to.equal('./controllerWith.tsInPath');
     });
 
     it('adds js for routes if esm is true', () => {
-      const generator = new RouteGenerator(
+      const generator = new DefaultRouteGenerator(
         {
           controllers: [
             {
@@ -118,7 +118,7 @@ describe('RouteGenerator', () => {
         },
       );
 
-      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}', s => s);
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
 
       expect(models).to.equal('./controller.js');
     });

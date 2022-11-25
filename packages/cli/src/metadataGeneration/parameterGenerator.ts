@@ -28,6 +28,8 @@ export class ParameterGenerator {
         return [this.getHeaderParameter(this.parameter)];
       case 'Query':
         return this.getQueryParameters(this.parameter);
+      case 'Queries':
+        return [this.getQueriesParameters(this.parameter)];
       case 'Path':
         return [this.getPathParameter(this.parameter)];
       case 'Res':
@@ -249,6 +251,45 @@ export class ParameterGenerator {
     };
   }
 
+  private getQueriesParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+
+    if (type.dataType !== 'refObject' && type.dataType !== 'nestedObjectLiteral') {
+      throw new GenerateMetadataError(`@Queries('${parameterName}') only support 'refObject' or 'nestedObjectLiteral' types. If you want only one query parameter, please use the '@Query' decorator.`);
+    }
+
+    for (const property of type.properties) {
+      this.validateQueriesProperties(property, parameterName);
+    }
+
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
+    return {
+      description: this.getParameterDescription(parameter),
+      in: 'queries',
+      name: parameterName,
+      example,
+      exampleLabels,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type,
+      validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
+    };
+  }
+
+  private validateQueriesProperties(property: Tsoa.Property, parentName: string) {
+    if (property.type.dataType === 'array') {
+      const arrayType = property.type;
+      if (!this.supportPathDataType(arrayType.elementType)) {
+        throw new GenerateMetadataError(`@Queries('${parentName}') property '${property.name}' can't support array '${arrayType.elementType.dataType}' type.`);
+      }
+    } else if (!this.supportPathDataType(property.type)) {
+      throw new GenerateMetadataError(`@Queries('${parentName}') nested property '${property.name}' Can't support '${property.type.dataType}' type.`);
+    }
+  }
+
   private getQueryParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter[] {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
@@ -352,9 +393,9 @@ export class ParameterGenerator {
     const examples = getJSDocTags(node.parent, tag => {
       const comment = commentToString(tag.comment);
       const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && comment?.startsWith(parameterName);
-      const hasExampleLabel = (comment?.indexOf('.') || -1) > 0;
 
       if (isExample) {
+        const hasExampleLabel = (comment?.split(' ')[0].indexOf('.') || -1) > 0;
         // custom example label is delimited by first '.' and the rest will all be included as example label
         exampleLabels.push(hasExampleLabel ? comment?.split(' ')[0].split('.').slice(1).join('.') : undefined);
       }
@@ -383,7 +424,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type) {

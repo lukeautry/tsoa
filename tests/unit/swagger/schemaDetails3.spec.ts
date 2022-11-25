@@ -243,6 +243,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         user_write: 'user_write',
       });
     });
+
+    it('should allow bearer scheme', () => {
+      const bearer: Swagger.BearerSecurity3 = {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      };
+      const optionsWithBearer = Object.assign({}, defaultOptions, {
+        securityDefinitions: {
+          bearer,
+        },
+      });
+
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+      const exampleSpec = new SpecGenerator3(metadata, optionsWithBearer).GetSpec();
+
+      expect(exampleSpec.components.securitySchemes).to.eql({
+        bearer,
+      });
+    });
   });
 
   describe('example comment', () => {
@@ -871,6 +891,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             'Example 2': { value: 'Another unlabeled one' },
             NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
             'Example 3': {
+              value: {
+                session: 'asd.f',
+              },
+            },
+            'Example 4': {
               value: {
                 errorCode: 40000,
                 errorMessage: 'No custom label',

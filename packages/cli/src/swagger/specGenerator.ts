@@ -210,4 +210,19 @@ export abstract class SpecGenerator {
   protected hasUndefined(property: Tsoa.Property): boolean {
     return property.type.dataType === 'undefined' || (property.type.dataType === 'union' && property.type.types.some(type => type.dataType === 'undefined'));
   }
+
+  protected queriesPropertyToQueryParameter(property: Tsoa.Property): Tsoa.Parameter {
+    return {
+      parameterName: property.name,
+      example: [property.example as any],
+      description: property.description,
+      in: 'query',
+      name: property.name,
+      required: property.required,
+      type: property.type,
+      default: property.default,
+      validators: property.validators,
+      deprecated: property.deprecated,
+    };
+  }
 }

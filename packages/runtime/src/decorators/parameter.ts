@@ -51,6 +51,15 @@ export function Query(name?: string): Function {
 }
 
 /**
+ * Inject all query values in a single object
+ */
+export function Queries(): Function {
+  return () => {
+    return;
+  };
+}
+
+/**
  * Inject value from Http header
  *
  * @param {string} [name] The name of the header parameter

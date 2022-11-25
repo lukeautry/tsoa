@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -64,6 +64,35 @@ export class ParameterController {
       lastname,
       nicknames,
       weight,
+    });
+  }
+
+  /**
+   * Queries test paramater
+   *
+   * @param {object} queryParams Queries description
+   *
+   * @example queryParams {
+   *  "firstname": "first1",
+   *  "lastname": "last1",
+   *  "age": 1
+   * }
+   * @example queryParams {
+   *  "firstname": "first2",
+   *  "lastname": "last2",
+   *  "age": 2
+   * }
+   */
+  @Get('Queries')
+  public async getQueries(@Queries() queryParams: ParameterTestModel): Promise<ParameterTestModel> {
+    return Promise.resolve<ParameterTestModel>({
+      age: queryParams.age,
+      firstname: queryParams.firstname,
+      gender: queryParams.gender,
+      human: queryParams.human,
+      lastname: queryParams.lastname,
+      nicknames: queryParams.nicknames,
+      weight: queryParams.weight,
     });
   }
 
