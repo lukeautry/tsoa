@@ -397,6 +397,9 @@ export class SpecGenerator3 extends SpecGenerator {
       if (parameter.required) {
         required.push(parameter.name);
       }
+      if (parameter.deprecated) {
+        properties[parameter.name].deprecated = parameter.deprecated;
+      }
     }
     const requestBody: Swagger.RequestBody = {
       required: required.length > 0,
