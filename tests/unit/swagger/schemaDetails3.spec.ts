@@ -795,7 +795,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           let mediaTypeTest: Swagger.Spec3;
           let requestAcceptHeaderTest: Swagger.Spec3;
 
-          before(() => {
+          before(function () {
+            this.timeout(10_000);
             const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
             mediaTypeTest = new SpecGenerator3(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
 

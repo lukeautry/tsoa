@@ -2,8 +2,8 @@ import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
 
 import type { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction, RequestHandler } from 'express';
 
-function Middlewares(...mws: RequestHandler[]) {
-  return GenericMiddlewares<RequestHandler>(...mws);
+function Middlewares(...mws: Array<RequestHandler | (() => Promise<RequestHandler>)>) {
+  return GenericMiddlewares(...mws);
 }
 
 const middlewaresState: Record<string, boolean> = {};

@@ -6,15 +6,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [14, 16, 18]
+        node-version: [18, 19]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: [4.6, 4.7, 4.8]
+        typescript-version: [4.7, 4.8, '^4.9.3']
 
     steps:
       - uses: actions/checkout@master
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -23,11 +23,11 @@ jobs:
         run: npm install -g yarn
 
       - name: Set resolutions to correct typescript version
-        uses: jossef/action-set-json-field@v2
+        uses: jossef/action-set-json-field@v2.1
         with:
           file: package.json
           field: resolutions
-          value: "{ \"typescript\": \"${{ matrix.typescript-version }}\"}"
+          value: '{ "typescript": "${{ matrix.typescript-version }}"}'
           parse_json: true
 
       # for yarn3

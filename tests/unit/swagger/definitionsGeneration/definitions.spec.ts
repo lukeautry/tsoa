@@ -1877,7 +1877,7 @@ describe('Definition generation', () => {
           const definition = getValidatedDefinition('DanglingContext_number_', currentSpec).properties;
 
           expect(definition!.number).to.deep.equal({ type: 'number', format: 'double', description: undefined, default: undefined, example: undefined });
-          expect(definition!.shouldBeString!.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
+          expect(definition!.shouldBeString.$ref).to.deep.equal('#/definitions/TSameNameDifferentValue');
         });
         it('should check heritage clauses for type args', () => {
           const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;
