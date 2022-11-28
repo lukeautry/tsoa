@@ -45,4 +45,7 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
       return new module.default(metadata, routesConfig);
     }
   }
+  else {
+    throw new Error("Routes cannot be generated. One of 'middleware', 'middlewareTemplate', or 'routeGenerator' must be confgured")
+  }
 }
