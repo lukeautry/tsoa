@@ -2,7 +2,7 @@
   "name": "tsoa-tests",
   "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "5.0.0-alpha.3",
+  "version": "5.0.0-alpha.4",
   "keywords": [
     "typescript",
     "openapi",
@@ -44,8 +44,6 @@
     "@types/supertest": "^2.0.12",
     "aws-cdk-lib": "^2.51.1",
     "body-parser": "^1.20.0",
-    "chai": "^4.3.7",
-    "chalk": "v4.1.2",
     "chai": "^4.3.6",
     "chalk": "^4.1.2",
     "constructs": "^10.1.169",
