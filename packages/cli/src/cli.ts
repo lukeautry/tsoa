@@ -196,7 +196,6 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
 
   const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
   config.routes.basePath = config.routes.basePath || '/';
-  config.routes.middleware = config.routes.middleware || 'express';
 
   return {
     ...config.routes,

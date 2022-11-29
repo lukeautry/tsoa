@@ -29,9 +29,6 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
 
 async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: Tsoa.Metadata, routesConfig: Config) {
   // default route generator for express/koa/hapi
-  if (routesConfig.middleware !== undefined || routesConfig.middlewareTemplate !== undefined) {
-    return new DefaultRouteGenerator(metadata, routesConfig);
-  }
   // custom route generator
   if (routesConfig.routeGenerator !== undefined) {
     try {
@@ -44,5 +41,12 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
       const module = await import(relativePath);
       return new module.default(metadata, routesConfig);
     }
+  }
+  if (routesConfig.middleware !== undefined || routesConfig.middlewareTemplate !== undefined) {
+    return new DefaultRouteGenerator(metadata, routesConfig);
+  }
+  else {
+    routesConfig.middleware = 'express';
+    return new DefaultRouteGenerator(metadata, routesConfig);
   }
 }
