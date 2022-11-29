@@ -1043,6 +1043,43 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
     });
+
+    describe('form field deprecation', () => {
+      it('should consume multipart/form-data and have deprecated formData parameter', () => {
+        // Act
+        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const pathPost = specPost.paths['/PostTest/DeprecatedFormField'].post;
+        if (!pathPost) {
+          throw new Error('PostTest file method not defined');
+        }
+        if (!pathPost.requestBody) {
+          throw new Error('PostTest file method has no requestBody');
+        }
+
+        // Assert
+        expect(pathPost.parameters).to.have.length(0);
+        expect(pathPost.requestBody).to.deep.equal({
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  a: {
+                    type: 'string',
+                  },
+                  dontUse: {
+                    type: 'string',
+                    deprecated: true,
+                  },
+                },
+                required: ['a'],
+              },
+            },
+          },
+        });
+      });
+    });
   });
 
   describe('components', () => {

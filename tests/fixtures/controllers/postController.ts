@@ -1,4 +1,4 @@
-import { Body, Patch, Post, Query, Route, File, UploadedFile, UploadedFiles, FormField } from '@tsoa/runtime';
+import { Body, Deprecated, File, FormField, Patch, Post, Query, Route, UploadedFile, UploadedFiles } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -76,6 +76,11 @@ export class PostTestController {
   @Post('DescriptionOfFileAndFormFields')
   public async postWithFileAndParams(@UploadedFile('file') aFile: File, @FormField('a') a: string, @FormField('c') c: string): Promise<File> {
     return aFile;
+  }
+
+  @Post('DeprecatedFormField')
+  public async postWithDeprecatedParam(@FormField('a') a: string, @FormField('dontUse') @Deprecated() dontUse?: string): Promise<TestModel> {
+    return new ModelService().getModel();
   }
 
   @Post('Location')
