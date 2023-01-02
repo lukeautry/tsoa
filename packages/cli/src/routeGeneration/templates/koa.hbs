@@ -24,7 +24,7 @@ import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import type { Middleware } from 'koa';
-import * as KoaRouter from '@koa/router';
+import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
 const multer = require('@koa/multer');
 const upload = multer({{{json multerOpts}}});
