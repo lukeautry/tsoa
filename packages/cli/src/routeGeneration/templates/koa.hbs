@@ -21,7 +21,7 @@ const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import type { Middleware } from 'koa';
 import type * as KoaRouter from '@koa/router';
