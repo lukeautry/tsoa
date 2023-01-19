@@ -19,8 +19,7 @@ const promiseAny = require('promise.any');
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-import type { Payload } from '@hapi/boom';
-import { boomify, isBoom } from '@hapi/boom';
+import { boomify, isBoom, type Payload } from '@hapi/boom';
 import type { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
