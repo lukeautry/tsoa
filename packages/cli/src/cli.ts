@@ -172,7 +172,7 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
-  routeGenerator?: string;
+  routeGenerator?: string | any;
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {

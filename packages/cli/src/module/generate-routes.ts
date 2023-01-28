@@ -5,6 +5,7 @@ import { Tsoa } from '@tsoa/runtime';
 import { DefaultRouteGenerator } from '../routeGeneration/defaultRouteGenerator';
 import { fsMkDir } from '../utils/fs';
 import path = require('path');
+import { AbstractRouteGenerator } from '../routeGeneration/routeGenerator';
 
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   routesConfig: Config,
@@ -31,21 +32,28 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
   // default route generator for express/koa/hapi
   // custom route generator
   if (routesConfig.routeGenerator !== undefined) {
-    try {
-      // try as a module import
-      const module = await import(routesConfig.routeGenerator);
-      return new module.default(metadata, routesConfig);
-    } catch (_err) {
-      // try to find a relative import path
-      const relativePath = path.relative(__dirname, routesConfig.routeGenerator);
-      const module = await import(relativePath);
-      return new module.default(metadata, routesConfig);
+    if (typeof routesConfig.routeGenerator === 'string') {
+      try {
+        // try as a module import
+        const module = await import(routesConfig.routeGenerator);
+        return new module.default(metadata, routesConfig);
+      } catch (_err) {
+        // try to find a relative import path
+        const relativePath = path.relative(__dirname, routesConfig.routeGenerator);
+        const module = await import(relativePath);
+        return new module.default(metadata, routesConfig);
+      }
+    } else {
+      if (routesConfig.routeGenerator.prototype instanceof AbstractRouteGenerator<any>) {
+        return new routesConfig.routeGenerator(metadata, routesConfig);
+      } else {
+        throw new Error('routeGenerator is not a string nor a type that extends AbstractRouteGenerator');
+      }
     }
   }
   if (routesConfig.middleware !== undefined || routesConfig.middlewareTemplate !== undefined) {
     return new DefaultRouteGenerator(metadata, routesConfig);
-  }
-  else {
+  } else {
     routesConfig.middleware = 'express';
     return new DefaultRouteGenerator(metadata, routesConfig);
   }
