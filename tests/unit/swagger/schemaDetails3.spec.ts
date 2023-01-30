@@ -792,7 +792,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
 
         it('Should not generate models with hidden controller referenced.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHiddenModelController.ts').Generate();
+          const metadata = new MetadataGenerator('./fixtures/controllers/CommonResponseHiddenModelController.ts').Generate();
           const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
           expect(responseSpec.components.schemas).to.be.deep.eq({});
         });

@@ -7,7 +7,7 @@ interface ToHideModel {
 @Hidden()
 @Response<ToHideModel>(200, 'Ok')
 @Route('CommonResponseHiddenModelController')
-export class commonResponseHiddenModelController extends Controller {
+export class CommonResponseHiddenModelController extends Controller {
   @Get('Response1')
   public async handler(): Promise<void> {
     return;
