@@ -10,7 +10,7 @@ function tsHasDecorators(ts): ts is {
 
 export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
   // beginning in ts4.8 node.decorator is undefined, use getDecorators instead.
-  const decorators = tsHasDecorators(ts) && ts.canHaveDecorators(node) ? ts.getDecorators(node) : node.decorators;
+  const decorators = tsHasDecorators(ts) && ts.canHaveDecorators(node) ? ts.getDecorators(node) : [];
 
   if (!decorators || !decorators.length) {
     return [];
