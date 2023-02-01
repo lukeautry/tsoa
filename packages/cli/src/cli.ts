@@ -2,7 +2,7 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 import * as YAML from 'yamljs';
-import yargs from 'yargs';
+import * as yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
