@@ -9,6 +9,7 @@ import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
+import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 
 const workingDir: string = process.cwd();
 
@@ -172,7 +173,7 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
-  routeGenerator?: string | any;
+  routeGenerator?: string | typeof AbstractRouteGenerator | unknown;
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
