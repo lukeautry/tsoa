@@ -492,6 +492,12 @@ describe('Schema details generation', () => {
           });
         });
 
+        it('Should not generate models with hidden controller referenced.', () => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHiddenModelController.ts').Generate();
+          const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+          expect(responseSpec.definitions).to.be.deep.eq({});
+        });
+
         describe('media types', () => {
           let mediaTypeTest;
           let requestAcceptHeaderTest;

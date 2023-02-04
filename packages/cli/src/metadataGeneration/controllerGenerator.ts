@@ -88,7 +88,7 @@ export class ControllerGenerator {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name,
-        schema: expression.typeArguments && expression.typeArguments.length > 0 ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       } as Tsoa.Response;
     });
