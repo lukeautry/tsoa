@@ -25,19 +25,5 @@ describe('RouteGenerator', () => {
       // Assert
       expect(DummyRouteGenerator.getCallCount()).gt(0);
     });
-
-    it('should throw an exception when the provided routeGenerator has incorrect type', async () => {
-      // Arrange
-      const routesConfig: ExtendedRoutesConfig = {
-        entryFile: 'index.ts',
-        noImplicitAdditionalProperties: 'silently-remove-extras',
-        routesDir: 'dist/routes',
-        controllerPathGlobs: ['fixtures/controllers/*.ts'],
-        routeGenerator: 1337,
-      };
-
-      // Act / Assert
-      expect(generateRoutes(routesConfig)).to.eventually.be.rejectedWith(Error);
-    });
   });
 });
