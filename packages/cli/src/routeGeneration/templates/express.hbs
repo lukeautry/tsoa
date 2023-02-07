@@ -17,7 +17,7 @@ const promiseAny = require('promise.any');
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import type { RequestHandler, Router } from 'express';
 {{#if useFileUploads}}
