@@ -9,6 +9,7 @@ import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
+import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 
 const workingDir: string = process.cwd();
 
@@ -166,13 +167,15 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   };
 };
 
+type RouteGeneratorImpl = new (metadata: Tsoa.Metadata, options: ExtendedRoutesConfig) => AbstractRouteGenerator<any>;
+
 export interface ExtendedRoutesConfig extends RoutesConfig {
   entryFile: Config['entryFile'];
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
-  routeGenerator?: string;
+  routeGenerator?: string | RouteGeneratorImpl;
 }
 
 const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfig> => {
