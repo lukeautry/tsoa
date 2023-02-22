@@ -13,15 +13,15 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { koaAuthentication } from '{{authenticationModule}}';
 // @ts-ignore - no great way to install types from subpackage
-{{#if esm}}
-import promiseAny from 'promise.any';
-{{else}}
-const promiseAny = require('promise.any');
-{{/if}}
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+{{/if}}
+{{#if esm}}
+import promiseAny from 'promise.any';
+{{else}}
+const promiseAny = require('promise.any');
 {{/if}}
 import type { Middleware } from 'koa';
 import type * as KoaRouter from '@koa/router';
