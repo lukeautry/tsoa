@@ -1982,6 +1982,11 @@
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
   integrity sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==
 
+"@types/promise.any@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@types/promise.any/-/promise.any-2.0.0.tgz#368a144bce921ecc4c5993d982bd9ac0abee3bff"
+  integrity sha512-2CNmKwxBdEikQGBM+CSN/xKRmp48Z4BYGRCpbeX+w5YJw+e6JEShFNs1yR8dHpoKpj+XG58GCgtNk8izUDrbnQ==
+
 "@types/qs@*":
   version "6.9.7"
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.9.7.tgz#63bb7d067db107cc1e457c303bc25d511febf6cb"
