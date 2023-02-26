@@ -9,15 +9,15 @@ import { {{name}} } from '{{modulePath}}';
 {{#if authenticationModule}}
 import { hapiAuthentication } from '{{authenticationModule}}';
 // @ts-ignore - no great way to install types from subpackage
-{{#if esm}}
-import promiseAny from 'promise.any';
-{{else}}
-const promiseAny = require('promise.any');
-{{/if}}
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+{{/if}}
+{{#if esm}}
+import promiseAny from 'promise.any';
+{{else}}
+const promiseAny = require('promise.any');
 {{/if}}
 import { boomify, isBoom, type Payload } from '@hapi/boom';
 import type { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
