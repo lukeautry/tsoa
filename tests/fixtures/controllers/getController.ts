@@ -146,6 +146,14 @@ export class GetTestController extends Controller {
     return model;
   }
 
+  @Get('{numberPathParam}:download')
+  public async getWithFormatSuffix(numberPathParam: number) {
+    const model = new ModelService().getModel();
+    model.numberValue = numberPathParam;
+
+    return model;
+  }
+
   @Get('AllQueriesInOneObject')
   public async getAllQueriesInOneObject(@Queries() queryParams: QueryParams) {
     const model = new ModelService().getModel();

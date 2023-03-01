@@ -164,6 +164,16 @@ export class ParameterController {
   }
 
   /**
+   * Query test paramater
+   *
+   * @param {string} firstname Firstname description
+   */
+  @Get('PathColonDelimiter/:firstname[:]download')
+  public async getPathWithSuffix(@Path() firstname: string): Promise<string> {
+    return Promise.resolve(firstname);
+  }
+
+  /**
    * Path test paramater
    *
    * @param {string} id ID description

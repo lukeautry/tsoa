@@ -612,6 +612,23 @@ describe('Metadata generation', () => {
       expect(genderParam.type.dataType).to.equal('refEnum');
     });
 
+    it('should generate a path parameter from colon delimiter path params with a [:]suffix', () => {
+      const method = controller.methods.find(m => m.name === 'getPathWithSuffix');
+      if (!method) {
+        throw new Error('Method getPathWithSuffix not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(1);
+
+      const firstnameParam = method.parameters[0];
+      expect(firstnameParam.in).to.equal('path');
+      expect(firstnameParam.name).to.equal('firstname');
+      expect(firstnameParam.parameterName).to.equal('firstname');
+      expect(firstnameParam.description).to.equal('Firstname description');
+      expect(firstnameParam.required).to.be.true;
+      expect(firstnameParam.type.dataType).to.equal('string');
+    });
+
     it('should generate a path parameter from template literal', () => {
       const method = controller.methods.find(m => m.name === 'getPathTemplateLiteral');
       if (!method) {
