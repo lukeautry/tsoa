@@ -251,7 +251,7 @@ const indexedValue = {
 } as const;
 export type IndexedValueTypeReference = typeof indexedValue;
 
-export type IndexedValue = typeof indexedValue[keyof typeof indexedValue];
+export type IndexedValue = (typeof indexedValue)[keyof typeof indexedValue];
 
 // prettier-ignore
 export type ParenthesizedIndexedValue = (typeof indexedValue)[keyof typeof indexedValue];
@@ -264,7 +264,7 @@ const otherIndexedValue = {
   foo: 'fOO',
 } as const;
 
-export type ForeignIndexedValue = typeof indexedValue[keyof typeof otherIndexedValue];
+export type ForeignIndexedValue = (typeof indexedValue)[keyof typeof otherIndexedValue];
 
 type Maybe<T> = T | null;
 
@@ -590,6 +590,7 @@ export class ValidateModel {
     wordOrNull: Maybe<Word>;
     maybeString: Maybe<string>;
     justNull: null;
+    nestedNullable: Array<{ property: 'string literal' | null }>[number];
   };
 
   public nestedObject!: {
@@ -764,7 +765,7 @@ const ClassIndexTest = {
 type Names = keyof typeof ClassIndexTest;
 type ResponseDistribute<T, U> = T extends Names
   ? {
-      [key in T]: Record<typeof ClassIndexTest[T][number], U>;
+      [key in T]: Record<(typeof ClassIndexTest)[T][number], U>;
     }
   : never;
 type IndexRecordAlias<T> = ResponseDistribute<Names, T>;
@@ -783,7 +784,7 @@ export class TestClassModel extends TestClassBaseModel {
   public indexedTypeToAlias?: Indexed['alias'];
   public indexedResponse?: IndexRecordAlias<string>['foo'];
   public indexedResponseObject?: IndexRecordAlias<{ myProp1: string }>['foo'];
-  public arrayUnion?: typeof fixedArray[number];
+  public arrayUnion?: (typeof fixedArray)[number];
   public objectUnion?: Record<string, 'foo' | 'bar'>[string];
   /**
    * This is a description of a public string property

@@ -304,7 +304,13 @@ export class TypeResolver {
       if (type === undefined) {
         throw new GenerateMetadataError(`Could not determine ${numberIndexType ? 'number' : 'string'} index on ${this.current.typeChecker.typeToString(objectType)}`, this.typeNode);
       }
-      return new TypeResolver(this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!, this.current, this.typeNode, this.context, this.referencer).resolve();
+      return new TypeResolver(
+        this.current.typeChecker.typeToTypeNode(type, this.typeNode.objectType, ts.NodeBuilderFlags.NoTruncation)!,
+        this.current,
+        this.typeNode,
+        this.context,
+        this.referencer,
+      ).resolve();
     }
 
     // Indexed by literal
@@ -327,7 +333,7 @@ export class TypeResolver {
       const declaration = this.current.typeChecker.getTypeOfSymbolAtLocation(symbol, this.typeNode.objectType);
       try {
         return new TypeResolver(
-          this.current.typeChecker.typeToTypeNode(declaration, undefined, ts.NodeBuilderFlags.NoTruncation)!,
+          this.current.typeChecker.typeToTypeNode(declaration, this.typeNode.objectType, ts.NodeBuilderFlags.NoTruncation)!,
           this.current,
           this.typeNode,
           this.context,
@@ -366,7 +372,10 @@ export class TypeResolver {
         };
         return stringLiteralEnum;
       } else {
-        throw new GenerateMetadataError(`Could not determine the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode);
+        throw new GenerateMetadataError(
+          `Could not determine the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`,
+          this.typeNode,
+        );
       }
     }
 
