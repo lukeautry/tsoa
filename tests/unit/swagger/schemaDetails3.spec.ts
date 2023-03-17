@@ -1032,30 +1032,32 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         describe('ValidateErrorResponse', () => {
           it('Should generate ValidateError response', () => {
-            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+            const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
             const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
-            const paths = ['Response1', 'Response2'];
+            const paths = ['protectedGetMethod', 'protectedPostMethod'];
             paths.forEach((path) => {
-              const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
-              expect(responses?.[400]).to.deep.eq({
-                "description": "Error: ValidateError",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "$ref": "#/components/schemas/ValidateErrorExampleType"
-                    },
-                    "examples": {
-                      "Example 1": {
-                        "value": {
-                          "data.fieldA": {
-                            "message": "'fieldA' is required"
+              Object.values(responseSpec.paths[`/Controller/${path}`]).forEach((each) => {
+                const responses = (each as Swagger.Operation3).responses;
+                expect(responses?.[400]).to.deep.eq({
+                  "description": "Error: ValidateError",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ValidateErrorExampleType"
+                      },
+                      "examples": {
+                        "Example 1": {
+                          "value": {
+                            "data.fieldA": {
+                              "message": "'fieldA' is required"
+                            }
                           }
                         }
                       }
                     }
                   }
-                }
-              });
+                });
+              })
             });
           });
         });
