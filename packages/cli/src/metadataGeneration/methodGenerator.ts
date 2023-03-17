@@ -149,6 +149,11 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one path decorator in '${this.getCurrentLocation()}' method, Found: ${pathDecorators.map(d => d.text).join(', ')}`);
     }
 
+    const validateErrorResponseDecorators = getDecorators(this.node, identifier => identifier.text === 'ValidateErrorResponse');
+    if (validateErrorResponseDecorators.length > 0) {
+      throw new GenerateMetadataError(`ValidateErrorResponse decorator can only use as class decorator.`)
+    }
+
     const decorator = pathDecorators[0];
 
     this.method = decorator.text.toLowerCase() as any;
