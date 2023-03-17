@@ -644,6 +644,32 @@ describe('Schema details generation', () => {
               });
             });
           });
+
+
+          it('Should generate ValidateError response with set values', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+            const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path) => {
+              Object.values(responseSpec.paths[`/CommonResponseHeaderClass/${path}`]).forEach((each) => {
+                const responses = (each as Swagger.Operation).responses;
+                expect(responses?.[418]).to.deep.eq({
+                  "description": "I\'m a good teapot",
+                  "schema": {
+                    "$ref": "#/definitions/ValidateErrorExampleType"
+                  },
+                  "examples": {
+                    "application/json": {
+                      "a": {
+                        "message": "msg",
+                        "value": "val",
+                      },
+                    }
+                  }
+                });
+              })
+            });
+          });
         });
       });
     });

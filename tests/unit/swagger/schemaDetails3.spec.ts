@@ -1060,6 +1060,37 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               })
             });
           });
+
+          it('Should generate ValidateError response with set values', () => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+            const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+            const paths = ['Response1', 'Response2'];
+            paths.forEach((path) => {
+              Object.values(responseSpec.paths[`/CommonResponseHeaderClass/${path}`]).forEach((each) => {
+                const responses = (each as Swagger.Operation3).responses;
+                expect(responses?.[418]).to.deep.eq({
+                  "description": "I\'m a good teapot",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ValidateErrorExampleType"
+                      },
+                      "examples": {
+                        "Example 1": {
+                          "value": {
+                            "a": {
+                              "message": "msg",
+                              "value": "val",
+                            },
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              })
+            });
+          });
         });
       });
 
