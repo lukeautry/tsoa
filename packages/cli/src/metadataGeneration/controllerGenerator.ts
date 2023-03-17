@@ -88,7 +88,7 @@ export class ControllerGenerator {
     const decoratorParameters = decoratorDeclaration.parameters;
     const validateErrorExampleParameter = (decoratorParameters.find(({ type }) => type !== undefined
       && ts.isTypeReferenceNode(type)
-      && (type as ts.TypeReferenceNode).typeName.getText() === 'ValidateErrorExampleType'))!;
+      && type.typeName.getText() === 'ValidateErrorExampleType'))!;
     const validateErrorType = validateErrorExampleParameter.type!;
 
     const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);

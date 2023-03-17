@@ -620,7 +620,7 @@ describe('Schema details generation', () => {
           });
         });
 
-        describe('ValidateErrorResponse', () => {
+        describe('ValidateErrorResponse (feat/1403)', () => {
           it('Should generate ValidateError response', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
             const responseSpec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();

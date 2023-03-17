@@ -1030,7 +1030,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           });
         });
 
-        describe('ValidateErrorResponse', () => {
+        describe('ValidateErrorResponse (feat/1403)', () => {
           it('Should generate ValidateError response', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
             const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
