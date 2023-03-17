@@ -1,4 +1,4 @@
-import { Controller, Get, Route, Response } from '@tsoa/runtime';
+import { Controller, Get, Route, Response, ValidateErrorResponse } from '@tsoa/runtime';
 
 /**
  * Common response header's description
@@ -22,6 +22,12 @@ class CommonResponseHeader {
 
 @Route('CommonResponseHeaderClass')
 @Response<null, CommonResponseHeader>(200, 'Ok')
+@ValidateErrorResponse(418, 'I\'m a good teapot', {
+  'a': {
+    message: 'msg',
+    value: 'val',
+  },
+})
 export class CommonResponseHeaderClassController extends Controller {
   @Get('Response1')
   public async handler(): Promise<void> {
