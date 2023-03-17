@@ -654,7 +654,7 @@ describe('Schema details generation', () => {
               Object.values(responseSpec.paths[`/CommonResponseHeaderClass/${path}`]).forEach((each) => {
                 const responses = (each as Swagger.Operation).responses;
                 expect(responses?.[418]).to.deep.eq({
-                  "description": "I\'m a good teapot",
+                  "description": "I'm a good teapot",
                   "schema": {
                     "$ref": "#/definitions/ValidateErrorExampleType"
                   },

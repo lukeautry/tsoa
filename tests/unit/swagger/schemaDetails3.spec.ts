@@ -1069,7 +1069,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               Object.values(responseSpec.paths[`/CommonResponseHeaderClass/${path}`]).forEach((each) => {
                 const responses = (each as Swagger.Operation3).responses;
                 expect(responses?.[418]).to.deep.eq({
-                  "description": "I\'m a good teapot",
+                  "description": "I'm a good teapot",
                   "content": {
                     "application/json": {
                       "schema": {
