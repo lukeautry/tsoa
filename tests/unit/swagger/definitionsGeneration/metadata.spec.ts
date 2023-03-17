@@ -889,15 +889,15 @@ describe('Metadata generation', () => {
     it('should add common responses to every method', () => {
       expect(controller.methods).to.have.lengthOf(2);
       controller.methods.forEach(method => {
-        expect(method.responses.length).to.equal(2);
+        expect(method.responses.length).to.equal(3);
 
-        let response = method.responses[0];
-        expect(response.name).to.equal('401');
-        expect(response.description).to.equal('Unauthorized');
+        let response = method.responses.find(({ name }) => name === '401');
+        expect(response).not.undefined;
+        expect(response!.description).to.equal('Unauthorized');
 
-        response = method.responses[1];
-        expect(response.name).to.equal('200');
-        expect(response.description).to.equal('Ok');
+        response = method.responses.find(({ name }) => name === '200');
+        expect(response).not.undefined;
+        expect(response!.description).to.equal('Ok');
       });
     });
   });
