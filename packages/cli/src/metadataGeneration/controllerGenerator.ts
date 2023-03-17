@@ -20,7 +20,10 @@ export class ControllerGenerator {
     this.tags = this.getTags();
     this.security = this.getSecurity();
     this.isHidden = this.getIsHidden();
-    this.commonResponses = this.getCommonResponses();
+    this.commonResponses = [
+      ...this.getCommonValidateErrorResponse(),
+      ...this.getCommonResponses(),
+    ];
     this.produces = this.getProduces();
   }
 
@@ -68,6 +71,37 @@ export class ControllerGenerator {
     const expression = decorator.parent as ts.CallExpression;
     const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
     return decoratorArgument ? `${decoratorArgument.text}` : '';
+  }
+
+  private getCommonValidateErrorResponse(): Tsoa.Response[] {
+    const decorators = getDecorators(this.node, identifier => identifier.text === 'ValidateErrorResponse');
+    if (!decorators || !decorators.length) {
+      return [];
+    }
+    if (decorators.length > 1) {
+      throw new GenerateMetadataError(`Only one ValidateErrorResponse decorator allowed in '${this.node.name!.text}' class.`);
+    }
+
+    const [decorator] = decorators;
+    const decoratorType = this.current.typeChecker.getTypeAtLocation(decorator);
+    const decoratorDeclaration = decoratorType.symbol.valueDeclaration! as ts.FunctionDeclaration;
+    const decoratorParameters = decoratorDeclaration.parameters;
+    const validateErrorExampleParameter = (decoratorParameters.find(({ type }) => type !== undefined
+      && ts.isTypeReferenceNode(type)
+      && (type as ts.TypeReferenceNode).typeName.getText() === 'ValidateErrorExampleType'))!;
+    const validateErrorType = validateErrorExampleParameter.type!;
+
+    const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
+    return [{
+      name: name || '400',
+      description: description || 'Error: ValidateError',
+      examples: [example || {
+        'data.fieldA': {
+          message: '\'fieldA\' is required',
+        },
+      } as any],
+      schema: new TypeResolver(validateErrorType, this.current).resolve(),
+    }];
   }
 
   private getCommonResponses(): Tsoa.Response[] {

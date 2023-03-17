@@ -1,9 +1,10 @@
-import { Controller, Get, Response, Post, Route } from '@tsoa/runtime';
+import { Controller, Get, Response, Post, Route, ValidateErrorResponse } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel } from '../testModel';
 
 @Route('Controller')
 @Response<ErrorResponseModel>('401', 'Unauthorized')
+@ValidateErrorResponse()
 export class HiddenMethodController extends Controller {
   @Get('protectedGetMethod')
   public async protectedGetMethod(): Promise<TestModel> {

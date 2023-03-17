@@ -1,5 +1,5 @@
 import { IsValidHeader } from '../utils/isHeaderType';
-import { HttpStatusCodeLiteral, HttpStatusCodeStringLiteral, OtherValidOpenApiHttpStatusCode } from '../interfaces/response';
+import { HttpStatusCodeLiteral, HttpStatusCodeStringLiteral, OtherValidOpenApiHttpStatusCode, ValidateErrorExampleType } from '../interfaces/response';
 
 export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = {}>(name: string | number, description?: string, produces?: string | string[]): Function {
   return () => {
@@ -12,6 +12,20 @@ export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderTyp
   description?: string,
   example?: ExampleType,
   produces?: string | string[],
+): Function {
+  return () => {
+    return;
+  };
+}
+
+export function ValidateErrorResponse(
+  name: HttpStatusCodeLiteral | HttpStatusCodeStringLiteral | OtherValidOpenApiHttpStatusCode = 400,
+  description = 'Error: Bad Request2',
+  example: ValidateErrorExampleType = {
+    'data.fieldA': {
+      message: '\'fieldA\' is required',
+    },
+  },
 ): Function {
   return () => {
     return;
