@@ -22,9 +22,9 @@ export class SpecGenerator3 extends SpecGenerator {
 
   public GetSpec() {
     let spec: Swagger.Spec3 = {
+      openapi: '3.0.0',
       components: this.buildComponents(),
       info: this.buildInfo(),
-      openapi: '3.0.0',
       paths: this.buildPaths(),
       servers: this.buildServers(),
       tags: this.config.tags,
