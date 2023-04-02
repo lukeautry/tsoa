@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import * as os from 'os';
-import * as chalk from 'chalk';
+import { dim, green } from 'chalk';
 import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
+import { tmpdir } from 'node:os';
 
 const spec = async () => {
   const result = await generateSpecAndRoutes({
@@ -12,11 +12,11 @@ const spec = async () => {
 };
 
 const log = async <T>(label: string, fn: () => Promise<T>) => {
-  console.log(chalk.dim(chalk.green(`↻ Starting ${label}...`)));
+  console.log(dim(green(`↻ Starting ${label}...`)));
   const timer = new Timer();
 
   const result = await fn();
-  console.log(chalk.green(`✓ Finished ${label} in ${timer.elapsed()}ms`));
+  console.log(green(`✓ Finished ${label} in ${timer.elapsed()}ms`));
 
   return result;
 };
@@ -115,7 +115,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         middleware: 'koa',
         routesDir: './fixtures/koa-multer-options',
         multerOpts: {
-          dest: os.tmpdir(),
+          dest: tmpdir(),
         },
       }),
     ),

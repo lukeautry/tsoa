@@ -2,5 +2,7 @@
   "extension": ["ts"],
   "spec": ["**/*.spec.ts"],
   "timeout": "5000",
-  "exclude": ["esm/**/*"]
+  "exclude": ["esm/**/*"],
+  "require": ["ts-node/register", "tsconfig-paths/register"],
+  "exit": true
 }

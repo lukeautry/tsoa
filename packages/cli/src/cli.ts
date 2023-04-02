@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-import * as path from 'path';
-import * as ts from 'typescript';
-import * as YAML from 'yamljs';
-import * as yargs from 'yargs';
+import YAML from 'yamljs';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
@@ -10,6 +8,8 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
+import { extname } from 'node:path';
+import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
 
@@ -49,7 +49,7 @@ const authorInformation: Promise<
 
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
-  const ext = path.extname(configPath);
+  const ext = extname(configPath);
   try {
     if (ext === '.yaml' || ext === '.yml') {
       config = YAML.load(configPath);
@@ -83,8 +83,8 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
-const validateCompilerOptions = (config?: Record<string, unknown>): ts.CompilerOptions => {
-  return (config || {}) as ts.CompilerOptions;
+const validateCompilerOptions = (config?: Record<string, unknown>): CompilerOptions => {
+  return (config || {}) as CompilerOptions;
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
@@ -253,7 +253,7 @@ export interface SwaggerArgs extends ConfigArgs {
 }
 
 export function runCLI() {
-  void yargs(hideBin(process.argv))
+  return yargs(hideBin(process.argv))
     .usage('Usage: $0 <command> [options]')
     .command(
       'spec',
@@ -294,7 +294,17 @@ export function runCLI() {
     .parse();
 }
 
-if (require.main === module) runCLI();
+if (require.main === module) {
+  void (async () => {
+    try {
+      await runCLI();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('tsoa cli error:\n', err);
+      process.exit(1);
+    }
+  })();
+}
 
 async function SpecGenerator(args: SwaggerArgs) {
   try {

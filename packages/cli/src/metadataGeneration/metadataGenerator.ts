@@ -1,28 +1,28 @@
-import * as mm from 'minimatch';
-import * as ts from 'typescript';
+import mm from 'minimatch';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
+import { type TypeChecker, type Program, type ClassDeclaration, type CompilerOptions, createProgram, forEachChild, isClassDeclaration } from 'typescript';
 
 export class MetadataGenerator {
-  public readonly controllerNodes = new Array<ts.ClassDeclaration>();
-  public readonly typeChecker: ts.TypeChecker;
-  private readonly program: ts.Program;
+  public readonly controllerNodes = new Array<ClassDeclaration>();
+  public readonly typeChecker: TypeChecker;
+  private readonly program: Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private circularDependencyResolvers = new Array<(referenceTypes: Tsoa.ReferenceTypeMap) => void>();
 
   constructor(
     entryFile: string,
-    private readonly compilerOptions?: ts.CompilerOptions,
+    private readonly compilerOptions?: CompilerOptions,
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
   ) {
     TypeResolver.clearCache();
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : ts.createProgram([entryFile], compilerOptions || {});
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
@@ -47,7 +47,7 @@ export class MetadataGenerator {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    return ts.createProgram(allGlobFiles, this.compilerOptions || {});
+    return createProgram(allGlobFiles, this.compilerOptions || {});
   }
 
   private extractNodeFromProgramSourceFiles() {
@@ -60,8 +60,8 @@ export class MetadataGenerator {
         }
       }
 
-      ts.forEachChild(sf, node => {
-        if (ts.isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
+      forEachChild(sf, node => {
+        if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
           this.controllerNodes.push(node);
         }
       });

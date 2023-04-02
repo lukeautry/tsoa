@@ -7,8 +7,8 @@
     "module": "commonjs",
     "types": ["node"],
     "composite": true,
-    "target": "ES2019",
-    "lib": ["ES2019"],
+    "target": "es2021",
+    "lib": ["es2021"],
     "typeRoots": ["node_modules/@types", "./typings"],
     "downlevelIteration": true,
     "experimentalDecorators": true,
@@ -21,6 +21,7 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "strictBindCallApply": true
+    "strictBindCallApply": true,
+    "esModuleInterop": true
   }
 }

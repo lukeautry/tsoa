@@ -18,11 +18,6 @@ import { koaAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-{{#if esm}}
-import promiseAny from 'promise.any';
-{{else}}
-const promiseAny = require('promise.any');
-{{/if}}
 import type { Middleware } from 'koa';
 import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
@@ -160,7 +155,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             let success;
             try {
-                const user = await promiseAny.call(Promise, secMethodOrPromises);
+                const user = await Promise.any(secMethodOrPromises);
                 success = true;
                 context.request['user'] = user;
             }

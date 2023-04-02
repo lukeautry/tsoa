@@ -1,4 +1,3 @@
-import * as ts from 'typescript';
 import { getDecorators, getDecoratorValues, getProduces, getSecurites } from './../utils/decoratorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
@@ -6,6 +5,7 @@ import { MethodGenerator } from './methodGenerator';
 import { TypeResolver } from './typeResolver';
 import { Tsoa } from '@tsoa/runtime';
 import { getHeaderType } from '../utils/headerTypeHelpers';
+import { isMethodDeclaration, type ClassDeclaration, type CallExpression, type StringLiteral } from 'typescript';
 
 export class ControllerGenerator {
   private readonly path?: string;
@@ -15,7 +15,7 @@ export class ControllerGenerator {
   private readonly commonResponses: Tsoa.Response[];
   private readonly produces?: string[];
 
-  constructor(private readonly node: ts.ClassDeclaration, private readonly current: MetadataGenerator, private readonly parentSecurity: Tsoa.Security[] = []) {
+  constructor(private readonly node: ClassDeclaration, private readonly current: MetadataGenerator, private readonly parentSecurity: Tsoa.Security[] = []) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
@@ -49,7 +49,7 @@ export class ControllerGenerator {
 
   private buildMethods() {
     return this.node.members
-      .filter(ts.isMethodDeclaration)
+      .filter(isMethodDeclaration)
       .map(m => new MethodGenerator(m, this.current, this.commonResponses, this.path, this.tags, this.security, this.isHidden))
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
@@ -65,8 +65,8 @@ export class ControllerGenerator {
     }
 
     const decorator = decorators[0];
-    const expression = decorator.parent as ts.CallExpression;
-    const decoratorArgument = expression.arguments[0] as ts.StringLiteral;
+    const expression = decorator.parent as CallExpression;
+    const decoratorArgument = expression.arguments[0] as StringLiteral;
     return decoratorArgument ? `${decoratorArgument.text}` : '';
   }
 
@@ -77,7 +77,7 @@ export class ControllerGenerator {
     }
 
     return decorators.map(decorator => {
-      const expression = decorator.parent as ts.CallExpression;
+      const expression = decorator.parent as CallExpression;
 
       const [name, description, example] = getDecoratorValues(decorator, this.current.typeChecker);
       if (!name) {
@@ -104,7 +104,7 @@ export class ControllerGenerator {
     }
 
     const decorator = decorators[0];
-    const expression = decorator.parent as ts.CallExpression;
+    const expression = decorator.parent as CallExpression;
 
     return expression.arguments.map((a: any) => a.text as string);
   }

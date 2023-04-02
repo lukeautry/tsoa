@@ -14,11 +14,6 @@ import { hapiAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-{{#if esm}}
-import promiseAny from 'promise.any';
-{{else}}
-const promiseAny = require('promise.any');
-{{/if}}
 import { boomify, isBoom, type Payload } from '@hapi/boom';
 import type { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
@@ -190,7 +185,7 @@ export function RegisterRoutes(server: any) {
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             try {
-                request['user'] = await promiseAny.call(Promise, secMethodOrPromises);
+                request['user'] = await Promise.any(secMethodOrPromises);
                 return request['user'];
             }
             catch(err) {

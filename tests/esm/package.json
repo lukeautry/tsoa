@@ -6,8 +6,8 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "pretest": "node --experimental-loader=ts-node/esm prepare.ts",
-    "test": "cross-env NODE_ENV=tsoa_test mocha --exit --timeout 5000"
+    "pretest": "node --loader=ts-node/esm prepare.ts",
+    "test": "cross-env NODE_ENV=tsoa_test mocha"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -22,13 +22,13 @@
   "engineStrict": true,
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.5",
-    "@types/mocha": "^10.0.0",
-    "@types/node": "^18.7.13",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^16.18.23",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^10.0.0",
+    "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
-    "tslib": "^2.4.0",
-    "typescript": "^4.9.5"
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.2"
   }
 }
