@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.18.23",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.3"
   },
   "repository": {
     "type": "git",
