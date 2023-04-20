@@ -35,7 +35,7 @@
     "fs-extra": "^11.1.1",
     "glob": "^9.3.4",
     "handlebars": "^4.7.7",
-    "merge": "^2.1.1",
+    "merge-anything": "^5.1.4",
     "minimatch": "^8.0.2",
     "typescript": "^5.0.3",
     "validator": "^13.9.0",

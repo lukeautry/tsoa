@@ -34,7 +34,7 @@ export class SpecGenerator3 extends SpecGenerator {
       this.config.specMerging = this.config.specMerging || 'immediate';
       const mergeFuncs: { [key: string]: any } = {
         immediate: Object.assign,
-        recursive: require('merge').recursive,
+        recursive: require('merge-anything').merge,
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => require('deepmerge').all([spec, merge]),
       };
 
