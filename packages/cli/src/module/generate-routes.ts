@@ -5,6 +5,7 @@ import { Tsoa } from '@tsoa/runtime';
 import { DefaultRouteGenerator } from '../routeGeneration/defaultRouteGenerator';
 import { fsMkDir } from '../utils/fs';
 import path = require('path');
+import {Config as BaseConfig } from "@tsoa/runtime";
 
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   routesConfig: Config,
@@ -14,9 +15,10 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
    * pass in cached metadata returned in a previous step to speed things up
    */
   metadata?: Tsoa.Metadata,
+  defaultNumberType?: BaseConfig['defaultNumberType']
 ) {
   if (!metadata) {
-    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity).Generate();
+    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate();
   }
 
   const routeGenerator = await getRouteGenerator(metadata, routesConfig);

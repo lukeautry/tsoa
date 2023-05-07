@@ -2,7 +2,7 @@ import mm from 'minimatch';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { Tsoa } from '@tsoa/runtime';
+import {Config, Tsoa} from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
 import { type TypeChecker, type Program, type ClassDeclaration, type CompilerOptions, createProgram, forEachChild, isClassDeclaration } from 'typescript';
@@ -20,6 +20,7 @@ export class MetadataGenerator {
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
+    public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double'
   ) {
     TypeResolver.clearCache();
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : createProgram([entryFile], compilerOptions || {});

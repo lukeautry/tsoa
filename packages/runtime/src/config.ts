@@ -49,6 +49,13 @@ export interface Config {
    * } Allow multer to write to file instead of using Memory's buffer
    */
   multerOpts?: MulterOpts;
+
+
+  /*
+   * OpenAPI number type to be used for TypeScript's 'number', when there isn't a type annotation
+   * @default double
+   */
+  defaultNumberType?: 'double' | 'float' | 'integer' | 'long'
 }
 
 /**
