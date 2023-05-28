@@ -414,7 +414,8 @@ export class ParameterGenerator {
           exampleLabels,
         };
       } catch (e) {
-        throw new GenerateMetadataError(`JSON format is incorrect: ${String(e.message)}`);
+        const message = e instanceof Error ? e.message : String(e);
+        throw new GenerateMetadataError(`JSON format is incorrect: ${message}`);
       }
     }
   }
@@ -427,7 +428,7 @@ export class ParameterGenerator {
     return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
-  private supportPathDataType(parameterType: Tsoa.Type) {
+  private supportPathDataType(parameterType: Tsoa.Type): boolean {
     const supportedPathDataTypes: Tsoa.TypeStringLiteral[] = ['string', 'integer', 'long', 'float', 'double', 'date', 'datetime', 'buffer', 'boolean', 'enum', 'refEnum', 'file', 'any'];
     if (supportedPathDataTypes.find(t => t === parameterType.dataType)) {
       return true;

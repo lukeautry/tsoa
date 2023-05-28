@@ -60,18 +60,17 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
       config = JSON.parse(configRaw.toString('utf8'));
     }
   } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
+    if (!(err instanceof Error)) {
+      console.error(err);
+      throw Error(`Unhandled error encountered loading '${configPath}': ${String(err)}`);
+    } else if ('code' in err && err.code === 'MODULE_NOT_FOUND') {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
-      // eslint-disable-next-line no-console
       console.error(err);
       const errorType = ext === '.js' ? 'JS' : 'JSON';
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw Error(`Invalid ${errorType} syntax in config at '${configPath}': ${err.message}`);
     } else {
-      // eslint-disable-next-line no-console
       console.error(err);
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw Error(`Unhandled error encountered loading '${configPath}': ${err.message}`);
     }
   }

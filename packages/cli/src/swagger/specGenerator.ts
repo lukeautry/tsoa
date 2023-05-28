@@ -96,9 +96,9 @@ export abstract class SpecGenerator {
     }
   }
 
-  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string);
+  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string): Swagger.Schema | Swagger.BaseSchema;
 
-  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string);
+  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string): Swagger.Schema | Swagger.BaseSchema;
 
   protected abstract buildProperties(properties: Tsoa.Property[]): { [propertyName: string]: Swagger.Schema | Swagger.Schema3 };
 

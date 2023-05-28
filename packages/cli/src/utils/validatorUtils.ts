@@ -4,7 +4,7 @@ import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { Tsoa } from '@tsoa/runtime';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
-export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName): Tsoa.Validators {
+export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName: string): Tsoa.Validators {
   if (!parameter.parent) {
     return {};
   }
@@ -96,7 +96,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
         break;
     }
     return validateObj;
-  }, {} as Tsoa.Validators);
+  }, {} as Tsoa.Validators & { [unknown: string]: { errorMsg: string; value: undefined } });
 }
 
 export function getPropertyValidators(property: ts.PropertyDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature | ts.ParameterDeclaration): Tsoa.Validators | undefined {
@@ -183,7 +183,7 @@ export function getPropertyValidators(property: ts.PropertyDeclaration | ts.Type
         break;
     }
     return validateObj;
-  }, {} as Tsoa.Validators);
+  }, {} as Tsoa.Validators & { [unknown: string]: { errorMsg: string; value: undefined } });
 }
 
 function getParameterTagSupport() {
@@ -217,4 +217,8 @@ function removeSurroundingQuotes(str: string) {
     return str.substring(3, str.length - 3);
   }
   return str;
+}
+
+export function shouldIncludeValidatorInSchema(key: string): key is Tsoa.SchemaValidatorKey {
+  return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
 }

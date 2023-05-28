@@ -12,9 +12,11 @@ import { Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
+type HttpMethod = 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
+
 export class MethodGenerator {
-  private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
-  private path: string;
+  protected method?: HttpMethod;
+  protected path?: string;
   private produces?: string[];
   private consumes?: string;
 
@@ -30,8 +32,8 @@ export class MethodGenerator {
     this.processMethodDecorators();
   }
 
-  public IsValid() {
-    return !!this.method;
+  public IsValid(): this is { method: HttpMethod; path: string } {
+    return this.method !== undefined && this.path !== undefined;
   }
 
   public Generate(): Tsoa.Method {
@@ -76,15 +78,21 @@ export class MethodGenerator {
   }
 
   private buildParameters() {
+    if (!this.IsValid()) {
+      throw new GenerateMetadataError("This isn't a valid a controller method.");
+    }
+
     const fullPath = path.join(this.parentPath || '', this.path);
+    const method = this.method;
     const parameters = this.node.parameters
       .map(p => {
         try {
-          return new ParameterGenerator(p, this.method, fullPath, this.current).Generate();
+          return new ParameterGenerator(p, method, fullPath, this.current).Generate();
         } catch (e) {
           const methodId = this.node.name as ts.Identifier;
           const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
-          throw new GenerateMetadataError(`${String(e.message)} \n in '${controllerId.text}.${methodId.text}'`);
+          const message = e instanceof Error ? e.message : String(e);
+          throw new GenerateMetadataError(`${message} \n in '${controllerId.text}.${methodId.text}'`);
         }
       })
       .reduce((flattened, params) => [...flattened, ...params], []);

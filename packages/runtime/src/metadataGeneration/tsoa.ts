@@ -1,5 +1,6 @@
 import { ExtensionType } from '../decorators/extension';
 import type { Swagger } from '../swagger/swagger';
+import { Validator } from '..';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tsoa {
@@ -60,16 +61,19 @@ export namespace Tsoa {
     collectionFormat?: 'csv' | 'multi' | 'pipes' | 'ssv' | 'tsv';
   }
 
-  export interface Validators {
-    [key: string]: { value?: unknown; errorMsg?: string };
-  }
+  type AllKeys<T> = T extends any ? keyof T : never;
+
+  export type ValidatorKey = AllKeys<Validator>;
+  export type SchemaValidatorKey = Exclude<ValidatorKey, `is${string}` | 'minDate' | 'maxDate'>;
+
+  export type Validators = Partial<Record<ValidatorKey, { value?: unknown; errorMsg?: string }>>;
 
   export interface Security {
     [key: string]: string[];
   }
 
   export interface Extension {
-    key: string;
+    key: `x-${string}`;
     value: ExtensionType | ExtensionType[];
   }
 

@@ -2,6 +2,8 @@ import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
 import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
+import { Tsoa } from '../metadataGeneration/tsoa';
+import ValidatorKey = Tsoa.ValidatorKey;
 
 // for backwards compatibility with custom templates
 export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: AdditionalProps) {
@@ -13,7 +15,7 @@ export class ValidationService {
 
   public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: AdditionalProps) {
     let value = rawValue;
-    // If undefined is alowed type, we can move to value validation
+    // If undefined is allowed type, we can move to value validation
     if (value === undefined && property.dataType !== 'undefined') {
       // If there's either default value or datatype is union with undefined valid, we can just set it and move to validation
       if (property.default !== undefined || (property.dataType === 'union' && property.subSchemas?.some(p => p.dataType === 'undefined'))) {
@@ -24,7 +26,7 @@ export class ValidationService {
         if (property.validators) {
           const validators = property.validators;
           Object.keys(validators).forEach((key: string) => {
-            const errorMsg = validators[key].errorMsg;
+            const errorMsg = validators[key as ValidatorKey]?.errorMsg;
             if (key.startsWith('is') && errorMsg) {
               message = errorMsg;
             }
@@ -42,23 +44,23 @@ export class ValidationService {
 
     switch (property.dataType) {
       case 'string':
-        return this.validateString(name, value, fieldErrors, property.validators, parent);
+        return this.validateString(name, value, fieldErrors, property.validators as StringValidator, parent);
       case 'boolean':
         return this.validateBool(name, value, fieldErrors, property.validators, parent);
       case 'integer':
       case 'long':
-        return this.validateInt(name, value, fieldErrors, property.validators, parent);
+        return this.validateInt(name, value, fieldErrors, property.validators as IntegerValidator, parent);
       case 'float':
       case 'double':
-        return this.validateFloat(name, value, fieldErrors, property.validators, parent);
+        return this.validateFloat(name, value, fieldErrors, property.validators as FloatValidator, parent);
       case 'enum':
         return this.validateEnum(name, value, fieldErrors, property.enums, parent);
       case 'array':
-        return this.validateArray(name, value, fieldErrors, minimalSwaggerConfig, property.array, property.validators, parent);
+        return this.validateArray(name, value, fieldErrors, minimalSwaggerConfig, property.array, property.validators as ArrayValidator, parent);
       case 'date':
-        return this.validateDate(name, value, fieldErrors, property.validators, parent);
+        return this.validateDate(name, value, fieldErrors, property.validators as DateValidator, parent);
       case 'datetime':
-        return this.validateDateTime(name, value, fieldErrors, property.validators, parent);
+        return this.validateDateTime(name, value, fieldErrors, property.validators as DateTimeValidator, parent);
       case 'buffer':
         return this.validateBuffer(name, value);
       case 'union':
@@ -647,7 +649,10 @@ export class ValidationService {
   }
 
   private intersectRefObjectModelSchemas(a: TsoaRoute.RefObjectModelSchema[], b: TsoaRoute.RefObjectModelSchema[]): TsoaRoute.RefObjectModelSchema[] {
-    return a.reduce((acc, aModel) => [...acc, ...b.reduce((acc, bModel) => [...acc, this.combineProperties(aModel, bModel)], [])], []);
+    return a.reduce<TsoaRoute.RefObjectModelSchema[]>(
+      (acc, aModel) => [...acc, ...b.reduce<TsoaRoute.RefObjectModelSchema[]>((acc, bModel) => [...acc, this.combineProperties(aModel, bModel)], [])],
+      [],
+    );
   }
 
   private combineProperties(a: TsoaRoute.RefObjectModelSchema, b: TsoaRoute.RefObjectModelSchema): TsoaRoute.RefObjectModelSchema {

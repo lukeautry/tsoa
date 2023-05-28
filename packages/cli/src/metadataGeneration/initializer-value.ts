@@ -5,7 +5,17 @@ const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prot
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
 const extractImportSpecifier = (symbol?: ts.Symbol) => (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && symbol.declarations[0]) || undefined;
 
-export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.TypeChecker, type?: Tsoa.Type) => {
+export type InitializerValue = string | number | boolean | undefined | null | InitializerValue[];
+export type DefinedInitializerValue = string | number | boolean | null | DefinedInitializerValue[];
+export function isNonUndefinedInitializerValue(value: InitializerValue): value is DefinedInitializerValue {
+  if (Array.isArray(value)) {
+    return value.every(isNonUndefinedInitializerValue);
+  } else {
+    return value !== undefined;
+  }
+}
+
+export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.TypeChecker, type?: Tsoa.Type): InitializerValue | DefinedInitializerValue {
   if (!initializer || !typeChecker) {
     return;
   }
@@ -81,4 +91,4 @@ export const getInitializerValue = (initializer?: ts.Expression | ts.ImportSpeci
       return getInitializerValue(extractInitializer(symbol?.valueDeclaration) || extractImportSpecifier(symbol), typeChecker);
     }
   }
-};
+}
