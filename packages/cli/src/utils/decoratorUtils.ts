@@ -1,11 +1,11 @@
 import * as ts from 'typescript';
 import { getInitializerValue } from '../metadataGeneration/initializer-value';
 
-function tsHasDecorators(ts): ts is {
+function tsHasDecorators(tsNamespace: typeof ts): tsNamespace is typeof ts & {
   canHaveDecorators(node: ts.Node): node is any;
   getDecorators(node: ts.Node): readonly ts.Decorator[] | undefined;
 } {
-  return typeof ts.canHaveDecorators === 'function';
+  return typeof tsNamespace.canHaveDecorators === 'function';
 }
 
 export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {

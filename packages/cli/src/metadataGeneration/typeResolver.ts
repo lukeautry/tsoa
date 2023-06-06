@@ -109,25 +109,23 @@ export class TypeResolver {
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
-      const properties = this.typeNode.members
-        .filter(member => ts.isPropertySignature(member))
-        .reduce((res, propertySignature: ts.PropertySignature) => {
-          const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
-          const property: Tsoa.Property = {
-            example: this.getNodeExample(propertySignature),
-            default: getJSDocComment(propertySignature, 'default'),
-            description: this.getNodeDescription(propertySignature),
-            format: this.getNodeFormat(propertySignature),
-            name: (propertySignature.name as ts.Identifier).text,
-            required: !propertySignature.questionToken,
-            type,
-            validators: getPropertyValidators(propertySignature) || {},
-            deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
-            extensions: this.getNodeExtension(propertySignature),
-          };
+      const properties = this.typeNode.members.filter(ts.isPropertySignature).reduce<Tsoa.Property[]>((res, propertySignature: ts.PropertySignature) => {
+        const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
+        const property: Tsoa.Property = {
+          example: this.getNodeExample(propertySignature),
+          default: getJSDocComment(propertySignature, 'default'),
+          description: this.getNodeDescription(propertySignature),
+          format: this.getNodeFormat(propertySignature),
+          name: (propertySignature.name as ts.Identifier).text,
+          required: !propertySignature.questionToken,
+          type,
+          validators: getPropertyValidators(propertySignature) || {},
+          deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+          extensions: this.getNodeExtension(propertySignature),
+        };
 
-          return [property, ...res];
-        }, []);
+        return [property, ...res];
+      }, []);
 
       const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
       let additionalType: Tsoa.Type | undefined;
@@ -256,7 +254,7 @@ export class TypeResolver {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
 
       if (type.isUnion()) {
-        const literals = type.types.filter(t => t.isLiteral()).reduce((acc, t: ts.LiteralType) => [...acc, t.value.toString()], []);
+        const literals = type.types.filter((t): t is ts.LiteralType => t.isLiteral()).reduce<string[]>((acc, t: ts.LiteralType) => [...acc, t.value.toString()], []);
 
         // Warn on nonsense (`number`, `typeof Symbol.iterator`)
         if (type.types.find(t => !t.isLiteral()) !== undefined) {
@@ -361,7 +359,7 @@ export class TypeResolver {
 
     if (ts.isTemplateLiteralTypeNode(this.typeNode)) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.referencer || this.typeNode);
-      if (type.isUnion() && type.types.every(unionElementType => unionElementType.isStringLiteral())) {
+      if (type.isUnion() && type.types.every((unionElementType): unionElementType is ts.StringLiteralType => unionElementType.isStringLiteral())) {
         const stringLiteralEnum: Tsoa.EnumType = {
           dataType: 'enum',
           enums: type.types.map((stringLiteralType: ts.StringLiteralType) => stringLiteralType.value),
@@ -544,7 +542,7 @@ export class TypeResolver {
     return nodes;
   }
 
-  private hasFlag(type: ts.Symbol | ts.Declaration, flag) {
+  private hasFlag(type: ts.Symbol | ts.Declaration, flag: ts.NodeFlags | ts.SymbolFlags) {
     return (type.flags & flag) === flag;
   }
 
@@ -913,7 +911,9 @@ export class TypeResolver {
 
     // Interface model
     if (ts.isInterfaceDeclaration(node)) {
-      return node.members.filter(member => !isIgnored(member) && ts.isPropertySignature(member)).map((member: ts.PropertySignature) => this.propertyFromSignature(member, overrideToken));
+      return node.members
+        .filter((member): member is ts.PropertySignature => !isIgnored(member) && ts.isPropertySignature(member))
+        .map((member: ts.PropertySignature) => this.propertyFromSignature(member, overrideToken));
     }
 
     const properties: Array<ts.PropertyDeclaration | ts.ParameterDeclaration> = [];

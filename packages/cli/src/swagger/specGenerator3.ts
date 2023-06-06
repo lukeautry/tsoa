@@ -5,6 +5,7 @@ import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
+import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 
 /**
  * TODO:
@@ -200,13 +201,11 @@ export class SpecGenerator3 extends SpecGenerator {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const format = referenceType.format as Swagger.DataFormat;
         const validators = Object.keys(referenceType.validators)
-          .filter(key => {
-            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
-          })
+          .filter(shouldIncludeValidatorInSchema)
           .reduce((acc, key) => {
             return {
               ...acc,
-              [key]: referenceType.validators[key].value,
+              [key]: referenceType.validators[key]!.value,
             };
           }, {});
 
@@ -435,19 +434,17 @@ export class SpecGenerator3 extends SpecGenerator {
 
   private buildMediaType(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.MediaType {
     const validators = Object.keys(parameter.validators)
-      .filter(key => {
-        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
-      })
+      .filter(shouldIncludeValidatorInSchema)
       .reduce((acc, key) => {
         return {
           ...acc,
-          [key]: validators[key].value,
+          [key]: parameter.validators[key]!.value,
         };
       }, {});
 
     const mediaType: Swagger.MediaType = {
       schema: {
-        ...this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined),
+        ...(this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined) as Swagger.Schema3),
         ...validators,
         ...(parameter.description && { description: parameter.description }),
       },
@@ -504,13 +501,11 @@ export class SpecGenerator3 extends SpecGenerator {
       return parameter;
     }
 
-    const validatorObjs = {};
+    const validatorObjs: { [key in Tsoa.SchemaValidatorKey]?: unknown } = {};
     Object.keys(source.validators)
-      .filter(key => {
-        return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
-      })
-      .forEach((key: string) => {
-        validatorObjs[key] = source.validators[key].value;
+      .filter(shouldIncludeValidatorInSchema)
+      .forEach(key => {
+        validatorObjs[key] = source.validators[key]!.value;
       });
 
     if (source.type.dataType === 'any') {
@@ -546,7 +541,7 @@ export class SpecGenerator3 extends SpecGenerator {
     const properties: { [propertyName: string]: Swagger.Schema3 } = {};
 
     source.forEach(property => {
-      const swaggerType = this.getSwaggerType(property.type) as Swagger.Schema3;
+      let swaggerType = this.getSwaggerType(property.type) as Swagger.Schema3;
       const format = property.format as Swagger.DataFormat;
       swaggerType.description = property.description;
       swaggerType.example = property.example;
@@ -555,11 +550,9 @@ export class SpecGenerator3 extends SpecGenerator {
         swaggerType.default = property.default;
 
         Object.keys(property.validators)
-          .filter(key => {
-            return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
-          })
+          .filter(shouldIncludeValidatorInSchema)
           .forEach(key => {
-            swaggerType[key] = property.validators[key].value;
+            swaggerType = { ...swaggerType, [key]: property.validators[key]!.value };
           });
       }
       if (property.deprecated) {
@@ -572,7 +565,7 @@ export class SpecGenerator3 extends SpecGenerator {
         });
       }
 
-      properties[property.name] = swaggerType as Swagger.Schema;
+      properties[property.name] = swaggerType;
     });
 
     return properties;
@@ -605,14 +598,14 @@ export class SpecGenerator3 extends SpecGenerator {
   // duplicate types.
   private groupEnums(types: Array<Swagger.Schema | Swagger.BaseSchema>) {
     const returnTypes: Array<Swagger.Schema | Swagger.BaseSchema> = [];
-    const enumValuesByType = {};
+    const enumValuesByType: Record<string, Record<string, boolean | string | number | null>> = {};
     for (const type of types) {
       if (type.enum && type.type) {
         for (const enumValue of type.enum) {
           if (!enumValuesByType[type.type]) {
-            enumValuesByType[type.type] = [];
+            enumValuesByType[type.type] = {};
           }
-          enumValuesByType[type.type][enumValue] = enumValue;
+          enumValuesByType[type.type][String(enumValue)] = enumValue;
         }
       }
       // preserve non-enum types

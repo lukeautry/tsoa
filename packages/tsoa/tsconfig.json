@@ -3,7 +3,6 @@
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
-    "noImplicitAny": false,
     "module": "commonjs",
     "composite": true,
     "target": "es2021",
@@ -13,15 +12,13 @@
     "experimentalDecorators": true,
     "declaration": true,
     "noUnusedLocals": true,
-    "strictNullChecks": true,
     "newLine": "LF",
     "noUnusedParameters": false,
     "emitDecoratorMetadata": true,
-    "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "strictBindCallApply": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true
   },
   "references": [{ "path": "../runtime" }, { "path": "../cli" }]
 }
