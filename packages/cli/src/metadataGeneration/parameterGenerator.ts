@@ -439,7 +439,8 @@ export class ParameterGenerator {
     }
 
     if (parameterType.dataType === 'union') {
-      return !parameterType.types.map(t => this.supportPathDataType(t)).some(t => t === false);
+      // skip undefined inside unions
+      return !parameterType.types.map(t => t.dataType === 'undefined' || this.supportPathDataType(t)).some(t => t === false);
     }
 
     return false;
