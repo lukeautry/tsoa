@@ -327,6 +327,11 @@ export class GetTestController extends Controller {
   public async getIndexedValueGeneric(): Promise<IndexedValueGeneric<IndexedValueTypeReference>> {
     return 'FOO';
   }
+
+  @Get('UnionTypeWithDefault')
+  public async getUnionTypeWithDefault(@Query() unionType: 'a' | 'b' | undefined = 'a'): Promise<void> {
+    return;
+  }
 }
 
 export interface ErrorResponse {
