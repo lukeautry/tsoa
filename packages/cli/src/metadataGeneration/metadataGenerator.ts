@@ -1,4 +1,4 @@
-import mm from 'minimatch';
+import { minimatch } from 'minimatch';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
@@ -54,7 +54,7 @@ export class MetadataGenerator {
     this.program.getSourceFiles().forEach(sf => {
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {
-          if (mm(sf.fileName, path)) {
+          if (minimatch(sf.fileName, path)) {
             return;
           }
         }
