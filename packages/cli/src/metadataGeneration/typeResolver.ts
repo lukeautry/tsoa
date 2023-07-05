@@ -366,7 +366,7 @@ export class TypeResolver {
         };
         return stringLiteralEnum;
       } else {
-        throw new GenerateMetadataError(`Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode);
+        throw new GenerateMetadataError(`Could not determine the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode);
       }
     }
 
