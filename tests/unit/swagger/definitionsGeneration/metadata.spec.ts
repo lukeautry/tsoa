@@ -1,9 +1,9 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-import {MetadataGenerator} from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import {Tsoa} from '@tsoa/runtime';
-import {SpecGenerator2} from '@tsoa/cli/swagger/specGenerator2';
-import {getDefaultExtendedOptions} from '../../../fixtures/defaultOptions';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { Tsoa } from '@tsoa/runtime';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
+import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -177,7 +177,7 @@ describe('Metadata generation', () => {
       const defaultResponse = method.responses[2];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
-      expect(defaultResponse.examples).to.deep.equal([{status: 500, message: 'Something went wrong!'}]);
+      expect(defaultResponse.examples).to.deep.equal([{ status: 500, message: 'Something went wrong!' }]);
 
       const successResponse = method.responses[3];
       expect(successResponse.name).to.equal('200');
@@ -306,18 +306,15 @@ describe('Metadata generation', () => {
       }
 
       const expectedExtensions = [
-        {key: 'x-attKey', value: 'attValue'},
-        {key: 'x-attKey1', value: 123},
-        {key: 'x-attKey2', value: true},
-        {key: 'x-attKey3', value: null},
-        {key: 'x-attKey4', value: {test: 'testVal'}},
-        {key: 'x-attKey5', value: ['y0', 'y1', 123, true, null]},
-        {key: 'x-attKey6', value: [{y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null}, {y2: 'yt2'}]},
-        {key: 'x-attKey7', value: {test: ['testVal', 123, true, null]}},
-        {
-          key: 'x-attKey8',
-          value: {test: {testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]]}}
-        },
+        { key: 'x-attKey', value: 'attValue' },
+        { key: 'x-attKey1', value: 123 },
+        { key: 'x-attKey2', value: true },
+        { key: 'x-attKey3', value: null },
+        { key: 'x-attKey4', value: { test: 'testVal' } },
+        { key: 'x-attKey5', value: ['y0', 'y1', 123, true, null] },
+        { key: 'x-attKey6', value: [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }] },
+        { key: 'x-attKey7', value: { test: ['testVal', 123, true, null] } },
+        { key: 'x-attKey8', value: { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } } },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
@@ -376,8 +373,8 @@ describe('Metadata generation', () => {
       const genderParam = method.parameters[2];
       expect(genderParam.example).not.to.be.undefined;
       expect(genderParam.example).to.deep.equal([
-        {MALE: 'MALE', FEMALE: 'FEMALE'},
-        {MALE: 'MALE2', FEMALE: 'FEMALE2'},
+        { MALE: 'MALE', FEMALE: 'FEMALE' },
+        { MALE: 'MALE2', FEMALE: 'FEMALE2' },
       ]);
       expect((genderParam.example as unknown[]).length).to.be.equal(2);
 
@@ -462,7 +459,7 @@ describe('Metadata generation', () => {
       expect(nicknamesParam.required).to.be.true;
       expect(nicknamesParam.type.dataType).to.equal('array');
       expect(nicknamesParam.collectionFormat).to.equal('multi');
-      expect(nicknamesParam.type.elementType).to.deep.equal({dataType: 'string'});
+      expect(nicknamesParam.type.elementType).to.deep.equal({ dataType: 'string' });
       expect(nicknamesParam.example).to.be.undefined;
     });
 
@@ -1047,47 +1044,39 @@ describe('Metadata generation', () => {
 
   describe('AnnotatedTypesControllerGenerator', () => {
     const metadata = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts').Generate();
-    const metadataIntDefault = new MetadataGenerator(
-      './fixtures/controllers/annotatedTypesController.ts',
-      undefined, undefined, undefined, undefined,
-      'integer'
-    ).Generate();
+    const metadataIntDefault = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts', undefined, undefined, undefined, undefined, 'integer').Generate();
 
     const controller = metadata.controllers.find(controller => controller.name === 'AnnotatedTypesController');
     const controllerIntDefault = metadataIntDefault.controllers.find(controller => controller.name === 'AnnotatedTypesController');
 
     if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
 
-
-    const getControllerNumberMethods = (controller) => {
+    const getControllerNumberMethods = controller => {
       const getDefault = controller.methods.find(method => method.name === 'getDefault');
       const getDouble = controller.methods.find(method => method.name === 'getDouble');
       const getInteger = controller.methods.find(method => method.name === 'getInteger');
       if (!getDefault || !getDouble || !getInteger) throw new Error('Methods not defined!');
-      return {getDefault, getDouble, getInteger}
-    }
+      return { getDefault, getDouble, getInteger };
+    };
 
     const checkNumberType = (method: Tsoa.Method, numberType: string) => {
-      const numberDataType =
-        (method.responses[0].schema as Tsoa.NestedObjectLiteralType)
-          .properties.find(p => p.name === 'number')
-          ?.type.dataType
+      const numberDataType = (method.responses[0].schema as Tsoa.NestedObjectLiteralType).properties.find(p => p.name === 'number')?.type.dataType;
 
-      expect(numberDataType).to.equal(numberType)
-    }
+      expect(numberDataType).to.equal(numberType);
+    };
 
     it('Double default number type is applied correctly', () => {
-      const {getDefault, getDouble, getInteger} = getControllerNumberMethods(controller)
-      checkNumberType(getDefault, 'double')
-      checkNumberType(getDouble, 'double')
-      checkNumberType(getInteger, 'integer')
+      const { getDefault, getDouble, getInteger } = getControllerNumberMethods(controller);
+      checkNumberType(getDefault, 'double');
+      checkNumberType(getDouble, 'double');
+      checkNumberType(getInteger, 'integer');
     });
 
-    it.only('Integer default number type is applied correctly', () => {
-      const {getDefault, getDouble, getInteger} = getControllerNumberMethods(controllerIntDefault)
-      checkNumberType(getDefault, 'integer')
-      checkNumberType(getDouble, 'double')
-      checkNumberType(getInteger, 'integer')
+    it('Integer default number type is applied correctly', () => {
+      const { getDefault, getDouble, getInteger } = getControllerNumberMethods(controllerIntDefault);
+      checkNumberType(getDefault, 'integer');
+      checkNumberType(getDouble, 'double');
+      checkNumberType(getInteger, 'integer');
     });
   });
 });
