@@ -262,6 +262,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
         wordOrNull: null,
         maybeString: null,
         justNull: null,
+        nestedNullable: { property: null },
       };
 
       return verifyPostRequest(
@@ -324,6 +325,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.nullableTypes.wordOrNull).to.equal(bodyModel.nullableTypes.wordOrNull);
           expect(body.nullableTypes.maybeString).to.equal(bodyModel.nullableTypes.maybeString);
           expect(body.nullableTypes.justNull).to.equal(bodyModel.nullableTypes.justNull);
+          expect(body.nullableTypes.nestedNullable.property).to.equal(bodyModel.nullableTypes.nestedNullable.property);
         },
         200,
       );
