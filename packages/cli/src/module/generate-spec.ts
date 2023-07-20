@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import * as YAML from 'yamljs';
 import { ExtendedSpecConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
-import {Tsoa, Swagger, Config} from '@tsoa/runtime';
+import { Tsoa, Swagger, Config } from '@tsoa/runtime';
 import { SpecGenerator2 } from '../swagger/specGenerator2';
 import { SpecGenerator3 } from '../swagger/specGenerator3';
 import { fsMkDir, fsWriteFile } from '../utils/fs';
