@@ -2,7 +2,7 @@ import mm from 'minimatch';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import {Config, Tsoa} from '@tsoa/runtime';
+import { Config, Tsoa } from '@tsoa/runtime';
 import { TypeResolver } from './typeResolver';
 import { getDecorators } from '../utils/decoratorUtils';
 import { type TypeChecker, type Program, type ClassDeclaration, type CompilerOptions, createProgram, forEachChild, isClassDeclaration } from 'typescript';
