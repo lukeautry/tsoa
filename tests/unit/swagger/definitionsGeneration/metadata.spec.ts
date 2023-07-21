@@ -1041,4 +1041,42 @@ describe('Metadata generation', () => {
       expect(method.responses[0].description).to.equal(description);
     });
   });
+
+  describe('AnnotatedTypesControllerGenerator', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts').Generate();
+    const metadataIntDefault = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts', undefined, undefined, undefined, undefined, 'integer').Generate();
+
+    const controller = metadata.controllers.find(controller => controller.name === 'AnnotatedTypesController');
+    const controllerIntDefault = metadataIntDefault.controllers.find(controller => controller.name === 'AnnotatedTypesController');
+
+    if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
+
+    const getControllerNumberMethods = controller => {
+      const getDefault = controller.methods.find(method => method.name === 'getDefault');
+      const getDouble = controller.methods.find(method => method.name === 'getDouble');
+      const getInteger = controller.methods.find(method => method.name === 'getInteger');
+      if (!getDefault || !getDouble || !getInteger) throw new Error('Methods not defined!');
+      return { getDefault, getDouble, getInteger };
+    };
+
+    const checkNumberType = (method: Tsoa.Method, numberType: string) => {
+      const numberDataType = (method.responses[0].schema as Tsoa.NestedObjectLiteralType).properties.find(p => p.name === 'number')?.type.dataType;
+
+      expect(numberDataType).to.equal(numberType);
+    };
+
+    it('Double default number type is applied correctly', () => {
+      const { getDefault, getDouble, getInteger } = getControllerNumberMethods(controller);
+      checkNumberType(getDefault, 'double');
+      checkNumberType(getDouble, 'double');
+      checkNumberType(getInteger, 'integer');
+    });
+
+    it('Integer default number type is applied correctly', () => {
+      const { getDefault, getDouble, getInteger } = getControllerNumberMethods(controllerIntDefault);
+      checkNumberType(getDefault, 'integer');
+      checkNumberType(getDouble, 'double');
+      checkNumberType(getInteger, 'integer');
+    });
+  });
 });
