@@ -44,13 +44,13 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "aws-cdk-lib": "^2.72.1",
+    "aws-cdk-lib": "^2.88.0",
     "body-parser": "^1.20.2",
     "chai": "^4.3.6",
     "chalk": "^4.1.2",
-    "constructs": "^10.1.299",
+    "constructs": "^10.2.69",
     "cross-env": "^7.0.3",
-    "eslint": "^8.37.0",
+    "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "express": "^4.18.1",
     "husky": "^8.0.3",
@@ -70,7 +70,7 @@
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.3"
+    "typescript": "^5.1.6"
   },
   "repository": {
     "type": "git",
