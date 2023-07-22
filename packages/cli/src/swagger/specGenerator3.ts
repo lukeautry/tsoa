@@ -151,7 +151,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p)).map(p => p.name);
+        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p) && p.default == null).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -369,7 +369,7 @@ export class SpecGenerator3 extends SpecGenerator {
             headers[each.name] = {
               schema: this.getSwaggerType(each.type) as Swagger.Schema3,
               description: each.description,
-              required: each.required,
+              required: each.required && each.default == null,
             };
           });
         } else {
@@ -393,7 +393,7 @@ export class SpecGenerator3 extends SpecGenerator {
     for (const parameter of parameters) {
       const mediaType = this.buildMediaType(controllerName, method, parameter);
       properties[parameter.name] = mediaType.schema!;
-      if (parameter.required) {
+      if (parameter.required && parameter.default == null) {
         required.push(parameter.name);
       }
       if (parameter.deprecated) {
@@ -423,7 +423,7 @@ export class SpecGenerator3 extends SpecGenerator {
 
     const requestBody: Swagger.RequestBody = {
       description: parameter.description,
-      required: parameter.required,
+      required: parameter.required && parameter.default == null,
       content: {
         [consumes]: mediaType,
       },
@@ -481,7 +481,7 @@ export class SpecGenerator3 extends SpecGenerator {
       description: source.description,
       in: source.in,
       name: source.name,
-      required: source.required,
+      required: source.required && source.default == null,
       schema: {
         default: source.default,
         format: undefined,

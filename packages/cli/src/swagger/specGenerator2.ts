@@ -82,7 +82,7 @@ export class SpecGenerator2 extends SpecGenerator {
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p)).map(p => p.name);
+        const required = referenceType.properties.filter(p => p.required && !this.hasUndefined(p) && p.default == null).map(p => p.name);
         definitions[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -281,7 +281,7 @@ export class SpecGenerator2 extends SpecGenerator {
         properties[p.name].description = p.description;
         properties[p.name].example = p.example === undefined ? undefined : p.example[0];
 
-        if (p.required) {
+        if (p.required && p.default == null) {
           required.push(p.name);
         }
       });
@@ -320,7 +320,7 @@ export class SpecGenerator2 extends SpecGenerator {
       description: source.description,
       in: source.in,
       name: source.name,
-      required: source.required,
+      required: source.required && source.default == null,
     } as Swagger.Parameter2;
     if (source.deprecated) {
       parameter['x-deprecated'] = true;

@@ -107,7 +107,7 @@ export abstract class SpecGenerator {
 
     const additionalProperties = objectLiteral.additionalProperties && this.getSwaggerType(objectLiteral.additionalProperties);
 
-    const required = objectLiteral.properties.filter(prop => prop.required && !this.hasUndefined(prop)).map(prop => prop.name);
+    const required = objectLiteral.properties.filter(prop => prop.required && !this.hasUndefined(prop) && prop.default == null).map(prop => prop.name);
 
     // An empty list required: [] is not valid.
     // If all properties are optional, do not specify the required keyword.
@@ -218,7 +218,7 @@ export abstract class SpecGenerator {
       description: property.description,
       in: 'query',
       name: property.name,
-      required: property.required,
+      required: property.required && property.default == null,
       type: property.type,
       default: property.default,
       validators: property.validators,
