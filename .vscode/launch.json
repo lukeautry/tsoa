@@ -5,31 +5,31 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha TS Tests",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["'**/*spec.ts'", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
+      "args": ["**/*.spec.ts"],
+      "runtimeArgs": ["--inspect", "--inspect-brk"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "protocol": "inspector"
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Mocha TS Tests: Current File",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
       },
-      "args": ["${file}", "--debug", "--debug-brk", "--require", "ts-node/register", "--require", "tsconfig-paths/register", "--colors"],
+      "args": ["${file}", "--timeout", "0"],
+      "runtimeArgs": ["--inspect", "--inspect-brk"],
       "preLaunchTask": "prepareFiles",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "protocol": "inspector"
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "name": "Generate",
