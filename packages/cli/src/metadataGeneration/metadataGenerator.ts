@@ -21,7 +21,7 @@ export class MetadataGenerator {
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
-    esm: boolean = false,
+    esm = false,
   ) {
     TypeResolver.clearCache();
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], compilerOptions || {});
