@@ -20,10 +20,11 @@ export class MetadataGenerator {
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
-    public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double'
+    public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
+    esm: boolean = false,
   ) {
     TypeResolver.clearCache();
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers) : createProgram([entryFile], compilerOptions || {});
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], compilerOptions || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
@@ -42,8 +43,8 @@ export class MetadataGenerator {
     };
   }
 
-  private setProgramToDynamicControllersFiles(controllers: string[]) {
-    const allGlobFiles = importClassesFromDirectories(controllers);
+  private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
+    const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts']: ['.ts']);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }

@@ -143,8 +143,26 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
   }
 
   protected getRelativeImportPath(fileLocation: string) {
-    fileLocation = fileLocation.replace(/.ts$/, ''); // no ts extension in import
-    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}${this.options.esm ? '.js' : ''}`;
+    const currentExt = path.extname(fileLocation);
+    let newExtension = "";
+    
+    if (this.options.esm) {
+      switch (currentExt) {
+        case '.ts':
+        default:
+          newExtension = '.js';
+        break;
+        case '.mts':
+          newExtension = '.mjs';
+        break;
+        case '.cts':
+          newExtension = '.cjs';
+        break;
+      }
+    }
+  
+    fileLocation = fileLocation.replace(currentExt, ''); // no ts extension in import
+    return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}${newExtension}`;
   }
 
   protected buildPropertySchema(source: Tsoa.Property): TsoaRoute.PropertySchema {
