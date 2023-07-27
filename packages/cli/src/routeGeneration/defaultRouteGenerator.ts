@@ -41,16 +41,21 @@ export class DefaultRouteGenerator extends AbstractRouteGenerator<ExtendedRoutes
   }
 
   public async GenerateRoutes(middlewareTemplate: string) {
+    const allowedExtensions = this.options.esm ? ['.ts', '.mts', '.cts'] : ['.ts'];
+
     if (!fs.lstatSync(this.options.routesDir).isDirectory()) {
       throw new Error(`routesDir should be a directory`);
-    } else if (this.options.routesFileName !== undefined && !this.options.routesFileName.endsWith('.ts')) {
-      throw new Error(`routesFileName should have a '.ts' extension`);
+    } else if (this.options.routesFileName !== undefined) {
+      const ext = path.extname(this.options.routesFileName);
+      if (!allowedExtensions.includes(ext)) {
+        throw new Error(`routesFileName should be a valid typescript file.`);
+      }
     }
 
     const fileName = `${this.options.routesDir}/${this.options.routesFileName || 'routes.ts'}`;
     const content = this.buildContent(middlewareTemplate);
 
-    if(await this.shouldWriteFile(fileName, content)){
+    if (await this.shouldWriteFile(fileName, content)) {
       await fsWriteFile(fileName, content);
     }
   }
