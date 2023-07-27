@@ -420,6 +420,20 @@ export class TypeResolver {
         return stringMetaType;
       }
 
+      if (typeReference.typeName.text === 'Record' && typeReference.typeArguments?.length === 2) {
+        const indexType = new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
+        if (indexType.dataType === 'string') {
+          const valueType = new TypeResolver(typeReference.typeArguments[1], this.current, this.parentNode, this.context).resolve();
+
+          const nestedObjectMetaType: Tsoa.NestedObjectLiteralType = {
+            additionalProperties: valueType,
+            dataType: 'nestedObjectLiteral',
+            properties: [],
+          };
+          return nestedObjectMetaType;
+        }
+      }
+
       if (this.context[typeReference.typeName.text]) {
         return new TypeResolver(this.context[typeReference.typeName.text], this.current, this.parentNode, this.context).resolve();
       }
@@ -468,11 +482,11 @@ export class TypeResolver {
       return;
     }
 
-    const defaultNumberType = this.current.defaultNumberType
+    const defaultNumberType = this.current.defaultNumberType;
 
     if (resolution.resolvedType === 'number') {
       if (!parentNode) {
-        return { dataType: defaultNumberType};
+        return { dataType: defaultNumberType };
       }
 
       const tags = getJSDocTagNames(parentNode).filter(name => {
