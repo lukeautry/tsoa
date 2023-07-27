@@ -144,24 +144,24 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
   protected getRelativeImportPath(fileLocation: string) {
     const currentExt = path.extname(fileLocation);
-    let newExtension = "";
-    
+    let newExtension = '';
+
     if (this.options.esm) {
       switch (currentExt) {
         case '.ts':
         default:
           newExtension = '.js';
-        break;
+          break;
         case '.mts':
           newExtension = '.mjs';
-        break;
+          break;
         case '.cts':
           newExtension = '.cjs';
-        break;
+          break;
       }
     }
-  
-    fileLocation = fileLocation.replace(currentExt, ''); // no ts extension in import
+
+    fileLocation = fileLocation.replace(/\.(ts|mts|cts)$/, ''); // no ts extension in import
     return `./${path.relative(this.options.routesDir, fileLocation).replace(/\\/g, '/')}${newExtension}`;
   }
 
