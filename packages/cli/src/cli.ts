@@ -375,7 +375,7 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     const swaggerConfig = await validateSpecConfig(config);
 
     if (!metadata) {
-      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity, config.defaultNumberType).Generate();
+      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity, config.defaultNumberType, config.routes.esm).Generate();
     }
 
     await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);

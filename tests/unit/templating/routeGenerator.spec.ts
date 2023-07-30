@@ -122,5 +122,57 @@ describe('RouteGenerator', () => {
 
       expect(models).to.equal('./controller.js');
     });
+
+    it('adds mjs for routes if esm is true and source is mts', () => {
+      const generator = new DefaultRouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controller.mts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          esm: true,
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
+
+      expect(models).to.equal('./controller.mjs');
+    });
+
+    it('adds cjs for routes if esm is true and source is cts', () => {
+      const generator = new DefaultRouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controller.cts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          esm: true,
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
+
+      expect(models).to.equal('./controller.cjs');
+    });
   });
 });
