@@ -422,7 +422,7 @@ export class TypeResolver {
 
       if (typeReference.typeName.text === 'Record' && typeReference.typeArguments?.length === 2) {
         const indexType = new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
-        if (indexType.dataType === 'string') {
+        if (indexType.dataType === 'string' || indexType.dataType === 'integer' || indexType.dataType === 'double') {
           const valueType = new TypeResolver(typeReference.typeArguments[1], this.current, this.parentNode, this.context).resolve();
 
           const nestedObjectMetaType: Tsoa.NestedObjectLiteralType = {
