@@ -20,7 +20,7 @@
     "clean": "rimraf --glob dist fixtures/*/routes.ts fixtures/*/customRoutes.ts fixtures/*/custom-route-generator/routes/*",
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
     "pretest": "yarn clean && yarn prepare-test && yarn typecheck",
-    "test": "cross-env NODE_ENV=tsoa_test mocha",
+    "test": "cross-env NODE_ENV=tsoa_test mocha \"**/*.spec.ts\"",
     "typecheck": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",

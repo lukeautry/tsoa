@@ -1,8 +1,8 @@
 {
   "extension": ["ts"],
-  "spec": ["**/*.spec.ts"],
   "timeout": "5000",
   "exclude": ["esm/**/*"],
   "require": ["ts-node/register", "tsconfig-paths/register"],
-  "exit": true
+  "exit": true,
+  "colors": true
 }

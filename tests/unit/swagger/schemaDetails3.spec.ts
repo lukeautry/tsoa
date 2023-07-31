@@ -2844,4 +2844,29 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
     });
   });
+
+  describe('defaults on required properties should be documented as optional', () => {
+    it('on models', () => {
+      const testModel = getComponentSchema('TestModel', specDefault);
+
+      const prop = testModel.properties?.boolValue;
+
+      expect(prop).to.deep.eq(
+        {
+          type: 'boolean',
+          default: 'true',
+          description: undefined,
+          format: undefined,
+          example: undefined,
+        },
+        'boolValue has a default value of true',
+      );
+
+      expect(testModel.required).to.be.an('array');
+      expect(testModel.required).to.not.contain('boolValue', 'boolValue is not required');
+
+      // Others should still be required
+      expect(testModel.required).to.contain('boolArray', 'boolArray is required');
+    });
+  });
 });
