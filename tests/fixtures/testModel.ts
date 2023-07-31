@@ -78,7 +78,10 @@ export interface TestModel extends Model {
   parenthesizedIndexedValue?: ParenthesizedIndexedValue;
   indexedValueReference?: IndexedValueReference;
   indexedValueGeneric?: IndexedValueGeneric<IndexedValueTypeReference>;
-  record?: Record<'record-foo' | 'record-bar', { data: string }>;
+  stringUnionRecord?: Record<'record-foo' | 'record-bar', { data: string }>;
+  numberUnionRecord?: Record<1 | 2, { data: string }>;
+  stringRecord?: Record<string, { data: string }>;
+  numberRecord?: Record<number, { data: string }>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;

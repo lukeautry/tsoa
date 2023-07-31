@@ -1570,7 +1570,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
-          record: (propertyName, propertySchema) => {
+          stringUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);
             expect(schema).to.be.deep.eq({
@@ -1603,6 +1603,75 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               example: undefined,
               format: undefined,
               description: 'Construct a type with a set of properties K of type T',
+            });
+          },
+          numberUnionRecord: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Record_1-or-2._data-string__');
+            const schema = getComponentSchema('Record_1-or-2._data-string__', currentSpec);
+            expect(schema).to.be.deep.eq({
+              properties: {
+                [1]: {
+                  properties: {
+                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  },
+                  required: ['data'],
+                  type: 'object',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+                [2]: {
+                  properties: {
+                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  },
+                  required: ['data'],
+                  type: 'object',
+                  description: undefined,
+                  example: undefined,
+                  format: undefined,
+                  default: undefined,
+                },
+              },
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+            });
+          },
+          stringRecord: (propertyName, propertySchema) => {
+            expect(propertySchema).to.be.deep.eq({
+              properties: {},
+              additionalProperties: {
+                properties: {
+                  data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                },
+                required: ['data'],
+                type: 'object',
+              },
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: undefined,
+            });
+          },
+          numberRecord: (propertyName, propertySchema) => {
+            expect(propertySchema).to.be.deep.eq({
+              properties: {},
+              additionalProperties: {
+                properties: {
+                  data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                },
+                required: ['data'],
+                type: 'object',
+              },
+              type: 'object',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+              description: undefined,
             });
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
