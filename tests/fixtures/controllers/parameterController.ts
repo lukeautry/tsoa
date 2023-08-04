@@ -377,4 +377,10 @@ export class ParameterController {
   public async inline1(@Body() body: { requestString: string; requestNumber: number }): Promise<{ resultString: string; responseNumber: number }> {
     return { resultString: 'a', responseNumber: 1 };
   }
+
+
+  @Get('brokenUndefinedMap')
+  public async brokenUndefinedMap(@Body() headers?: Map<string, unknown>): Promise<void> {
+    //
+  }
 }
