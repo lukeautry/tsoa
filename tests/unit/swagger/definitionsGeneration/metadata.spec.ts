@@ -757,8 +757,13 @@ describe('Metadata generation', () => {
       expect(parameter.parameterName).to.equal('firstname');
       expect(parameter.required).to.be.true;
       expect(parameter.example).not.to.be.undefined;
-      expect(parameter.example).to.deep.equal(['name1', 'name2']);
-      expect((parameter.example as unknown[]).length).to.be.equal(2);
+      /**
+       * Multiple example values per property are not allowed.
+       * Putting them into an array is *not* the intended behavior
+       * {@link https://swagger.io/docs/specification/2-0/adding-examples/}
+       */
+      // expect(parameter.example).to.deep.equal(['name1', 'name2']);
+      // expect((parameter.example as unknown[]).length).to.be.equal(2);
     });
 
     it('should generate a res parameter and the corresponding additional response', () => {

@@ -393,6 +393,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
     });
 
+    describe('should generate single example for @BodyProp parameters', () => {
+      it('Single @BodyProp parameter in Post method', () => {
+        const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop_single'].post?.requestBody?.content?.['application/json'];
+        expect(postBodyParams?.schema?.properties?.prop1?.example).to.equal('prop1');
+      });
+
+      it('Two @BodyProp parameters in Post method', () => {
+        const postBodyParams = exampleSpec.paths['/ExampleTest/post_body_prop'].post?.requestBody?.content?.['application/json'];
+        expect(postBodyParams?.schema?.properties?.prop1?.example).to.equal('prop1_1');
+        expect(postBodyParams?.schema?.properties?.prop2?.example).to.equal('prop2_1');
+      });
+    })
+
     it('Supports custom example labels', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
       const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();

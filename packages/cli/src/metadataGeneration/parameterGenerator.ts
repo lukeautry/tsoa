@@ -134,7 +134,10 @@ export class ParameterGenerator {
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@BodyProp('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
     }
-    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+
+    const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
+    const example = examples?.length ? examples[0] : undefined
+    
     return {
       default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
       description: this.getParameterDescription(parameter),
