@@ -44,7 +44,7 @@ export class MetadataGenerator {
   }
 
   private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
-    const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts']: ['.ts']);
+    const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts'] : ['.ts']);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
@@ -216,7 +216,7 @@ export class MetadataGenerator {
     if (!referenceType.refName) {
       return;
     }
-    this.referenceTypeMap[referenceType.refName] = referenceType;
+    this.referenceTypeMap[decodeURIComponent(referenceType.refName)] = referenceType;
   }
 
   public GetReferenceType(refName: string) {
