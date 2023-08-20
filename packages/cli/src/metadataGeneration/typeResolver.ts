@@ -770,9 +770,11 @@ export class TypeResolver {
         .replace(/,/g, '.')
         .replace(/'([^']*)'/g, '$1')
         .replace(/"([^"]*)"/g, '$1')
+        .replace(/`([^`]*)`/g, '$1')
         .replace(/&/g, '-and-')
         .replace(/\|/g, '-or-')
         .replace(/\[\]/g, '-Array')
+        .replace(/\$\{([^}]+)\}/g, '_$1') // ${variable} -> _variable
         .replace(/{|}/g, '_') // SuccessResponse_{indexesCreated-number}_ -> SuccessResponse__indexesCreated-number__
         .replace(/([a-z]+):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
         .replace(/;/g, '--')
