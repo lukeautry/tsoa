@@ -53,4 +53,11 @@ export class TypeInferenceController {
       demo21: '',
     };
   }
+
+  @Get('escape-string-literal-type')
+  public escapeStringLiteralType(): Omit<TruncationTestModel, `demo${number}`> {
+    return {
+      d: '',
+    };
+  }
 }

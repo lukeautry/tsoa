@@ -1006,6 +1006,22 @@ describe('Metadata generation', () => {
         'demo21',
       ]);
     });
+
+    it('should generate escapeStringLiteralType method', () => {
+      const method = controller.methods.find(method => method.name === 'escapeStringLiteralType');
+      if (!method) {
+        throw new Error('Method escapeStringLiteralType not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('escape-string-literal-type');
+      const [response] = method.responses;
+      expect(response.schema?.dataType).to.eq('refAlias');
+      expect((response.schema as Tsoa.RefAliasType)?.refName).to.equal('Omit_TruncationTestModel.demo_number_');
+      const properties = (((response.schema as Tsoa.RefAliasType).type as Tsoa.RefAliasType).type as Tsoa.NestedObjectLiteralType).properties;
+      expect(properties.length).to.equal(1);
+      expect(properties.map(prop => prop.name)).to.have.members(['d']);
+    });
   });
 
   describe('controllerWithJsDocResponseDescriptionGeneration', () => {
