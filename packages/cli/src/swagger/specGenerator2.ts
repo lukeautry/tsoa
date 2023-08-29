@@ -81,10 +81,9 @@ export class SpecGenerator2 extends SpecGenerator {
     const definitions: { [definitionsName: string]: Swagger.Schema2 } = {};
     Object.keys(this.metadata.referenceTypeMap).map(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
-      const decodedName = decodeURIComponent(referenceType.refName);
       if (referenceType.dataType === 'refObject') {
         const required = referenceType.properties.filter(p => this.isRequiredWithoutDefault(p) && !this.hasUndefined(p)).map(p => p.name);
-        definitions[decodedName] = {
+        definitions[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
           required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
@@ -92,7 +91,7 @@ export class SpecGenerator2 extends SpecGenerator {
         };
 
         if (referenceType.additionalProperties) {
-          definitions[decodedName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+          definitions[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
         } else {
           // Since additionalProperties was not explicitly set in the TypeScript interface for this model
           //      ...we need to make a decision
