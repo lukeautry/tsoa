@@ -1079,4 +1079,25 @@ describe('Metadata generation', () => {
       checkNumberType(getInteger, 'integer');
     });
   });
+  describe('TypeInferenceWithNullableValueController', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/typeInferenceWithNullableValueController.ts', { strict: true }).Generate();
+    const controller = metadata.controllers.find(controller => controller.name === 'TypeInferenceWithNullableValueController');
+
+    if (!controller) {
+      throw new Error('TypeInferenceWithNullableValueController not defined!');
+    }
+
+    it('should generate multiKeysInterfaceInferenceWithNullable method', () => {
+      const method = controller.methods.find(method => method.name === 'multiKeysInterfaceInferenceWithNullable');
+
+      if (!method) {
+        throw new Error('Method multiKeysInterfaceInferenceWithNullable not defined!');
+      }
+
+      expect(method.method).to.equal('get');
+      expect(method.path).to.equal('keys-inference-with-nullable');
+      const [response] = method.responses;
+      expect(response.schema?.dataType).to.eq('union');
+    });
+  });
 });

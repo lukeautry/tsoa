@@ -24,7 +24,7 @@ export class MetadataGenerator {
     esm = false,
   ) {
     TypeResolver.clearCache();
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], compilerOptions || {});
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], { strict: true, ...compilerOptions } || {});
     this.typeChecker = this.program.getTypeChecker();
   }
 
@@ -44,7 +44,7 @@ export class MetadataGenerator {
   }
 
   private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
-    const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts']: ['.ts']);
+    const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts'] : ['.ts']);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
