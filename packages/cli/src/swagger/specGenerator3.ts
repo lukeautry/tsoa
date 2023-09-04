@@ -572,7 +572,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
-    return { $ref: `#/components/schemas/${referenceType.refName}` };
+    return { $ref: `#/components/schemas/${encodeURIComponent(referenceType.refName)}` };
   }
 
   protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {

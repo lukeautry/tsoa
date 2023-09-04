@@ -478,7 +478,7 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   protected getSwaggerTypeForReferenceType(referenceType: Tsoa.ReferenceType): Swagger.BaseSchema {
-    return { $ref: `#/definitions/${referenceType.refName}` };
+    return { $ref: `#/definitions/${encodeURIComponent(referenceType.refName)}` };
   }
 
   private decideEnumType(anEnum: Array<string | number>, nameOfEnum: string): 'string' | 'number' {
