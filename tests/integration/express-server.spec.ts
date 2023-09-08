@@ -244,6 +244,13 @@ describe('Express Server', () => {
     });
   });
 
+  it('returns string responses', () => {
+    return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.text).to.equal('FOO');
+      return;
+    });
+  });
+
   it('should reject invalid additionalProperties', () => {
     const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 

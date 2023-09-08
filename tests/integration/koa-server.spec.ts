@@ -59,6 +59,13 @@ describe('Koa Server', () => {
     });
   });
 
+  it('returns string responses', () => {
+    return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.text).to.equal('FOO');
+      return;
+    });
+  });
+
   it('can handle get request with path and query parameters', () => {
     return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;

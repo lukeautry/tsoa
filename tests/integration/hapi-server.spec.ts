@@ -48,6 +48,13 @@ describe('Hapi Server', () => {
     });
   });
 
+  it('returns string responses', () => {
+    return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.text).to.equal('FOO');
+      return;
+    });
+  });
+
   it('can handle get request with collection return value', () => {
     return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
       const models = res.body as TestModel[];

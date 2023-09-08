@@ -308,6 +308,11 @@ export class GetTestController extends Controller {
     return new ModelService().getModel();
   }
 
+  @Get('StringValue')
+  public async getStringValue(): Promise<string> {
+    return 'FOO';
+  }
+
   @Get('IndexedValue')
   public async getIndexedValue(): Promise<IndexedValue> {
     return 'FOO';
