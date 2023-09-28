@@ -32,8 +32,8 @@
     "@tsoa/runtime": "^6.0.0-rc.2"
   },
   "devDependencies": {
-    "@types/node": "^16.18.23",
-    "typescript": "^5.1.6"
+    "@types/node": "^18.0.0",
+    "typescript": "^5.2.2"
   },
   "repository": {
     "type": "git",
@@ -44,7 +44,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "engineStrict": true,
   "publishConfig": {
