@@ -1,3 +1,4 @@
+import multer from 'multer';
 import { ExtensionType } from '../decorators/extension';
 import type { Swagger } from '../swagger/swagger';
 import { Validator } from '..';
@@ -15,6 +16,10 @@ export namespace Tsoa {
     name: string;
     path: string;
     produces?: string[];
+  }
+
+  export interface RegisterRoutesOptions {
+    multer?: multer.Multer;
   }
 
   export interface Method {

@@ -12,7 +12,7 @@ import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+import type { IocContainer, IocContainerFactory, RegisterRoutesOptions } from '@tsoa/runtime';
 {{/if}}
 import type { RequestHandler, Router } from 'express';
 {{#if useFileUploads}}
@@ -21,7 +21,7 @@ import multer from 'multer';
 {{else}}
 const multer = require('multer');
 {{/if}}
-const upload = multer({{{json multerOpts}}});
+let upload = multer({{{json multerOpts}}});
 {{/if}}
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -54,11 +54,16 @@ const validationService = new ValidationService(models);
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-export function RegisterRoutes(app: Router) {
+export function RegisterRoutes(app: Router, registerOptions: RegisterRoutesOptions = {}) {
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
+    {{#if useFileUploads}}
+        if(registerOptions.multer){
+            upload = registerOptions.multer,
+        }
+    {{/if}}
     {{#each controllers}}
     {{#each actions}}
         app.{{method}}('{{fullPath}}',
