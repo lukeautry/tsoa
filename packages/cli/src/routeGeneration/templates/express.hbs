@@ -21,7 +21,6 @@ import multer from 'multer';
 {{else}}
 const multer = require('multer');
 {{/if}}
-let upload = multer({{{json multerOpts}}});
 {{/if}}
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -55,15 +54,14 @@ const validationService = new ValidationService(models);
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 export function RegisterRoutes(app: Router, registerOptions: RegisterRoutesOptions = {}) {
+    {{#if useFileUploads}}
+    // NOTE: If registerOptions.multer is passed to this function, then it will override the multer options from `tsoa.json`
+    const upload = registerOptions.multer || multer({{{json multerOpts}}});
+    {{/if}}
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
-    {{#if useFileUploads}}
-        if(registerOptions.multer){
-            upload = registerOptions.multer,
-        }
-    {{/if}}
     {{#each controllers}}
     {{#each actions}}
         app.{{method}}('{{fullPath}}',
