@@ -246,6 +246,8 @@ describe('Express Server', () => {
 
   it('returns string responses', () => {
     return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.status).to.equal(200);
+      expect(res.headers['content-type']).to.equal('text/plain; charset=utf-8');
       expect(res.text).to.equal('FOO');
       return;
     });

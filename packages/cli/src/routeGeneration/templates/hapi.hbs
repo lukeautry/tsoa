@@ -298,7 +298,6 @@ export function RegisterRoutes(server: any) {
         if (h.__isTsoaResponded) {
             return h.__isTsoaResponded;
         }
-
         let response = data !== null && data !== undefined
                     ? h.response(data).code(200)
                     : h.response("").code(204);
@@ -306,6 +305,10 @@ export function RegisterRoutes(server: any) {
         Object.keys(headers).forEach((name: string) => {
             response.header(name, headers[name]);
         });
+
+        if (data && typeof data == 'string') {
+            response.header('content-type', 'text/plain');
+        }
 
         if (statusCode) {
             response.code(statusCode);

@@ -61,6 +61,7 @@ describe('Koa Server', () => {
 
   it('returns string responses', () => {
     return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.header['content-type']).to.equal('text/plain; charset=utf-8');
       expect(res.text).to.equal('FOO');
       return;
     });

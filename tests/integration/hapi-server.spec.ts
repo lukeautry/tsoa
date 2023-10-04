@@ -50,6 +50,7 @@ describe('Hapi Server', () => {
 
   it('returns string responses', () => {
     return verifyGetRequest(`${basePath}/GetTest/StringValue`, (_err, res) => {
+      expect(res.get('content-type')).to.eq('text/plain; charset=utf-8');
       expect(res.text).to.equal('FOO');
       return;
     });
