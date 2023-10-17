@@ -3036,23 +3036,23 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           jsDocTypeNames: (propertyName, propertySchema) => {
             expect(propertySchema?.properties?.simple?.$ref).to.eq('#/components/schemas/Partial__a-string__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.commented?.$ref).to.eq('#/components/schemas/Partial__a_description-comment_-string__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.multilineCommented?.$ref).to.eq('#/components/schemas/Partial__a_description-multiline%5Cncomment_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.multilineCommented?.$ref).to.eq('#/components/schemas/Partial__a_description-multiline_92_ncomment_-string__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.defaultValue?.$ref).to.eq('#/components/schemas/Partial__a_default-true_-string__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.deprecated?.$ref).to.eq('#/components/schemas/Partial__a_deprecated-true_-string__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.validators?.$ref).to.eq('#/components/schemas/Partial__a_validators%3A_minLength%3A_value%3A3___-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.validators?.$ref).to.eq('#/components/schemas/Partial__a_validators_58__minLength_58__value_58_3___-string__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.examples?.$ref).to.eq('#/components/schemas/Partial__a_example-example_-string__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.extensions?.$ref).to.eq('#/components/schemas/Partial__a_extensions%3A%5B_key-x-key-1.value-value-1_%5D_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.extensions?.$ref).to.eq('#/components/schemas/Partial__a_extensions_58__91__key-x-key-1.value-value-1__93__-string__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.ignored?.$ref).to.eq('#/components/schemas/Partial__a_ignored-true_-string__', `for property ${propertyName}`);
 
-            expect(propertySchema?.properties?.indexedSimple?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedCommented?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedMultilineCommented?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedDefaultValue?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedDeprecated?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedValidators?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedExamples?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedExtensions?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedIgnored?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedSimple?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedCommented?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedMultilineCommented?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedDefaultValue?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedDeprecated?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedValidators?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedExamples?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedExtensions?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedIgnored?.$ref).to.eq('#/components/schemas/Partial___91_a-string_93__58_string__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(18, `for property ${propertyName}`);
 
@@ -3096,7 +3096,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.commented`,
             );
-            const multilineCommentedSchema = getComponentSchema('Partial__a_description-multiline\\ncomment_-string__', currentSpec);
+            const multilineCommentedSchema = getComponentSchema('Partial__a_description-multiline_92_ncomment_-string__', currentSpec);
             expect(multilineCommentedSchema).to.deep.eq(
               {
                 properties: {
@@ -3157,7 +3157,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.deprecated`,
             );
-            const validatorsSchema = getComponentSchema('Partial__a_validators:_minLength:_value:3___-string__', currentSpec);
+            const validatorsSchema = getComponentSchema('Partial__a_validators_58__minLength_58__value_58_3___-string__', currentSpec);
             expect(validatorsSchema).to.deep.eq(
               {
                 properties: {
@@ -3198,7 +3198,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.examples`,
             );
-            const extensionsSchema = getComponentSchema('Partial__a_extensions:[_key-x-key-1.value-value-1_]_-string__', currentSpec);
+            const extensionsSchema = getComponentSchema('Partial__a_extensions_58__91__key-x-key-1.value-value-1__93__-string__', currentSpec);
             expect(extensionsSchema).to.deep.eq(
               {
                 properties: {
@@ -3231,7 +3231,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.ignored`,
             );
-            const indexedSchema = getComponentSchema('Partial__[a-string]:string__', currentSpec);
+            const indexedSchema = getComponentSchema('Partial___91_a-string_93__58_string__', currentSpec);
             expect(indexedSchema).to.deep.eq(
               {
                 properties: {},
@@ -3648,19 +3648,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           mappeds: (propertyName, propertySchema) => {
             expect(propertySchema?.properties?.unionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-_b-number__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedUnionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-_%5Bb-string%5D%3Anumber__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedUnionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-__91_b-string_93__58_number__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.doubleIndexedUnionMap?.$ref).to.eq(
-              '#/components/schemas/Partial__%5Ba-string%5D%3Astring_-or-_%5Bb-string%5D%3Anumber__',
+              '#/components/schemas/Partial___91_a-string_93__58_string_-or-__91_b-string_93__58_number__',
               `for property ${propertyName}`,
             );
             expect(propertySchema?.properties?.intersectionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-and-_b-number__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedIntersectionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-and-_%5Bb-string%5D%3Anumber__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedIntersectionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-and-__91_b-string_93__58_number__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.doubleIndexedIntersectionMap?.$ref).to.eq(
-              '#/components/schemas/Partial__%5Ba-string%5D%3Astring_-and-_%5Bb-number%5D%3Anumber__',
+              '#/components/schemas/Partial___91_a-string_93__58_string_-and-__91_b-number_93__58_number__',
               `for property ${propertyName}`,
             );
-            expect(propertySchema?.properties?.parenthesizedMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-(_b-string_-and-_c-string_)_', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.parenthesizedMap2?.$ref).to.eq('#/components/schemas/Partial_(_a-string_-or-_b-string_)-and-_c-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.parenthesizedMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-_40__b-string_-and-_c-string__41__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.parenthesizedMap2?.$ref).to.eq('#/components/schemas/Partial__40__a-string_-or-_b-string__41_-and-_c-string__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(8, `for property ${propertyName}`);
 
@@ -3693,7 +3693,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.unionMap`,
             );
-            const indexedUnionMapSchema = getComponentSchema('Partial__a-string_-or-_[b-string]:number__', currentSpec);
+            const indexedUnionMapSchema = getComponentSchema('Partial__a-string_-or-__91_b-string_93__58_number__', currentSpec);
             expect(indexedUnionMapSchema).to.deep.eq(
               {
                 anyOf: [
@@ -3721,7 +3721,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.indexedUnionMap`,
             );
-            const doubleIndexedUnionMapSchema = getComponentSchema('Partial__[a-string]:string_-or-_[b-string]:number__', currentSpec);
+            const doubleIndexedUnionMapSchema = getComponentSchema('Partial___91_a-string_93__58_string_-or-__91_b-string_93__58_number__', currentSpec);
             expect(doubleIndexedUnionMapSchema).to.deep.eq(
               {
                 anyOf: [
@@ -3775,7 +3775,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.intersectionMap`,
             );
-            const indexedIntersectionMapSchema = getComponentSchema('Partial__a-string_-and-_[b-string]:number__', currentSpec);
+            const indexedIntersectionMapSchema = getComponentSchema('Partial__a-string_-and-__91_b-string_93__58_number__', currentSpec);
             expect(indexedIntersectionMapSchema).to.deep.eq(
               {
                 properties: {
@@ -3799,7 +3799,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.indexedIntersectionMap`,
             );
-            const doubleIndexedIntersectionMapSchema = getComponentSchema('Partial__[a-string]:string_-and-_[b-number]:number__', currentSpec);
+            const doubleIndexedIntersectionMapSchema = getComponentSchema('Partial___91_a-string_93__58_string_-and-__91_b-number_93__58_number__', currentSpec);
             expect(doubleIndexedIntersectionMapSchema).to.deep.eq(
               {
                 properties: {},
@@ -3822,7 +3822,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.doubleIndexedIntersectionMap`,
             );
-            const parenthesizedMapSchema = getComponentSchema('Partial__a-string_-or-(_b-string_-and-_c-string_)_', currentSpec);
+            const parenthesizedMapSchema = getComponentSchema('Partial__a-string_-or-_40__b-string_-and-_c-string__41__', currentSpec);
             expect(parenthesizedMapSchema).to.deep.eq(
               {
                 anyOf: [
@@ -3853,7 +3853,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.parenthesizedMap`,
             );
-            const parenthesizedMap2Schema = getComponentSchema('Partial_(_a-string_-or-_b-string_)-and-_c-string__', currentSpec);
+            const parenthesizedMap2Schema = getComponentSchema('Partial__40__a-string_-or-_b-string__41_-and-_c-string__', currentSpec);
             expect(parenthesizedMap2Schema).to.deep.eq(
               {
                 anyOf: [
@@ -3913,7 +3913,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema?.properties?.typedFalseConditional?.$ref).to.eq('#/components/schemas/Conditional_string.number.number.boolean_', `for property ${propertyName}`);
             expect(propertySchema?.properties?.dummyConditional?.$ref).to.eq('#/components/schemas/Dummy_Conditional_string.string.number.boolean__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.dummyFalseConditional?.$ref).to.eq('#/components/schemas/Dummy_Conditional_string.number.number.boolean__', `for property ${propertyName}`);
-            expect(propertySchema?.properties?.mappedConditional?.$ref).to.eq('#/components/schemas/Partial_stringextendsstring%3F_a-number_-never_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.mappedConditional?.$ref).to.eq('#/components/schemas/Partial_stringextendsstring_63__a-number_-never_', `for property ${propertyName}`);
             expect(propertySchema?.properties?.mappedTypedConditional?.$ref).to.eq('#/components/schemas/Partial_Conditional_string.string._a-number_.never__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(8, `for property ${propertyName}`);
@@ -3944,7 +3944,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(dummyConditionalSchema?.$ref).to.eq('#/components/schemas/Conditional_string.string.number.boolean_', `for property ${propertyName}.dummyConditional`);
             const dummyFalseConditionalSchema = getComponentSchema('Dummy_Conditional_string.number.number.boolean__', currentSpec);
             expect(dummyFalseConditionalSchema?.$ref).to.eq('#/components/schemas/Conditional_string.number.number.boolean_', `for property ${propertyName}.dummyFalseConditional`);
-            const mappedConditionalSchema = getComponentSchema('Partial_stringextendsstring?_a-number_-never_', currentSpec);
+            const mappedConditionalSchema = getComponentSchema('Partial_stringextendsstring_63__a-number_-never_', currentSpec);
             expect(mappedConditionalSchema).to.deep.eq(
               {
                 properties: {

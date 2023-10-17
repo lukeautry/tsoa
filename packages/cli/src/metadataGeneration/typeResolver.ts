@@ -1082,7 +1082,7 @@ export class TypeResolver {
   //Generates a name from the original type expression.
   //This function is not invertable, so it's possible, that 2 type expressions have the same refTypeName.
   private getRefTypeName(name: string): string {
-    return name
+    const preformattedName = name //Preformatted name handles most cases
       .replace(/<|>/g, '_')
       .replace(/\s+/g, '')
       .replace(/,/g, '.')
@@ -1095,6 +1095,13 @@ export class TypeResolver {
       .replace(/([a-z_0-9]+\??):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
       .replace(/;/g, '--')
       .replace(/([a-z})\]])\[([a-z]+)\]/gi, '$1-at-$2'); // Partial_SerializedDatasourceWithVersion[format]_ -> Partial_SerializedDatasourceWithVersion~format~_,
+
+    //Safety fixes to replace all characters which are not accepted by swagger ui
+    const formattedName = preformattedName.replace(/[^A-Za-z0-9\-._]/g, match => {
+      return `_${match.charCodeAt(0)}_`;
+    });
+
+    return formattedName;
   }
 
   private attemptToResolveKindToPrimitive = (syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive => {
