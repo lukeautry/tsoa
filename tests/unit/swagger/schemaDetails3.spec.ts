@@ -1597,10 +1597,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   default: undefined,
                 },
               },
-              required: [
-                'record-foo',
-                'record-bar'
-              ],
+              required: ['record-foo', 'record-bar'],
               type: 'object',
               default: undefined,
               example: undefined,
@@ -1636,7 +1633,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   default: undefined,
                 },
               },
-              required: ["1", "2"],
+              required: ['1', '2'],
               type: 'object',
               default: undefined,
               example: undefined,
@@ -1655,18 +1652,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: undefined,
                     example: undefined,
                     format: undefined,
-                    type: "string"
-                  }
+                    type: 'string',
+                  },
                 },
-                required: ["data"],
-                type: "object"
+                required: ['data'],
+                type: 'object',
               },
               default: undefined,
-              description: "Construct a type with a set of properties K of type T",
+              description: 'Construct a type with a set of properties K of type T',
               example: undefined,
               format: undefined,
               properties: {},
-              type: "object"
+              type: 'object',
             });
           },
           numberRecord: (propertyName, propertySchema) => {
@@ -1680,18 +1677,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: undefined,
                     example: undefined,
                     format: undefined,
-                    type: "string"
-                  }
+                    type: 'string',
+                  },
                 },
-                required: ["data"],
-                type: "object"
+                required: ['data'],
+                type: 'object',
               },
               default: undefined,
-              description: "Construct a type with a set of properties K of type T",
+              description: 'Construct a type with a set of properties K of type T',
               example: undefined,
               format: undefined,
               properties: {},
-              type: "object"
+              type: 'object',
             });
           },
           modelsObjectIndirect: (propertyName, propertySchema) => {
@@ -2631,7 +2628,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   'weight:desc',
                   'human:desc',
                   'gender:desc',
-                  'nicknames:desc'
+                  'nicknames:desc',
                 ],
                 type: 'object',
                 description: undefined,
@@ -2693,50 +2690,44 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   typeHolder2: {
-                    $ref: "#/components/schemas/Namespace2.TypeHolder",
+                    $ref: '#/components/schemas/Namespace2.TypeHolder',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   inModule: {
-                    $ref: "#/components/schemas/Namespace2.Namespace2.NamespaceType",
+                    $ref: '#/components/schemas/Namespace2.Namespace2.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   typeHolder1: {
-                    $ref: "#/components/schemas/Namespace1.TypeHolder",
+                    $ref: '#/components/schemas/Namespace1.TypeHolder',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   inNamespace1: {
-                    $ref: "#/components/schemas/Namespace1.NamespaceType",
+                    $ref: '#/components/schemas/Namespace1.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   simple: {
-                    $ref: "#/components/schemas/NamespaceType",
+                    $ref: '#/components/schemas/NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: [
-                  "typeHolder2",
-                  "inModule",
-                  "typeHolder1",
-                  "inNamespace1",
-                  "simple"
-                ],
-                type: "object",
+                required: ['typeHolder2', 'inModule', 'typeHolder1', 'inNamespace1', 'simple'],
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}`
+              `for property ${propertyName}`,
             );
 
             const typeHolder2Schema = getComponentSchema('Namespace2.TypeHolder', currentSpec);
@@ -2744,25 +2735,24 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   inModule: {
-                    $ref: "#/components/schemas/Namespace2.Namespace2.NamespaceType",
+                    $ref: '#/components/schemas/Namespace2.Namespace2.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   inNamespace2: {
-                    $ref: "#/components/schemas/Namespace2.NamespaceType",
+                    $ref: '#/components/schemas/Namespace2.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: ["inModule",
-                  "inNamespace2"],
-                type: "object",
+                required: ['inModule', 'inNamespace2'],
+                type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
-                description: undefined
+                description: undefined,
               },
-              `for property ${propertyName}.typeHolder2`
+              `for property ${propertyName}.typeHolder2`,
             );
 
             const namespace2_namespace2_namespaceTypeSchema = getComponentSchema('Namespace2.Namespace2.NamespaceType', currentSpec);
@@ -2770,51 +2760,50 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   inModule: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   other: {
-                    $ref: "#/components/schemas/Namespace2.Namespace2.NamespaceType",
+                    $ref: '#/components/schemas/Namespace2.Namespace2.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: ["inModule"],
-                type: "object",
+                required: ['inModule'],
+                type: 'object',
                 description: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
-              `for property ${propertyName}.typeHolder2.inModule`
+              `for property ${propertyName}.typeHolder2.inModule`,
             );
 
             const typeHolderSchema = getComponentSchema('Namespace1.TypeHolder', currentSpec);
             expect(typeHolderSchema).to.deep.eq(
               {
                 properties: {
-                  inNamespace1_1:
-                  {
-                    $ref: "#/components/schemas/Namespace1.NamespaceType",
+                  inNamespace1_1: {
+                    $ref: '#/components/schemas/Namespace1.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   inNamespace1_2: {
-                    $ref: "#/components/schemas/Namespace1.NamespaceType",
+                    $ref: '#/components/schemas/Namespace1.NamespaceType',
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: ["inNamespace1_1", "inNamespace1_2"],
-                type: "object",
+                required: ['inNamespace1_1', 'inNamespace1_2'],
+                type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
-                description: undefined
+                description: undefined,
               },
-              `for property ${propertyName}.typeHolder1`
+              `for property ${propertyName}.typeHolder1`,
             );
 
             const namespace1_namespaceTypeSchema = getComponentSchema('Namespace1.NamespaceType', currentSpec);
@@ -2822,26 +2811,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   inFirstNamespace: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   inFirstNamespace2: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: ["inFirstNamespace", "inFirstNamespace2"],
-                type: "object",
+                required: ['inFirstNamespace', 'inFirstNamespace2'],
+                type: 'object',
                 description: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
-              `for property ${propertyName}.typeHolder1.inNamespace1_1`
+              `for property ${propertyName}.typeHolder1.inNamespace1_1`,
             );
 
             const namespace2_namespaceTypeSchema = getComponentSchema('Namespace2.NamespaceType', currentSpec);
@@ -2849,202 +2838,221 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   inSecondNamespace: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                 },
-                required: ["inSecondNamespace"],
-                type: "object",
+                required: ['inSecondNamespace'],
+                type: 'object',
                 description: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
-              `for property ${propertyName}.typeHolder2.inNamespace2`
+              `for property ${propertyName}.typeHolder2.inNamespace2`,
             );
 
             const namespaceTypeSchema = getComponentSchema('NamespaceType', currentSpec);
             expect(namespaceTypeSchema).to.deep.eq(
               {
-                type: "string",
+                type: 'string',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.simple`
+              `for property ${propertyName}.simple`,
             );
           },
           defaults: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.eq({
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-              properties: {
-                basic: {
-                  $ref: "#/components/schemas/DefaultsClass",
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                },
-                defaultNull: {
-                  default: null,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  nullable: true,
-                  type: "string"
-                },
-                defaultObject: {
-                  default: {
-                    a: "a",
-                    b: 2
+            expect(propertySchema).to.deep.eq(
+              {
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+                properties: {
+                  basic: {
+                    $ref: '#/components/schemas/DefaultsClass',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
                   },
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  properties: {
-                    a: {
-                      default: undefined,
-                      description: undefined,
-                      example: undefined,
-                      format: undefined,
-                      type: "string"
+                  defaultNull: {
+                    default: null,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    nullable: true,
+                    type: 'string',
+                  },
+                  defaultObject: {
+                    default: {
+                      a: 'a',
+                      b: 2,
                     },
-                    b: {
-                      default: undefined,
-                      description: undefined,
-                      example: undefined,
-                      format: "double",
-                      type: "number"
-                    }
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    properties: {
+                      a: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: undefined,
+                        type: 'string',
+                      },
+                      b: {
+                        default: undefined,
+                        description: undefined,
+                        example: undefined,
+                        format: 'double',
+                        type: 'number',
+                      },
+                    },
+                    required: ['b', 'a'],
+                    type: 'object',
                   },
-                  required: ["b", "a"],
-                  type: "object"
+                  defaultUndefined: {
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    type: 'string',
+                  },
+                  replacedTypes: {
+                    $ref: '#/components/schemas/ReplaceTypes_DefaultsClass.boolean.string_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  comments: {
+                    default: 4,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  jsonCharacters: {
+                    default: { '\\': '\n' },
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  stringEscapeCharacters: {
+                    default: '`"\'"\'\n\t\r\b\fgx\\',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                 },
-                defaultUndefined: {
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  type: "string"
-                },
-                replacedTypes: {
-                  $ref: "#/components/schemas/ReplaceTypes_DefaultsClass.boolean.string_",
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+                required: ['replacedTypes', 'basic'],
+                type: 'object',
               },
-              required: ["replacedTypes", "basic"],
-              type: "object"
-            },
-              `for property ${propertyName}`
+              `for property ${propertyName}`,
             );
             const basicSchema = getComponentSchema('DefaultsClass', currentSpec);
             expect(basicSchema).to.deep.eq(
               {
                 properties: {
                   boolValue1: {
-                    type: "boolean",
+                    type: 'boolean',
                     default: true,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue2: {
-                    type: "boolean",
+                    type: 'boolean',
                     default: true,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue3: {
-                    type: "boolean",
+                    type: 'boolean',
                     default: false,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue4: {
-                    type: "boolean",
+                    type: 'boolean',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
+                type: 'object',
                 required: undefined,
                 description: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
-              `for property ${propertyName}.basic`
+              `for property ${propertyName}.basic`,
             );
             const replacedTypesSchema = getComponentSchema('ReplaceTypes_DefaultsClass.boolean.string_', currentSpec);
             expect(replacedTypesSchema).to.deep.eq(
               {
                 properties: {
                   boolValue1: {
-                    type: "string",
+                    type: 'string',
                     default: true,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue2: {
-                    type: "string",
+                    type: 'string',
                     default: true,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue3: {
-                    type: "string",
+                    type: 'string',
                     default: false,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   boolValue4: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
+                type: 'object',
                 description: undefined,
                 default: undefined,
                 example: undefined,
                 format: undefined,
               },
-              `for property ${propertyName}.replacedTypes`
+              `for property ${propertyName}.replacedTypes`,
             );
           },
           jsDocTypeNames: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.simple?.$ref).to.eq("#/components/schemas/Partial__a-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.commented?.$ref).to.eq("#/components/schemas/Partial__a_description-comment_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.multilineCommented?.$ref).to.eq("#/components/schemas/Partial__a_description-multiline%5Cncomment_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.defaultValue?.$ref).to.eq("#/components/schemas/Partial__a_default-true_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.deprecated?.$ref).to.eq("#/components/schemas/Partial__a_deprecated-true_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.validators?.$ref).to.eq("#/components/schemas/Partial__a_validators%3A_minLength%3A_value%3A3___-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.examples?.$ref).to.eq("#/components/schemas/Partial__a_example-example_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.extensions?.$ref).to.eq("#/components/schemas/Partial__a_extensions%3A%5B_key-x-key-1.value-value-1_%5D_-string__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.ignored?.$ref).to.eq("#/components/schemas/Partial__a_ignored-true_-string__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.simple?.$ref).to.eq('#/components/schemas/Partial__a-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.commented?.$ref).to.eq('#/components/schemas/Partial__a_description-comment_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.multilineCommented?.$ref).to.eq('#/components/schemas/Partial__a_description-multiline%5Cncomment_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.defaultValue?.$ref).to.eq('#/components/schemas/Partial__a_default-true_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.deprecated?.$ref).to.eq('#/components/schemas/Partial__a_deprecated-true_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.validators?.$ref).to.eq('#/components/schemas/Partial__a_validators%3A_minLength%3A_value%3A3___-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.examples?.$ref).to.eq('#/components/schemas/Partial__a_example-example_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.extensions?.$ref).to.eq('#/components/schemas/Partial__a_extensions%3A%5B_key-x-key-1.value-value-1_%5D_-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.ignored?.$ref).to.eq('#/components/schemas/Partial__a_ignored-true_-string__', `for property ${propertyName}`);
 
-            expect(propertySchema?.properties?.indexedSimple?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedCommented?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedMultilineCommented?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedDefaultValue?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedDeprecated?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedValidators?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedExamples?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedExtensions?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedIgnored?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedSimple?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedCommented?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedMultilineCommented?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedDefaultValue?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedDeprecated?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedValidators?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedExamples?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedExtensions?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedIgnored?.$ref).to.eq('#/components/schemas/Partial__%5Ba-string%5D%3Astring__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(18, `for property ${propertyName}`);
 
@@ -3053,388 +3061,390 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   a: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.simple`
+              `for property ${propertyName}.simple`,
             );
             const commentedSchema = getComponentSchema('Partial__a_description-comment_-string__', currentSpec);
             expect(commentedSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
-                    description: "comment",
+                    type: 'string',
+                    description: 'comment',
                     default: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.commented`
+              `for property ${propertyName}.commented`,
             );
             const multilineCommentedSchema = getComponentSchema('Partial__a_description-multiline\\ncomment_-string__', currentSpec);
             expect(multilineCommentedSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
-                    description: "multiline\ncomment",
+                    type: 'string',
+                    description: 'multiline\ncomment',
                     default: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.multilineCommented`
+              `for property ${propertyName}.multilineCommented`,
             );
             const defaultValueSchema = getComponentSchema('Partial__a_default-true_-string__', currentSpec);
             expect(defaultValueSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
-                    default: "true",
+                    type: 'string',
+                    default: 'true',
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.defaultValue`
+              `for property ${propertyName}.defaultValue`,
             );
             const deprecatedSchema = getComponentSchema('Partial__a_deprecated-true_-string__', currentSpec);
             expect(deprecatedSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
+                    type: 'string',
                     deprecated: true,
                     description: undefined,
                     default: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.deprecated`
+              `for property ${propertyName}.deprecated`,
             );
             const validatorsSchema = getComponentSchema('Partial__a_validators:_minLength:_value:3___-string__', currentSpec);
             expect(validatorsSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
+                    type: 'string',
                     minLength: 3,
                     description: undefined,
                     default: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.validators`
+              `for property ${propertyName}.validators`,
             );
             const examplesSchema = getComponentSchema('Partial__a_example-example_-string__', currentSpec);
-            expect(examplesSchema).to.deep.eq({
-              default: undefined,
-              description: "Make all properties in T optional",
-              example: undefined,
-              format: undefined,
-              properties: {
-                a: {
-                  default: undefined,
-                  description: undefined,
-                  example: "example",
-                  format: undefined,
-                  type: "string"
-                }
+            expect(examplesSchema).to.deep.eq(
+              {
+                default: undefined,
+                description: 'Make all properties in T optional',
+                example: undefined,
+                format: undefined,
+                properties: {
+                  a: {
+                    default: undefined,
+                    description: undefined,
+                    example: 'example',
+                    format: undefined,
+                    type: 'string',
+                  },
+                },
+                type: 'object',
               },
-              type: "object"
-            },
-              `for property ${propertyName}.examples`
+              `for property ${propertyName}.examples`,
             );
             const extensionsSchema = getComponentSchema('Partial__a_extensions:[_key-x-key-1.value-value-1_]_-string__', currentSpec);
             expect(extensionsSchema).to.deep.eq(
               {
                 properties: {
                   a: {
-                    type: "string",
-                    "x-key-1": "value-1",
+                    type: 'string',
+                    'x-key-1': 'value-1',
                     description: undefined,
                     default: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.extensions`
+              `for property ${propertyName}.extensions`,
             );
             const ignoredSchema = getComponentSchema('Partial__a_ignored-true_-string__', currentSpec);
             expect(ignoredSchema).to.deep.eq(
               {
-                properties: {
-                },
-                type: "object",
-                description: "Make all properties in T optional",
+                properties: {},
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.ignored`
+              `for property ${propertyName}.ignored`,
             );
             const indexedSchema = getComponentSchema('Partial__[a-string]:string__', currentSpec);
             expect(indexedSchema).to.deep.eq(
               {
-                properties: {
-                },
+                properties: {},
                 additionalProperties: {
-                  type: "string"
+                  type: 'string',
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.indexedSimple`
+              `for property ${propertyName}.indexedSimple`,
             );
           },
           jsdocMap: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.omitted?.$ref).to.eq("#/components/schemas/Omit_JsDocced.notRelevant_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.partial?.$ref).to.eq("#/components/schemas/Partial_JsDocced_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.replacedTypes?.$ref).to.eq("#/components/schemas/ReplaceStringAndNumberTypes_JsDocced_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.doubleReplacedTypes?.$ref).to.eq("#/components/schemas/ReplaceStringAndNumberTypes_ReplaceStringAndNumberTypes_JsDocced__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.postfixed?.$ref).to.eq("#/components/schemas/Postfixed_JsDocced._PostFix_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.values?.$ref).to.eq("#/components/schemas/Values_JsDocced_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.typesValues?.$ref).to.eq("#/components/schemas/InternalTypes_Values_JsDocced__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.omitted?.$ref).to.eq('#/components/schemas/Omit_JsDocced.notRelevant_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.partial?.$ref).to.eq('#/components/schemas/Partial_JsDocced_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.replacedTypes?.$ref).to.eq('#/components/schemas/ReplaceStringAndNumberTypes_JsDocced_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.doubleReplacedTypes?.$ref).to.eq(
+              '#/components/schemas/ReplaceStringAndNumberTypes_ReplaceStringAndNumberTypes_JsDocced__',
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties?.postfixed?.$ref).to.eq('#/components/schemas/Postfixed_JsDocced._PostFix_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.values?.$ref).to.eq('#/components/schemas/Values_JsDocced_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.typesValues?.$ref).to.eq('#/components/schemas/InternalTypes_Values_JsDocced__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.onlyOneValue).to.deep.eq(
               {
-                type: "number",
-                format: "double",
+                type: 'number',
+                format: 'double',
                 default: undefined,
                 description: undefined,
-                example: undefined
+                example: undefined,
               },
-              `for property ${propertyName}.onlyOneValue`
+              `for property ${propertyName}.onlyOneValue`,
             );
-            expect(propertySchema?.properties?.synonym?.$ref).to.eq("#/components/schemas/JsDoccedSynonym", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.synonym2?.$ref).to.eq("#/components/schemas/JsDoccedSynonym2", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.synonym?.$ref).to.eq('#/components/schemas/JsDoccedSynonym', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.synonym2?.$ref).to.eq('#/components/schemas/JsDoccedSynonym2', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(10, `for property ${propertyName}`);
 
             const omittedSchema = getComponentSchema('Omit_JsDocced.notRelevant_', currentSpec);
             expect(omittedSchema).to.deep.eq(
               {
-                $ref: "#/components/schemas/Pick_JsDocced.Exclude_keyofJsDocced.notRelevant__",
-                description: "Construct a type with the properties of T except for those in type K.",
+                $ref: '#/components/schemas/Pick_JsDocced.Exclude_keyofJsDocced.notRelevant__',
+                description: 'Construct a type with the properties of T except for those in type K.',
                 default: undefined,
                 example: undefined,
                 format: undefined,
               },
-              `for property ${propertyName}.omitted`
+              `for property ${propertyName}.omitted`,
             );
             const omittedSchema2 = getComponentSchema('Pick_JsDocced.Exclude_keyofJsDocced.notRelevant__', currentSpec);
-            expect(omittedSchema2).to.deep.eq({
-              properties: {
-                stringValue: {
-                  type: "string",
-                  default: "def",
-                  maxLength: 3,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
+            expect(omittedSchema2).to.deep.eq(
+              {
+                properties: {
+                  stringValue: {
+                    type: 'string',
+                    default: 'def',
+                    maxLength: 3,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  numberValue: {
+                    type: 'integer',
+                    format: 'int32',
+                    default: 6,
+                    description: undefined,
+                    example: undefined,
+                  },
                 },
-                numberValue: {
-                  type: "integer",
-                  format: "int32",
-                  default: 6,
-                  description: undefined,
-                  example: undefined
-                }
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "From T, pick a set of properties whose keys are in the union K",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.omitted`
+              `for property ${propertyName}.omitted`,
             );
             const partialSchema = getComponentSchema('Partial_JsDocced_', currentSpec);
             expect(partialSchema).to.deep.eq(
               {
                 properties: {
                   stringValue: {
-                    type: "string",
-                    default: "def",
+                    type: 'string',
+                    default: 'def',
                     maxLength: 3,
                     format: undefined,
                     example: undefined,
-                    description: undefined
+                    description: undefined,
                   },
                   numberValue: {
-                    type: "integer",
-                    format: "int32",
+                    type: 'integer',
+                    format: 'int32',
                     default: 6,
                     example: undefined,
-                    description: undefined
-                  }
+                    description: undefined,
+                  },
                 },
-                type: "object",
-                description: "Make all properties in T optional",
+                type: 'object',
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.partial`
+              `for property ${propertyName}.partial`,
             );
             const replacedTypesSchema = getComponentSchema('ReplaceStringAndNumberTypes_JsDocced_', currentSpec);
             expect(replacedTypesSchema).to.deep.eq(
               {
-                $ref: "#/components/schemas/ReplaceTypes_JsDocced.string.number_",
+                $ref: '#/components/schemas/ReplaceTypes_JsDocced.string.number_',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.replacedTypes`
+              `for property ${propertyName}.replacedTypes`,
             );
             const replacedTypes2Schema = getComponentSchema('ReplaceTypes_JsDocced.string.number_', currentSpec);
-            expect(replacedTypes2Schema).to.deep.eq({
-              properties: {
-                stringValue: {
-                  type: "number",
-                  format: "double",
-                  default: "def",
-                  maxLength: 3,
-                  description: undefined,
-                  example: undefined,
+            expect(replacedTypes2Schema).to.deep.eq(
+              {
+                properties: {
+                  stringValue: {
+                    type: 'number',
+                    format: 'double',
+                    default: 'def',
+                    maxLength: 3,
+                    description: undefined,
+                    example: undefined,
+                  },
+                  numberValue: {
+                    type: 'string',
+                    default: 6,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                 },
-                numberValue: {
-                  type: "string",
-                  default: 6,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.replacedTypes`
+              `for property ${propertyName}.replacedTypes`,
             );
             const doubleReplacedTypesSchema = getComponentSchema('ReplaceStringAndNumberTypes_ReplaceStringAndNumberTypes_JsDocced__', currentSpec);
             expect(doubleReplacedTypesSchema).to.deep.eq(
               {
-                $ref: "#/components/schemas/ReplaceTypes_ReplaceStringAndNumberTypes_JsDocced_.string.number_",
+                $ref: '#/components/schemas/ReplaceTypes_ReplaceStringAndNumberTypes_JsDocced_.string.number_',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.doubleReplacedTypes`
+              `for property ${propertyName}.doubleReplacedTypes`,
             );
             const doubleReplacedTypes2Schema = getComponentSchema('ReplaceTypes_ReplaceStringAndNumberTypes_JsDocced_.string.number_', currentSpec);
             expect(doubleReplacedTypes2Schema).to.deep.eq(
               {
                 properties: {
                   stringValue: {
-                    type: "string",
-                    default: "def",
+                    type: 'string',
+                    default: 'def',
                     maxLength: 3,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue: {
-                    type: "integer",
-                    format: "int32",
+                    type: 'integer',
+                    format: 'int32',
                     default: 6,
                     description: undefined,
                     example: undefined,
                   },
                 },
-                type: "object",
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.doubleReplacedTypes`
+              `for property ${propertyName}.doubleReplacedTypes`,
             );
             const postfixedSchema = getComponentSchema('Postfixed_JsDocced._PostFix_', currentSpec);
             expect(postfixedSchema).to.deep.eq(
               {
                 properties: {
                   stringValue_PostFix: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue_PostFix: {
-                    type: "number",
-                    format: "double",
+                    type: 'number',
+                    format: 'double',
                     default: undefined,
                     description: undefined,
-                    example: undefined
-                  }
+                    example: undefined,
+                  },
                 },
-                required: [
-                  "stringValue_PostFix", "numberValue_PostFix"
-                ],
-                type: "object",
+                required: ['stringValue_PostFix', 'numberValue_PostFix'],
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.postfixed`
+              `for property ${propertyName}.postfixed`,
             );
             const valuesSchema = getComponentSchema('Values_JsDocced_', currentSpec);
             expect(valuesSchema).to.deep.eq(
@@ -3443,74 +3453,74 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   stringValue: {
                     properties: {
                       value: {
-                        type: "string",
+                        type: 'string',
                         default: undefined,
                         description: undefined,
                         example: undefined,
-                        format: undefined
-                      }
+                        format: undefined,
+                      },
                     },
-                    required: ["value"],
-                    type: "object",
-                    default: "def",
+                    required: ['value'],
+                    type: 'object',
+                    default: 'def',
                     maxLength: 3,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue: {
                     properties: {
                       value: {
-                        type: "number",
-                        format: "double",
+                        type: 'number',
+                        format: 'double',
                         default: undefined,
                         description: undefined,
                         example: undefined,
-                      }
+                      },
                     },
-                    required: ["value"],
-                    type: "object",
+                    required: ['value'],
+                    type: 'object',
                     default: 6,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                type: "object",
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.values`
+              `for property ${propertyName}.values`,
             );
             const typesValuesSchema = getComponentSchema('InternalTypes_Values_JsDocced__', currentSpec);
             expect(typesValuesSchema).to.deep.eq(
               {
                 properties: {
                   stringValue: {
-                    type: "string",
-                    default: "def",
+                    type: 'string',
+                    default: 'def',
                     maxLength: 3,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue: {
-                    type: "integer",
-                    format: "int32",
+                    type: 'integer',
+                    format: 'int32',
                     default: 6,
                     description: undefined,
                     example: undefined,
-                  }
+                  },
                 },
-                type: "object",
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.typesValues`
+              `for property ${propertyName}.typesValues`,
             );
 
             const synonymSchema = getComponentSchema('JsDoccedSynonym', currentSpec);
@@ -3518,63 +3528,63 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   stringValue: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue: {
-                    type: "number",
-                    format: "double",
+                    type: 'number',
+                    format: 'double',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                  }
+                  },
                 },
-                required: ["stringValue", "numberValue"],
-                type: "object",
+                required: ['stringValue', 'numberValue'],
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.synonym`
+              `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getComponentSchema('JsDoccedSynonym2', currentSpec);
             expect(synonym2Schema).to.deep.eq(
               {
                 properties: {
                   stringValue: {
-                    type: "string",
-                    default: "def",
+                    type: 'string',
+                    default: 'def',
                     maxLength: 3,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   numberValue: {
-                    type: "integer",
-                    format: "int32",
+                    type: 'integer',
+                    format: 'int32',
                     default: 6,
                     description: undefined,
-                    example: undefined
-                  }
+                    example: undefined,
+                  },
                 },
-                type: "object",
+                type: 'object',
                 default: undefined,
                 description: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.synonym2`
+              `for property ${propertyName}.synonym2`,
             );
           },
           duplicatedDefinitions: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.interfaces?.$ref).to.eq("#/components/schemas/DuplicatedInterface", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.enums?.$ref).to.eq("#/components/schemas/DuplicatedEnum", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.enumMember?.$ref).to.eq("#/components/schemas/DuplicatedEnum.C", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.namespaceMember?.$ref).to.eq("#/components/schemas/DuplicatedEnum.D", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.interfaces?.$ref).to.eq('#/components/schemas/DuplicatedInterface', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.enums?.$ref).to.eq('#/components/schemas/DuplicatedEnum', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.enumMember?.$ref).to.eq('#/components/schemas/DuplicatedEnum.C', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.namespaceMember?.$ref).to.eq('#/components/schemas/DuplicatedEnum.D', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(4, `for property ${propertyName}`);
 
@@ -3583,69 +3593,74 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   a: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
+                    format: undefined,
                   },
                   b: {
-                    type: "string",
+                    type: 'string',
                     default: undefined,
                     description: undefined,
                     example: undefined,
-                    format: undefined
-                  }
+                    format: undefined,
+                  },
                 },
-                required: ["a", "b"],
-                type: "object",
+                required: ['a', 'b'],
+                type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
-
               },
-              `for property ${propertyName}.interfaces`
+              `for property ${propertyName}.interfaces`,
             );
             const enumsSchema = getComponentSchema('DuplicatedEnum', currentSpec);
             expect(enumsSchema).to.deep.eq(
               {
-                enum: ["AA", "BB", "CC"],
-                type: "string",
-                description: undefined
+                enum: ['AA', 'BB', 'CC'],
+                type: 'string',
+                description: undefined,
               },
-              `for property ${propertyName}.enums`
+              `for property ${propertyName}.enums`,
             );
             const enumMemberSchema = getComponentSchema('DuplicatedEnum.C', currentSpec);
             expect(enumMemberSchema).to.deep.eq(
               {
-                enum: ["CC"],
-                type: "string",
-                description: undefined
+                enum: ['CC'],
+                type: 'string',
+                description: undefined,
               },
-              `for property ${propertyName}.enumMember`
+              `for property ${propertyName}.enumMember`,
             );
             const namespaceMemberSchema = getComponentSchema('DuplicatedEnum.D', currentSpec);
             expect(namespaceMemberSchema).to.deep.eq(
               {
-                enum: ["DD"],
-                type: "string",
+                enum: ['DD'],
+                type: 'string',
                 nullable: false,
                 description: undefined,
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.namespaceMember`
+              `for property ${propertyName}.namespaceMember`,
             );
           },
           mappeds: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.unionMap?.$ref).to.eq("#/components/schemas/Partial__a-string_-or-_b-number__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedUnionMap?.$ref).to.eq("#/components/schemas/Partial__a-string_-or-_%5Bb-string%5D%3Anumber__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.doubleIndexedUnionMap?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring_-or-_%5Bb-string%5D%3Anumber__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.intersectionMap?.$ref).to.eq("#/components/schemas/Partial__a-string_-and-_b-number__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.indexedIntersectionMap?.$ref).to.eq("#/components/schemas/Partial__a-string_-and-_%5Bb-string%5D%3Anumber__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.doubleIndexedIntersectionMap?.$ref).to.eq("#/components/schemas/Partial__%5Ba-string%5D%3Astring_-and-_%5Bb-number%5D%3Anumber__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.parenthesizedMap?.$ref).to.eq("#/components/schemas/Partial__a-string_-or-(_b-string_-and-_c-string_)_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.parenthesizedMap2?.$ref).to.eq("#/components/schemas/Partial_(_a-string_-or-_b-string_)-and-_c-string__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.unionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-_b-number__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedUnionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-_%5Bb-string%5D%3Anumber__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.doubleIndexedUnionMap?.$ref).to.eq(
+              '#/components/schemas/Partial__%5Ba-string%5D%3Astring_-or-_%5Bb-string%5D%3Anumber__',
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties?.intersectionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-and-_b-number__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.indexedIntersectionMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-and-_%5Bb-string%5D%3Anumber__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.doubleIndexedIntersectionMap?.$ref).to.eq(
+              '#/components/schemas/Partial__%5Ba-string%5D%3Astring_-and-_%5Bb-number%5D%3Anumber__',
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties?.parenthesizedMap?.$ref).to.eq('#/components/schemas/Partial__a-string_-or-(_b-string_-and-_c-string_)_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.parenthesizedMap2?.$ref).to.eq('#/components/schemas/Partial_(_a-string_-or-_b-string_)-and-_c-string__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(8, `for property ${propertyName}`);
 
@@ -3656,27 +3671,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   {
                     properties: {
                       a: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
+                    type: 'object',
                   },
                   {
                     properties: {
                       b: {
-                        format: "double",
-                        type: "number"
-                      }
+                        format: 'double',
+                        type: 'number',
+                      },
                     },
-                    type: "object"
-                  }
+                    type: 'object',
+                  },
                 ],
-                description: "Make all properties in T optional",
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.unionMap`
+              `for property ${propertyName}.unionMap`,
             );
             const indexedUnionMapSchema = getComponentSchema('Partial__a-string_-or-_[b-string]:number__', currentSpec);
             expect(indexedUnionMapSchema).to.deep.eq(
@@ -3685,26 +3700,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   {
                     properties: {
                       a: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
+                    type: 'object',
                   },
                   {
                     additionalProperties: {
-                      format: "double",
-                      type: "number"
+                      format: 'double',
+                      type: 'number',
                     },
                     properties: {},
-                    type: "object"
-                  }
+                    type: 'object',
+                  },
                 ],
-                description: "Make all properties in T optional",
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.indexedUnionMap`
+              `for property ${propertyName}.indexedUnionMap`,
             );
             const doubleIndexedUnionMapSchema = getComponentSchema('Partial__[a-string]:string_-or-_[b-string]:number__', currentSpec);
             expect(doubleIndexedUnionMapSchema).to.deep.eq(
@@ -3712,97 +3727,100 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 anyOf: [
                   {
                     additionalProperties: {
-                      type: "string"
+                      type: 'string',
                     },
                     properties: {},
-                    type: "object"
+                    type: 'object',
                   },
                   {
                     additionalProperties: {
-                      format: "double",
-                      type: "number"
+                      format: 'double',
+                      type: 'number',
                     },
                     properties: {},
-                    type: "object"
-                  }
+                    type: 'object',
+                  },
                 ],
-                description: "Make all properties in T optional",
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.doubleIndexedUnionMap`
+              `for property ${propertyName}.doubleIndexedUnionMap`,
             );
             const intersectionMapSchema = getComponentSchema('Partial__a-string_-and-_b-number__', currentSpec);
-            expect(intersectionMapSchema).to.deep.eq({
-              properties: {
-                a: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
+            expect(intersectionMapSchema).to.deep.eq(
+              {
+                properties: {
+                  a: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  b: {
+                    type: 'number',
+                    format: 'double',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                  },
                 },
-                b: {
-                  type: "number",
-                  format: "double",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                }
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.intersectionMap`
+              `for property ${propertyName}.intersectionMap`,
             );
             const indexedIntersectionMapSchema = getComponentSchema('Partial__a-string_-and-_[b-string]:number__', currentSpec);
-            expect(indexedIntersectionMapSchema).to.deep.eq({
-              properties: {
-                a: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+            expect(indexedIntersectionMapSchema).to.deep.eq(
+              {
+                properties: {
+                  a: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                },
+                additionalProperties: {
+                  type: 'number',
+                  format: 'double',
+                },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              additionalProperties: {
-                type: "number",
-                format: "double"
-              },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.indexedIntersectionMap`
+              `for property ${propertyName}.indexedIntersectionMap`,
             );
             const doubleIndexedIntersectionMapSchema = getComponentSchema('Partial__[a-string]:string_-and-_[b-number]:number__', currentSpec);
-            expect(doubleIndexedIntersectionMapSchema).to.deep.eq({
-              properties: {},
-              additionalProperties: {
-                anyOf: [
-                  {
-                    type: "string"
-                  },
-                  {
-                    format: "double",
-                    type: "number"
-                  }
-                ]
+            expect(doubleIndexedIntersectionMapSchema).to.deep.eq(
+              {
+                properties: {},
+                additionalProperties: {
+                  anyOf: [
+                    {
+                      type: 'string',
+                    },
+                    {
+                      format: 'double',
+                      type: 'number',
+                    },
+                  ],
+                },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.doubleIndexedIntersectionMap`
+              `for property ${propertyName}.doubleIndexedIntersectionMap`,
             );
             const parenthesizedMapSchema = getComponentSchema('Partial__a-string_-or-(_b-string_-and-_c-string_)_', currentSpec);
             expect(parenthesizedMapSchema).to.deep.eq(
@@ -3811,29 +3829,29 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   {
                     properties: {
                       a: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
+                    type: 'object',
                   },
                   {
                     properties: {
                       b: {
-                        type: "string"
+                        type: 'string',
                       },
                       c: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
-                  }
+                    type: 'object',
+                  },
                 ],
-                description: "Make all properties in T optional",
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.parenthesizedMap`
+              `for property ${propertyName}.parenthesizedMap`,
             );
             const parenthesizedMap2Schema = getComponentSchema('Partial_(_a-string_-or-_b-string_)-and-_c-string__', currentSpec);
             expect(parenthesizedMap2Schema).to.deep.eq(
@@ -3842,471 +3860,513 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   {
                     properties: {
                       a: {
-                        type: "string"
+                        type: 'string',
                       },
                       c: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
+                    type: 'object',
                   },
                   {
                     properties: {
                       b: {
-                        type: "string"
+                        type: 'string',
                       },
                       c: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
-                    type: "object"
-                  }
+                    type: 'object',
+                  },
                 ],
-                description: "Make all properties in T optional",
+                description: 'Make all properties in T optional',
                 default: undefined,
                 example: undefined,
-                format: undefined
+                format: undefined,
               },
-              `for property ${propertyName}.parenthesizedMap2`
+              `for property ${propertyName}.parenthesizedMap2`,
             );
           },
           conditionals: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.simpeConditional).to.deep.eq({
-              type: "number",
-              format: "double",
-              default: undefined,
-              description: undefined,
-              example: undefined
-            },
-              `for property ${propertyName}`);
-            expect(propertySchema?.properties?.simpeFalseConditional).to.deep.eq({
-              type: "boolean",
-              format: undefined,
-              default: undefined,
-              description: undefined,
-              example: undefined
-            },
-              `for property ${propertyName}`);
-            expect(propertySchema?.properties?.typedConditional?.$ref).to.eq("#/components/schemas/Conditional_string.string.number.boolean_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.typedFalseConditional?.$ref).to.eq("#/components/schemas/Conditional_string.number.number.boolean_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.dummyConditional?.$ref).to.eq("#/components/schemas/Dummy_Conditional_string.string.number.boolean__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.dummyFalseConditional?.$ref).to.eq("#/components/schemas/Dummy_Conditional_string.number.number.boolean__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.mappedConditional?.$ref).to.eq("#/components/schemas/Partial_stringextendsstring%3F_a-number_-never_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.mappedTypedConditional?.$ref).to.eq("#/components/schemas/Partial_Conditional_string.string._a-number_.never__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.simpeConditional).to.deep.eq(
+              {
+                type: 'number',
+                format: 'double',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties?.simpeFalseConditional).to.deep.eq(
+              {
+                type: 'boolean',
+                format: undefined,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties?.typedConditional?.$ref).to.eq('#/components/schemas/Conditional_string.string.number.boolean_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.typedFalseConditional?.$ref).to.eq('#/components/schemas/Conditional_string.number.number.boolean_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.dummyConditional?.$ref).to.eq('#/components/schemas/Dummy_Conditional_string.string.number.boolean__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.dummyFalseConditional?.$ref).to.eq('#/components/schemas/Dummy_Conditional_string.number.number.boolean__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.mappedConditional?.$ref).to.eq('#/components/schemas/Partial_stringextendsstring%3F_a-number_-never_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.mappedTypedConditional?.$ref).to.eq('#/components/schemas/Partial_Conditional_string.string._a-number_.never__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(8, `for property ${propertyName}`);
 
             const typedConditionalSchema = getComponentSchema('Conditional_string.string.number.boolean_', currentSpec);
-            expect(typedConditionalSchema).to.deep.eq({
-              type: "number",
-              format: "double",
-              default: undefined,
-              description: undefined,
-              example: undefined,
-            },
-              `for property ${propertyName}.typedConditional`);
-            const typedFalseConditionalSchema = getComponentSchema('Conditional_string.number.number.boolean_', currentSpec);
-            expect(typedFalseConditionalSchema).to.deep.eq({
-              type: "boolean",
-              format: undefined,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-            },
-              `for property ${propertyName}.typedFalseConditional`);
-            const dummyConditionalSchema = getComponentSchema('Dummy_Conditional_string.string.number.boolean__', currentSpec);
-            expect(dummyConditionalSchema?.$ref).to.eq("#/components/schemas/Conditional_string.string.number.boolean_", `for property ${propertyName}.dummyConditional`);
-            const dummyFalseConditionalSchema = getComponentSchema('Dummy_Conditional_string.number.number.boolean__', currentSpec);
-            expect(dummyFalseConditionalSchema?.$ref).to.eq("#/components/schemas/Conditional_string.number.number.boolean_", `for property ${propertyName}.dummyFalseConditional`);
-            const mappedConditionalSchema = getComponentSchema('Partial_stringextendsstring?_a-number_-never_', currentSpec);
-            expect(mappedConditionalSchema).to.deep.eq({
-              properties: {
-                a: {
-                  type: "number",
-                  format: "double",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                }
+            expect(typedConditionalSchema).to.deep.eq(
+              {
+                type: 'number',
+                format: 'double',
+                default: undefined,
+                description: undefined,
+                example: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              example: undefined,
-              default: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.mappedConditional`);
+              `for property ${propertyName}.typedConditional`,
+            );
+            const typedFalseConditionalSchema = getComponentSchema('Conditional_string.number.number.boolean_', currentSpec);
+            expect(typedFalseConditionalSchema).to.deep.eq(
+              {
+                type: 'boolean',
+                format: undefined,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for property ${propertyName}.typedFalseConditional`,
+            );
+            const dummyConditionalSchema = getComponentSchema('Dummy_Conditional_string.string.number.boolean__', currentSpec);
+            expect(dummyConditionalSchema?.$ref).to.eq('#/components/schemas/Conditional_string.string.number.boolean_', `for property ${propertyName}.dummyConditional`);
+            const dummyFalseConditionalSchema = getComponentSchema('Dummy_Conditional_string.number.number.boolean__', currentSpec);
+            expect(dummyFalseConditionalSchema?.$ref).to.eq('#/components/schemas/Conditional_string.number.number.boolean_', `for property ${propertyName}.dummyFalseConditional`);
+            const mappedConditionalSchema = getComponentSchema('Partial_stringextendsstring?_a-number_-never_', currentSpec);
+            expect(mappedConditionalSchema).to.deep.eq(
+              {
+                properties: {
+                  a: {
+                    type: 'number',
+                    format: 'double',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                  },
+                },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                example: undefined,
+                default: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.mappedConditional`,
+            );
             const mappedTypedConditionalSchema = getComponentSchema('Partial_Conditional_string.string._a-number_.never__', currentSpec);
             expect(mappedTypedConditionalSchema).to.deep.eq(mappedConditionalSchema, `for property ${propertyName}.mappedTypedConditional`);
           },
           typeOperators: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.keysOfAny?.$ref).to.eq("#/components/schemas/KeysMember", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.keysOfInterface?.$ref).to.eq("#/components/schemas/KeysMember_NestedTypeLiteral_", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.simple).to.deep.eq({
-              type: "string",
-              enum: ["a", "b", "e"],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.simple`);
-            expect(propertySchema?.properties?.keyofItem).to.deep.eq({
-              type: "string",
-              enum: ["c", "d"],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.keyofItem`);
-            expect(propertySchema?.properties?.keyofAnyItem).to.deep.eq({
-              anyOf: [
-                {
-                  type: "string"
-                },
-                {
-                  format: "double",
-                  type: "number"
-                }
-              ],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.keyofAnyItem`);
-            expect(propertySchema?.properties?.keyofAny).to.deep.eq(propertySchema?.properties?.keyofAnyItem,
-              `for property ${propertyName}.keyofAny`);
-            expect(propertySchema?.properties?.stringLiterals).to.deep.eq({
-              type: "string",
-              enum: ["A", "B", "C"],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.stringLiterals`);
-            expect(propertySchema?.properties?.stringAndNumberLiterals).to.deep.eq({
-              anyOf: [
-                {
-                  enum: [
-                    "A",
-                    "B"
-                  ],
-                  type: "string"
-                },
-                {
-                  enum: [
-                    3
-                  ],
-                  type: "number"
-                }
-              ],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.stringAndNumberLiterals`);
-            expect(propertySchema?.properties?.keyofEnum).to.deep.eq({
-              type: "string",
-              enum: ["A", "B", "C"],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.keyofEnum`);
-            expect(propertySchema?.properties?.numberAndStringKeys).to.deep.eq({
-              anyOf: [
-                {
-                  enum: [
-                    "a"
-                  ],
-                  type: "string"
-                },
-                {
-                  enum: [
-                    3,
-                    4
-                  ],
-                  type: "number"
-                }
-              ],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.numberAndStringKeys`);
-            expect(propertySchema?.properties?.oneStringKeyInterface).to.deep.eq({
-              type: "string",
-              enum: ["a"],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.oneStringKeyInterface`);
-            expect(propertySchema?.properties?.oneNumberKeyInterface).to.deep.eq({
-              type: "number",
-              enum: [3],
-              nullable: false,
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.oneNumberKeyInterface`);
-            expect(propertySchema?.properties?.indexStrings).to.deep.eq({
-              anyOf: [
-                {
-                  type: "string"
-                },
-                {
-                  format: "double",
-                  type: "number"
-                }
-              ],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.indexStrings`);
-            expect(propertySchema?.properties?.indexNumbers).to.deep.eq({
-              type: "number",
-              format: "double",
-              default: undefined,
-              description: undefined,
-              example: undefined
-            },
-              `for property ${propertyName}.indexNumbers`);
+            expect(propertySchema?.properties?.keysOfAny?.$ref).to.eq('#/components/schemas/KeysMember', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.keysOfInterface?.$ref).to.eq('#/components/schemas/KeysMember_NestedTypeLiteral_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.simple).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['a', 'b', 'e'],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.simple`,
+            );
+            expect(propertySchema?.properties?.keyofItem).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['c', 'd'],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.keyofItem`,
+            );
+            expect(propertySchema?.properties?.keyofAnyItem).to.deep.eq(
+              {
+                anyOf: [
+                  {
+                    type: 'string',
+                  },
+                  {
+                    format: 'double',
+                    type: 'number',
+                  },
+                ],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.keyofAnyItem`,
+            );
+            expect(propertySchema?.properties?.keyofAny).to.deep.eq(propertySchema?.properties?.keyofAnyItem, `for property ${propertyName}.keyofAny`);
+            expect(propertySchema?.properties?.stringLiterals).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['A', 'B', 'C'],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.stringLiterals`,
+            );
+            expect(propertySchema?.properties?.stringAndNumberLiterals).to.deep.eq(
+              {
+                anyOf: [
+                  {
+                    enum: ['A', 'B'],
+                    type: 'string',
+                  },
+                  {
+                    enum: [3],
+                    type: 'number',
+                  },
+                ],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.stringAndNumberLiterals`,
+            );
+            expect(propertySchema?.properties?.keyofEnum).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['A', 'B', 'C'],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.keyofEnum`,
+            );
+            expect(propertySchema?.properties?.numberAndStringKeys).to.deep.eq(
+              {
+                anyOf: [
+                  {
+                    enum: ['a'],
+                    type: 'string',
+                  },
+                  {
+                    enum: [3, 4],
+                    type: 'number',
+                  },
+                ],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.numberAndStringKeys`,
+            );
+            expect(propertySchema?.properties?.oneStringKeyInterface).to.deep.eq(
+              {
+                type: 'string',
+                enum: ['a'],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.oneStringKeyInterface`,
+            );
+            expect(propertySchema?.properties?.oneNumberKeyInterface).to.deep.eq(
+              {
+                type: 'number',
+                enum: [3],
+                nullable: false,
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.oneNumberKeyInterface`,
+            );
+            expect(propertySchema?.properties?.indexStrings).to.deep.eq(
+              {
+                anyOf: [
+                  {
+                    type: 'string',
+                  },
+                  {
+                    format: 'double',
+                    type: 'number',
+                  },
+                ],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.indexStrings`,
+            );
+            expect(propertySchema?.properties?.indexNumbers).to.deep.eq(
+              {
+                type: 'number',
+                format: 'double',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+              },
+              `for property ${propertyName}.indexNumbers`,
+            );
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(14, `for property ${propertyName}`);
 
             const keysOfAnySchema = getComponentSchema('KeysMember', currentSpec);
-            expect(keysOfAnySchema).to.deep.eq({
-              properties: {
-                keys: {
-                  anyOf: [
-                    {
-                      type: "string"
-                    },
-                    {
-                      format: "double",
-                      type: "number"
-                    }
-                  ],
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                }
+            expect(keysOfAnySchema).to.deep.eq(
+              {
+                properties: {
+                  keys: {
+                    anyOf: [
+                      {
+                        type: 'string',
+                      },
+                      {
+                        format: 'double',
+                        type: 'number',
+                      },
+                    ],
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                },
+                required: ['keys'],
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
               },
-              required: ["keys"],
-              type: "object",
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.keysOfAny`);
+              `for property ${propertyName}.keysOfAny`,
+            );
 
             const keysOfInterfaceSchema = getComponentSchema('KeysMember_NestedTypeLiteral_', currentSpec);
-            expect(keysOfInterfaceSchema).to.deep.eq({
-              properties: {
-                keys: {
-                  type: "string",
-                  enum: ["a", "b", "e"],
-                  nullable: false,
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                }
+            expect(keysOfInterfaceSchema).to.deep.eq(
+              {
+                properties: {
+                  keys: {
+                    type: 'string',
+                    enum: ['a', 'b', 'e'],
+                    nullable: false,
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                },
+                required: ['keys'],
+                type: 'object',
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
               },
-              required: ["keys"],
-              type: "object",
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.keysOfInterface`);
+              `for property ${propertyName}.keysOfInterface`,
+            );
           },
           nestedTypes: (propertyName, propertySchema) => {
-            expect(propertySchema?.properties?.multiplePartial?.$ref).to.eq("#/components/schemas/Partial_Partial__a-string___", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.separateField?.$ref).to.eq("#/components/schemas/Partial_SeparateField_Partial__a-string--b-string__.a__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.separateField2?.$ref).to.eq("#/components/schemas/Partial_SeparateField_Partial__a-string--b-string__.a-or-b__", `for property ${propertyName}`);
-            expect(propertySchema?.properties?.separateField3?.$ref).to.eq("#/components/schemas/Partial_SeparateField_Partial__a-string--b-number__.a-or-b__", `for property ${propertyName}`);
+            expect(propertySchema?.properties?.multiplePartial?.$ref).to.eq('#/components/schemas/Partial_Partial__a-string___', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.separateField?.$ref).to.eq('#/components/schemas/Partial_SeparateField_Partial__a-string--b-string__.a__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.separateField2?.$ref).to.eq('#/components/schemas/Partial_SeparateField_Partial__a-string--b-string__.a-or-b__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.separateField3?.$ref).to.eq('#/components/schemas/Partial_SeparateField_Partial__a-string--b-number__.a-or-b__', `for property ${propertyName}`);
 
             expect(Object.keys(propertySchema?.properties || {}).length).to.eq(4, `for property ${propertyName}`);
 
             const multiplePartialSchema = getComponentSchema('Partial_Partial__a-string___', currentSpec);
-            expect(multiplePartialSchema).to.deep.eq({
-              properties: {
-                a: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
-              },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.multiplePartial`);
-            const separateFieldSchema = getComponentSchema('Partial_SeparateField_Partial__a-string--b-string__.a__', currentSpec);
-            expect(separateFieldSchema).to.deep.eq({
-              properties: {
-                omitted: {
-                  $ref: "#/components/schemas/Omit_Partial__a-string--b-string__.a_",
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
+            expect(multiplePartialSchema).to.deep.eq(
+              {
+                properties: {
+                  a: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                 },
-                field: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.separateField`);
+              `for property ${propertyName}.multiplePartial`,
+            );
+            const separateFieldSchema = getComponentSchema('Partial_SeparateField_Partial__a-string--b-string__.a__', currentSpec);
+            expect(separateFieldSchema).to.deep.eq(
+              {
+                properties: {
+                  omitted: {
+                    $ref: '#/components/schemas/Omit_Partial__a-string--b-string__.a_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  field: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                },
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.separateField`,
+            );
             const separateFieldInternalSchema = getComponentSchema('Omit_Partial__a-string--b-string__.a_', currentSpec);
-            expect(separateFieldInternalSchema).to.deep.eq({
-              $ref: "#/components/schemas/Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a__",
-              description: "Construct a type with the properties of T except for those in type K.",
-              default: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.separateField.omitted`);
+            expect(separateFieldInternalSchema).to.deep.eq(
+              {
+                $ref: '#/components/schemas/Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a__',
+                description: 'Construct a type with the properties of T except for those in type K.',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.separateField.omitted`,
+            );
 
             const separateFieldInternal2Schema = getComponentSchema('Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a__', currentSpec);
-            expect(separateFieldInternal2Schema).to.deep.eq({
-              properties: {
-                b: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+            expect(separateFieldInternal2Schema).to.deep.eq(
+              {
+                properties: {
+                  b: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                },
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "From T, pick a set of properties whose keys are in the union K",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.separateField.omitted`);
+              `for property ${propertyName}.separateField.omitted`,
+            );
 
             const separateField2Schema = getComponentSchema('Partial_SeparateField_Partial__a-string--b-string__.a-or-b__', currentSpec);
-            expect(separateField2Schema).to.deep.eq({
-              properties: {
-                omitted: {
-                  $ref: "#/components/schemas/Omit_Partial__a-string--b-string__.a-or-b_",
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
+            expect(separateField2Schema).to.deep.eq(
+              {
+                properties: {
+                  omitted: {
+                    $ref: '#/components/schemas/Omit_Partial__a-string--b-string__.a-or-b_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  field: {
+                    type: 'string',
+                    default: undefined,
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                 },
-                field: {
-                  type: "string",
-                  default: undefined,
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.separateField2`);
+              `for property ${propertyName}.separateField2`,
+            );
             const separateField2InternalSchema = getComponentSchema('Omit_Partial__a-string--b-string__.a-or-b_', currentSpec);
-            expect(separateField2InternalSchema?.$ref).to.eq("#/components/schemas/Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a-or-b__",
-              `for property ${propertyName}.separateField2.omitted`
+            expect(separateField2InternalSchema?.$ref).to.eq(
+              '#/components/schemas/Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a-or-b__',
+              `for property ${propertyName}.separateField2.omitted`,
             );
             const separateField2Internal2Schema = getComponentSchema('Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a-or-b__', currentSpec);
-            expect(separateField2Internal2Schema).to.deep.eq({
-              properties: {},
-              type: "object",
-              description: "From T, pick a set of properties whose keys are in the union K",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.separateField2.omitted`);
+            expect(separateField2Internal2Schema).to.deep.eq(
+              {
+                properties: {},
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.separateField2.omitted`,
+            );
 
             const separateField3Schema = getComponentSchema('Partial_SeparateField_Partial__a-string--b-number__.a-or-b__', currentSpec);
-            expect(separateField3Schema).to.deep.eq({
-              properties:
+            expect(separateField3Schema).to.deep.eq(
               {
-                omitted: {
-                  $ref: "#/components/schemas/Omit_Partial__a-string--b-number__.a-or-b_",
-                  description: undefined,
-                  example: undefined,
-                  format: undefined
+                properties: {
+                  omitted: {
+                    $ref: '#/components/schemas/Omit_Partial__a-string--b-number__.a-or-b_',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
+                  field: {
+                    anyOf: [
+                      {
+                        type: 'string',
+                      },
+                      {
+                        format: 'double',
+                        type: 'number',
+                      },
+                    ],
+                    description: undefined,
+                    default: undefined,
+                    example: undefined,
+                    format: undefined,
+                  },
                 },
-                field: {
-                  anyOf: [
-                    {
-                      type: "string"
-                    },
-                    {
-                      format: "double",
-                      type: "number"
-                    }
-                  ],
-                  description: undefined,
-                  default: undefined,
-                  example: undefined,
-                  format: undefined
-                }
+                type: 'object',
+                description: 'Make all properties in T optional',
+                default: undefined,
+                example: undefined,
+                format: undefined,
               },
-              type: "object",
-              description: "Make all properties in T optional",
-              default: undefined,
-              example: undefined,
-              format: undefined
-            },
-              `for property ${propertyName}.separateField3`);
+              `for property ${propertyName}.separateField3`,
+            );
             const separateField3InternalSchema = getComponentSchema('Omit_Partial__a-string--b-number__.a-or-b_', currentSpec);
-            expect(separateField3InternalSchema?.$ref).to.eq("#/components/schemas/Pick_Partial__a-string--b-number__.Exclude_keyofPartial__a-string--b-number__.a-or-b__",
-              `for property ${propertyName}.separateField3.omitted`
+            expect(separateField3InternalSchema?.$ref).to.eq(
+              '#/components/schemas/Pick_Partial__a-string--b-number__.Exclude_keyofPartial__a-string--b-number__.a-or-b__',
+              `for property ${propertyName}.separateField3.omitted`,
             );
             const separateField3Internal2Schema = getComponentSchema('Pick_Partial__a-string--b-number__.Exclude_keyofPartial__a-string--b-number__.a-or-b__', currentSpec);
-            expect(separateField3Internal2Schema).to.deep.eq({
-              properties: {},
-              type: "object",
-              description: "From T, pick a set of properties whose keys are in the union K",
-              default: undefined,
-              example: undefined,
-              format: undefined,
-            },
-              `for property ${propertyName}.separateField3.omitted`);
-          }
+            expect(separateField3Internal2Schema).to.deep.eq(
+              {
+                properties: {},
+                type: 'object',
+                description: 'From T, pick a set of properties whose keys are in the union K',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.separateField3.omitted`,
+            );
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
@@ -4568,7 +4628,3 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 });
-
-
-
-

@@ -237,6 +237,27 @@ export interface TestModel extends Model {
      * }
      */
     defaultObject: { a: string; b: number };
+    /**
+     * @default `\`"'\"\'\n\t\r\b\f\v\0\g\x\\`//\0, \v is not supported...
+     *
+     */
+    stringEscapeCharacters: undefined; //type is not really interesting
+    /**
+     * @default //Comment1
+     * 4
+     * //Comment2
+     *
+     */
+    comments: undefined; //type is not really interesting
+    /**
+     * @default {
+     * //Alma
+     * `\\`: '\n'
+     *
+     * }
+     *
+     */
+    jsonCharacters: undefined; //type is not really interesting
   };
 
   jsDocTypeNames?: {
