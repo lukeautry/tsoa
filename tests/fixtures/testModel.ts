@@ -224,11 +224,11 @@ export interface TestModel extends Model {
     /**
      * @default undefined
      */
-    defaultUndefined?: string,
+    defaultUndefined?: string;
     /**
      * @default null
      */
-    defaultNull: string | null,
+    defaultNull: string | null;
     /**
      * @default
      * {
@@ -236,82 +236,82 @@ export interface TestModel extends Model {
      *   "b": 2
      * }
      */
-    defaultObject: { a: string, b: number },
+    defaultObject: { a: string; b: number };
   };
 
   jsDocTypeNames?: {
     simple: Partial<{ a: string }>;
     commented: Partial<{
       /** comment */
-      a: string
+      a: string;
     }>;
     multilineCommented: Partial<{
       /**
        * multiline
        * comment
        */
-      a: string
+      a: string;
     }>;
     defaultValue: Partial<{
       /** @default "true" */
-      a: string
+      a: string;
     }>;
     deprecated: Partial<{
       /** @deprecated */
-      a: string
+      a: string;
     }>;
     validators: Partial<{
       /** @minLength 3 */
-      a: string
+      a: string;
     }>;
     examples: Partial<{
       /** @example "example" */
-      a: string
+      a: string;
     }>;
     extensions: Partial<{
       /** @extension {"x-key-1": "value-1"} */
-      a: string
+      a: string;
     }>;
     ignored: Partial<{
       /** @ignore */
-      a: string
+      a: string;
     }>;
 
     indexedSimple: Partial<{ [a: string]: string }>;
     indexedCommented: Partial<{
       /** comment */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedMultilineCommented: Partial<{
       /**
        * multiline
        * comment
        */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedDefaultValue: Partial<{
       /** @default "true" */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedDeprecated: Partial<{
       /** @deprecated */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedValidators: Partial<{
       /** @minLength 3 */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedExamples: Partial<{
       /** @example "example" */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedExtensions: Partial<{
       /** @extension {"x-key-1": "value-1"} */
-      [a: string]: string
+      [a: string]: string;
     }>;
     indexedIgnored: Partial<{
       /** @ignore */
-      [a: string]: string
+      [a: string]: string;
     }>;
   };
 
@@ -319,7 +319,7 @@ export interface TestModel extends Model {
     omitted: Omit<JsDocced, 'notRelevant'>;
     partial: Partial<JsDocced>;
     replacedTypes: ReplaceStringAndNumberTypes<JsDocced>;
-    doubleReplacedTypes: ReplaceStringAndNumberTypes<ReplaceStringAndNumberTypes<JsDocced>>
+    doubleReplacedTypes: ReplaceStringAndNumberTypes<ReplaceStringAndNumberTypes<JsDocced>>;
     postfixed: Postfixed<JsDocced, '_PostFix'>;
     values: Values<JsDocced>;
     typesValues: InternalTypes<Values<JsDocced>>;
@@ -356,7 +356,7 @@ export interface TestModel extends Model {
     dummyFalseConditional: Dummy<Conditional<string, number, number, boolean>>;
     mappedConditional: Partial<string extends string ? { a: number } : never>;
     mappedTypedConditional: Partial<Conditional<string, string, { a: number }, never>>;
-  }
+  };
 
   typeOperators?: {
     keysOfAny: KeysMember;
@@ -368,36 +368,36 @@ export interface TestModel extends Model {
     stringLiterals: keyof Record<'A' | 'B' | 'C', string>;
     stringAndNumberLiterals: keyof Record<'A' | 'B' | 3, string>;
     keyofEnum: keyof typeof DuplicatedEnum;
-    numberAndStringKeys: keyof { [3]: string, [4]: string, a: string };
+    numberAndStringKeys: keyof { [3]: string; [4]: string; a: string };
     oneStringKeyInterface: keyof { a: string };
     oneNumberKeyInterface: keyof { [3]: string };
     indexStrings: keyof { [a: string]: string };
     indexNumbers: keyof { [a: number]: string };
-  }
+  };
 
   nestedTypes?: {
     multiplePartial: Partial<Partial<{ a: string }>>;
-    separateField: Partial<SeparateField<Partial<{ a: string, b: string }>, 'a'>>;
-    separateField2: Partial<SeparateField<Partial<{ a: string, b: string }>, 'a' | 'b'>>;
-    separateField3: Partial<SeparateField<Partial<{ a: string, b: number }>, 'a' | 'b'>>;
-  }
+    separateField: Partial<SeparateField<Partial<{ a: string; b: string }>, 'a'>>;
+    separateField2: Partial<SeparateField<Partial<{ a: string; b: string }>, 'a' | 'b'>>;
+    separateField3: Partial<SeparateField<Partial<{ a: string; b: number }>, 'a' | 'b'>>;
+  };
 }
 
 type SeparateField<T, Field extends keyof T> = {
-  omitted: Omit<T, Field>,
+  omitted: Omit<T, Field>;
   field: T[Field];
-}
+};
 
 type KeysMember<T = any> = {
   keys: keyof T;
-}
+};
 
 interface NestedTypeLiteral {
   a: string;
   b: {
     c: string;
     d: string;
-  },
+  };
   e: any;
 }
 
@@ -420,13 +420,14 @@ class DuplicatedInterface {
 
 enum DuplicatedEnum {
   A = 'AA',
-  B = 'BB'
+  B = 'BB',
 }
 
 enum DuplicatedEnum {
-  C = 'CC'
+  C = 'CC',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace DuplicatedEnum {
   export type D = 'DD';
 }
@@ -450,9 +451,8 @@ type JsDoccedSynonym2 = { [key in keyof JsDocced]: JsDocced[key] };
 type ReplaceTypes<T, Type1, Type2> = { [K in keyof T]: T[K] extends Type1 ? Type2 : Type1 };
 type ReplaceStringAndNumberTypes<T> = ReplaceTypes<T, string, number>;
 type Postfixed<T, Postfix extends string> = { [K in keyof T as `${K & string}${Postfix}`]: T[K] };
-type Values<T> = { [K in keyof T]: { value: T[K] } }
+type Values<T> = { [K in keyof T]: { value: T[K] } };
 type InternalTypes<T extends Record<any, { value: any }>> = { [K in keyof T]: T[K]['value'] };
-
 
 class DefaultsClass {
   /**
@@ -462,13 +462,14 @@ class DefaultsClass {
   /**
    * @default false
    */
-  boolValue2?= true;
-  boolValue3?= false;
+  boolValue2? = true;
+  boolValue3? = false;
   boolValue4?: boolean;
 }
 
 type NamespaceType = string;
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace Namespace1 {
   export interface NamespaceType {
     inFirstNamespace: string;
@@ -480,17 +481,20 @@ namespace Namespace1 {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace Namespace1 {
   export interface NamespaceType {
     inFirstNamespace2: string;
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace Namespace2 {
   interface NamespaceType {
     inSecondNamespace: string;
   }
 
+  // eslint-disable-next-line @typescript-eslint/prefer-namespace-keyword, @typescript-eslint/no-namespace
   export module Namespace2 {
     export interface NamespaceType {
       inModule: string;
@@ -515,7 +519,7 @@ interface DeprecatedType {
 }
 
 @Deprecated()
-class DeprecatedClass { }
+class DeprecatedClass {}
 
 interface TypeWithDeprecatedProperty {
   ok: boolean;
@@ -707,14 +711,14 @@ export interface TestSubModel2 extends TestSubModel {
   testSubModel2: boolean;
 }
 
-export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> { }
+export interface HeritageTestModel extends TypeAlias4, Partial<Omit<UserResponseModel, 'id'>> {}
 
 export interface HeritageBaseModel {
   value: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HeritageTestModel2 extends HeritageBaseModel { }
+export interface HeritageTestModel2 extends HeritageBaseModel {}
 
 export interface DefaultTestModel<T = Word, U = Omit<ErrorResponseModel, 'status'>> {
   t: GenericRequest<T>;
@@ -776,7 +780,7 @@ export class ParameterTestModel {
   public nicknames?: string[];
 }
 
-export class ValidateCustomErrorModel { }
+export class ValidateCustomErrorModel {}
 
 export class ValidateModel {
   /**
@@ -1060,8 +1064,8 @@ const ClassIndexTest = {
 type Names = keyof typeof ClassIndexTest;
 type ResponseDistribute<T, U> = T extends Names
   ? {
-    [key in T]: Record<(typeof ClassIndexTest)[T][number], U>;
-  }
+      [key in T]: Record<(typeof ClassIndexTest)[T][number], U>;
+    }
   : never;
 type IndexRecordAlias<T> = ResponseDistribute<Names, T>;
 
@@ -1232,4 +1236,3 @@ type OrderDirection = 'asc' | 'desc';
 type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
 
 type TemplateLiteralString = OrderOptions<ParameterTestModel>;
-

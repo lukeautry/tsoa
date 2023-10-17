@@ -12,7 +12,7 @@ export class MetadataGenerator {
   public readonly typeChecker: TypeChecker;
   private readonly program: Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
-  private modelDefinitionPosMap: { [name: string]: { fileName: string, pos: number }[] } = {};
+  private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
 
   constructor(
@@ -223,12 +223,12 @@ export class MetadataGenerator {
     return this.referenceTypeMap[refName];
   }
 
-  public CheckModelUnicity(refName: string, positions: { fileName: string, pos: number }[]) {
+  public CheckModelUnicity(refName: string, positions: Array<{ fileName: string; pos: number }>) {
     if (!this.modelDefinitionPosMap[refName]) {
       this.modelDefinitionPosMap[refName] = positions;
     } else {
-      let origPositions = this.modelDefinitionPosMap[refName];
-      if (!(origPositions.length == positions.length && positions.every(pos => origPositions.find(origPos => pos.pos == origPos.pos && pos.fileName == origPos.fileName)))) {
+      const origPositions = this.modelDefinitionPosMap[refName];
+      if (!(origPositions.length === positions.length && positions.every(pos => origPositions.find(origPos => pos.pos === origPos.pos && pos.fileName === origPos.fileName)))) {
         throw new Error(`Found 2 different model definitions for model ${refName}: orig: ${JSON.stringify(origPositions)}, act: ${JSON.stringify(positions)}`);
       }
     }
@@ -238,7 +238,7 @@ export class MetadataGenerator {
     if (!this.expressionOrigNameMap[formattedRefName]) {
       this.expressionOrigNameMap[formattedRefName] = refName;
     } else {
-      if (this.expressionOrigNameMap[formattedRefName] != refName) {
+      if (this.expressionOrigNameMap[formattedRefName] !== refName) {
         throw new Error(`Found 2 different type expressions for formatted name "${formattedRefName}": orig: "${this.expressionOrigNameMap[formattedRefName]}", act: "${refName}"`);
       }
     }
