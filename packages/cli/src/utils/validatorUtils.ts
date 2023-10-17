@@ -1,7 +1,7 @@
-import validator from 'validator';
-import * as ts from 'typescript';
-import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { Tsoa } from '@tsoa/runtime';
+import * as ts from 'typescript';
+import validator from 'validator';
+import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
 export function getParameterValidators(parameter: ts.ParameterDeclaration, parameterName: string): Tsoa.Validators {
@@ -99,7 +99,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
   }, {} as Tsoa.Validators & { [unknown: string]: { errorMsg: string; value: undefined } });
 }
 
-export function getPropertyValidators(property: ts.PropertyDeclaration | ts.TypeAliasDeclaration | ts.PropertySignature | ts.ParameterDeclaration): Tsoa.Validators | undefined {
+export function getPropertyValidators(property: ts.Node): Tsoa.Validators | undefined {
   const tags = getJSDocTags(property, tag => {
     return getParameterTagSupport().some(value => value === tag.tagName.text);
   });
