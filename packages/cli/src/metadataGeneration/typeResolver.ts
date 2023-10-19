@@ -193,7 +193,7 @@ export class TypeResolver {
             .filter(property => isIgnored(property) === false)
             // Transform to property
             .map(property => {
-              const propertyType = this.current.typeChecker.getTypeOfSymbol(property);
+              const propertyType = this.current.typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
 
               const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
               const parent = getOneOrigDeclaration(property); //If there are more declarations, we need to get one of them, from where we want to recognize jsDoc
