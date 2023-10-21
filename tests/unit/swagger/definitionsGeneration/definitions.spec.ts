@@ -2604,8 +2604,10 @@ describe('Definition generation', () => {
             );
             expect(propertySchema?.properties?.parenthesizedMap?.$ref).to.eq('#/definitions/Partial__a-string_-or-_40__b-string_-and-_c-string__41__', `for property ${propertyName}`);
             expect(propertySchema?.properties?.parenthesizedMap2?.$ref).to.eq('#/definitions/Partial__40__a-string_-or-_b-string__41_-and-_c-string__', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.undefinedMap?.$ref).to.eq('#/definitions/Partial_undefined_', `for property ${propertyName}`);
+            expect(propertySchema?.properties?.nullMap?.$ref).to.eq('#/definitions/Partial_null_', `for property ${propertyName}`);
 
-            expect(Object.keys(propertySchema?.properties || {}).length).to.eq(8, `for property ${propertyName}`);
+            expect(Object.keys(propertySchema?.properties || {}).length).to.eq(10, `for property ${propertyName}`);
 
             const unionMapSchema = getValidatedDefinition('Partial__a-string_-or-_b-number__', currentSpec);
             expect(unionMapSchema).to.deep.eq(
@@ -2733,6 +2735,29 @@ describe('Definition generation', () => {
                 format: undefined,
               },
               `for property ${propertyName}.parenthesizedMap2`,
+            );
+            const undefinedMapSchema = getValidatedDefinition('Partial_undefined_', currentSpec);
+            expect(undefinedMapSchema).to.deep.eq(
+              {
+                default: undefined,
+                description: 'Make all properties in T optional',
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.undefinedMap`,
+            );
+            const nullMapSchema = getValidatedDefinition('Partial_null_', currentSpec);
+            expect(nullMapSchema).to.deep.eq(
+              {
+                enum: [null],
+                type: 'number',
+                'x-nullable': true,
+                default: undefined,
+                description: 'Make all properties in T optional',
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}.nullMap`,
             );
           },
           conditionals: (propertyName, propertySchema) => {

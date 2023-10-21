@@ -366,6 +366,9 @@ export interface TestModel extends Model {
     doubleIndexedIntersectionMap: Partial<{ [a: string]: string } & { [b: number]: number }>;
     parenthesizedMap: Partial<{ a: string } | ({ b: string } & { c: string })>;
     parenthesizedMap2: Partial<({ a: string } | { b: string }) & { c: string }>;
+
+    undefinedMap: Partial<undefined>;
+    nullMap: Partial<null>;
   };
 
   conditionals?: {

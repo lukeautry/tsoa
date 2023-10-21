@@ -186,6 +186,15 @@ export class TypeResolver {
             dataType: 'union',
             types: resolvedTypes,
           };
+        } else if (type.flags & ts.TypeFlags.Undefined) {
+          return {
+            dataType: 'undefined',
+          };
+        } else if (type.flags & ts.TypeFlags.Null) {
+          return {
+            dataType: 'enum',
+            enums: [null],
+          };
         } else if (type.flags & ts.TypeFlags.Object) {
           const typeProperties: ts.Symbol[] = type.getProperties();
           const properties: Tsoa.Property[] = typeProperties
