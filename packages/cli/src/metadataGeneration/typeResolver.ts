@@ -1103,6 +1103,7 @@ export class TypeResolver {
       .replace(/{|}/g, '_') // SuccessResponse_{indexesCreated-number}_ -> SuccessResponse__indexesCreated-number__
       .replace(/([a-z_0-9]+\??):([a-z]+)/gi, '$1-$2') // SuccessResponse_indexesCreated:number_ -> SuccessResponse_indexesCreated-number_
       .replace(/;/g, '--')
+      .replace(/\r\n/g, '\n')
       .replace(/([a-z})\]])\[([a-z]+)\]/gi, '$1-at-$2'); // Partial_SerializedDatasourceWithVersion[format]_ -> Partial_SerializedDatasourceWithVersion~format~_,
 
     //Safety fixes to replace all characters which are not accepted by swagger ui
