@@ -545,7 +545,7 @@ export class ValidationService {
       return;
     }
 
-    const schemas = this.selfIntersectionExcludingCombinations(subSchemas.map(subSchema => this.toModelLike(subSchema)));
+    const schemas = this.selfIntersectionCombinations(subSchemas.map(subSchema => this.toModelLike(subSchema)));
 
     const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
       const requiredPropError = {};
@@ -607,7 +607,7 @@ export class ValidationService {
     } else if (schema.subSchemas && schema.dataType === 'intersection') {
       const modelss: TsoaRoute.RefObjectModelSchema[][] = schema.subSchemas.map(subSchema => this.toModelLike(subSchema));
 
-      return this.selfIntersectionExcludingCombinations(modelss);
+      return this.selfIntersectionCombinations(modelss);
     } else if (schema.subSchemas && schema.dataType === 'union') {
       const modelss: TsoaRoute.RefObjectModelSchema[][] = schema.subSchemas.map(subSchema => this.toModelLike(subSchema));
       return modelss.reduce((acc, models) => [...acc, ...models], []);
@@ -618,41 +618,55 @@ export class ValidationService {
   }
 
   /**
-   * combine all schemas once without backwards combinations ie
+   * combine all schemas once, ignoring order ie
    * input: [[value1], [value2]] should be [[value1, value2]]
    * not [[value1, value2],[value2, value1]]
    * and
-   * input: [[value1], [value2], [value3]] should be [
-   *   [value1, value2, value3],
-   *   [value1, value2],
-   *   [value1, value3],
-   *   [value2, value3]
+   * input: [[value1, value2], [value3, value4], [value5, value6]] should be [
+   *   [value1, value3, value5],
+   *   [value1, value3, value6],
+   *   [value1, value4, value5],
+   *   [value1, value4, value6],
+   *   [value2, value3, value5],
+   *   [value2, value3, value6],
+   *   [value2, value4, value5],
+   *   [value2, value4, value6],
    * ]
    * @param modelSchemass
    */
-  private selfIntersectionExcludingCombinations(modelSchemass: TsoaRoute.RefObjectModelSchema[][]): TsoaRoute.RefObjectModelSchema[] {
+  private selfIntersectionCombinations(modelSchemass: TsoaRoute.RefObjectModelSchema[][]): TsoaRoute.RefObjectModelSchema[] {
     const res: TsoaRoute.RefObjectModelSchema[] = [];
+    // Picks one schema from each sub-array
+    const combinations = this.getAllCombinations(modelSchemass);
 
-    for (let outerIndex = 0; outerIndex < modelSchemass.length; outerIndex++) {
-      let currentCollector = { ...modelSchemass[outerIndex][0] };
-      for (let innerIndex = outerIndex + 1; innerIndex < modelSchemass.length; innerIndex++) {
-        currentCollector = { ...this.intersectRefObjectModelSchemas([currentCollector], modelSchemass[innerIndex])[0] };
-        if (innerIndex - outerIndex > 1) {
-          res.push(currentCollector);
-        }
-        const currentCombination = this.intersectRefObjectModelSchemas(modelSchemass[outerIndex], modelSchemass[innerIndex]);
-        res.push(...currentCombination);
+    for (const combination of combinations) {
+      // Combine all schemas of this combination
+      let currentCollector = { ...combination[0] };
+      for (let subSchemaIdx = 1; subSchemaIdx < combination.length; subSchemaIdx++) {
+        currentCollector = { ...this.combineProperties(currentCollector, combination[subSchemaIdx]) };
       }
+      res.push(currentCollector);
     }
-
     return res;
   }
 
-  private intersectRefObjectModelSchemas(a: TsoaRoute.RefObjectModelSchema[], b: TsoaRoute.RefObjectModelSchema[]): TsoaRoute.RefObjectModelSchema[] {
-    return a.reduce<TsoaRoute.RefObjectModelSchema[]>(
-      (acc, aModel) => [...acc, ...b.reduce<TsoaRoute.RefObjectModelSchema[]>((acc, bModel) => [...acc, this.combineProperties(aModel, bModel)], [])],
-      [],
-    );
+  private getAllCombinations<T>(arrays: T[][]): T[][] {
+    function combine(current: T[], index: number) {
+      if (index === arrays.length) {
+        result.push(current.slice());
+        return;
+      }
+
+      for (let i = 0; i < arrays[index].length; i++) {
+        current.push(arrays[index][i]);
+        combine(current, index + 1);
+        current.pop();
+      }
+    }
+
+    const result: T[][] = [];
+    combine([], 0);
+    return result;
   }
 
   private combineProperties(a: TsoaRoute.RefObjectModelSchema, b: TsoaRoute.RefObjectModelSchema): TsoaRoute.RefObjectModelSchema {
