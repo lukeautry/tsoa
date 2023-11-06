@@ -282,13 +282,16 @@ export class TypeResolver {
     // keyof
     if (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
       const type = this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
-      if (type.getFlags() & ts.TypeFlags.Index) {
+      if (type.isIndexType()) {
         // in case of generic: keyof T. Not handles all possible cases
-        const symbol = (type as ts.IndexType).type.getSymbol();
+        const symbol = type.type.getSymbol();
         if (symbol && symbol.getFlags() & ts.TypeFlags.TypeParameter) {
           const typeName = symbol.getEscapedName();
-          if (this.context[typeName as string]) {
-            const subResult = new TypeResolver(this.context[typeName as string].type, this.current, this.parentNode, this.context).resolve();
+          if (typeof typeName !== 'string') {
+            throw new GenerateMetadataError(`typeName is not string, but ${typeof typeName}`, this.typeNode);
+          }
+          if (this.context[typeName]) {
+            const subResult = new TypeResolver(this.context[typeName].type, this.current, this.parentNode, this.context).resolve();
             if (subResult.dataType === 'any') {
               return {
                 dataType: 'union',
@@ -302,7 +305,7 @@ export class TypeResolver {
                 enums: properties,
               };
             } else {
-              throw new GenerateMetadataError(`TypeOperator 'keyof' on node which have no properties`, this.context[typeName as string].type);
+              throw new GenerateMetadataError(`TypeOperator 'keyof' on node which have no properties`, this.context[typeName].type);
             }
           }
         }
