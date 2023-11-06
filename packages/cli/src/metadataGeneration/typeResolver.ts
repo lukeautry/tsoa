@@ -121,7 +121,7 @@ export class TypeResolver {
           description: this.getNodeDescription(propertySignature),
           format: this.getNodeFormat(propertySignature),
           name: (propertySignature.name as ts.Identifier).text,
-          required: !propertySignature.questionToken && def === undefined,
+          required: !propertySignature.questionToken,
           type,
           validators: getPropertyValidators(propertySignature) || {},
           deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
@@ -219,7 +219,7 @@ export class TypeResolver {
               // Push property
               return {
                 name: property.getName(),
-                required: required && def === undefined,
+                required,
                 deprecated: parent ? isExistJSDocTag(parent, tag => tag.tagName.text === 'deprecated') || isDecorator(parent, identifier => identifier.text === 'Deprecated') : false,
                 type,
                 default: def,
@@ -1272,7 +1272,7 @@ export class TypeResolver {
       example: this.getNodeExample(propertySignature),
       format: this.getNodeFormat(propertySignature),
       name: identifier.text,
-      required: required && def === undefined,
+      required,
       type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
@@ -1311,7 +1311,7 @@ export class TypeResolver {
       example: this.getNodeExample(propertyDeclaration),
       format: this.getNodeFormat(propertyDeclaration),
       name: identifier.text,
-      required: required && def === undefined,
+      required,
       type,
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator

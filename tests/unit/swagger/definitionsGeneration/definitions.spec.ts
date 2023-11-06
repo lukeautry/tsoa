@@ -1892,7 +1892,7 @@ describe('Definition generation', () => {
                     format: undefined,
                   },
                 },
-                required: ['replacedTypes', 'basic'],
+                required: ['defaultNull', 'replacedTypes', 'basic'],
                 type: 'object',
               },
               `for property ${propertyName}`,

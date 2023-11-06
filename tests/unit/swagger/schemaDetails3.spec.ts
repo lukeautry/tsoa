@@ -2947,7 +2947,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     format: undefined,
                   },
                 },
-                required: ['replacedTypes', 'basic'],
+                required: ['defaultNull', 'replacedTypes', 'basic'],
                 type: 'object',
               },
               `for property ${propertyName}`,
