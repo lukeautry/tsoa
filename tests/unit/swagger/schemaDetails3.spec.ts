@@ -7,6 +7,7 @@ import 'mocha';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/testModel';
+import * as os from 'os';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -3097,12 +3098,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for property ${propertyName}.commented`,
             );
             const multilineCommentedSchema = getComponentSchema('Partial__a_description-multiline_92_ncomment_-string__', currentSpec);
+            const expectedDescription = os.platform() === 'win32' ? 'multiline\r\ncomment' : `multiline\ncomment`;
             expect(multilineCommentedSchema).to.deep.eq(
               {
                 properties: {
                   a: {
                     type: 'string',
-                    description: 'multiline\ncomment',
+                    description: expectedDescription,
                     default: undefined,
                     example: undefined,
                     format: undefined,
