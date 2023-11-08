@@ -263,6 +263,26 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         bearer,
       });
     });
+
+    it('should allow openId scheme', () => {
+      const openId: Swagger.OpenIDSecurity = {
+        type: 'openIdConnect',
+        openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
+      };
+      const optionsWithOpenId = Object.assign({}, defaultOptions, {
+        securityDefinitions: {
+          openId,
+        },
+      });
+
+      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+      const exampleSpec = new SpecGenerator3(metadata, optionsWithOpenId).GetSpec();
+
+      expect(exampleSpec.components.securitySchemes).to.eql({
+        openId,
+      });
+    });
+
   });
 
   describe('example comment', () => {

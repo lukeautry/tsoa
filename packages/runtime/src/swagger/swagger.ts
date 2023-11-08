@@ -346,6 +346,11 @@ export namespace Swagger {
     bearerFormat?: string;
   }
 
+  export interface OpenIDSecurity extends BaseSecurity {
+    type: 'openIdConnect';
+    openIdConnectUrl: string;
+  }
+
   export interface OAuth2Security3 extends BaseSecurity {
     type: 'oauth2';
     flows: OAuthFlow;
@@ -396,6 +401,7 @@ export namespace Swagger {
     | BasicSecurity
     | BasicSecurity3
     | BearerSecurity3
+    | OpenIDSecurity
     | OAuth2AccessCodeSecurity
     | OAuth2ApplicationSecurity
     | OAuth2ImplicitSecurity
