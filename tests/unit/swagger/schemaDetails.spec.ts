@@ -770,5 +770,26 @@ describe('Schema details generation', () => {
       // Assert
       expect(errToTest!.message).to.match(/Swagger 2.0 does not support "http" security scheme/);
     });
+
+    it('should reject openId security scheme for OAS2', () => {
+      const optionsWithOpenId = Object.assign({}, getDefaultExtendedOptions(), {
+        securityDefinitions: {
+          openid_auth: {
+            type: 'openIdConnect',
+            url: 'https://example.com/.well-known/openid-configuration',
+          },
+        },
+      });
+      let errToTest: Error | null = null;
+      try {
+        const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        new SpecGenerator2(metadata, optionsWithOpenId).GetSpec();
+      } catch (err: any) {
+        errToTest = err;
+      }
+
+      // Assert
+      expect(errToTest!.message).to.match(/Swagger 2.0 does not support "openIdConnect" security scheme/);
+    });
   });
 });
