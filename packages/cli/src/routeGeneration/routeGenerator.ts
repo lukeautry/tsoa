@@ -68,7 +68,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     return convertBracesPathParams(path);
   }
 
-  protected buildContext(): any {
+  protected buildContext() {
     const authenticationModule = this.options.authenticationModule ? this.getRelativeImportPath(this.options.authenticationModule) : undefined;
     const iocModule = this.options.iocModule ? this.getRelativeImportPath(this.options.iocModule) : undefined;
 
@@ -76,6 +76,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     const canImportByAlias = true;
 
     const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
+
     return {
       authenticationModule,
       basePath: normalisedBasePath,

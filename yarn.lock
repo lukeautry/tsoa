@@ -1390,6 +1390,13 @@
   dependencies:
     "@types/express" "*"
 
+"@types/multer@^1.4.10":
+  version "1.4.10"
+  resolved "https://registry.yarnpkg.com/@types/multer/-/multer-1.4.10.tgz#6bca159aaaf40ec130e99831a08e3d0ed54be611"
+  integrity sha512-6l9mYMhUe8wbnz/67YIjc7ZJyQNZoKq7fRXVf7nMdgWgalD0KyzJ2ywI7hoATUSXSbTu9q2HBiEwzy0tNN1v2w==
+  dependencies:
+    "@types/express" "*"
+
 "@types/node@*":
   version "20.3.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.3.1.tgz#e8a83f1aa8b649377bb1fb5d7bac5cb90e784dfe"
