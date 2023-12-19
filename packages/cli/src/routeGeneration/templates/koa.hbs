@@ -91,6 +91,7 @@ export function RegisterRoutes(router: KoaRouter) {
               validatedArgs = getValidatedArgs(args, context, next);
             } catch (err) {
               const error = err as any;
+              error.message ||= JSON.stringify({ fields: error.fields });
               context.status = error.status;
               context.throw(context.status, error.message, error);
             }
