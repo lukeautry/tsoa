@@ -712,11 +712,15 @@ export class TypeResolver {
 
       let actNode = oneDeclaration.parent;
       let isFirst = true;
+      const isGlobalDeclaration = (mod: ts.ModuleDeclaration) => mod.name.kind === ts.SyntaxKind.Identifier && mod.name.text === 'global';
+
       while (!ts.isSourceFile(actNode)) {
         if (!(isFirst && ts.isEnumDeclaration(actNode)) && !ts.isModuleBlock(actNode)) {
           if (ts.isModuleDeclaration(actNode)) {
-            const moduleName = actNode.name.text;
-            name = `${moduleName}.${name}`;
+            if (!isGlobalDeclaration(actNode)) {
+              const moduleName = actNode.name.text;
+              name = `${moduleName}.${name}`;
+            }
           } else {
             throw new GenerateMetadataError(`This node kind is unknown: ${actNode.kind}`, type);
           }
