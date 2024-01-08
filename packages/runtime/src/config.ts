@@ -1,4 +1,6 @@
+import { ExtensionType } from './decorators/extension';
 import { Swagger } from './swagger/swagger';
+import * as ts from 'typescript';
 import { Options as MulterOpts } from 'multer';
 
 export interface Config {
@@ -40,6 +42,12 @@ export interface Config {
    */
   compilerOptions?: Record<string, unknown>;
 
+  customSwaggerExtensions?: Array<
+    {
+      decoratorName: string,
+      name: `x-${string}`,
+      value: (args: ts.NodeArray<ts.Expression>) => ExtensionType | ExtensionType[],
+    }>
   /**
    * Multer's options to generate multer's middleware.
    * It doesn't support storage option

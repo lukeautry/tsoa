@@ -17,6 +17,7 @@ export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
 export const generateSpec = async (
   swaggerConfig: ExtendedSpecConfig,
   compilerOptions?: ts.CompilerOptions,
+  customSwaggerExtensions?: Config['customSwaggerExtensions'],
   ignorePaths?: string[],
   /**
    * pass in cached metadata returned in a previous step to speed things up
@@ -25,7 +26,7 @@ export const generateSpec = async (
   defaultNumberType?: Config['defaultNumberType']
 ) => {
   if (!metadata) {
-    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate();
+    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, customSwaggerExtensions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate();
   }
 
   let spec: Swagger.Spec;

@@ -17,7 +17,8 @@ export class MetadataGenerator {
 
   constructor(
     entryFile: string,
-    private readonly compilerOptions?: CompilerOptions,
+    public readonly compilerOptions?: CompilerOptions,
+    public readonly customSwaggerExtensions?: Config['customSwaggerExtensions'],
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],

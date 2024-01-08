@@ -10,6 +10,7 @@ import { Config as BaseConfig } from "@tsoa/runtime";
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   routesConfig: Config,
   compilerOptions?: ts.CompilerOptions,
+  customSwaggerExtensions?: BaseConfig['customSwaggerExtensions'],
   ignorePaths?: string[],
   /**
    * pass in cached metadata returned in a previous step to speed things up
@@ -18,7 +19,7 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   defaultNumberType?: BaseConfig['defaultNumberType']
 ) {
   if (!metadata) {
-    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate();
+    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, customSwaggerExtensions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate();
   }
 
   const routeGenerator = await getRouteGenerator(metadata, routesConfig);
