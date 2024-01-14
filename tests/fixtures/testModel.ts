@@ -85,6 +85,7 @@ export interface TestModel extends Model {
   numberUnionRecord?: Record<1 | 2, { data: string }>;
   stringRecord?: Record<string, { data: string }>;
   numberRecord?: Record<number, { data: string }>;
+  emptyRecord?: Record<string, never>;
   // modelsObjectDirect?: {[key: string]: TestSubModel2;};
   modelsObjectIndirect?: TestSubModelContainer;
   modelsObjectIndirectNS?: TestSubModelContainerNamespace.TestSubModelContainer;
@@ -1056,7 +1057,11 @@ export class PrivateModel {
 
   private hidden!: string;
 
-  constructor(public id: number, arg: boolean, private privArg: boolean) {
+  constructor(
+    public id: number,
+    arg: boolean,
+    private privArg: boolean,
+  ) {
     this.hidden && this.privArg ? '' : '';
   }
 }
