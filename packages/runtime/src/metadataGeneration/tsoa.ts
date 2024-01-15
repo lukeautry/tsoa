@@ -1,4 +1,4 @@
-import multer from 'multer';
+import type { Multer } from 'multer';
 import { ExtensionType } from '../decorators/extension';
 import type { Swagger } from '../swagger/swagger';
 import { Validator } from '..';
@@ -19,7 +19,7 @@ export namespace Tsoa {
   }
 
   export interface RegisterRoutesOptions {
-    multer?: multer.Multer;
+    multer?: Multer;
   }
 
   export interface Method {
