@@ -228,6 +228,7 @@ export namespace Swagger {
     $ref?: string;
     title?: string;
     description?: string;
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     default?: string | boolean | number | unknown;
     multipleOf?: number;
     maximum?: number;
@@ -282,6 +283,7 @@ export namespace Swagger {
     format?: string;
     items?: BaseSchema;
     collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     default?: string | boolean | number | unknown;
     maximum?: number;
     exclusiveMaximum?: boolean;
@@ -346,6 +348,11 @@ export namespace Swagger {
     bearerFormat?: string;
   }
 
+  export interface OpenIDSecurity extends BaseSecurity {
+    type: 'openIdConnect';
+    openIdConnectUrl: string;
+  }
+
   export interface OAuth2Security3 extends BaseSecurity {
     type: 'oauth2';
     flows: OAuthFlow;
@@ -396,6 +403,7 @@ export namespace Swagger {
     | BasicSecurity
     | BasicSecurity3
     | BearerSecurity3
+    | OpenIDSecurity
     | OAuth2AccessCodeSecurity
     | OAuth2ApplicationSecurity
     | OAuth2ImplicitSecurity

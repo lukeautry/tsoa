@@ -76,6 +76,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     const canImportByAlias = true;
 
     const normalisedBasePath = normalisePath(this.options.basePath as string, '/');
+
     return {
       authenticationModule,
       basePath: normalisedBasePath,

@@ -66,6 +66,7 @@ module.exports = {
         lib: 'always',
       },
     ],
+    '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     eqeqeq: ['error', 'smart'],
     'no-shadow': [
       'off',

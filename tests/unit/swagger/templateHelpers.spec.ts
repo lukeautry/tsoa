@@ -1003,99 +1003,7 @@ describe('ValidationService', () => {
         expect(validatedData2).to.deep.equal(expectedValues2);
       });
 
-      it('should handle cases with unions', () => {
-        const refName = 'ExampleModel';
-        const subSchemas = [{ ref: 'TypeAliasModel1' }, { ref: 'TypeAliasUnion' }];
-        const models: TsoaRoute.Models = {
-          [refName]: {
-            dataType: 'refObject',
-            properties: {
-              and: {
-                dataType: 'intersection',
-                subSchemas,
-                required: true,
-              },
-            },
-          },
-          TypeAliasModel1: {
-            dataType: 'refObject',
-            properties: {
-              value1: { dataType: 'string', required: true },
-            },
-            additionalProperties: false,
-          },
-          TypeAliasUnion: {
-            dataType: 'refAlias',
-            type: {
-              dataType: 'union',
-              subSchemas: [{ ref: 'UnionModel1' }, { ref: 'UnionModel2' }, { ref: 'UnionModel3' }],
-            },
-          },
-          UnionModel1: {
-            dataType: 'refObject',
-            properties: {
-              value2: { dataType: 'string', required: true },
-            },
-            additionalProperties: false,
-          },
-          UnionModel2: {
-            dataType: 'refObject',
-            properties: {
-              dateTimeValue: { dataType: 'datetime', required: true },
-            },
-            additionalProperties: false,
-          },
-          UnionModel3: {
-            dataType: 'refObject',
-            properties: {
-              dateValue: { dataType: 'date', required: true },
-            },
-            additionalProperties: false,
-          },
-        };
-        const v = new ValidationService(models);
-        const errorDictionary: FieldErrors = {};
-        const dataToValidate: TypeAliasModel1 & (TypeAliasModel2 | TypeAliasDateTime | TypeAliasDate) = {
-          value1: 'this is value 1',
-          dateValue: '2017-01-01' as unknown as Date,
-        };
-
-        // Act
-        const name = 'dataToValidate';
-        const validatedData = v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
-
-        // Assert
-        const expectedValues = { ...dataToValidate, dateValue: new Date('2017-01-01') };
-        expect(errorDictionary).to.deep.equal({});
-        expect(validatedData).to.deep.equal(expectedValues);
-
-        const errorDictionary2: FieldErrors = {};
-        const dataToValidate2: TypeAliasModel1 & (TypeAliasModel2 | TypeAliasDateTime | TypeAliasDate) = {
-          value1: 'this is value 1',
-          dateTimeValue: '2017-01-01T00:00:00' as unknown as Date,
-        };
-
-        // Act
-        const validatedData2 = v.validateIntersection('and', dataToValidate2, errorDictionary2, minimalSwaggerConfig, subSchemas, name + '.');
-
-        // Assert
-        const expectedValues2 = { ...dataToValidate2, dateTimeValue: new Date('2017-01-01T00:00:00') };
-        expect(errorDictionary2).to.deep.equal({});
-        expect(validatedData2).to.deep.equal(expectedValues2);
-
-        const errorDictionary3: FieldErrors = {};
-        const dataToValidate3: TypeAliasModel1 & (TypeAliasModel2 | TypeAliasDateTime | TypeAliasDate) = {
-          value1: 'this is value 1',
-          value2: 'this is value 2',
-        };
-
-        // Act
-        const validatedData3 = v.validateIntersection('and', dataToValidate3, errorDictionary3, minimalSwaggerConfig, subSchemas, name + '.');
-
-        // Assert
-        expect(errorDictionary3).to.deep.equal({});
-        expect(validatedData3).to.deep.equal(dataToValidate3);
-
+      it('should validate intersection of one union', () => {
         const withUnionsName = 'withUnions';
         const withUnionsSubSchemas = [{ ref: 'ServiceObject' }, { ref: 'BigUnion' }];
         const WithUnionModels: TsoaRoute.Models = {
@@ -1204,6 +1112,176 @@ describe('ValidationService', () => {
         // Assert
         expect(withUnionErrorDictionary3).to.deep.equal({});
         expect(validatedResult3).to.deep.equal(withUnionDataToValidate3);
+      });
+
+      it('should validate intersection of 3+ unions', () => {
+        const refName = 'ExampleModel';
+        const subSchemas = [{ ref: 'TypeAliasUnion1' }, { ref: 'TypeAliasUnion2' }, { ref: 'TypeAliasUnion3' }];
+        const models: TsoaRoute.Models = {
+          [refName]: {
+            dataType: 'refObject',
+            properties: {
+              and: {
+                dataType: 'intersection',
+                subSchemas,
+                required: true,
+              },
+            },
+          },
+          TypeAliasUnion1: {
+            dataType: 'refAlias',
+            type: {
+              dataType: 'union',
+              subSchemas: [{ ref: 'UnionModel1a' }, { ref: 'UnionModel1b' }],
+            },
+          },
+          TypeAliasUnion2: {
+            dataType: 'refAlias',
+            type: {
+              dataType: 'union',
+              subSchemas: [{ ref: 'UnionModel2a' }, { ref: 'UnionModel2b' }],
+            },
+          },
+          TypeAliasUnion3: {
+            dataType: 'refAlias',
+            type: {
+              dataType: 'union',
+              subSchemas: [{ ref: 'UnionModel3a' }, { ref: 'UnionModel3b' }],
+            },
+          },
+          UnionModel1a: {
+            dataType: 'refObject',
+            properties: {
+              value1a: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+          UnionModel1b: {
+            dataType: 'refObject',
+            properties: {
+              value1a: { dataType: 'boolean', required: true },
+              value1b: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+          UnionModel2a: {
+            dataType: 'refObject',
+            properties: {
+              value2a: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+          UnionModel2b: {
+            dataType: 'refObject',
+            properties: {
+              value2b: { dataType: 'string', required: true },
+            },
+            additionalProperties: false,
+          },
+          UnionModel3a: {
+            dataType: 'refObject',
+            properties: {
+              dateTimeValue: { dataType: 'datetime', required: true },
+            },
+            additionalProperties: false,
+          },
+          UnionModel3b: {
+            dataType: 'refObject',
+            properties: {
+              dateValue: { dataType: 'date', required: true },
+            },
+            additionalProperties: false,
+          },
+        };
+        const v = new ValidationService(models);
+
+        // Validate all schema combinations
+        const validInputs = [
+          {
+            input: { value1a: 'value 1a', value2a: 'value 2a', dateTimeValue: '2017-01-01T00:00:00' },
+            output: { value1a: 'value 1a', value2a: 'value 2a', dateTimeValue: new Date('2017-01-01T00:00:00') },
+          },
+          {
+            input: { value1a: 'value 1a', value2a: 'value 2a', dateValue: '2017-01-01' },
+            output: { value1a: 'value 1a', value2a: 'value 2a', dateValue: new Date('2017-01-01') },
+          },
+          {
+            input: { value1a: 'value 1a', value2b: 'value 2b', dateTimeValue: '2017-01-01T00:00:00' },
+            output: { value1a: 'value 1a', value2b: 'value 2b', dateTimeValue: new Date('2017-01-01T00:00:00') },
+          },
+          {
+            input: { value1a: 'value 1a', value2b: 'value 2b', dateValue: '2017-01-01' },
+            output: { value1a: 'value 1a', value2b: 'value 2b', dateValue: new Date('2017-01-01') },
+          },
+          {
+            input: { value1a: false, value1b: 'value 1b', value2a: 'value 2a', dateTimeValue: '2017-01-01T00:00:00' },
+            output: { value1a: false, value1b: 'value 1b', value2a: 'value 2a', dateTimeValue: new Date('2017-01-01T00:00:00') },
+          },
+          {
+            input: { value1a: false, value1b: 'value 1b', value2a: 'value 2a', dateValue: '2017-01-01' },
+            output: { value1a: false, value1b: 'value 1b', value2a: 'value 2a', dateValue: new Date('2017-01-01') },
+          },
+          {
+            input: { value1a: false, value1b: 'value 1b', value2b: 'value 2b', dateTimeValue: '2017-01-01T00:00:00' },
+            output: { value1a: false, value1b: 'value 1b', value2b: 'value 2b', dateTimeValue: new Date('2017-01-01T00:00:00') },
+          },
+          {
+            input: { value1a: false, value1b: 'value 1b', value2b: 'value 2b', dateValue: '2017-01-01' },
+            output: { value1a: false, value1b: 'value 1b', value2b: 'value 2b', dateValue: new Date('2017-01-01') },
+          },
+        ];
+
+        for (let i = 0; i < validInputs.length; i++) {
+          const { input, output } = validInputs[i];
+
+          // Act
+          const errorDictionary: FieldErrors = {};
+          const validatedData = v.validateIntersection('and', input, errorDictionary, minimalSwaggerConfig, subSchemas, refName + '.');
+
+          // Assert
+          expect(errorDictionary, `validInputs[${i}] returned errors`).to.deep.equal({});
+          expect(validatedData, `validInputs[${i}] did not match output`).to.deep.equal(output);
+        }
+
+        // Invalid inputs
+        const invalidDataTypes: any[] = [];
+        const excessProperties: any[] = [];
+        const missingRequiredProperties: any[] = [];
+
+        for (const validInput of validInputs) {
+          // Invalid datatype per key
+          for (const key in validInput.input) {
+            invalidDataTypes.push({ ...validInput.input, [key]: 123 });
+          }
+
+          // Excess properties
+          excessProperties.push({ ...validInput.input, excessProperty: 'excess' });
+
+          // Missing required properties
+          for (const key in validInput.input) {
+            const invalidInput = { ...validInput.input };
+            delete invalidInput[key];
+            missingRequiredProperties.push(invalidInput);
+          }
+        }
+
+        function testInvalidInputs(name: string, inputs: any[]) {
+          for (let i = 0; i < inputs.length; i++) {
+            const invalidInput = inputs[i];
+
+            // Act
+            const errorDictionary: FieldErrors = {};
+            const validatedData = v.validateIntersection('and', invalidInput, errorDictionary, minimalSwaggerConfig, subSchemas, refName + '.');
+
+            // Assert
+            expect(errorDictionary, `${name}[${i}] did not return errors`).to.not.deep.equal({});
+            expect(validatedData, `${name}[${i}] returned data`).to.equal(undefined);
+          }
+        }
+
+        testInvalidInputs('invalidDataTypes', invalidDataTypes);
+        testInvalidInputs('excessProperties', excessProperties);
+        testInvalidInputs('missingRequiredProperties', missingRequiredProperties);
       });
     });
   });

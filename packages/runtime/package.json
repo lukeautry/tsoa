@@ -1,7 +1,7 @@
 {
   "name": "@tsoa/runtime",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "6.0.0-rc.2",
+  "version": "6.0.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "files": [
@@ -28,14 +28,14 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "@types/multer": "^1.4.7",
-    "reflect-metadata": "^0.1.13",
-    "validator": "^13.9.0"
+    "@types/multer": "^1.4.11",
+    "reflect-metadata": "^0.2.1",
+    "validator": "^13.11.0"
   },
   "devDependencies": {
-    "@types/node": "^16.18.23",
-    "@types/validator": "^13.7.14",
-    "typescript": "^5.1.6"
+    "@types/node": "^18.0.0",
+    "@types/validator": "^13.11.7",
+    "typescript": "^5.3.3"
   },
   "repository": {
     "type": "git",
@@ -43,7 +43,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "engineStrict": true,
   "publishConfig": {
