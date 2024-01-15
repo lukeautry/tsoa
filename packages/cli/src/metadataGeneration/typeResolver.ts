@@ -239,10 +239,14 @@ export class TypeResolver {
             properties,
           };
           const indexInfos = this.current.typeChecker.getIndexInfosOfType(type);
-          const indexTypes = indexInfos.map(indexInfo => {
+          const indexTypes = indexInfos.flatMap(indexInfo => {
             const typeNode = this.current.typeChecker.typeToTypeNode(indexInfo.type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
+            if (typeNode.kind === ts.SyntaxKind.NeverKeyword) {
+              // { [k: string]: never; }
+              return [];
+            }
             const type = new TypeResolver(typeNode, this.current, mappedTypeNode, this.context, indexInfo.type).resolve();
-            return type;
+            return [type];
           });
           if (indexTypes.length) {
             if (indexTypes.length === 1) {

@@ -659,6 +659,18 @@ describe('Definition generation', () => {
               type: 'object',
             });
           },
+          emptyRecord: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/Record_string.never_');
+            const schema = getValidatedDefinition('Record_string.never_', currentSpec);
+            expect(schema).to.be.deep.eq({
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              example: undefined,
+              format: undefined,
+              properties: {},
+              type: 'object',
+            });
+          },
           modelsObjectIndirect: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/TestSubModelContainer', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);

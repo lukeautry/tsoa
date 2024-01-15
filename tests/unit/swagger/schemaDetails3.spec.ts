@@ -267,7 +267,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     it('should allow openId scheme', () => {
       const openId: Swagger.OpenIDSecurity = {
         type: 'openIdConnect',
-        openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
+        openIdConnectUrl: 'https://example.com/.well-known/openid-configuration',
       };
       const optionsWithOpenId = Object.assign({}, defaultOptions, {
         securityDefinitions: {
@@ -282,7 +282,6 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         openId,
       });
     });
-
   });
 
   describe('example comment', () => {
@@ -1704,6 +1703,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 required: ['data'],
                 type: 'object',
               },
+              default: undefined,
+              description: 'Construct a type with a set of properties K of type T',
+              example: undefined,
+              format: undefined,
+              properties: {},
+              type: 'object',
+            });
+          },
+          emptyRecord: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/Record_string.never_');
+            const schema = getComponentSchema('Record_string.never_', currentSpec);
+            expect(schema).to.be.deep.eq({
               default: undefined,
               description: 'Construct a type with a set of properties K of type T',
               example: undefined,
