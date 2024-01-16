@@ -18,6 +18,8 @@ export class ParameterGenerator {
     switch (decoratorName) {
       case 'Request':
         return [this.getRequestParameter(this.parameter)];
+      case 'RequestProp':
+        return [this.getRequestPropParameter(this.parameter)];
       case 'Body':
         return [this.getBodyParameter(this.parameter)];
       case 'BodyProp':
@@ -54,6 +56,26 @@ export class ParameterGenerator {
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type: { dataType: 'object' },
+      validators: getParameterValidators(this.parameter, parameterName),
+      deprecated: this.getParameterDeprecation(parameter),
+    };
+  }
+
+  private getRequestPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+    const parameterName = (parameter.name as ts.Identifier).text;
+    const type = this.getValidatedType(parameter);
+
+    const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
+    return {
+      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: this.getParameterDescription(parameter),
+      example,
+      exampleLabels,
+      in: 'request-prop',
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'ParameterProp') || parameterName,
+      parameterName,
+      required: !parameter.questionToken && !parameter.initializer,
+      type,
       validators: getParameterValidators(this.parameter, parameterName),
       deprecated: this.getParameterDeprecation(parameter),
     };
@@ -425,7 +447,7 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'requestprop', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
   }
 
   private supportPathDataType(parameterType: Tsoa.Type): boolean {

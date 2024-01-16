@@ -76,6 +76,8 @@ export class HapiTemplateService implements TemplateService<any, HReponse> {
         switch (args[key].in) {
         case 'request':
             return request;
+        case 'request-prop':
+            return this.validationService.ValidateParam(args[key], (request as any)[name], name, errorFields, undefined, this.minimalSwaggerConfig);
         case 'query':
             return this.validationService.ValidateParam(args[key], request.query[name], name, errorFields, undefined, this.minimalSwaggerConfig)
         case 'queries':

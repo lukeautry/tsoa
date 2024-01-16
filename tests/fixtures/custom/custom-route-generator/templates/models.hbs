@@ -35,6 +35,8 @@ export function getValidatedArgs(args: any, event: any): any[] {
         switch (args[key].in) {
             case 'request':
                 return event;
+            case 'request-prop':
+                return validationService.ValidateParam(args[key], event[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
             case 'query':
                 return validationService.ValidateParam(args[key], event.queryStringParameters[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
             case 'path':
