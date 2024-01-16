@@ -67,6 +67,14 @@ export class PostTestController {
     return files;
   }
 
+  @Post('ManyFilesInDifferentFields')
+  public async postWithDifferentFields(
+    @UploadedFile('file_a') fileA: File,
+    @UploadedFile('file_b') fileB: File,
+  ): Promise<File[]> {
+    return [fileA, fileB];
+  }
+
   /**
    *
    * @param aFile File description of multipart

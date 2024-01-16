@@ -1387,6 +1387,25 @@ describe('Koa Server', () => {
       });
     });
 
+    it('can post multiple files with different field', () => {
+      const formData = {
+        file_a: '@../package.json',
+        file_b: '@../tsconfig.json',
+      };
+      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
+        for (const file of res.body as File[]) {
+          const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+          const returnedBuffer = Buffer.from(file.buffer);
+          expect(file).to.not.be.undefined;
+          expect(file.fieldname).to.be.not.undefined;
+          expect(file.originalname).to.be.not.undefined;
+          expect(file.encoding).to.be.not.undefined;
+          expect(file.mimetype).to.equal('application/json');
+          expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
+      });
+    });
+
     function verifyFileUploadRequest(
       path: string,
       formData: any,
