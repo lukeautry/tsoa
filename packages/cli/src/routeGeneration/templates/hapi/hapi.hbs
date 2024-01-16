@@ -66,9 +66,11 @@ export function RegisterRoutes(server: any) {
                     },
                     {{/if}}
                     {{#if uploadFile}}
+                      {{#each uploadFileName}}
                     {
-                      method: fileUploadMiddleware('{{uploadFileName}}', false)
+                      method: fileUploadMiddleware('{{name}}', false)
                     },
+                      {{/each}}
                     {{/if}}
                     {{#if uploadFiles}}
                     {

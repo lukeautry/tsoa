@@ -75,8 +75,11 @@ export class ExpressTemplateService implements TemplateService<ExRequest, ExResp
             case 'body-prop':
                 return this.validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
             case 'formData':
-                if (args[key].dataType === 'file') {
-                    return this.validationService.ValidateParam(args[key], request.file, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+              const files = Object.keys(args).filter((argKey) => args[argKey].dataType === 'file');
+                if (files.length > 0) {
+                  const requestFiles = request.files as {[fileName: string]: Express.Multer.File[]};
+                  const fileArgs = this.validationService.ValidateParam(args[key], requestFiles[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+                  return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
                 } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
                     return this.validationService.ValidateParam(args[key], request.files, name, fieldErrors, undefined, this.minimalSwaggerConfig);
                 } else {

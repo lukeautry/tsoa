@@ -77,12 +77,15 @@ export class KoaTemplateService implements TemplateService<any, Context> {
         case 'body-prop':
             return this.validationService.ValidateParam(args[key], (context.request as any).body[name], name, errorFields, 'body.', this.minimalSwaggerConfig);
         case 'formData':
-            if (args[key].dataType === 'file') {
-              return this.validationService.ValidateParam(args[key], (context.request as any).file, name, errorFields, undefined, this.minimalSwaggerConfig);
+          const files = Object.keys(args).filter((argKey) => args[argKey].dataType === 'file');
+          const contextRequest = context.request as any;
+            if (files.length > 0) {
+              const fileArgs = this.validationService.ValidateParam(args[key], contextRequest.files[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+              return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
             } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
-              return this.validationService.ValidateParam(args[key], (context.request as any).files, name, errorFields, undefined, this.minimalSwaggerConfig);
+              return this.validationService.ValidateParam(args[key], contextRequest.files, name, errorFields, undefined, this.minimalSwaggerConfig);
             } else {
-              return this.validationService.ValidateParam(args[key], (context.request as any).body[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+              return this.validationService.ValidateParam(args[key], contextRequest.body[name], name, errorFields, undefined, this.minimalSwaggerConfig);
             }
         case 'res':
             return this.responder(context, next);
