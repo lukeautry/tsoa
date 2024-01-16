@@ -2100,9 +2100,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               {
                 properties: {
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+                  nullableProp: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, nullable: true },
                   stringPropDec2: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2, example: undefined },
                 },
-                required: ['stringPropDec2', 'id'],
+                required: ['stringPropDec2', 'nullableProp', 'id'],
                 type: 'object',
                 description: 'From T, pick a set of properties whose keys are in the union K',
                 default: undefined,

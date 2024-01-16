@@ -1055,6 +1055,8 @@ export class PrivateModel {
    */
   public stringPropDec3!: string;
 
+  public nullableProp!: string | null;
+
   private hidden!: string;
 
   constructor(
