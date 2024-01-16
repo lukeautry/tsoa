@@ -1006,7 +1006,7 @@ describe('Definition generation', () => {
               {
                 properties: {
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
-                  nullableProp: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, nullable: true },
+                  nullableProp: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, 'x-nullable': true },
                   stringPropDec2: { type: 'string', default: undefined, description: undefined, format: undefined, minLength: 2, example: undefined },
                 },
                 required: ['stringPropDec2', 'nullableProp', 'id'],
