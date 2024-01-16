@@ -1178,6 +1178,26 @@ describe('Koa Server', () => {
       });
     });
 
+    it('parse request filed parameters', () => {
+      const data: ParameterTestModel = {
+        age: 26,
+        firstname: 'Nick',
+        lastname: 'Yang',
+        gender: Gender.MALE,
+        human: true,
+        weight: 50,
+      };
+      return verifyPostRequest(`${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.age).to.equal(26);
+        expect(model.firstname).to.equal('Nick');
+        expect(model.lastname).to.equal('Yang');
+        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.weight).to.equal(50);
+        expect(model.human).to.equal(true);
+      })
+    });
+
     it('parses body parameters', () => {
       const data: ParameterTestModel = {
         age: 45,

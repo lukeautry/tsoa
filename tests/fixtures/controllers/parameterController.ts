@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -223,6 +223,16 @@ export class ParameterController {
       lastname: request.query.lastname,
       weight: Number(request.query.weight),
     });
+  }
+
+  @Post('RequestProps')
+  public async getRequestProp(@RequestProp('body') body: ParameterTestModel): Promise<ParameterTestModel> {
+    return Promise.resolve<ParameterTestModel>(body);
+  }
+
+  @Post('HapiRequestProps')
+  public async getHapiRequestProp(@RequestProp('payload') payload: ParameterTestModel): Promise<ParameterTestModel> {
+    return Promise.resolve<ParameterTestModel>(payload);
   }
 
   /**
