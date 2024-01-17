@@ -1,0 +1,13 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "all": true,
+  "include": [
+    "packages/**/*.ts"
+  ],
+  "exclude": [
+    "tests/**/*.ts",
+    "packages/**/dist",
+    "packages/**/node_modules"
+  ],
+  "cwd": "../"
+}

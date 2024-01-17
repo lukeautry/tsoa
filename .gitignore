@@ -1,10 +1,12 @@
 dist
 distForNoAdditional
 node_modules
-routes.ts
-customRoutes.ts
 **/custom-route-generator/routes/*
 .idea/
+.nyc_output/
+
+routes.ts
+customRoutes.ts
 *.swp
 yarn-error.log
 tsconfig.tsbuildinfo
