@@ -1,7 +1,9 @@
-import { Controller, FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError, ValidationService } from "@tsoa/runtime";
-import { TemplateService } from '../templateService';
+import { Request as ExRequest, Response as ExResponse } from 'express';
+import { FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError, ValidationService } from "@tsoa/runtime";
 
-export class ExpressTemplateService implements TemplateService {
+import { TemplateService, isController } from '../templateService';
+
+export class ExpressTemplateService implements TemplateService<ExRequest, ExResponse> {
   private readonly validationService: ValidationService;
 
   constructor(
@@ -11,16 +13,12 @@ export class ExpressTemplateService implements TemplateService {
     this.validationService = new ValidationService(models);
   }
 
-  isController(object: any): object is Controller {
-    return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
-  }
-
-  promiseHandler(controllerObj: any, promise: any, response: any, successStatus: any, next: any) {
+  promiseHandler(controllerObj: any, promise: any, response: ExResponse, successStatus: any, next: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;
         let headers;
-        if (this.isController(controllerObj)) {
+        if (isController(controllerObj)) {
           headers = controllerObj.getHeaders();
           statusCode = controllerObj.getStatus() || statusCode;
         }
@@ -55,7 +53,7 @@ export class ExpressTemplateService implements TemplateService {
     };
   }
 
-  getValidatedArgs(args: any, request: any, response: any): any[] {
+  getValidatedArgs(args: any, request: ExRequest, response: ExResponse): any[] {
     const fieldErrors: FieldErrors  = {};
     const values = Object.keys(args).map((key) => {
         const name = args[key].name;

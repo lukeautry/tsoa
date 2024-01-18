@@ -15,7 +15,7 @@ import { expressAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-import type { RequestHandler, Router } from 'express';
+import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
 {{#if useFileUploads}}
 {{#if esm}}
 import multer from 'multer';
@@ -75,7 +75,7 @@ export function RegisterRoutes(app: Router) {
             ...(fetchMiddlewares<RequestHandler>({{../name}})),
             ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
 
-            {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, response: any, next: any) {
+            {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},

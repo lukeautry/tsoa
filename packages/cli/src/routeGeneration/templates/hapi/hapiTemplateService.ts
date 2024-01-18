@@ -1,9 +1,10 @@
+import { ResponseToolkit as HReponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import { Controller, TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidationService, ValidateError } from "@tsoa/runtime";
+import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidationService, ValidateError } from "@tsoa/runtime";
 
-import { TemplateService } from "../templateService";
+import { isController, TemplateService } from "../templateService";
 
-export class HapiTemplateService implements TemplateService {
+export class HapiTemplateService implements TemplateService<any, HReponse> {
   private readonly validationService: ValidationService;
 
   constructor(
@@ -13,17 +14,13 @@ export class HapiTemplateService implements TemplateService {
     this.validationService = new ValidationService(models);
   }
 
-  isController(object: any): object is Controller {
-    return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
-  }
-
   promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {
     return Promise.resolve(promise)
       .then((data: any) => {
           let statusCode = successStatus;
           let header;
 
-          if (this.isController(controllerObj)) {
+          if (isController(controllerObj)) {
               header = controllerObj.getHeaders();
               statusCode = controllerObj.getStatus() || statusCode;
           }
@@ -44,9 +41,9 @@ export class HapiTemplateService implements TemplateService {
       });
   }
 
-  returnHandler(h: any, headers: any = {}, statusCode?: number | undefined, data?: any) {
-    if (h.__isTsoaResponded) {
-      return h.__isTsoaResponded;
+  returnHandler(h: HReponse, headers: any = {}, statusCode?: number | undefined, data?: any) {
+    if ((h as any).__isTsoaResponded) {
+      return (h as any).__isTsoaResponded;
     }
 
     const response = data !== null && data !== undefined
@@ -61,18 +58,18 @@ export class HapiTemplateService implements TemplateService {
       response.code(statusCode);
     }
 
-    h.__isTsoaResponded = response;
+    (h as any).__isTsoaResponded = response;
 
     return response;
   }
 
-  responder(h: any): TsoaResponse<HttpStatusCodeLiteral, unknown> {
+  responder(h: HReponse): TsoaResponse<HttpStatusCodeLiteral, unknown> {
     return (status, data, headers) => {
       this.returnHandler(h, headers, status, data);
    };
   }
 
-  getValidatedArgs(args: any, request: any, h: any): any[] {
+  getValidatedArgs(args: any, request: any, h: HReponse): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
         const name = args[key].name;

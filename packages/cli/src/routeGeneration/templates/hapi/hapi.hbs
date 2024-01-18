@@ -16,7 +16,7 @@ import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import type { Request, RouteOptionsPreAllOptions } from '@hapi/hapi';
+import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -93,7 +93,7 @@ export function RegisterRoutes(server: any) {
                   allow: 'multipart/form-data'
                 },
                 {{/if}}
-                handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: any, h: any) {
+                handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
                     const args = {
                         {{#each parameters}}
                             {{@key}}: {{{json this}}},

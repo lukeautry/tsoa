@@ -15,7 +15,7 @@ import { koaAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-import type { Middleware } from 'koa';
+import type { Context, Next, Middleware } from 'koa';
 import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
 {{#if esm}}
@@ -76,7 +76,7 @@ export function RegisterRoutes(router: KoaRouter) {
             ...(fetchMiddlewares<Middleware>({{../name}})),
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
 
-            async function {{../name}}_{{name}}(context: any, next: any) {
+            async function {{../name}}_{{name}}(context: Context, next: Next) {
             const args = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -85,7 +85,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             let validatedArgs: any[] = [];
             try {
-              validatedArgs = templateService.getValidatedArgs(args, context, next);
+              validatedArgs = templateService.getValidatedArgs(args, undefined, context, next);
             } catch (err) {
               const error = err as any;
               error.message ||= JSON.stringify({ fields: error.fields });
