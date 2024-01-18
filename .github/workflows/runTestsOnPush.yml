@@ -51,3 +51,9 @@ jobs:
 
       - name: Test
         run: yarn run test:coverage
+
+      - name: Coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          move_coverage_to_trash: true
