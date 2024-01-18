@@ -4,6 +4,7 @@ node_modules
 **/custom-route-generator/routes/*
 .idea/
 .nyc_output/
+coverage/
 
 routes.ts
 customRoutes.ts
