@@ -1,5 +1,11 @@
 import { Request as ExRequest } from 'express';
-import { Body, Controller, Get, Produces, Path, Post, Response, Res, Request, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Path, Request } from '@tsoa/runtime/decorators/parameter';
+import { Get, Post } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
+import { Produces, Response, Res, SuccessResponse } from '@tsoa/runtime/decorators/response';
+
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 interface UserResponseV2Model {

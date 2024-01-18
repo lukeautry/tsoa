@@ -1,4 +1,7 @@
-import { Controller, Get, Route } from '@tsoa/runtime';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+
 import type { TestModel } from '../testModel.js';
 
 @Route()

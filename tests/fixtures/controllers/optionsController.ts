@@ -1,4 +1,6 @@
-import { Controller, Options, Route } from '@tsoa/runtime';
+import { Options } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
 
 @Route('OptionsTest')
 export class OptionsTestController extends Controller {

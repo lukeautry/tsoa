@@ -1,4 +1,7 @@
-import { Route, Controller, Post, Body } from '@tsoa/runtime';
+import { Body } from '@tsoa/runtime/decorators/parameter';
+import { Post } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
 
 @Route('ExampleTest')
 export class InvalidExampleController extends Controller {

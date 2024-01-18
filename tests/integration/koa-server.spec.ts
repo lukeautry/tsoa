@@ -6,7 +6,7 @@ import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestCl
 import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { File } from '@tsoa/runtime';
+import { File } from '@tsoa/runtime/interfaces/file';
 
 const basePath = '/v1';
 
@@ -1195,7 +1195,7 @@ describe('Koa Server', () => {
         expect(model.gender).to.equal(Gender.MALE);
         expect(model.weight).to.equal(50);
         expect(model.human).to.equal(true);
-      })
+      });
     });
 
     it('parses body parameters', () => {

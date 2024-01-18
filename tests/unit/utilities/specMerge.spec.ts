@@ -3,7 +3,8 @@ import { expect } from 'chai';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
-import { Swagger } from '@tsoa/runtime';
+import { Swagger } from '@tsoa/runtime/swagger/swagger';
+
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 
 describe('specMergins', () => {

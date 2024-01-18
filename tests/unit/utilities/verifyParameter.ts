@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Swagger } from '@tsoa/runtime';
+import { Swagger } from '@tsoa/runtime/swagger/swagger';
 
 export function VerifyPathableParameter(params: Swagger.Parameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);

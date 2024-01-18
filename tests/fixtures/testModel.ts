@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 /* This is what we want to test here*/
 
-import { Deprecated, Example, Extension } from '@tsoa/runtime';
+import { Deprecated } from '@tsoa/runtime/decorators/deprecated';
+import { Example } from '@tsoa/runtime/decorators/example';
+import { Extension } from '@tsoa/runtime/decorators/extension';
 
 /**
  * This is a description of a model

@@ -1,4 +1,6 @@
-import { Get, Route } from '@tsoa/runtime';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+
 import { TruncationTestModel } from '../testModel';
 
 @Route('inference')

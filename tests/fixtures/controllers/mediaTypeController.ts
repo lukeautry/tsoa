@@ -1,4 +1,10 @@
-import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Consumes, Path } from '@tsoa/runtime/decorators/parameter';
+import { Get, Post } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
+import { Produces, Response, Res, SuccessResponse } from '@tsoa/runtime/decorators/response';
+
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 type UserRequestModel = Pick<UserResponseModel, 'name'>;

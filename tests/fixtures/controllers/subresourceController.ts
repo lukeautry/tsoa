@@ -1,4 +1,6 @@
-import { Get, Path, Route } from '@tsoa/runtime';
+import { Path } from '@tsoa/runtime/decorators/parameter';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
 
 @Route('SubResourceTest/{mainResourceId}/SubResource')
 export class SubResourceTestController {
