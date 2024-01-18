@@ -2,9 +2,11 @@
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import { ExtendedRoutesConfig } from '@tsoa/cli/src/cli';
-import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { fsReadFile, fsWriteFile, fsExists, fsMkDir } from '@tsoa/cli/src/utils/fs';
+import { fsReadFile, fsWriteFile, fsMkDir } from '@tsoa/cli/src/utils/fs';
 import { AbstractRouteGenerator } from '@tsoa/cli/src/routeGeneration/routeGenerator';
+import { Tsoa } from '@tsoa/runtime/metadataGeneration/tsoa';
+import { TsoaRoute } from '@tsoa/runtime/routeGeneration/tsoa-route';
+import { assertNever } from '@tsoa/runtime/utils/assertNever';
 import path = require('path');
 
 export interface ServerlessRoutesConfig extends ExtendedRoutesConfig {
@@ -71,7 +73,7 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
 
   /**
    * Generate the CDK infrastructure stack that ties API Gateway to generated Handlers
-   * @returns 
+   * @returns
    */
   async generateStack(): Promise<void> {
     // This would need to generate a CDK "Stack" that takes the tsoa metadata as input and generates a valid serverless CDK infrastructure stack from template

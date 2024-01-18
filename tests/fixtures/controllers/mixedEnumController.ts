@@ -1,4 +1,8 @@
-import { Body, Controller, Post, Route } from '@tsoa/runtime';
+import { Body } from '@tsoa/runtime/decorators/parameter';
+import { Post } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+
 
 export enum MixedStringAndNumberEnum {
   one = 1,

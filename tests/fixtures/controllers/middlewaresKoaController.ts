@@ -1,4 +1,6 @@
-import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Middlewares as GenericMiddlewares } from '@tsoa/runtime';
 
 import type { Context as KoaContext, Next as KoaNext, Middleware } from 'koa';
 

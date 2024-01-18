@@ -1,4 +1,9 @@
-import { Get, Request, Response, Route, Security, NoSecurity } from '@tsoa/runtime';
+import { Request } from '@tsoa/runtime/decorators/parameter';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Security, NoSecurity } from '@tsoa/runtime/decorators/security';
+import { Response } from '@tsoa/runtime/decorators/response';
+
 import { ErrorResponseModel, UserResponseModel } from '../testModel';
 
 interface RequestWithUser {
