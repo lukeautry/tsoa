@@ -49,7 +49,7 @@ export class HapiTemplateService implements TemplateService {
       return h.__isTsoaResponded;
     }
 
-    let response = data !== null && data !== undefined
+    const response = data !== null && data !== undefined
       ? h.response(data).code(200)
       : h.response("").code(204);
 
