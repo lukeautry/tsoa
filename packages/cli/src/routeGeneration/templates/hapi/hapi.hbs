@@ -1,7 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
+import { TsoaRoute, fetchMiddlewares } from '@tsoa/runtime';
+import { HapiTemplateService } from '@tsoa/cli';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -43,7 +44,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
 };
-const validationService = new ValidationService(models);
+const templateService = new HapiTemplateService(models, {{{ json minimalSwaggerConfig }}});
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -101,7 +102,7 @@ export function RegisterRoutes(server: any) {
 
                     let validatedArgs: any[] = [];
                     try {
-                        validatedArgs = getValidatedArgs(args, request, h);
+                        validatedArgs = templateService.getValidatedArgs(args, request, h);
                     } catch (err) {
                         const error = err as any;
                         if (isBoom(error)) {
@@ -130,7 +131,7 @@ export function RegisterRoutes(server: any) {
                     {{/if}}
 
                     const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-                    return promiseHandler(controller, promise, request, {{successStatus}}, h);
+                    return templateService.promiseHandler(controller, promise, request, {{successStatus}}, h);
                 }
             }
         });
@@ -210,12 +211,6 @@ export function RegisterRoutes(server: any) {
     }
     {{/if}}
 
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function isController(object: any): object is Controller {
-        return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
-    }
-
     {{#if useFileUploads}}
     function fileUploadMiddleware(fieldname: string, multiple: boolean = false) {
       return (request: Request, h: any) => {
@@ -262,100 +257,6 @@ export function RegisterRoutes(server: any) {
       };
     }
     {{/if}}
-
-    function promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {
-        return Promise.resolve(promise)
-            .then((data: any) => {
-                let statusCode = successStatus;
-                let headers;
-
-                // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-                if (isController(controllerObj)) {
-                    headers = controllerObj.getHeaders();
-                    statusCode = controllerObj.getStatus() || statusCode;
-                }
-                return returnHandler(h, statusCode, data, headers);;
-            })
-            .catch((error: any) => {
-                if (isBoom(error)) {
-                    throw error;
-                }
-
-                const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-                boomErr.output.statusCode = error.status || 500;
-                boomErr.output.payload = {
-                    name: error.name,
-                    message: error.message,
-                } as unknown as Payload;
-                throw boomErr;
-            });
-    }
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function returnHandler(h: any, statusCode?: number, data?: any, headers: any = {}) {
-        if (h.__isTsoaResponded) {
-            return h.__isTsoaResponded;
-        }
-
-        let response = data !== null && data !== undefined
-                    ? h.response(data).code(200)
-                    : h.response("").code(204);
-
-        Object.keys(headers).forEach((name: string) => {
-            response.header(name, headers[name]);
-        });
-
-        if (statusCode) {
-            response.code(statusCode);
-        }
-
-        h.__isTsoaResponded = response;
-
-        return response;
-    }
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function getValidatedArgs(args: any, request: any, h: any): any[] {
-        const errorFields: FieldErrors = {};
-        const values = Object.keys(args).map(key => {
-            const name = args[key].name;
-            switch (args[key].in) {
-            case 'request':
-                return request;
-            case 'query':
-                return validationService.ValidateParam(args[key], request.query[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
-            case 'queries':
-                return validationService.ValidateParam(args[key], request.query, name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
-            case 'path':
-                return validationService.ValidateParam(args[key], request.params[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}})
-            case 'header':
-                return validationService.ValidateParam(args[key], request.headers[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
-            case 'body':
-                return validationService.ValidateParam(args[key], request.payload, name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
-            case 'body-prop':
-                return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, 'body.', {{{json minimalSwaggerConfig}}});
-            case 'formData':
-                return validationService.ValidateParam(args[key], request.payload[name], name, errorFields, undefined, {{{json minimalSwaggerConfig}}});
-            case 'res':
-                return responder(h);
-            }
-        });
-        if (Object.keys(errorFields).length > 0) {
-            throw new ValidateError(errorFields, '');
-        }
-        return values;
-    }
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function responder(h: any): TsoaResponse<HttpStatusCodeLiteral, unknown>  {
-        return function(status, data, headers) {
-           returnHandler(h, status, data, headers);
-        };
-    };
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }

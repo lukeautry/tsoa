@@ -20,7 +20,7 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "exclude": ["src/routeGeneration/templates/**/*"],
+  "exclude": ["src/routeGeneration/templates/**/*.hbs"],
   "include": ["src/**/*.ts"],
   "references": [{ "path": "../runtime" }]
 }

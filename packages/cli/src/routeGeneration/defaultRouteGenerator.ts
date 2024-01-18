@@ -16,17 +16,17 @@ export class DefaultRouteGenerator extends AbstractRouteGenerator<ExtendedRoutes
 
     switch (options.middleware) {
       case 'express':
-        this.template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/express/express.hbs');
         break;
       case 'hapi':
-        this.template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.hbs');
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/hapi/hapi.hbs');
         this.pathTransformerFn = (path: string) => path;
         break;
       case 'koa':
-        this.template = path.join(__dirname, '..', 'routeGeneration/templates/koa.hbs');
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/koa/koa.hbs');
         break;
       default:
-        this.template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/express/express.hbs');
     }
 
     if (options.middlewareTemplate) {
