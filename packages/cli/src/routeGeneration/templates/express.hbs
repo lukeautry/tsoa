@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
+import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares, RegisterRoutesOptions } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -12,7 +12,7 @@ import { expressAuthentication } from '{{authenticationModule}}';
 {{/if}}
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
-import type { IocContainer, IocContainerFactory, RegisterRoutesOptions } from '@tsoa/runtime';
+import type { IocContainer, IocContainerFactory} from '@tsoa/runtime';
 {{/if}}
 import type { RequestHandler, Router } from 'express';
 {{#if useFileUploads}}
