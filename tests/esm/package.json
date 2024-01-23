@@ -7,7 +7,8 @@
   "sideEffects": false,
   "scripts": {
     "pretest": "node --loader=ts-node/esm prepare.ts",
-    "test": "cross-env NODE_ENV=tsoa_test mocha"
+    "test": "cross-env NODE_ENV=tsoa_test mocha",
+    "test:coverage": "nyc yarn test"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
