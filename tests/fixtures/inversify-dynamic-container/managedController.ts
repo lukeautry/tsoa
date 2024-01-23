@@ -1,8 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Security } from '@tsoa/runtime/decorators/security';
-
+import { Get, Route, Security } from '@tsoa/runtime';
 import { ManagedService } from './managedService';
 
 @injectable()

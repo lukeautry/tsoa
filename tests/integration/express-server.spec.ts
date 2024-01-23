@@ -3,7 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express/server';
-import { File } from '@tsoa/runtime/interfaces/file';
+import { File } from '@tsoa/runtime';
 import {
   Gender,
   GenericModel,

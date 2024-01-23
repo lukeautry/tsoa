@@ -4,7 +4,7 @@ import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerato
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { Swagger } from '@tsoa/runtime/swagger/swagger';
+import type { Swagger } from '@tsoa/runtime';
 
 describe('Security route generation with root security', () => {
   describe('with @Security() on controller', () => {

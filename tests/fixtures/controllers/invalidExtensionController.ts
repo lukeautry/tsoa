@@ -1,7 +1,4 @@
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Extension } from '@tsoa/runtime/decorators/extension';
-
+import { Get, Route, Extension } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

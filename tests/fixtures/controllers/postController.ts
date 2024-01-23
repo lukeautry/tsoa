@@ -1,9 +1,4 @@
-import { Deprecated } from '@tsoa/runtime/decorators/deprecated';
-import { Body, FormField, Query, UploadedFile, UploadedFiles } from '@tsoa/runtime/decorators/parameter';
-import { Patch, Post } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { File } from '@tsoa/runtime';
-
+import { Body, Deprecated, File, FormField, Patch, Post, Query, Route, UploadedFile, UploadedFiles } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 

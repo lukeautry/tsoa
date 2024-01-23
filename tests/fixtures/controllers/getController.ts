@@ -1,15 +1,6 @@
 ///<reference path="../tsoaTestModule.d.ts" />
 import { Readable } from 'stream';
-import { Example } from '@tsoa/runtime/decorators/example';
-import { Query, Request, Queries } from '@tsoa/runtime/decorators/parameter';
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Tags } from '@tsoa/runtime/decorators/tags';
-import { OperationId } from '@tsoa/runtime/decorators/operationid';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Controller } from '@tsoa/runtime/interfaces/controller';
-import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
-import { Response, SuccessResponse, Res } from '@tsoa/runtime/decorators/response';
-
+import { Controller, Example, Get, OperationId, Query, Request, Response, Route, SuccessResponse, Tags, Res, TsoaResponse, Queries } from '@tsoa/runtime';
 import '../duplicateTestModel';
 import {
   GenericModel,

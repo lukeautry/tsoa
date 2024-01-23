@@ -1,8 +1,4 @@
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
-import { Res } from '@tsoa/runtime/decorators/response';
-
+import { Get, Res, Route, TsoaResponse } from '@tsoa/runtime';
 
 @Route('/')
 export class InvalidHeaderTestController {

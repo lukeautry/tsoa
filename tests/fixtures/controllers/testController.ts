@@ -1,8 +1,4 @@
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Controller } from '@tsoa/runtime/interfaces/controller';
-import { SuccessResponse, Response } from '@tsoa/runtime/decorators/response';
-
+import { Controller, Get, Route, SuccessResponse, Response } from '@tsoa/runtime';
 import { ErrorResponseModel, TestModel } from '../testModel';
 import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';

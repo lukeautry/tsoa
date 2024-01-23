@@ -1,7 +1,4 @@
-import { Query } from '@tsoa/runtime/decorators/parameter';
-import { Head } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-
+import { Head, Query, Route } from '@tsoa/runtime';
 
 @Route('HeadTest')
 export class HeadTestController {

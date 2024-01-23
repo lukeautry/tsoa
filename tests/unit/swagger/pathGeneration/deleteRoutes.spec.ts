@@ -4,8 +4,7 @@ import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
-import { Swagger } from '@tsoa/runtime/swagger/swagger';
-
+import { Swagger } from '@tsoa/runtime';
 
 describe('DELETE route generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/deleteController.ts').Generate();

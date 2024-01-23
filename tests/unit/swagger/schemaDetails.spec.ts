@@ -5,9 +5,7 @@ import { expect } from 'chai';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { Swagger } from '@tsoa/runtime/swagger/swagger';
-import { Tsoa } from '@tsoa/runtime/metadataGeneration/tsoa';
-
+import { Swagger, Tsoa } from '@tsoa/runtime';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Schema details generation', () => {

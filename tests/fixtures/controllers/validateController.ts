@@ -1,7 +1,4 @@
-import { Body, Query } from '@tsoa/runtime/decorators/parameter';
-import { Get, Post } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-
+import { Body, Get, Post, Query, Route } from '@tsoa/runtime';
 import { ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from './../testModel';
 
 export interface ValidateDateResponse {

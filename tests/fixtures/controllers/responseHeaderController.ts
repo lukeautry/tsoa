@@ -1,9 +1,4 @@
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Controller } from '@tsoa/runtime/interfaces/controller';
-import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
-import { SuccessResponse, Response, Res } from '@tsoa/runtime/decorators/response';
-
+import { Controller, Get, Route, SuccessResponse, Response, TsoaResponse, Res } from '@tsoa/runtime';
 
 /**
  * response header's description
