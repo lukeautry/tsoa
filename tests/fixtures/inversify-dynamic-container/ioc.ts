@@ -2,7 +2,8 @@ import e = require('express');
 import { Container } from 'inversify';
 import { ManagedController } from './managedController';
 import { ManagedService } from './managedService';
-import { IocContainerFactory, IocContainer } from '@tsoa/runtime';
+import { IocContainerFactory, IocContainer } from '@tsoa/runtime/interfaces/iocModule';
+
 
 const iocContainer: IocContainerFactory = function (request: e.Request): IocContainer {
   const container = new Container();

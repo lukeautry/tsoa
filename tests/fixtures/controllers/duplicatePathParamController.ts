@@ -1,4 +1,7 @@
-import { Route, Get, Post, Path, Delete, Head } from '@tsoa/runtime';
+import { Path } from '@tsoa/runtime/decorators/parameter';
+import { Get, Post, Delete, Head } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+
 
 @Route('GetTest')
 export class DuplicatePathParamTestController {

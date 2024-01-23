@@ -6,7 +6,7 @@ import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestCl
 import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { File } from '@tsoa/runtime';
+import { File } from '@tsoa/runtime/interfaces/file';
 
 const basePath = '/v1';
 

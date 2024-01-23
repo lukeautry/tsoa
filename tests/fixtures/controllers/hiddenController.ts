@@ -1,4 +1,7 @@
-import { Controller, Get, Hidden, Post, Route } from '@tsoa/runtime';
+import { Get, Post } from '@tsoa/runtime/decorators/methods';
+import { Hidden, Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

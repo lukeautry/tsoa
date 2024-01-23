@@ -1,4 +1,10 @@
-import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse, Produces } from '@tsoa/runtime';
+import { Example } from '@tsoa/runtime/decorators/example';
+import { Path, Query, Header, Body, BodyProp } from '@tsoa/runtime/decorators/parameter';
+import { Get, Post } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
+import { Res, Produces } from '@tsoa/runtime/decorators/response';
+
 import { exampleResponse } from './consts';
 
 /**
