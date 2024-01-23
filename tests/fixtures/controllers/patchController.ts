@@ -1,7 +1,4 @@
-import { Body } from '@tsoa/runtime/decorators/parameter';
-import { Patch } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-
+import { Body, Patch, Route } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

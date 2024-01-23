@@ -1,8 +1,7 @@
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
-import { Swagger } from '@tsoa/runtime/swagger/swagger';
-
+import { Swagger } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import { versionMajorMinor } from 'typescript';

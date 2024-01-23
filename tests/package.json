@@ -21,14 +21,12 @@
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
     "pretest": "yarn clean && yarn prepare-test && yarn typecheck",
     "test": "cross-env NODE_ENV=tsoa_test mocha \"**/*.spec.ts\"",
-    "test:coverage": "nyc yarn test",
     "typecheck": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "devDependencies": {
     "@hapi/hapi": "^21.3.1",
-    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@koa/multer": "^3.0.2",
     "@koa/router": "^12.0.1",
     "@types/body-parser": "^1.19.5",
@@ -66,7 +64,6 @@
     "method-override": "^3.0.0",
     "mocha": "^10.2.0",
     "multer": "^1.4.5-lts.1",
-    "nyc": "^15.1.0",
     "prettier": "^3.1.1",
     "reflect-metadata": "^0.2.1",
     "rimraf": "^5.0.5",

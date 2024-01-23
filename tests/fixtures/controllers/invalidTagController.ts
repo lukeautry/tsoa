@@ -1,8 +1,4 @@
-import { Query } from '@tsoa/runtime/decorators/parameter';
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { Controller } from '@tsoa/runtime/interfaces/controller';
-
+import { Route, Get, Query, Controller } from '@tsoa/runtime';
 
 @Route('TagTest')
 export class InvalidTagController extends Controller {

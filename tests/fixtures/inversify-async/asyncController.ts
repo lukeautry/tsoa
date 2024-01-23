@@ -1,7 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-
+import { Get, Route } from '@tsoa/runtime';
 import { TestModel } from '../testModel';
 import { AsyncService } from './asyncService';
 

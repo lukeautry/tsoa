@@ -1,7 +1,4 @@
-import { Get } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { SuccessResponse } from '@tsoa/runtime/decorators/response';
-
+import { Get, Route, SuccessResponse } from '@tsoa/runtime';
 
 enum TEST_ENUM_CODES {
   ACCEPTED = 202,

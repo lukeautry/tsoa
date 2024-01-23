@@ -1,10 +1,4 @@
-import { Deprecated } from '@tsoa/runtime/decorators/deprecated';
-import { Body, BodyProp, Header, Path, Query, Request, Queries } from '@tsoa/runtime/decorators/parameter';
-import { Get, Post } from '@tsoa/runtime/decorators/methods';
-import { Route } from '@tsoa/runtime/decorators/route';
-import { TsoaResponse } from '@tsoa/runtime/interfaces/response';
-import { Res } from '@tsoa/runtime/decorators/response';
-
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')

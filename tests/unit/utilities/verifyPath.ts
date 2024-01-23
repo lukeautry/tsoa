@@ -1,6 +1,5 @@
 import { expect } from 'chai';
-import { Swagger } from '@tsoa/runtime/swagger/swagger';
-
+import { Swagger } from '@tsoa/runtime';
 
 export const defaultModelName = '#/definitions/TestModel';
 
