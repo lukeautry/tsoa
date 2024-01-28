@@ -60,6 +60,8 @@ export class ExpressTemplateService implements TemplateService<ExRequest, ExResp
         switch (args[key].in) {
             case 'request':
                 return request;
+            case 'request-prop':
+                return this.validationService.ValidateParam(args[key], (request as any)[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
             case 'query':
                 return this.validationService.ValidateParam(args[key], request.query[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
             case 'queries':

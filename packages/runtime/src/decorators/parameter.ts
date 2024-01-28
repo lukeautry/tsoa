@@ -29,6 +29,17 @@ export function Request(): Function {
 }
 
 /**
+ * Inject value from request
+ *
+ * @param {name} [name] The name of the request parameter
+ */
+export function RequestProp(name?: string): Function {
+  return () => {
+    return;
+  };
+}
+
+/**
  * Inject value from Path
  *
  * @param {string} [name] The name of the path parameter

@@ -62,6 +62,8 @@ export class KoaTemplateService implements TemplateService<any, Context> {
         switch (args[key].in) {
         case 'request':
             return context.request;
+        case 'request-prop':
+          return this.validationService.ValidateParam(args[key], (context.request as any)[name], name, errorFields, undefined, this.minimalSwaggerConfig);
         case 'query':
             return this.validationService.ValidateParam(args[key], context.request.query[name], name, errorFields, undefined, this.minimalSwaggerConfig);
         case 'queries':
