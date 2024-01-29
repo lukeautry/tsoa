@@ -655,8 +655,8 @@ export class SpecGenerator3 extends SpecGenerator {
         // element since you can't attach nullable directly to a ref.
         // https://swagger.io/docs/specification/using-ref/#syntax
         if (swaggerType.$ref) {
-          return { allOf: [swaggerType], nullable };
-        }
+          return { allOf: [swaggerType], type: "object", nullable };
+      }
         return { ...(title && { title }), ...swaggerType, nullable };
       } else {
         return { ...(title && { title }), anyOf: actualSwaggerTypes, nullable };
