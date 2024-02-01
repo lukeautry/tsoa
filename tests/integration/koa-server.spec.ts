@@ -501,7 +501,7 @@ describe('Koa Server', () => {
         basePath + `/Validate/parameter/boolean?boolValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
-          expect(body.fields.boolValue.message).to.equal('invalid boolean value');
+          expect(body.fields.boolValue.message).to.equal('boolValue');
           expect(body.fields.boolValue.value).to.equal(value);
         },
         400,
@@ -1195,7 +1195,7 @@ describe('Koa Server', () => {
         expect(model.gender).to.equal(Gender.MALE);
         expect(model.weight).to.equal(50);
         expect(model.human).to.equal(true);
-      })
+      });
     });
 
     it('parses body parameters', () => {
