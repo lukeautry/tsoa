@@ -67,12 +67,6 @@ module.exports = {
     ],
     '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     eqeqeq: ['error', 'smart'],
-    'no-shadow': [
-      'off',
-      {
-        hoist: 'all',
-      },
-    ],
   },
   overrides: [
     {
