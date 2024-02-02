@@ -71,7 +71,6 @@ module.exports = {
         '@typescript-eslint/no-unused-expressions': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
   ],
