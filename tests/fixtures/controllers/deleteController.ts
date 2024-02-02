@@ -1,4 +1,7 @@
-import { Delete, Query, Route } from '@tsoa/runtime';
+import { Query } from '@tsoa/runtime/decorators/parameter';
+import { Delete } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 

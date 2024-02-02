@@ -1,4 +1,8 @@
-import { Controller, Get, Query, Inject, Route } from '@tsoa/runtime';
+import { Query, Inject } from '@tsoa/runtime/decorators/parameter';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+
 import { TestModel } from '../../fixtures/testModel';
 import { ModelService } from '../services/modelService';
 

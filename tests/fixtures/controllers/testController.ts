@@ -1,4 +1,8 @@
-import { Controller, Get, Route, SuccessResponse, Response } from '@tsoa/runtime';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { SuccessResponse, Response } from '@tsoa/runtime/decorators/response';
+
 import { ErrorResponseModel, TestModel } from '../testModel';
 import { NonFactoryDecorator } from '../custom/non-factory-decorator';
 import { ModelService } from '../services/modelService';
@@ -61,7 +65,7 @@ export class TestController extends Controller {
   public async getUnavailableForLegalReasonsError(): Promise<ErrorResponseModel> {
     throw {
       status: 451,
-      messgage: 'error'
+      messgage: 'error',
     };
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Extension, Options, Delete, Get, Patch, Post, Put, Response, Route, Security, SuccessResponse, Tags, Example } from '@tsoa/runtime';
+import { Example } from '@tsoa/runtime/decorators/example';
+import { Options, Delete, Get, Patch, Post, Put } from '@tsoa/runtime/decorators/methods';
+import { Tags } from '@tsoa/runtime/decorators/tags';
+import { Route } from '@tsoa/runtime/decorators/route';
+import { Security } from '@tsoa/runtime/decorators/security';
+import { Extension } from '@tsoa/runtime/decorators/extension';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { Response, SuccessResponse } from '@tsoa/runtime/decorators/response';
+
 import { ModelService } from '../services/modelService';
 import { ErrorResponseModel, TestModel, TestModel as RenamedModel } from '../testModel';
 

@@ -1,4 +1,7 @@
-import { Controller, Get, Route, Response, Hidden } from '@tsoa/runtime';
+import { Get } from '@tsoa/runtime/decorators/methods';
+import { Route, Hidden } from '@tsoa/runtime/decorators/route';
+import { Controller } from '@tsoa/runtime/interfaces/controller';
+import { Response } from '@tsoa/runtime/decorators/response';
 
 interface ToHideModel {
   something: string;

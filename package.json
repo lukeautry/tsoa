@@ -36,6 +36,7 @@
     "prepare": "yarn build",
     "preversion": "yarn test",
     "test": "lerna run test --stream",
+    "test:coverage": "lerna run test:coverage --stream",
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run eslint --ext .ts --fix",
     "watch": "lerna run watch",
