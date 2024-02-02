@@ -57,7 +57,6 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/triple-slash-reference': [
       'error',
       {
