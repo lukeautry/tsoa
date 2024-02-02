@@ -20,19 +20,6 @@ module.exports = {
     ],
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/member-delimiter-style': [
-      'off',
-      {
-        multiline: {
-          delimiter: 'none',
-          requireLast: true,
-        },
-        singleline: {
-          delimiter: 'semi',
-          requireLast: false,
-        },
-      },
-    ],
     '@typescript-eslint/naming-convention': [
       'error',
       {
