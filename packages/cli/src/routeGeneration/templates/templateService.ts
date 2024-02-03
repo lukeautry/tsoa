@@ -1,4 +1,4 @@
-import { Controller, HttpStatusCodeLiteral, TsoaResponse, TsoaRoute, ValidationService } from "@tsoa/runtime";
+import { Controller, TsoaRoute, ValidationService } from "@tsoa/runtime";
 
 export abstract class TemplateService<Request, Response> {
   protected validationService: ValidationService;
@@ -12,8 +12,6 @@ export abstract class TemplateService<Request, Response> {
   abstract promiseHandler(controllerObj: any, promise: any, response: Response, successStatus: any, next: any): any;
 
   abstract returnHandler(response: Response, header: any, statusCode?: number, data?: any, next?: any): any;
-
-  abstract responder(response: Response, next?: any): TsoaResponse<HttpStatusCodeLiteral, unknown>;
 
   abstract getValidatedArgs(args: any, request: Request, response: Response, next?: any): any[];
 }

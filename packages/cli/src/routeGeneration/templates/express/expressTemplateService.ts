@@ -1,5 +1,5 @@
 import { Request as ExRequest, Response as ExResponse } from 'express';
-import { FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError } from '@tsoa/runtime';
+import { FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
 
@@ -43,12 +43,6 @@ export class ExpressTemplateService extends TemplateService<ExRequest, ExRespons
     }
   }
 
-  responder(response: any): TsoaResponse<HttpStatusCodeLiteral, unknown> {
-    return (status, data, headers) => {
-      this.returnHandler(response, headers, status, data);
-    };
-  }
-
   getValidatedArgs(args: any, request: ExRequest, response: ExResponse): any[] {
     const fieldErrors: FieldErrors = {};
     const values = Object.keys(args).map(key => {
@@ -83,7 +77,9 @@ export class ExpressTemplateService extends TemplateService<ExRequest, ExRespons
           }
         }
         case 'res':
-          return this.responder(response);
+          return (status: any, data: any, headers: any) => {
+            this.returnHandler(response, headers, status, data);
+          };
       }
     });
 

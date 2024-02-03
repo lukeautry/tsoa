@@ -1,6 +1,6 @@
 import { ResponseToolkit as HReponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidateError } from '@tsoa/runtime';
+import { FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { isController, TemplateService } from '../templateService';
 
@@ -59,12 +59,6 @@ export class HapiTemplateService extends TemplateService<any, HReponse> {
     return response;
   }
 
-  responder(h: HReponse): TsoaResponse<HttpStatusCodeLiteral, unknown> {
-    return (status, data, headers) => {
-      this.returnHandler(h, headers, status, data);
-    };
-  }
-
   getValidatedArgs(args: any, request: any, h: HReponse): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
@@ -89,7 +83,9 @@ export class HapiTemplateService extends TemplateService<any, HReponse> {
         case 'formData':
           return this.validationService.ValidateParam(args[key], request.payload[name], name, errorFields, undefined, this.minimalSwaggerConfig);
         case 'res':
-          return this.responder(h);
+          return (status: any, data: any, headers: any) => {
+            this.returnHandler(h, headers, status, data);
+          };
       }
     });
     if (Object.keys(errorFields).length > 0) {

@@ -1,5 +1,5 @@
 import type { Context } from 'koa';
-import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidateError } from '@tsoa/runtime';
+import { FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
 
@@ -48,12 +48,6 @@ export class KoaTemplateService extends TemplateService<any, Context> {
     }
   }
 
-  responder(context: any, next?: any): TsoaResponse<HttpStatusCodeLiteral, unknown> {
-    return (status, data, headers) => {
-      this.returnHandler(context, headers, status, data, next);
-    };
-  }
-
   getValidatedArgs(args: any, request: any, context: Context, next: () => any): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
@@ -88,7 +82,9 @@ export class KoaTemplateService extends TemplateService<any, Context> {
           }
         }
         case 'res':
-          return this.responder(context, next);
+          return (status: any, data: any, headers: any) => {
+            this.returnHandler(context, headers, status, data, next);
+          };
       }
     });
     if (Object.keys(errorFields).length > 0) {
