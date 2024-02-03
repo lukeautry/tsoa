@@ -3,7 +3,7 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 
 import { TemplateService, isController } from '../templateService';
 
-type ExpressPromiseHandlerParameters = {
+type ExpressApiHandlerParameters = {
   methodName: string;
   controller: Controller | Object;
   response: ExResponse;
@@ -25,7 +25,7 @@ type ExpressReturnHandlerParameters = {
   data?: any;
 };
 
-export class ExpressTemplateService extends TemplateService<ExpressPromiseHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
+export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -33,7 +33,7 @@ export class ExpressTemplateService extends TemplateService<ExpressPromiseHandle
     super(models);
   }
 
-  promiseHandler(params: ExpressPromiseHandlerParameters) {
+  apiHandler(params: ExpressApiHandlerParameters) {
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 

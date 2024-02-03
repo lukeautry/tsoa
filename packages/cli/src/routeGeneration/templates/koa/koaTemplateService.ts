@@ -3,7 +3,7 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 
 import { TemplateService, isController } from '../templateService';
 
-type KoaPromiseHandlerParameters = {
+type KoaApiHandlerParameters = {
   methodName: string;
   controller: Controller | Object;
   context: Context;
@@ -25,7 +25,7 @@ type KoaReturnHandlerParameters = {
   data?: any;
 };
 
-export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParameters, KoaValidationArgsParameters, KoaReturnHandlerParameters> {
+export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters, KoaValidationArgsParameters, KoaReturnHandlerParameters> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -33,7 +33,7 @@ export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParamet
     super(models);
   }
 
-  promiseHandler(params: KoaPromiseHandlerParameters) {
+  apiHandler(params: KoaApiHandlerParameters) {
     const { methodName, controller, context, validatedArgs, successStatus } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 

@@ -132,7 +132,7 @@ export function RegisterRoutes(server: any) {
                     const controller = new {{../name}}();
                     {{/if}}
 
-                    return templateService.promiseHandler({
+                    return templateService.apiHandler({
                       methodName: '{{name}}',
                       controller,
                       h,

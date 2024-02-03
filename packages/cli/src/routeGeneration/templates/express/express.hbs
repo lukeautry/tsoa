@@ -99,7 +99,7 @@ export function RegisterRoutes(app: Router) {
                 const controller = new {{../name}}();
               {{/if}}
 
-              templateService.promiseHandler({
+              templateService.apiHandler({
                 methodName: '{{name}}',
                 controller,
                 response,

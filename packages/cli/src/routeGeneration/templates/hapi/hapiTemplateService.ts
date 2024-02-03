@@ -4,7 +4,7 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 
 import { isController, TemplateService } from '../templateService';
 
-type HapiPromiseHandlerParameters = {
+type HapiApiHandlerParameters = {
   methodName: string;
   controller: Controller | Object;
   h: HResponse;
@@ -25,7 +25,7 @@ type HapiReturnHandlerParameters = {
   data?: any
 };
 
-export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParameters, HapiValidationArgsParameters, HapiReturnHandlerParameters> {
+export class HapiTemplateService extends TemplateService<HapiApiHandlerParameters, HapiValidationArgsParameters, HapiReturnHandlerParameters> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -33,7 +33,7 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
     super(models);
   }
 
-  promiseHandler(params: HapiPromiseHandlerParameters) {
+  apiHandler(params: HapiApiHandlerParameters) {
     const { methodName, controller, h, validatedArgs, successStatus } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 
