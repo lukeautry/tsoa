@@ -1,7 +1,7 @@
 import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
 import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
-import { TemplateService, isController } from '../templateService';
+import { TemplateService } from '../templateService';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
@@ -33,22 +33,23 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     super(models);
   }
 
-  apiHandler(params: ExpressApiHandlerParameters) {
+  async apiHandler(params: ExpressApiHandlerParameters) {
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 
-    return Promise.resolve(promise)
-      .then((data: any) => {
-        let statusCode = successStatus;
-        let headers;
-        if (isController(controller)) {
-          headers = controller.getHeaders();
-          statusCode = controller.getStatus() || statusCode;
-        }
+    try {
+      const data = await Promise.resolve(promise);
+      let statusCode = successStatus;
+      let headers;
+      if (this.isController(controller)) {
+        headers = controller.getHeaders();
+        statusCode = controller.getStatus() || statusCode;
+      }
 
-        this.returnHandler({ response, headers, statusCode, data });
-      })
-      .catch((error: any) => next(error));
+      this.returnHandler({ response, headers, statusCode, data });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   getValidatedArgs(params: ExpressValidationArgsParameters): any[] {

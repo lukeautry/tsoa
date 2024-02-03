@@ -1,7 +1,7 @@
 import type { Context, Next } from 'koa';
 import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
-import { TemplateService, isController } from '../templateService';
+import { TemplateService } from '../templateService';
 
 const koaTsoaResponsed = Symbol('@tsoa:template_service:koa:is_responsed');
 
@@ -35,25 +35,24 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
     super(models);
   }
 
-  apiHandler(params: KoaApiHandlerParameters) {
+  async apiHandler(params: KoaApiHandlerParameters) {
     const { methodName, controller, context, validatedArgs, successStatus } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 
-    return Promise.resolve(promise)
-      .then((data: any) => {
-        let statusCode = successStatus;
-        let headers;
+    try {
+      const data = await Promise.resolve(promise);
+      let statusCode = successStatus;
+      let headers;
 
-        if (isController(controller)) {
-          headers = controller.getHeaders();
-          statusCode = controller.getStatus() || statusCode;
-        }
-        return this.returnHandler({ context, headers, statusCode, data });
-      })
-      .catch((error: any) => {
-        context.status = error.status || 500;
-        context.throw(context.status, error.message, error);
-      });
+      if (this.isController(controller)) {
+        headers = controller.getHeaders();
+        statusCode = controller.getStatus() || statusCode;
+      }
+      return this.returnHandler({ context, headers, statusCode, data });
+    } catch (error: any) {
+      context.status = error.status || 500;
+      context.throw(context.status, error.message, error);
+    }
   }
 
   getValidatedArgs(params: KoaValidationArgsParameters): any[] {

@@ -2,7 +2,7 @@ import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
 import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
-import { isController, TemplateService } from '../templateService';
+import { TemplateService } from '../templateService';
 
 const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
 
@@ -35,34 +35,33 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     super(models);
   }
 
-  apiHandler(params: HapiApiHandlerParameters) {
+  async apiHandler(params: HapiApiHandlerParameters) {
     const { methodName, controller, h, validatedArgs, successStatus } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
 
-    return Promise.resolve(promise)
-      .then((data: any) => {
-        let statusCode = successStatus;
-        let headers;
+    try {
+      const data = await Promise.resolve(promise);
+      let statusCode = successStatus;
+      let headers;
 
-        if (isController(controller)) {
-          headers = controller.getHeaders();
-          statusCode = controller.getStatus() || statusCode;
-        }
-        return this.returnHandler({ h, headers, statusCode, data });
-      })
-      .catch((error: any) => {
-        if (isBoom(error)) {
-          throw error;
-        }
+      if (this.isController(controller)) {
+        headers = controller.getHeaders();
+        statusCode = controller.getStatus() || statusCode;
+      }
+      return this.returnHandler({ h, headers, statusCode, data });
+    } catch (error: any) {
+      if (isBoom(error)) {
+        throw error;
+      }
 
-        const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-        boomErr.output.statusCode = error.status || 500;
-        boomErr.output.payload = {
-          name: error.name,
-          message: error.message,
-        } as unknown as Payload;
-        throw boomErr;
-      });
+      const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+      boomErr.output.statusCode = error.status || 500;
+      boomErr.output.payload = {
+        name: error.name,
+        message: error.message,
+      } as unknown as Payload;
+      throw boomErr;
+    }
   }
 
   getValidatedArgs(params: HapiValidationArgsParameters): any[] {
