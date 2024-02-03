@@ -4,6 +4,8 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 
 import { isController, TemplateService } from '../templateService';
 
+const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
+
 type HapiApiHandlerParameters = {
   methodName: string;
   controller: Controller | Object;
@@ -114,8 +116,9 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     let { headers } = params;
     headers = headers || {};
 
-    if ((h as any).__isTsoaResponded) {
-      return (h as any).__isTsoaResponded;
+    const tsoaResponsed = Object.getOwnPropertyDescriptor(h, hapiTsoaResponsed);
+    if (tsoaResponsed) {
+      return tsoaResponsed.value;
     }
 
     const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response('').code(204);
@@ -128,7 +131,10 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
       response.code(statusCode);
     }
 
-    (h as any).__isTsoaResponded = response;
+    Object.defineProperty(h, hapiTsoaResponsed, {
+      value: response,
+      writable: false,
+    });
 
     return response;
   }

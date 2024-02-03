@@ -3,6 +3,8 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 
 import { TemplateService, isController } from '../templateService';
 
+const koaTsoaResponsed = Symbol('@tsoa:template_service:koa:is_responsed');
+
 type KoaApiHandlerParameters = {
   methodName: string;
   controller: Controller | Object;
@@ -115,7 +117,8 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
     let { headers } = params;
     headers = headers || {};
 
-    if (!context.headerSent && !(context.response as any).__tsoaResponded) {
+    const isResponsed = Object.getOwnPropertyDescriptor(context.response, koaTsoaResponsed);
+    if (!context.headerSent && !isResponsed) {
       if (data !== null && data !== undefined) {
         context.body = data;
         context.status = 200;
@@ -128,7 +131,10 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
       }
 
       context.set(headers);
-      (context.response as any).__tsoaResponded = true;
+      Object.defineProperty(context.response, koaTsoaResponsed, {
+        value: true,
+        writable: false,
+      });
       return next ? next() : context;
     }
     return undefined;
