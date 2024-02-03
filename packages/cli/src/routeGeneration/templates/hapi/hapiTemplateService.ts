@@ -1,17 +1,15 @@
 import { ResponseToolkit as HReponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidationService, ValidateError } from '@tsoa/runtime';
+import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { isController, TemplateService } from '../templateService';
 
-export class HapiTemplateService implements TemplateService<any, HReponse> {
-  private readonly validationService: ValidationService;
-
+export class HapiTemplateService extends TemplateService<any, HReponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
   ) {
-    this.validationService = new ValidationService(models);
+    super(models);
   }
 
   promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {

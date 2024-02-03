@@ -1,16 +1,14 @@
 import { Request as ExRequest, Response as ExResponse } from 'express';
-import { FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError, ValidationService } from '@tsoa/runtime';
+import { FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
 
-export class ExpressTemplateService implements TemplateService<ExRequest, ExResponse> {
-  private readonly validationService: ValidationService;
-
+export class ExpressTemplateService extends TemplateService<ExRequest, ExResponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
   ) {
-    this.validationService = new ValidationService(models);
+    super(models);
   }
 
   promiseHandler(controllerObj: any, promise: any, response: ExResponse, successStatus: any, next: any) {
@@ -22,8 +20,6 @@ export class ExpressTemplateService implements TemplateService<ExRequest, ExResp
           headers = controllerObj.getHeaders();
           statusCode = controllerObj.getStatus() || statusCode;
         }
-
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
         this.returnHandler(response, headers, statusCode, data);
       })

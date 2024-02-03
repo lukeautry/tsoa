@@ -1,15 +1,14 @@
 import type { Context } from 'koa';
-import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidationService, ValidateError } from '@tsoa/runtime';
+import { TsoaResponse, HttpStatusCodeLiteral, FieldErrors, ValidateError } from '@tsoa/runtime';
+
 import { TemplateService, isController } from '../templateService';
 
-export class KoaTemplateService implements TemplateService<any, Context> {
-  private readonly validationService: ValidationService;
-
+export class KoaTemplateService extends TemplateService<any, Context> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
   ) {
-    this.validationService = new ValidationService(models);
+    super(models);
   }
 
   promiseHandler(controllerObj: any, promise: any, context: Context, successStatus: any, next: any) {
