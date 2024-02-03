@@ -77,7 +77,7 @@ export function RegisterRoutes(router: KoaRouter) {
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
 
             async function {{../name}}_{{name}}(context: Context, next: Next) {
-            const args = {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
                 {{/each}}
@@ -85,7 +85,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             let validatedArgs: any[] = [];
             try {
-              validatedArgs = templateService.getValidatedArgs(args, undefined, context, next);
+              validatedArgs = templateService.getValidatedArgs({ args, context, next });
             } catch (err) {
               const error = err as any;
               error.message ||= JSON.stringify({ fields: error.fields });

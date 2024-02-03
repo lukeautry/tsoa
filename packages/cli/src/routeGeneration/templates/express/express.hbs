@@ -76,7 +76,7 @@ export function RegisterRoutes(app: Router) {
             ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
 
             {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
-            const args = {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
                 {{/each}}
@@ -86,7 +86,7 @@ export function RegisterRoutes(app: Router) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = templateService.getValidatedArgs(args, request, response);
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
 
               {{#if ../../iocModule}}
                 const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;

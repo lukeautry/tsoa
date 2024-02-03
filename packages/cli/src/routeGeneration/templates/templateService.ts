@@ -1,6 +1,6 @@
 import { Controller, TsoaRoute, ValidationService } from "@tsoa/runtime";
 
-export abstract class TemplateService<PromiseHandlerParameters, ReturnHandlerParameters, Request, Response> {
+export abstract class TemplateService<PromiseHandlerParameters, ValidationArgsParameters, ReturnHandlerParameters> {
   protected validationService: ValidationService;
 
   constructor(
@@ -11,7 +11,7 @@ export abstract class TemplateService<PromiseHandlerParameters, ReturnHandlerPar
 
   abstract promiseHandler(params: PromiseHandlerParameters): any;
 
-  abstract getValidatedArgs(args: any, request: Request, response: Response, next?: any): any[];
+  abstract getValidatedArgs(params: ValidationArgsParameters): any[];
 
   protected abstract returnHandler(params: ReturnHandlerParameters): any;
 }
