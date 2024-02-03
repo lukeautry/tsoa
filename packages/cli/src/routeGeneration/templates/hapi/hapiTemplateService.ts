@@ -11,7 +11,14 @@ type HapiPromiseHandlerParameters = {
   successStatus?: number;
 };
 
-export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParameters, any, HResponse> {
+type HapiReturnHandlerParameters = {
+  h: HResponse;
+  headers: any;
+  statusCode?: number;
+  data?: any
+};
+
+export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParameters, HapiReturnHandlerParameters, any, HResponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -25,13 +32,13 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;
-        let header;
+        let headers;
 
         if (isController(controller)) {
-          header = controller.getHeaders();
+          headers = controller.getHeaders();
           statusCode = controller.getStatus() || statusCode;
         }
-        return this.returnHandler(h, header, statusCode, data);
+        return this.returnHandler({ h, headers, statusCode, data });
       })
       .catch((error: any) => {
         if (isBoom(error)) {
@@ -46,26 +53,6 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
         } as unknown as Payload;
         throw boomErr;
       });
-  }
-
-  returnHandler(h: HResponse, headers: any = {}, statusCode?: number | undefined, data?: any) {
-    if ((h as any).__isTsoaResponded) {
-      return (h as any).__isTsoaResponded;
-    }
-
-    const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response('').code(204);
-
-    Object.keys(headers).forEach((name: string) => {
-      response.header(name, headers[name]);
-    });
-
-    if (statusCode) {
-      response.code(statusCode);
-    }
-
-    (h as any).__isTsoaResponded = response;
-
-    return response;
   }
 
   getValidatedArgs(args: any, request: any, h: HResponse): any[] {
@@ -92,8 +79,8 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
         case 'formData':
           return this.validationService.ValidateParam(args[key], request.payload[name], name, errorFields, undefined, this.minimalSwaggerConfig);
         case 'res':
-          return (status: any, data: any, headers: any) => {
-            this.returnHandler(h, headers, status, data);
+          return (status: number | undefined, data: any, headers: any) => {
+            this.returnHandler({ h, headers, statusCode: status, data });
           };
       }
     });
@@ -101,5 +88,29 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
       throw new ValidateError(errorFields, '');
     }
     return values;
+  }
+
+  protected returnHandler(params: HapiReturnHandlerParameters) {
+    const { h, statusCode, data } = params;
+    let { headers } = params;
+    headers = headers || {};
+
+    if ((h as any).__isTsoaResponded) {
+      return (h as any).__isTsoaResponded;
+    }
+
+    const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response('').code(204);
+
+    Object.keys(headers).forEach((name: string) => {
+      response.header(name, headers[name]);
+    });
+
+    if (statusCode) {
+      response.code(statusCode);
+    }
+
+    (h as any).__isTsoaResponded = response;
+
+    return response;
   }
 }

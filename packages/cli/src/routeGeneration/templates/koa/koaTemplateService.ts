@@ -1,4 +1,4 @@
-import type { Context } from 'koa';
+import type { Context, Next } from 'koa';
 import { Controller, FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
@@ -10,7 +10,15 @@ type KoaPromiseHandlerParameters = {
   successStatus?: number;
 };
 
-export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParameters, any, Context> {
+type KoaReturnHandlerParameters = {
+  context: Context;
+  next?: Next;
+  headers: any;
+  statusCode?: number;
+  data?: any;
+};
+
+export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParameters, KoaReturnHandlerParameters, any, Context> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -29,31 +37,12 @@ export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParamet
           headers = controller.getHeaders();
           statusCode = controller.getStatus() || statusCode;
         }
-        return this.returnHandler(context, headers, statusCode, data);
+        return this.returnHandler({ context, headers, statusCode, data });
       })
       .catch((error: any) => {
         context.status = error.status || 500;
         context.throw(context.status, error.message, error);
       });
-  }
-
-  returnHandler(context: Context, headers: any, statusCode?: number | undefined, data?: any, next?: any) {
-    if (!context.headerSent && !(context.response as any).__tsoaResponded) {
-      if (data !== null && data !== undefined) {
-        context.body = data;
-        context.status = 200;
-      } else {
-        context.status = 204;
-      }
-
-      if (statusCode) {
-        context.status = statusCode;
-      }
-
-      context.set(headers);
-      (context.response as any).__tsoaResponded = true;
-      return next ? next() : context;
-    }
   }
 
   getValidatedArgs(args: any, request: any, context: Context, next: () => any): any[] {
@@ -90,8 +79,8 @@ export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParamet
           }
         }
         case 'res':
-          return (status: any, data: any, headers: any) => {
-            this.returnHandler(context, headers, status, data, next);
+          return async (status: number | undefined, data: any, headers: any): Promise<void> => {
+            await this.returnHandler({ context, headers, statusCode: status, data, next });
           };
       }
     });
@@ -99,5 +88,29 @@ export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParamet
       throw new ValidateError(errorFields, '');
     }
     return values;
+  }
+
+  protected returnHandler(params: KoaReturnHandlerParameters): Promise<any> | Context | undefined {
+    const { context, next, statusCode, data } = params;
+    let { headers } = params;
+    headers = headers || {};
+
+    if (!context.headerSent && !(context.response as any).__tsoaResponded) {
+      if (data !== null && data !== undefined) {
+        context.body = data;
+        context.status = 200;
+      } else {
+        context.status = 204;
+      }
+
+      if (statusCode) {
+        context.status = statusCode;
+      }
+
+      context.set(headers);
+      (context.response as any).__tsoaResponded = true;
+      return next ? next() : context;
+    }
+    return undefined;
   }
 }

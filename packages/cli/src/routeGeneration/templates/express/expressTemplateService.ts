@@ -11,7 +11,14 @@ type ExpressPromiseHandlerParameters = {
   successStatus?: number;
 };
 
-export class ExpressTemplateService extends TemplateService<ExpressPromiseHandlerParameters, ExRequest, ExResponse> {
+type ExpressReturnHandlerParameters = {
+  response: ExResponse;
+  headers: any;
+  statusCode?: number;
+  data?: any;
+};
+
+export class ExpressTemplateService extends TemplateService<ExpressPromiseHandlerParameters, ExpressReturnHandlerParameters, ExRequest, ExResponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -30,26 +37,9 @@ export class ExpressTemplateService extends TemplateService<ExpressPromiseHandle
           statusCode = controller.getStatus() || statusCode;
         }
 
-        this.returnHandler(response, headers, statusCode, data);
+        this.returnHandler({ response, headers, statusCode, data });
       })
       .catch((error: any) => next(error));
-  }
-
-  returnHandler(response: any, headers: any = {}, statusCode?: number, data?: any) {
-    if (response.headersSent) {
-      return;
-    }
-    Object.keys(headers).forEach((name: string) => {
-      response.set(name, headers[name]);
-    });
-    if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
-      response.status(statusCode || 200);
-      data.pipe(response);
-    } else if (data !== null && data !== undefined) {
-      response.status(statusCode || 200).json(data);
-    } else {
-      response.status(statusCode || 204).end();
-    }
   }
 
   getValidatedArgs(args: any, request: ExRequest, response: ExResponse): any[] {
@@ -86,8 +76,8 @@ export class ExpressTemplateService extends TemplateService<ExpressPromiseHandle
           }
         }
         case 'res':
-          return (status: any, data: any, headers: any) => {
-            this.returnHandler(response, headers, status, data);
+          return (status: number | undefined, data: any, headers: any) => {
+            this.returnHandler({ response, headers, statusCode: status, data });
           };
       }
     });
@@ -97,4 +87,26 @@ export class ExpressTemplateService extends TemplateService<ExpressPromiseHandle
     }
     return values;
   }
+
+  protected returnHandler(params: ExpressReturnHandlerParameters) {
+    const { response, statusCode, data } = params;
+    let { headers } = params;
+    headers = headers || {};
+
+    if (response.headersSent) {
+      return;
+    }
+    Object.keys(headers).forEach((name: string) => {
+      response.set(name, headers[name]);
+    });
+    if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
+      response.status(statusCode || 200);
+      data.pipe(response);
+    } else if (data !== null && data !== undefined) {
+      response.status(statusCode || 200).json(data);
+    } else {
+      response.status(statusCode || 204).end();
+    }
+  }
+
 }
