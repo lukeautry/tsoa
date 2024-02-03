@@ -46,7 +46,7 @@ export class ValidationService {
       case 'string':
         return this.validateString(name, value, fieldErrors, property.validators as StringValidator, parent);
       case 'boolean':
-        return this.validateBool(name, value, fieldErrors, property.validators, parent);
+        return this.validateBool(name, value, fieldErrors, property.validators as BooleanValidator, parent);
       case 'integer':
       case 'long':
         return this.validateInt(name, value, fieldErrors, property.validators as IntegerValidator, parent);
@@ -395,7 +395,7 @@ export class ValidationService {
       return false;
     }
 
-    const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid boolean value`;
+    const message = validators && validators.isBoolean && validators.isBoolean.errorMsg ? validators.isBoolean.errorMsg : `invalid boolean value`;
     fieldErrors[parent + name] = {
       message,
       value,
@@ -806,7 +806,7 @@ export interface StringValidator {
 }
 
 export interface BooleanValidator {
-  isArray?: { errorMsg?: string };
+  isBoolean?: { errorMsg?: string };
 }
 
 export interface ArrayValidator {
@@ -830,7 +830,10 @@ export class ValidateError extends Error implements Exception {
   public status = 400;
   public name = 'ValidateError';
 
-  constructor(public fields: FieldErrors, public message: string) {
+  constructor(
+    public fields: FieldErrors,
+    public message: string,
+  ) {
     super(message);
     Object.setPrototypeOf(this, ValidateError.prototype);
   }
