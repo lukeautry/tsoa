@@ -132,8 +132,13 @@ export function RegisterRoutes(server: any) {
                     const controller = new {{../name}}();
                     {{/if}}
 
-                    const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-                    return templateService.promiseHandler({ controller, promise, h, successStatus: {{successStatus}} });
+                    return templateService.promiseHandler({
+                      methodName: '{{name}}',
+                      controller,
+                      h,
+                      validatedArgs,
+                      successStatus: {{successStatus}},
+                    });
                 }
             }
         });

@@ -4,10 +4,11 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 import { TemplateService, isController } from '../templateService';
 
 type ExpressPromiseHandlerParameters = {
+  methodName: string;
   controller: Controller | Object;
-  promise: Promise<any>;
   response: ExResponse;
   next: ExNext;
+  validatedArgs: any[];
   successStatus?: number;
 };
 
@@ -33,7 +34,9 @@ export class ExpressTemplateService extends TemplateService<ExpressPromiseHandle
   }
 
   promiseHandler(params: ExpressPromiseHandlerParameters) {
-    const { controller, promise, response, successStatus, next } = params;
+    const { methodName, controller, response, validatedArgs, successStatus, next } = params;
+    const promise = this.buildPromise(methodName, controller, validatedArgs);
+
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;

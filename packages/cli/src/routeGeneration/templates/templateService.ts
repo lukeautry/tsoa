@@ -14,6 +14,12 @@ export abstract class TemplateService<PromiseHandlerParameters, ValidationArgsPa
   abstract getValidatedArgs(params: ValidationArgsParameters): any[];
 
   protected abstract returnHandler(params: ReturnHandlerParameters): any;
+
+  protected buildPromise(methodName: string, controller: Controller | Object, validatedArgs: any) {
+    const prototype = Object.getPrototypeOf(controller);
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
+    return descriptor!.value.apply(controller, validatedArgs);
+  }
 }
 
 export function isController(object: any): object is Controller {

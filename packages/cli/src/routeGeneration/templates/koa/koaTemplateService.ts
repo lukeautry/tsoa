@@ -4,9 +4,10 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 import { TemplateService, isController } from '../templateService';
 
 type KoaPromiseHandlerParameters = {
+  methodName: string;
   controller: Controller | Object;
-  promise: Promise<any>;
   context: Context;
+  validatedArgs: any[];
   successStatus?: number;
 };
 
@@ -33,7 +34,9 @@ export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParamet
   }
 
   promiseHandler(params: KoaPromiseHandlerParameters) {
-    const { controller, promise, context, successStatus } = params;
+    const { methodName, controller, context, validatedArgs, successStatus } = params;
+    const promise = this.buildPromise(methodName, controller, validatedArgs);
+
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;

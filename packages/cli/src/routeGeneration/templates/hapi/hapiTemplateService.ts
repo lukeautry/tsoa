@@ -5,9 +5,10 @@ import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime
 import { isController, TemplateService } from '../templateService';
 
 type HapiPromiseHandlerParameters = {
+  methodName: string;
   controller: Controller | Object;
-  promise: Promise<any>,
   h: HResponse;
+  validatedArgs: any[];
   successStatus?: number;
 };
 
@@ -33,7 +34,8 @@ export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParam
   }
 
   promiseHandler(params: HapiPromiseHandlerParameters) {
-    const { controller, promise, h, successStatus } = params;
+    const { methodName, controller, h, validatedArgs, successStatus } = params;
+    const promise = this.buildPromise(methodName, controller, validatedArgs);
 
     return Promise.resolve(promise)
       .then((data: any) => {
