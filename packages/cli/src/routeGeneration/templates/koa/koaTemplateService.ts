@@ -1,9 +1,16 @@
 import type { Context } from 'koa';
-import { FieldErrors, ValidateError } from '@tsoa/runtime';
+import { Controller, FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
 
-export class KoaTemplateService extends TemplateService<any, Context> {
+type KoaPromiseHandlerParameters = {
+  controller: Controller | Object;
+  promise: Promise<any>;
+  context: Context;
+  successStatus?: number;
+};
+
+export class KoaTemplateService extends TemplateService<KoaPromiseHandlerParameters, any, Context> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -11,17 +18,18 @@ export class KoaTemplateService extends TemplateService<any, Context> {
     super(models);
   }
 
-  promiseHandler(controllerObj: any, promise: any, context: Context, successStatus: any, next: any) {
+  promiseHandler(params: KoaPromiseHandlerParameters) {
+    const { controller, promise, context, successStatus } = params;
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;
         let headers;
 
-        if (isController(controllerObj)) {
-          headers = controllerObj.getHeaders();
-          statusCode = controllerObj.getStatus() || statusCode;
+        if (isController(controller)) {
+          headers = controller.getHeaders();
+          statusCode = controller.getStatus() || statusCode;
         }
-        return this.returnHandler(context, headers, statusCode, data, next);
+        return this.returnHandler(context, headers, statusCode, data);
       })
       .catch((error: any) => {
         context.status = error.status || 500;

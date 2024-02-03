@@ -1,10 +1,17 @@
-import { ResponseToolkit as HReponse } from '@hapi/hapi';
+import { ResponseToolkit as HResponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import { FieldErrors, ValidateError } from '@tsoa/runtime';
+import { Controller, FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { isController, TemplateService } from '../templateService';
 
-export class HapiTemplateService extends TemplateService<any, HReponse> {
+type HapiPromiseHandlerParameters = {
+  controller: Controller | Object;
+  promise: Promise<any>,
+  h: HResponse;
+  successStatus?: number;
+};
+
+export class HapiTemplateService extends TemplateService<HapiPromiseHandlerParameters, any, HResponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -12,15 +19,17 @@ export class HapiTemplateService extends TemplateService<any, HReponse> {
     super(models);
   }
 
-  promiseHandler(controllerObj: any, promise: any, request: any, successStatus: any, h: any) {
+  promiseHandler(params: HapiPromiseHandlerParameters) {
+    const { controller, promise, h, successStatus } = params;
+
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;
         let header;
 
-        if (isController(controllerObj)) {
-          header = controllerObj.getHeaders();
-          statusCode = controllerObj.getStatus() || statusCode;
+        if (isController(controller)) {
+          header = controller.getHeaders();
+          statusCode = controller.getStatus() || statusCode;
         }
         return this.returnHandler(h, header, statusCode, data);
       })
@@ -39,7 +48,7 @@ export class HapiTemplateService extends TemplateService<any, HReponse> {
       });
   }
 
-  returnHandler(h: HReponse, headers: any = {}, statusCode?: number | undefined, data?: any) {
+  returnHandler(h: HResponse, headers: any = {}, statusCode?: number | undefined, data?: any) {
     if ((h as any).__isTsoaResponded) {
       return (h as any).__isTsoaResponded;
     }
@@ -59,7 +68,7 @@ export class HapiTemplateService extends TemplateService<any, HReponse> {
     return response;
   }
 
-  getValidatedArgs(args: any, request: any, h: HReponse): any[] {
+  getValidatedArgs(args: any, request: any, h: HResponse): any[] {
     const errorFields: FieldErrors = {};
     const values = Object.keys(args).map(key => {
       const name = args[key].name;

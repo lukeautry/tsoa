@@ -101,7 +101,7 @@ export function RegisterRoutes(app: Router) {
 
 
               const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-              templateService.promiseHandler(controller, promise, response, {{successStatus}}, next);
+              templateService.promiseHandler({ controller, promise, response, next, successStatus: {{successStatus}} });
             } catch (err) {
                 return next(err);
             }

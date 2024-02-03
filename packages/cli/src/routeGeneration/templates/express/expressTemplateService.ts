@@ -1,9 +1,17 @@
-import { Request as ExRequest, Response as ExResponse } from 'express';
-import { FieldErrors, ValidateError } from '@tsoa/runtime';
+import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import { Controller, FieldErrors, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService, isController } from '../templateService';
 
-export class ExpressTemplateService extends TemplateService<ExRequest, ExResponse> {
+type ExpressPromiseHandlerParameters = {
+  controller: Controller | Object;
+  promise: Promise<any>;
+  response: ExResponse;
+  next: ExNext;
+  successStatus?: number;
+};
+
+export class ExpressTemplateService extends TemplateService<ExpressPromiseHandlerParameters, ExRequest, ExResponse> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
@@ -11,14 +19,15 @@ export class ExpressTemplateService extends TemplateService<ExRequest, ExRespons
     super(models);
   }
 
-  promiseHandler(controllerObj: any, promise: any, response: ExResponse, successStatus: any, next: any) {
+  promiseHandler(params: ExpressPromiseHandlerParameters) {
+    const { controller, promise, response, successStatus, next } = params;
     return Promise.resolve(promise)
       .then((data: any) => {
         let statusCode = successStatus;
         let headers;
-        if (isController(controllerObj)) {
-          headers = controllerObj.getHeaders();
-          statusCode = controllerObj.getStatus() || statusCode;
+        if (isController(controller)) {
+          headers = controller.getHeaders();
+          statusCode = controller.getStatus() || statusCode;
         }
 
         this.returnHandler(response, headers, statusCode, data);
