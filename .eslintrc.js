@@ -19,20 +19,6 @@ module.exports = {
       },
     ],
     '@typescript-eslint/ban-types': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/member-delimiter-style': [
-      'off',
-      {
-        multiline: {
-          delimiter: 'none',
-          requireLast: true,
-        },
-        singleline: {
-          delimiter: 'semi',
-          requireLast: false,
-        },
-      },
-    ],
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -45,7 +31,6 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-argument': 'off',
@@ -57,7 +42,6 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/triple-slash-reference': [
       'error',
       {
@@ -68,12 +52,6 @@ module.exports = {
     ],
     '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     eqeqeq: ['error', 'smart'],
-    'no-shadow': [
-      'off',
-      {
-        hoist: 'all',
-      },
-    ],
   },
   overrides: [
     {
@@ -88,12 +66,8 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'warn',
-        // for expectations
-        '@typescript-eslint/no-unused-expressions': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
   ],

@@ -32,12 +32,12 @@
   "dependencies": {
     "@tsoa/runtime": "^6.0.0",
     "@types/multer": "^1.4.11",
-    "deepmerge": "^4.3.1",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
     "merge-anything": "^5.1.4",
     "minimatch": "^9.0.1",
+    "ts-deepmerge": "^7.0.0",
     "typescript": "^5.3.3",
     "validator": "^13.11.0",
     "yamljs": "^0.3.0",
