@@ -1,6 +1,6 @@
-import { Request } from 'koa';
+import { Request, Response } from 'koa';
 
-export function koaAuthentication(request: Request, name: string, scopes?: string[]): Promise<any> {
+export function koaAuthentication(request: Request, name: string, scopes: string[] | undefined, response: Response): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (request.query && request.query.access_token) {

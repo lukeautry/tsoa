@@ -1,4 +1,6 @@
-export function hapiAuthentication(request: any, name: string, scopes?: string[]): Promise<any> {
+import { ResponseToolkit } from '@hapi/hapi';
+
+export function hapiAuthentication(request: any, name: string, scopes: string[] | undefined, h: ResponseToolkit): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (request.query && request.query.access_token) {

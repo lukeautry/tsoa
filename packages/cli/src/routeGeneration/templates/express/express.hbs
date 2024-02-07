@@ -117,7 +117,7 @@ export function RegisterRoutes(app: Router) {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
     function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return async function runAuthenticationMiddleware(request: any, _response: any, next: any) {
+        return async function runAuthenticationMiddleware(request: any, response: any, next: any) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -137,7 +137,7 @@ export function RegisterRoutes(app: Router) {
 
                     for (const name in secMethod) {
                         secMethodAndPromises.push(
-                            expressAuthentication(request, name, secMethod[name])
+                            expressAuthentication(request, name, secMethod[name], response)
                                 .catch(pushAndRethrow)
                         );
                     }
@@ -149,7 +149,7 @@ export function RegisterRoutes(app: Router) {
                 } else {
                     for (const name in secMethod) {
                         secMethodOrPromises.push(
-                            expressAuthentication(request, name, secMethod[name])
+                            expressAuthentication(request, name, secMethod[name], response)
                                 .catch(pushAndRethrow)
                         );
                     }

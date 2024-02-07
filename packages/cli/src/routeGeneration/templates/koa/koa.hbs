@@ -136,7 +136,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
                     for (const name in secMethod) {
                         secMethodAndPromises.push(
-                            koaAuthentication(context.request, name, secMethod[name])
+                            koaAuthentication(context.request, name, secMethod[name], context.response)
                                 .catch(pushAndRethrow)
                         );
                     }
@@ -146,7 +146,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 } else {
                     for (const name in secMethod) {
                         secMethodOrPromises.push(
-                            koaAuthentication(context.request, name, secMethod[name])
+                            koaAuthentication(context.request, name, secMethod[name], context.response)
                                 .catch(pushAndRethrow)
                         );
                     }

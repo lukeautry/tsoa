@@ -166,7 +166,7 @@ export function RegisterRoutes(server: any) {
 
                     for (const name in secMethod) {
                         secMethodAndPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
+                            hapiAuthentication(request, name, secMethod[name], h)
                                 .catch(pushAndRethrow)
                         );
                     }
@@ -178,7 +178,7 @@ export function RegisterRoutes(server: any) {
                 } else {
                     for (const name in secMethod) {
                         secMethodOrPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
+                            hapiAuthentication(request, name, secMethod[name], h)
                                 .catch(pushAndRethrow)
                         );
                     }
