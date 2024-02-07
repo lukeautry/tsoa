@@ -1,4 +1,4 @@
-import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
+import { Middlewares as GenericMiddlewares, Get, Route } from '@tsoa/runtime';
 
 import type { Context as KoaContext, Next as KoaNext, Middleware } from 'koa';
 
@@ -22,7 +22,7 @@ function testMiddleware(key: string) {
 @GenericMiddlewares<Middleware>(testMiddleware('route'))
 @Route('MiddlewareTestKoa')
 export class MiddlewareKoaController {
-  @Middlewares(testMiddleware('test1'))
+  @Middlewares(testMiddleware('test1'), testMiddleware('test2'))
   @Get('/test1')
   public async test1(): Promise<void> {
     return;

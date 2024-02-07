@@ -1,9 +1,13 @@
+import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 import 'mocha';
+import { resolve } from 'path';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
+import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
+import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { app } from '../fixtures/express/server';
-import { File } from '@tsoa/runtime';
 import {
   Gender,
   GenericModel,
@@ -16,10 +20,6 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
-import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
-import { state } from '../fixtures/controllers/middlewaresHierarchyController';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 
 const basePath = '/v1';
 
@@ -434,6 +434,7 @@ describe('Express Server', () => {
       (_err, _res) => {
         expect(stateOf('route')).to.be.true;
         expect(stateOf('test1')).to.be.true;
+        expect(stateOf('test2')).to.be.true;
       },
       204,
     );
@@ -444,7 +445,7 @@ describe('Express Server', () => {
     return verifyGetRequest(
       basePath + '/MiddlewareHierarchyTestExpress/test1',
       (_err, _res) => {
-        const expected = ['base', 'intermediate', 'route', 'test1'];
+        const expected = ['base', 'intermediate', 'route', 'test1', 'test2'];
         expect(state()).to.eql(expected);
       },
       204,
