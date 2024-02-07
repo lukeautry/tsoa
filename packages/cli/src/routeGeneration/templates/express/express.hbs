@@ -160,12 +160,23 @@ export function RegisterRoutes(app: Router) {
 
             try {
                 request['user'] = await Promise.any(secMethodOrPromises);
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
+
                 next();
             }
             catch(err) {
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 error.status = error.status || 401;
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
                 next(error);
             }
 

@@ -162,10 +162,20 @@ export function RegisterRoutes(router: KoaRouter) {
                 context.request['user'] = user;
             }
             catch(err) {
+                // Response was sent in middleware, abort
+                if(context.response.body) {
+                    return;
+                }
+
                 // Show most recent error as response
                 const error = failedAttempts.pop();
                 context.status = error.status || 401;
                 context.throw(context.status, error.message, error);
+            }
+
+            // Response was sent in middleware, abort
+            if(context.response.body) {
+                return;
             }
 
             if (success) {

@@ -1181,9 +1181,19 @@ describe('Express Server', () => {
       });
 
       it('returns response with header set in authentication middleware', () => {
-        return verifyGetRequest(basePath + '/SecurityTest?access_token=dfe123456', (_err, res) => {
+        return verifyGetRequest(basePath + '/SecurityTest?access_token=def123456', (_err, res) => {
           expect(res.headers['some-header']).to.equal('someValueFromAuthenticationMiddleware');
         });
+      });
+
+      it('returns custom response set in authentication middleware', () => {
+        return verifyGetRequest(
+          basePath + '/SecurityTest?access_token=ghi123456',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          401,
+        );
       });
 
       it('returns 401 for an invalid key', () => {
