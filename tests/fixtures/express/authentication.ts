@@ -19,6 +19,9 @@ export function expressAuthentication(req: express.Request, name: string, scopes
         id: 2,
         name: 'Thor',
       });
+    } else if (token === 'dfe123456') {
+      response.setHeader('some-header', 'someValueFromAuthenticationMiddleware');
+      return Promise.resolve({});
     } else {
       return Promise.reject({ message: 'api_key' });
     }

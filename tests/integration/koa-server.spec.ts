@@ -1,12 +1,12 @@
+import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 import 'mocha';
+import { resolve } from 'path';
 import * as request from 'supertest';
+import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { server } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
-import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { File } from '@tsoa/runtime';
 
 const basePath = '/v1';
 
@@ -960,6 +960,12 @@ describe('Koa Server', () => {
       return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=xyz123456', (_err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
+      });
+    });
+
+    it('returns response with header set in authentication middleware', () => {
+      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=dfe123456', (_err, res) => {
+        expect(res.headers['some-header']).to.equal('someValueFromAuthenticationMiddleware');
       });
     });
 

@@ -17,6 +17,9 @@ export function koaAuthentication(request: Request, name: string, scopes: string
         id: 2,
         name: 'Thor',
       });
+    } else if (token === 'dfe123456') {
+      response.set('some-header', 'someValueFromAuthenticationMiddleware');
+      return Promise.resolve({});
     } else {
       return Promise.reject({ message: 'api_key' });
     }
