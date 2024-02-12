@@ -1,6 +1,6 @@
 {
   "name": "@cipher-developers/tsoa",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "keywords": [
     "typescript",
