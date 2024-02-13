@@ -1,9 +1,13 @@
+import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 import 'mocha';
+import { resolve } from 'path';
 import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
+import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
+import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { app } from '../fixtures/express/server';
-import { File } from '@tsoa/runtime';
 import {
   Gender,
   GenericModel,
@@ -16,10 +20,6 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
-import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
-import { state } from '../fixtures/controllers/middlewaresHierarchyController';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 
 const basePath = '/v1';
 
@@ -1178,6 +1178,22 @@ describe('Express Server', () => {
           const model = res.body as UserResponseModel;
           expect(model.id).to.equal(2);
         });
+      });
+
+      it('returns response with header set in authentication middleware', () => {
+        return verifyGetRequest(basePath + '/SecurityTest?access_token=def123456', (_err, res) => {
+          expect(res.headers['some-header']).to.equal('someValueFromAuthenticationMiddleware');
+        });
+      });
+
+      it('returns custom response set in authentication middleware', () => {
+        return verifyGetRequest(
+          basePath + '/SecurityTest?access_token=ghi123456',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          401,
+        );
       });
 
       it('returns 401 for an invalid key', () => {

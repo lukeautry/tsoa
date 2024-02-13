@@ -1,6 +1,6 @@
 import * as express from 'express';
 
-export function expressAuthentication(req: express.Request, name: string, scopes?: string[]): Promise<any> {
+export function expressAuthentication(req: express.Request, name: string, scopes: string[] | undefined, response: express.Response): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (req.query && req.query.access_token) {
@@ -19,6 +19,12 @@ export function expressAuthentication(req: express.Request, name: string, scopes
         id: 2,
         name: 'Thor',
       });
+    } else if (token === 'def123456') {
+      response.setHeader('some-header', 'someValueFromAuthenticationMiddleware');
+      return Promise.resolve({});
+    } else if (token === 'ghi123456') {
+      response.status(401).send('some custom response');
+      return Promise.resolve();
     } else {
       return Promise.reject({ message: 'api_key' });
     }

@@ -1,6 +1,6 @@
-import { Request } from 'koa';
+import { Request, Response } from 'koa';
 
-export function koaAuthentication(request: Request, name: string, scopes?: string[]): Promise<any> {
+export function koaAuthentication(request: Request, name: string, scopes: string[] | undefined, response: Response): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (request.query && request.query.access_token) {
@@ -17,6 +17,13 @@ export function koaAuthentication(request: Request, name: string, scopes?: strin
         id: 2,
         name: 'Thor',
       });
+    } else if (token === 'def123456') {
+      response.set('some-header', 'someValueFromAuthenticationMiddleware');
+      return Promise.resolve({});
+    } else if (token === 'ghi123456') {
+      response.status = 401;
+      response.body = 'some custom response';
+      return Promise.resolve();
     } else {
       return Promise.reject({ message: 'api_key' });
     }

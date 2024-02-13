@@ -1,6 +1,6 @@
 import * as express from 'express';
 
-export function expressAuthentication(req: express.Request, name: string, scopes?: string[]): Promise<any> {
+export function expressAuthentication(req: express.Request, name: string, _scopes: string[] | undefined, response: express.Response): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (req.query && req.query.access_token) {
