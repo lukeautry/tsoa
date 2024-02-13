@@ -77,7 +77,7 @@ export function RegisterRoutes(router: KoaRouter) {
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
 
             async function {{../name}}_{{name}}(context: Context, next: Next) {
-            const args = {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
                 {{/each}}
@@ -85,7 +85,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
             let validatedArgs: any[] = [];
             try {
-              validatedArgs = templateService.getValidatedArgs(args, undefined, context, next);
+              validatedArgs = templateService.getValidatedArgs({ args, context, next });
             } catch (err) {
               const error = err as any;
               error.message ||= JSON.stringify({ fields: error.fields });
@@ -104,8 +104,13 @@ export function RegisterRoutes(router: KoaRouter) {
             const controller = new {{../name}}();
             {{/if}}
 
-            const promise = controller.{{name}}.apply(controller, validatedArgs as any);
-            return templateService.promiseHandler(controller, promise, context, {{successStatus}}, undefined);
+            return templateService.apiHandler({
+              methodName: '{{name}}',
+              controller,
+              context,
+              validatedArgs,
+              successStatus: {{successStatus}},
+            });
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}

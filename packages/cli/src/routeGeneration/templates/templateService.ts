@@ -1,15 +1,27 @@
-import { Controller, HttpStatusCodeLiteral, TsoaResponse } from "@tsoa/runtime";
+import { Controller, TsoaRoute, ValidationService } from "@tsoa/runtime";
 
-export interface TemplateService<Request, Response> {
-  promiseHandler(controllerObj: any, promise: any, response: Response, successStatus: any, next: any): any;
+export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParameters, ReturnHandlerParameters> {
+  protected validationService: ValidationService;
 
-  returnHandler(response: Response, header: any, statusCode?: number, data?: any, next?: any): any;
+  constructor(
+    protected readonly models: TsoaRoute.Models,
+  ) {
+    this.validationService = new ValidationService(models);
+  }
 
-  responder(response: Response, next?: any): TsoaResponse<HttpStatusCodeLiteral, unknown>;
+  abstract apiHandler(params: ApiHandlerParameters): Promise<any>;
 
-  getValidatedArgs(args: any, request: Request, response: Response, next?: any): any[];
-}
+  abstract getValidatedArgs(params: ValidationArgsParameters): any[];
 
-export function isController(object: any): object is Controller {
-  return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
+  protected abstract returnHandler(params: ReturnHandlerParameters): any;
+
+  protected isController(object: Controller | Object): object is Controller {
+    return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
+  }
+
+  protected buildPromise(methodName: string, controller: Controller | Object, validatedArgs: any) {
+    const prototype = Object.getPrototypeOf(controller);
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
+    return descriptor!.value.apply(controller, validatedArgs);
+  }
 }

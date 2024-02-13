@@ -1,36 +1,113 @@
-import { Request as ExRequest, Response as ExResponse } from 'express';
-import { FieldErrors, HttpStatusCodeLiteral, TsoaResponse, ValidateError, ValidationService } from '@tsoa/runtime';
+import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
-import { TemplateService, isController } from '../templateService';
+import { TemplateService } from '../templateService';
 
-export class ExpressTemplateService implements TemplateService<ExRequest, ExResponse> {
-  private readonly validationService: ValidationService;
+type ExpressApiHandlerParameters = {
+  methodName: string;
+  controller: Controller | Object;
+  response: ExResponse;
+  next: ExNext;
+  validatedArgs: any[];
+  successStatus?: number;
+};
 
+type ExpressValidationArgsParameters = {
+  args: Record<string, TsoaRoute.ParameterSchema>;
+  request: ExRequest;
+  response: ExResponse;
+};
+
+type ExpressReturnHandlerParameters = {
+  response: ExResponse;
+  headers: any;
+  statusCode?: number;
+  data?: any;
+};
+
+export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
   ) {
-    this.validationService = new ValidationService(models);
+    super(models);
   }
 
-  promiseHandler(controllerObj: any, promise: any, response: ExResponse, successStatus: any, next: any) {
-    return Promise.resolve(promise)
-      .then((data: any) => {
-        let statusCode = successStatus;
-        let headers;
-        if (isController(controllerObj)) {
-          headers = controllerObj.getHeaders();
-          statusCode = controllerObj.getStatus() || statusCode;
+  async apiHandler(params: ExpressApiHandlerParameters) {
+    const { methodName, controller, response, validatedArgs, successStatus, next } = params;
+    const promise = this.buildPromise(methodName, controller, validatedArgs);
+
+    try {
+      const data = await Promise.resolve(promise);
+      let statusCode = successStatus;
+      let headers;
+      if (this.isController(controller)) {
+        headers = controller.getHeaders();
+        statusCode = controller.getStatus() || statusCode;
+      }
+
+      this.returnHandler({ response, headers, statusCode, data });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  getValidatedArgs(params: ExpressValidationArgsParameters): any[] {
+    const { args, request, response } = params;
+
+    const fieldErrors: FieldErrors = {};
+    const values = Object.values(args).map(param => {
+      const name = param.name;
+      switch (param.in) {
+        case 'request':
+          return request;
+        case 'request-prop': {
+          const descriptor = Object.getOwnPropertyDescriptor(request, name);
+          const value = descriptor ? descriptor.value : undefined;
+          return this.validationService.ValidateParam(param, value, name, fieldErrors, undefined, this.minimalSwaggerConfig);
         }
+        case 'query':
+          return this.validationService.ValidateParam(param, request.query[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+        case 'queries':
+          return this.validationService.ValidateParam(param, request.query, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+        case 'path':
+          return this.validationService.ValidateParam(param, request.params[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+        case 'header':
+          return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, undefined, this.minimalSwaggerConfig);
+        case 'body':
+          return this.validationService.ValidateParam(param, request.body, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+        case 'body-prop':
+          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
+        case 'formData': {
+          const files = Object.values(args).filter(param => param.dataType === 'file');
+          if (files.length > 0) {
+            const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
+            const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+            return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
+          } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
+            return this.validationService.ValidateParam(param, request.files, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          } else {
+            return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          }
+        }
+        case 'res':
+          return (status: number | undefined, data: any, headers: any) => {
+            this.returnHandler({ response, headers, statusCode: status, data });
+          };
+      }
+    });
 
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-        this.returnHandler(response, headers, statusCode, data);
-      })
-      .catch((error: any) => next(error));
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new ValidateError(fieldErrors, '');
+    }
+    return values;
   }
 
-  returnHandler(response: any, headers: any = {}, statusCode?: number, data?: any) {
+  protected returnHandler(params: ExpressReturnHandlerParameters) {
+    const { response, statusCode, data } = params;
+    let { headers } = params;
+    headers = headers || {};
+
     if (response.headersSent) {
       return;
     }
@@ -47,53 +124,4 @@ export class ExpressTemplateService implements TemplateService<ExRequest, ExResp
     }
   }
 
-  responder(response: any): TsoaResponse<HttpStatusCodeLiteral, unknown> {
-    return (status, data, headers) => {
-      this.returnHandler(response, headers, status, data);
-    };
-  }
-
-  getValidatedArgs(args: any, request: ExRequest, response: ExResponse): any[] {
-    const fieldErrors: FieldErrors = {};
-    const values = Object.keys(args).map(key => {
-      const name = args[key].name;
-      switch (args[key].in) {
-        case 'request':
-          return request;
-        case 'request-prop':
-          return this.validationService.ValidateParam(args[key], (request as any)[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'query':
-          return this.validationService.ValidateParam(args[key], request.query[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'queries':
-          return this.validationService.ValidateParam(args[key], request.query, name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'path':
-          return this.validationService.ValidateParam(args[key], request.params[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'header':
-          return this.validationService.ValidateParam(args[key], request.header(name), name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'body':
-          return this.validationService.ValidateParam(args[key], request.body, name, fieldErrors, undefined, this.minimalSwaggerConfig);
-        case 'body-prop':
-          return this.validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
-        case 'formData': {
-          const formFiles = Object.keys(args).filter(argKey => args[argKey].dataType === 'file');
-          if (formFiles.length > 0) {
-            const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
-            const fileArgs = this.validationService.ValidateParam(args[key], requestFiles[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
-            return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
-          } else if (args[key].dataType === 'array' && args[key].array.dataType === 'file') {
-            return this.validationService.ValidateParam(args[key], request.files, name, fieldErrors, undefined, this.minimalSwaggerConfig);
-          } else {
-            return this.validationService.ValidateParam(args[key], request.body[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
-          }
-        }
-        case 'res':
-          return this.responder(response);
-      }
-    });
-
-    if (Object.keys(fieldErrors).length > 0) {
-      throw new ValidateError(fieldErrors, '');
-    }
-    return values;
-  }
 }
