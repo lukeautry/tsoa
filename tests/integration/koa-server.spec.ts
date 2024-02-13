@@ -246,6 +246,7 @@ describe('Koa Server', () => {
       (_err, _res) => {
         expect(stateOf('route')).to.be.true;
         expect(stateOf('test1')).to.be.true;
+        expect(stateOf('test2')).to.be.true;
       },
       204,
     );

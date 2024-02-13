@@ -1,12 +1,12 @@
+import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 import 'mocha';
+import { resolve } from 'path';
 import * as request from 'supertest';
+import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
-import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { File } from '@tsoa/runtime';
 
 const basePath = '/v1';
 
@@ -330,6 +330,7 @@ describe('Hapi Server', () => {
       (_err, _res) => {
         expect(stateOf('route')).to.be.true;
         expect(stateOf('test1')).to.be.true;
+        expect(stateOf('test2')).to.be.true;
       },
       204,
     );

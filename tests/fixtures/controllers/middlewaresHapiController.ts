@@ -1,4 +1,4 @@
-import { Route, Get, Middlewares as GenericMiddlewares } from '@tsoa/runtime';
+import { Middlewares as GenericMiddlewares, Get, Route } from '@tsoa/runtime';
 
 import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
 
@@ -22,7 +22,7 @@ function testMiddleware(key: string) {
 @GenericMiddlewares<RouteOptionsPreAllOptions>(testMiddleware('route'))
 @Route('MiddlewareTestHapi')
 export class MiddlewareHapiController {
-  @Middlewares(testMiddleware('test1'))
+  @Middlewares(testMiddleware('test1'), testMiddleware('test2'))
   @Get('/test1')
   public async test1(): Promise<void> {
     return;
