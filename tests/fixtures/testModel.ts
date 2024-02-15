@@ -67,6 +67,7 @@ export interface TestModel extends Model {
   modelsArray: TestSubModel[];
   strLiteralVal: StrLiteral;
   strLiteralArr: StrLiteral[];
+  nullableStringLiteral?: 'NULLABLE_LIT_1' | 'NULLABLE_LIT_2' | null;
   unionPrimitiveType?: 'String' | 1 | 20.0 | true | false;
   nullableUnionPrimitiveType?: 'String' | 1 | 20.0 | true | false | null;
   undefineableUnionPrimitiveType: 'String' | 1 | 20.0 | true | false | undefined;

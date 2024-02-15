@@ -4,10 +4,10 @@ import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { Swagger } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
+import * as os from 'os';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { TestModel } from '../../../fixtures/testModel';
-import * as os from 'os';
 
 describe('Definition generation', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -2852,6 +2852,20 @@ describe('Definition generation', () => {
             );
             const mappedTypedConditionalSchema = getValidatedDefinition('Partial_Conditional_string.string._a-number_.never__', currentSpec);
             expect(mappedTypedConditionalSchema).to.deep.eq(mappedConditionalSchema, `for property ${propertyName}.mappedTypedConditional`);
+          },
+          nullableStringLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema['x-nullable']).to.eq(true, `for property ${propertyName}[x-nullable]`);
+
+            expect(propertySchema).to.deep.eq({
+              type: 'string',
+              enum: ['NULLABLE_LIT_1', 'NULLABLE_LIT_2', null],
+              ['x-nullable']: true,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+              default: undefined,
+            });
           },
           typeOperators: (propertyName, propertySchema) => {
             expect(propertySchema?.properties?.keysOfAny?.$ref).to.eq('#/definitions/KeysMember', `for property ${propertyName}`);
