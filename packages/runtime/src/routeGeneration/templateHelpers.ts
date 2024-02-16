@@ -417,7 +417,7 @@ export class ValidationService {
   }
 
   public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
-    if (!schema || value === undefined) {
+    if (!schema || !Array.isArray(value)) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
         message,
@@ -428,13 +428,9 @@ export class ValidationService {
 
     let arrayValue = [] as any[];
     const previousErrors = Object.keys(fieldErrors).length;
-    if (Array.isArray(value)) {
-      arrayValue = value.map((elementValue, index) => {
-        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.', swaggerConfig);
-      });
-    } else {
-      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, name + '.', swaggerConfig)];
-    }
+    arrayValue = value.map((elementValue, index) => {
+      return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, name + '.', swaggerConfig);
+    });
 
     if (Object.keys(fieldErrors).length > previousErrors) {
       return;
