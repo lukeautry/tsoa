@@ -810,6 +810,16 @@ describe('ValidationService', () => {
       expect(error[`${name}.$2`].value).to.equal(true);
     });
 
+    it('should throw if a non-array value is provided', () => {
+      const name = 'name';
+      const value: any = 'some primitive string';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore' }, { dataType: 'string' });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid array');
+      expect(error[name].value).to.equal('some primitive string');
+    });
+
     it('should invalid array nested value', () => {
       const name = 'name';
       const value = [{ a: 123 }, { a: 'bcd' }];
