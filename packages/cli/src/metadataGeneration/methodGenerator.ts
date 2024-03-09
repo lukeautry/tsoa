@@ -189,7 +189,7 @@ export class MethodGenerator {
   }
 
   private getMethodResponses(): Tsoa.Response[] {
-    const examplesByName: Record<string, any> = {};
+    const responseExamplesByName: Record<string, any> = {};
     const decorators = this.getDecoratorsByIdentifier(this.node, 'Response');
     if (!decorators || !decorators.length) {
       return [];
@@ -197,10 +197,10 @@ export class MethodGenerator {
 
     return decorators.map(decorator => {
       const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
-      examplesByName[name] = examplesByName[name] ? [...examplesByName[name], example] : [example];
+      responseExamplesByName[name] = responseExamplesByName[name] ? [...responseExamplesByName[name], example] : [example];
       return {
         description: description || '',
-        examples: examplesByName[name] || undefined,
+        examples: responseExamplesByName[name] || undefined,
         name: name || '200',
         produces: this.getProducesAdapter(produces),
         schema: this.getSchemaFromDecorator(decorator, 0),
