@@ -189,12 +189,12 @@ export class MethodGenerator {
   }
 
   private getMethodResponses(): Tsoa.Response[] {
-    const examplesByName = {};
+    const examplesByName: Record<string, any> = {};
     const decorators = this.getDecoratorsByIdentifier(this.node, 'Response');
     if (!decorators || !decorators.length) {
       return [];
     }
-    
+
     return decorators.map(decorator => {
       const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
       examplesByName[name] = examplesByName[name] ? [...examplesByName[name], example] : [example];
