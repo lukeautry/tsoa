@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "yarn clean && yarn tsc && yarn copy-templates",
-    "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/**/*.hbs ./dist",
+    "copy-templates": "copyfiles -u 1 ./src/routeGeneration/templates/*.hbs ./dist",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "tsc": "tsc -b",
     "watch": "tsc -b -w"
