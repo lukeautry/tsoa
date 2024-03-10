@@ -1,5 +1,5 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
-import { boomify, isBoom, type Payload } from '@hapi/boom';
+import type { Payload } from '@hapi/boom';
 import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
 import { TemplateService } from '../templateService';
@@ -31,6 +31,10 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
+    private readonly hapi: {
+      boomify: Function,
+      isBoom: Function,
+    },
   ) {
     super(models);
   }
@@ -50,11 +54,11 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
       }
       return this.returnHandler({ h, headers, statusCode, data });
     } catch (error: any) {
-      if (isBoom(error)) {
+      if (this.hapi.isBoom(error)) {
         throw error;
       }
 
-      const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+      const boomErr = this.hapi.boomify(error instanceof Error ? error : new Error(error.message));
       boomErr.output.statusCode = error.status || 500;
       boomErr.output.payload = {
         name: error.name,
