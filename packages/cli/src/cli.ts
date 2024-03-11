@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import YAML from 'yamljs';
+import YAML from 'yaml';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
@@ -52,7 +52,7 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   const ext = extname(configPath);
   try {
     if (ext === '.yaml' || ext === '.yml') {
-      config = YAML.load(configPath);
+      config = YAML.parse(configPath);
     } else if (ext === '.js') {
       config = await import(`${workingDir}/${configPath}`);
     } else {
