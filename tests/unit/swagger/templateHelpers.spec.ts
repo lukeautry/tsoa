@@ -480,7 +480,46 @@ describe('ValidationService', () => {
     });
   });
 
+  describe('Boolean validate', () => {
+    it('should return true when submitted true', () => {
+      const value = true;
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      };
+      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      expect(result).to.equal(true);
+    });
 
+    it('should return false when submitted false', () => {
+      const value = false;
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      };
+      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      expect(result).to.equal(false);
+    });
+
+    it('should coerce strings to boolean values if body coercion is enabled', () => {
+      const value = 'false';
+      const minimalSwaggerConfig: AdditionalProps = {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      };
+      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      expect(result).to.equal(false);
+    });
+
+    it('should return an error a non-boolean value is provided and body coercion is disabled', () => {
+      const name = 'name';
+      const value = 'false';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateBool(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid boolean value');
+      expect(error[name].value).to.equal('false');
+    });
   });
 
   describe('Enum validate', () => {
