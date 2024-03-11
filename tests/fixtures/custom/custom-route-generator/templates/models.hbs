@@ -36,17 +36,17 @@ export function getValidatedArgs(args: any, event: any): any[] {
             case 'request':
                 return event;
             case 'request-prop':
-                return validationService.ValidateParam(args[key], event[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], event[name], name, fieldErrors, false, undefined, {{{json minimalSwaggerConfig}}});
             case 'query':
-                return validationService.ValidateParam(args[key], event.queryStringParameters[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], event.queryStringParameters[name], name, fieldErrors, false, undefined, {{{json minimalSwaggerConfig}}});
             case 'path':
-                return validationService.ValidateParam(args[key], event.pathParameters[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], event.pathParameters[name], name, fieldErrors, false, undefined, {{{json minimalSwaggerConfig}}});
             case 'header':
-                return validationService.ValidateParam(args[key], event.headers[name], name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], event.headers[name], name, fieldErrors, false, undefined, {{{json minimalSwaggerConfig}}});
             case 'body':
-                return validationService.ValidateParam(args[key], eventBody, name, fieldErrors, undefined, {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], eventBody, name, fieldErrors, true, undefined, {{{json minimalSwaggerConfig}}});
             case 'body-prop':
-                return validationService.ValidateParam(args[key], eventBody[name], name, fieldErrors, 'body.', {{{json minimalSwaggerConfig}}});
+                return validationService.ValidateParam(args[key], eventBody[name], name, fieldErrors, true, 'body.', {{{json minimalSwaggerConfig}}});
             case 'formData':
                 throw new Error('Multi-part form data not supported yet');
             case 'res':

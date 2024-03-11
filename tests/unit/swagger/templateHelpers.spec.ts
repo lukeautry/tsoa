@@ -20,6 +20,7 @@ describe('ValidationService', () => {
       const error: FieldErrors = {};
       const result = v.validateModel({
         fieldErrors: error,
+        isBodyParam: true,
         minimalSwaggerConfig,
         name: '',
         modelDefinition,
@@ -53,6 +54,7 @@ describe('ValidationService', () => {
       // Act
       v.validateModel({
         fieldErrors: errorDictionary,
+        isBodyParam: true,
         minimalSwaggerConfig,
         name: '',
         modelDefinition,
@@ -95,6 +97,7 @@ describe('ValidationService', () => {
       // Act
       v.validateModel({
         fieldErrors: errorDictionary,
+        isBodyParam: true,
         minimalSwaggerConfig,
         name: '',
         modelDefinition,
@@ -134,6 +137,7 @@ describe('ValidationService', () => {
       // Act
       const result = v.validateModel({
         fieldErrors: errorDictionary,
+        isBodyParam: true,
         minimalSwaggerConfig,
         name: '',
         modelDefinition,
@@ -159,7 +163,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, isBodyParam: true, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({});
     });
@@ -177,7 +181,15 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'throw-on-extras',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: { a: 's' }, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({
+        name: '',
+        value: { a: 's' },
+        modelDefinition,
+        fieldErrors: error,
+
+        isBodyParam: true,
+        minimalSwaggerConfig,
+      });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({ a: 's' });
     });
@@ -198,7 +210,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'throw-on-extras',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, isBodyParam: true, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({});
     });
@@ -222,7 +234,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'throw-on-extras',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: { a: 9 }, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: { a: 9 }, modelDefinition, fieldErrors: error, isBodyParam: true, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       expect(result).to.eql({ a: 9 });
     });
@@ -254,6 +266,7 @@ describe('ValidationService', () => {
         },
         'body',
         error,
+        true,
         undefined,
         { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
       );
@@ -285,6 +298,7 @@ describe('ValidationService', () => {
         },
         'body',
         error,
+        true,
         undefined,
         { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
       );
@@ -301,7 +315,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, true, undefined, minimalSwaggerConfig);
       expect(result).to.equal(666);
     });
 
@@ -312,7 +326,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, true, undefined, minimalSwaggerConfig);
       expect(result).to.equal(123);
     });
 
@@ -323,7 +337,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', {}, true, undefined, minimalSwaggerConfig);
       expect(result).to.equal(666);
     });
   });
@@ -335,7 +349,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateInt('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateInt('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.equal(Number(value));
     });
 
@@ -347,7 +361,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateInt(name, value, error, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateInt(name, value, error, true, minimalSwaggerConfig);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid integer number`);
     });
@@ -361,7 +375,7 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const validator = { minimum: { value: 10 }, maximum: { value: 12 } };
-      const result = new ValidationService({}).validateInt(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateInt(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(Number(value));
     });
 
@@ -374,7 +388,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateInt(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateInt(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`min 12`);
     });
@@ -388,7 +402,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateInt(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateInt(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`max 10`);
     });
@@ -397,7 +411,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value: any = '10';
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateInt(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      const result = new ValidationService({}).validateInt(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid integer number');
       expect(error[name].value).to.equal('10');
@@ -411,7 +425,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateFloat('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateFloat('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.equal(Number(value));
     });
 
@@ -423,7 +437,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateFloat(name, value, error, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateFloat(name, value, error, true, minimalSwaggerConfig);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid float number`);
     });
@@ -437,7 +451,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateFloat(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateFloat(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(Number(value));
     });
 
@@ -450,7 +464,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateFloat(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateFloat(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`min 12.5`);
     });
@@ -464,7 +478,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateFloat(name, value, error, minimalSwaggerConfig, validator);
+      const result = new ValidationService({}).validateFloat(name, value, error, true, minimalSwaggerConfig, validator);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`max 10.5`);
     });
@@ -473,7 +487,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value: any = '10.1';
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateFloat(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      const result = new ValidationService({}).validateFloat(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid float number');
       expect(error[name].value).to.equal('10.1');
@@ -487,7 +501,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateBool('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.equal(true);
     });
 
@@ -497,7 +511,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateBool('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.equal(false);
     });
 
@@ -507,7 +521,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateBool('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateBool('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.equal(false);
     });
 
@@ -515,7 +529,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = 'false';
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateBool(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      const result = new ValidationService({}).validateBool(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid boolean value');
       expect(error[name].value).to.equal('false');
@@ -841,7 +855,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDate('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateDate('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.deep.equal(new Date(value));
     });
 
@@ -853,7 +867,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDate(name, value, error, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateDate(name, value, error, true, minimalSwaggerConfig);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid ISO 8601 date format, i.e. YYYY-MM-DD`);
     });
@@ -866,7 +880,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDate(name, value, error, minimalSwaggerConfig, { minDate: { value: '2017-07-01' } });
+      const result = new ValidationService({}).validateDate(name, value, error, true, minimalSwaggerConfig, { minDate: { value: '2017-07-01' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minDate '2017-07-01'`);
     });
@@ -879,7 +893,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDate(name, value, error, minimalSwaggerConfig, { maxDate: { value: '2017-05-01' } });
+      const result = new ValidationService({}).validateDate(name, value, error, true, minimalSwaggerConfig, { maxDate: { value: '2017-05-01' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-05-01'`);
     });
@@ -888,7 +902,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value: any = 1234;
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateDate(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      const result = new ValidationService({}).validateDate(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
       expect(error[name].value).to.equal(1234);
@@ -902,7 +916,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDateTime('name', value, {}, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateDateTime('name', value, {}, true, minimalSwaggerConfig);
       expect(result).to.deep.equal(new Date(value));
     });
 
@@ -914,7 +928,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDateTime(name, value, error, minimalSwaggerConfig);
+      const result = new ValidationService({}).validateDateTime(name, value, error, true, minimalSwaggerConfig);
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`);
     });
@@ -927,7 +941,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDateTime(name, value, error, minimalSwaggerConfig, { minDate: { value: '2017-12-31T00:00:00' } });
+      const result = new ValidationService({}).validateDateTime(name, value, error, true, minimalSwaggerConfig, { minDate: { value: '2017-12-31T00:00:00' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minDate '2017-12-31T00:00:00'`);
     });
@@ -940,7 +954,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = new ValidationService({}).validateDateTime(name, value, error, minimalSwaggerConfig, { maxDate: { value: '2017-12-29T00:00:00' } });
+      const result = new ValidationService({}).validateDateTime(name, value, error, true, minimalSwaggerConfig, { maxDate: { value: '2017-12-29T00:00:00' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-12-29T00:00:00'`);
     });
@@ -949,7 +963,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value: any = 1234;
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateDateTime(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      const result = new ValidationService({}).validateDateTime(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
       expect(error[name].value).to.equal(1234);
@@ -959,7 +973,7 @@ describe('ValidationService', () => {
   describe('Array validate', () => {
     it('should array value', () => {
       const value = ['A', 'B', 'C'];
-      const result = new ValidationService({}).validateArray('name', value, {}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'string' });
+      const result = new ValidationService({}).validateArray('name', value, {}, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'string' });
       expect(result).to.deep.equal(value);
     });
 
@@ -967,7 +981,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = ['A', 10, true];
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' });
+      const result = new ValidationService({}).validateArray(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' });
       expect(result).to.deep.equal(undefined);
       expect(error[`${name}.$0`].message).to.equal('invalid integer number');
       expect(error[`${name}.$0`].value).to.equal('A');
@@ -986,7 +1000,7 @@ describe('ValidationService', () => {
             a: { dataType: 'string', required: true },
           },
         },
-      }).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { ref: 'ExampleModel' });
+      }).validateArray(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { ref: 'ExampleModel' });
       expect(result).to.deep.equal(undefined);
       expect(error).to.deep.equal({
         [`${name}.$0.a`]: {
@@ -1000,7 +1014,15 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [80, 10, 199];
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' }, { minItems: { value: 4 } });
+      const result = new ValidationService({}).validateArray(
+        name,
+        value,
+        error,
+        true,
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+        { dataType: 'integer' },
+        { minItems: { value: 4 } },
+      );
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`minItems 4`);
     });
@@ -1009,7 +1031,15 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [80, 10, 199];
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' }, { maxItems: { value: 2 } });
+      const result = new ValidationService({}).validateArray(
+        name,
+        value,
+        error,
+        true,
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+        { dataType: 'integer' },
+        { maxItems: { value: 2 } },
+      );
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxItems 2`);
     });
@@ -1018,7 +1048,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value = [10, 10, 20];
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' }, { uniqueItems: {} });
+      const result = new ValidationService({}).validateArray(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }, { dataType: 'integer' }, { uniqueItems: {} });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`required unique array`);
     });
@@ -1034,7 +1064,7 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const fieldErrors = {};
-      const result = v.validateArray('name', ['foo', 'bar', 'foo', 'foobar'], fieldErrors, minimalSwaggerConfig, { dataType: 'refEnum', ref: 'enumModel' });
+      const result = v.validateArray('name', ['foo', 'bar', 'foo', 'foobar'], fieldErrors, true, minimalSwaggerConfig, { dataType: 'refEnum', ref: 'enumModel' });
       expect(Object.keys(fieldErrors)).to.not.be.empty;
       expect(result).to.be.undefined;
       expect(fieldErrors).to.deep.equal({ 'name.$3': { message: "should be one of the following; ['foo','bar']", value: 'foobar' } });
@@ -1044,7 +1074,7 @@ describe('ValidationService', () => {
       const name = 'name';
       const value: any = 'some primitive string';
       const error: FieldErrors = {};
-      const result = new ValidationService({}).validateArray(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }, { dataType: 'string' });
+      const result = new ValidationService({}).validateArray(name, value, error, true, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }, { dataType: 'string' });
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid array');
       expect(error[name].value).to.equal('some primitive string');
@@ -1076,8 +1106,8 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const schema: TsoaRoute.PropertySchema = { subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeB' }] };
-      const resultA = v.validateUnion(name, { type: 'A', a: 100 }, error, minimalSwaggerConfig, schema);
-      const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, minimalSwaggerConfig, schema);
+      const resultA = v.validateUnion(name, { type: 'A', a: 100 }, error, true, minimalSwaggerConfig, schema);
+      const resultB = v.validateUnion(name, { type: 'B', b: 20 }, error, true, minimalSwaggerConfig, schema);
       expect(resultA).to.deep.equal({ type: 'A', a: 100 });
       expect(resultB).to.deep.equal({ type: 'B', b: 20 });
     });
@@ -1091,7 +1121,7 @@ describe('ValidationService', () => {
       };
       const schema: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ dataType: 'integer' }, { dataType: 'string' }], required: true, validators: { minimum: { value: 5 } } };
 
-      const result = v.validateUnion('union', 2, errors, minimalSwaggerConfig, schema);
+      const result = v.validateUnion('union', 2, errors, true, minimalSwaggerConfig, schema);
       expect(errors).to.deep.equal({
         union: {
           message: 'Could not match the union against any of the items. Issues: [{"union":{"message":"min 5","value":2}},{"union":{"message":"invalid string value","value":2}}]',
@@ -1161,7 +1191,7 @@ describe('ValidationService', () => {
 
         // Act
         const name = 'dataToValidate';
-        const validatedData = v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+        const validatedData = v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
 
         // Assert
         const expectedValues = { ...dataToValidate, dateTimeValue: new Date('2017-01-01T00:00:00') };
@@ -1175,7 +1205,7 @@ describe('ValidationService', () => {
         };
 
         const subSchemas2 = subSchemas.concat([{ ref: 'TypeAliasModelDate' }]);
-        const validatedData2 = v.validateIntersection('and', dataToValidate2, errorDictionary2, minimalSwaggerConfig, subSchemas2, name + '.');
+        const validatedData2 = v.validateIntersection('and', dataToValidate2, errorDictionary2, true, minimalSwaggerConfig, subSchemas2, name + '.');
 
         const expectedValues2 = { ...expectedValues, dateValue: new Date('2017-01-01') };
         expect(errorDictionary2).to.deep.equal({});
@@ -1241,7 +1271,7 @@ describe('ValidationService', () => {
         };
         const withUnionErrorDictionary1 = {};
 
-        withUnionValidationService.validateIntersection('union', withUnionDataToValidate1, withUnionErrorDictionary1, minimalSwaggerConfig, withUnionsSubSchemas, withUnionsName + '.');
+        withUnionValidationService.validateIntersection('union', withUnionDataToValidate1, withUnionErrorDictionary1, true, minimalSwaggerConfig, withUnionsSubSchemas, withUnionsName + '.');
 
         // Assert
         expect(withUnionErrorDictionary1).to.deep.equal({
@@ -1263,6 +1293,7 @@ describe('ValidationService', () => {
           'union',
           withUnionDataToValidate2,
           withUnionErrorDictionary2,
+          true,
           minimalSwaggerConfig,
           withUnionsSubSchemas,
           withUnionsName + '.',
@@ -1283,6 +1314,7 @@ describe('ValidationService', () => {
           'union',
           withUnionDataToValidate3,
           withUnionErrorDictionary3,
+          true,
           minimalSwaggerConfig,
           withUnionsSubSchemas,
           withUnionsName + '.',
@@ -1415,7 +1447,7 @@ describe('ValidationService', () => {
 
           // Act
           const errorDictionary: FieldErrors = {};
-          const validatedData = v.validateIntersection('and', input, errorDictionary, minimalSwaggerConfig, subSchemas, refName + '.');
+          const validatedData = v.validateIntersection('and', input, errorDictionary, true, minimalSwaggerConfig, subSchemas, refName + '.');
 
           // Assert
           expect(errorDictionary, `validInputs[${i}] returned errors`).to.deep.equal({});
@@ -1450,7 +1482,7 @@ describe('ValidationService', () => {
 
             // Act
             const errorDictionary: FieldErrors = {};
-            const validatedData = v.validateIntersection('and', invalidInput, errorDictionary, minimalSwaggerConfig, subSchemas, refName + '.');
+            const validatedData = v.validateIntersection('and', invalidInput, errorDictionary, true, minimalSwaggerConfig, subSchemas, refName + '.');
 
             // Assert
             expect(errorDictionary, `${name}[${i}] did not return errors`).to.not.deep.equal({});
@@ -1476,7 +1508,7 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const fieldErrors: FieldErrors = {};
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, true, undefined, minimalSwaggerConfig);
       expect(Object.keys(fieldErrors)).to.be.empty;
       expect(result).to.be.undefined;
     });
@@ -1489,7 +1521,7 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const fieldErrors: FieldErrors = {};
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, true, undefined, minimalSwaggerConfig);
       expect(Object.keys(fieldErrors)).to.not.be.empty;
       expect(result).to.be.undefined;
     });
@@ -1507,7 +1539,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, isBodyParam: true, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       // use JSON strngify to allow comparison of undefined values
       expect(JSON.stringify(result, replacer)).to.equal(JSON.stringify(result));
@@ -1526,7 +1558,7 @@ describe('ValidationService', () => {
         noImplicitAdditionalProperties: 'ignore',
         bodyCoercion: true,
       };
-      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, minimalSwaggerConfig });
+      const result = v.validateModel({ name: '', value: {}, modelDefinition, fieldErrors: error, isBodyParam: true, minimalSwaggerConfig });
       expect(Object.keys(error)).to.be.empty;
       // use JSON strngify to allow comparison of undefined values
       expect(JSON.stringify(result, replacer)).to.equal(JSON.stringify({ a: undefined }, replacer));
@@ -1540,7 +1572,7 @@ describe('ValidationService', () => {
         bodyCoercion: true,
       };
       const fieldErrors: FieldErrors = {};
-      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, undefined, minimalSwaggerConfig);
+      const result = new ValidationService({}).ValidateParam(propertySchema, value, 'defaultProp', fieldErrors, true, undefined, minimalSwaggerConfig);
       expect(Object.keys(fieldErrors)).to.not.be.empty;
       expect(result).to.be.undefined;
     });

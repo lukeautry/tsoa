@@ -54,7 +54,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, unionProperty, name + '.');
+  const result = v.validateUnion('or', dataToValidate, errorDictionary, true, minimalSwaggerConfig, unionProperty, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -108,7 +108,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
 
   // Act
   const name = 'dataToValidate';
-  v.validateUnion('or', dataToValidate, errorDictionary, minimalSwaggerConfig, unionPropertySchema, name + '.');
+  v.validateUnion('or', dataToValidate, errorDictionary, true, minimalSwaggerConfig, unionPropertySchema, name + '.');
 
   // Assert
   const errorKeys = Object.keys(errorDictionary);
@@ -170,7 +170,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
 
   // Act
   const name = 'dataToValidate';
-  v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+  v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
 
   // Assert
   const errorKeys = Object.keys(errorDictionary);
@@ -263,7 +263,7 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({
@@ -324,7 +324,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -382,7 +382,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateIntersection('and', dataToValidate, errorDictionary, minimalSwaggerConfig, subSchemas, name + '.');
+  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -465,7 +465,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -561,7 +561,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -604,7 +604,7 @@ it('should throw if properties on nOl are missing', () => {
     bodyCoercion: true,
   };
 
-  v.validateNestedObjectLiteral('nested', {}, errors, minimalSwaggerConfig, schema, true, 'Model.');
+  v.validateNestedObjectLiteral('nested', {}, errors, true, minimalSwaggerConfig, schema, true, 'Model.');
 
   expect(Object.keys(errors).length).to.equal(2);
 
@@ -615,7 +615,7 @@ it('should throw if properties on nOl are missing', () => {
 
   const nestedErrors = {};
 
-  v.validateNestedObjectLiteral('nested', { street: {} }, nestedErrors, minimalSwaggerConfig, schema, true, 'Model.');
+  v.validateNestedObjectLiteral('nested', { street: {} }, nestedErrors, true, minimalSwaggerConfig, schema, true, 'Model.');
 
   expect(nestedErrors).to.deep.eq({
     'Model.nested.country': {

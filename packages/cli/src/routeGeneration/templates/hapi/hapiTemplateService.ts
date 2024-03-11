@@ -24,7 +24,7 @@ type HapiReturnHandlerParameters = {
   h: HResponse;
   headers: any;
   statusCode?: number;
-  data?: any
+  data?: any;
 };
 
 export class HapiTemplateService extends TemplateService<HapiApiHandlerParameters, HapiValidationArgsParameters, HapiReturnHandlerParameters> {
@@ -76,27 +76,27 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
         case 'request-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(request, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, false, undefined, this.minimalSwaggerConfig);
         }
         case 'query':
-          return this.validationService.ValidateParam(param, request.query[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query[name], name, errorFields, false, undefined, this.minimalSwaggerConfig);
         case 'queries':
-          return this.validationService.ValidateParam(param, request.query, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query, name, errorFields, false, undefined, this.minimalSwaggerConfig);
         case 'path':
-          return this.validationService.ValidateParam(param, request.params[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.params[name], name, errorFields, false, undefined, this.minimalSwaggerConfig);
         case 'header':
-          return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, false, undefined, this.minimalSwaggerConfig);
         case 'body':
-          return this.validationService.ValidateParam(param, request.payload, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.payload, name, errorFields, true, undefined, this.minimalSwaggerConfig);
         case 'body-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(request.payload, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, 'body.', this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, true, 'body.', this.minimalSwaggerConfig);
         }
         case 'formData': {
           const descriptor = Object.getOwnPropertyDescriptor(request.payload, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, false, undefined, this.minimalSwaggerConfig);
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
