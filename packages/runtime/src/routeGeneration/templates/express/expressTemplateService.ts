@@ -1,6 +1,9 @@
 import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
-import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
+import { Controller } from '../../../interfaces/controller';
+import { FieldErrors } from '../../templateHelpers';
+import { TsoaRoute } from '../../tsoa-route';
+import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
 
 type ExpressApiHandlerParameters = {

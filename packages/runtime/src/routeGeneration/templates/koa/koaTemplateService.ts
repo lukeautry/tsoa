@@ -1,6 +1,9 @@
 import type { Context, Next } from 'koa';
-import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
+import { Controller } from '../../../interfaces/controller';
+import { FieldErrors } from '../../templateHelpers';
+import { TsoaRoute } from '../../tsoa-route';
+import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
 
 const koaTsoaResponsed = Symbol('@tsoa:template_service:koa:is_responsed');
