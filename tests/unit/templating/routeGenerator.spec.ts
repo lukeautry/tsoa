@@ -40,6 +40,7 @@ describe('RouteGenerator', () => {
           },
         },
         {
+          bodyCoercion: true,
           entryFile: 'mockEntryFile',
           routesDir: 'mockRoutesDir',
           noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -86,6 +87,7 @@ describe('RouteGenerator', () => {
           referenceTypeMap: {},
         },
         {
+          bodyCoercion: true,
           entryFile: 'mockEntryFile',
           routesDir: '.',
           noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -111,6 +113,7 @@ describe('RouteGenerator', () => {
           referenceTypeMap: {},
         },
         {
+          bodyCoercion: true,
           entryFile: 'mockEntryFile',
           routesDir: '.',
           noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -137,6 +140,7 @@ describe('RouteGenerator', () => {
           referenceTypeMap: {},
         },
         {
+          bodyCoercion: true,
           entryFile: 'mockEntryFile',
           routesDir: '.',
           noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -163,6 +167,7 @@ describe('RouteGenerator', () => {
           referenceTypeMap: {},
         },
         {
+          bodyCoercion: true,
           entryFile: 'mockEntryFile',
           routesDir: '.',
           noImplicitAdditionalProperties: 'silently-remove-extras',

@@ -71,19 +71,19 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
 
   /**
    * Generate the CDK infrastructure stack that ties API Gateway to generated Handlers
-   * @returns 
+   * @returns
    */
   async generateStack(): Promise<void> {
     // This would need to generate a CDK "Stack" that takes the tsoa metadata as input and generates a valid serverless CDK infrastructure stack from template
     const templateFileName = this.options.stackTemplate;
     const fileName = `${this.options.routesDir}/stack.ts`;
     const context = this.buildContext() as unknown as any;
-    context.controllers = context.controllers.map((controller) => {
-      controller.actions = controller.actions.map((action) => {
+    context.controllers = context.controllers.map(controller => {
+      controller.actions = controller.actions.map(action => {
         return {
           ...action,
-          handlerFolderName:`${this.options.routesDir}/${controller.name}`
-        }
+          handlerFolderName: `${this.options.routesDir}/${controller.name}`,
+        };
       });
       return controller;
     });
@@ -95,7 +95,7 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
     const fileName = `${this.options.routesDir}/${this.options.modelsFileName || 'models.ts'}`;
     const context = {
       models: this.buildModels(),
-      minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
+      minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties, bodyCoercion: this.options.bodyCoercion },
     };
     await this.generateFileFromTemplate(templateFileName, context, fileName);
   }

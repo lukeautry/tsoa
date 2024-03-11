@@ -43,6 +43,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name';
@@ -96,6 +97,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'throw-on-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name' as keyof TypeAliasModel1;
@@ -155,6 +157,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'throw-on-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
@@ -239,6 +242,7 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'throw-on-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
@@ -308,6 +312,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
@@ -365,6 +370,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'ignore',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
@@ -438,6 +444,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
@@ -533,6 +540,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   const v = new ValidationService(models);
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'ignore',
+    bodyCoercion: true,
   };
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
@@ -593,6 +601,7 @@ it('should throw if properties on nOl are missing', () => {
   const errors = {};
   const minimalSwaggerConfig: AdditionalProps = {
     noImplicitAdditionalProperties: 'silently-remove-extras',
+    bodyCoercion: true,
   };
 
   v.validateNestedObjectLiteral('nested', {}, errors, minimalSwaggerConfig, schema, true, 'Model.');

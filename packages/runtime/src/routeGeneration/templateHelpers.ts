@@ -1,19 +1,19 @@
 import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
-import { ValidationConfig } from './validationConfig';
+import { AdditionalProps } from './additionalProps';
 import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
 
 // for backwards compatibility with custom templates
-export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: ValidationConfig) {
+export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: AdditionalProps) {
   return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent, swaggerConfig);
 }
 
 export class ValidationService {
   constructor(private readonly models: TsoaRoute.Models) {}
 
-  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: ValidationConfig) {
+  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: AdditionalProps) {
     let value = rawValue;
     // If undefined is allowed type, we can move to value validation
     if (value === undefined && property.dataType !== 'undefined') {
@@ -46,21 +46,21 @@ export class ValidationService {
       case 'string':
         return this.validateString(name, value, fieldErrors, property.validators as StringValidator, parent);
       case 'boolean':
-        return this.validateBool(name, value, fieldErrors, property.validators as BooleanValidator, parent);
+        return this.validateBool(name, value, fieldErrors, minimalSwaggerConfig, property.validators as BooleanValidator, parent);
       case 'integer':
       case 'long':
-        return this.validateInt(name, value, fieldErrors, property.validators as IntegerValidator, parent);
+        return this.validateInt(name, value, fieldErrors, minimalSwaggerConfig, property.validators as IntegerValidator, parent);
       case 'float':
       case 'double':
-        return this.validateFloat(name, value, fieldErrors, property.validators as FloatValidator, parent);
+        return this.validateFloat(name, value, fieldErrors, minimalSwaggerConfig, property.validators as FloatValidator, parent);
       case 'enum':
         return this.validateEnum(name, value, fieldErrors, property.enums, parent);
       case 'array':
         return this.validateArray(name, value, fieldErrors, minimalSwaggerConfig, property.array, property.validators as ArrayValidator, parent);
       case 'date':
-        return this.validateDate(name, value, fieldErrors, property.validators as DateValidator, parent);
+        return this.validateDate(name, value, fieldErrors, minimalSwaggerConfig, property.validators as DateValidator, parent);
       case 'datetime':
-        return this.validateDateTime(name, value, fieldErrors, property.validators as DateTimeValidator, parent);
+        return this.validateDateTime(name, value, fieldErrors, minimalSwaggerConfig, property.validators as DateTimeValidator, parent);
       case 'buffer':
         return this.validateBuffer(name, value);
       case 'union':
@@ -85,7 +85,7 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    swaggerConfig: ValidationConfig,
+    swaggerConfig: AdditionalProps,
     nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
@@ -154,8 +154,8 @@ export class ValidationService {
     return value;
   }
 
-  public validateInt(name: string, value: any, fieldErrors: FieldErrors, validators?: IntegerValidator, parent = '') {
-    if (!validator.isInt(String(value))) {
+  public validateInt(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, validators?: IntegerValidator, parent = '') {
+    if ((swaggerConfig.bodyCoercion === false && typeof value !== 'number') || !validator.isInt(String(value))) {
       let message = `invalid integer number`;
       if (validators) {
         if (validators.isInt && validators.isInt.errorMsg) {
@@ -197,8 +197,8 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateFloat(name: string, value: any, fieldErrors: FieldErrors, validators?: FloatValidator, parent = '') {
-    if (!validator.isFloat(String(value))) {
+  public validateFloat(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, validators?: FloatValidator, parent = '') {
+    if ((swaggerConfig.bodyCoercion === false && typeof value !== 'number') || !validator.isFloat(String(value))) {
       let message = 'invalid float number';
       if (validators) {
         if (validators.isFloat && validators.isFloat.errorMsg) {
@@ -263,8 +263,8 @@ export class ValidationService {
     return members[enumMatchIndex];
   }
 
-  public validateDate(name: string, value: any, fieldErrors: FieldErrors, validators?: DateValidator, parent = '') {
-    if (!validator.isISO8601(String(value), { strict: true })) {
+  public validateDate(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, validators?: DateValidator, parent = '') {
+    if ((swaggerConfig.bodyCoercion === false && typeof value !== 'string') || !validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
@@ -300,8 +300,8 @@ export class ValidationService {
     return dateValue;
   }
 
-  public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, validators?: DateTimeValidator, parent = '') {
-    if (!validator.isISO8601(String(value), { strict: true })) {
+  public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, validators?: DateTimeValidator, parent = '') {
+    if ((swaggerConfig.bodyCoercion === false && typeof value !== 'string') || !validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
@@ -381,18 +381,21 @@ export class ValidationService {
     return stringValue;
   }
 
-  public validateBool(name: string, value: any, fieldErrors: FieldErrors, validators?: BooleanValidator, parent = '') {
-    if (value === undefined || value === null) {
-      return false;
-    }
+  public validateBool(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, validators?: BooleanValidator, parent = '') {
     if (value === true || value === false) {
       return value;
     }
-    if (String(value).toLowerCase() === 'true') {
-      return true;
-    }
-    if (String(value).toLowerCase() === 'false') {
-      return false;
+
+    if (swaggerConfig.bodyCoercion === true) {
+      if (value === undefined || value === null) {
+        return false;
+      }
+      if (String(value).toLowerCase() === 'true') {
+        return true;
+      }
+      if (String(value).toLowerCase() === 'false') {
+        return false;
+      }
     }
 
     const message = validators && validators.isBoolean && validators.isBoolean.errorMsg ? validators.isBoolean.errorMsg : `invalid boolean value`;
@@ -416,8 +419,8 @@ export class ValidationService {
     return;
   }
 
-  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
-    if (!schema || value === undefined) {
+  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
+    if ((swaggerConfig.bodyCoercion === false && !Array.isArray(value)) || !schema || value === undefined) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
         message,
@@ -481,7 +484,7 @@ export class ValidationService {
     return Buffer.from(value);
   }
 
-  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, property: TsoaRoute.PropertySchema, parent = ''): any {
+  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, property: TsoaRoute.PropertySchema, parent = ''): any {
     if (!property.subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -513,7 +516,7 @@ export class ValidationService {
     return;
   }
 
-  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
+  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -527,7 +530,10 @@ export class ValidationService {
 
     subSchemas.forEach(subSchema => {
       const subFieldError: FieldErrors = {};
-      const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, { noImplicitAdditionalProperties: 'silently-remove-extras' });
+      const cleanValue = this.ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, parent, {
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        bodyCoercion: swaggerConfig.bodyCoercion,
+      });
       cleanValues = {
         ...cleanValues,
         ...cleanValue,
@@ -556,6 +562,7 @@ export class ValidationService {
         fieldErrors: requiredPropError,
         minimalSwaggerConfig: {
           noImplicitAdditionalProperties: 'ignore',
+          bodyCoercion: swaggerConfig.bodyCoercion,
         },
       });
       return requiredPropError;
@@ -673,7 +680,7 @@ export class ValidationService {
     return { dataType: 'refObject', properties: { ...a.properties, ...b.properties }, additionalProperties: a.additionalProperties || b.additionalProperties || false };
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: ValidationConfig): string[] {
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: AdditionalProps): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
@@ -685,7 +692,7 @@ export class ValidationService {
     }
   }
 
-  public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: ValidationConfig }): any {
+  public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: AdditionalProps }): any {
     const { name, value, modelDefinition, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
     const previousErrors = Object.keys(fieldErrors).length;
 
