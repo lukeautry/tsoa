@@ -14,7 +14,7 @@ import { koaAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-import type { Context, Next, Middleware } from 'koa';
+import type { Context, Next, Middleware, Request as KRequest, Response as KResponse } from 'koa';
 import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
 {{#if esm}}
@@ -24,6 +24,10 @@ const multer = require('@koa/multer');
 {{/if}}
 const upload = multer({{{json multerOpts}}});
 {{/if}}
+{{#if authenticationModule}}
+const koaAuthenticationRecasted = koaAuthentication as (req: KRequest, securityName: string, scopes?: string[], res?: KResponse) => Promise<any>;
+{{/if}}
+
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -140,7 +144,7 @@ export function RegisterRoutes(router: KoaRouter) {
 
                     for (const name in secMethod) {
                         secMethodAndPromises.push(
-                            koaAuthentication(context.request, name, secMethod[name], context.response)
+                            koaAuthenticationRecasted(context.request, name, secMethod[name], context.response)
                                 .catch(pushAndRethrow)
                         );
                     }
@@ -150,7 +154,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 } else {
                     for (const name in secMethod) {
                         secMethodOrPromises.push(
-                            koaAuthentication(context.request, name, secMethod[name], context.response)
+                            koaAuthenticationRecasted(context.request, name, secMethod[name], context.response)
                                 .catch(pushAndRethrow)
                         );
                     }
