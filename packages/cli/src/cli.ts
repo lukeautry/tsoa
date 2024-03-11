@@ -175,6 +175,7 @@ type RouteGeneratorImpl = new (metadata: Tsoa.Metadata, options: ExtendedRoutesC
 export interface ExtendedRoutesConfig extends RoutesConfig {
   entryFile: Config['entryFile'];
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
+  bodyCoercion: Exclude<RoutesConfig['bodyCoercion'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
   multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
@@ -201,12 +202,16 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
   }
 
   const noImplicitAdditionalProperties = determineNoImplicitAdditionalSetting(config.noImplicitAdditionalProperties);
+
+  const bodyCoercion = config.routes.bodyCoercion ?? true;
+
   config.routes.basePath = config.routes.basePath || '/';
 
   return {
     ...config.routes,
     entryFile: config.entryFile,
     noImplicitAdditionalProperties,
+    bodyCoercion,
     controllerPathGlobs: config.controllerPathGlobs,
     multerOpts: config.multerOpts,
     rootSecurity: config.spec.rootSecurity,

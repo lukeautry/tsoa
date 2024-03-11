@@ -1,19 +1,19 @@
 import validator from 'validator';
 import { assertNever } from '../utils/assertNever';
-import { AdditionalProps } from './additionalProps';
+import { ValidationConfig } from './validationConfig';
 import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
 
 // for backwards compatibility with custom templates
-export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: AdditionalProps) {
+export function ValidateParam(property: TsoaRoute.PropertySchema, value: any, generatedModels: TsoaRoute.Models, name = '', fieldErrors: FieldErrors, parent = '', swaggerConfig: ValidationConfig) {
   return new ValidationService(generatedModels).ValidateParam(property, value, name, fieldErrors, parent, swaggerConfig);
 }
 
 export class ValidationService {
   constructor(private readonly models: TsoaRoute.Models) {}
 
-  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: AdditionalProps) {
+  public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, parent = '', minimalSwaggerConfig: ValidationConfig) {
     let value = rawValue;
     // If undefined is allowed type, we can move to value validation
     if (value === undefined && property.dataType !== 'undefined') {
@@ -85,7 +85,7 @@ export class ValidationService {
     name: string,
     value: any,
     fieldErrors: FieldErrors,
-    swaggerConfig: AdditionalProps,
+    swaggerConfig: ValidationConfig,
     nestedProperties: { [name: string]: TsoaRoute.PropertySchema } | undefined,
     additionalProperties: TsoaRoute.PropertySchema | boolean | undefined,
     parent: string,
@@ -416,7 +416,7 @@ export class ValidationService {
     return;
   }
 
-  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
+  public validateArray(name: string, value: any[], fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, schema?: TsoaRoute.PropertySchema, validators?: ArrayValidator, parent = '') {
     if (!schema || value === undefined) {
       const message = validators && validators.isArray && validators.isArray.errorMsg ? validators.isArray.errorMsg : `invalid array`;
       fieldErrors[parent + name] = {
@@ -481,7 +481,7 @@ export class ValidationService {
     return Buffer.from(value);
   }
 
-  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, property: TsoaRoute.PropertySchema, parent = ''): any {
+  public validateUnion(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, property: TsoaRoute.PropertySchema, parent = ''): any {
     if (!property.subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -513,7 +513,7 @@ export class ValidationService {
     return;
   }
 
-  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: AdditionalProps, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
+  public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, swaggerConfig: ValidationConfig, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
     if (!subSchemas) {
       throw new Error(
         'internal tsoa error: ' +
@@ -673,7 +673,7 @@ export class ValidationService {
     return { dataType: 'refObject', properties: { ...a.properties, ...b.properties }, additionalProperties: a.additionalProperties || b.additionalProperties || false };
   }
 
-  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: AdditionalProps): string[] {
+  private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[], config: ValidationConfig): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
     if (modelDefinition.additionalProperties) {
@@ -685,7 +685,7 @@ export class ValidationService {
     }
   }
 
-  public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: AdditionalProps }): any {
+  public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; parent?: string; minimalSwaggerConfig: ValidationConfig }): any {
     const { name, value, modelDefinition, fieldErrors, parent = '', minimalSwaggerConfig: swaggerConfig } = input;
     const previousErrors = Object.keys(fieldErrors).length;
 

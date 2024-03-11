@@ -50,12 +50,11 @@ export interface Config {
    */
   multerOpts?: MulterOpts;
 
-
   /*
    * OpenAPI number type to be used for TypeScript's 'number', when there isn't a type annotation
    * @default double
    */
-  defaultNumberType?: 'double' | 'float' | 'integer' | 'long'
+  defaultNumberType?: 'double' | 'float' | 'integer' | 'long';
 }
 
 /**
@@ -258,4 +257,11 @@ export interface RoutesConfig {
    * @default false
    */
   esm?: boolean;
+
+  /*
+   * Whether to implicitly coerce body parameters into an accepted type.
+   *
+   * @default true
+   */
+  bodyCoercion?: boolean;
 }

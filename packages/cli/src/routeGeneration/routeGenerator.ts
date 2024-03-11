@@ -6,7 +6,10 @@ import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
 import { fsExists, fsReadFile } from '../utils/fs';
 
 export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig> {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly options: Config) {}
+  constructor(
+    protected readonly metadata: Tsoa.Metadata,
+    protected readonly options: Config,
+  ) {}
 
   /**
    * This is the entrypoint for a generator to create a custom set of routes
@@ -103,8 +106,8 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               parameters: parameterObjs,
               path: normalisedMethodPath,
               uploadFile: uploadFilesWithDifferentFieldParameter.length > 0,
-              uploadFileName: uploadFilesWithDifferentFieldParameter.map((parameter) => ({
-                  'name': parameter.name,
+              uploadFileName: uploadFilesWithDifferentFieldParameter.map(parameter => ({
+                name: parameter.name,
               })),
               uploadFiles: !!uploadFilesParameter,
               uploadFilesName: uploadFilesParameter?.name,
@@ -119,7 +122,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
       }),
       environment: process.env,
       iocModule,
-      minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
+      minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties, bodyCoercion: this.options.bodyCoercion },
       models: this.buildModels(),
       useFileUploads: this.metadata.controllers.some(controller =>
         controller.methods.some(
