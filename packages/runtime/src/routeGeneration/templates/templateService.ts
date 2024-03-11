@@ -1,4 +1,6 @@
-import { Controller, TsoaRoute, ValidationService } from "@tsoa/runtime";
+import { Controller } from '../../interfaces/controller';
+import { TsoaRoute } from '../tsoa-route';
+import { ValidationService } from '../templateHelpers';
 
 export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParameters, ReturnHandlerParameters> {
   protected validationService: ValidationService;

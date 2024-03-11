@@ -15,6 +15,7 @@ export * from './interfaces/iocModule';
 export * from './interfaces/file';
 export * from './decorators/response';
 export * from './metadataGeneration/tsoa';
+export * from './routeGeneration/templates';
 export * from './routeGeneration/templateHelpers';
 export * from './routeGeneration/tsoa-route';
 export * from './utils/assertNever';

@@ -1,7 +1,10 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
 import type { Payload } from '@hapi/boom';
-import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
+import { Controller } from '../../../interfaces/controller';
+import { FieldErrors } from '../../templateHelpers';
+import { TsoaRoute } from '../../tsoa-route';
+import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
 
 const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
@@ -24,7 +27,7 @@ type HapiReturnHandlerParameters = {
   h: HResponse;
   headers: any;
   statusCode?: number;
-  data?: any
+  data?: any;
 };
 
 export class HapiTemplateService extends TemplateService<HapiApiHandlerParameters, HapiValidationArgsParameters, HapiReturnHandlerParameters> {
@@ -32,8 +35,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
     private readonly hapi: {
-      boomify: Function,
-      isBoom: Function,
+      boomify: Function;
+      isBoom: Function;
     },
   ) {
     super(models);
