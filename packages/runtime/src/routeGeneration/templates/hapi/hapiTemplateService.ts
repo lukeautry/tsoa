@@ -1,7 +1,10 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import { Controller, FieldErrors, TsoaRoute, ValidateError } from '@tsoa/runtime';
 
+import { Controller } from '../../../interfaces/controller';
+import { FieldErrors } from '../../templateHelpers';
+import { TsoaRoute } from '../../tsoa-route';
+import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
 
 const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
