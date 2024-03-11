@@ -392,6 +392,16 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`max 10`);
     });
+
+    it('should return an error if bodyCoercion is false and a non-number value is provided', () => {
+      const name = 'name';
+      const value: any = '10';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateInt(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid integer number');
+      expect(error[name].value).to.equal('10');
+    });
   });
 
   describe('Float validate', () => {
@@ -458,6 +468,19 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`max 10.5`);
     });
+
+    it('should return an error if bodyCoercion is false and a non-number value is provided', () => {
+      const name = 'name';
+      const value: any = '10.1';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateFloat(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid float number');
+      expect(error[name].value).to.equal('10.1');
+    });
+  });
+
+
   });
 
   describe('Enum validate', () => {
@@ -821,6 +844,16 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-05-01'`);
     });
+
+    it('should return an error if bodyCoercion is false and a non-string value is provided', () => {
+      const name = 'name';
+      const value: any = 1234;
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateDate(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
+      expect(error[name].value).to.equal(1234);
+    });
   });
 
   describe('DateTime validate', () => {
@@ -871,6 +904,16 @@ describe('ValidationService', () => {
       const result = new ValidationService({}).validateDateTime(name, value, error, minimalSwaggerConfig, { maxDate: { value: '2017-12-29T00:00:00' } });
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`maxDate '2017-12-29T00:00:00'`);
+    });
+
+    it('should return an error if bodyCoercion is false and a non-string value is provided', () => {
+      const name = 'name';
+      const value: any = 1234;
+      const error: FieldErrors = {};
+      const result = new ValidationService({}).validateDateTime(name, value, error, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(result).to.deep.equal(undefined);
+      expect(error[name].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+      expect(error[name].value).to.equal(1234);
     });
   });
 
@@ -958,7 +1001,7 @@ describe('ValidationService', () => {
       expect(fieldErrors).to.deep.equal({ 'name.$3': { message: "should be one of the following; ['foo','bar']", value: 'foobar' } });
     });
 
-    it('should throw if bodyCoercion is false and a non-array value is provided', () => {
+    it('should return an error if bodyCoercion is false and a non-array value is provided', () => {
       const name = 'name';
       const value: any = 'some primitive string';
       const error: FieldErrors = {};
