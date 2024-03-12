@@ -4,10 +4,10 @@ import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { Swagger, Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
+import * as os from 'os';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { TestModel } from '../../fixtures/testModel';
-import * as os from 'os';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -4424,6 +4424,20 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               },
               `for property ${propertyName}.separateField3.omitted`,
             );
+          },
+          nullableStringLiteral: (propertyName, propertySchema) => {
+            expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+            expect(propertySchema.nullable).to.eq(true, `for property ${propertyName}[x-nullable]`);
+
+            expect(propertySchema).to.deep.eq({
+              type: 'string',
+              enum: ['NULLABLE_LIT_1', 'NULLABLE_LIT_2', null],
+              nullable: true,
+              description: undefined,
+              example: undefined,
+              format: undefined,
+              default: undefined,
+            });
           },
         };
 
