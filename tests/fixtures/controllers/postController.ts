@@ -75,6 +75,14 @@ export class PostTestController {
     return [fileA, fileB];
   }
 
+  @Post('MixedFormDataWithFile')
+  public async mixedFormDataWithFile(
+    @FormField('username') username: string,
+    @UploadedFile('avatar') avatar: File,
+  ): Promise<{ username: string; avatar: File; }> {
+    return { username, avatar };
+  }
+
   /**
    *
    * @param aFile File description of multipart
