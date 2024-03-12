@@ -83,15 +83,14 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
         case 'formData': {
           const files = Object.values(args).filter(param => param.dataType === 'file');
-          if (files.length > 0) {
+          if (param.dataType === 'file' && files.length > 0) {
             const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
             const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
             return this.validationService.ValidateParam(param, request.files, name, fieldErrors, undefined, this.minimalSwaggerConfig);
-          } else {
-            return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
           }
+          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
