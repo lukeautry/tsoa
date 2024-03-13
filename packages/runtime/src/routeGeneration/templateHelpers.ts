@@ -90,6 +90,10 @@ export class ValidationService {
     }
   }
 
+  public hasCorrectJsType(value: any, type: 'object' | 'boolean' | 'number' | 'string', isBodyParam: boolean, bodyCoercion: boolean) {
+    return !isBodyParam || bodyCoercion || typeof value === type;
+  }
+
   public validateNestedObjectLiteral(
     name: string,
     value: any,
@@ -165,7 +169,7 @@ export class ValidationService {
   }
 
   public validateInt(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, swaggerConfig: AdditionalProps, validators?: IntegerValidator, parent = '') {
-    if ((isBodyParam && swaggerConfig.bodyCoercion === false && typeof value !== 'number') || !validator.isInt(String(value))) {
+    if (!this.hasCorrectJsType(value, 'number', isBodyParam, swaggerConfig.bodyCoercion) || !validator.isInt(String(value))) {
       let message = `invalid integer number`;
       if (validators) {
         if (validators.isInt && validators.isInt.errorMsg) {
@@ -208,7 +212,7 @@ export class ValidationService {
   }
 
   public validateFloat(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, swaggerConfig: AdditionalProps, validators?: FloatValidator, parent = '') {
-    if ((isBodyParam && swaggerConfig.bodyCoercion === false && typeof value !== 'number') || !validator.isFloat(String(value))) {
+    if (!this.hasCorrectJsType(value, 'number', isBodyParam, swaggerConfig.bodyCoercion) || !validator.isFloat(String(value))) {
       let message = 'invalid float number';
       if (validators) {
         if (validators.isFloat && validators.isFloat.errorMsg) {
@@ -274,7 +278,7 @@ export class ValidationService {
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, swaggerConfig: AdditionalProps, validators?: DateValidator, parent = '') {
-    if ((isBodyParam && swaggerConfig.bodyCoercion === false && typeof value !== 'string') || !validator.isISO8601(String(value), { strict: true })) {
+    if (!this.hasCorrectJsType(value, 'string', isBodyParam, swaggerConfig.bodyCoercion) || !validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
@@ -311,7 +315,7 @@ export class ValidationService {
   }
 
   public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, swaggerConfig: AdditionalProps, validators?: DateTimeValidator, parent = '') {
-    if ((isBodyParam && swaggerConfig.bodyCoercion === false && typeof value !== 'string') || !validator.isISO8601(String(value), { strict: true })) {
+    if (!this.hasCorrectJsType(value, 'string', isBodyParam, swaggerConfig.bodyCoercion) || !validator.isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
