@@ -39,7 +39,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "yarn run eslint --ext .ts --fix",
     "watch": "lerna run watch",
-    "lerna": "lerna"
+    "lerna": "lerna",
+    "typedocs": "typedoc --options ./typedoc.json"
   },
   "dependencies": {},
   "devDependencies": {
@@ -51,7 +52,8 @@
     "lerna": "^8.0.1",
     "lint-staged": "^15.2.0",
     "prettier": "^3.1.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.25.12"
   },
   "resolutions": {
     "typescript": "^5.2.2"

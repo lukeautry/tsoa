@@ -1,14 +1,14 @@
-import { merge as mergeAnything } from 'merge-anything'
+import { Swagger, Tsoa, assertNever } from '@tsoa/runtime';
+import { merge as mergeAnything } from 'merge-anything';
 import { merge as deepMerge } from 'ts-deepmerge';
-import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 
 import { ExtendedSpecConfig } from '../cli';
 import { isVoidType } from '../utils/isVoidType';
+import { UnspecifiedObject } from '../utils/unspecifiedObject';
+import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
-import { UnspecifiedObject } from '../utils/unspecifiedObject';
-import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 
 /**
  * TODO:
@@ -20,7 +20,10 @@ import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
  * Also accept OpenAPI 3.0.0 metadata, like components/securitySchemes instead of securityDefinitions
  */
 export class SpecGenerator3 extends SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {
+  constructor(
+    protected readonly metadata: Tsoa.Metadata,
+    protected readonly config: ExtendedSpecConfig,
+  ) {
     super(metadata, config);
   }
 
@@ -660,6 +663,13 @@ export class SpecGenerator3 extends SpecGenerator {
         if (swaggerType.$ref) {
           return { allOf: [swaggerType], nullable };
         }
+
+        // Note that null must be explicitly included in the list of enum values. Using nullable: true alone is not enough here.
+        // https://swagger.io/docs/specification/data-models/enums/
+        if (swaggerType.enum) {
+          swaggerType.enum.push(null);
+        }
+
         return { ...(title && { title }), ...swaggerType, nullable };
       } else {
         return { ...(title && { title }), anyOf: actualSwaggerTypes, nullable };

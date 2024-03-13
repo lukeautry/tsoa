@@ -1560,6 +1560,25 @@ describe('Express Server', () => {
       });
     });
 
+    it('can post mixed form data content with file', () => {
+      const formData = {
+        username: 'test',
+        avatar: '@../tsconfig.json',
+      };
+      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFile`, formData, (_err, res) => {
+        const file = res.body.avatar;
+        const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+        const returnedBuffer = Buffer.from(file.buffer);
+        expect(res.body.username).to.equal(formData.username);
+        expect(file).to.not.be.undefined;
+        expect(file.fieldname).to.be.not.undefined;
+        expect(file.originalname).to.be.not.undefined;
+        expect(file.encoding).to.be.not.undefined;
+        expect(file.mimetype).to.equal('application/json');
+        expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+      });
+    });
+
     function verifyFileUploadRequest(
       path: string,
       formData: any,

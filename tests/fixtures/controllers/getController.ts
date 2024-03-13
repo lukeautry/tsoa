@@ -1,24 +1,24 @@
 ///<reference path="../tsoaTestModule.d.ts" />
+import { Controller, Example, Get, OperationId, Queries, Query, Request, Res, Response, Route, SuccessResponse, Tags, TsoaResponse } from '@tsoa/runtime';
 import { Readable } from 'stream';
-import { Controller, Example, Get, OperationId, Query, Request, Response, Route, SuccessResponse, Tags, Res, TsoaResponse, Queries } from '@tsoa/runtime';
+import TsoaTest from 'tsoaTest';
 import '../duplicateTestModel';
 import {
   GenericModel,
   GetterClass,
   GetterInterface,
   GetterInterfaceHerited,
+  IndexedValue,
+  IndexedValueGeneric,
+  IndexedValueReference,
+  IndexedValueTypeReference,
+  ParenthesizedIndexedValue,
+  SimpleClassWithToJSON,
   TestClassModel,
   TestModel,
   TestSubModel,
-  SimpleClassWithToJSON,
-  IndexedValue,
-  IndexedValueReference,
-  ParenthesizedIndexedValue,
-  IndexedValueGeneric,
-  IndexedValueTypeReference,
 } from '../testModel';
 import { ModelService } from './../services/modelService';
-import TsoaTest from 'tsoaTest';
 
 export const PathFromConstant = 'PathFromConstantValue';
 export enum EnumPaths {
@@ -66,6 +66,7 @@ export class GetTestController extends Controller {
     strLiteralVal: 'Foo',
     stringArray: ['string one', 'string two'],
     stringValue: 'a string',
+    nullableStringLiteral: 'NULLABLE_LIT_1',
     undefineableUnionPrimitiveType: undefined,
     undefinedValue: undefined,
   })

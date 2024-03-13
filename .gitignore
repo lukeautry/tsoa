@@ -8,3 +8,4 @@ customRoutes.ts
 *.swp
 yarn-error.log
 tsconfig.tsbuildinfo
+.typedoc
