@@ -1560,22 +1560,45 @@ describe('Express Server', () => {
       });
     });
 
-    it('can post mixed form data content with file', () => {
+    it('can post mixed form data content with file and not providing optional file', () => {
       const formData = {
         username: 'test',
         avatar: '@../tsconfig.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFile`, formData, (_err, res) => {
+      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
         const file = res.body.avatar;
         const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
         const returnedBuffer = Buffer.from(file.buffer);
         expect(res.body.username).to.equal(formData.username);
+        expect(res.body.optionalAvatar).to.undefined;
         expect(file).to.not.be.undefined;
         expect(file.fieldname).to.be.not.undefined;
         expect(file.originalname).to.be.not.undefined;
         expect(file.encoding).to.be.not.undefined;
         expect(file.mimetype).to.equal('application/json');
         expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+      });
+    });
+
+    it('can post mixed form data content with file and provides optional file', () => {
+      const formData = {
+        username: 'test',
+        avatar: '@../tsconfig.json',
+        optionalAvatar: '@../package.json',
+      };
+      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+        expect(res.body.username).to.equal(formData.username);
+        for (const fieldName of ['avatar', 'optionalAvatar']) {
+          const file = res.body[fieldName];
+          const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+          const returnedBuffer = Buffer.from(file.buffer);
+          expect(file).to.not.be.undefined;
+          expect(file.fieldname).to.be.not.undefined;
+          expect(file.originalname).to.be.not.undefined;
+          expect(file.encoding).to.be.not.undefined;
+          expect(file.mimetype).to.equal('application/json');
+          expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
       });
     });
 
