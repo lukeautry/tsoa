@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { TsoaRoute, AdditionalProps, ValidateError, FieldErrors, ValidationService } from '@tsoa/runtime';
+import { TsoaRoute, ValidateError, FieldErrors, ValidationService } from '@tsoa/runtime';
 import { TypeAliasModel1, TypeAliasModel2 } from '../../fixtures/testModel';
 
 it('ValidateError should be an instanceof ValidateError', () => {
@@ -40,11 +40,10 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name';
   const dataToValidate: TypeAliasModel1 = {
@@ -54,7 +53,7 @@ it('should allow additionalProperties (on a union) if noImplicitAdditionalProper
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateUnion('or', dataToValidate, errorDictionary, true, minimalSwaggerConfig, unionProperty, name + '.');
+  const result = v.validateUnion('or', dataToValidate, errorDictionary, true, unionProperty, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -94,11 +93,10 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'throw-on-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'I am the bad key name' as keyof TypeAliasModel1;
   const dataToValidate: TypeAliasModel1 = {
@@ -108,7 +106,7 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
 
   // Act
   const name = 'dataToValidate';
-  v.validateUnion('or', dataToValidate, errorDictionary, true, minimalSwaggerConfig, unionPropertySchema, name + '.');
+  v.validateUnion('or', dataToValidate, errorDictionary, true, unionPropertySchema, name + '.');
 
   // Assert
   const errorKeys = Object.keys(errorDictionary);
@@ -154,11 +152,10 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'throw-on-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const expectedErrorMsg = `Could not match intersection against any of the possible combinations: [["value1","value2"]]`;
@@ -170,7 +167,7 @@ it('should throw if the data has additionalProperties (on a intersection) if noI
 
   // Act
   const name = 'dataToValidate';
-  v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
+  v.validateIntersection('and', dataToValidate, errorDictionary, true, subSchemas, name + '.');
 
   // Assert
   const errorKeys = Object.keys(errorDictionary);
@@ -239,11 +236,10 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'throw-on-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
     name: '',
@@ -263,7 +259,7 @@ it('should throw if the data has additionalProperties (on a nested Object) if no
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({
@@ -309,11 +305,10 @@ it('should not throw if the data has additionalProperties (on a intersection) if
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
@@ -324,7 +319,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
+  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, subSchemas, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -367,11 +362,10 @@ it('should not throw if the data has additionalProperties (on a intersection) if
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'ignore',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const nameOfAdditionalProperty = 'extraKeyName' as keyof (TypeAliasModel1 & TypeAliasModel2); // pretend this is fine
   const dataToValidate: TypeAliasModel1 & TypeAliasModel2 = {
@@ -382,7 +376,7 @@ it('should not throw if the data has additionalProperties (on a intersection) if
 
   // Act
   const name = 'dataToValidate';
-  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, minimalSwaggerConfig, subSchemas, name + '.');
+  const result = v.validateIntersection('and', dataToValidate, errorDictionary, true, subSchemas, name + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -441,11 +435,10 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
     name: '',
@@ -465,7 +458,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -537,11 +530,10 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
       additionalProperties: false,
     },
   };
-  const v = new ValidationService(models);
-  const minimalSwaggerConfig: AdditionalProps = {
+  const v = new ValidationService(models, {
     noImplicitAdditionalProperties: 'ignore',
     bodyCoercion: true,
-  };
+  });
   const errorDictionary: FieldErrors = {};
   const dataToValidate = {
     name: '',
@@ -561,7 +553,7 @@ it('should not throw if the data has additionalProperties (on a nested Object) i
   };
 
   // Act
-  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, minimalSwaggerConfig, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
+  const result = v.validateNestedObjectLiteral('objLiteral', dataToValidate, errorDictionary, true, models[refName].properties.objLiteral.nestedProperties, false, refName + '.');
 
   // Assert
   expect(errorDictionary).to.deep.eq({});
@@ -596,15 +588,17 @@ it('should throw if properties on nOl are missing', () => {
     },
   };
 
-  const v = new ValidationService({});
+  const v = new ValidationService(
+    {},
+    {
+      noImplicitAdditionalProperties: 'silently-remove-extras',
+      bodyCoercion: true,
+    },
+  );
 
   const errors = {};
-  const minimalSwaggerConfig: AdditionalProps = {
-    noImplicitAdditionalProperties: 'silently-remove-extras',
-    bodyCoercion: true,
-  };
 
-  v.validateNestedObjectLiteral('nested', {}, errors, true, minimalSwaggerConfig, schema, true, 'Model.');
+  v.validateNestedObjectLiteral('nested', {}, errors, true, schema, true, 'Model.');
 
   expect(Object.keys(errors).length).to.equal(2);
 
@@ -615,7 +609,7 @@ it('should throw if properties on nOl are missing', () => {
 
   const nestedErrors = {};
 
-  v.validateNestedObjectLiteral('nested', { street: {} }, nestedErrors, true, minimalSwaggerConfig, schema, true, 'Model.');
+  v.validateNestedObjectLiteral('nested', { street: {} }, nestedErrors, true, schema, true, 'Model.');
 
   expect(nestedErrors).to.deep.eq({
     'Model.nested.country': {

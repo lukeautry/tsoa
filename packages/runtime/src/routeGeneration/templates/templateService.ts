@@ -1,14 +1,16 @@
 import { Controller } from '../../interfaces/controller';
 import { TsoaRoute } from '../tsoa-route';
 import { ValidationService } from '../templateHelpers';
+import { AdditionalProps } from '../additionalProps';
 
 export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParameters, ReturnHandlerParameters> {
   protected validationService: ValidationService;
 
   constructor(
     protected readonly models: TsoaRoute.Models,
+    protected readonly config: AdditionalProps,
   ) {
-    this.validationService = new ValidationService(models);
+    this.validationService = new ValidationService(models, config);
   }
 
   abstract apiHandler(params: ApiHandlerParameters): Promise<any>;
