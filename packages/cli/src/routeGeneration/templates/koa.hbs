@@ -17,11 +17,7 @@ import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 import type { Context, Next, Request as KRequest, Response as KResponse } from 'koa';
 import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
-{{#if esm}}
-import multer from '@koa/multer';
-{{else}}
-const multer = require('@koa/multer');
-{{/if}}
+{{#if esm}}import multer from '@koa/multer'{{else}}const multer = require('@koa/multer'){{/if}};
 const upload = multer({{{json multerOpts}}});
 {{/if}}
 {{#if authenticationModule}}
@@ -32,28 +28,26 @@ const koaAuthenticationRecasted = koaAuthentication as (req: KRequest, securityN
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
-    {{#each models}}
-    "{{@key}}": {
-        {{#if enums}}
-        "dataType": "refEnum",
-        "enums": {{{json enums}}},
-        {{/if}}
-        {{#if properties}}
-        "dataType": "refObject",
-        "properties": {
-            {{#each properties}}
-            "{{@key}}": {{{json this}}},
-            {{/each}}
-        },
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
-        {{#if type}}
-        "dataType": "refAlias",
-        "type": {{{json type}}},
-        {{/if}}
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}"{{@key}}": {{{json this}}},{{/each}}
     },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  {{/each}}
 };
 const templateService = new KoaTemplateService(
   models,
@@ -66,62 +60,59 @@ const templateService = new KoaTemplateService(
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 export function RegisterRoutes(router: KoaRouter) {
-    // ###########################################################################################################
-    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
-    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
-    // ###########################################################################################################
-    {{#each controllers}}
-    {{#each actions}}
-        router.{{method}}('{{fullPath}}',
-            ...templateService.middlewares({
-              controller: {{../name}},
-              method: {{../name}}.prototype.{{name}},
-              security: {{json security}} as Array<TsoaRoute.Security>,
-              uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
-              singleUploadFileFields: {{json uploadFileName}},
-              filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
-            }),
+  // ###########################################################################################################
+  //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+  //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+  // ###########################################################################################################
+{{#each controllers}}{{#each actions}}
+  const handler_{{../name}}_{{name}} = async (context: Context, next: Next) => {
+    const args: Record<string, TsoaRoute.ParameterSchema> = {
+      {{#each parameters}}{{@key}}: {{{json this}}},{{/each}}
+    };
 
-            async function {{../name}}_{{name}}(context: Context, next: Next) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                {{#each parameters}}
-                    {{@key}}: {{{json this}}},
-                {{/each}}
-            };
+    let validatedArgs: any[] = [];
+    try {
+      validatedArgs = templateService.getValidatedArgs({ args, context, next });
+    } catch (err) {
+      const error = err as any;
+      error.message ||= JSON.stringify({ fields: error.fields });
+      context.status = error.status;
+      context.throw(context.status, error.message, error);
+    }
 
-            let validatedArgs: any[] = [];
-            try {
-              validatedArgs = templateService.getValidatedArgs({ args, context, next });
-            } catch (err) {
-              const error = err as any;
-              error.message ||= JSON.stringify({ fields: error.fields });
-              context.status = error.status;
-              context.throw(context.status, error.message, error);
-            }
+  {{#if ../../iocModule}}
+    const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
 
-            {{#if ../../iocModule}}
-            const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
+    const controller: any = await container.get<{{../name}}>({{../name}});
+    if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+    }
+  {{else}}
+    const controller = new {{../name}}();
+  {{/if}}
 
-            const controller: any = await container.get<{{../name}}>({{../name}});
-            if (typeof controller['setStatus'] === 'function') {
-                controller.setStatus(undefined);
-            }
-            {{else}}
-            const controller = new {{../name}}();
-            {{/if}}
-
-            return templateService.apiHandler({
-              methodName: '{{name}}',
-              controller,
-              context,
-              validatedArgs,
-              successStatus: {{successStatus}},
-            });
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
-    {{/each}}
+    return templateService.apiHandler({
+      methodName: '{{name}}',
+      controller,
+      context,
+      validatedArgs,
+      successStatus: {{successStatus}},
+    });
+  };
+  router.{{method}}(
+    '{{fullPath}}',
+    ...templateService.middlewares({
+      controller: {{../name}},
+      method: {{../name}}.prototype.{{name}},
+      security: {{json security}} as Array<TsoaRoute.Security>,
+      uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
+      singleUploadFileFields: {{json uploadFileName}},
+      filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
+    }),
+    handler_{{../name}}_{{name}},
+  );
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+{{/each}}{{/each}}
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

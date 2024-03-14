@@ -16,11 +16,7 @@ import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import type { Request as ExRequest, Response as ExResponse, Router } from 'express';
 {{#if useFileUploads}}
-{{#if esm}}
-import multer from 'multer';
-{{else}}
-const multer = require('multer');
-{{/if}}
+{{#if esm}}import multer from 'multer'{{else}}const multer = require('multer'){{/if}};
 const upload = multer({{{json multerOpts}}});
 {{/if}}
 
@@ -32,28 +28,26 @@ const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
-    {{#each models}}
-    "{{@key}}": {
-        {{#if enums}}
-        "dataType": "refEnum",
-        "enums": {{{json enums}}},
-        {{/if}}
-        {{#if properties}}
-        "dataType": "refObject",
-        "properties": {
-            {{#each properties}}
-            "{{@key}}": {{{json this}}},
-            {{/each}}
-        },
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
-        {{#if type}}
-        "dataType": "refAlias",
-        "type": {{{json type}}},
-        {{/if}}
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}"{{@key}}": {{{json this}}},{{/each}}
     },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  {{/each}}
 };
 const templateService = new ExpressTemplateService(
   models,
@@ -66,62 +60,57 @@ const templateService = new ExpressTemplateService(
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 export function RegisterRoutes(app: Router) {
-    // ###########################################################################################################
-    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
-    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
-    // ###########################################################################################################
-    {{#each controllers}}
-    {{#each actions}}
-        app.{{method}}('{{fullPath}}',
-            ...templateService.middlewares({
-              controller: {{../name}},
-              method: {{../name}}.prototype.{{name}},
-              security: {{json security }} as Array<TsoaRoute.Security>,
-              uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
-              singleUploadFileFields: {{json uploadFileName}},
-              filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
-            }),
+  // ###########################################################################################################
+  //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+  //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+  // ###########################################################################################################
+{{#each controllers}}{{#each actions}}
+  const handler_{{../name}}_{{name}} = {{#if ../../iocModule}}async {{/if}}(request: ExRequest, response: ExResponse, next: any) => {
+    const args: Record<string, TsoaRoute.ParameterSchema> = {
+      {{#each parameters}}{{@key}}: {{{json this}}},{{/each}}
+    };
 
-            {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                {{#each parameters}}
-                    {{@key}}: {{{json this}}},
-                {{/each}}
-            };
+    let validatedArgs: any[] = [];
+    try {
+      validatedArgs = templateService.getValidatedArgs({ args, request, response });
 
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    {{#if ../../iocModule}}
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+      const controller: any = await container.get<{{../name}}>({{../name}});
+      if (typeof controller['setStatus'] === 'function') {
+      controller.setStatus(undefined);
+      }
+    {{else}}
+      const controller = new {{../name}}();
+    {{/if}}
 
-              {{#if ../../iocModule}}
-                const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-                const controller: any = await container.get<{{../name}}>({{../name}});
-                if (typeof controller['setStatus'] === 'function') {
-                controller.setStatus(undefined);
-                }
-              {{else}}
-                const controller = new {{../name}}();
-              {{/if}}
-
-              templateService.apiHandler({
-                methodName: '{{name}}',
-                controller,
-                response,
-                next,
-                validatedArgs,
-                successStatus: {{successStatus}},
-              });
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
-    {{/each}}
+      templateService.apiHandler({
+        methodName: '{{name}}',
+        controller,
+        response,
+        next,
+        validatedArgs,
+        successStatus: {{successStatus}},
+      });
+    } catch (err) {
+      return next(err);
+    }
+  };
+  app.{{method}}(
+    '{{fullPath}}',
+    ...templateService.middlewares({
+      controller: {{../name}},
+      method: {{../name}}.prototype.{{name}},
+      security: {{json security }} as Array<TsoaRoute.Security>,
+      uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
+      singleUploadFileFields: {{json uploadFileName}},
+      filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
+    }),
+    handler_{{../name}}_{{name}},
+  );
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+{{/each}}{{/each}}
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
