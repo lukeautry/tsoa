@@ -1,5 +1,6 @@
-import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext, RequestHandler } from 'express';
 
+import { fetchMiddlewares } from '../../../decorators/middlewares';
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
@@ -126,4 +127,26 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     }
   }
 
+  middlewares(meta: {
+    controller: Controller | Object;
+    method: Object;
+    uploadInstance?: any;
+    singleUploadFileFields: Array<{ name: string }>;
+    filesUploadFieldName?: string;
+  }): RequestHandler[] {
+    const middlewares: RequestHandler[] = [];
+
+    if (meta.uploadInstance) {
+      if (meta.singleUploadFileFields.length > 0) {
+        middlewares.push(meta.uploadInstance.fields(meta.singleUploadFileFields));
+      } else if (meta.filesUploadFieldName) {
+        middlewares.push(meta.uploadInstance.array(meta.filesUploadFieldName));
+      }
+    }
+
+    middlewares.push(...fetchMiddlewares<RequestHandler>(meta.controller));
+    middlewares.push(...fetchMiddlewares<RequestHandler>(meta.method));
+
+    return middlewares;
+  }
 }

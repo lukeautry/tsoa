@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { TsoaRoute, fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+import { TsoaRoute, KoaTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -70,14 +70,13 @@ export function RegisterRoutes(router: KoaRouter) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
-            {{/if}}
-            ...(fetchMiddlewares<Middleware>({{../name}})),
-            ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
+            ...templateService.middlewares({
+              controller: {{../name}},
+              method: {{../name}}.prototype.{{name}},
+              uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
+              singleUploadFileFields: {{json uploadFileName}},
+              filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
+            }),
 
             async function {{../name}}_{{name}}(context: Context, next: Next) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {

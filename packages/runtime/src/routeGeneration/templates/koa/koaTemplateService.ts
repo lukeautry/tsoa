@@ -1,5 +1,6 @@
-import type { Context, Next } from 'koa';
+import type { Context, Middleware, Next } from 'koa';
 
+import { fetchMiddlewares } from '../../../decorators/middlewares';
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
@@ -139,5 +140,28 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
       return next ? next() : context;
     }
     return undefined;
+  }
+
+  middlewares(meta: {
+    controller: Controller | Object;
+    method: Object;
+    uploadInstance?: any;
+    singleUploadFileFields: Array<{ name: string }>;
+    filesUploadFieldName?: string;
+  }): Middleware[] {
+    const middlewares: Middleware[] = [];
+
+    if (meta.uploadInstance) {
+      if (meta.singleUploadFileFields.length > 0) {
+        middlewares.push(meta.uploadInstance.fields(meta.singleUploadFileFields));
+      } else if (meta.filesUploadFieldName) {
+        middlewares.push(meta.uploadInstance.array(meta.filesUploadFieldName));
+      }
+    }
+
+    middlewares.push(...fetchMiddlewares<Middleware>(meta.controller));
+    middlewares.push(...fetchMiddlewares<Middleware>(meta.method));
+
+    return middlewares;
   }
 }

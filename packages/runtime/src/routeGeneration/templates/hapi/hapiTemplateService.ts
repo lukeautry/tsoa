@@ -1,6 +1,8 @@
-import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
+import { Readable } from 'stream';
+import { Request as HRequest, ResponseToolkit as HResponse, RouteOptionsPreAllOptions } from '@hapi/hapi';
 import type { Payload } from '@hapi/boom';
 
+import { fetchMiddlewares } from '../../../decorators/middlewares';
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
@@ -143,5 +145,107 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     });
 
     return response;
+  }
+
+  /**
+   *
+   * @param meta.singleUploadFileFields array string of field names where payload stores a single file(File).
+   * @param meta.filesUploadFieldName string of field name where payload stores files(File[]).
+   */
+  middlewares(meta: {
+    controller: Controller | Object;
+    method: Object;
+    singleUploadFileFields: string[];
+    filesUploadFieldName?: string;
+  }): RouteOptionsPreAllOptions[] {
+    const middlewares: RouteOptionsPreAllOptions[] = [];
+
+    if (meta.singleUploadFileFields.length > 0) {
+      meta.singleUploadFileFields.forEach((fieldName) => {
+        middlewares.push({ method: this.fileUploadMiddleware(fieldName) });
+      });
+    } else if (meta.filesUploadFieldName) {
+      middlewares.push({ method: this.fileUploadMiddleware(meta.filesUploadFieldName, true) });
+    }
+
+    middlewares.push(...fetchMiddlewares<RouteOptionsPreAllOptions>(meta.controller));
+    middlewares.push(...fetchMiddlewares<RouteOptionsPreAllOptions>(meta.method));
+
+    return middlewares;
+  }
+
+  payload(meta: {
+    singleUploadFileFields: string[];
+    filesUploadFieldName?: string;
+  }): any {
+    if (meta.singleUploadFileFields.length > 0 || meta.filesUploadFieldName) {
+      return {
+        output: 'stream',
+        parse: true,
+        multipart: true,
+        allow: 'multipart/form-data',
+      };
+    }
+
+    return undefined;
+  }
+
+  private fileUploadMiddleware(fieldName: string, multiple: boolean = false) {
+    return (request: HRequest, h: HResponse) => {
+      const payload = request.payload as Record<string, string | object | Readable | Buffer>;
+      const file: Readable = payload[fieldName] as Readable;
+      if (!file) {
+        return h.response(`${fieldName} is a required file(s).`).code(400);
+      }
+
+      if (!multiple) {
+        return this.calculateFileInfo(fieldName, file)
+          .then(fileMetadata => {
+            payload[fieldName] = fileMetadata;
+            return h.continue;
+          })
+          .catch(err => h.response(err.toString()).code(500));
+      } else {
+        const files = file as unknown as Readable[];
+        const promises = files.map((reqFile: any) => this.calculateFileInfo(fieldName, reqFile));
+        return Promise.all(promises)
+          .then(filesMetadata => {
+            payload[fieldName] = filesMetadata;
+            return h.continue;
+          })
+          .catch(err => h.response(err.toString()).code(500));
+      }
+    };
+  }
+
+  private calculateFileInfo(fieldName: string, reqFile: any): Promise<{
+    fieldname: string;
+    originalname: string;
+    buffer: Buffer;
+    encoding: string;
+    mimetype: string;
+    filename: string;
+    size: number;
+  }> {
+    return new Promise((resolve) => {
+      const originalname = reqFile.hapi.filename;
+      const headers = reqFile.hapi.headers;
+      const contentTransferEncoding = headers['content-transfer-encoding'];
+      const encoding = contentTransferEncoding &&
+        contentTransferEncoding[0] &&
+        contentTransferEncoding[0].toLowerCase() || '7bit';
+      const mimetype = headers['content-type'] || 'text/plain';
+      const buffer = reqFile._data;
+
+      return resolve({
+        fieldname: fieldName,
+        originalname,
+        buffer,
+        encoding,
+        mimetype,
+        filename: originalname,
+        size: buffer.toString().length,
+      })
+    });
   }
 }

@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { TsoaRoute, fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
+import { TsoaRoute, ExpressTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -70,14 +70,13 @@ export function RegisterRoutes(app: Router) {
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
-            {{/if}}
-            ...(fetchMiddlewares<RequestHandler>({{../name}})),
-            ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
+            ...templateService.middlewares({
+              controller: {{../name}},
+              method: {{../name}}.prototype.{{name}},
+              uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
+              singleUploadFileFields: {{json uploadFileName}},
+              filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
+            }),
 
             {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
