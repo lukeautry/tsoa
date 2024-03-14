@@ -39,6 +39,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     private readonly hapi: {
       boomify: Function;
       isBoom: Function;
+      authMiddleware?: Function;
     },
   ) {
     super(models);
@@ -155,10 +156,15 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
   middlewares(meta: {
     controller: Controller | Object;
     method: Object;
+    security: TsoaRoute.Security[];
     singleUploadFileFields: string[];
     filesUploadFieldName?: string;
   }): RouteOptionsPreAllOptions[] {
     const middlewares: RouteOptionsPreAllOptions[] = [];
+
+    if (meta.security.length > 0 && this.hapi.authMiddleware) {
+      middlewares.push({ method: this.authenticateMiddleware(meta.security) });
+    }
 
     if (meta.singleUploadFileFields.length > 0) {
       meta.singleUploadFileFields.forEach((fieldName) => {
@@ -214,6 +220,57 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
             return h.continue;
           })
           .catch(err => h.response(err.toString()).code(500));
+      }
+    };
+  }
+
+  private authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+    return async (request: any) => {
+      const failedAttempts: any[] = [];
+      const pushAndRethrow = (error: any) => {
+        failedAttempts.push(error);
+        throw error;
+      };
+
+      const secMethodOrPromises: Array<Promise<any>> = [];
+      for (const secMethod of security) {
+        if (Object.keys(secMethod).length > 1) {
+          const secMethodAndPromises: Array<Promise<any>> = [];
+
+          for (const name in secMethod) {
+            secMethodAndPromises.push(
+              this.hapi.authMiddleware!(request, name, secMethod[name]).catch(pushAndRethrow)
+            );
+          }
+
+          secMethodOrPromises.push(Promise.all(secMethodAndPromises).then(users => users[0]));
+        } else {
+          for (const name in secMethod) {
+            secMethodOrPromises.push(
+              this.hapi.authMiddleware!(request, name, secMethod[name]).catch(pushAndRethrow)
+            );
+          }
+        }
+      }
+
+      try {
+        request['user'] = await Promise.any(secMethodOrPromises);
+        return request['user'];
+      } catch(err) {
+        // Show most recent error as response
+        const error = failedAttempts.pop();
+        if (this.hapi.isBoom(error)) {
+          throw error;
+        }
+
+        const boomErr = this.hapi.boomify(error instanceof Error ? error : new Error(error.message));
+        boomErr.output.statusCode = error.status || 401;
+        boomErr.output.payload = {
+          name: error.name,
+          message: error.message,
+        } as unknown as Payload;
+
+        throw boomErr;
       }
     };
   }

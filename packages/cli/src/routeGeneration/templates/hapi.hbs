@@ -15,7 +15,7 @@ import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
+import type { Request, ResponseToolkit } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -46,7 +46,11 @@ const models: TsoaRoute.Models = {
 const templateService = new HapiTemplateService(
   models,
   {{{ json minimalSwaggerConfig }}},
-  { boomify, isBoom },
+  {
+    boomify,
+    isBoom,
+    authMiddleware: {{#if authenticationModule }}hapiAuthentication{{^}}undefined{{/if}},
+  },
 );
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -61,6 +65,7 @@ export function RegisterRoutes(server: any) {
         const meta_{{../name}}_{{name}} = {
           controller: {{../name}},
           method: {{../name}}.prototype.{{name}},
+          security: {{json security}} as Array<TsoaRoute.Security>,
           singleUploadFileFields: [{{#each uploadFileName }}'{{name}}',{{/each}}],
           filesUploadFieldName: {{#if uploadFiles}}'{{ uploadFilesName }}'{{^}}undefined{{/if}},
         };
@@ -68,14 +73,7 @@ export function RegisterRoutes(server: any) {
             method: '{{method}}',
             path: '{{fullPath}}',
             options: {
-                pre: [
-                    {{#if security.length}}
-                    {
-                      method: authenticateMiddleware({{json security}})
-                    },
-                    {{/if}}
-                    ...templateService.middlewares(meta_{{../name}}_{{name}}),
-                ],
+                pre: templateService.middlewares(meta_{{../name}}_{{name}}),
                 payload: templateService.payload(meta_{{../name}}_{{name}}),
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
                     const args: Record<string, TsoaRoute.ParameterSchema> = {
@@ -127,78 +125,7 @@ export function RegisterRoutes(server: any) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
     {{/each}}
-
-    {{#if useSecurity}}
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return async function runAuthenticationMiddleware(request: any, h: any) {
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            // keep track of failed auth attempts so we can hand back the most
-            // recent one.  This behavior was previously existing so preserving it
-            // here
-            const failedAttempts: any[] = [];
-            const pushAndRethrow = (error: any) => {
-                failedAttempts.push(error);
-                throw error;
-            };
-
-            const secMethodOrPromises: Promise<any>[] = [];
-            for (const secMethod of security) {
-                if (Object.keys(secMethod).length > 1) {
-                    const secMethodAndPromises: Promise<any>[] = [];
-
-                    for (const name in secMethod) {
-                        secMethodAndPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
-                    }
-
-                    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
-                        .then(users => { return users[0]; }));
-                } else {
-                    for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
-                    }
-                }
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            try {
-                request['user'] = await Promise.any(secMethodOrPromises);
-                return request['user'];
-            }
-            catch(err) {
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                if (isBoom(error)) {
-                    throw error;
-                }
-
-                const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-                boomErr.output.statusCode = error.status || 401;
-                boomErr.output.payload = {
-                    name: error.name,
-                    message: error.message,
-                } as unknown as Payload;
-
-                throw boomErr;
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        }
-    }
-    {{/if}}
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
