@@ -52,7 +52,8 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   const ext = extname(configPath);
   try {
     if (ext === '.yaml' || ext === '.yml') {
-      config = YAML.parse(configPath);
+      const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
+      config = YAML.parse(configRaw.toString('utf8'));
     } else if (ext === '.js') {
       config = await import(`${workingDir}/${configPath}`);
     } else {
