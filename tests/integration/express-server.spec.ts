@@ -24,295 +24,307 @@ import {
 const basePath = '/v1';
 
 describe('Express Server', () => {
-  it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath + '/', (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
+  describe('RootController', () => {
+    it('can handle get request to root controller`s path', () => {
+      return verifyGetRequest(basePath + '/', (_err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      });
     });
-  });
 
-  it('can handle get request to root controller`s method path', () => {
-    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-    });
-  });
-
-  it('can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest', (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-    });
-  });
-
-  it('can handle get request with path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest/Current', (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-    });
-  });
-
-  it('respects toJSON for class serialization', () => {
-    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
-      const getterClass = res.body;
-      expect(getterClass).to.haveOwnProperty('a');
-      expect(getterClass.a).to.equal('hello, world');
-      expect(getterClass).to.not.haveOwnProperty('b');
-    });
-  });
-
-  it('can handle get request with collection return value', () => {
-    return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
-      const models = res.body as TestModel[];
-      expect(models.length).to.equal(3);
-      models.forEach(m => {
-        expect(m.id).to.equal(1);
+    it('can handle get request to root controller`s method path', () => {
+      return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
       });
     });
   });
 
-  it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-    });
-  });
-
-  it('injects express request in parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/Request`, (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.id).to.equal(1);
-      expect(model.stringValue).to.equal('fancyStringForContext');
-    });
-  });
-
-  it('returns error if missing required query parameter', () => {
-    return verifyGetRequest(
-      basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
-      (err: any, _res: any) => {
-        const body = JSON.parse(err.text);
-        expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
-      },
-      400,
-    );
-  });
-
-  it('returns error and custom error message', () => {
-    return verifyGetRequest(
-      basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
-      (err: any, _res: any) => {
-        const body = JSON.parse(err.text);
-        expect(body.fields.stringParam.message).to.equal(`Custom error message`);
-      },
-      400,
-    );
-  });
-
-  it('parses path parameters', () => {
-    const numberValue = 10;
-    const boolValue = false;
-    const stringValue = 'the-string';
-
-    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue.toString()}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.numberValue).to.equal(numberValue);
-      expect(model.boolValue).to.equal(boolValue);
-      expect(model.stringValue).to.equal(stringValue);
-    });
-  });
-
-  it('parses query parameters', () => {
-    const numberValue = 10;
-    const stringValue = 'the-string';
-
-    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (_err, res) => {
-      const model = res.body as TestModel;
-      expect(model.optionalString).to.equal(stringValue);
-    });
-  });
-
-  it('parses queries parameters in one single object', () => {
-    const numberValue = 10;
-    const boolValue = true;
-    const stringValue = 'the-string';
-
-    return verifyGetRequest(basePath + `/GetTest/AllQueriesInOneObject?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
-      const queryParams = res.body as TestModel;
-
-      expect(queryParams.numberValue).to.equal(numberValue);
-      expect(queryParams.boolValue).to.equal(boolValue);
-      expect(queryParams.stringValue).to.equal(stringValue);
-      expect(queryParams.optionalString).to.be.undefined;
-    });
-  });
-
-  it('accepts any parameter using a wildcard', () => {
-    const object = {
-      foo: 'foo',
-      bar: 10,
-      baz: true,
-    };
-
-    return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
-      const queryParams = res.body as TestModel;
-
-      expect(queryParams.anyType.foo).to.equal(object.foo);
-      expect(queryParams.anyType.bar).to.equal(String(object.bar));
-      expect(queryParams.anyType.baz).to.equal(String(object.baz));
-    });
-  });
-
-  it('should reject incompatible entries for typed wildcard', () => {
-    const object = {
-      foo: '2',
-      bar: 10,
-      baz: true,
-    };
-
-    return verifyGetRequest(
-      basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
-      (err, _res) => {
-        const body = JSON.parse(err.text);
-        expect(body.fields['queryParams.baz'].message).to.equal('invalid float number');
-      },
-      400,
-    );
-  });
-
-  it('accepts numbered parameters using a wildcard', () => {
-    const object = {
-      foo: '3',
-      bar: 10,
-    };
-
-    return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
-      const queryParams = res.body as TestModel;
-
-      expect(queryParams.anyType.foo).to.equal(Number(object.foo));
-      expect(queryParams.anyType.bar).to.equal(object.bar);
-    });
-  });
-
-  it('Should return on @Res', () => {
-    return verifyGetRequest(
-      basePath + '/GetTest/Res',
-      (_err, res) => {
+  describe('GetTestController', () => {
+    it('can handle get request with no path argument', () => {
+      return verifyGetRequest(basePath + '/GetTest', (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
-        expect(res.get('custom-header')).to.eq('hello');
-      },
-      400,
-    );
-  });
+      });
+    });
 
-  [400, 500].forEach(statusCode =>
-    it('Should support multiple status codes with the same @Res structure', () => {
-      return verifyGetRequest(
-        basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
-        (_err, res) => {
+    it('can handle get request with path argument', () => {
+      return verifyGetRequest(basePath + '/GetTest/Current', (_err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    it('respects toJSON for class serialization', () => {
+      return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
+        const getterClass = res.body;
+        expect(getterClass).to.haveOwnProperty('a');
+        expect(getterClass.a).to.equal('hello, world');
+        expect(getterClass).to.not.haveOwnProperty('b');
+      });
+    });
+
+    it('can handle get request with collection return value', () => {
+      return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
+        const models = res.body as TestModel[];
+        expect(models.length).to.equal(3);
+        models.forEach(m => {
+          expect(m.id).to.equal(1);
+        });
+      });
+    });
+
+    describe('getModelsByParam', () => {
+      it('can handle get request with path and query parameters', () => {
+        return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
           const model = res.body as TestModel;
           expect(model.id).to.equal(1);
-          expect(res.get('custom-header')).to.eq('hello');
-        },
-        statusCode,
-      );
-    }),
-  );
+        });
+      });
 
-  it('Should not modify the response after headers sent', () => {
-    return verifyGetRequest(
-      basePath + '/GetTest/MultipleRes',
-      (_err, res) => {
+      it('parses path parameters', () => {
+        const numberValue = 10;
+        const boolValue = false;
+        const stringValue = 'the-string';
+
+        return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue.toString()}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+          const model = res.body as TestModel;
+          expect(model.numberValue).to.equal(numberValue);
+          expect(model.boolValue).to.equal(boolValue);
+          expect(model.stringValue).to.equal(stringValue);
+        });
+      });
+
+      it('parses query parameters', () => {
+        const numberValue = 10;
+        const stringValue = 'the-string';
+
+        return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (_err, res) => {
+          const model = res.body as TestModel;
+          expect(model.optionalString).to.equal(stringValue);
+        });
+      });
+
+      it('returns error if missing required query parameter', () => {
+        return verifyGetRequest(
+          basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
+          (err: any, _res: any) => {
+            const body = JSON.parse(err.text);
+            expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
+          },
+          400,
+        );
+      });
+
+      it('returns error and custom error message', () => {
+        return verifyGetRequest(
+          basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
+          (err: any, _res: any) => {
+            const body = JSON.parse(err.text);
+            expect(body.fields.stringParam.message).to.equal(`Custom error message`);
+          },
+          400,
+        );
+      });
+    });
+
+    it('injects express request in parameters', () => {
+      return verifyGetRequest(basePath + `/GetTest/Request`, (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
-        expect(res.get('custom-header')).to.eq('hello');
-      },
-      400,
-    );
-  });
+        expect(model.stringValue).to.equal('fancyStringForContext');
+      });
+    });
 
-  it('parses buffer parameter', () => {
-    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, _res) => {
-      return;
+    it('parses queries parameters in one single object', () => {
+      const numberValue = 10;
+      const boolValue = true;
+      const stringValue = 'the-string';
+
+      return verifyGetRequest(basePath + `/GetTest/AllQueriesInOneObject?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.numberValue).to.equal(numberValue);
+        expect(queryParams.boolValue).to.equal(boolValue);
+        expect(queryParams.stringValue).to.equal(stringValue);
+        expect(queryParams.optionalString).to.be.undefined;
+      });
+    });
+
+    it('accepts any parameter using a wildcard', () => {
+      const object = {
+        foo: 'foo',
+        bar: 10,
+        baz: true,
+      };
+
+      return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.anyType.foo).to.equal(object.foo);
+        expect(queryParams.anyType.bar).to.equal(String(object.bar));
+        expect(queryParams.anyType.baz).to.equal(String(object.baz));
+      });
+    });
+
+    describe('getTypedRecordQueries', () => {
+      it('accepts numbered parameters using a wildcard', () => {
+        const object = {
+          foo: '3',
+          bar: 10,
+        };
+
+        return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+          const queryParams = res.body as TestModel;
+
+          expect(queryParams.anyType.foo).to.equal(Number(object.foo));
+          expect(queryParams.anyType.bar).to.equal(object.bar);
+        });
+      });
+
+      it('should reject incompatible entries for typed wildcard', () => {
+        const object = {
+          foo: '2',
+          bar: 10,
+          baz: true,
+        };
+
+        return verifyGetRequest(
+          basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+            expect(body.fields['queryParams.baz'].message).to.equal('invalid float number');
+          },
+          400,
+        );
+      });
+    });
+
+    describe('@Res', () => {
+      it('Should return on @Res', () => {
+        return verifyGetRequest(
+          basePath + '/GetTest/Res',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          400,
+        );
+      });
+
+      [400, 500].forEach(statusCode =>
+        it('Should support multiple status codes with the same @Res structure', () => {
+          return verifyGetRequest(
+            basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+            (_err, res) => {
+              const model = res.body as TestModel;
+              expect(model.id).to.equal(1);
+              expect(res.get('custom-header')).to.eq('hello');
+            },
+            statusCode,
+          );
+        }),
+      );
+
+      it('Should not modify the response after headers sent', () => {
+        return verifyGetRequest(
+          basePath + '/GetTest/MultipleRes',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          400,
+        );
+      });
+    });
+
+    it('parses buffer parameter', () => {
+      return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, _res) => {
+        return;
+      });
+    });
+
+    it('returns streamed responses', () => {
+      return verifyGetRequest(`${basePath}/GetTest/HandleStreamType`, (_err, res) => {
+        expect(res.text).to.equal('testbuffer');
+        return;
+      });
     });
   });
 
-  it('returns streamed responses', () => {
-    return verifyGetRequest(`${basePath}/GetTest/HandleStreamType`, (_err, res) => {
-      expect(res.text).to.equal('testbuffer');
-      return;
+  describe('PostTestController', () => {
+    it('parsed body parameters', () => {
+      const data = getFakeModel();
+
+      return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
+        const model = res.body as TestModel;
+        expect(model).to.deep.equal(model);
+      });
     });
-  });
 
-  it('should reject invalid additionalProperties', () => {
-    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
-
-    return Promise.all(
-      invalidValues.map((value: any) => {
-        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
-      }),
-    );
-  });
-
-  it('parsed body parameters', () => {
-    const data = getFakeModel();
-
-    return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
-      const model = res.body as TestModel;
-      expect(model).to.deep.equal(model);
-    });
-  });
-
-  it('removes additional properties', () => {
-    const model = getFakeModel();
-    const data = {
-      ...model,
-      objLiteral: {
-        ...model.objLiteral,
-        extra: 123,
-        nested: {
-          bool: true,
-          allNestedOptional: {},
-          anotherExtra: 123,
-        },
-      },
-    };
-
-    return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
-      const resModel = res.body as TestModel;
-      expect(resModel).to.deep.equal({
+    it('removes additional properties', () => {
+      const model = getFakeModel();
+      const data = {
         ...model,
         objLiteral: {
           ...model.objLiteral,
+          extra: 123,
           nested: {
             bool: true,
             allNestedOptional: {},
+            anotherExtra: 123,
           },
         },
+      };
+
+      return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
+        const resModel = res.body as TestModel;
+        expect(resModel).to.deep.equal({
+          ...model,
+          objLiteral: {
+            ...model.objLiteral,
+            nested: {
+              bool: true,
+              allNestedOptional: {},
+            },
+          },
+        });
+        expect(res.status).to.eq(200);
       });
-      expect(res.status).to.eq(200);
     });
-  });
 
-  it('correctly returns status code', () => {
-    const data = getFakeModel();
-    const path = basePath + '/PostTest/WithDifferentReturnCode';
-    return verifyPostRequest(
-      path,
-      data,
-      (_err, _res) => {
-        return;
-      },
-      201,
-    );
-  });
+    it('correctly returns status code', () => {
+      const data = getFakeModel();
+      const path = basePath + '/PostTest/WithDifferentReturnCode';
+      return verifyPostRequest(
+        path,
+        data,
+        (_err, _res) => {
+          return;
+        },
+        201,
+      );
+    });
 
-  it('parses class model as body parameter', () => {
-    const data = getFakeClassModel();
+    it('should reject invalid additionalProperties', () => {
+      const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
-    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
-      const model = res.body as TestClassModel;
-      expect(model.id).to.equal(700); // this gets changed on the server
+      return Promise.all(
+        invalidValues.map((value: any) => {
+          return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
+        }),
+      );
+    });
+
+    it('parses class model as body parameter', () => {
+      const data = getFakeClassModel();
+
+      return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
+        const model = res.body as TestClassModel;
+        expect(model.id).to.equal(700); // this gets changed on the server
+      });
     });
   });
 
