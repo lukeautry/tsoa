@@ -1,4 +1,4 @@
-import { ValidationService, ValidateError, TsoaRoute, FieldErrors } from '@tsoa/runtime';
+import { TsoaRoute, ServerlessTemplateService } from '@tsoa/runtime';
 
 const models: TsoaRoute.Models = {
     {{#each models}}
@@ -25,41 +25,7 @@ const models: TsoaRoute.Models = {
     {{/each}}
 };
 
-const validationService = new ValidationService(models);
-
-export function getValidatedArgs(args: any, event: any): any[] {
-  const fieldErrors: FieldErrors  = {};
-  const eventBody = JSON.parse(event.body);
-  const values = Object.keys(args).map((key) => {
-    const name = args[key].name;
-    switch (args[key].in) {
-      case 'request':
-        return event;
-      case 'request-prop':
-        return validationService.ValidateParam(args[key], event[name], name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'query':
-        return validationService.ValidateParam(args[key], event.queryStringParameters[name], name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'queries':
-        return validationService.ValidateParam(args[key], event.queryStringParameters, name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'path':
-        return validationService.ValidateParam(args[key], event.pathParameters[name], name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'header':
-        return validationService.ValidateParam(args[key], event.headers[name], name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'body':
-        return validationService.ValidateParam(args[key], eventBody, name, fieldErrors, undefined, {{{ json minimalSwaggerConfig }}});
-      case 'body-prop':
-        return validationService.ValidateParam(args[key], eventBody[name], name, fieldErrors, 'body.', {{{ json minimalSwaggerConfig }}});
-      default:
-        fieldErrors[name] = {
-          message: `Unsupported parameter type "${args[key].in}"`,
-          value: args[key],
-        };
-        return;
-    }
-  });
-
-  if (Object.keys(fieldErrors).length > 0) {
-    throw new ValidateError(fieldErrors, '');
-  }
-  return values;
-}
+export const serverlessTemplateService = new ServerlessTemplateService(
+  models,
+  {{ json minimalSwaggerConfig }},
+);

@@ -1,8 +1,8 @@
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { ValidateError } from '@tsoa/runtime';
+import { ValidateError, TsoaRoute } from '@tsoa/runtime';
 import { {{controller.name}} } from '.{{controller.modulePath}}';
 
-import { getValidatedArgs } from '.{{modelsFileName}}';
+import { serverlessTemplateService } from '.{{modelsFileName}}';
 {{#if iocModule}}
 import { iocContainer } from '{{iocModule}}';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
@@ -25,7 +25,7 @@ const controller = new {{controller.name}}();
 */
 
 export async function handler(event, context) {
-  const args = {
+  const args: Record<string, TsoaRoute.ParameterSchema> = {
   {{#each action.parameters}}
     {{@key}}: {{{json this}}},
   {{/each}}
@@ -35,7 +35,13 @@ export async function handler(event, context) {
 
   let validatedArgs: any[] = [];
   try {
-    validatedArgs = getValidatedArgs(args, event);
+    validatedArgs = serverlessTemplateService.getValidatedArgs({ args, event });
+    return serverlessTemplateService.apiHandler({
+      methodName: '{{ action.name }}',
+      controller,
+      validatedArgs,
+      successStatus: {{ action.successStatus }}
+    });
   } catch(err) {
     if (err instanceof ValidateError) {
       return {
@@ -51,19 +57,6 @@ export async function handler(event, context) {
     return {
       statusCode: error.status,
       body: JSON.stringify({ error: error.toString() }),
-    };
-  }
-  try {
-    // eslint-disable-next-line prefer-spread
-    const result = await controller.{{action.name}}.apply(controller, validatedArgs as any);
-    return {
-      statusCode: {{action.successStatus}},
-      body: JSON.stringify(result),
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ err }),
     };
   }
 }
