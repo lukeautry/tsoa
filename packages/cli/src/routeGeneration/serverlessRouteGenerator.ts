@@ -1,22 +1,31 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
-import { ExtendedRoutesConfig } from '@tsoa/cli/src/cli';
+import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { fsReadFile, fsWriteFile, fsExists, fsMkDir } from '@tsoa/cli/src/utils/fs';
-import { AbstractRouteGenerator } from '@tsoa/cli/src/routeGeneration/routeGenerator';
-import path = require('path');
+import { fsReadFile, fsWriteFile, fsMkDir } from '../utils/fs';
+import { AbstractRouteGenerator } from './routeGenerator';
+import path from 'path';
 
 export interface ServerlessRoutesConfig extends ExtendedRoutesConfig {
   modelsTemplate?: string;
   modelsFileName?: string;
   handlerTemplate?: string;
-  stackTemplate: string;
+  stackTemplate?: string;
 }
 
 export default class ServerlessRouteGenerator extends AbstractRouteGenerator<ServerlessRoutesConfig> {
+  modelsTemplate: string;
+  modelsFileName: string;
+  handlerTemplate: string;
+  stackTemplate: string;
   constructor(metadata: Tsoa.Metadata, options: ServerlessRoutesConfig) {
     super(metadata, options);
+
+    this.modelsFileName = options.modelsFileName || 'models.ts';
+    this.modelsTemplate = options.modelsTemplate || path.join(__dirname, '..', 'routeGeneration/templates/serverless/models.hbs');
+    this.handlerTemplate = options.handlerTemplate || path.join(__dirname, '..', 'routeGeneration/templates/serverless/handler.hbs');
+    this.stackTemplate = options.stackTemplate || path.join(__dirname, '..', 'routeGeneration/templates/serverless/api-stack.hbs');
     this.registerTemplateHelpers();
   }
 
@@ -71,15 +80,14 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
 
   /**
    * Generate the CDK infrastructure stack that ties API Gateway to generated Handlers
-   * @returns 
+   * @returns
    */
   async generateStack(): Promise<void> {
     // This would need to generate a CDK "Stack" that takes the tsoa metadata as input and generates a valid serverless CDK infrastructure stack from template
-    const templateFileName = this.options.stackTemplate;
     const fileName = `${this.options.routesDir}/stack.ts`;
     const context = this.buildContext() as unknown as any;
-    context.controllers = context.controllers.map((controller) => {
-      controller.actions = controller.actions.map((action) => {
+    context.controllers = context.controllers.map((controller: any) => {
+      controller.actions = controller.actions.map((action: any) => {
         return {
           ...action,
           handlerFolderName:`${this.options.routesDir}/${controller.name}`
@@ -87,33 +95,31 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
       });
       return controller;
     });
-    await this.generateFileFromTemplate(templateFileName, context, fileName);
+    await this.generateFileFromTemplate(this.stackTemplate, context, fileName);
   }
 
   async generateModels(): Promise<void> {
-    const templateFileName = this.options.modelsTemplate || 'models.hbs';
-    const fileName = `${this.options.routesDir}/${this.options.modelsFileName || 'models.ts'}`;
+    const fileName = `${this.options.routesDir}/${this.modelsFileName}`;
     const context = {
       models: this.buildModels(),
       minimalSwaggerConfig: { noImplicitAdditionalProperties: this.options.noImplicitAdditionalProperties },
     };
-    await this.generateFileFromTemplate(templateFileName, context, fileName);
+    await this.generateFileFromTemplate(this.modelsTemplate, context, fileName);
   }
 
   public async generateRoutes() {
     const context = this.buildContext();
     await Promise.all(
       context.controllers.map(async controller => {
-        const templateFileName = this.options.handlerTemplate || 'handler.hbs';
         await fsMkDir(`${this.options.routesDir}/${controller.name}`, { recursive: true });
         return Promise.all(
           controller.actions.map(action => {
             const fileName = `${this.options.routesDir}/${controller.name}/${action.name}${this.options.esm ? '.js' : '.ts'}`;
             return this.generateFileFromTemplate(
-              templateFileName,
+              this.handlerTemplate,
               {
                 ...context,
-                modelsFileName: this.getRelativeImportPath(`${this.options.routesDir}/${this.options.modelsFileName || 'models.ts'}`),
+                modelsFileName: this.getRelativeImportPath(`${this.options.routesDir}/${this.modelsFileName}`),
                 controller,
                 action,
               },
