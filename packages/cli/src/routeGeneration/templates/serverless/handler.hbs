@@ -20,9 +20,10 @@ const controller = new {{controller.name}}();
 {{/if}}
 
 /**
-*   Handler for:
-*   {{action.method}} {{action.fullPath}}
-*/
+ *   Handler for:
+ *   {{action.method}} {{action.fullPath}}
+ *   @see {{controller.name}}#{{action.name}}
+ */
 
 export async function handler(event, context) {
   const args: Record<string, TsoaRoute.ParameterSchema> = {

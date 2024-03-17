@@ -116,6 +116,16 @@ describe('Express Server', () => {
         );
       });
 
+      it('returns error if missing required path parameter', () => {
+        return verifyGetRequest(
+          basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
+          (err: any, _res: any) => {
+            expect(err.text).to.contain('Cannot GET');
+          },
+          404,
+        );
+      });
+
       it('returns error and custom error message', () => {
         return verifyGetRequest(
           basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
@@ -308,6 +318,84 @@ describe('Express Server', () => {
       );
     });
 
+    it('parses class model as body parameter', () => {
+      const data = getFakeClassModel();
+
+      return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
+        const model = res.body as TestClassModel;
+        expect(model.id).to.equal(700); // this gets changed on the server
+      });
+    });
+
+    it('should parse valid date', () => {
+      const data = getFakeModel();
+      data.dateValue = '2016-01-01T00:00:00Z' as any;
+
+      return verifyPostRequest(
+        basePath + '/PostTest',
+        data,
+        (_err: any, res: any) => {
+          expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+        },
+        200,
+      );
+    });
+
+    it('should reject invalid numbers', () => {
+      const invalidValues = ['test', null, undefined, {}];
+
+      return Promise.all(
+        invalidValues.map((value: any) => {
+          const data = getFakeModel();
+          data.numberValue = value;
+
+          return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        }),
+      );
+    });
+
+    it('should reject invalid strings', () => {
+      const invalidValues = [null, 1, undefined, {}];
+
+      return Promise.all(
+        invalidValues.map((value: any) => {
+          const data = getFakeModel();
+          data.stringValue = value;
+
+          return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        }),
+      );
+    });
+
+    it('should reject invalid dates', () => {
+      const invalidValues = [1, {}];
+
+      return Promise.all(
+        invalidValues.map((value: any) => {
+          const data = getFakeModel();
+          data.dateValue = value;
+
+          return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        }),
+      );
+    });
+
+    it('returns error if invalid request', () => {
+      const data = getFakeModel();
+      data.dateValue = 1 as any;
+
+      return verifyPostRequest(
+        basePath + '/PostTest',
+        data,
+        (err: any, _res: any) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+          expect(body.fields['model.dateValue'].value).to.equal(1);
+        },
+        400,
+      );
+    });
+
     it('should reject invalid additionalProperties', () => {
       const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
@@ -317,53 +405,19 @@ describe('Express Server', () => {
         }),
       );
     });
+  });
 
-    it('parses class model as body parameter', () => {
-      const data = getFakeClassModel();
-
-      return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
-        const model = res.body as TestClassModel;
-        expect(model.id).to.equal(700); // this gets changed on the server
-      });
+  describe('OptionTestController', () => {
+    it('correctly handles OPTIONS requests', () => {
+      const path = basePath + '/OptionsTest/Current';
+      return verifyRequest(
+        (_err, res) => {
+          expect(res.text).to.equal('');
+        },
+        request => request.options(path),
+        204,
+      );
     });
-  });
-
-  it('correctly handles OPTIONS requests', () => {
-    const path = basePath + '/OptionsTest/Current';
-    return verifyRequest(
-      (_err, res) => {
-        expect(res.text).to.equal('');
-      },
-      request => request.options(path),
-      204,
-    );
-  });
-
-  it('should reject invalid strings', () => {
-    const invalidValues = [null, 1, undefined, {}];
-
-    return Promise.all(
-      invalidValues.map((value: any) => {
-        const data = getFakeModel();
-        data.stringValue = value;
-
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
-      }),
-    );
-  });
-
-  it('should parse valid date', () => {
-    const data = getFakeModel();
-    data.dateValue = '2016-01-01T00:00:00Z' as any;
-
-    return verifyPostRequest(
-      basePath + '/PostTest',
-      data,
-      (_err: any, res: any) => {
-        expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
-      },
-      200,
-    );
   });
 
   it('should parse valid date as query param', () => {
@@ -373,58 +427,6 @@ describe('Express Server', () => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
       },
       200,
-    );
-  });
-
-  it('should reject invalid dates', () => {
-    const invalidValues = [1, {}];
-
-    return Promise.all(
-      invalidValues.map((value: any) => {
-        const data = getFakeModel();
-        data.dateValue = value;
-
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
-      }),
-    );
-  });
-
-  it('should reject invalid numbers', () => {
-    const invalidValues = ['test', null, undefined, {}];
-
-    return Promise.all(
-      invalidValues.map((value: any) => {
-        const data = getFakeModel();
-        data.numberValue = value;
-
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
-      }),
-    );
-  });
-
-  it('returns error if missing required path parameter', () => {
-    return verifyGetRequest(
-      basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
-      (err: any, _res: any) => {
-        expect(err.text).to.contain('Cannot GET');
-      },
-      404,
-    );
-  });
-
-  it('returns error if invalid request', () => {
-    const data = getFakeModel();
-    data.dateValue = 1 as any;
-
-    return verifyPostRequest(
-      basePath + '/PostTest',
-      data,
-      (err: any, _res: any) => {
-        const body = JSON.parse(err.text);
-        expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-        expect(body.fields['model.dateValue'].value).to.equal(1);
-      },
-      400,
     );
   });
 

@@ -48,12 +48,13 @@ export class ServerlessTemplateService extends TemplateService<ServerlessApiHand
     const { args, event } = params;
 
     const fieldErrors: FieldErrors = {};
-    const eventBody = JSON.parse(event.body);
+    event.body = JSON.parse(event.body);
 
     const values = Object.values(args).map((param) => {
       const name = param.name;
       switch (param.in) {
         case 'request':
+          event.query = event.queryStringParameters;
           return event;
         case 'request-prop':
           return this.validationService.ValidateParam(param, event[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
@@ -66,9 +67,9 @@ export class ServerlessTemplateService extends TemplateService<ServerlessApiHand
         case 'header':
           return this.validationService.ValidateParam(param, event.headers[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
         case 'body':
-          return this.validationService.ValidateParam(param, eventBody, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, event.body, name, fieldErrors, undefined, this.minimalSwaggerConfig);
         case 'body-prop':
-          return this.validationService.ValidateParam(param, eventBody[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, event.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
         default:
           fieldErrors[name] = {
             message: `Unsupported parameter type "${param.in}"`,

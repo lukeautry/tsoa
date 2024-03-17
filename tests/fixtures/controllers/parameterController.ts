@@ -219,7 +219,7 @@ export class ParameterController {
       age: Number(request.query.age),
       firstname: request.query.firstname,
       gender: request.query.gender === 'MALE' ? Gender.MALE : Gender.FEMALE,
-      human: Boolean(request.query.age),
+      human: Boolean(request.query.human),
       lastname: request.query.lastname,
       weight: Number(request.query.weight),
     });
