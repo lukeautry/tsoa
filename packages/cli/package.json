@@ -40,7 +40,7 @@
     "ts-deepmerge": "^7.0.0",
     "typescript": "^5.3.3",
     "validator": "^13.11.0",
-    "yamljs": "^0.3.0",
+    "yaml": "^2.4.1",
     "yargs": "^17.7.1"
   },
   "devDependencies": {
@@ -48,7 +48,6 @@
     "@types/minimatch": "^5.1.0",
     "@types/node": "^18.0.0",
     "@types/validator": "^13.11.7",
-    "@types/yamljs": "^0.2.34",
     "@types/yargs": "^17.0.32",
     "copyfiles": "^2.4.1",
     "rimraf": "^5.0.5"
