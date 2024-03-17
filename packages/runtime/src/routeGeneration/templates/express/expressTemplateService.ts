@@ -1,5 +1,6 @@
-import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext, RequestHandler } from 'express';
 
+import { fetchMiddlewares } from '../../../decorators/middlewares';
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
@@ -32,6 +33,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
+    private readonly express: {
+      authMiddleware?: Function;
+    },
   ) {
     super(models);
   }
@@ -130,4 +134,87 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     }
   }
 
+  middlewares(meta: {
+    controller: Controller | Object;
+    method: Object;
+    security: TsoaRoute.Security[];
+    uploadInstance?: any;
+    singleUploadFileFields: Array<{ name: string }>;
+    filesUploadFieldName?: string;
+  }): RequestHandler[] {
+    const middlewares: RequestHandler[] = [];
+
+    if (meta.security.length > 0 && this.express.authMiddleware) {
+      /** no reason only this line fail at this lint rule, disable it temporary. */
+      /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+      middlewares.push(this.authenticateMiddleware(meta.security));
+    }
+
+    if (meta.uploadInstance) {
+      if (meta.singleUploadFileFields.length > 0) {
+        middlewares.push(meta.uploadInstance.fields(meta.singleUploadFileFields));
+      } else if (meta.filesUploadFieldName) {
+        middlewares.push(meta.uploadInstance.array(meta.filesUploadFieldName));
+      }
+    }
+
+    middlewares.push(...fetchMiddlewares<RequestHandler>(meta.controller));
+    middlewares.push(...fetchMiddlewares<RequestHandler>(meta.method));
+
+    return middlewares;
+  }
+
+  private authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+    return async (request: any, response: any, next: any) => {
+      const failedAttempts: any[] = [];
+      const pushAndRethrow = (error: any) => {
+        failedAttempts.push(error);
+        throw error;
+      };
+
+      const secMethodOrPromises: Array<Promise<any>> = [];
+      for (const secMethod of security) {
+        if (Object.keys(secMethod).length > 1) {
+          const secMethodAndPromises: Array<Promise<any>> = [];
+
+          for (const name in secMethod) {
+            secMethodAndPromises.push(
+              this.express.authMiddleware!(request, name, secMethod[name], response)
+                .catch(pushAndRethrow)
+            );
+          }
+
+          secMethodOrPromises.push(Promise.all(secMethodAndPromises).then(users => users[0]));
+        } else {
+          for (const name in secMethod) {
+            secMethodOrPromises.push(
+              this.express.authMiddleware!(request, name, secMethod[name], response)
+                .catch(pushAndRethrow)
+            );
+          }
+        }
+      }
+
+      try {
+        request['user'] = await Promise.any(secMethodOrPromises);
+
+        // Response was sent in middleware, abort
+        if (response.writableEnded) {
+          return;
+        }
+
+        next();
+      } catch(err) {
+        // Show most recent error as response
+        const error = failedAttempts.pop();
+        error.status = error.status || 401;
+
+        // Response was sent in middleware, abort
+        if (response.writableEnded) {
+          return;
+        }
+        next(error);
+      }
+    }
+  }
 }

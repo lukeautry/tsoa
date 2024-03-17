@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { TsoaRoute, fetchMiddlewares, HapiTemplateService } from '@tsoa/runtime';
+import { TsoaRoute, HapiTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -15,260 +15,111 @@ import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import { boomify, isBoom, type Payload } from '@hapi/boom';
-import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi';
+import type { Request, ResponseToolkit } from '@hapi/hapi';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
-    {{#each models}}
-    "{{@key}}": {
-        {{#if enums}}
-        "dataType": "refEnum",
-        "enums": {{{json enums}}},
-        {{/if}}
-        {{#if properties}}
-        "dataType": "refObject",
-        "properties": {
-            {{#each properties}}
-            "{{@key}}": {{{json this}}},
-            {{/each}}
-        },
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
-        {{#if type}}
-        "dataType": "refAlias",
-        "type": {{{json type}}},
-        {{/if}}
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}"{{@key}}": {{{json this}}},{{/each}}
     },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  {{/each}}
 };
 const templateService = new HapiTemplateService(
   models,
   {{{ json minimalSwaggerConfig }}},
-  { boomify, isBoom },
+  {
+    boomify,
+    isBoom,
+    authMiddleware: {{#if authenticationModule }}hapiAuthentication{{^}}undefined{{/if}},
+  },
 );
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 export function RegisterRoutes(server: any) {
-    // ###########################################################################################################
-    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
-    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
-    // ###########################################################################################################
-    {{#each controllers}}
-    {{#each actions}}
-        server.route({
-            method: '{{method}}',
-            path: '{{fullPath}}',
-            options: {
-                pre: [
-                    {{#if security.length}}
-                    {
-                      method: authenticateMiddleware({{json security}})
-                    },
-                    {{/if}}
-                    {{#if uploadFile}}
-                      {{#each uploadFileName}}
-                    {
-                      method: fileUploadMiddleware('{{name}}', false)
-                    },
-                      {{/each}}
-                    {{/if}}
-                    {{#if uploadFiles}}
-                    {
-                      method: fileUploadMiddleware('{{uploadFilesName}}', true)
-                    },
-                    {{/if}}
-                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}})),
-                    ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}}.prototype.{{name}})),
-                ],
-                {{#if uploadFile}}
-                payload: {
-                  output: 'stream',
-                  parse: true,
-                  multipart: true,
-                  allow: 'multipart/form-data'
-                },
-                {{else if uploadFiles}}
-                payload: {
-                  output: 'stream',
-                  parse: true,
-                  multipart: true,
-                  allow: 'multipart/form-data'
-                },
-                {{/if}}
-                handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
-                    const args: Record<string, TsoaRoute.ParameterSchema> = {
-                        {{#each parameters}}
-                            {{@key}}: {{{json this}}},
-                        {{/each}}
-                    };
+  // ###########################################################################################################
+  //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+  //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+  // ###########################################################################################################
+{{#each controllers}}{{#each actions}}
+  const meta_{{../name}}_{{name}} = {
+    controller: {{../name}},
+    method: {{../name}}.prototype.{{name}},
+    security: {{json security}} as Array<TsoaRoute.Security>,
+    singleUploadFileFields: [{{#each uploadFileName }}'{{name}}',{{/each}}],
+    filesUploadFieldName: {{#if uploadFiles}}'{{ uploadFilesName }}'{{^}}undefined{{/if}},
+  };
+  const handler_{{../name}}_{{name}} = {{#if ../../iocModule}}async {{/if}}(request: Request, h: ResponseToolkit) => {
+    const args: Record<string, TsoaRoute.ParameterSchema> = {
+      {{#each parameters}}{{@key}}: {{{json this}}},{{/each}}
+    };
 
-                    let validatedArgs: any[] = [];
-                    try {
-                        validatedArgs = templateService.getValidatedArgs({ args, request, h });
-                    } catch (err) {
-                        const error = err as any;
-                        if (isBoom(error)) {
-                            throw error;
-                        }
+    let validatedArgs: any[] = [];
+    try {
+      validatedArgs = templateService.getValidatedArgs({ args, request, h });
+    } catch (err) {
+      const error = err as any;
+      if (isBoom(error)) {
+        throw error;
+      }
 
-                        const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-                        boomErr.output.statusCode = error.status || 500;
-                        boomErr.output.payload = {
-                            name: error.name,
-                            fields: error.fields,
-                            message: error.message,
-                        } as unknown as Payload;
-                        throw boomErr;
-                    }
-
-                    {{#if ../../iocModule}}
-                    const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-                    const controller: any = await container.get<{{../name}}>({{../name}});
-                    if (typeof controller['setStatus'] === 'function') {
-                        controller.setStatus(undefined);
-                    }
-                    {{else}}
-                    const controller = new {{../name}}();
-                    {{/if}}
-
-                    return templateService.apiHandler({
-                      methodName: '{{name}}',
-                      controller,
-                      h,
-                      validatedArgs,
-                      successStatus: {{successStatus}},
-                    });
-                }
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
-    {{/each}}
-
-    {{#if useSecurity}}
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return async function runAuthenticationMiddleware(request: any, h: any) {
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            // keep track of failed auth attempts so we can hand back the most
-            // recent one.  This behavior was previously existing so preserving it
-            // here
-            const failedAttempts: any[] = [];
-            const pushAndRethrow = (error: any) => {
-                failedAttempts.push(error);
-                throw error;
-            };
-
-            const secMethodOrPromises: Promise<any>[] = [];
-            for (const secMethod of security) {
-                if (Object.keys(secMethod).length > 1) {
-                    const secMethodAndPromises: Promise<any>[] = [];
-
-                    for (const name in secMethod) {
-                        secMethodAndPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
-                    }
-
-                    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
-                        .then(users => { return users[0]; }));
-                } else {
-                    for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
-                    }
-                }
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            try {
-                request['user'] = await Promise.any(secMethodOrPromises);
-                return request['user'];
-            }
-            catch(err) {
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                if (isBoom(error)) {
-                    throw error;
-                }
-
-                const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
-                boomErr.output.statusCode = error.status || 401;
-                boomErr.output.payload = {
-                    name: error.name,
-                    message: error.message,
-                } as unknown as Payload;
-
-                throw boomErr;
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        }
+      const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+      boomErr.output.statusCode = error.status || 500;
+      boomErr.output.payload = {
+        name: error.name,
+        fields: error.fields,
+        message: error.message,
+      } as unknown as Payload;
+      throw boomErr;
     }
-    {{/if}}
 
-    {{#if useFileUploads}}
-    function fileUploadMiddleware(fieldname: string, multiple: boolean = false) {
-      return (request: Request, h: any) => {
-        if (!request.payload[fieldname]) {
-          return h.response(`${fieldname} is a required file(s).`).code(400);
-        }
+  {{#if ../../iocModule}}
+    const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-        const calculateFileInfo = (reqFile: any) => new Promise((resolve, reject) => {
-          const originalname = reqFile.hapi.filename;
-          const headers = reqFile.hapi.headers;
-          const contentTransferEncoding = headers['content-transfer-encoding'];
-          const encoding = contentTransferEncoding &&
-            contentTransferEncoding[0] &&
-            contentTransferEncoding[0].toLowerCase() || '7bit';
-          const mimetype = headers['content-type'] || 'text/plain';
-          const buffer = reqFile._data
-          return resolve({
-            fieldname,
-            originalname,
-            buffer,
-            encoding,
-            mimetype,
-            filename: originalname,
-            size: buffer.toString().length,
-          })
-        });
-
-        if (!multiple) {
-          return calculateFileInfo(request.payload[fieldname])
-            .then(fileMetadata => {
-              request.payload[fieldname] = fileMetadata;
-              return h.continue;
-            })
-            .catch(err => h.response(err.toString()).code(500));
-        } else {
-          const promises = request.payload[fieldname].map((reqFile: any) => calculateFileInfo(reqFile));
-          return Promise.all(promises)
-            .then(filesMetadata => {
-              request.payload[fieldname] = filesMetadata;
-              return h.continue;
-            })
-            .catch(err => h.response(err.toString()).code(500));
-        }
-      };
+    const controller: any = await container.get<{{../name}}>({{../name}});
+    if (typeof controller['setStatus'] === 'function') {
+      controller.setStatus(undefined);
     }
-    {{/if}}
+  {{else}}
+    const controller = new {{../name}}();
+  {{/if}}
 
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    return templateService.apiHandler({
+      methodName: '{{name}}',
+      controller,
+      h,
+      validatedArgs,
+      successStatus: {{successStatus}},
+    });
+  };
+  server.route({
+    method: '{{method}}',
+    path: '{{fullPath}}',
+    options: {
+      pre: templateService.middlewares(meta_{{../name}}_{{name}}),
+      payload: templateService.payload(meta_{{../name}}_{{name}}),
+      handler: handler_{{../name}}_{{name}},
+    },
+  });
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+{{/each}}{{/each}}
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

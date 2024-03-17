@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { TsoaRoute, fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+import { TsoaRoute, KoaTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -14,14 +14,10 @@ import { koaAuthentication } from '{{authenticationModule}}';
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-import type { Context, Next, Middleware, Request as KRequest, Response as KResponse } from 'koa';
+import type { Context, Next, Request as KRequest, Response as KResponse } from 'koa';
 import type * as KoaRouter from '@koa/router';
 {{#if useFileUploads}}
-{{#if esm}}
-import multer from '@koa/multer';
-{{else}}
-const multer = require('@koa/multer');
-{{/if}}
+{{#if esm}}import multer from '@koa/multer'{{else}}const multer = require('@koa/multer'){{/if}};
 const upload = multer({{{json multerOpts}}});
 {{/if}}
 {{#if authenticationModule}}
@@ -32,170 +28,91 @@ const koaAuthenticationRecasted = koaAuthentication as (req: KRequest, securityN
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
-    {{#each models}}
-    "{{@key}}": {
-        {{#if enums}}
-        "dataType": "refEnum",
-        "enums": {{{json enums}}},
-        {{/if}}
-        {{#if properties}}
-        "dataType": "refObject",
-        "properties": {
-            {{#each properties}}
-            "{{@key}}": {{{json this}}},
-            {{/each}}
-        },
-        "additionalProperties": {{{json additionalProperties}}},
-        {{/if}}
-        {{#if type}}
-        "dataType": "refAlias",
-        "type": {{{json type}}},
-        {{/if}}
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}"{{@key}}": {{{json this}}},{{/each}}
     },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  {{/each}}
 };
-const templateService = new KoaTemplateService(models, {{{ json minimalSwaggerConfig }}});
+const templateService = new KoaTemplateService(
+  models,
+  {{{ json minimalSwaggerConfig }}},
+  {
+    authMiddleware: {{#if authenticationModule}}koaAuthenticationRecasted{{^}}undefined{{/if}}, 
+  },
+);
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 export function RegisterRoutes(router: KoaRouter) {
-    // ###########################################################################################################
-    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
-    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
-    // ###########################################################################################################
-    {{#each controllers}}
-    {{#each actions}}
-        router.{{method}}('{{fullPath}}',
-            {{#if security.length}}
-            authenticateMiddleware({{json security}}),
-            {{/if}}
-            {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
-            {{/if}}
-            ...(fetchMiddlewares<Middleware>({{../name}})),
-            ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
+  // ###########################################################################################################
+  //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+  //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+  // ###########################################################################################################
+{{#each controllers}}{{#each actions}}
+  const handler_{{../name}}_{{name}} = async (context: Context, next: Next) => {
+    const args: Record<string, TsoaRoute.ParameterSchema> = {
+      {{#each parameters}}{{@key}}: {{{json this}}},{{/each}}
+    };
 
-            async function {{../name}}_{{name}}(context: Context, next: Next) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                {{#each parameters}}
-                    {{@key}}: {{{json this}}},
-                {{/each}}
-            };
-
-            let validatedArgs: any[] = [];
-            try {
-              validatedArgs = templateService.getValidatedArgs({ args, context, next });
-            } catch (err) {
-              const error = err as any;
-              error.message ||= JSON.stringify({ fields: error.fields });
-              context.status = error.status;
-              context.throw(context.status, error.message, error);
-            }
-
-            {{#if ../../iocModule}}
-            const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
-
-            const controller: any = await container.get<{{../name}}>({{../name}});
-            if (typeof controller['setStatus'] === 'function') {
-                controller.setStatus(undefined);
-            }
-            {{else}}
-            const controller = new {{../name}}();
-            {{/if}}
-
-            return templateService.apiHandler({
-              methodName: '{{name}}',
-              controller,
-              context,
-              validatedArgs,
-              successStatus: {{successStatus}},
-            });
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    {{/each}}
-    {{/each}}
-
-    {{#if useSecurity}}
-
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
-        return async function runAuthenticationMiddleware(context: any, next: any) {
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            // keep track of failed auth attempts so we can hand back the most
-            // recent one.  This behavior was previously existing so preserving it
-            // here
-            const failedAttempts: any[] = [];
-            const pushAndRethrow = (error: any) => {
-                failedAttempts.push(error);
-                throw error;
-            };
-
-            const secMethodOrPromises: Promise<any>[] = [];
-            for (const secMethod of security) {
-                if (Object.keys(secMethod).length > 1) {
-                    const secMethodAndPromises: Promise<any>[] = [];
-
-                    for (const name in secMethod) {
-                        secMethodAndPromises.push(
-                            koaAuthenticationRecasted(context.request, name, secMethod[name], context.response)
-                                .catch(pushAndRethrow)
-                        );
-                    }
-
-                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
-                        .then(users => { return users[0]; }));
-                } else {
-                    for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            koaAuthenticationRecasted(context.request, name, secMethod[name], context.response)
-                                .catch(pushAndRethrow)
-                        );
-                    }
-                }
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let success;
-            try {
-                const user = await Promise.any(secMethodOrPromises);
-                success = true;
-                context.request['user'] = user;
-            }
-            catch(err) {
-                // Response was sent in middleware, abort
-                if(context.response.body) {
-                    return;
-                }
-
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                context.status = error.status || 401;
-                context.throw(context.status, error.message, error);
-            }
-
-            // Response was sent in middleware, abort
-            if(context.response.body) {
-                return;
-            }
-
-            if (success) {
-                await next();
-            }
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        }
+    let validatedArgs: any[] = [];
+    try {
+      validatedArgs = templateService.getValidatedArgs({ args, context, next });
+    } catch (err) {
+      const error = err as any;
+      error.message ||= JSON.stringify({ fields: error.fields });
+      context.status = error.status;
+      context.throw(context.status, error.message, error);
     }
-    {{/if}}
 
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  {{#if ../../iocModule}}
+    const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(context.request) : iocContainer;
+
+    const controller: any = await container.get<{{../name}}>({{../name}});
+    if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+    }
+  {{else}}
+    const controller = new {{../name}}();
+  {{/if}}
+
+    return templateService.apiHandler({
+      methodName: '{{name}}',
+      controller,
+      context,
+      validatedArgs,
+      successStatus: {{successStatus}},
+    });
+  };
+  router.{{method}}(
+    '{{fullPath}}',
+    ...templateService.middlewares({
+      controller: {{../name}},
+      method: {{../name}}.prototype.{{name}},
+      security: {{json security}} as Array<TsoaRoute.Security>,
+      uploadInstance: {{#if ../../useFileUploads}}upload{{^}}undefined{{/if}},
+      singleUploadFileFields: {{json uploadFileName}},
+      filesUploadFieldName: {{#if uploadFiles }}'{{uploadFilesName}}'{{^}}undefined{{/if}},
+    }),
+    handler_{{../name}}_{{name}},
+  );
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+{{/each}}{{/each}}
 }
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

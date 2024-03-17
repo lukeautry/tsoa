@@ -1,5 +1,6 @@
-import type { Context, Next } from 'koa';
+import type { Context, Middleware, Next } from 'koa';
 
+import { fetchMiddlewares } from '../../../decorators/middlewares';
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
@@ -34,6 +35,9 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
   constructor(
     readonly models: any,
     private readonly minimalSwaggerConfig: any,
+    private readonly koa: {
+      authMiddleware?: Function;
+    },
   ) {
     super(models);
   }
@@ -143,5 +147,92 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
       return next ? next() : context;
     }
     return undefined;
+  }
+
+  middlewares(meta: {
+    controller: Controller | Object;
+    method: Object;
+    security: TsoaRoute.Security[];
+    uploadInstance?: any;
+    singleUploadFileFields: Array<{ name: string }>;
+    filesUploadFieldName?: string;
+  }): Middleware[] {
+    const middlewares: Middleware[] = [];
+
+    if (meta.security.length > 0 && this.koa.authMiddleware) {
+      middlewares.push(this.authenticateMiddleware(meta.security));
+    }
+
+    if (meta.uploadInstance) {
+      if (meta.singleUploadFileFields.length > 0) {
+        middlewares.push(meta.uploadInstance.fields(meta.singleUploadFileFields));
+      } else if (meta.filesUploadFieldName) {
+        middlewares.push(meta.uploadInstance.array(meta.filesUploadFieldName));
+      }
+    }
+
+    middlewares.push(...fetchMiddlewares<Middleware>(meta.controller));
+    middlewares.push(...fetchMiddlewares<Middleware>(meta.method));
+
+    return middlewares;
+  }
+
+  private authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+    return async (context: any, next: any) => {
+      const failedAttempts: any[] = [];
+      const pushAndRethrow = (error: any) => {
+        failedAttempts.push(error);
+        throw error;
+      };
+
+      const secMethodOrPromises: Array<Promise<any>> = [];
+      for (const secMethod of security) {
+        if (Object.keys(secMethod).length > 1) {
+          const secMethodAndPromises: Array<Promise<any>> = [];
+
+          for (const name in secMethod) {
+            secMethodAndPromises.push(
+              this.koa.authMiddleware!(context.request, name, secMethod[name], context.response)
+                .catch(pushAndRethrow)
+            );
+          }
+
+          secMethodOrPromises.push(Promise.all(secMethodAndPromises).then(users => users[0]));
+        } else {
+          for (const name in secMethod) {
+            secMethodOrPromises.push(
+              this.koa.authMiddleware!(context.request, name, secMethod[name], context.response)
+                .catch(pushAndRethrow)
+            );
+          }
+        }
+      }
+
+      let success;
+      try {
+        const user = await Promise.any(secMethodOrPromises);
+        success = true;
+        context.request['user'] = user;
+      }catch(err) {
+        // Response was sent in middleware, abort
+        if(context.response.body) {
+          return;
+        }
+
+        // Show most recent error as response
+        const error = failedAttempts.pop();
+        context.status = error.status || 401;
+        context.throw(context.status, error.message, error);
+      }
+
+      // Response was sent in middleware, abort
+      if(context.response.body) {
+        return;
+      }
+
+      if (success) {
+        await next();
+      }
+    }
   }
 }
