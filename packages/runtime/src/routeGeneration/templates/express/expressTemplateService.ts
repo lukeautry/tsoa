@@ -12,7 +12,7 @@ type ExpressApiHandlerParameters = {
   response: ExResponse;
   next: ExNext;
   validatedArgs: any[];
-  successStatus?: number;
+  successStatus?: number | undefined;
 };
 
 type ExpressValidationArgsParameters = {
