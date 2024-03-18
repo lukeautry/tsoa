@@ -78,6 +78,10 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           const files = Object.values(args).filter(param => param.dataType === 'file');
           if (param.dataType === 'file' && files.length > 0) {
             const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
+            if (requestFiles[name] === undefined) {
+              return undefined;
+            }
+
             const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, false, undefined);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {

@@ -73,7 +73,8 @@ export class MethodController extends Controller {
     return new ModelService().getModel();
   }
 
-  @Response<ErrorResponseModel>('400', 'Bad Request')
+  @Response<ErrorResponseModel>('400', 'Bad Request', { status: 400, message: 'reason 1' })
+  @Response<ErrorResponseModel>('400', 'Bad Request', { status: 400, message: 'reason 2' })
   @Response<ErrorResponseModel>('401', 'Unauthorized')
   @Response<ErrorResponseModel>('default', 'Unexpected error', { status: 500, message: 'Something went wrong!' })
   @Get('MultiResponse')

@@ -164,22 +164,23 @@ describe('Metadata generation', () => {
         throw new Error('Method multiResponse not defined!');
       }
 
-      expect(method.responses.length).to.equal(4);
+      expect(method.responses.length).to.equal(5);
 
-      const badResponse = method.responses[0];
+      const badResponse = method.responses[1]
       expect(badResponse.name).to.equal('400');
       expect(badResponse.description).to.equal('Bad Request');
+      expect(badResponse.examples).to.deep.equal([{ status: 400, message: 'reason 1' }, { status: 400, message: 'reason 2' }]);
 
-      const unauthResponse = method.responses[1];
+      const unauthResponse = method.responses[2];
       expect(unauthResponse.name).to.equal('401');
       expect(unauthResponse.description).to.equal('Unauthorized');
 
-      const defaultResponse = method.responses[2];
+      const defaultResponse = method.responses[3];
       expect(defaultResponse.name).to.equal('default');
       expect(defaultResponse.description).to.equal('Unexpected error');
       expect(defaultResponse.examples).to.deep.equal([{ status: 500, message: 'Something went wrong!' }]);
 
-      const successResponse = method.responses[3];
+      const successResponse = method.responses[4];
       expect(successResponse.name).to.equal('200');
       expect(successResponse.description).to.equal('Ok');
     });

@@ -4,7 +4,7 @@ import { hrtime } from 'process';
 
 const specESM = async () => {
   const result = await generateSpecAndRoutes({
-    configuration: 'tsoa.json',
+    configuration: 'tsoa.yaml',
   });
   return result;
 };

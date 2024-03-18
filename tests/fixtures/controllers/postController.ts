@@ -75,12 +75,13 @@ export class PostTestController {
     return [fileA, fileB];
   }
 
-  @Post('MixedFormDataWithFile')
+  @Post('MixedFormDataWithFilesContainsOptionalFile')
   public async mixedFormDataWithFile(
     @FormField('username') username: string,
     @UploadedFile('avatar') avatar: File,
-  ): Promise<{ username: string; avatar: File; }> {
-    return { username, avatar };
+    @UploadedFile('optionalAvatar') optionalAvatar?: File,
+  ): Promise<{ username: string; avatar: File; optionalAvatar?: File; }> {
+    return { username, avatar, optionalAvatar };
   }
 
   /**
