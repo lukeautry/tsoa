@@ -35,6 +35,7 @@ import { handler as testControllerFalseStatusCodeHandler } from 'fixtures/server
 import { handler as testControllerZeroStatusCodeHandler } from 'fixtures/serverless/routes/TestController/zeroStatusCode';
 import { handler as testControllerNoContentStatusCodeHandler } from 'fixtures/serverless/routes/TestController/noContentStatusCode';
 import { handler as testControllerCustomNomalStatusCodeHandler } from 'fixtures/serverless/routes/TestController/customNomalStatusCode';
+import { handler as testControllerCustomHeaderHandler } from 'fixtures/serverless/routes/TestController/customHeader';
 import { handler as testControllerGetUnavailableForLegalReasonsErrorHandler } from 'fixtures/serverless/routes/TestController/getUnavailableForLegalReasonsError';
 // NotExtendsController
 import { handler as notExtendsControllerCustomSuccessResponseCodeHandler } from 'fixtures/serverless/routes/NoExtendsController/customSuccessResponseCode';
@@ -56,6 +57,7 @@ import { handler as validateControllerGetDictionaryRequest } from 'fixtures/serv
 import { handler as parameterControllerGetQueryHandler } from 'fixtures/serverless/routes/ParameterController/getQuery';
 import { handler as parameterControllerGetQueriesHandler } from 'fixtures/serverless/routes/ParameterController/getQueries';
 import { handler as parameterControllerGetPathHandler } from 'fixtures/serverless/routes/ParameterController/getPath';
+import { handler as parameterControllerGetHeaderHandler } from 'fixtures/serverless/routes/ParameterController/getHeader';
 import { handler as parameterControllerGetRequestHandler } from 'fixtures/serverless/routes/ParameterController/getRequest';
 import { handler as parameterControllerGetRequestPropHandler } from 'fixtures/serverless/routes/ParameterController/getRequestProp';
 import { handler as parameterControllerGetBodyHandler } from 'fixtures/serverless/routes/ParameterController/getBody';
@@ -70,7 +72,7 @@ import { base64image } from 'fixtures/base64image';
 describe('Serverless', () => {
   describe('RootController', () => {
     it('can handle get request to root controller`s path', async () => {
-      const { statusCode, body } = await rootHandler({ body: null }, {});
+      const { statusCode, body } = await rootHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -78,7 +80,7 @@ describe('Serverless', () => {
     });
 
     it('can handle get request to root controller`s method path', async () => {
-      const { statusCode, body } = await rootControllerMethodWithPathHandler({ body: null }, {});
+      const { statusCode, body } = await rootControllerMethodWithPathHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -88,7 +90,7 @@ describe('Serverless', () => {
 
   describe('GetTestController', () => {
     it('can handle get request with no path argument', async () => {
-      const { statusCode, body } = await getTestGetModelHandler({ body: null }, {});
+      const { statusCode, body } = await getTestGetModelHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -96,7 +98,7 @@ describe('Serverless', () => {
     });
 
     it('can handle get request with path argument', async () => {
-      const { statusCode, body } = await getTestGetCurrentModelHandler({ body: null }, {});
+      const { statusCode, body } = await getTestGetCurrentModelHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -104,7 +106,7 @@ describe('Serverless', () => {
     });
 
     it('respects toJSON for class serialization', async () => {
-      const { statusCode, body } = await getTestSimpleClassWithJsonHandler({ body: null }, {});
+      const { statusCode, body } = await getTestSimpleClassWithJsonHandler({ body: null }, getTestContext());
 
       const getterClass = JSON.parse(body);
       expect(getterClass).to.haveOwnProperty('a');
@@ -114,7 +116,7 @@ describe('Serverless', () => {
     });
 
     it.skip('[Serverless not support] cannot handle get request with collection return value', async () => {
-      const { statusCode, body } = await getTestMultiResHandler({ body: null }, {});
+      const { statusCode, body } = await getTestMultiResHandler({ body: null }, getTestContext());
 
       const data = JSON.parse(body);
       expect(data.error).to.contains('Error: Unsupported parameter type "res"');
@@ -143,7 +145,7 @@ describe('Serverless', () => {
             'stringParam': 'test1234',
             'numberParam': '1234',
           },
-        }, {});
+        }, getTestContext());
 
         const model = JSON.parse(body) as TestModel;
         expect(model.id).to.equal(1);
@@ -167,7 +169,7 @@ describe('Serverless', () => {
             'stringParam': 'test1234',
             'numberParam': '1234',
           },
-        }, {});
+        }, getTestContext());
 
         const model = JSON.parse(body) as TestModel;
         expect(model.numberValue).to.equal(numberValue);
@@ -193,7 +195,7 @@ describe('Serverless', () => {
             'numberParam': numberValue,
             'optionalStringParam': optionalStringValue,
           },
-        }, {});
+        }, getTestContext());
 
         const model = JSON.parse(body) as TestModel;
         expect(model.optionalString).to.equal(optionalStringValue);
@@ -212,7 +214,7 @@ describe('Serverless', () => {
             'booleanParam': 'true',
             'stringParam': 'test1234',
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.numberParam.message).to.equal(`'numberParam' is required`);
@@ -235,7 +237,7 @@ describe('Serverless', () => {
             'booleanParam': 'true',
             'stringParam': 'test1234',
           },
-        }, {});
+        }, getTestContext());
 
         expect(statusCode).to.equal(400);
       });
@@ -252,7 +254,7 @@ describe('Serverless', () => {
             'booleanParam': 'true',
             'numberParam': '1234',
           },
-        }, {});
+        }, getTestContext());
 
         const {fields } = JSON.parse(body);
         expect(fields.stringParam.message).to.equal(`Custom error message`);
@@ -261,7 +263,7 @@ describe('Serverless', () => {
     });
 
     it.skip('[Serverless not support] injects express request in parameters', async () => {
-      const { statusCode, body } = await getTestRequestHandler({ body: null }, {});
+      const { statusCode, body } = await getTestRequestHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -281,7 +283,7 @@ describe('Serverless', () => {
           'stringParam': stringValue,
           'numberParam': numberValue,
         },
-      }, {});
+      }, getTestContext());
 
       const queryParams = JSON.parse(body) as TestModel;
       expect(queryParams.numberValue).to.equal(numberValue);
@@ -305,7 +307,7 @@ describe('Serverless', () => {
           'bar': object.bar,
           'baz': object.baz,
         },
-      }, {});
+      }, getTestContext());
 
       const queryParams = JSON.parse(body) as TestModel;
       expect(queryParams.anyType.foo).to.equal(object.foo);
@@ -327,7 +329,7 @@ describe('Serverless', () => {
             'foo': object.foo,
             'bar': object.bar,
           },
-        }, {});
+        }, getTestContext());
 
         const queryParams = JSON.parse(body) as TestModel;
         expect(queryParams.anyType.foo).to.equal(Number(object.foo));
@@ -349,7 +351,7 @@ describe('Serverless', () => {
             'bar': object.bar,
             'baz': object.baz,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields['queryParams.baz'].message).to.equal('invalid float number');
@@ -359,7 +361,7 @@ describe('Serverless', () => {
 
     describe.skip('[Serverless not support] @Res', () => {
       it('Should return on @Res', async () => {
-        // const { statusCode, body } = await getTestGetRes({ body: null }, {});
+        // const { statusCode, body } = await getTestGetRes({ body: null }, getTestContext());
         // const model = res.body as TestModel;
         // expect(model.id).to.equal(1);
         // expect(res.get('custom-header')).to.eq('hello');
@@ -372,7 +374,7 @@ describe('Serverless', () => {
             pathParameters: {
               statusCode: status,
             },
-          }, {});
+          }, getTestContext());
 
           // const model = res.body as TestModel;
           // expect(model.id).to.equal(1);
@@ -381,7 +383,7 @@ describe('Serverless', () => {
       );
 
       it('Should not modify the response after headers sent', async () => {
-        const { statusCode, body } = await getTestMultipleStatusCodeRes({ body: null }, {});
+        const { statusCode, body } = await getTestMultipleStatusCodeRes({ body: null }, getTestContext());
 
         // const model = res.body as TestModel;
         // expect(model.id).to.equal(1);
@@ -395,7 +397,7 @@ describe('Serverless', () => {
         queryStringParameters: {
           buffer: base64image,
         },
-      }, {});
+      }, getTestContext());
 
       const bufferData = Buffer.from(JSON.parse(body));
       expect(bufferData.toLocaleString()).to.equal('testbuffer');
@@ -403,7 +405,7 @@ describe('Serverless', () => {
     });
 
     it.skip('[Serverless not support yet] returns streamed responses', async () => {
-      const { statusCode, body } = await getTestGetStream({ body: null }, {});
+      const { statusCode, body } = await getTestGetStream({ body: null }, getTestContext());
 
       // expect(body).to.equal('testbuffer');
     });
@@ -415,7 +417,7 @@ describe('Serverless', () => {
         const data = getFakeModel();
         const { statusCode, body } = await postControllerPostModelHandler({
           body: JSON.stringify(data),
-        }, {});
+        }, getTestContext());
 
         const model = JSON.parse(body) as TestModel;
         expect(model).to.deep.equal(model);
@@ -438,7 +440,7 @@ describe('Serverless', () => {
         };
         const { statusCode, body } = await postControllerPostModelHandler({
           body: JSON.stringify(data),
-        }, {});
+        }, getTestContext());
 
         const resModel = JSON.parse(body) as TestModel;
         expect(resModel).to.deep.equal({
@@ -458,7 +460,7 @@ describe('Serverless', () => {
         const data = getFakeModel();
         const { statusCode, body } = await postControllerPostWithDifferentReturnCode({
           body: JSON.stringify(data),
-        }, {});
+        }, getTestContext());
 
         expect(statusCode).to.equal(201);
       });
@@ -467,7 +469,7 @@ describe('Serverless', () => {
         const data = getFakeClassModel();
         const { statusCode, body } = await postControllerPostClassModelHandler({
           body: JSON.stringify(data),
-        }, {});
+        }, getTestContext());
 
         const model = JSON.parse(body) as TestClassModel;
         expect(model.id).to.equal(700); // this gets changed on the server
@@ -477,7 +479,7 @@ describe('Serverless', () => {
       it('should parse valid date', async () => {
         const data = getFakeModel();
         data.dateValue = '2016-01-01T00:00:00Z' as any;
-        const { statusCode, body } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, getTestContext());
 
         const { dateValue } = JSON.parse(body);
         expect(dateValue).to.equal('2016-01-01T00:00:00.000Z');
@@ -491,7 +493,7 @@ describe('Serverless', () => {
         for (const value of invalidValues) {
           const data = getFakeModel();
           data.numberValue = value as any;
-          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, {});
+          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, getTestContext());
 
           expect(statusCode).to.equal(400);
         }
@@ -509,7 +511,7 @@ describe('Serverless', () => {
           const data = getFakeModel();
           data.stringValue = value as any;
 
-          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, {});
+          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, getTestContext());
 
           expect(statusCode).to.equal(400);
         }
@@ -521,7 +523,7 @@ describe('Serverless', () => {
         for (const value of invalidValues) {
             const data = getFakeModel();
             data.dateValue = value as any;
-          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, {});
+          const { statusCode } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, getTestContext());
 
           expect(statusCode).to.equal(400);
         }
@@ -530,7 +532,7 @@ describe('Serverless', () => {
       it('returns error if invalid request', async () => {
         const data = getFakeModel();
         data.dateValue = 1 as any;
-        const { statusCode, body } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await postControllerPostModelHandler({ body: JSON.stringify(data) }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
@@ -554,7 +556,7 @@ describe('Serverless', () => {
         for (const value of invalidValues) {
           const { statusCode, body } = await postControllerPostObjectHandler({
             body: JSON.stringify({ obj: value }),
-          }, {});
+          }, getTestContext());
 
           expect(statusCode).to.equal(400);
         }
@@ -564,7 +566,7 @@ describe('Serverless', () => {
 
   describe('OptionTestController', () => {
     it('correctly handles OPTIONS requests', async () => {
-      const { statusCode } = await optionControllerMethodExistsCurrentHandler({ body: null }, {})
+      const { statusCode } = await optionControllerMethodExistsCurrentHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(204);
     });
@@ -572,50 +574,46 @@ describe('Serverless', () => {
 
   describe('Controller', () => {
     it('should normal status code', async () => {
-      const { statusCode } = await testControllerNormalStatusCodeHandler({ body: null }, {});
+      const { statusCode } = await testControllerNormalStatusCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(200);
     });
 
     it('should normal status code with false boolean result', async () => {
-      const { statusCode } = await testControllerFalseStatusCodeHandler({ body: null }, {});
+      const { statusCode } = await testControllerFalseStatusCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(200);
     });
 
     it('should normal status code with 0 result', async () => {
-      const { statusCode } = await testControllerZeroStatusCodeHandler({ body: null }, {});
+      const { statusCode } = await testControllerZeroStatusCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(200);
     });
 
     it('should no content status code', async () => {
-      const { statusCode } = await testControllerNoContentStatusCodeHandler({ body: null }, {});
+      const { statusCode } = await testControllerNoContentStatusCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(204);
     });
 
     it('should custom status code', async () => {
-      const { statusCode } = await testControllerCustomNomalStatusCodeHandler({ body: null }, {});
+      const { statusCode } = await testControllerCustomNomalStatusCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(205);
     });
 
-    // it('should custom header', () => {
-    //   return verifyGetRequest(
-    //     basePath + `/Controller/customHeader`,
-    //     (_err, res) => {
-    //       expect(res.status).to.equal(204);
-    //       expect(res.header.hero).to.equal('IronMan');
-    //       expect(res.header.name).to.equal('Tony Stark');
-    //       expect(res.header['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
-    //     },
-    //     204,
-    //   );
-    // });
+    it('should custom header', async () => {
+      const { statusCode, headers } = await testControllerCustomHeaderHandler({}, getTestContext());
+
+      expect(headers.hero).to.equal('IronMan');
+      expect(headers.name).to.equal('Tony Stark');
+      expect(headers['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
+      expect(statusCode).to.equal(204);
+    });
 
     it.skip('{WAIT FIX} should unavailable for legal reasons status code', async () => {
-      const { statusCode } = await testControllerGetUnavailableForLegalReasonsErrorHandler({ body: null }, {});
+      const { statusCode } = await testControllerGetUnavailableForLegalReasonsErrorHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(451);
     });
@@ -623,19 +621,19 @@ describe('Serverless', () => {
 
   describe('NoExtends', () => {
     it('should apply custom code from success response', async () => {
-      const { statusCode } = await notExtendsControllerCustomSuccessResponseCodeHandler({ body: null }, {});
+      const { statusCode } = await notExtendsControllerCustomSuccessResponseCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(202);
     });
 
     it('should apply enum code from success response', async () => {
-      const { statusCode } = await notExtendsControllerEnumSuccessResponseCodeHandler({ body: null }, {});
+      const { statusCode } = await notExtendsControllerEnumSuccessResponseCodeHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(202);
     });
 
     it('should ignore 2XX code range from success response', async () => {
-      const { statusCode } = await notExtendsControllerRangedSuccessResponseHandler({ body: null }, {});
+      const { statusCode } = await notExtendsControllerRangedSuccessResponseHandler({ body: null }, getTestContext());
 
       expect(statusCode).to.equal(204);
     });
@@ -681,7 +679,7 @@ describe('Serverless', () => {
             minDateValue: minDate,
             maxDateValue: maxDate,
           },
-        }, {});
+        }, getTestContext());
 
         const { minDateValue, maxDateValue } = JSON.parse(body);
         expect(new Date(minDateValue)).to.deep.equal(new Date(minDate));
@@ -697,7 +695,7 @@ describe('Serverless', () => {
             minDateValue: date,
             maxDateValue: date,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.minDateValue.message).to.equal(`minDate '2018-01-01'`);
@@ -718,7 +716,7 @@ describe('Serverless', () => {
             minDateValue: minDate,
             maxDateValue: maxDate,
           },
-        }, {});
+        }, getTestContext());
 
         const { maxDateValue, minDateValue } = JSON.parse(body);
         expect(new Date(minDateValue)).to.deep.equal(new Date(minDate));
@@ -734,7 +732,7 @@ describe('Serverless', () => {
             minDateValue: date,
             maxDateValue: date,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.minDateValue.message).to.equal(`minDate '2018-01-01T00:00:00'`);
@@ -753,7 +751,7 @@ describe('Serverless', () => {
             value: 6,
             value_max: 2,
           },
-        }, {});
+        }, getTestContext());
 
         const { minValue, maxValue } = JSON.parse(body);
         expect(minValue).to.equal(6);
@@ -769,7 +767,7 @@ describe('Serverless', () => {
             value,
             value_max: value,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.value.message).to.equal('min 5');
@@ -788,7 +786,7 @@ describe('Serverless', () => {
             minValue: 5.6,
             maxValue: 3.4,
           },
-        }, {});
+        }, getTestContext());
 
         const { minValue, maxValue } = JSON.parse(body);
         expect(minValue).to.equal(5.6);
@@ -804,7 +802,7 @@ describe('Serverless', () => {
             minValue: value,
             maxValue: value,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.minValue.message).to.equal('min 5.5');
@@ -822,7 +820,7 @@ describe('Serverless', () => {
           queryStringParameters: {
             boolValue: true,
           },
-        }, {});
+        }, getTestContext());
 
         const { boolValue } = JSON.parse(body);
         expect(boolValue).to.equal(true);
@@ -836,7 +834,7 @@ describe('Serverless', () => {
           queryStringParameters: {
             boolValue: value,
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.boolValue.message).to.equal('boolValue');
@@ -855,7 +853,7 @@ describe('Serverless', () => {
             patternValue: 'aBcDf',
             quotedPatternValue: 'A',
           },
-        }, {});
+        }, getTestContext());
 
         const { minLength, maxLength, patternValue, quotedPatternValue } = JSON.parse(body);
         expect(minLength).to.equal('abcdef');
@@ -875,7 +873,7 @@ describe('Serverless', () => {
             patternValue: value,
             quotedPatternValue: 'A@',
           },
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields.minLength.message).to.equal('minLength 5');
@@ -964,7 +962,7 @@ describe('Serverless', () => {
         };
         const { statusCode, body: resBody } = await validateControllerBodyValidateHandler({
           body: JSON.stringify(bodyModel),
-        }, {});
+        }, getTestContext());
 
         const body = JSON.parse(resBody) as ValidateModel;
 
@@ -1096,7 +1094,7 @@ describe('Serverless', () => {
         } as any;
         const { statusCode, body: resBody } = await validateControllerBodyValidateHandler({
           body: JSON.stringify(bodyModel),
-        }, {});
+        }, getTestContext());
 
         const { fields } = JSON.parse(resBody);
 
@@ -1212,7 +1210,7 @@ describe('Serverless', () => {
       const { statusCode, body } = await validateControllerCustomRequiredErrorMsgHandler({
         body: null,
         queryStringParameters: {},
-      }, {});
+      }, getTestContext());
 
       const { fields } = JSON.parse(body);
       expect(fields.longValue.message).to.equal('Required long number.');
@@ -1226,7 +1224,7 @@ describe('Serverless', () => {
         queryStringParameters: {
           longValue: value,
         },
-      }, {});
+      }, getTestContext());
 
       const { fields } = JSON.parse(body);
       expect(fields.longValue.message).to.equal('Invalid long number.');
@@ -1240,7 +1238,7 @@ describe('Serverless', () => {
           key2: 1,
           key3: -1,
         };
-        const { statusCode, body } = await validateControllerGetNumberBodyRequest({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await validateControllerGetNumberBodyRequest({ body: JSON.stringify(data) }, getTestContext());
 
         const response = JSON.parse(body) as number[];
         expect(response.sort()).to.eql([-1, 0, 1]);
@@ -1253,7 +1251,7 @@ describe('Serverless', () => {
           key2: 'val1',
           key3: '-val1',
         };
-        const { statusCode, body } = await validateControllerGetNumberBodyRequest({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await validateControllerGetNumberBodyRequest({ body: JSON.stringify(data) }, getTestContext());
 
         const { fields } = JSON.parse(body);
         expect(fields['map.key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
@@ -1268,7 +1266,7 @@ describe('Serverless', () => {
           key2: 1,
           key3: -1,
         };
-        const { statusCode, body } = await validateControllerGetDictionaryRequest({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await validateControllerGetDictionaryRequest({ body: JSON.stringify(data) }, getTestContext());
 
         const response = JSON.parse(body) as any[];
         expect(response.sort()).to.eql([-1, '0', 1]);
@@ -1283,7 +1281,7 @@ describe('Serverless', () => {
           string: '',
           zero: 0,
         };
-        const { statusCode, body } = await validateControllerGetDictionaryRequest({ body: JSON.stringify(data) }, {});
+        const { statusCode, body } = await validateControllerGetDictionaryRequest({ body: JSON.stringify(data) }, getTestContext());
 
         const response = JSON.parse(body) as any[];
         expect(response.sort()).to.eql([[], '', 0, false, null]);
@@ -1387,7 +1385,7 @@ describe('Serverless', () => {
           gender: 'MALE',
           nicknames: ['Ironman', 'Iron Man'],
         },
-      }, {});
+      }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1412,7 +1410,7 @@ describe('Serverless', () => {
           gender: 'MALE',
           nicknames: ['Ironman', 'Iron Man'],
         },
-      }, {});
+      }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1436,7 +1434,7 @@ describe('Serverless', () => {
           human: true,
           gender: 'MALE',
         },
-      }, {});
+      }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1448,54 +1446,48 @@ describe('Serverless', () => {
       expect(statusCode).to.equal(200);
     });
 
-    it.skip('[Serverless not support yet] parses header parameters', () => {
-      // return verifyRequest(
-      //   (_err, res) => {
-      //     const model = res.body as ParameterTestModel;
-      //     expect(model.firstname).to.equal('Tony');
-      //     expect(model.lastname).to.equal('Stark');
-      //     expect(model.age).to.equal(45);
-      //     expect(model.weight).to.equal(82.1);
-      //     expect(model.human).to.equal(true);
-      //     expect(model.gender).to.equal('MALE');
-      //   },
-      //   request => {
-      //     return request.get(basePath + '/ParameterTest/Header').set({
-      //       age: 45,
-      //       firstname: 'Tony',
-      //       gender: 'MALE',
-      //       human: true,
-      //       last_name: 'Stark',
-      //       weight: 82.1,
-      //     });
-      //   },
-      //   200,
-      // );
+    it('parses header parameters', async () => {
+      const { statusCode, body } = await parameterControllerGetHeaderHandler({
+        headers: {
+          age: 45,
+          firstname: 'Tony',
+          gender: 'MALE',
+          human: true,
+          last_name: 'Stark',
+          weight: 82.1,
+        },
+      }, getTestContext());
+
+      const model = JSON.parse(body);
+      expect(model.firstname).to.equal('Tony');
+      expect(model.lastname).to.equal('Stark');
+      expect(model.age).to.equal(45);
+      expect(model.weight).to.equal(82.1);
+      expect(model.human).to.equal(true);
+      expect(model.gender).to.equal('MALE');
+      expect(statusCode).to.equal(200);
     });
 
-    it.skip('[Serverless not support] invalid header parameters have expected errors', () => {
-      // return verifyRequest(
-      //   (err, _res) => {
-      //     const error = JSON.parse(err.text);
-      //     expect(error.fields.firstname.message).to.equal("'firstname' is required");
-      //     expect(error.fields.gender.message).to.equal("should be one of the following; ['MALE','FEMALE']");
-      //     expect(error.fields.human.message).to.equal('invalid boolean value');
+    it('invalid header parameters have expected errors', async () => {
+      const { statusCode, body } = await parameterControllerGetHeaderHandler({
+        headers: {
+          age: 'asdf',
+          gender: 'male',
+          human: 123,
+          last_name: 123,
+          weight: 'hello',
+        },
+      }, getTestContext());
 
-      //     // These have a custom error messages configured
-      //     expect(error.fields.age.message).to.equal('age');
-      //     expect(error.fields.weight.message).to.equal('weight');
-      //   },
-      //   request => {
-      //     return request.get(basePath + '/ParameterTest/Header').set({
-      //       age: 'asdf',
-      //       gender: 'male',
-      //       human: 123,
-      //       last_name: 123,
-      //       weight: 'hello',
-      //     });
-      //   },
-      //   400,
-      // );
+      const { fields } = JSON.parse(body);
+      expect(fields.firstname.message).to.equal("'firstname' is required");
+      expect(fields.gender.message).to.equal("should be one of the following; ['MALE','FEMALE']");
+      expect(fields.human.message).to.equal('invalid boolean value');
+
+      // These have a custom error messages configured
+      expect(fields.age.message).to.equal('age');
+      expect(fields.weight.message).to.equal('weight');
+      expect(statusCode).to.equal(400);
     });
 
     it('parses request parameters', async () => {
@@ -1509,7 +1501,7 @@ describe('Serverless', () => {
           human: true,
           gender: 'MALE',
         },
-      }, {});
+      }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1529,7 +1521,7 @@ describe('Serverless', () => {
         human: true,
         weight: 50,
       };
-      const { statusCode, body } = await parameterControllerGetRequestPropHandler({ body: JSON.stringify(data) }, {});
+      const { statusCode, body } = await parameterControllerGetRequestPropHandler({ body: JSON.stringify(data) }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.age).to.equal(26);
@@ -1550,7 +1542,7 @@ describe('Serverless', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      const { statusCode, body } = await parameterControllerGetBodyHandler({ body: JSON.stringify(data) }, {});
+      const { statusCode, body } = await parameterControllerGetBodyHandler({ body: JSON.stringify(data) }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1571,7 +1563,7 @@ describe('Serverless', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      const { statusCode, body } = await parameterControllerGetBodyPropsHandler({ body: JSON.stringify(data) }, {});
+      const { statusCode, body } = await parameterControllerGetBodyPropsHandler({ body: JSON.stringify(data) }, getTestContext());
 
       const model = JSON.parse(body) as ParameterTestModel;
       expect(model.firstname).to.equal('Tony');
@@ -1592,7 +1584,7 @@ describe('Serverless', () => {
         lastname: 123,
         weight: 'hello',
       };
-      const { statusCode, body } = await parameterControllerGetBodyPropsHandler({ body: JSON.stringify(data) }, {});
+      const { statusCode, body } = await parameterControllerGetBodyPropsHandler({ body: JSON.stringify(data) }, getTestContext());
 
       const { fields } = JSON.parse(body);
       expect(fields['body.firstname'].message).to.equal('invalid string value');
@@ -1607,7 +1599,7 @@ describe('Serverless', () => {
     });
 
     it('can get request with generic type', async () => {
-      const { statusCode, body } = await getTestControllerGetGenericModelHandler({ body: null }, {});
+      const { statusCode, body } = await getTestControllerGetGenericModelHandler({ body: null }, getTestContext());
 
       const { result } = JSON.parse(body) as GenericModel<TestModel>;
       expect(result.id).to.equal(1);
@@ -1615,7 +1607,7 @@ describe('Serverless', () => {
     });
 
     it('can get request with generic array', async () => {
-      const { statusCode, body } = await getTestControllerGetGenericModelArrayHandler({ body: null }, {});
+      const { statusCode, body } = await getTestControllerGetGenericModelArrayHandler({ body: null }, getTestContext());
 
       const { result } = JSON.parse(body) as GenericModel<TestModel[]>;
       expect(result[0].id).to.equal(1);
@@ -1623,7 +1615,7 @@ describe('Serverless', () => {
     });
 
     it('can get request with generic primative type', async () => {
-      const { statusCode, body } = await getTestControllerGetGenericPrimitiveHandler({ body: null }, {});
+      const { statusCode, body } = await getTestControllerGetGenericPrimitiveHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as GenericModel<string>;
       expect(model.result).to.equal('a string');
@@ -1631,7 +1623,7 @@ describe('Serverless', () => {
     });
 
     it('can get request with generic primative array', async () => {
-      const { statusCode, body } = await getTestControllerGetGenericPrimitiveArrayHandler({ body: null }, {});
+      const { statusCode, body } = await getTestControllerGetGenericPrimitiveArrayHandler({ body: null }, getTestContext());
 
       const model = JSON.parse(body) as GenericModel<string[]>;
       expect(model.result[0]).to.equal('string one');
@@ -1645,7 +1637,7 @@ describe('Serverless', () => {
       };
       const { statusCode, body } = await postControllerGetGenericRequestHandler({
         body: JSON.stringify(data),
-      }, {});
+      }, getTestContext());
 
       const model = JSON.parse(body) as TestModel;
       expect(model.id).to.equal(1);
@@ -1661,7 +1653,7 @@ describe('Serverless', () => {
         pathParameters: {
           mainResourceId,
         },
-      }, {});
+      }, getTestContext());
 
       const data = JSON.parse(body);
       expect(data).to.equal(mainResourceId);
@@ -1677,7 +1669,7 @@ describe('Serverless', () => {
           mainResourceId,
           subResourceId,
         },
-      }, {});
+      }, getTestContext());
 
       const data = JSON.parse(body);
       expect(data).to.equal(`${mainResourceId}:${subResourceId}`);
@@ -1795,6 +1787,10 @@ describe('Serverless', () => {
     //   );
     // }
   });
+
+  function getTestContext() {
+    return {};
+  }
 
   function getFakeModel(): TestModel {
     // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation

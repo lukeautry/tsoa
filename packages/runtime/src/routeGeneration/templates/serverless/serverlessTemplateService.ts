@@ -1,5 +1,4 @@
 import { TsoaRoute } from "../../tsoa-route";
-
 import { Controller } from "../../../interfaces/controller";
 import { FieldErrors, ValidateError } from "../../templateHelpers";
 import { TemplateService } from "../templateService";
@@ -18,6 +17,7 @@ type ServerlessValidationArgsParameters = {
 
 type ServerlessReturnHandlerParameters = {
   statusCode?: number;
+  headers: any;
   data?: any;
 };
 
@@ -35,20 +35,20 @@ export class ServerlessTemplateService extends TemplateService<ServerlessApiHand
 
     const data = await Promise.resolve(promise);
     let statusCode = successStatus;
-    // let headers;
+    let headers;
     if (this.isController(controller)) {
-      // headers = controller.getHeaders();
+      headers = controller.getHeaders();
       statusCode = controller.getStatus() || statusCode;
     }
 
-    return this.returnHandler({ statusCode, data });
+    return this.returnHandler({ statusCode, headers, data });
   }
 
   getValidatedArgs(params: ServerlessValidationArgsParameters): any[] {
     const { args, event } = params;
 
     const fieldErrors: FieldErrors = {};
-    event.body = JSON.parse(event.body);
+    event.body = event.body ? JSON.parse(event.body) : undefined;
 
     const values = Object.values(args).map((param) => {
       const name = param.name;
@@ -87,6 +87,8 @@ export class ServerlessTemplateService extends TemplateService<ServerlessApiHand
 
   protected returnHandler(params: ServerlessReturnHandlerParameters) {
     const { statusCode, data } = params;
+    let { headers } = params;
+    headers = headers || {};
     /*
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
     } else
@@ -94,10 +96,14 @@ export class ServerlessTemplateService extends TemplateService<ServerlessApiHand
     if (data !== null && data !== undefined) {
       return {
         statusCode: statusCode || 200,
+        headers,
         body: JSON.stringify(data),
       };
     } else {
-      return { statusCode: statusCode || 204 };
+      return {
+        statusCode: statusCode || 204,
+        headers,
+      };
     }
   }
 }
