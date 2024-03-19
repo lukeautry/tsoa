@@ -3,8 +3,9 @@ import { ExtendedRoutesConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { DefaultRouteGenerator } from '../routeGeneration/defaultRouteGenerator';
+import ServerlessRouteGenerator from '../routeGeneration/serverlessRouteGenerator';
 import { fsMkDir } from '../utils/fs';
-import path = require('path');
+import path from 'path';
 import { Config as BaseConfig } from "@tsoa/runtime";
 
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
@@ -50,6 +51,9 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
     }
   }
   if (routesConfig.middleware !== undefined || routesConfig.middlewareTemplate !== undefined) {
+    if (routesConfig.middleware === 'serverless') {
+      return new ServerlessRouteGenerator(metadata, routesConfig);
+    }
     return new DefaultRouteGenerator(metadata, routesConfig);
   } else {
     routesConfig.middleware = 'express';

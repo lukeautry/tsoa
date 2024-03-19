@@ -3,7 +3,8 @@ distForNoAdditional
 node_modules
 routes.ts
 customRoutes.ts
-**/custom-route-generator/routes/*
+**/serverless/routes/*
+
 .idea/
 *.swp
 yarn-error.log

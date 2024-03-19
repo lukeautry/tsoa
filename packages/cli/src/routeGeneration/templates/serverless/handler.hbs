@@ -1,0 +1,63 @@
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { ValidateError, TsoaRoute } from '@tsoa/runtime';
+import { {{controller.name}} } from '.{{controller.modulePath}}';
+
+import { serverlessTemplateService } from '.{{modelsFileName}}';
+{{#if iocModule}}
+import { iocContainer } from '{{iocModule}}';
+import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+{{/if}}
+
+{{#if iocModule}}
+const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+const controller: any = await container.get<{{../name}}>({{controller.name}});
+if (typeof controller['setStatus'] === 'function') {
+controller.setStatus(undefined);
+}
+{{else}}
+const controller = new {{controller.name}}();
+{{/if}}
+
+/**
+ *   Handler for:
+ *   {{action.method}} {{action.fullPath}}
+ *   @see {{controller.name}}#{{action.name}}
+ */
+
+export async function handler(event, context) {
+  const args: Record<string, TsoaRoute.ParameterSchema> = {
+  {{#each action.parameters}}
+    {{@key}}: {{{json this}}},
+  {{/each}}
+  };
+
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+  let validatedArgs: any[] = [];
+  try {
+    validatedArgs = serverlessTemplateService.getValidatedArgs({ args, event });
+    return serverlessTemplateService.apiHandler({
+      methodName: '{{ action.name }}',
+      controller,
+      validatedArgs,
+      successStatus: {{ action.successStatus }}
+    });
+  } catch(err) {
+    if (err instanceof ValidateError) {
+      return {
+        statusCode: err.status,
+        body: JSON.stringify({
+          error: err.name,
+          fields: err.fields,
+        }),
+      };
+    }
+
+    const error = err as any;
+    return {
+      statusCode: error.status,
+      body: JSON.stringify({ error: error.toString() }),
+    };
+  }
+}

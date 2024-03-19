@@ -204,12 +204,9 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
         basePath: '/v1',
-        entryFile: './fixtures/custom/server.ts',
-        routesDir: './fixtures/custom/custom-route-generator/routes',
-        routeGenerator: './fixtures/custom/custom-route-generator/serverlessRouteGenerator',
-        modelsTemplate: './fixtures/custom/custom-route-generator/templates/models.hbs',
-        handlerTemplate: './fixtures/custom/custom-route-generator/templates/handler.hbs',
-        stackTemplate: './fixtures/custom/custom-route-generator/templates/api-stack.hbs',
+        entryFile: './fixtures/serverless/server.ts',
+        routesDir: './fixtures/serverless/routes',
+        middleware: 'serverless',
       }),
     ),
   ]);
