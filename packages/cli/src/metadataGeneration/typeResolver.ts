@@ -695,6 +695,11 @@ export class TypeResolver {
     } else {
       const declarations = this.getModelTypeDeclarations(type);
 
+      if (declarations.length === 0) {
+        // Escape some types like Date.
+        return name;
+      }
+
       //Two possible solutions for recognizing different types:
       // - Add declaration positions into type names (In an order).
       //    - It accepts multiple types with same name, if the code compiles, there would be no conflicts in the type names
@@ -705,7 +710,6 @@ export class TypeResolver {
       //    - Conflicts can be recognized because of the declarations
       //
       // The second was implemented, it not changes the usual type name formats.
-
       const oneDeclaration = declarations[0]; //Every declarations should be in the same namespace hierarchy
       const identifiers = name.split('.');
       if (ts.isEnumMember(oneDeclaration)) {
