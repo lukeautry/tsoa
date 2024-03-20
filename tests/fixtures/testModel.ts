@@ -1224,6 +1224,7 @@ export interface GetterInterfaceHerited extends GetterInterface {
 
 export interface GenericModel<T = string> {
   result: T;
+  results?: T[];
   union?: T | string;
   nested?: GenericRequest<T>;
   heritageCheck?: ThingContainerWithTitle<T>;

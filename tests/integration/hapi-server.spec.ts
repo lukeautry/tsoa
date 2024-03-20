@@ -1289,6 +1289,14 @@ describe('Hapi Server', () => {
       });
     });
 
+    it('can get request with generic array', () => {
+      return verifyGetRequest(basePath + '/GetTest/GenericDate', (_err, res) => {
+        const model = res.body as GenericModel<Date>;
+        expect(new Date(model.result)).not.undefined;
+        expect(new Date(model.results![0])).not.undefined;
+      });
+    });
+
     it('can get request with generic primative type', () => {
       return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (_err, res) => {
         const model = res.body as GenericModel<string>;
