@@ -697,7 +697,9 @@ export class TypeResolver {
 
       if (declarations.length === 0) {
         // Escape some types like Date.
-        return name;
+        if (name === 'Date') {
+          return name;
+        }
       }
 
       //Two possible solutions for recognizing different types:
