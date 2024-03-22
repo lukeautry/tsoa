@@ -31,9 +31,9 @@ type ExpressReturnHandlerParameters = {
 export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
   async apiHandler(params: ExpressApiHandlerParameters) {
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
-    const promise = this.buildPromise(methodName, controller, validatedArgs);
 
     try {
+      const promise = this.buildPromise(methodName, controller, validatedArgs);
       const data = await Promise.resolve(promise);
       let statusCode = successStatus;
       let headers;

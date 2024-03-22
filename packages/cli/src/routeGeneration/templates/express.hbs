@@ -103,7 +103,7 @@ export function RegisterRoutes(app: Router) {
                 const controller = new {{../name}}();
               {{/if}}
 
-              templateService.apiHandler({
+              {{#if ../../iocModule}}await {{/if}}templateService.apiHandler({
                 methodName: '{{name}}',
                 controller,
                 response,
