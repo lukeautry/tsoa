@@ -79,7 +79,7 @@ export function RegisterRoutes(app: Router) {
             ...(fetchMiddlewares<RequestHandler>({{../name}})),
             ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
 
-            {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
+            async function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
                 {{#each parameters}}
                     {{@key}}: {{{json this}}},
@@ -103,7 +103,7 @@ export function RegisterRoutes(app: Router) {
                 const controller = new {{../name}}();
               {{/if}}
 
-              {{#if ../../iocModule}}await {{/if}}templateService.apiHandler({
+              await templateService.apiHandler({
                 methodName: '{{name}}',
                 controller,
                 response,
