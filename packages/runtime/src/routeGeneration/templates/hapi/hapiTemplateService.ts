@@ -47,8 +47,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     const { methodName, controller, h, validatedArgs, successStatus } = params;
 
     try {
-      const promise = this.buildPromise(methodName, controller, validatedArgs);
-      const data = await Promise.resolve(promise);
+      const data = await this.buildPromise(methodName, controller, validatedArgs);
       let statusCode = successStatus;
       let headers;
 

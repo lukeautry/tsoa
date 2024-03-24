@@ -35,8 +35,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
     const { methodName, controller, context, validatedArgs, successStatus } = params;
 
     try {
-      const promise = this.buildPromise(methodName, controller, validatedArgs);
-      const data = await Promise.resolve(promise);
+      const data = await this.buildPromise(methodName, controller, validatedArgs);
       let statusCode = successStatus;
       let headers;
 

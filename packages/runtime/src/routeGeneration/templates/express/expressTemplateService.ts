@@ -33,8 +33,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
 
     try {
-      const promise = this.buildPromise(methodName, controller, validatedArgs);
-      const data = await Promise.resolve(promise);
+      const data = await this.buildPromise(methodName, controller, validatedArgs);
       let statusCode = successStatus;
       let headers;
       if (this.isController(controller)) {
