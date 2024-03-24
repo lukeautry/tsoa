@@ -251,6 +251,14 @@ export class GetTestController extends Controller {
     };
   }
 
+  @Get('GenericDate')
+  public async getGenericDate(): Promise<GenericModel<Date>> {
+    return {
+      result: new Date(),
+      results: [new Date()],
+    };
+  }
+
   @Get('GenericPrimitive')
   public async getGenericPrimitive(): Promise<GenericModel<string>> {
     return {
