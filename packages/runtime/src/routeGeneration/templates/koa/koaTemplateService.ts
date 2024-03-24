@@ -31,13 +31,6 @@ type KoaReturnHandlerParameters = {
 };
 
 export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters, KoaValidationArgsParameters, KoaReturnHandlerParameters> {
-  constructor(
-    readonly models: any,
-    private readonly minimalSwaggerConfig: any,
-  ) {
-    super(models);
-  }
-
   async apiHandler(params: KoaApiHandlerParameters) {
     const { methodName, controller, context, validatedArgs, successStatus } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
@@ -66,29 +59,29 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
       const name = param.name;
       switch (param.in) {
         case 'request':
-            return context.request;
+          return context.request;
         case 'request-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(context.request, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, false, undefined);
         }
         case 'query':
-          return this.validationService.ValidateParam(param, context.request.query[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, context.request.query[name], name, errorFields, false, undefined);
         case 'queries':
-          return this.validationService.ValidateParam(param, context.request.query, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, context.request.query, name, errorFields, false, undefined);
         case 'path':
-          return this.validationService.ValidateParam(param, context.params[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, context.params[name], name, errorFields, false, undefined);
         case 'header':
-          return this.validationService.ValidateParam(param, context.request.headers[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, context.request.headers[name], name, errorFields, false, undefined);
         case 'body': {
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, true, undefined);
         }
         case 'body-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value[name] : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, 'body.', this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, true, 'body.');
         }
         case 'formData': {
           const files = Object.values(args).filter(param => param.dataType === 'file');
@@ -98,12 +91,12 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
               return undefined;
             }
 
-            const fileArgs = this.validationService.ValidateParam(param, contextRequest.files[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+            const fileArgs = this.validationService.ValidateParam(param, contextRequest.files[name], name, errorFields, false, undefined);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
-            return this.validationService.ValidateParam(param, contextRequest.files, name, errorFields, undefined, this.minimalSwaggerConfig);
+            return this.validationService.ValidateParam(param, contextRequest.files, name, errorFields, false, undefined);
           }
-          return this.validationService.ValidateParam(param, contextRequest.body[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, contextRequest.body[name], name, errorFields, false, undefined);
         }
         case 'res':
           return async (status: number | undefined, data: any, headers: any): Promise<void> => {

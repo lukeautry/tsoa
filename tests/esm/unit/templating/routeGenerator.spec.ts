@@ -14,6 +14,7 @@ describe('RouteGenerator', () => {
       const routesConfig: ExtendedRoutesConfig = {
         entryFile: 'index.ts',
         noImplicitAdditionalProperties: 'silently-remove-extras',
+        bodyCoercion: true,
         routesDir: 'dist/routes',
         controllerPathGlobs: ['fixtures/controllers/*.ts'],
         routeGenerator: DummyRouteGenerator,

@@ -6,6 +6,7 @@ import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
 import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
+import { AdditionalProps } from '../../additionalProps';
 
 const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
 
@@ -32,14 +33,14 @@ type HapiReturnHandlerParameters = {
 
 export class HapiTemplateService extends TemplateService<HapiApiHandlerParameters, HapiValidationArgsParameters, HapiReturnHandlerParameters> {
   constructor(
-    readonly models: any,
-    private readonly minimalSwaggerConfig: any,
+    protected readonly models: TsoaRoute.Models,
+    protected readonly config: AdditionalProps,
     private readonly hapi: {
       boomify: Function;
       isBoom: Function;
     },
   ) {
-    super(models);
+    super(models, config);
   }
 
   async apiHandler(params: HapiApiHandlerParameters) {
@@ -83,27 +84,27 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
         case 'request-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(request, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, false, undefined);
         }
         case 'query':
-          return this.validationService.ValidateParam(param, request.query[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query[name], name, errorFields, false, undefined);
         case 'queries':
-          return this.validationService.ValidateParam(param, request.query, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query, name, errorFields, false, undefined);
         case 'path':
-          return this.validationService.ValidateParam(param, request.params[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.params[name], name, errorFields, false, undefined);
         case 'header':
-          return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, false, undefined);
         case 'body':
-          return this.validationService.ValidateParam(param, request.payload, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.payload, name, errorFields, true, undefined);
         case 'body-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(request.payload, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, 'body.', this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, true, 'body.');
         }
         case 'formData': {
           const descriptor = Object.getOwnPropertyDescriptor(request.payload, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, errorFields, false, undefined);
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {

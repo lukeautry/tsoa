@@ -29,13 +29,6 @@ type ExpressReturnHandlerParameters = {
 };
 
 export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
-  constructor(
-    readonly models: any,
-    private readonly minimalSwaggerConfig: any,
-  ) {
-    super(models);
-  }
-
   async apiHandler(params: ExpressApiHandlerParameters) {
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
     const promise = this.buildPromise(methodName, controller, validatedArgs);
@@ -67,20 +60,20 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'request-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(request, name);
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, value, name, fieldErrors, false, undefined);
         }
         case 'query':
-          return this.validationService.ValidateParam(param, request.query[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query[name], name, fieldErrors, false, undefined);
         case 'queries':
-          return this.validationService.ValidateParam(param, request.query, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.query, name, fieldErrors, false, undefined);
         case 'path':
-          return this.validationService.ValidateParam(param, request.params[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.params[name], name, fieldErrors, false, undefined);
         case 'header':
-          return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body':
-          return this.validationService.ValidateParam(param, request.body, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.body, name, fieldErrors, true, undefined);
         case 'body-prop':
-          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, 'body.', this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, true, 'body.');
         case 'formData': {
           const files = Object.values(args).filter(param => param.dataType === 'file');
           if (param.dataType === 'file' && files.length > 0) {
@@ -89,12 +82,12 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
               return undefined;
             }
 
-            const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+            const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, false, undefined);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
-            return this.validationService.ValidateParam(param, request.files, name, fieldErrors, undefined, this.minimalSwaggerConfig);
+            return this.validationService.ValidateParam(param, request.files, name, fieldErrors, false, undefined);
           }
-          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, undefined, this.minimalSwaggerConfig);
+          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, false, undefined);
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
@@ -129,5 +122,4 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
       response.status(statusCode || 204).end();
     }
   }
-
 }

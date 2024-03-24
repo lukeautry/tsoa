@@ -29,6 +29,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
     generateRoutes(
       {
         noImplicitAdditionalProperties: 'silently-remove-extras',
+        bodyCoercion: true,
         basePath: '/v1',
         entryFile: './fixtures/express/server.ts',
         middleware: 'express',
