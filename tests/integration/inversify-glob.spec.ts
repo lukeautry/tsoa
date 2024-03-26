@@ -22,6 +22,16 @@ describe('Inversify Express Server with ControllerPathGlob', () => {
     });
   });
 
+  it('can handle error', async () => {
+    return verifyGetRequest(
+      basePath + '/ManagedTest/ThrowsError?tsoa=abc123456',
+      (_err, res) => {
+        expect(res.text).to.equal('error thrown');
+      },
+      500,
+    );
+  });
+
   function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
