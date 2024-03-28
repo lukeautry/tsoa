@@ -135,10 +135,20 @@ export class MethodGenerator {
 
   private getExtensions() {
     const extensionDecorators = this.getDecoratorsByIdentifier(this.node, 'Extension');
-    if (!extensionDecorators || !extensionDecorators.length) {
-      return [];
-    }
-    return getExtensions(extensionDecorators, this.current);
+    const customExtensions: Tsoa.Extension[] = (this.current.customSwaggerExtensions ?? []).flatMap((extension) => {
+      const decorators = this.getDecoratorsByIdentifier(this.node, extension.decoratorName);
+      const extensions = decorators.map((decorator) => {
+        if (!ts.isCallExpression(decorator.parent)) {
+          throw new Error('The parent of the @Extension is not a CallExpression. Are you using it in the right place?');
+        };
+        return {
+          key: extension.name,
+          value: extension.value(decorator.parent.arguments),
+        };
+      });
+      return extensions;
+    });
+    return [...getExtensions(extensionDecorators, this.current),...customExtensions];
   }
 
   private getCurrentLocation() {

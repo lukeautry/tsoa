@@ -334,7 +334,7 @@ async function SpecGenerator(args: SwaggerArgs) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const swaggerConfig = await validateSpecConfig(config);
 
-    await generateSpec(swaggerConfig, compilerOptions, config.ignore);
+    await generateSpec(swaggerConfig, compilerOptions, config.customSwaggerExtensions, config.ignore);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate swagger error.\n', err);
@@ -352,7 +352,7 @@ async function routeGenerator(args: ConfigArgs) {
     const compilerOptions = validateCompilerOptions(config.compilerOptions);
     const routesConfig = await validateRoutesConfig(config);
 
-    await generateRoutes(routesConfig, compilerOptions, config.ignore);
+    await generateRoutes(routesConfig, compilerOptions, config.customSwaggerExtensions, config.ignore);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
@@ -381,10 +381,10 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     const swaggerConfig = await validateSpecConfig(config);
 
     if (!metadata) {
-      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity, config.defaultNumberType, config.routes.esm).Generate();
+      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.customSwaggerExtensions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity, config.defaultNumberType, config.routes.esm).Generate();
     }
 
-    await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
+    await Promise.all([generateRoutes(routesConfig, compilerOptions, config.customSwaggerExtensions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.customSwaggerExtensions, config.ignore, metadata)]);
     return metadata;
   } catch (err) {
     // eslint-disable-next-line no-console
