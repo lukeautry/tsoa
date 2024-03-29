@@ -33,10 +33,9 @@ type KoaReturnHandlerParameters = {
 export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters, KoaValidationArgsParameters, KoaReturnHandlerParameters> {
   async apiHandler(params: KoaApiHandlerParameters) {
     const { methodName, controller, context, validatedArgs, successStatus } = params;
-    const promise = this.buildPromise(methodName, controller, validatedArgs);
 
     try {
-      const data = await Promise.resolve(promise);
+      const data = await this.buildPromise(methodName, controller, validatedArgs);
       let statusCode = successStatus;
       let headers;
 

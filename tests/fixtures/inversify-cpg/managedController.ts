@@ -14,4 +14,9 @@ export class ManagedController {
   public async getModel(): Promise<TestModel> {
     return this.managedService.getModel();
   }
+
+  @Get('ThrowsError')
+  public getThrowsError(): void {
+    throw new Error('error thrown');
+  }
 }
