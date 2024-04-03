@@ -44,8 +44,11 @@ export class EnumTransformer extends Transformer {
   }
 
   private transformDeclaration(declaration: ts.EnumDeclaration, enumName: string): Tsoa.RefEnumType {
-    const enums = declaration.members.map(e => this.resolver.current.typeChecker.getConstantValue(e)).filter(this.isNotUndefined);
-    const enumVarnames = declaration.members.map(e => e.name.getText()).filter(this.isNotUndefined);
+    const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
+      return item === undefined ? false : true;
+    }
+    const enums = declaration.members.map(e => this.resolver.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
+    const enumVarnames = declaration.members.map(e => e.name.getText()).filter(isNotUndefined);
 
     return {
       dataType: 'refEnum',
@@ -65,9 +68,5 @@ export class EnumTransformer extends Transformer {
       enumVarnames: [declaration.name.getText()],
       deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
     }
-  }
-
-  private isNotUndefined<T>(item: T): item is Exclude<T, undefined> {
-    return item === undefined ? false : true;
   }
 }
