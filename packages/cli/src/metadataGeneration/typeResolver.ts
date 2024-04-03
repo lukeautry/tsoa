@@ -9,10 +9,15 @@ import { getExtensions, getExtensionsFromJSDocComments } from './extension';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 
+import { PrimitiveTransformer } from './transformer/primitiveTransformer';
+import { DateTransformer } from './transformer/dateTransformer';
+import { EnumTransformer } from './transformer/enumTransformer';
+import { PropertyTransformer } from './transformer/propertyTransformer';
+import { ReferenceTransformer } from './transformer/referenceTransformer';
+
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 const inProgressTypes: { [typeName: string]: Array<(realType: Tsoa.ReferenceType) => void> } = {};
 
-type OverrideToken = ts.Token<ts.SyntaxKind.QuestionToken> | ts.Token<ts.SyntaxKind.PlusToken> | ts.Token<ts.SyntaxKind.MinusToken> | undefined;
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
 type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
 interface Context {
@@ -25,10 +30,10 @@ interface Context {
 export class TypeResolver {
   constructor(
     private readonly typeNode: ts.TypeNode,
-    private readonly current: MetadataGenerator,
+    public readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
-    private context: Context = {},
-    private readonly referencer?: ts.Type,
+    public context: Context = {},
+    public readonly referencer?: ts.Type,
   ) {}
 
   public static clearCache() {
@@ -42,7 +47,7 @@ export class TypeResolver {
   }
 
   public resolve(): Tsoa.Type {
-    const primitiveType = this.getPrimitiveType(this.typeNode, this.parentNode);
+    const primitiveType = new PrimitiveTransformer(this).transform(this.typeNode, this.parentNode);
     if (primitiveType) {
       return primitiveType;
     }
@@ -477,7 +482,7 @@ export class TypeResolver {
     const typeReference = this.typeNode as ts.TypeReferenceNode;
     if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
       if (typeReference.typeName.text === 'Date') {
-        return this.getDateType(this.parentNode);
+        return new DateTransformer(this).transform(this.parentNode);
       }
 
       if (typeReference.typeName.text === 'Buffer') {
@@ -544,80 +549,6 @@ export class TypeResolver {
     return value;
   }
 
-  private getPrimitiveType(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
-    const resolution = this.attemptToResolveKindToPrimitive(typeNode.kind);
-    if (!resolution.foundMatch) {
-      return;
-    }
-
-    const defaultNumberType = this.current.defaultNumberType;
-
-    if (resolution.resolvedType === 'number') {
-      if (!parentNode) {
-        return { dataType: defaultNumberType };
-      }
-
-      const tags = getJSDocTagNames(parentNode).filter(name => {
-        return ['isInt', 'isLong', 'isFloat', 'isDouble'].some(m => m === name);
-      });
-      if (tags.length === 0) {
-        return { dataType: defaultNumberType };
-      }
-
-      switch (tags[0]) {
-        case 'isInt':
-          return { dataType: 'integer' };
-        case 'isLong':
-          return { dataType: 'long' };
-        case 'isFloat':
-          return { dataType: 'float' };
-        case 'isDouble':
-          return { dataType: 'double' };
-        default:
-          return { dataType: defaultNumberType };
-      }
-    } else if (resolution.resolvedType === 'string') {
-      return {
-        dataType: 'string',
-      };
-    } else if (resolution.resolvedType === 'boolean') {
-      return {
-        dataType: 'boolean',
-      };
-    } else if (resolution.resolvedType === 'void') {
-      return {
-        dataType: 'void',
-      };
-    } else if (resolution.resolvedType === 'undefined') {
-      return {
-        dataType: 'undefined',
-      };
-    } else {
-      return assertNever(resolution.resolvedType);
-    }
-  }
-
-  private getDateType(parentNode?: ts.Node): Tsoa.DateType | Tsoa.DateTimeType {
-    if (!parentNode) {
-      return { dataType: 'datetime' };
-    }
-    const tags = getJSDocTagNames(parentNode).filter(name => {
-      return ['isDate', 'isDateTime'].some(m => m === name);
-    });
-
-    if (tags.length === 0) {
-      return { dataType: 'datetime' };
-    }
-    switch (tags[0]) {
-      case 'isDate':
-        return { dataType: 'date' };
-      case 'isDateTime':
-        return { dataType: 'datetime' };
-      default:
-        return { dataType: 'datetime' };
-    }
-  }
-
   private getDesignatedModels<T extends ts.Node>(nodes: T[], typeName: string): T[] {
     /**
      * Model is marked with '@tsoaModel', indicating that it should be the 'canonical' model used
@@ -637,24 +568,6 @@ export class TypeResolver {
 
   private hasFlag(type: ts.Symbol | ts.Declaration, flag: ts.NodeFlags | ts.SymbolFlags) {
     return (type.flags & flag) === flag;
-  }
-
-  private getEnumerateType(enumDeclaration: ts.EnumDeclaration, enumName: string): Tsoa.RefEnumType {
-    const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
-      return item === undefined ? false : true;
-    };
-
-    const enums = enumDeclaration.members.map(e => this.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
-    const enumVarnames = enumDeclaration.members.map(e => e.name.getText()).filter(isNotUndefined);
-
-    return {
-      dataType: 'refEnum',
-      description: this.getNodeDescription(enumDeclaration),
-      enums,
-      enumVarnames,
-      refName: enumName,
-      deprecated: isExistJSDocTag(enumDeclaration, tag => tag.tagName.text === 'deprecated'),
-    };
   }
 
   private getReferencer(): ts.Type {
@@ -793,12 +706,13 @@ export class TypeResolver {
       }
       return `${literalValue}`;
     }
-    const resolved = this.attemptToResolveKindToPrimitive(arg.kind);
+    const resolved = PrimitiveTransformer.attemptToResolveKindToPrimitive(arg.kind);
     if (resolved.foundMatch) {
       return resolved.resolvedType;
     }
     if (ts.isTypeReferenceNode(arg) || ts.isExpressionWithTypeArguments(arg)) {
-      return this.calcTypeReferenceTypeName(arg);
+      const [_, name] = this.calcTypeReferenceTypeName(arg);
+      return name;
     } else if (ts.isTypeLiteralNode(arg)) {
       const members = arg.members.map(member => {
         if (ts.isPropertySignature(member)) {
@@ -877,21 +791,19 @@ export class TypeResolver {
   }
 
   //Generates type name for type references
-  private calcTypeReferenceTypeName(node: ts.TypeReferenceType): string {
+  private calcTypeReferenceTypeName(node: ts.TypeReferenceType): [ts.EntityName, string] {
     const type = TypeResolver.typeReferenceToEntityName(node);
     const refTypeName = this.calcRefTypeName(type);
     if (Array.isArray(node.typeArguments)) {
       // Add typeArguments for Synthetic nodes (e.g. Record<> in TestClassModel.indexedResponse)
       const argumentsString = node.typeArguments.map(type => this.calcTypeName(type));
-      return `${refTypeName}<${argumentsString.join(', ')}>`;
+      return [type, `${refTypeName}<${argumentsString.join(', ')}>`];
     }
-    return refTypeName;
+    return [type, refTypeName];
   }
 
   private getReferenceType(node: ts.TypeReferenceType, addToRefTypeMap = true): Tsoa.ReferenceType {
-    const type = TypeResolver.typeReferenceToEntityName(node);
-
-    const name = this.calcTypeReferenceTypeName(node);
+    const [type, name] = this.calcTypeReferenceTypeName(node);
     const refTypeName = this.getRefTypeName(name);
     this.current.CheckExpressionUnicity(refTypeName, name);
 
@@ -915,22 +827,14 @@ export class TypeResolver {
         for (const declaration of declarations) {
           if (ts.isTypeAliasDeclaration(declaration)) {
             const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
-            referenceTypes.push(this.getTypeAliasReference(declaration, refTypeName, referencer));
-          } else if (ts.isEnumDeclaration(declaration)) {
-            referenceTypes.push(this.getEnumerateType(declaration, refTypeName));
-          } else if (ts.isEnumMember(declaration)) {
-            referenceTypes.push({
-              dataType: 'refEnum',
-              refName: refTypeName,
-              enums: [this.current.typeChecker.getConstantValue(declaration)!],
-              enumVarnames: [declaration.name.getText()],
-              deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
-            });
+            referenceTypes.push(new ReferenceTransformer(this).transform(declaration, refTypeName, referencer));
+          } else if (EnumTransformer.transformable(declaration)) {
+            referenceTypes.push(new EnumTransformer(this).transform(declaration, refTypeName));
           } else {
             referenceTypes.push(this.getModelReference(declaration, refTypeName));
           }
         }
-        const referenceType = TypeResolver.mergeReferenceTypes(referenceTypes);
+        const referenceType = ReferenceTransformer.merge(referenceTypes);
         this.addToLocalReferenceTypeCache(name, referenceType);
         return referenceType;
       } catch (err) {
@@ -946,82 +850,6 @@ export class TypeResolver {
     return result;
   }
 
-  private static mergeTwoRefEnumTypes(first: Tsoa.RefEnumType, second: Tsoa.RefEnumType): Tsoa.RefEnumType {
-    const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
-
-    const deprecated = first.deprecated || second.deprecated;
-
-    const enums = first.enums ? (second.enums ? [...first.enums, ...second.enums] : first.enums) : second.enums;
-
-    const enumVarnames = first.enumVarnames ? (second.enumVarnames ? [...first.enumVarnames, ...second.enumVarnames] : first.enumVarnames) : second.enumVarnames;
-
-    return {
-      dataType: 'refEnum',
-      description,
-      enums,
-      enumVarnames,
-      refName: first.refName,
-      deprecated,
-    };
-  }
-
-  private static mergeTwoRefObjectTypes(first: Tsoa.RefObjectType, second: Tsoa.RefObjectType): Tsoa.RefObjectType {
-    const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
-
-    const deprecated = first.deprecated || second.deprecated;
-    const example = first.example || second.example;
-
-    const properties = [...first.properties, ...second.properties.filter(prop => first.properties.every(firstProp => firstProp.name !== prop.name))];
-
-    const mergeAdditionalTypes = (first: Tsoa.Type, second: Tsoa.Type): Tsoa.Type => {
-      return {
-        dataType: 'union',
-        types: [first, second],
-      };
-    };
-
-    const additionalProperties = first.additionalProperties
-      ? second.additionalProperties
-        ? mergeAdditionalTypes(first.additionalProperties, second.additionalProperties)
-        : first.additionalProperties
-      : second.additionalProperties;
-
-    const result: Tsoa.RefObjectType = {
-      dataType: 'refObject',
-      description,
-      properties,
-      additionalProperties,
-      refName: first.refName,
-      deprecated,
-      example,
-    };
-
-    return result;
-  }
-
-  private static mergeReferenceTypes(referenceTypes: Tsoa.ReferenceType[]): Tsoa.ReferenceType {
-    if (referenceTypes.length === 1) {
-      return referenceTypes[0];
-    }
-    if (referenceTypes.every(refType => refType.dataType === 'refEnum')) {
-      const refEnumTypes = referenceTypes as Tsoa.RefEnumType[];
-      let merged = TypeResolver.mergeTwoRefEnumTypes(refEnumTypes[0], refEnumTypes[1]);
-      for (let i = 2; i < refEnumTypes.length; ++i) {
-        merged = TypeResolver.mergeTwoRefEnumTypes(merged, refEnumTypes[i]);
-      }
-      return merged;
-    }
-    if (referenceTypes.every(refType => refType.dataType === 'refObject')) {
-      const refObjectTypes = referenceTypes as Tsoa.RefObjectType[];
-      let merged = TypeResolver.mergeTwoRefObjectTypes(refObjectTypes[0], refObjectTypes[1]);
-      for (let i = 2; i < refObjectTypes.length; ++i) {
-        merged = TypeResolver.mergeTwoRefObjectTypes(merged, refObjectTypes[i]);
-      }
-      return merged;
-    }
-    throw new GenerateMetadataError(`These resolved type merge rules are not defined: ${JSON.stringify(referenceTypes)}`);
-  }
-
   private addToLocalReferenceTypeCache(name: string, refType: Tsoa.ReferenceType) {
     if (inProgressTypes[name]) {
       for (const fn of inProgressTypes[name]) {
@@ -1031,22 +859,6 @@ export class TypeResolver {
     localReferenceTypeCache[name] = refType;
 
     delete inProgressTypes[name];
-  }
-
-  private getTypeAliasReference(declaration: ts.TypeAliasDeclaration, refTypeName: string, referencer?: ts.Type): Tsoa.ReferenceType {
-    const example = this.getNodeExample(declaration);
-
-    const referenceType: Tsoa.ReferenceType = {
-      dataType: 'refAlias',
-      default: TypeResolver.getDefault(declaration),
-      description: this.getNodeDescription(declaration),
-      refName: refTypeName,
-      format: this.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer).resolve(),
-      validators: getPropertyValidators(declaration) || {},
-      ...(example && { example }),
-    };
-    return referenceType;
   }
 
   private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, refTypeName: string) {
@@ -1080,7 +892,7 @@ export class TypeResolver {
       return referenceType;
     }
 
-    const properties = this.getModelProperties(modelType);
+    const properties = new PropertyTransformer(this).transform(modelType);
     const additionalProperties = this.getModelAdditionalProperties(modelType);
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
 
@@ -1124,39 +936,6 @@ export class TypeResolver {
 
     return formattedName;
   }
-
-  private attemptToResolveKindToPrimitive = (syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive => {
-    if (syntaxKind === ts.SyntaxKind.NumberKeyword) {
-      return {
-        foundMatch: true,
-        resolvedType: 'number',
-      };
-    } else if (syntaxKind === ts.SyntaxKind.StringKeyword) {
-      return {
-        foundMatch: true,
-        resolvedType: 'string',
-      };
-    } else if (syntaxKind === ts.SyntaxKind.BooleanKeyword) {
-      return {
-        foundMatch: true,
-        resolvedType: 'boolean',
-      };
-    } else if (syntaxKind === ts.SyntaxKind.VoidKeyword) {
-      return {
-        foundMatch: true,
-        resolvedType: 'void',
-      };
-    } else if (syntaxKind === ts.SyntaxKind.UndefinedKeyword) {
-      return {
-        foundMatch: true,
-        resolvedType: 'undefined',
-      };
-    } else {
-      return {
-        foundMatch: false,
-      };
-    }
-  };
 
   private createCircularDependencyResolver(refName: string, refTypeName: string) {
     const referenceType = {
@@ -1223,113 +1002,10 @@ export class TypeResolver {
     return modelTypes;
   }
 
-  private getSymbolAtLocation(type: ts.Node) {
+  private getSymbolAtLocation(type: ts.Node): ts.Symbol {
     const symbol = this.current.typeChecker.getSymbolAtLocation(type) || ((type as any).symbol as ts.Symbol);
     // resolve alias if it is an alias, otherwise take symbol directly
     return (symbol && this.hasFlag(symbol, ts.SymbolFlags.Alias) && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
-  }
-
-  private getModelProperties(node: ts.InterfaceDeclaration | ts.ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
-    const isIgnored = (e: ts.TypeElement | ts.ClassElement) => {
-      let ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
-      ignore = ignore || (e.flags & ts.NodeFlags.ThisNodeHasError) > 0;
-      return ignore;
-    };
-
-    // Interface model
-    if (ts.isInterfaceDeclaration(node)) {
-      return node.members
-        .filter((member): member is ts.PropertySignature => !isIgnored(member) && ts.isPropertySignature(member))
-        .map((member: ts.PropertySignature) => this.propertyFromSignature(member, overrideToken));
-    }
-
-    const properties: Array<ts.PropertyDeclaration | ts.ParameterDeclaration> = [];
-    for (const member of node.members) {
-      if (!isIgnored(member) && ts.isPropertyDeclaration(member) && !this.hasStaticModifier(member) && this.hasPublicModifier(member)) {
-        properties.push(member);
-      }
-    }
-
-    const classConstructor = node.members.find(member => ts.isConstructorDeclaration(member)) as ts.ConstructorDeclaration;
-
-    if (classConstructor && classConstructor.parameters) {
-      const constructorProperties = classConstructor.parameters.filter(parameter => this.isAccessibleParameter(parameter));
-
-      properties.push(...constructorProperties);
-    }
-
-    return properties.map(property => this.propertyFromDeclaration(property, overrideToken));
-  }
-
-  private propertyFromSignature(propertySignature: ts.PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
-    const identifier = propertySignature.name as ts.Identifier;
-
-    if (!propertySignature.type) {
-      throw new GenerateMetadataError(`No valid type found for property declaration.`);
-    }
-
-    let required = !propertySignature.questionToken;
-    if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
-      required = true;
-    } else if (overrideToken && overrideToken.kind === ts.SyntaxKind.QuestionToken) {
-      required = false;
-    }
-
-    const def = TypeResolver.getDefault(propertySignature);
-
-    const property: Tsoa.Property = {
-      default: def,
-      description: this.getNodeDescription(propertySignature),
-      example: this.getNodeExample(propertySignature),
-      format: this.getNodeFormat(propertySignature),
-      name: identifier.text,
-      required,
-      type: new TypeResolver(propertySignature.type, this.current, propertySignature.type.parent, this.context).resolve(),
-      validators: getPropertyValidators(propertySignature) || {},
-      deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
-      extensions: this.getNodeExtension(propertySignature),
-    };
-    return property;
-  }
-
-  private propertyFromDeclaration(propertyDeclaration: ts.PropertyDeclaration | ts.ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
-    const identifier = propertyDeclaration.name as ts.Identifier;
-    let typeNode = propertyDeclaration.type;
-
-    const tsType = this.current.typeChecker.getTypeAtLocation(propertyDeclaration);
-
-    if (!typeNode) {
-      // Type is from initializer
-      typeNode = this.current.typeChecker.typeToTypeNode(tsType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-    }
-
-    const type = new TypeResolver(typeNode, this.current, propertyDeclaration, this.context, tsType).resolve();
-
-    let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
-    if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
-      required = true;
-    } else if (overrideToken && overrideToken.kind === ts.SyntaxKind.QuestionToken) {
-      required = false;
-    }
-    let def = getInitializerValue(propertyDeclaration.initializer, this.current.typeChecker);
-    if (def === undefined) {
-      def = TypeResolver.getDefault(propertyDeclaration);
-    }
-
-    const property: Tsoa.Property = {
-      default: def,
-      description: this.getNodeDescription(propertyDeclaration),
-      example: this.getNodeExample(propertyDeclaration),
-      format: this.getNodeFormat(propertyDeclaration),
-      name: identifier.text,
-      required,
-      type,
-      validators: getPropertyValidators(propertyDeclaration) || {},
-      // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
-      deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
-      extensions: this.getNodeExtension(propertyDeclaration),
-    };
-    return property;
   }
 
   private getModelAdditionalProperties(node: UsableDeclaration) {
@@ -1438,45 +1114,7 @@ export class TypeResolver {
     return properties;
   }
 
-  private hasPublicModifier(node: ts.HasModifiers) {
-    return (
-      !node.modifiers ||
-      node.modifiers.every(modifier => {
-        return modifier.kind !== ts.SyntaxKind.ProtectedKeyword && modifier.kind !== ts.SyntaxKind.PrivateKeyword;
-      })
-    );
-  }
-
-  private hasStaticModifier(node: ts.HasModifiers) {
-    return (
-      node.modifiers &&
-      node.modifiers.some(modifier => {
-        return modifier.kind === ts.SyntaxKind.StaticKeyword;
-      })
-    );
-  }
-
-  private isAccessibleParameter(node: ts.HasModifiers) {
-    const modifiers = ts.getModifiers(node);
-
-    if (modifiers == null || modifiers.length === 0) {
-      return false;
-    }
-
-    // public || public readonly
-    if (modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword)) {
-      return true;
-    }
-
-    // readonly, not private readonly, not public readonly
-    const isReadonly = modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword);
-    const isProtectedOrPrivate = modifiers.some(modifier => {
-      return modifier.kind === ts.SyntaxKind.ProtectedKeyword || modifier.kind === ts.SyntaxKind.PrivateKeyword;
-    });
-    return isReadonly && !isProtectedOrPrivate;
-  }
-
-  private getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
+  public getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
     const symbol = this.getSymbolAtLocation(node.name as ts.Node);
     if (!symbol) {
       return undefined;
@@ -1499,11 +1137,11 @@ export class TypeResolver {
     return undefined;
   }
 
-  private getNodeFormat(node: ts.Node) {
+  public getNodeFormat(node: ts.Node) {
     return getJSDocComment(node, 'format');
   }
 
-  private getNodeExample(node: ts.Node) {
+  public getNodeExample(node: ts.Node) {
     const exampleJSDoc = getJSDocComment(node, 'example');
     if (exampleJSDoc) {
       return safeFromJson(exampleJSDoc);
@@ -1512,7 +1150,7 @@ export class TypeResolver {
     return getNodeFirstDecoratorValue(node, this.current.typeChecker, dec => dec.text === 'Example');
   }
 
-  private getNodeExtension(node: ts.Node) {
+  public getNodeExtension(node: ts.Node) {
     const decorators = this.getDecoratorsByIdentifier(node, 'Extension');
     const extensionDecorator = getExtensions(decorators, this.current);
 
@@ -1526,7 +1164,7 @@ export class TypeResolver {
     return getDecorators(node, identifier => identifier.text === id);
   }
 
-  private static getDefault(node: ts.Node) {
+  public static getDefault(node: ts.Node) {
     const defaultStr = getJSDocComment(node, 'default');
     if (typeof defaultStr == 'string' && defaultStr !== 'undefined') {
       let textStartCharacter: `"` | "'" | '`' | undefined = undefined;
@@ -1580,12 +1218,4 @@ export class TypeResolver {
     }
     return undefined;
   }
-}
-
-interface ResolvesToPrimitive {
-  foundMatch: true;
-  resolvedType: 'number' | 'string' | 'boolean' | 'void' | 'undefined';
-}
-interface DoesNotResolveToPrimitive {
-  foundMatch: false;
 }
