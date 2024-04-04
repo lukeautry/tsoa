@@ -324,46 +324,7 @@ export class TypeResolver {
       new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode),
     );
 
-    const typeReference = this.typeNode as ts.TypeReferenceNode;
-    if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
-      if (typeReference.typeName.text === 'Date') {
-        return new DateTransformer(this).transform(this.parentNode);
-      }
-
-      if (typeReference.typeName.text === 'Buffer') {
-        const bufferMetaType: Tsoa.BufferType = { dataType: 'buffer' };
-        return bufferMetaType;
-      }
-
-      if (typeReference.typeName.text === 'Readable') {
-        const streamMetaType: Tsoa.BufferType = { dataType: 'buffer' };
-        return streamMetaType;
-      }
-
-      if (typeReference.typeName.text === 'Array' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        const arrayMetaType: Tsoa.ArrayType = {
-          dataType: 'array',
-          elementType: new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve(),
-        };
-        return arrayMetaType;
-      }
-
-      if (typeReference.typeName.text === 'Promise' && typeReference.typeArguments && typeReference.typeArguments.length === 1) {
-        return new TypeResolver(typeReference.typeArguments[0], this.current, this.parentNode, this.context).resolve();
-      }
-
-      if (typeReference.typeName.text === 'String') {
-        const stringMetaType: Tsoa.StringType = { dataType: 'string' };
-        return stringMetaType;
-      }
-
-      if (this.context[typeReference.typeName.text]) {
-        return new TypeResolver(this.context[typeReference.typeName.text].type, this.current, this.parentNode, this.context).resolve();
-      }
-    }
-
-    const referenceType = this.getReferenceType(typeReference);
-    return referenceType;
+    return this.resolveTypeReferenceNode(this.typeNode as ts.TypeReferenceNode, this.current, this.context, this.parentNode);
   }
 
   private resolveTypeOperatorNode(
@@ -550,6 +511,46 @@ export class TypeResolver {
       }
     }
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`, typeNode);
+  }
+
+  private resolveTypeReferenceNode(
+    typeNode: ts.TypeReferenceNode,
+    current: MetadataGenerator,
+    context: Context,
+    parentNode?: ts.Node,
+  ): Tsoa.Type {
+    const { typeName, typeArguments } = typeNode;
+
+    if (typeName.kind === ts.SyntaxKind.Identifier) {
+      switch(typeName.text) {
+        case 'Date':
+          return new DateTransformer(this).transform(parentNode);
+        case 'Buffer':
+        case 'Readable':
+          return { dataType: 'buffer' };
+        case 'Array':
+          if (typeArguments && typeArguments.length === 1) {
+              return {
+              dataType: 'array',
+              elementType: new TypeResolver(typeArguments[0], current, parentNode, context).resolve(),
+            };
+          }
+          break;
+        case 'Promise':
+          if (typeArguments && typeArguments.length === 1) {
+            return new TypeResolver(typeArguments[0], current, parentNode, context).resolve();
+          }
+          break;
+        case 'String':
+          return { dataType: 'string' };
+        default:
+          if (context[typeName.text]) {
+            return new TypeResolver(context[typeName.text].type, current, parentNode, context).resolve();
+          }
+      }
+    }
+
+    return this.getReferenceType(typeNode);
   }
 
   private getLiteralValue(typeNode: ts.LiteralTypeNode): string | number | boolean | null {
