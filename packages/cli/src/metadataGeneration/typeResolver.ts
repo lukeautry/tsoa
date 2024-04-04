@@ -186,7 +186,7 @@ export class TypeResolver {
       };
 
       const calcMappedType = (type: ts.Type): Tsoa.Type => {
-        if (type.flags & ts.TypeFlags.Union) {
+        if (this.hasFlag(type, ts.TypeFlags.Union)) {
           //Intersections are not interesting somehow...
           const types = (type as ts.UnionType).types;
           const resolvedTypes = types.map(calcMappedType);
@@ -194,16 +194,16 @@ export class TypeResolver {
             dataType: 'union',
             types: resolvedTypes,
           };
-        } else if (type.flags & ts.TypeFlags.Undefined) {
+        } else if (this.hasFlag(type, ts.TypeFlags.Undefined)) {
           return {
             dataType: 'undefined',
           };
-        } else if (type.flags & ts.TypeFlags.Null) {
+        } else if (this.hasFlag(type, ts.TypeFlags.Null)) {
           return {
             dataType: 'enum',
             enums: [null],
           };
-        } else if (type.flags & ts.TypeFlags.Object) {
+        } else if (this.hasFlag(type, ts.TypeFlags.Object)) {
           const typeProperties: ts.Symbol[] = type.getProperties();
           const properties: Tsoa.Property[] = typeProperties
             // Ignore methods, getter, setter and @ignored props
@@ -216,7 +216,7 @@ export class TypeResolver {
               const parent = getOneOrigDeclaration(property); //If there are more declarations, we need to get one of them, from where we want to recognize jsDoc
               const type = new TypeResolver(typeNode, this.current, parent, this.context, propertyType).resolve();
 
-              const required = !(property.flags & ts.SymbolFlags.Optional);
+              const required = !(this.hasFlag(property, ts.SymbolFlags.Optional));
 
               const comments = property.getDocumentationComment(this.current.typeChecker);
               const description = comments.length ? ts.displayPartsToString(comments) : undefined;
@@ -380,25 +380,20 @@ export class TypeResolver {
             literalValues.push(literal.value);
           }
 
-          if (
-            !literals.length &&
-            type.types.length === 3 &&
-            type.types.some(t => t.flags === ts.TypeFlags.String) &&
-            type.types.some(t => t.flags === ts.TypeFlags.Number) &&
-            type.types.some(t => t.flags === ts.TypeFlags.ESSymbol)
-          ) {
-            //keyof any
-            return {
-              dataType: 'union',
-              types: [{ dataType: 'string' }, { dataType: 'double' }],
-            };
-          }
+          if (!literals.length) {
+            const length = type.types.length;
+            const someStringFlag = type.types.some(t => t.flags === ts.TypeFlags.String);
+            const someNumberFlag = type.types.some(t => t.flags === ts.TypeFlags.Number);
+            const someSymbolFlag = type.types.some(t => t.flags === ts.TypeFlags.ESSymbol);
 
-          if (!literals.length && type.types.length === 2 && type.types.some(t => t.flags === ts.TypeFlags.Number) && type.types.some(t => t.flags === ts.TypeFlags.String)) {
-            return {
-              dataType: 'union',
-              types: [{ dataType: 'string' }, { dataType: 'double' }],
-            };
+            if (someStringFlag && someNumberFlag) {
+              if (length === 2 || (length === 3 && someSymbolFlag)) {
+                return {
+                  dataType: 'union',
+                  types: [{ dataType: 'string' }, { dataType: 'double' }],
+                };
+              }
+            }
           }
 
           // Warn on nonsense (`number`, `typeof Symbol.iterator`)
@@ -432,15 +427,15 @@ export class TypeResolver {
             dataType: 'enum',
             enums: [type.value],
           };
-        } else if ((type.getFlags() & ts.TypeFlags.Never) !== 0) {
+        } else if (this.hasFlag(type, ts.TypeFlags.Never)) {
           throw new GenerateMetadataError(`TypeOperator 'keyof' on node produced a never type`, typeNode);
-        } else if ((type.getFlags() & ts.TypeFlags.TemplateLiteral) !== 0) {
+        } else if (this.hasFlag(type, ts.TypeFlags.TemplateLiteral)) {
           //Now assumes template literals as string
           console.warn(new GenerateMetaDataWarning(`Template literals are assumed as strings`, typeNode).toString());
           return {
             dataType: 'string',
           };
-        } else if ((type.getFlags() & ts.TypeFlags.Number) !== 0) {
+        } else if (this.hasFlag(type, ts.TypeFlags.Number)) {
           return {
             dataType: 'double',
           };
@@ -599,7 +594,7 @@ export class TypeResolver {
     return nodes;
   }
 
-  private hasFlag(type: ts.Symbol | ts.Declaration, flag: ts.NodeFlags | ts.SymbolFlags) {
+  private hasFlag(type: ts.Type | ts.Symbol | ts.Declaration, flag: ts.TypeFlags | ts.NodeFlags | ts.SymbolFlags) {
     return (type.flags & flag) === flag;
   }
 
