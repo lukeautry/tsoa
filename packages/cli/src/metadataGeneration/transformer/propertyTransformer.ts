@@ -8,6 +8,7 @@ import { getInitializerValue } from '../initializer-value';
 import { getPropertyValidators } from '../../utils/validatorUtils';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { isDecorator } from '../../utils/decoratorUtils';
+import { throwUnless } from '../../utils/flowUtils';
 
 type OverrideToken = ts.Token<ts.SyntaxKind.QuestionToken> | ts.Token<ts.SyntaxKind.PlusToken> | ts.Token<ts.SyntaxKind.MinusToken> | undefined;
 
@@ -47,9 +48,10 @@ export class PropertyTransformer extends Transformer {
   private propertyFromSignature(propertySignature: ts.PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
     const identifier = propertySignature.name as ts.Identifier;
 
-    if (!propertySignature.type) {
-      throw new GenerateMetadataError(`No valid type found for property declaration.`);
-    }
+    throwUnless(
+      propertySignature.type,
+      new GenerateMetadataError(`No valid type found for property declaration.`),
+    );
 
     let required = !propertySignature.questionToken;
     if (overrideToken && overrideToken.kind === ts.SyntaxKind.MinusToken) {
