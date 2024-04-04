@@ -5,41 +5,41 @@ import { Transformer } from './transformer';
 import { getJSDocTagNames } from '../../utils/jsDocUtils';
 
 export class PrimitiveTransformer extends Transformer {
-  public static attemptToResolveKindToPrimitive(syntaxKind: ts.SyntaxKind): ResolvesToPrimitive | DoesNotResolveToPrimitive {
+  public static resolveKindToPrimitive(syntaxKind: ts.SyntaxKind): ResolvesToPrimitive {
     switch (syntaxKind) {
       case ts.SyntaxKind.NumberKeyword:
-        return { foundMatch: true, resolvedType: 'number' };
+        return 'number';
       case ts.SyntaxKind.StringKeyword:
-        return { foundMatch: true, resolvedType: 'string' };
+        return 'string';
       case ts.SyntaxKind.BooleanKeyword:
-        return { foundMatch: true, resolvedType: 'boolean' };
+        return 'boolean';
       case ts.SyntaxKind.VoidKeyword:
-        return { foundMatch: true, resolvedType: 'void' };
+        return 'void';
       case ts.SyntaxKind.UndefinedKeyword:
-        return { foundMatch: true, resolvedType: 'undefined' };
+        return 'undefined';
       default:
-        return { foundMatch: false };
+        return undefined;
     }
   };
 
   public transform(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
-    const resolution = PrimitiveTransformer.attemptToResolveKindToPrimitive(typeNode.kind);
-    if (!resolution.foundMatch) {
+    const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(typeNode.kind);
+    if (!resolvedType) {
       return;
     }
 
     const defaultNumberType = this.resolver.current.defaultNumberType;
 
-    switch (resolution.resolvedType) {
+    switch (resolvedType) {
       case 'number':
         return this.transformNumber(defaultNumberType, parentNode);
       case 'string':
       case 'boolean':
       case 'void':
       case 'undefined':
-        return { dataType: resolution.resolvedType };
+        return { dataType: resolvedType };
       default:
-        return assertNever(resolution.resolvedType);
+        return assertNever(resolvedType);
     }
   }
 
@@ -73,11 +73,4 @@ export class PrimitiveTransformer extends Transformer {
   }
 }
 
-interface ResolvesToPrimitive {
-  foundMatch: true;
-  resolvedType: 'number' | 'string' | 'boolean' | 'void' | 'undefined';
-}
-
-interface DoesNotResolveToPrimitive {
-  foundMatch: false;
-}
+type ResolvesToPrimitive = 'number' | 'string' | 'boolean' | 'void' | 'undefined' | undefined;

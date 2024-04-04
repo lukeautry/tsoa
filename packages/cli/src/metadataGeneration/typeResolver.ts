@@ -706,9 +706,9 @@ export class TypeResolver {
       }
       return `${literalValue}`;
     }
-    const resolved = PrimitiveTransformer.attemptToResolveKindToPrimitive(arg.kind);
-    if (resolved.foundMatch) {
-      return resolved.resolvedType;
+    const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(arg.kind);
+    if (resolvedType) {
+      return resolvedType;
     }
     if (ts.isTypeReferenceNode(arg) || ts.isExpressionWithTypeArguments(arg)) {
       const [_, name] = this.calcTypeReferenceTypeName(arg);
