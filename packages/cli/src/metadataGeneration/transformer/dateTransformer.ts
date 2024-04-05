@@ -1,11 +1,11 @@
-import * as ts from 'typescript';
+import type { Node } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
 import { getJSDocTagNames } from '../../utils/jsDocUtils';
 
 export class DateTransformer extends Transformer {
-  public transform(parentNode?: ts.Node): Tsoa.DateType | Tsoa.DateTimeType {
+  public transform(parentNode?: Node): Tsoa.DateType | Tsoa.DateTimeType {
     if (!parentNode) {
       return { dataType: 'datetime' };
     }

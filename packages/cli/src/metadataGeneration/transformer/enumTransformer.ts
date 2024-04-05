@@ -1,4 +1,5 @@
-import * as ts from 'typescript';
+import type { Node, EnumDeclaration, EnumMember } from 'typescript';
+import { isEnumDeclaration, isEnumMember } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -32,18 +33,18 @@ export class EnumTransformer extends Transformer {
     };
   }
 
-  public static transformable(declaration: ts.Node): declaration is ts.EnumDeclaration | ts.EnumMember {
-    return ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration);
+  public static transformable(declaration: Node): declaration is EnumDeclaration | EnumMember {
+    return isEnumDeclaration(declaration) || isEnumMember(declaration);
   }
 
-  public transform(declaration: ts.EnumDeclaration | ts.EnumMember, enumName: string): Tsoa.RefEnumType {
-    if (ts.isEnumDeclaration(declaration)) {
+  public transform(declaration: EnumDeclaration | EnumMember, enumName: string): Tsoa.RefEnumType {
+    if (isEnumDeclaration(declaration)) {
       return this.transformDeclaration(declaration, enumName);
     }
     return this.transformMember(declaration, enumName);
   }
 
-  private transformDeclaration(declaration: ts.EnumDeclaration, enumName: string): Tsoa.RefEnumType {
+  private transformDeclaration(declaration: EnumDeclaration, enumName: string): Tsoa.RefEnumType {
     const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
       return item === undefined ? false : true;
     }
@@ -60,7 +61,7 @@ export class EnumTransformer extends Transformer {
     };
   }
 
-  private transformMember(declaration: ts.EnumMember, enumName: string): Tsoa.RefEnumType {
+  private transformMember(declaration: EnumMember, enumName: string): Tsoa.RefEnumType {
     return {
       dataType: 'refEnum',
       refName: enumName,

@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type { TypeAliasDeclaration, Type } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -66,7 +66,7 @@ export class ReferenceTransformer extends Transformer {
     return result;
   }
 
-  public transform(declaration: ts.TypeAliasDeclaration, refTypeName: string, referencer?: ts.Type): Tsoa.ReferenceType {
+  public transform(declaration: TypeAliasDeclaration, refTypeName: string, referencer?: Type): Tsoa.ReferenceType {
     const example = this.resolver.getNodeExample(declaration);
 
     const referenceType: Tsoa.ReferenceType = {

@@ -1,28 +1,29 @@
-import * as ts from 'typescript';
+import type { TypeNode, Node } from 'typescript';
+import { SyntaxKind } from 'typescript';
 import { Tsoa, assertNever } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
 import { getJSDocTagNames } from '../../utils/jsDocUtils';
 
 export class PrimitiveTransformer extends Transformer {
-  public static resolveKindToPrimitive(syntaxKind: ts.SyntaxKind): ResolvesToPrimitive {
+  public static resolveKindToPrimitive(syntaxKind: SyntaxKind): ResolvesToPrimitive {
     switch (syntaxKind) {
-      case ts.SyntaxKind.NumberKeyword:
+      case SyntaxKind.NumberKeyword:
         return 'number';
-      case ts.SyntaxKind.StringKeyword:
+      case SyntaxKind.StringKeyword:
         return 'string';
-      case ts.SyntaxKind.BooleanKeyword:
+      case SyntaxKind.BooleanKeyword:
         return 'boolean';
-      case ts.SyntaxKind.VoidKeyword:
+      case SyntaxKind.VoidKeyword:
         return 'void';
-      case ts.SyntaxKind.UndefinedKeyword:
+      case SyntaxKind.UndefinedKeyword:
         return 'undefined';
       default:
         return undefined;
     }
   };
 
-  public transform(typeNode: ts.TypeNode, parentNode?: ts.Node): Tsoa.PrimitiveType | undefined {
+  public transform(typeNode: TypeNode, parentNode?: Node): Tsoa.PrimitiveType | undefined {
     const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(typeNode.kind);
     if (!resolvedType) {
       return;
@@ -45,7 +46,7 @@ export class PrimitiveTransformer extends Transformer {
 
   private transformNumber(
     defaultNumberType: NonNullable<"double" | "float" | "integer" | "long" | undefined>,
-    parentNode?: ts.Node,
+    parentNode?: Node,
   ): Tsoa.PrimitiveType {
     if (!parentNode) {
       return { dataType: defaultNumberType };
