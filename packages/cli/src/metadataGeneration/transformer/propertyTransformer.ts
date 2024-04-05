@@ -44,28 +44,37 @@ export class PropertyTransformer extends Transformer {
     if (isInterfaceDeclaration(node)) {
       return node.members
         .filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member))
-        .map((member: PropertySignature) => this.propertyFromSignature(member, overrideToken));
+        .map((member: PropertySignature) => this.transformFromSignature(member, overrideToken));
     }
 
     const properties: Array<PropertyDeclaration | ParameterDeclaration> = [];
-    for (const member of node.members) {
-      if (!isIgnored(member) && isPropertyDeclaration(member) && !this.hasStaticModifier(member) && this.hasPublicModifier(member)) {
-        properties.push(member);
-      }
+    properties.push(
+      ...node.members
+        .filter((member): member is PropertyDeclaration =>
+          !isIgnored(member)
+          && isPropertyDeclaration(member)
+          && !this.hasStaticModifier(member)
+          && this.hasPublicModifier(member)
+        ),
+    );
+
+    const constructorDeclaration = node.members
+      .find((member): member is ConstructorDeclaration =>
+        isConstructorDeclaration(member)
+        && member.parameters !== undefined
+      );
+    if (constructorDeclaration) {
+      properties.push(
+        ...constructorDeclaration
+          .parameters
+          .filter((parameter) => this.isAccessibleParameter(parameter))
+      );
     }
 
-    const classConstructor = node.members.find(member => isConstructorDeclaration(member)) as ConstructorDeclaration;
-
-    if (classConstructor && classConstructor.parameters) {
-      const constructorProperties = classConstructor.parameters.filter(parameter => this.isAccessibleParameter(parameter));
-
-      properties.push(...constructorProperties);
-    }
-
-    return properties.map(property => this.propertyFromDeclaration(property, overrideToken));
+    return properties.map(property => this.transformFromDeclaration(property, overrideToken));
   }
 
-  private propertyFromSignature(propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
+  public transformFromSignature(propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
     const identifier = propertySignature.name as Identifier;
 
     throwUnless(
@@ -97,7 +106,7 @@ export class PropertyTransformer extends Transformer {
     return property;
   }
 
-  private propertyFromDeclaration(propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
+  public transformFromDeclaration(propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
     const identifier = propertyDeclaration.name as Identifier;
     let typeNode = propertyDeclaration.type;
 
@@ -116,6 +125,7 @@ export class PropertyTransformer extends Transformer {
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
       required = false;
     }
+
     let def = getInitializerValue(propertyDeclaration.initializer, this.resolver.current.typeChecker);
     if (def === undefined) {
       def = TypeResolver.getDefault(propertyDeclaration);

@@ -109,25 +109,12 @@ export class TypeResolver {
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
-      const properties = this.typeNode.members.filter(ts.isPropertySignature).reduce<Tsoa.Property[]>((res, propertySignature: ts.PropertySignature) => {
-        const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
-
-        const def = TypeResolver.getDefault(propertySignature);
-        const property: Tsoa.Property = {
-          example: this.getNodeExample(propertySignature),
-          default: def,
-          description: this.getNodeDescription(propertySignature),
-          format: this.getNodeFormat(propertySignature),
-          name: (propertySignature.name as ts.Identifier).text,
-          required: !propertySignature.questionToken,
-          type,
-          validators: getPropertyValidators(propertySignature) || {},
-          deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
-          extensions: this.getNodeExtension(propertySignature),
-        };
-
-        return [property, ...res];
-      }, []);
+      const properties = this.typeNode.members
+        .filter(ts.isPropertySignature)
+        .reduce<Tsoa.Property[]>(
+          (res, signature: ts.PropertySignature) => [new PropertyTransformer(this).transformFromSignature(signature), ...res],
+          [],
+        );
 
       const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
       let additionalType: Tsoa.Type | undefined;
@@ -324,7 +311,6 @@ export class TypeResolver {
   ): Tsoa.Type {
     switch (typeNode.operator) {
       case ts.SyntaxKind.KeyOfKeyword: {
-        // keyof
         const type = typeChecker.getTypeFromTypeNode(typeNode);
         if (type.isIndexType()) {
           // in case of generic: keyof T. Not handles all possible cases
@@ -421,7 +407,6 @@ export class TypeResolver {
         throw new GenerateMetadataError(`Could not determine the keys on ${indexedTypeName}`, typeNode);
       }
       case ts.SyntaxKind.ReadonlyKeyword:
-        // Handle `readonly` arrays
         return new TypeResolver(typeNode.type, current, typeNode, context, referencer).resolve();
       default:
         throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`, typeNode);
