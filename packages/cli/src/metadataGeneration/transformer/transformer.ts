@@ -1,5 +1,4 @@
-import type { HasModifiers } from 'typescript';
-import { SyntaxKind, getModifiers } from 'typescript';
+import { SyntaxKind, getModifiers, type HasModifiers } from 'typescript';
 
 import { TypeResolver } from '../typeResolver';
 
