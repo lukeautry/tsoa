@@ -14,7 +14,7 @@ export class ReferenceTransformer extends Transformer {
     }
 
     if (referenceTypes.every(refType => refType.dataType === 'refEnum')) {
-      return EnumTransformer.mergeMany(referenceTypes as Tsoa.RefEnumType[]);
+      return EnumTransformer.mergeManyRef(referenceTypes as Tsoa.RefEnumType[]);
     }
 
     if (referenceTypes.every(refType => refType.dataType === 'refObject')) {

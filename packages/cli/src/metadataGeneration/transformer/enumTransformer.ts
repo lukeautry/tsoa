@@ -6,15 +6,15 @@ import { Transformer } from './transformer';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 
 export class EnumTransformer extends Transformer {
-  public static mergeMany(many: Tsoa.RefEnumType[]): Tsoa.RefEnumType {
-    let merged = this.merge(many[0], many[1]);
+  public static mergeManyRef(many: Tsoa.RefEnumType[]): Tsoa.RefEnumType {
+    let merged = this.mergeRef(many[0], many[1]);
     for (let i = 2; i < many.length; ++i) {
-      merged = this.merge(merged, many[i]);
+      merged = this.mergeRef(merged, many[i]);
     }
     return merged;
   }
 
-  public static merge(first: Tsoa.RefEnumType, second: Tsoa.RefEnumType): Tsoa.RefEnumType {
+  public static mergeRef(first: Tsoa.RefEnumType, second: Tsoa.RefEnumType): Tsoa.RefEnumType {
     const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
 
     const deprecated = first.deprecated || second.deprecated;
@@ -33,11 +33,18 @@ export class EnumTransformer extends Transformer {
     };
   }
 
-  public static transformable(declaration: Node): declaration is EnumDeclaration | EnumMember {
+  public static isRefTransformable(declaration: Node): declaration is EnumDeclaration | EnumMember {
     return isEnumDeclaration(declaration) || isEnumMember(declaration);
   }
 
-  public transform(declaration: EnumDeclaration | EnumMember, enumName: string): Tsoa.RefEnumType {
+  public static transformEnum(values: any): Tsoa.EnumType {
+    return {
+      dataType: 'enum',
+      enums: values,
+    };
+  }
+
+  public transformRef(declaration: EnumDeclaration | EnumMember, enumName: string): Tsoa.RefEnumType {
     if (isEnumDeclaration(declaration)) {
       return this.transformDeclaration(declaration, enumName);
     }

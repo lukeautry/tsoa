@@ -54,11 +54,7 @@ export class TypeResolver {
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.NullKeyword) {
-      const enumType: Tsoa.EnumType = {
-        dataType: 'enum',
-        enums: [null],
-      };
-      return enumType;
+      return EnumTransformer.transformEnum([null]);
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.UndefinedKeyword) {
@@ -109,11 +105,7 @@ export class TypeResolver {
     }
 
     if (ts.isLiteralTypeNode(this.typeNode)) {
-      const enumType: Tsoa.EnumType = {
-        dataType: 'enum',
-        enums: [this.getLiteralValue(this.typeNode)],
-      };
-      return enumType;
+      return EnumTransformer.transformEnum([this.getLiteralValue(this.typeNode)]);
     }
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
@@ -199,10 +191,7 @@ export class TypeResolver {
             dataType: 'undefined',
           };
         } else if (this.hasFlag(type, ts.TypeFlags.Null)) {
-          return {
-            dataType: 'enum',
-            enums: [null],
-          };
+          return EnumTransformer.transformEnum([null]);
         } else if (this.hasFlag(type, ts.TypeFlags.Object)) {
           const typeProperties: ts.Symbol[] = type.getProperties();
           const properties: Tsoa.Property[] = typeProperties
@@ -308,11 +297,9 @@ export class TypeResolver {
       );
 
       // `a${'c' | 'd'}b`
-      const stringLiteralEnum: Tsoa.EnumType = {
-        dataType: 'enum',
-        enums: type.types.map((stringLiteralType: ts.StringLiteralType) => stringLiteralType.value),
-      };
-      return stringLiteralEnum;
+      return EnumTransformer.transformEnum(
+        type.types.map((stringLiteralType: ts.StringLiteralType) => stringLiteralType.value),
+      );
     }
 
     if (ts.isParenthesizedTypeNode(this.typeNode)) {
@@ -363,10 +350,7 @@ export class TypeResolver {
                 new GenerateMetadataError(`TypeOperator 'keyof' on node which have no properties`, context[typeName].type),
               );
 
-              return {
-                dataType: 'enum',
-                enums: properties,
-              };
+              return EnumTransformer.transformEnum(properties);
             }
           }
         } else if (type.isUnion()) {
@@ -408,25 +392,18 @@ export class TypeResolver {
             return {
               dataType: 'union',
               types: [
-                { dataType: 'enum', enums: stringMembers },
-                { dataType: 'enum', enums: numberMembers },
+                EnumTransformer.transformEnum(stringMembers),
+                EnumTransformer.transformEnum(numberMembers),
               ],
             };
           }
-          return {
-            dataType: 'enum',
-            enums: literalValues,
-          };
+          return EnumTransformer.transformEnum(literalValues);
         } else if (type.isLiteral()) {
           throwUnless(
             typeof type.value == 'number' || typeof type.value == 'string',
             new GenerateMetadataError(`Not handled indexType, maybe ts.PseudoBigInt ${typeChecker.typeToString(type)}`, typeNode),
           );
-
-          return {
-            dataType: 'enum',
-            enums: [type.value],
-          };
+          return EnumTransformer.transformEnum([type.value]);
         } else if (this.hasFlag(type, ts.TypeFlags.Never)) {
           throw new GenerateMetadataError(`TypeOperator 'keyof' on node produced a never type`, typeNode);
         } else if (this.hasFlag(type, ts.TypeFlags.TemplateLiteral)) {
@@ -847,8 +824,8 @@ export class TypeResolver {
           if (ts.isTypeAliasDeclaration(declaration)) {
             const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
             referenceTypes.push(new ReferenceTransformer(this).transform(declaration, refTypeName, referencer));
-          } else if (EnumTransformer.transformable(declaration)) {
-            referenceTypes.push(new EnumTransformer(this).transform(declaration, refTypeName));
+          } else if (EnumTransformer.isRefTransformable(declaration)) {
+            referenceTypes.push(new EnumTransformer(this).transformRef(declaration, refTypeName));
           } else {
             referenceTypes.push(this.getModelReference(declaration, refTypeName));
           }
