@@ -116,23 +116,8 @@ export class TypeResolver {
           [],
         );
 
-      const indexMember = this.typeNode.members.find(member => ts.isIndexSignatureDeclaration(member));
-      let additionalType: Tsoa.Type | undefined;
-
-      if (indexMember) {
-        const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
-
-        throwUnless(
-          indexType.dataType === 'string',
-          new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode),
-        );
-
-        additionalType = new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
-      }
-
       const objLiteral: Tsoa.NestedObjectLiteralType = {
-        additionalProperties: indexMember && additionalType,
+        additionalProperties: this.resolveNodeMembers(this.typeNode.members),
         dataType: 'nestedObjectLiteral',
         properties,
       };
@@ -842,7 +827,7 @@ export class TypeResolver {
     delete inProgressTypes[name];
   }
 
-  private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, refTypeName: string) {
+  private getModelReference(modelType: ts.InterfaceDeclaration | ts.ClassDeclaration, refTypeName: string): Tsoa.RefObjectType | Tsoa.RefAliasType {
     const example = this.getNodeExample(modelType);
     const description = this.getNodeDescription(modelType);
     const deprecated = isExistJSDocTag(modelType, tag => tag.tagName.text === 'deprecated') || isDecorator(modelType, identifier => identifier.text === 'Deprecated');
@@ -863,7 +848,7 @@ export class TypeResolver {
         nodeType = this.current.typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
       }
       const type = new TypeResolver(nodeType, this.current).resolve();
-      const referenceType: Tsoa.ReferenceType = {
+      const referenceType: Tsoa.RefAliasType = {
         refName: refTypeName,
         dataType: 'refAlias',
         description,
@@ -876,20 +861,20 @@ export class TypeResolver {
     }
 
     const properties = new PropertyTransformer(this).transform(modelType);
-    const additionalProperties = this.getModelAdditionalProperties(modelType);
+    const additionalProperties = ts.isInterfaceDeclaration(modelType)
+      ? this.resolveNodeMembers(modelType.members)
+      : undefined;
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
 
-    const referenceType: Tsoa.ReferenceType & { properties: Tsoa.Property[] } = {
+    const referenceType: Tsoa.RefObjectType = {
       additionalProperties,
       dataType: 'refObject',
       description,
-      properties: inheritedProperties,
+      properties: [...properties, ...inheritedProperties],
       refName: refTypeName,
       deprecated,
       ...(example && { example }),
     };
-
-    referenceType.properties = referenceType.properties.concat(properties);
 
     return referenceType;
   }
@@ -993,25 +978,23 @@ export class TypeResolver {
     return (symbol && this.hasFlag(symbol, ts.SymbolFlags.Alias) && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
   }
 
-  private getModelAdditionalProperties(node: UsableDeclaration) {
-    if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
-      const interfaceDeclaration = node;
-      const indexMember = interfaceDeclaration.members.find(member => member.kind === ts.SyntaxKind.IndexSignature);
-      if (!indexMember) {
-        return undefined;
-      }
-
-      const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-      const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
-      throwUnless(
-        indexType.dataType === 'string',
-        new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode),
-      );
-
-      return new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
+  /**
+   * Use for extract additionalProperties from declaration members.
+   */
+  private resolveNodeMembers(members: ts.NodeArray<ts.TypeElement>): Tsoa.Type | undefined {
+    const indexMember = members.find(member => member.kind === ts.SyntaxKind.IndexSignature);
+    if (!indexMember) {
+      return undefined;
     }
 
-    return undefined;
+    const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
+    const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
+    throwUnless(
+      indexType.dataType === 'string',
+      new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode),
+    );
+
+    return new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
   }
 
   private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntity: ts.EntityName): Context {
