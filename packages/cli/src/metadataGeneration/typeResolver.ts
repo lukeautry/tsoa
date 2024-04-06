@@ -1,4 +1,4 @@
-import { assertNever, Tsoa } from '@tsoa/runtime';
+import { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
 import { safeFromJson } from '../utils/jsonUtils';
 import { getDecorators, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
@@ -7,7 +7,6 @@ import { getPropertyValidators } from './../utils/validatorUtils';
 import { throwUnless } from '../utils/flowUtils';
 import { GenerateMetadataError, GenerateMetaDataWarning } from './exceptions';
 import { getExtensions, getExtensionsFromJSDocComments } from './extension';
-import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 
 import { PrimitiveTransformer } from './transformer/primitiveTransformer';
@@ -165,43 +164,12 @@ export class TypeResolver {
         } else if (this.hasFlag(type, ts.TypeFlags.Null)) {
           return EnumTransformer.transformEnum([null]);
         } else if (this.hasFlag(type, ts.TypeFlags.Object)) {
-          const typeProperties: ts.Symbol[] = type.getProperties();
-          const properties: Tsoa.Property[] = typeProperties
+          const properties = type
+            .getProperties()
             // Ignore methods, getter, setter and @ignored props
-            .filter(property => isIgnored(property) === false)
+            .filter((property) => isIgnored(property) === false)
             // Transform to property
-            .map(property => {
-              const propertyType = this.current.typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
-
-              const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-              const parent = getOneOrigDeclaration(property); //If there are more declarations, we need to get one of them, from where we want to recognize jsDoc
-              const type = new TypeResolver(typeNode, this.current, parent, this.context, propertyType).resolve();
-
-              const required = !(this.hasFlag(property, ts.SymbolFlags.Optional));
-
-              const comments = property.getDocumentationComment(this.current.typeChecker);
-              const description = comments.length ? ts.displayPartsToString(comments) : undefined;
-
-              const initializer = (parent as any)?.initializer;
-              const def = initializer ? getInitializerValue(initializer, this.current.typeChecker) : parent ? TypeResolver.getDefault(parent) : undefined;
-
-              // Push property
-              return {
-                name: property.getName(),
-                required,
-                deprecated: parent ? isExistJSDocTag(parent, tag => tag.tagName.text === 'deprecated') || isDecorator(parent, identifier => identifier.text === 'Deprecated') : false,
-                type,
-                default: def,
-                // validators are disjunct via types, so it is now OK.
-                // if a type not changes while mapping, we need validators
-                // if a type changes, then the validators will be not relevant
-                validators: (parent ? getPropertyValidators(parent) : {}) || {},
-                description,
-                format: parent ? this.getNodeFormat(parent) : undefined,
-                example: parent ? this.getNodeExample(parent) : undefined,
-                extensions: parent ? this.getNodeExtension(parent) : undefined,
-              };
-            });
+            .map(property => new PropertyTransformer(this).transformFromSymbol(this.typeNode, property));
 
           const objectLiteral: Tsoa.NestedObjectLiteralType = {
             dataType: 'nestedObjectLiteral',
@@ -533,7 +501,7 @@ export class TypeResolver {
     return designatedNodes;
   }
 
-  private hasFlag(type: ts.Type | ts.Symbol | ts.Declaration, flag: ts.TypeFlags | ts.NodeFlags | ts.SymbolFlags) {
+  public hasFlag(type: ts.Type | ts.Symbol | ts.Declaration, flag: ts.TypeFlags | ts.NodeFlags | ts.SymbolFlags) {
     return (type.flags & flag) === flag;
   }
 
@@ -789,17 +757,15 @@ export class TypeResolver {
         inProgressTypes[name] = [];
 
         const declarations = this.getModelTypeDeclarations(type);
-        const referenceTypes: Tsoa.ReferenceType[] = [];
-        for (const declaration of declarations) {
+        const referenceTypes: Tsoa.ReferenceType[] = declarations.map((declaration) => {
           if (ts.isTypeAliasDeclaration(declaration)) {
             const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
-            referenceTypes.push(new ReferenceTransformer(this).transform(declaration, refTypeName, referencer));
+            return new ReferenceTransformer(this).transform(declaration, refTypeName, referencer);
           } else if (EnumTransformer.isRefTransformable(declaration)) {
-            referenceTypes.push(new EnumTransformer(this).transformRef(declaration, refTypeName));
-          } else {
-            referenceTypes.push(this.getModelReference(declaration, refTypeName));
+            return new EnumTransformer(this).transformRef(declaration, refTypeName);
           }
-        }
+          return this.getModelReference(declaration, refTypeName);
+        });
         const referenceType = ReferenceTransformer.merge(referenceTypes);
         this.addToLocalReferenceTypeCache(name, referenceType);
         return referenceType;
@@ -906,10 +872,12 @@ export class TypeResolver {
   }
 
   private createCircularDependencyResolver(refName: string, refTypeName: string) {
-    const referenceType = {
+    const referenceType: Tsoa.RefObjectType = {
       dataType: 'refObject',
       refName: refTypeName,
-    } as Tsoa.ReferenceType;
+      properties: [],
+      deprecated: false,
+    };
 
     inProgressTypes[refName].push(realReferenceType => {
       for (const key of Object.keys(realReferenceType)) {
@@ -1055,23 +1023,25 @@ export class TypeResolver {
 
         const referenceType = this.getReferenceType(t, false);
         if (referenceType) {
-          if (referenceType.dataType === 'refEnum') {
-            // since it doesn't have properties to iterate over, then we don't do anything with it
-          } else if (referenceType.dataType === 'refAlias') {
-            let type: Tsoa.Type = referenceType;
-            while (type.dataType === 'refAlias') {
-              type = type.type;
-            }
+          switch (referenceType.dataType) {
+            case 'refEnum':
+              break;
+            case 'refAlias': {
+              let type: Tsoa.Type = referenceType;
+              while (type.dataType === 'refAlias') {
+                type = type.type;
+              }
 
-            if (type.dataType === 'refObject') {
-              properties = [...properties, ...type.properties];
-            } else if (type.dataType === 'nestedObjectLiteral') {
-              properties = [...properties, ...type.properties];
+              if (type.dataType === 'refObject') {
+                properties = [...properties, ...type.properties];
+              } else if (type.dataType === 'nestedObjectLiteral') {
+                properties = [...properties, ...type.properties];
+              }
+              break;
             }
-          } else if (referenceType.dataType === 'refObject') {
-            (referenceType.properties || []).forEach(property => properties.push(property));
-          } else {
-            assertNever(referenceType);
+            case 'refObject':
+              properties.push(...referenceType.properties);
+              break;
           }
         }
 
@@ -1081,6 +1051,15 @@ export class TypeResolver {
     }
 
     return properties;
+  }
+
+  public getSymbolDescription(symbol: ts.Symbol) {
+    const comments = symbol.getDocumentationComment(this.current.typeChecker);
+    if (comments.length) {
+      return ts.displayPartsToString(comments);
+    }
+
+    return undefined;
   }
 
   public getNodeDescription(node: UsableDeclaration | ts.PropertyDeclaration | ts.ParameterDeclaration | ts.EnumDeclaration) {
@@ -1098,12 +1077,7 @@ export class TypeResolver {
       symbol.flags = 0;
     }
 
-    const comments = symbol.getDocumentationComment(this.current.typeChecker);
-    if (comments.length) {
-      return ts.displayPartsToString(comments);
-    }
-
-    return undefined;
+    return this.getSymbolDescription(symbol);
   }
 
   public getNodeFormat(node: ts.Node) {

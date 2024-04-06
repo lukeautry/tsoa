@@ -9,6 +9,9 @@ import type {
   TypeElement,
   ClassElement,
   PropertySignature,
+  Declaration,
+  Symbol,
+  TypeNode,
 } from 'typescript';
 import {
   NodeFlags,
@@ -18,6 +21,7 @@ import {
   isPropertyDeclaration,
   isConstructorDeclaration,
   isPropertySignature,
+  SymbolFlags,
 } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
@@ -106,44 +110,90 @@ export class PropertyTransformer extends Transformer {
     return property;
   }
 
-  public transformFromDeclaration(propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
-    const identifier = propertyDeclaration.name as Identifier;
-    let typeNode = propertyDeclaration.type;
+  public transformFromDeclaration(declaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
+    const identifier = declaration.name as Identifier;
+    let typeNode = declaration.type;
 
-    const tsType = this.resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
+    const tsType = this.resolver.current.typeChecker.getTypeAtLocation(declaration);
 
     if (!typeNode) {
       // Type is from initializer
       typeNode = this.resolver.current.typeChecker.typeToTypeNode(tsType, undefined, NodeBuilderFlags.NoTruncation)!;
     }
 
-    const type = new TypeResolver(typeNode, this.resolver.current, propertyDeclaration, this.resolver.context, tsType).resolve();
+    const type = new TypeResolver(typeNode, this.resolver.current, declaration, this.resolver.context, tsType).resolve();
 
-    let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
+    let required = !declaration.questionToken && !declaration.initializer;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
       required = true;
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
       required = false;
     }
 
-    let def = getInitializerValue(propertyDeclaration.initializer, this.resolver.current.typeChecker);
+    let def = getInitializerValue(declaration.initializer, this.resolver.current.typeChecker);
     if (def === undefined) {
-      def = TypeResolver.getDefault(propertyDeclaration);
+      def = TypeResolver.getDefault(declaration);
     }
 
     const property: Tsoa.Property = {
       default: def,
-      description: this.resolver.getNodeDescription(propertyDeclaration),
-      example: this.resolver.getNodeExample(propertyDeclaration),
-      format: this.resolver.getNodeFormat(propertyDeclaration),
+      description: this.resolver.getNodeDescription(declaration),
+      example: this.resolver.getNodeExample(declaration),
+      format: this.resolver.getNodeFormat(declaration),
       name: identifier.text,
       required,
       type,
-      validators: getPropertyValidators(propertyDeclaration) || {},
+      validators: getPropertyValidators(declaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
-      deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
-      extensions: this.resolver.getNodeExtension(propertyDeclaration),
+      deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated') || isDecorator(declaration, identifier => identifier.text === 'Deprecated'),
+      extensions: this.resolver.getNodeExtension(declaration),
     };
     return property;
   }
+
+  public transformFromSymbol(node: TypeNode, symbol: Symbol): Tsoa.Property {
+    const declaration = this.getOneOrigDeclaration(symbol);
+
+    const propertyType = this.resolver.current.typeChecker.getTypeOfSymbolAtLocation(symbol, node);
+    const typeNode = this.resolver.current.typeChecker.typeToTypeNode(propertyType, undefined, NodeBuilderFlags.NoTruncation)!;
+    const type = new TypeResolver(typeNode, this.resolver.current, declaration, this.resolver.context, propertyType).resolve();
+
+    const required = !(this.resolver.hasFlag(symbol, SymbolFlags.Optional));
+
+    const initializer = (declaration as any)?.initializer;
+    const def = initializer
+      ? getInitializerValue(initializer, this.resolver.current.typeChecker)
+      : declaration
+        ? TypeResolver.getDefault(declaration) : undefined;
+
+    // Push property
+    return {
+      name: symbol.getName(),
+      required,
+      deprecated: declaration ? isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated') || isDecorator(declaration, identifier => identifier.text === 'Deprecated') : false,
+      type,
+      default: def,
+      // validators are disjunct via types, so it is now OK.
+      // if a type not changes while mapping, we need validators
+      // if a type changes, then the validators will be not relevant
+      validators: (declaration ? getPropertyValidators(declaration) : {}) || {},
+      description: this.resolver.getSymbolDescription(symbol),
+      format: declaration ? this.resolver.getNodeFormat(declaration) : undefined,
+      example: declaration ? this.resolver.getNodeExample(declaration) : undefined,
+      extensions: declaration ? this.resolver.getNodeExtension(declaration) : undefined,
+    };
+  }
+
+  private getOneOrigDeclaration(prop: Symbol): Declaration | undefined {
+    if (prop.declarations) {
+      return prop.declarations[0];
+    }
+
+    const syntheticOrigin: Symbol = (prop as any).links?.syntheticOrigin;
+    if (syntheticOrigin && syntheticOrigin.name === prop.name) {
+      //Otherwise losts jsDoc like in intellisense
+      return syntheticOrigin.declarations?.[0];
+    }
+    return undefined;
+  };
 }
