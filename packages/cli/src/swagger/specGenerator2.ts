@@ -1,4 +1,4 @@
-import { merge as mergeAnything } from 'merge-anything'
+import { merge as mergeAnything } from 'merge-anything';
 import { merge as deepMerge } from 'ts-deepmerge';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 
@@ -11,7 +11,10 @@ import { UnspecifiedObject } from '../utils/unspecifiedObject';
 import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 
 export class SpecGenerator2 extends SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {
+  constructor(
+    protected readonly metadata: Tsoa.Metadata,
+    protected readonly config: ExtendedSpecConfig,
+  ) {
     super(metadata, config);
   }
 
@@ -112,6 +115,9 @@ export class SpecGenerator2 extends SpecGenerator {
         };
         if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
           definitions[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
+        }
+        if (referenceType.example) {
+          definitions[referenceType.refName].example = referenceType.example;
         }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);

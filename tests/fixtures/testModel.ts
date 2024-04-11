@@ -692,6 +692,7 @@ export enum EnumStringNumberValue {
 
 /**
  * EnumStringValue.
+ * @example "VALUE_1"
  */
 export enum EnumStringValue {
   EMPTY = '',
@@ -699,6 +700,10 @@ export enum EnumStringValue {
   VALUE_2 = 'VALUE_2',
 }
 
+/**
+ * StrLiteral.
+ * @example "Foo"
+ */
 // shortened from StringLiteral to make the tslint enforced
 // alphabetical sorting cleaner
 export type StrLiteral = '' | 'Foo' | 'Bar';
