@@ -7,7 +7,7 @@ import 'mocha';
 import * as os from 'os';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
-import { TestModel } from '../../fixtures/testModel';
+import { EnumDynamicPropertyKey, TestModel } from '../../fixtures/testModel';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -4440,6 +4440,29 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
               default: undefined,
             });
+          },
+          computedKeys: (propertyName, propertySchema) => {
+            expect(propertyName).to.eq('computedKeys');
+            expect(propertySchema?.properties![EnumDynamicPropertyKey.STRING_KEY]).to.deep.eq(
+              {
+                type: 'string',
+                description: undefined,
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}`,
+            );
+            expect(propertySchema?.properties![EnumDynamicPropertyKey.NUMBER_KEY]).to.deep.eq(
+              {
+                type: 'string',
+                description: undefined,
+                default: undefined,
+                example: undefined,
+                format: undefined,
+              },
+              `for property ${propertyName}`,
+            );
           },
         };
 

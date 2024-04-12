@@ -410,6 +410,11 @@ export interface TestModel extends Model {
     separateField2: Partial<SeparateField<Partial<{ a: string; b: string }>, 'a' | 'b'>>;
     separateField3: Partial<SeparateField<Partial<{ a: string; b: number }>, 'a' | 'b'>>;
   };
+
+  computedKeys?: {
+    [EnumDynamicPropertyKey.STRING_KEY]: string;
+    [EnumDynamicPropertyKey.NUMBER_KEY]: string;
+  };
 }
 
 type SeparateField<T, Field extends keyof T> = {
@@ -698,6 +703,14 @@ export enum EnumStringValue {
   EMPTY = '',
   VALUE_1 = 'VALUE_1',
   VALUE_2 = 'VALUE_2',
+}
+
+/**
+ * EnumDynamicPropertyKey.
+ */
+export enum EnumDynamicPropertyKey {
+  STRING_KEY = 'enumDynamicKey',
+  NUMBER_KEY = 1,
 }
 
 /**
