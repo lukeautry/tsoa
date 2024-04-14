@@ -389,8 +389,10 @@ describe('Definition generation', () => {
 
             const validatedDefinition = getValidatedDefinition('EnumStringValue', currentSpec);
             expect(validatedDefinition.type).to.eq('string');
+            expect(validatedDefinition.description).to.eql('EnumStringValue.');
             const expectedEnumValues = ['', 'VALUE_1', 'VALUE_2'];
             expect(validatedDefinition.enum).to.eql(expectedEnumValues, `for property ${propertyName}[enum]`);
+            expect(validatedDefinition.example).to.eql('VALUE_1');
             expect(validatedDefinition['x-enum-varnames']).to.eq(undefined);
           },
           enumStringProperty: (propertyName, propertySchema) => {
@@ -439,6 +441,8 @@ describe('Definition generation', () => {
             expect(validatedDefinition.enum).to.include('', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Foo', `for property ${propertyName}.enum`);
             expect(validatedDefinition.enum).to.include('Bar', `for property ${propertyName}.enum`);
+            expect(validatedDefinition.description).to.eql('StrLiteral.');
+            expect(validatedDefinition.example).to.eql('Foo');
             expect(validatedDefinition['x-nullable']).to.eq(false, `for property ${propertyName}[x-nullable]`);
           },
           strLiteralArr: (propertyName, propertySchema) => {

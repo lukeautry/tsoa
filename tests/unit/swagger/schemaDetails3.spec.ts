@@ -1407,7 +1407,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const schema = getComponentSchema('EnumStringValue', currentSpec);
             expect(schema.type).to.eq('string');
+            expect(schema.description).to.eql('EnumStringValue.');
             expect(schema.enum).to.eql(['', 'VALUE_1', 'VALUE_2']);
+            expect(schema.example).to.eql('VALUE_1');
             expect(schema['x-enum-varnames']).to.eq(undefined);
           },
           enumStringProperty: (propertyName, propertySchema) => {
@@ -1449,9 +1451,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             const componentSchema = getComponentSchema('StrLiteral', currentSpec);
             expect(componentSchema).to.deep.eq({
               default: undefined,
-              description: undefined,
+              description: 'StrLiteral.',
               enum: ['', 'Foo', 'Bar'],
-              example: undefined,
+              example: 'Foo',
               format: undefined,
               type: 'string',
             });
