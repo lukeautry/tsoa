@@ -126,7 +126,7 @@ export class TypeResolver {
           default: def,
           description: this.getNodeDescription(propertySignature),
           format: this.getNodeFormat(propertySignature),
-          name: (propertySignature.name as ts.Identifier).text,
+          name: this.getPropertyName(propertySignature),
           required: !propertySignature.questionToken,
           type,
           validators: getPropertyValidators(propertySignature) || {},
@@ -1163,6 +1163,16 @@ export class TypeResolver {
 
   public getNodeFormat(node: ts.Node) {
     return getJSDocComment(node, 'format');
+  }
+
+  public getPropertyName(prop: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): string {
+    if (ts.isComputedPropertyName(prop.name) && ts.isPropertyAccessExpression(prop.name.expression)) {
+      const initializerValue = getInitializerValue(prop.name.expression, this.current.typeChecker);
+      if (initializerValue) {
+        return initializerValue?.toString();
+      }
+    }
+    return (prop.name as ts.Identifier).text;
   }
 
   public getNodeExample(node: ts.Node) {

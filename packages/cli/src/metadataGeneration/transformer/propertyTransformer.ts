@@ -1,6 +1,5 @@
 import type {
   Token,
-  Identifier,
   InterfaceDeclaration,
   ClassDeclaration,
   PropertyDeclaration,
@@ -66,12 +65,7 @@ export class PropertyTransformer extends Transformer {
   }
 
   private propertyFromSignature(propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
-    const identifier = propertySignature.name as Identifier;
-
-    throwUnless(
-      propertySignature.type,
-      new GenerateMetadataError(`No valid type found for property declaration.`),
-    );
+    throwUnless(propertySignature.type, new GenerateMetadataError(`No valid type found for property declaration.`));
 
     let required = !propertySignature.questionToken;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
@@ -87,7 +81,7 @@ export class PropertyTransformer extends Transformer {
       description: this.resolver.getNodeDescription(propertySignature),
       example: this.resolver.getNodeExample(propertySignature),
       format: this.resolver.getNodeFormat(propertySignature),
-      name: identifier.text,
+      name: this.resolver.getPropertyName(propertySignature),
       required,
       type: new TypeResolver(propertySignature.type, this.resolver.current, propertySignature.type.parent, this.resolver.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
@@ -98,7 +92,6 @@ export class PropertyTransformer extends Transformer {
   }
 
   private propertyFromDeclaration(propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
-    const identifier = propertyDeclaration.name as Identifier;
     let typeNode = propertyDeclaration.type;
 
     const tsType = this.resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
@@ -126,7 +119,7 @@ export class PropertyTransformer extends Transformer {
       description: this.resolver.getNodeDescription(propertyDeclaration),
       example: this.resolver.getNodeExample(propertyDeclaration),
       format: this.resolver.getNodeFormat(propertyDeclaration),
-      name: identifier.text,
+      name: this.resolver.getPropertyName(propertyDeclaration),
       required,
       type,
       validators: getPropertyValidators(propertyDeclaration) || {},
