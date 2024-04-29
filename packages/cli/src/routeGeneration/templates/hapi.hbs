@@ -71,14 +71,13 @@ export function RegisterRoutes(server: any) {
                     {{#if uploadFile}}
                       {{#each uploadFileName}}
                     {
+                      {{#if multiple}}
+                      method: fileUploadMiddleware('{{name}}', true)
+                      {{else}}
                       method: fileUploadMiddleware('{{name}}', false)
+                      {{/if}}
                     },
                       {{/each}}
-                    {{/if}}
-                    {{#if uploadFiles}}
-                    {
-                      method: fileUploadMiddleware('{{uploadFilesName}}', true)
-                    },
                     {{/if}}
                     ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}})),
                     ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}}.prototype.{{name}})),

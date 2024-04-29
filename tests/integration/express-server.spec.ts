@@ -1560,6 +1560,28 @@ describe('Express Server', () => {
       });
     });
 
+    it('can post multiple files with different array fields', () => {
+      const formData = {
+        files_a: ['@../package.json', '@../tsconfig.json'],
+        file_b: '@../tsoa.json',
+        files_c: ['@../tsconfig.json', '@../package.json'],
+      };
+      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
+        for (const fileList of res.body as File[][]) {
+          for (const file of fileList) {
+            const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+            const returnedBuffer = Buffer.from(file.buffer);
+            expect(file).to.not.be.undefined;
+            expect(file.fieldname).to.be.not.undefined;
+            expect(file.originalname).to.be.not.undefined;
+            expect(file.encoding).to.be.not.undefined;
+            expect(file.mimetype).to.equal('application/json');
+            expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+          }
+        }
+      });
+    });
+
     it('can post mixed form data content with file and not providing optional file', () => {
       const formData = {
         username: 'test',

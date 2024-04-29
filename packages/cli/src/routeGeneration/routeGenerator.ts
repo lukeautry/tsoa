@@ -97,8 +97,9 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
             const normalisedFullPath = normalisePath(`${normalisedBasePath}${normalisedControllerPath}${normalisedMethodPath}`, '/', '', false);
 
-            const uploadFilesWithDifferentFieldParameter = method.parameters.filter(parameter => parameter.type.dataType === 'file');
-            const uploadFilesParameter = method.parameters.find(parameter => parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file');
+            const uploadFilesWithDifferentFieldParameter = method.parameters.filter(
+              parameter => parameter.type.dataType === 'file' || (parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file'),
+            );
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
@@ -108,9 +109,9 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               uploadFile: uploadFilesWithDifferentFieldParameter.length > 0,
               uploadFileName: uploadFilesWithDifferentFieldParameter.map(parameter => ({
                 name: parameter.name,
+                maxCount: parameter.type.dataType === 'file' ? 1 : undefined,
+                multiple: parameter.type.dataType === 'array' && parameter.type.elementType.dataType === 'file',
               })),
-              uploadFiles: !!uploadFilesParameter,
-              uploadFilesName: uploadFilesParameter?.name,
               security: method.security,
               successStatus: method.successStatus ? method.successStatus : 'undefined',
             };

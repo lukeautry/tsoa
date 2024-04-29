@@ -74,8 +74,8 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'body-prop':
           return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, true, 'body.');
         case 'formData': {
-          const files = Object.values(args).filter(param => param.dataType === 'file');
-          if (param.dataType === 'file' && files.length > 0) {
+          const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
+          if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
             const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
             if (requestFiles[name] === undefined) {
               return undefined;
@@ -83,8 +83,6 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
 
             const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, false, undefined);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
-          } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
-            return this.validationService.ValidateParam(param, request.files, name, fieldErrors, false, undefined);
           }
           return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, false, undefined);
         }

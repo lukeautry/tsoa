@@ -83,17 +83,15 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           return this.validationService.ValidateParam(param, value, name, errorFields, true, 'body.');
         }
         case 'formData': {
-          const files = Object.values(args).filter(param => param.dataType === 'file');
+          const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           const contextRequest = context.request as any;
-          if (param.dataType === 'file' && files.length > 0) {
+          if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
             if (contextRequest.files[name] === undefined) {
               return undefined;
             }
 
             const fileArgs = this.validationService.ValidateParam(param, contextRequest.files[name], name, errorFields, false, undefined);
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
-          } else if (param.dataType === 'array' && param.array && param.array.dataType === 'file') {
-            return this.validationService.ValidateParam(param, contextRequest.files, name, errorFields, false, undefined);
           }
           return this.validationService.ValidateParam(param, contextRequest.body[name], name, errorFields, false, undefined);
         }
