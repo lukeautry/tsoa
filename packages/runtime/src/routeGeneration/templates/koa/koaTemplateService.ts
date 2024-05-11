@@ -91,6 +91,9 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
             }
 
             const fileArgs = this.validationService.ValidateParam(param, contextRequest.files[name], name, errorFields, false, undefined);
+            if (param.dataType === 'array') {
+              return fileArgs;
+            }
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           }
           return this.validationService.ValidateParam(param, contextRequest.body[name], name, errorFields, false, undefined);

@@ -82,6 +82,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
             }
 
             const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, false, undefined);
+            if (param.dataType === 'array') {
+              return fileArgs;
+            }
             return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           }
           return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, false, undefined);

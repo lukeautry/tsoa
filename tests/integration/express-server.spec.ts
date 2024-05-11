@@ -1541,6 +1541,18 @@ describe('Express Server', () => {
       });
     });
 
+    it('can post single file to multi file field', () => {
+      const formData = {
+        a: 'b',
+        c: 'd',
+        someFiles: ['@../package.json'],
+      };
+
+      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+        expect(res.body).to.be.length(1);
+      });
+    });
+
     it('can post multiple files with different field', () => {
       const formData = {
         file_a: '@../package.json',
