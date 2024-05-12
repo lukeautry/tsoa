@@ -36,7 +36,21 @@ app.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });
+let postRouteMiddlwareCalled = false;
 RegisterRoutes(app);
+app.get('/reset-post-route-middleware-status', (req, res, next) => {
+  postRouteMiddlwareCalled = false;
+  res.json({ postRouteMiddlwareCalled }).send();
+  next();
+});
+app.get('/post-route-middleware-status', (req, res, next) => {
+  res.json({ postRouteMiddlwareCalled }).send();
+  next();
+});
+app.use((req, res, next) => {
+  postRouteMiddlwareCalled = true;
+  next();
+});
 
 // It's important that this come after the main routes are registered
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

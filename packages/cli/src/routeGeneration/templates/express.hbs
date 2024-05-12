@@ -111,6 +111,7 @@ export function RegisterRoutes(app: Router) {
                 validatedArgs,
                 successStatus: {{successStatus}},
               });
+              next();
             } catch (err) {
                 return next(err);
             }
