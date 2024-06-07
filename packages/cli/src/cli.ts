@@ -47,14 +47,18 @@ const authorInformation: Promise<
     }
 > = getPackageJsonValue('author', 'unknown');
 
+const isYamlExtension = (extension: string): boolean => extension === '.yaml' || extension === '.yml';
+
+const isJsExtension = (extension: string): boolean => extension === '.js' || extension === '.cjs';
+
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
   const ext = extname(configPath);
   try {
-    if (ext === '.yaml' || ext === '.yml') {
+    if (isYamlExtension(ext)) {
       const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
       config = YAML.parse(configRaw.toString('utf8'));
-    } else if (ext === '.js') {
+    } else if (isJsExtension(ext)) {
       config = await import(`${workingDir}/${configPath}`);
     } else {
       const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
@@ -68,7 +72,7 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
       throw Error(`No config file found at '${configPath}'`);
     } else if (err.name === 'SyntaxError') {
       console.error(err);
-      const errorType = ext === '.js' ? 'JS' : 'JSON';
+      const errorType = isJsExtension(ext) ? 'JS' : 'JSON';
       throw Error(`Invalid ${errorType} syntax in config at '${configPath}': ${err.message}`);
     } else {
       console.error(err);

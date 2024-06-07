@@ -22,7 +22,7 @@ import multer from '@koa/multer';
 {{else}}
 const multer = require('@koa/multer');
 {{/if}}
-const upload = multer({{{json multerOpts}}});
+let upload = multer({{{json multerOpts}}});
 {{/if}}
 {{#if authenticationModule}}
 const koaAuthenticationRecasted = koaAuthentication as (req: KRequest, securityName: string, scopes?: string[], res?: KResponse) => Promise<any>;
@@ -72,7 +72,7 @@ export function RegisterRoutes(router: KoaRouter) {
     // ###########################################################################################################
 
     {{#if useFileUploads}}
-    const multerInstanceToBeUsed = opts?.multer || upload
+    upload = opts?.multer || upload
     {{/if}}
 
     {{#each controllers}}
@@ -82,10 +82,10 @@ export function RegisterRoutes(router: KoaRouter) {
             authenticateMiddleware({{json security}}),
             {{/if}}
             {{#if uploadFile}}
-            multerInstanceToBeUsed.fields({{json uploadFileName}}),
+            upload.fields({{json uploadFileName}}),
             {{/if}}
             {{#if uploadFiles}}
-            multerInstanceToBeUsed.array('{{uploadFilesName}}'),
+            upload.array('{{uploadFilesName}}'),
             {{/if}}
             ...(fetchMiddlewares<Middleware>({{../name}})),
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),

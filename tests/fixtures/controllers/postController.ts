@@ -68,11 +68,13 @@ export class PostTestController {
   }
 
   @Post('ManyFilesInDifferentFields')
-  public async postWithDifferentFields(
-    @UploadedFile('file_a') fileA: File,
-    @UploadedFile('file_b') fileB: File,
-  ): Promise<File[]> {
+  public async postWithDifferentFields(@UploadedFile('file_a') fileA: File, @UploadedFile('file_b') fileB: File): Promise<File[]> {
     return [fileA, fileB];
+  }
+
+  @Post('ManyFilesInDifferentArrayFields')
+  public async postWithDifferentArrayFields(@UploadedFiles('files_a') filesA: File[], @UploadedFile('file_b') fileB: File, @UploadedFiles('files_c') filesC: File[]): Promise<File[][]> {
+    return [filesA, [fileB], filesC];
   }
 
   @Post('MixedFormDataWithFilesContainsOptionalFile')
@@ -80,7 +82,7 @@ export class PostTestController {
     @FormField('username') username: string,
     @UploadedFile('avatar') avatar: File,
     @UploadedFile('optionalAvatar') optionalAvatar?: File,
-  ): Promise<{ username: string; avatar: File; optionalAvatar?: File; }> {
+  ): Promise<{ username: string; avatar: File; optionalAvatar?: File }> {
     return { username, avatar, optionalAvatar };
   }
 

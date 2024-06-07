@@ -24,13 +24,22 @@ import {
 const basePath = '/v1';
 
 describe('Express Server', () => {
+  it('can reset the post route middleware status', () => {
+    return verifyGetRequest('/reset-post-route-middleware-status', (_err, res) => {
+      expect(res.body.postRouteMiddlwareCalled).to.eq(false);
+    });
+  });
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
-
+  it('can verify that post request middleware was called', () => {
+    return verifyGetRequest('/post-route-middleware-status', (_err, res) => {
+      expect(res.body.postRouteMiddlwareCalled).to.eq(true);
+    });
+  });
   it('can handle get request to root controller`s method path', () => {
     return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
       const model = res.body as TestModel;
@@ -1541,6 +1550,18 @@ describe('Express Server', () => {
       });
     });
 
+    it('can post single file to multi file field', () => {
+      const formData = {
+        a: 'b',
+        c: 'd',
+        someFiles: ['@../package.json'],
+      };
+
+      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+        expect(res.body).to.be.length(1);
+      });
+    });
+
     it('can post multiple files with different field', () => {
       const formData = {
         file_a: '@../package.json',
@@ -1556,6 +1577,28 @@ describe('Express Server', () => {
           expect(file.encoding).to.be.not.undefined;
           expect(file.mimetype).to.equal('application/json');
           expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
+      });
+    });
+
+    it('can post multiple files with different array fields', () => {
+      const formData = {
+        files_a: ['@../package.json', '@../tsconfig.json'],
+        file_b: '@../tsoa.json',
+        files_c: ['@../tsconfig.json', '@../package.json'],
+      };
+      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
+        for (const fileList of res.body as File[][]) {
+          for (const file of fileList) {
+            const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+            const returnedBuffer = Buffer.from(file.buffer);
+            expect(file).to.not.be.undefined;
+            expect(file.fieldname).to.be.not.undefined;
+            expect(file.originalname).to.be.not.undefined;
+            expect(file.encoding).to.be.not.undefined;
+            expect(file.mimetype).to.equal('application/json');
+            expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+          }
         }
       });
     });
