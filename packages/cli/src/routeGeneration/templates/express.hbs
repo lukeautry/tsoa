@@ -73,9 +73,6 @@ export function RegisterRoutes(app: Router) {
             {{#if uploadFile}}
             upload.fields({{json uploadFileName}}),
             {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
-            {{/if}}
             ...(fetchMiddlewares<RequestHandler>({{../name}})),
             ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
 
