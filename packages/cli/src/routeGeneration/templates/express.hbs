@@ -21,7 +21,7 @@ import multer from 'multer';
 {{else}}
 const multer = require('multer');
 {{/if}}
-let upload = multer({{{json multerOpts}}});
+
 {{/if}}
 
 {{#if authenticationModule}}
@@ -74,7 +74,7 @@ export function RegisterRoutes(app: Router) {
     // ###########################################################################################################
 
     {{#if useFileUploads}}
-    upload = opts?.multer || upload
+    const upload = opts?.multer ||  multer({{{json multerOpts}}});
     {{/if}}
 
     
