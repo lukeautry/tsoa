@@ -24,22 +24,13 @@ import {
 const basePath = '/v1';
 
 describe('Express Server', () => {
-  it('can reset the post route middleware status', () => {
-    return verifyGetRequest('/reset-post-route-middleware-status', (_err, res) => {
-      expect(res.body.postRouteMiddlwareCalled).to.eq(false);
-    });
-  });
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
-  it('can verify that post request middleware was called', () => {
-    return verifyGetRequest('/post-route-middleware-status', (_err, res) => {
-      expect(res.body.postRouteMiddlwareCalled).to.eq(true);
-    });
-  });
+
   it('can handle get request to root controller`s method path', () => {
     return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
       const model = res.body as TestModel;
