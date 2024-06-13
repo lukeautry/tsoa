@@ -55,7 +55,7 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
   const ext = extname(configPath);
 
-  const configFullPath = isAbsolute(configPath) ? configFullPath : `${workingDir}/${configPath}`
+  const configFullPath = isAbsolute(configPath) ? configPath : `${workingDir}/${configPath}`
   
   try {
     if (isYamlExtension(ext)) {
