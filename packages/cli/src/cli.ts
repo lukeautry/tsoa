@@ -8,7 +8,7 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { extname } from 'node:path';
+import { extname,isAbsolute } from 'node:path';
 import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
@@ -54,14 +54,17 @@ const isJsExtension = (extension: string): boolean => extension === '.js' || ext
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
   const ext = extname(configPath);
+
+  const configFullPath = isAbsolute(configPath) ? configFullPath : `${workingDir}/${configPath}`
+  
   try {
     if (isYamlExtension(ext)) {
-      const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
+      const configRaw = await fsReadFile(configFullPath);
       config = YAML.parse(configRaw.toString('utf8'));
     } else if (isJsExtension(ext)) {
-      config = await import(`${workingDir}/${configPath}`);
+      config = await import(configFullPath);
     } else {
-      const configRaw = await fsReadFile(`${workingDir}/${configPath}`);
+      const configRaw = await fsReadFile(configFullPath);
       config = JSON.parse(configRaw.toString('utf8'));
     }
   } catch (err) {
