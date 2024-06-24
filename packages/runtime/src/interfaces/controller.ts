@@ -1,4 +1,4 @@
-import type { OutgoingHttpHeaders } from "node:http";
+import type { OutgoingHttpHeaders } from 'node:http';
 
 type HeaderNames = keyof OutgoingHttpHeaders;
 type HeaderValue<H extends HeaderNames> = OutgoingHttpHeaders[H];
@@ -16,7 +16,7 @@ export class Controller {
   }
 
   public setHeader<H extends HeaderNames>(name: H, value?: HeaderValue<H>): void;
-  public setHeader(name: string, value?: string | string[]): void
+  public setHeader(name: string, value?: string | string[]): void;
 
   public setHeader(name: string, value?: string | string[]) {
     this.headers[name] = value;

@@ -56,6 +56,22 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         metadata,
       ),
     ),
+    log('Express Router Route Generation With custom multer instance', () =>
+      generateRoutes(
+        {
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          bodyCoercion: true,
+          authenticationModule: './fixtures/express-router-with-custom-multer/authentication.ts',
+          entryFile: './fixtures/express-router-with-custom-multer/server.ts',
+          middleware: 'express',
+          routesDir: './fixtures/express-router-with-custom-multer',
+        },
+        undefined,
+        undefined,
+        metadata,
+      ),
+    ),
+
     log('Express Route Generation, OpenAPI3, noImplicitAdditionalProperties', () =>
       generateRoutes(
         {
