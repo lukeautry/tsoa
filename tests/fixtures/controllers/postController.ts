@@ -47,6 +47,11 @@ export class PostTestController {
     return augmentedModel;
   }
 
+  @Post('WithObjectParamsFields')
+  public async postWithObjectParamsFields(@UploadedFile({ toPath: 'a/b/c' }) fileA: File, @UploadedFile({ toPath: 'a/b/c' }) fileB: File): Promise<File[]> {
+    return [fileA, fileB];
+  }
+
   @Post('File')
   public async postWithFile(@UploadedFile('someFile') aFile: File): Promise<File> {
     return aFile;

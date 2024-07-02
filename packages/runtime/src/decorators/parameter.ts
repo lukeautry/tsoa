@@ -95,7 +95,7 @@ export function Inject(): Function {
  *
  * @param {string} [name] The name of the uploaded file parameter
  */
-export function UploadedFile(name?: string): Function {
+export function UploadedFile(name?: string | Record<string, any>): Function {
   return () => {
     return;
   };
@@ -106,7 +106,7 @@ export function UploadedFile(name?: string): Function {
  *
  * @param {string} [name] The name of the uploaded files parameter
  */
-export function UploadedFiles(name?: string): Function {
+export function UploadedFiles(name?: string | Record<string, any>): Function {
   return () => {
     return;
   };
