@@ -21,6 +21,8 @@
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
     "pretest": "yarn clean && yarn prepare-test && yarn typecheck",
     "test": "cross-env NODE_ENV=tsoa_test mocha \"**/*.spec.ts\"",
+    "test:it": "cross-env NODE_ENV=tsoa_test mocha --",
+    "test:uploadfile":"cross-env NODE_ENV=tsoa_test mocha unit\\swagger\\uploadfile.spec.ts",
     "typecheck": "tsc"
   },
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",

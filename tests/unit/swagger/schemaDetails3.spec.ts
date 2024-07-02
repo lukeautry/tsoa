@@ -441,6 +441,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
        * Validated and tested GUI with swagger.io
        * @link https://editor.swagger.io/
        */
+
       it('should have requestBody with single multipart/form-data', () => {
         // Act
         const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
