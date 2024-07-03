@@ -438,6 +438,7 @@ export class SpecGenerator2 extends SpecGenerator {
     if (typesWithoutUndefined.every(subType => subType.dataType === 'enum')) {
       const mergedEnum: Tsoa.EnumType = { dataType: 'enum', enums: [] };
       typesWithoutUndefined.forEach(t => {
+        /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
         mergedEnum.enums = [...mergedEnum.enums, ...(t as Tsoa.EnumType).enums];
       });
       return this.getSwaggerTypeForEnumType(mergedEnum);

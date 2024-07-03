@@ -14,10 +14,12 @@ export class ReferenceTransformer extends Transformer {
     }
 
     if (referenceTypes.every(refType => refType.dataType === 'refEnum')) {
+      /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
       return EnumTransformer.mergeMany(referenceTypes as Tsoa.RefEnumType[]);
     }
 
     if (referenceTypes.every(refType => refType.dataType === 'refObject')) {
+      /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
       return this.mergeManyRefObj(referenceTypes as Tsoa.RefObjectType[]);
     }
 
