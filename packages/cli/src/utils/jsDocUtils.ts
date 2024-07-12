@@ -20,7 +20,7 @@ export function getJSDocComment(node: ts.Node, tagName: string) {
 }
 
 export function getJSDocComments(node: ts.Node, tagName: string) {
-  const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || tag.tagName.escapedText === tagName);
+  const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || (tag.tagName.escapedText as string) === tagName);
   if (tags.length === 0) {
     return;
   }

@@ -22,7 +22,6 @@ import multer from '@koa/multer';
 {{else}}
 const multer = require('@koa/multer');
 {{/if}}
-const upload = multer({{{json multerOpts}}});
 {{/if}}
 {{#if authenticationModule}}
 const koaAuthenticationRecasted = koaAuthentication as (req: KRequest, securityName: string, scopes?: string[], res?: KResponse) => Promise<any>;
@@ -59,11 +58,22 @@ const templateService = new KoaTemplateService(models, {{{ json minimalSwaggerCo
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
+
+{{#if useFileUploads}}
+export function RegisterRoutes(router: KoaRouter,opts?:{multer?:ReturnType<typeof multer>}) {
+{{else}}
 export function RegisterRoutes(router: KoaRouter) {
+{{/if}}
+
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
+
+    {{#if useFileUploads}}
+    const upload = opts?.multer ||  multer({{{json multerOpts}}});
+    {{/if}}
+
     {{#each controllers}}
     {{#each actions}}
         router.{{method}}('{{fullPath}}',
@@ -72,6 +82,9 @@ export function RegisterRoutes(router: KoaRouter) {
             {{/if}}
             {{#if uploadFile}}
             upload.fields({{json uploadFileName}}),
+            {{/if}}
+            {{#if uploadFiles}}
+            upload.array('{{uploadFilesName}}'),
             {{/if}}
             ...(fetchMiddlewares<Middleware>({{../name}})),
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),

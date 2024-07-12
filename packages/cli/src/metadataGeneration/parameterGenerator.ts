@@ -10,7 +10,12 @@ import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ParameterGenerator {
-  constructor(private readonly parameter: ts.ParameterDeclaration, private readonly method: string, private readonly path: string, private readonly current: MetadataGenerator) {}
+  constructor(
+    private readonly parameter: ts.ParameterDeclaration,
+    private readonly method: string,
+    private readonly path: string,
+    private readonly current: MetadataGenerator,
+  ) {}
 
   public Generate(): Tsoa.Parameter[] {
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
@@ -414,7 +419,7 @@ export class ParameterGenerator {
     const exampleLabels: Array<string | undefined> = [];
     const examples = getJSDocTags(node.parent, tag => {
       const comment = commentToString(tag.comment);
-      const isExample = (tag.tagName.text === 'example' || tag.tagName.escapedText === 'example') && !!tag.comment && comment?.startsWith(parameterName);
+      const isExample = (tag.tagName.text === 'example' || (tag.tagName.escapedText as string) === 'example') && !!tag.comment && comment?.startsWith(parameterName);
 
       if (isExample) {
         const hasExampleLabel = (comment?.split(' ')[0].indexOf('.') || -1) > 0;
@@ -447,7 +452,9 @@ export class ParameterGenerator {
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'requestprop', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(d => d === decoratorName.toLocaleLowerCase());
+    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'requestprop', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(
+      d => d === decoratorName.toLocaleLowerCase(),
+    );
   }
 
   private supportPathDataType(parameterType: Tsoa.Type): boolean {
