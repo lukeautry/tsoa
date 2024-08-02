@@ -826,6 +826,7 @@ export interface StringValidator {
   minLength?: { value: number; errorMsg?: string };
   maxLength?: { value: number; errorMsg?: string };
   pattern?: { value: string; errorMsg?: string };
+  title?: { value: string; errorMsg?: string };
 }
 
 export interface BooleanValidator {
