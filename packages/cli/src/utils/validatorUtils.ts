@@ -40,7 +40,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
 
       const name = tag.tagName.text;
       const comment = commentToString(tag.comment)
-        ?.substr((commentToString(tag.comment)?.indexOf(' ') || -1) + 1)
+        ?.substring((commentToString(tag.comment)?.indexOf(' ') || -1) + 1)
         .trim();
       const value = getCommentValue(comment);
 
