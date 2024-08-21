@@ -81,10 +81,16 @@ export function RegisterRoutes(router: KoaRouter) {
             authenticateMiddleware({{json security}}),
             {{/if}}
             {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
+            upload.fields([
+                {{#each uploadFileName}}
+                {
+                    name: {{json name}},
+                    {{#if maxCount}}
+                    maxCount: {{maxCount}}
+                    {{/if}}
+                }{{#if @last}}{{else}},{{/if}}
+                {{/each}}
+            ]),
             {{/if}}
             ...(fetchMiddlewares<Middleware>({{../name}})),
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
