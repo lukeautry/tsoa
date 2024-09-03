@@ -349,7 +349,7 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('operationId', () => {
-        const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, getDefaultExtendedOptions(), {
+        const optionsWithOperationIdTemplate = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, getDefaultExtendedOptions(), {
           operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
         });
 

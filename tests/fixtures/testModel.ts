@@ -1203,7 +1203,7 @@ export class TestClassModel extends TestClassBaseModel {
 }
 
 type NonFunctionPropertyNames<T> = {
-  [K in keyof T]: T[K] extends Function ? never : K;
+  [K in keyof T]: T[K] extends CallableFunction ? never : K;
 }[keyof T];
 type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
 export class GetterClass {

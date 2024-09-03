@@ -14,13 +14,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
-  const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
-  const optionsWithXEnumVarnames = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithXEnumVarnames = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     xEnumVarnames: true,
   });
-  const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithOperationIdTemplate = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
   });
 
@@ -91,7 +91,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should have relative URL when no host is defined', () => {
-      const optionsWithNoHost = Object.assign<{}, ExtendedSpecConfig>({}, defaultOptions);
+      const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
       const spec: Swagger.Spec3 = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
