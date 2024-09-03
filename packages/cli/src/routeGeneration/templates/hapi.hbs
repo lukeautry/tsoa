@@ -89,13 +89,6 @@ export function RegisterRoutes(server: any) {
                   multipart: true,
                   allow: 'multipart/form-data'
                 },
-                {{else if uploadFiles}}
-                payload: {
-                  output: 'stream',
-                  parse: true,
-                  multipart: true,
-                  allow: 'multipart/form-data'
-                },
                 {{/if}}
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
                     const args: Record<string, TsoaRoute.ParameterSchema> = {

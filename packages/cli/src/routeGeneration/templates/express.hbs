@@ -85,10 +85,16 @@ export function RegisterRoutes(app: Router) {
             authenticateMiddleware({{json security}}),
             {{/if}}
             {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
+            upload.fields([
+                {{#each uploadFileName}}
+                {
+                    name: {{json name}},
+                    {{#if maxCount}}
+                    maxCount: {{maxCount}}
+                    {{/if}}
+                }{{#if @last}}{{else}},{{/if}}
+                {{/each}}
+            ]),
             {{/if}}
             ...(fetchMiddlewares<RequestHandler>({{../name}})),
             ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
