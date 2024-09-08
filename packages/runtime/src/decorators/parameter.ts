@@ -130,7 +130,7 @@ export function FormField(name?: string): ParameterDecorator {
  *
  * @link https://swagger.io/docs/specification/describing-request-body/
  */
-export function Consumes(value: string): ParameterDecorator {
+export function Consumes(value: string): MethodDecorator {
   return () => {
     return;
   };

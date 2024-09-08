@@ -35,7 +35,7 @@ export function Res(): ParameterDecorator {
  *
  * @link https://swagger.io/docs/specification/media-types/
  */
-export function Produces(value: string): MethodDecorator {
+export function Produces(value: string): MethodDecorator & ClassDecorator {
   return () => {
     return;
   };
