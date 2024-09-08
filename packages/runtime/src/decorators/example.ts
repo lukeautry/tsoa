@@ -1,4 +1,4 @@
-export function Example<T>(exampleModel: T, exampleLabel?: string): Function {
+export function Example<T>(exampleModel: T, exampleLabel?: string): PropertyDecorator {
   return () => {
     return;
   };

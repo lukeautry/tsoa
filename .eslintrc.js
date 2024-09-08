@@ -18,7 +18,6 @@ module.exports = {
         default: 'array-simple',
       },
     ],
-    '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/naming-convention': [
       'error',
       {
