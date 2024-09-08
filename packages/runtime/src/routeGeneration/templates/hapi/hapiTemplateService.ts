@@ -36,8 +36,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     protected readonly models: TsoaRoute.Models,
     protected readonly config: AdditionalProps,
     private readonly hapi: {
-      boomify: Function;
-      isBoom: Function;
+      boomify: CallableFunction;
+      isBoom: CallableFunction;
     },
   ) {
     super(models, config);
