@@ -7,7 +7,7 @@ export function Route(name?: string): ClassDecorator {
 /**
  * can be used to entirely hide an method from documentation
  */
-export function Hidden(): ClassDecorator & MethodDecorator {
+export function Hidden(): ClassDecorator & MethodDecorator & ParameterDecorator {
   return () => {
     return;
   };
