@@ -1,13 +1,13 @@
 import { IsValidHeader } from '../utils/isHeaderType';
 import { HttpStatusCodeLiteral, HttpStatusCodeStringLiteral, OtherValidOpenApiHttpStatusCode } from '../interfaces/response';
 
-export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = {}>(name: string | number, description?: string, produces?: string | string[]): Function {
+export function SuccessResponse<HeaderType extends IsValidHeader<HeaderType> = object>(name: string | number, description?: string, produces?: string | string[]): Function {
   return () => {
     return;
   };
 }
 
-export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderType> = {}>(
+export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderType> = object>(
   name: HttpStatusCodeLiteral | HttpStatusCodeStringLiteral | OtherValidOpenApiHttpStatusCode,
   description?: string,
   example?: ExampleType,

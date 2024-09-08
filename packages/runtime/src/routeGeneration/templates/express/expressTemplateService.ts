@@ -8,7 +8,7 @@ import { TemplateService } from '../templateService';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
-  controller: Controller | Object;
+  controller: Controller | object;
   response: ExResponse;
   next: ExNext;
   validatedArgs: any[];

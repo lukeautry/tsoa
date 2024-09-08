@@ -12,7 +12,7 @@ const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
 
 type HapiApiHandlerParameters = {
   methodName: string;
-  controller: Controller | Object;
+  controller: Controller | object;
   h: HResponse;
   validatedArgs: any[];
   successStatus?: number;

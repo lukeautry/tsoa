@@ -65,4 +65,4 @@ export type HttpStatusCodeStringLiteral = `${HttpStatusCodeLiteral}`;
 
 export type OtherValidOpenApiHttpStatusCode = '1XX' | '2XX' | '3XX' | '4XX' | '5XX' | 'default';
 
-export type TsoaResponse<T extends HttpStatusCodeLiteral, BodyType, HeaderType extends IsValidHeader<HeaderType> = {}> = (status: T, data: BodyType, headers?: HeaderType) => any;
+export type TsoaResponse<T extends HttpStatusCodeLiteral, BodyType, HeaderType extends IsValidHeader<HeaderType> = object> = (status: T, data: BodyType, headers?: HeaderType) => any;

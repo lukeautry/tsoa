@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type Middleware<T extends Function | Object> = T;
+type Middleware<T extends Function | object> = T;
 
 const TSOA_MIDDLEWARES = Symbol('@tsoa:middlewares');
 
@@ -34,7 +34,7 @@ function decorator(fn: (value: any) => void) {
  * @param middlewares
  * @returns
  */
-export function Middlewares<T extends Function | Object>(...mws: Array<Middleware<T>>): ClassDecorator & MethodDecorator {
+export function Middlewares<T extends Function | object>(...mws: Array<Middleware<T>>): ClassDecorator & MethodDecorator {
   return decorator(target => {
     if (mws) {
       const current = fetchMiddlewares<T>(target);
@@ -49,6 +49,6 @@ export function Middlewares<T extends Function | Object>(...mws: Array<Middlewar
  * @param target
  * @returns list of middlewares
  */
-export function fetchMiddlewares<T extends Function | Object>(target: any): Array<Middleware<T>> {
+export function fetchMiddlewares<T extends Function | object>(target: any): Array<Middleware<T>> {
   return Reflect.getMetadata(TSOA_MIDDLEWARES, target) || [];
 }
