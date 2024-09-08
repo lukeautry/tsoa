@@ -12,7 +12,7 @@ export function Response<ExampleType, HeaderType extends IsValidHeader<HeaderTyp
   description?: string,
   example?: ExampleType,
   produces?: string | string[],
-): MethodDecorator {
+): ClassDecorator {
   return () => {
     return;
   };
