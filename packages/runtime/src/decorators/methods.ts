@@ -1,40 +1,40 @@
-export function Options(value?: string): Function {
+export function Options(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Get(value?: string): Function {
+export function Get(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Post(value?: string): Function {
+export function Post(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Put(value?: string): Function {
+export function Put(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Patch(value?: string): Function {
+export function Patch(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Delete(value?: string): Function {
+export function Delete(value?: string): MethodDecorator {
   return () => {
     return;
   };
 }
 
-export function Head(value?: string): Function {
+export function Head(value?: string): MethodDecorator {
   return () => {
     return;
   };
