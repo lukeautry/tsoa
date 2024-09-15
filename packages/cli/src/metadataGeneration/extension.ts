@@ -29,8 +29,8 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
     assertValidExtensionKey(attributeKey);
 
     const attributeValue = getInitializerValue(decoratorValueArg, metadataGenerator.typeChecker);
-    if (attributeValue === undefined) {
-      throw new Error(`'${attributeKey}' is undefined`);
+    if (attributeValue == null) {
+      throw new Error(`The value for extension '${attributeKey}' cannot be null or undefined.`);
     }
     if (!isNonUndefinedInitializerValue(attributeValue)) {
       throw new Error(`Extension '${attributeKey}' cannot have an undefined initializer value`);
