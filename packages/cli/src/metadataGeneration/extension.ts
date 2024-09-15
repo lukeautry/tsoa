@@ -18,8 +18,8 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
 
     const attributeKey = ts.isIdentifier(decoratorKeyArg) ? getInitializerValue(decoratorKeyArg, metadataGenerator.typeChecker) : decoratorKeyArg.text;
 
-    if (typeof attributeKey !== 'string') {
-      throw new Error('The first argument of @Extension must be a string');
+    if (typeof attributeKey !== 'string' || attributeKey == null) {
+      throw new Error('The first argument of @Extension must a string');
     }
 
     if (!decoratorValueArg) {
