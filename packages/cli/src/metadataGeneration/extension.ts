@@ -32,6 +32,9 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
     if (attributeValue == null) {
       throw new Error(`The value for extension '${attributeKey}' cannot be null or undefined.`);
     }
+    if (typeof attributeValue !== 'string' && typeof attributeValue !== 'number' && typeof attributeValue !== 'boolean') {
+      throw new Error(`Extension '${attributeKey}' has an invalid value type: ${typeof attributeValue}`);
+    }
     if (!isNonUndefinedInitializerValue(attributeValue)) {
       throw new Error(`Extension '${attributeKey}' cannot have an undefined initializer value`);
     }
