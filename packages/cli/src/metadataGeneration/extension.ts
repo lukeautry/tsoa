@@ -12,11 +12,11 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
 
     const [decoratorKeyArg, decoratorValueArg] = extensionDecorator.parent.arguments;
 
-    if (!ts.isStringLiteral(decoratorKeyArg)) {
+    if (!ts.isStringLiteral(decoratorKeyArg) && !ts.isIdentifier(decoratorKeyArg)) {
       throw new Error('The first argument of @Extension must be a string');
     }
 
-    const attributeKey = ts.isIdentifier(decoratorKeyArg) ? getInitializerValue(decoratorKeyArg, metadataGenerator.typeChecker) : decoratorKeyArg.text;
+    const attributeKey = decoratorKeyArg.text;
 
     if (typeof attributeKey !== 'string') {
       throw new Error('The first argument of @Extension must a string');
