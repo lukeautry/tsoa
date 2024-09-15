@@ -18,7 +18,7 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
 
     const attributeKey = ts.isIdentifier(decoratorKeyArg) ? getInitializerValue(decoratorKeyArg, metadataGenerator.typeChecker) : decoratorKeyArg.text;
 
-    if (typeof attributeKey !== 'string' || attributeKey == null) {
+    if (typeof attributeKey !== 'string') {
       throw new Error('The first argument of @Extension must a string');
     }
 
@@ -29,12 +29,6 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
     assertValidExtensionKey(attributeKey);
 
     const attributeValue = getInitializerValue(decoratorValueArg, metadataGenerator.typeChecker);
-    if (attributeValue == null) {
-      throw new Error(`The value for extension '${attributeKey}' cannot be null or undefined.`);
-    }
-    if (typeof attributeValue !== 'string' && typeof attributeValue !== 'number' && typeof attributeValue !== 'boolean') {
-      throw new Error(`Extension '${attributeKey}' has an invalid value type: ${typeof attributeValue}`);
-    }
     if (!isNonUndefinedInitializerValue(attributeValue)) {
       throw new Error(`Extension '${attributeKey}' cannot have an undefined initializer value`);
     }
