@@ -89,20 +89,93 @@ export namespace Swagger {
     description?: string;
   }
 
-  function isPalindrome(str: string): boolean {
-    const cleanedStr = str.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
-    return cleanedStr === cleanedStr.split('').reverse().join('');
+  interface Item {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
 }
 
+class Inventory {
+    private items: Item[] = [];
+    private nextId: number = 1;
 
-function removeDuplicates(arr: number[]): number[] {
-  return Array.from(new Set(arr));
+    addItem(name: string, quantity: number, price: number): void {
+        const newItem: Item = {
+            id: this.nextId++,
+            name,
+            quantity,
+            price
+        };
+        this.items.push(newItem);
+        console.log(`Item added: ${JSON.stringify(newItem)}`);
+    }
+
+    updateItem(id: number, name?: string, quantity?: number, price?: number): void {
+        const item = this.items.find(item => item.id === id);
+        if (item) {
+            if (name !== undefined) item.name = name;
+            if (quantity !== undefined) item.quantity = quantity;
+            if (price !== undefined) item.price = price;
+            console.log(`Item updated: ${JSON.stringify(item)}`);
+        } else {
+            console.log(`Item with ID ${id} not found.`);
+        }
+    }
+
+    deleteItem(id: number): void {
+        const index = this.items.findIndex(item => item.id === id);
+        if (index !== -1) {
+            const deletedItem = this.items.splice(index, 1)[0];
+            console.log(`Item deleted: ${JSON.stringify(deletedItem)}`);
+        } else {
+            console.log(`Item with ID ${id} not found.`);
+        }
+    }
+
+    searchItem(name: string): Item[] {
+        const foundItems = this.items.filter(item => item.name.toLowerCase().includes(name.toLowerCase()));
+        console.log(`Items found: ${JSON.stringify(foundItems)}`);
+        return foundItems;
+    }
+
+    listItems(): void {
+        console.log('Inventory List:');
+        this.items.forEach(item => {
+            console.log(`ID: ${item.id}, Name: ${item.name}, Quantity: ${item.quantity}, Price: ${item.price}`);
+        });
+    }
 }
 
-console.log(removeDuplicates([1, 2, 2, 3, 4, 4, 5])); // Output: [1, 2, 3, 4, 5]
+// Example Usage
+const inventory = new Inventory();
 
+// Add items
+inventory.addItem('Apple', 100, 1.0);
+inventory.addItem('Banana', 150, 0.5);
+inventory.addItem('Orange', 200, 0.8);
 
-console.log(isPalindrome("A man, a plan, a canal, Panama")); // Output: true
+// List all items
+inventory.listItems();
+console.log('---');
+
+// Update an item
+inventory.updateItem(2, 'Banana', 180, 0.55);
+
+// List all items
+inventory.listItems();
+console.log('---');
+
+// Delete an item
+inventory.deleteItem(3);
+
+// List all items
+inventory.listItems();
+console.log('---');
+
+// Search for items
+inventory.searchItem('app');
+
 
 
   export interface BodyParameter extends BaseParameter {
