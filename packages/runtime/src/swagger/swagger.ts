@@ -89,18 +89,6 @@ export namespace Swagger {
     description?: string;
   }
 
-  export interface BaseParameter extends BaseSchema {
-    name: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body';
-    required?: boolean;
-    description?: string;
-    example?: unknown;
-    examples?: { [name: string]: Example3 | string };
-    schema: Schema;
-    type: DataType;
-    format?: DataFormat;
-    deprecated?: boolean;
-  }
 
   export interface BodyParameter extends BaseParameter {
     in: 'body';
