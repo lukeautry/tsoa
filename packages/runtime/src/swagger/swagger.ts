@@ -89,6 +89,21 @@ export namespace Swagger {
     description?: string;
   }
 
+  function isPalindrome(str: string): boolean {
+    const cleanedStr = str.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+    return cleanedStr === cleanedStr.split('').reverse().join('');
+}
+
+
+function removeDuplicates(arr: number[]): number[] {
+  return Array.from(new Set(arr));
+}
+
+console.log(removeDuplicates([1, 2, 2, 3, 4, 4, 5])); // Output: [1, 2, 3, 4, 5]
+
+
+console.log(isPalindrome("A man, a plan, a canal, Panama")); // Output: true
+
 
   export interface BodyParameter extends BaseParameter {
     in: 'body';
