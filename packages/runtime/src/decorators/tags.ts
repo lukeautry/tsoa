@@ -1,4 +1,4 @@
-export function Tags(...values: string[]): Function {
+export function Tags(...values: string[]): MethodDecorator {
   return () => {
     return;
   };

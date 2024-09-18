@@ -2,7 +2,7 @@
  * Inject http Body
  *  @param {string} [name] properties name in body object
  */
-export function Body(): Function {
+export function Body(): ParameterDecorator {
   return () => {
     return;
   };
@@ -13,7 +13,7 @@ export function Body(): Function {
  *
  * @param {string} [name] The name of the body parameter
  */
-export function BodyProp(name?: string): Function {
+export function BodyProp(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -22,7 +22,7 @@ export function BodyProp(name?: string): Function {
 /**
  * Inject http request
  */
-export function Request(): Function {
+export function Request(): ParameterDecorator {
   return () => {
     return;
   };
@@ -33,7 +33,7 @@ export function Request(): Function {
  *
  * @param {name} [name] The name of the request parameter
  */
-export function RequestProp(name?: string): Function {
+export function RequestProp(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -44,7 +44,7 @@ export function RequestProp(name?: string): Function {
  *
  * @param {string} [name] The name of the path parameter
  */
-export function Path(name?: string): Function {
+export function Path(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -55,7 +55,7 @@ export function Path(name?: string): Function {
  *
  * @param {string} [name] The name of the query parameter
  */
-export function Query(name?: string): Function {
+export function Query(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -64,7 +64,7 @@ export function Query(name?: string): Function {
 /**
  * Inject all query values in a single object
  */
-export function Queries(): Function {
+export function Queries(): ParameterDecorator {
   return () => {
     return;
   };
@@ -75,7 +75,7 @@ export function Queries(): Function {
  *
  * @param {string} [name] The name of the header parameter
  */
-export function Header(name?: string): Function {
+export function Header(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -84,7 +84,7 @@ export function Header(name?: string): Function {
 /**
  * Mark parameter as manually injected, which will not be generated
  */
-export function Inject(): Function {
+export function Inject(): ParameterDecorator {
   return () => {
     return;
   };
@@ -95,7 +95,7 @@ export function Inject(): Function {
  *
  * @param {string} [name] The name of the uploaded file parameter
  */
-export function UploadedFile(name?: string): Function {
+export function UploadedFile(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -106,7 +106,7 @@ export function UploadedFile(name?: string): Function {
  *
  * @param {string} [name] The name of the uploaded files parameter
  */
-export function UploadedFiles(name?: string): Function {
+export function UploadedFiles(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -117,7 +117,7 @@ export function UploadedFiles(name?: string): Function {
  *
  * @param {string} [name] The name of the uploaded files parameter
  */
-export function FormField(name?: string): Function {
+export function FormField(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -130,7 +130,7 @@ export function FormField(name?: string): Function {
  *
  * @link https://swagger.io/docs/specification/describing-request-body/
  */
-export function Consumes(value: string): Function {
+export function Consumes(value: string): MethodDecorator {
   return () => {
     return;
   };

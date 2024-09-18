@@ -12,7 +12,7 @@ const hapiTsoaResponsed = Symbol('@tsoa:template_service:hapi:responsed');
 
 type HapiApiHandlerParameters = {
   methodName: string;
-  controller: Controller | Object;
+  controller: Controller | object;
   h: HResponse;
   validatedArgs: any[];
   successStatus?: number;
@@ -36,8 +36,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     protected readonly models: TsoaRoute.Models,
     protected readonly config: AdditionalProps,
     private readonly hapi: {
-      boomify: Function;
-      isBoom: Function;
+      boomify: CallableFunction;
+      isBoom: CallableFunction;
     },
   ) {
     super(models, config);

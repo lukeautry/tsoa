@@ -1,4 +1,4 @@
-export function OperationId(value: string): Function {
+export function OperationId(value: string): MethodDecorator {
   return () => {
     return;
   };
