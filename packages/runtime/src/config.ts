@@ -74,6 +74,13 @@ export interface SpecConfig {
   host?: string;
 
   /**
+   * API servers, expressTemplate.g. [production.api.com, staging.api.com]
+   *
+   * Only available with the specVersion 3
+   */
+  servers?: string[];
+
+  /**
    * Base-name of swagger.json or swagger.yaml.
    *
    * @default: "swagger"
