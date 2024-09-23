@@ -49,11 +49,11 @@
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^4.3.0",
-    "lerna": "^8.0.1",
-    "lint-staged": "^15.2.0",
-    "prettier": "^3.1.1",
+    "lerna": "^8.1.8",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.25.12"
+    "typedoc": "^0.26.7"
   },
   "resolutions": {
     "typescript": "^5.2.2"

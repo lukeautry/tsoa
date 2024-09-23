@@ -18,6 +18,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "strict": true
   },
   "exclude": ["src/routeGeneration/templates/**/*.hbs"],

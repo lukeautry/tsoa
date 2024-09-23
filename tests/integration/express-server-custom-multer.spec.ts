@@ -5,6 +5,7 @@ import 'mocha';
 import { resolve } from 'path';
 import * as request from 'supertest';
 import { app } from '../fixtures/express/server';
+import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 
@@ -169,7 +170,13 @@ describe('Express Server With custom multer', () => {
         request =>
           Object.keys(formData).reduce((req, key) => {
             const values = [].concat(formData[key]);
-            values.forEach((v: any) => (v.startsWith('@') ? req.attach(key, resolve(__dirname, v.slice(1))) : req.field(key, v)));
+            values.forEach((v: string) => {
+              if (v.startsWith('@')) {
+                req.attach(key, resolve(__dirname, v.slice(1)));
+              } else {
+                req.field(key, v);
+              }
+            });
             return req;
           }, request.post(path)),
         expectedStatus,
@@ -177,7 +184,7 @@ describe('Express Server With custom multer', () => {
     }
   });
 
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)
