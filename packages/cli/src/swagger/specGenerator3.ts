@@ -696,7 +696,6 @@ export class SpecGenerator3 extends SpecGenerator {
 
     if (types.size === 1) {
       const type = types.values().next().value;
-      if (!type) throw new Error('Enum must be defined');
       const nullable = enumType.enums.includes(null) ? true : false;
       return { ...(title && { title }), type, enum: enumType.enums.map(member => getValue(type, member)), nullable };
     } else {
