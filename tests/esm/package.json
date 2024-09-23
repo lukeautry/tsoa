@@ -21,14 +21,14 @@
   },
   "engineStrict": true,
   "devDependencies": {
-    "@types/chai-as-promised": "^7.1.8",
-    "@types/mocha": "^10.0.6",
+    "@types/chai-as-promised": "^8.0.0",
+    "@types/mocha": "^10.0.8",
     "@types/node": "^16.18.23",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^10.2.0",
+    "mocha": "^10.7.3",
     "ts-node": "^10.9.2",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.2"
   }
 }

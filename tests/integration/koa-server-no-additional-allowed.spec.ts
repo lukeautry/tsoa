@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { server } from '../fixtures/koaNoAdditional/server';
 import { Gender, GenericRequest, ParameterTestModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 
@@ -467,7 +468,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
     return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
   }
 
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
       methodOperation(request(server))
         .expect(expectedStatus)
