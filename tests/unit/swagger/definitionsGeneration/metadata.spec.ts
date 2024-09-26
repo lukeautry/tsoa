@@ -166,10 +166,13 @@ describe('Metadata generation', () => {
 
       expect(method.responses.length).to.equal(5);
 
-      const badResponse = method.responses[1]
+      const badResponse = method.responses[1];
       expect(badResponse.name).to.equal('400');
       expect(badResponse.description).to.equal('Bad Request');
-      expect(badResponse.examples).to.deep.equal([{ status: 400, message: 'reason 1' }, { status: 400, message: 'reason 2' }]);
+      expect(badResponse.examples).to.deep.equal([
+        { status: 400, message: 'reason 1' },
+        { status: 400, message: 'reason 2' },
+      ]);
 
       const unauthResponse = method.responses[2];
       expect(unauthResponse.name).to.equal('401');
@@ -316,6 +319,7 @@ describe('Metadata generation', () => {
         { key: 'x-attKey6', value: [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }] },
         { key: 'x-attKey7', value: { test: ['testVal', 123, true, null] } },
         { key: 'x-attKey8', value: { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } } },
+        { key: 'x-attKey9', value: 'identifierAttValue' },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
