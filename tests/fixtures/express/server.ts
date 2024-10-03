@@ -31,7 +31,9 @@ import { RegisterRoutes } from './routes';
 export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(methodOverride());
+app.use((req, res, next) => {
+  methodOverride()(req, res, next);
+});
 app.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
   next();

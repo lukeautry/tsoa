@@ -8,7 +8,9 @@ import { RegisterRoutes } from './routes';
 export const app: express.Express = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(methodOverride());
+app.use((req, res, next) => {
+  methodOverride()(req, res, next);
+});
 RegisterRoutes(app);
 
 // It's important that this come after the main routes are registered
