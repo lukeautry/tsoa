@@ -104,7 +104,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
 
   protected returnHandler(params: ExpressReturnHandlerParameters) {
     const { response, statusCode, data } = params;
-    let { headers } = params;
+    const { headers } = params;
 
     if (response.headersSent) {
       return;
