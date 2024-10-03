@@ -111,8 +111,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
   }
 
   protected returnHandler(params: KoaReturnHandlerParameters): Promise<any> | Context | undefined {
-    const { context, next, statusCode, data } = params;
-    const { headers } = params;
+    const { context, next, statusCode, data, headers } = params;
 
     const isResponsed = Object.getOwnPropertyDescriptor(context.response, koaTsoaResponsed);
     if (!context.headerSent && !isResponsed) {
