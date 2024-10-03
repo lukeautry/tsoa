@@ -20,6 +20,7 @@ import {
 } from '../testModel';
 import { ModelService } from './../services/modelService';
 
+export type BadRequest = TsoaResponse<400, { name: 'some_thing' }>;
 export const PathFromConstant = 'PathFromConstantValue';
 export enum EnumPaths {
   PathFromEnum = 'PathFromEnumValue',
@@ -276,6 +277,14 @@ export class GetTestController extends Controller {
   @Get('Res')
   public async getRes(@Res() res: TsoaResponse<400, TestModel, { 'custom-header': string }>): Promise<void> {
     res?.(400, new ModelService().getModel(), { 'custom-header': 'hello' });
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('Res_Alias')
+  public async getResAlias(@Res() res: BadRequest): Promise<void> {
+    res?.(400, { name: 'some_thing' });
   }
 
   /**
