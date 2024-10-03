@@ -118,8 +118,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
   }
 
   protected returnHandler(params: HapiReturnHandlerParameters) {
-    const { h, statusCode, data } = params;
-    const { headers } = params;
+    const { h, statusCode, data, headers } = params;
 
     const tsoaResponsed = Object.getOwnPropertyDescriptor(h, hapiTsoaResponsed);
     if (tsoaResponsed) {
