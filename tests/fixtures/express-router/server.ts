@@ -10,7 +10,9 @@ export const router = express.Router();
 app.use('/v1', router);
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
-router.use(methodOverride());
+router.use((req, res, next) => {
+  methodOverride()(req, res, next);
+});
 router.use((req: any, res: any, next: any) => {
   req.stringValue = 'fancyStringForContext';
   next();
