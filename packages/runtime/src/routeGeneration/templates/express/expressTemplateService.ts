@@ -108,11 +108,11 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     if (response.headersSent) {
       return;
     }
-    if( headers ){
-      Object.keys(headers).forEach((name: string) => {
-        response.set(name, headers[name]);
-      });
-    }
+    
+    Object.keys(headers || {}).forEach((name: string) => {
+      response.set(name, headers[name]);
+    });
+
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
       data.pipe(response);
