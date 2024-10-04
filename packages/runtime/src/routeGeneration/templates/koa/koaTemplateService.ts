@@ -126,9 +126,8 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
         context.status = statusCode;
       }
 
-      if( headers ){
-        context.set(headers);
-      }
+      context.set(headers || {});
+      
       Object.defineProperty(context.response, koaTsoaResponsed, {
         value: true,
         writable: false,
