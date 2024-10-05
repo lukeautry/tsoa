@@ -20,7 +20,7 @@ router.use((req: any, res: any, next: express.NextFunction) => {
 
 import multer = require('multer');
 
-RegisterRoutes(router, {
+(RegisterRoutes as (router: express.Router, options: { multer: ReturnType<typeof multer> }) => void)(router, {
   multer: multer({
     limits: {
       fieldNameSize: 120,

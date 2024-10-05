@@ -18,7 +18,7 @@ router.use((req: any, res: any, next: express.NextFunction) => {
   next();
 });
 
-RegisterRoutes(router);
+(RegisterRoutes as (router: express.Router) => void)(router);
 
 // It's important that this come after the main routes are registered
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
