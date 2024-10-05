@@ -5,6 +5,7 @@ import { AdditionalProps } from '../additionalProps';
 
 export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParameters, ReturnHandlerParameters> {
   protected validationService: ValidationService;
+  protected cacheBuildPromise = new Map<string, Function | undefined>();
 
   constructor(
     protected readonly models: TsoaRoute.Models,
@@ -24,8 +25,14 @@ export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParame
   }
 
   protected buildPromise(methodName: string, controller: Controller | object, validatedArgs: any) {
-    const prototype = Object.getPrototypeOf(controller);
-    const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
-    return descriptor!.value.apply(controller, validatedArgs);
+    const cacheKey = `${controller.constructor.name}_${methodName}`;
+    let method = this.cacheBuildPromise.get(cacheKey);
+    if (!method) {
+      const prototype = Object.getPrototypeOf(controller);
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
+      method = descriptor!.value;
+      this.cacheBuildPromise.set(cacheKey, method);
+    }
+    return method!.apply(controller, validatedArgs);
   }
 }
