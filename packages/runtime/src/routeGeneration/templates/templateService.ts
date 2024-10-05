@@ -26,7 +26,6 @@ export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParame
   protected buildPromise(methodName: string, controller: Controller | object, validatedArgs: any) {
     const prototype = Object.getPrototypeOf(controller);
     const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
-
     return (descriptor!.value as () => Promise<PropertyDescriptor>).apply(controller, validatedArgs);
   }
 }
