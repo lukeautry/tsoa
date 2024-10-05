@@ -1,4 +1,4 @@
-import { Server, ServerApplicationState } from '@hapi/hapi';
+import { Server } from '@hapi/hapi';
 import '../controllers/rootController';
 
 import '../controllers/optionsController';
@@ -23,7 +23,7 @@ import { RegisterRoutes } from './routes';
 
 export const server = new Server({});
 
-(RegisterRoutes as (app: Server<ServerApplicationState>) => void)(server);
+(RegisterRoutes as (app: Server) => void)(server);
 
 server.start().catch(err => {
   if (err) {
