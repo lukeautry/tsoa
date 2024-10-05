@@ -17,7 +17,7 @@ app.use((req: any, res: any, next: express.NextFunction) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });
-if (RegisterRoutes) RegisterRoutes(app);
+if (RegisterRoutes) (RegisterRoutes as (app: express.Express) => void)(app);
 
 // It's important that this come after the main routes are registered
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
