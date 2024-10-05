@@ -13,7 +13,7 @@ router.use(bodyParser.json());
 router.use((req, res, next) => {
   methodOverride()(req, res, next);
 });
-router.use((req: any, res: any, next: any) => {
+router.use((req: any, res: any, next: express.NextFunction) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });

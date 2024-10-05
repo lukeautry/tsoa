@@ -397,3 +397,12 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
     throw err;
   }
 }
+
+export type RouteGeneratorModule<Config extends ExtendedRoutesConfig> = {
+  default: new (
+    metadata: Tsoa.Metadata,
+    routesConfig: Config,
+  ) => {
+    GenerateCustomRoutes: () => Promise<void>;
+  };
+};

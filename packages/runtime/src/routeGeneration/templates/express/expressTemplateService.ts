@@ -5,6 +5,7 @@ import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
 import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
+import { Readable } from 'node:stream';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
@@ -115,7 +116,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     });
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
-      data.pipe(response);
+      (data as Readable).pipe(response);
     } else if (data !== null && data !== undefined) {
       response.status(statusCode || 200).json(data);
     } else {
