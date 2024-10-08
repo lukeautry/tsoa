@@ -86,6 +86,26 @@ export class ParameterGenerator {
     };
   }
 
+  private extractTsoaResponse(typeNode: ts.TypeNode | undefined): ts.TypeReferenceNode | undefined {
+    if (!typeNode || !ts.isTypeReferenceNode(typeNode)) {
+      return undefined;
+    }
+    if (typeNode.typeName.getText() === 'TsoaResponse') {
+      return typeNode;
+    }
+
+    const symbol = this.current.typeChecker.getTypeAtLocation(typeNode).aliasSymbol;
+    if (!symbol || !symbol.declarations) {
+      return undefined;
+    }
+    const declaration = symbol.declarations[0];
+    if (!ts.isTypeAliasDeclaration(declaration) || !ts.isTypeReferenceNode(declaration.type)) {
+      return undefined;
+    }
+
+    return declaration.type.typeName.getText() === 'TsoaResponse' ? declaration.type : undefined;
+  }
+
   private getResParameters(parameter: ts.ParameterDeclaration): Tsoa.ResParameter[] {
     const parameterName = (parameter.name as ts.Identifier).text;
     const decorator = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res') || parameterName;
@@ -93,9 +113,9 @@ export class ParameterGenerator {
       throw new GenerateMetadataError('Could not find Decorator', parameter);
     }
 
-    const typeNode = parameter.type;
+    const typeNode = this.extractTsoaResponse(parameter.type);
 
-    if (!typeNode || !ts.isTypeReferenceNode(typeNode) || typeNode.typeName.getText() !== 'TsoaResponse') {
+    if (!typeNode) {
       throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
     }
 
