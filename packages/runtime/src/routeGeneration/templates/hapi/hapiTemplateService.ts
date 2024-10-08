@@ -118,9 +118,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
   }
 
   protected returnHandler(params: HapiReturnHandlerParameters) {
-    const { h, statusCode, data } = params;
-    let { headers } = params;
-    headers = headers || {};
+    const { h, statusCode, data, headers } = params;
 
     const tsoaResponsed = Object.getOwnPropertyDescriptor(h, hapiTsoaResponsed);
     if (tsoaResponsed) {
@@ -129,7 +127,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
 
     const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response('').code(204);
 
-    Object.keys(headers).forEach((name: string) => {
+    Object.keys(headers || {}).forEach((name: string) => {
       response.header(name, headers[name]);
     });
 
