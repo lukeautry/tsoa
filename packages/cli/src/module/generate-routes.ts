@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { ExtendedRoutesConfig } from '../cli';
+import { ExtendedRoutesConfig, RouteGeneratorModule } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { DefaultRouteGenerator } from '../routeGeneration/defaultRouteGenerator';
@@ -46,12 +46,12 @@ async function getRouteGenerator<Config extends ExtendedRoutesConfig>(metadata: 
     if (typeof routeGenerator === 'string') {
       try {
         // try as a module import
-        const module = await import(routeGenerator);
+        const module = (await import(routeGenerator)) as RouteGeneratorModule<Config>;
         return new module.default(metadata, routesConfig);
       } catch (_err) {
         // try to find a relative import path
         const relativePath = path.relative(__dirname, routeGenerator);
-        const module = await import(relativePath);
+        const module = (await import(relativePath)) as RouteGeneratorModule<Config>;
         return new module.default(metadata, routesConfig);
       }
     } else {

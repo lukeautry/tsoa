@@ -19,7 +19,7 @@ describe('Koa Server (with multerOpts)', () => {
         expect(res.body.originalname).to.equal('package.json');
         expect(res.body.encoding).to.be.not.undefined;
         expect(res.body.mimetype).to.equal('application/json');
-        expect(res.body.path).to.satisfy(value => value.startsWith(os.tmpdir()));
+        expect(res.body.path).to.satisfy((value: string) => value.startsWith(os.tmpdir()));
       });
     });
 
@@ -31,7 +31,7 @@ describe('Koa Server (with multerOpts)', () => {
         expect(res.body.fieldname).to.equal('someFile');
         expect(res.body.originalname).to.equal('lessThan8mb');
         expect(res.body.encoding).to.be.not.undefined;
-        expect(res.body.path).to.satisfy(value => value.startsWith(os.tmpdir()));
+        expect(res.body.path).to.satisfy((value: string) => value.startsWith(os.tmpdir()));
         unlinkSync('./lessThan8mb');
       });
     });

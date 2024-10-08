@@ -3272,7 +3272,7 @@ describe('Definition generation', () => {
             throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
           }
           it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceName} for the ${currentSpec.specName}`, () => {
-            assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
+            assertionsPerProperty[aPropertyName as keyof TestModel](aPropertyName, propertySchema);
           });
         });
 

@@ -39,13 +39,13 @@ export class SpecGenerator3 extends SpecGenerator {
 
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
-      const mergeFuncs: { [key: string]: any } = {
+      const mergeFuncs: { [key: string]: (spec: UnspecifiedObject, merge: UnspecifiedObject) => UnspecifiedObject } = {
         immediate: Object.assign,
         recursive: mergeAnything,
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => deepMerge(spec, merge),
       };
 
-      spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
+      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec3;
     }
 
     return spec;

@@ -1056,7 +1056,7 @@ describe('Metadata generation', () => {
 
     if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
 
-    const getControllerNumberMethods = controller => {
+    const getControllerNumberMethods = (controller: Tsoa.Controller) => {
       const getDefault = controller.methods.find(method => method.name === 'getDefault');
       const getDouble = controller.methods.find(method => method.name === 'getDouble');
       const getInteger = controller.methods.find(method => method.name === 'getInteger');

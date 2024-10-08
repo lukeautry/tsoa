@@ -43,7 +43,7 @@ describe('GET route generation', () => {
       throw new Error('No operation parameters.');
     }
 
-    return get.parameters as any;
+    return get.parameters;
   };
 
   it('should generate a path for a GET route with no path argument', () => {
