@@ -14,6 +14,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
+  const optionsWithServers = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+    servers: ['localhost:3000', 'staging.api.com'],
+  });
   const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
@@ -29,12 +32,16 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
+    specName: 'specDefault' | 'specWithServers' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
   }
 
   const specDefault: SpecAndName = {
     spec: new SpecGenerator3(metadataGet, defaultOptions).GetSpec(),
     specName: 'specDefault',
+  };
+  const specWithServers: SpecAndName = {
+    spec: new SpecGenerator3(metadataGet, optionsWithServers).GetSpec(),
+    specName: 'specWithServers',
   };
   const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator3(metadataGet, optionsWithNoAdditional).GetSpec(),
@@ -83,6 +90,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     it('should replace the parent host element', () => {
       expect(specDefault.spec).to.not.have.property('host');
       expect(specDefault.spec.servers[0].url).to.match(/localhost:3000/);
+    });
+
+    it('should replace the parent hosts element', () => {
+      expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000/);
+      expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com/);
     });
 
     it('should replace the parent basePath element', () => {
