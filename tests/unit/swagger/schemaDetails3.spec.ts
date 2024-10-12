@@ -4707,6 +4707,34 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expectTestModelContent(responses?.['400']);
       expectTestModelContent(responses?.['500']);
     });
+
+    describe('With alias', () => {
+      it('creates a single error response for a single res parameter', () => {
+        const responses = specDefault.spec.paths['/GetTest/Res_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400');
+
+        expectTestModelContent(responses?.['400']);
+      });
+
+      it('creates multiple error responses for separate res parameters', () => {
+        const responses = specDefault.spec.paths['/GetTest/MultipleRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('200', '400', '401');
+
+        expectTestModelContent(responses?.['400']);
+        expectTestModelContent(responses?.['401']);
+      });
+
+      it('creates multiple error responses for a combined res parameter', () => {
+        const responses = specDefault.spec.paths['/GetTest/MultipleStatusCodeRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400', '500');
+
+        expectTestModelContent(responses?.['400']);
+        expectTestModelContent(responses?.['500']);
+      });
+    });
   });
 
   describe('inline title tag generation', () => {
