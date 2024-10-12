@@ -1307,6 +1307,16 @@ describe('Koa Server', () => {
       );
     });
 
+    it('Should return on @Res with alias', () => {
+      return verifyGetRequest(
+        basePath + '/GetTest/Res_Alias',
+        (_err, res) => {
+          expect(res.body.name).to.equal('some_thing');
+        },
+        400,
+      );
+    });
+
     [400, 500].forEach(statusCode =>
       it('Should support multiple status codes with the same @Res structure', () => {
         return verifyGetRequest(

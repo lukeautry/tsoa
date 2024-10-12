@@ -20,6 +20,16 @@ describe('OpenAPI3 Express Server', () => {
     );
   });
 
+  it('Should return on @Res with alias', () => {
+    return verifyGetRequest(
+      basePath + '/GetTest/Res_Alias',
+      (_err, res) => {
+        expect(res.body.name).to.equal('some_thing');
+      },
+      400,
+    );
+  });
+
   it('should valid model validate', () => {
     const bodyModel = new ValidateModel();
     bodyModel.floatValue = 1.2;
