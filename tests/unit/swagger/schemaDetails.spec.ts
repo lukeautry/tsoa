@@ -746,6 +746,34 @@ describe('Schema details generation', () => {
       expectTestModelSchema(responses?.['400']);
       expectTestModelSchema(responses?.['500']);
     });
+
+    describe('With alias', () => {
+      it('creates a single error response for a single res parameter', () => {
+        const responses = spec.paths['/GetTest/Res_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400');
+
+        expectTestModelSchema(responses?.['400']);
+      });
+
+      it('creates multiple error responses for separate res parameters', () => {
+        const responses = spec.paths['/GetTest/MultipleRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('200', '400', '401');
+
+        expectTestModelSchema(responses?.['400']);
+        expectTestModelSchema(responses?.['401']);
+      });
+
+      it('creates multiple error responses for a combined res parameter', () => {
+        const responses = spec.paths['/GetTest/MultipleStatusCodeRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400', '500');
+
+        expectTestModelSchema(responses?.['400']);
+        expectTestModelSchema(responses?.['500']);
+      });
+    });
   });
 
   describe('security definitions', () => {

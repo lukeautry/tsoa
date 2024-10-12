@@ -1315,42 +1315,80 @@ describe('Hapi Server', () => {
       });
     });
 
-    it('Should return on @Res', () => {
-      return verifyGetRequest(
-        basePath + '/GetTest/Res',
-        (_err, res) => {
-          const model = res.body as TestModel;
-          expect(model.id).to.equal(1);
-          expect(res.get('custom-header')).to.eq('hello');
-        },
-        400,
-      );
-    });
-
-    [400, 500].forEach(statusCode =>
-      it('Should support multiple status codes with the same @Res structure', () => {
+    describe('@Res', () => {
+      it('Should return on @Res', () => {
         return verifyGetRequest(
-          basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+          basePath + '/GetTest/Res',
           (_err, res) => {
             const model = res.body as TestModel;
             expect(model.id).to.equal(1);
             expect(res.get('custom-header')).to.eq('hello');
           },
-          statusCode,
+          400,
         );
-      }),
-    );
+      });
 
-    it('Should not modify the response after headers sent', () => {
-      return verifyGetRequest(
-        basePath + '/GetTest/MultipleRes',
-        (_err, res) => {
-          const model = res.body as TestModel;
-          expect(model.id).to.equal(1);
-          expect(res.get('custom-header')).to.eq('hello');
-        },
-        400,
-      );
+      it('Should return on @Res with alias', () => {
+        return verifyGetRequest(
+          basePath + '/GetTest/Res_Alias',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('name')).to.equal('some_thing');
+          },
+          400,
+        );
+      });
+
+      [400, 500].forEach(statusCode => {
+        it('Should support multiple status codes with the same @Res structure', () => {
+          return verifyGetRequest(
+            basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+            (_err, res) => {
+              const model = res.body as TestModel;
+              expect(model.id).to.equal(1);
+              expect(res.get('custom-header')).to.eq('hello');
+            },
+            statusCode,
+          );
+        });
+
+        it('Should support multiple status codes with the same @Res structure with alias', () => {
+          return verifyGetRequest(
+            basePath + `/GetTest/MultipleStatusCodeRes_Alias?statusCode=${statusCode}`,
+            (_err, res) => {
+              const model = res.body as TestModel;
+              expect(model.id).to.equal(1);
+              expect(res.get('name')).to.eq('combine');
+            },
+            statusCode,
+          );
+        });
+      });
+
+      it('Should not modify the response after headers sent', () => {
+        return verifyGetRequest(
+          basePath + '/GetTest/MultipleRes',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          400,
+        );
+      });
+
+      it('Should not modify the response after headers sent with alias', () => {
+        return verifyGetRequest(
+          basePath + '/GetTest/MultipleRes_Alias',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('name')).to.eq('some_thing');
+          },
+          400,
+        );
+      });
     });
   });
 
