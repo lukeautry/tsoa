@@ -820,4 +820,19 @@ describe('Schema details generation', () => {
       expect(errToTest!.message).to.match(/Swagger 2.0 does not support "openIdConnect" security scheme/);
     });
   });
+
+  describe('should exclude @RequestProp', () => {
+    it('should exclude request-prop from method parameters', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(0);
+
+      method.forEach(p => {
+        expect(p.in).to.not.equal('request-prop');
+      });
+    });
+  });
 });

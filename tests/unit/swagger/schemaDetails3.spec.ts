@@ -4752,4 +4752,19 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
     });
   });
+
+  describe('should exclude @RequestProp', () => {
+    it('should exclude request-prop from method parameters', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(0);
+
+      method.forEach(p => {
+        expect(p.in).to.not.equal('request-prop');
+      });
+    });
+  });
 });
