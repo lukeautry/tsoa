@@ -4752,4 +4752,54 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
     });
   });
+
+  describe('should include valid params', () => {
+    it('should include query', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('query');
+    });
+
+    it('should include header', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('header');
+    });
+
+    it('should include path', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('path');
+    });
+  });
+
+  describe('should exclude @RequestProp', () => {
+    it('should exclude request-prop from method parameters', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(0);
+
+      method.forEach(p => {
+        expect(p.in).to.not.equal('request-prop');
+      });
+    });
+  });
 });

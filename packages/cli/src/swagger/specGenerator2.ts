@@ -192,7 +192,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     pathMethod.parameters = method.parameters
       .filter(p => {
-        return ['request', 'body-prop', 'res', 'queries'].indexOf(p.in) === -1;
+        return ['request', 'body-prop', 'res', 'queries', 'request-prop'].indexOf(p.in) === -1;
       })
       .map(p => this.buildParameter(p));
 
