@@ -177,6 +177,7 @@ describe('Metadata generation', () => {
       const unauthResponse = method.responses[2];
       expect(unauthResponse.name).to.equal('401');
       expect(unauthResponse.description).to.equal('Unauthorized');
+      expect(unauthResponse.examples).to.be.undefined;
 
       const defaultResponse = method.responses[3];
       expect(defaultResponse.name).to.equal('default');
