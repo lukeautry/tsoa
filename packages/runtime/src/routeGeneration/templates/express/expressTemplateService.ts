@@ -104,16 +104,16 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
   }
 
   protected returnHandler(params: ExpressReturnHandlerParameters) {
-    const { response, statusCode, data } = params;
-    let { headers } = params;
-    headers = headers || {};
+    const { response, statusCode, data, headers } = params;
 
     if (response.headersSent) {
       return;
     }
-    Object.keys(headers).forEach((name: string) => {
+    
+    Object.keys(headers || {}).forEach((name: string) => {
       response.set(name, headers[name]);
     });
+
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
       (data as Readable).pipe(response);
