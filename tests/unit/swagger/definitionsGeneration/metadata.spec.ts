@@ -155,7 +155,7 @@ describe('Metadata generation', () => {
         throw new Error('Method tags not defined!');
       }
 
-      expect(method.tags).to.deep.equal(['Tag1', 'Tag2', 'Tag3']);
+      expect(method.tags).to.deep.equal(['Tag1', 'Tag2', 'Tag3', 'MethodTest']);
     });
 
     it('should generate multi response', () => {
@@ -227,7 +227,7 @@ describe('Metadata generation', () => {
         secondSec: ['permission:admin', 'permission:owner'],
       });
 
-      expect(method.tags).to.deep.equal(['EnumTag1']);
+      expect(method.tags).to.deep.equal(['EnumTag1', 'MethodTest']);
     });
 
     it('should generate success response', () => {

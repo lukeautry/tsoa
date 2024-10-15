@@ -30,6 +30,7 @@ const TEST_SEC = {
 const ATT_KEY9 = 'x-attKey9';
 
 @Route('MethodTest')
+@Tags('MethodTest')
 export class MethodController extends Controller {
   @Options('Options')
   public async optionsMethod(): Promise<TestModel> {
