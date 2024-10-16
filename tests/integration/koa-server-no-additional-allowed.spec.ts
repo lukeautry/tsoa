@@ -210,6 +210,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       bodyModel.stringMax10Lenght = 'abcdef';
       bodyModel.stringMin5Lenght = 'abcdef';
       bodyModel.stringPatternAZaz = 'aBcD';
+      bodyModel.aliasTypePatternAZaz = 'aBcD';
       bodyModel.quotedStringPatternA = 'A';
 
       bodyModel.arrayMax5Item = [0, 1, 2, 3];
@@ -287,6 +288,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
           expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
           expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+          expect(body.aliasTypePatternAZaz).to.equal(bodyModel.aliasTypePatternAZaz);
           expect(body.quotedStringPatternA).to.equal(bodyModel.quotedStringPatternA);
 
           expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);

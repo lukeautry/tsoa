@@ -645,6 +645,7 @@ describe('Hapi Server', () => {
       bodyModel.stringMax10Lenght = 'abcdef';
       bodyModel.stringMin5Lenght = 'abcdef';
       bodyModel.stringPatternAZaz = 'aBcD';
+      bodyModel.aliasTypePatternAZaz = 'aBcD';
       bodyModel.quotedStringPatternA = 'A';
 
       bodyModel.arrayMax5Item = [0, 1, 2, 3];
@@ -722,6 +723,7 @@ describe('Hapi Server', () => {
           expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
           expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
           expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+          expect(body.aliasTypePatternAZaz).to.equal(bodyModel.aliasTypePatternAZaz);
           expect(body.quotedStringPatternA).to.equal(bodyModel.quotedStringPatternA);
 
           expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
@@ -782,6 +784,7 @@ describe('Hapi Server', () => {
       bodyModel.stringMax10Lenght = 'abcdefghijk';
       bodyModel.stringMin5Lenght = 'abcd';
       bodyModel.stringPatternAZaz = 'ab01234';
+      bodyModel.aliasTypePatternAZaz = '1234';
       bodyModel.quotedStringPatternA = 'A';
 
       bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
@@ -868,6 +871,8 @@ describe('Hapi Server', () => {
           expect(body.fields['body.stringMin5Lenght'].value).to.equal(bodyModel.stringMin5Lenght);
           expect(body.fields['body.stringPatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
           expect(body.fields['body.stringPatternAZaz'].value).to.equal(bodyModel.stringPatternAZaz);
+          expect(body.fields['body.aliasTypePatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
+          expect(body.fields['body.aliasTypePatternAZaz'].value).to.equal(bodyModel.aliasTypePatternAZaz);
 
           expect(body.fields['body.arrayMax5Item'].message).to.equal('maxItems 5');
           expect(body.fields['body.arrayMax5Item'].value).to.deep.equal(bodyModel.arrayMax5Item);

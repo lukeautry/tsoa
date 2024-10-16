@@ -827,6 +827,11 @@ export class ParameterTestModel {
   public nicknames?: string[];
 }
 
+/**
+ * @pattern ^[a-zA-Z]+$
+ */
+export type PatternValidateAliasType = string;
+
 export class ValidateCustomErrorModel {}
 
 export class ValidateModel {
@@ -883,6 +888,7 @@ export class ValidateModel {
    *  @pattern ^[a-zA-Z]+$
    */
   public stringPatternAZaz!: string;
+  public aliasTypePatternAZaz!: PatternValidateAliasType;
   /**
    * @pattern `^([A-Z])(?!@)$`
    */
