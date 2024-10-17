@@ -53,21 +53,6 @@ export class TypeResolver {
       return primitiveType;
     }
 
-    if (this.typeNode.kind === ts.SyntaxKind.NullKeyword) {
-      const enumType: Tsoa.EnumType = {
-        dataType: 'enum',
-        enums: [null],
-      };
-      return enumType;
-    }
-
-    if (this.typeNode.kind === ts.SyntaxKind.UndefinedKeyword) {
-      const undefinedType: Tsoa.UndefinedType = {
-        dataType: 'undefined',
-      };
-      return undefinedType;
-    }
-
     if (ts.isArrayTypeNode(this.typeNode)) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',

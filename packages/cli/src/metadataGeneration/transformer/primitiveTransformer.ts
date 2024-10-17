@@ -18,12 +18,14 @@ export class PrimitiveTransformer extends Transformer {
         return 'void';
       case SyntaxKind.UndefinedKeyword:
         return 'undefined';
+      case SyntaxKind.NullKeyword:
+        return 'null';
       default:
         return undefined;
     }
-  };
+  }
 
-  public transform(typeNode: TypeNode, parentNode?: Node): Tsoa.PrimitiveType | undefined {
+  public transform(typeNode: TypeNode, parentNode?: Node): Tsoa.Type | undefined {
     const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(typeNode.kind);
     if (!resolvedType) {
       return;
@@ -39,15 +41,17 @@ export class PrimitiveTransformer extends Transformer {
       case 'void':
       case 'undefined':
         return { dataType: resolvedType };
+      case 'null':
+        return {
+          dataType: 'enum',
+          enums: [null],
+        };
       default:
         return assertNever(resolvedType);
     }
   }
 
-  private transformNumber(
-    defaultNumberType: NonNullable<"double" | "float" | "integer" | "long" | undefined>,
-    parentNode?: Node,
-  ): Tsoa.PrimitiveType {
+  private transformNumber(defaultNumberType: NonNullable<'double' | 'float' | 'integer' | 'long' | undefined>, parentNode?: Node): Tsoa.PrimitiveType {
     if (!parentNode) {
       return { dataType: defaultNumberType };
     }
@@ -74,4 +78,4 @@ export class PrimitiveTransformer extends Transformer {
   }
 }
 
-type ResolvesToPrimitive = 'number' | 'string' | 'boolean' | 'void' | 'undefined' | undefined;
+type ResolvesToPrimitive = 'number' | 'string' | 'boolean' | 'void' | 'undefined' | 'null' | undefined;
