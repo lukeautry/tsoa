@@ -48,7 +48,8 @@ export class TypeResolver {
   }
 
   public resolve(): Tsoa.Type {
-    const primitiveType = new PrimitiveTransformer(this).transform(this.typeNode, this.parentNode);
+    const partentJsDocTagNames = this.parentNode ? getJSDocTagNames(this.parentNode) : undefined;
+    const primitiveType = new PrimitiveTransformer().transform(this.current.defaultNumberType, this.typeNode, partentJsDocTagNames);
     if (primitiveType) {
       return primitiveType;
     }
@@ -469,7 +470,7 @@ export class TypeResolver {
 
     switch (typeName.text) {
       case 'Date':
-        return new DateTransformer(this).transform(parentNode);
+        return new DateTransformer().transform(parentNode);
       case 'Buffer':
       case 'Readable':
         return { dataType: 'buffer' };
@@ -782,9 +783,9 @@ export class TypeResolver {
         for (const declaration of declarations) {
           if (ts.isTypeAliasDeclaration(declaration)) {
             const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
-            referenceTypes.push(new ReferenceTransformer(this).transform(declaration, refTypeName, referencer));
+            referenceTypes.push(new ReferenceTransformer().transform(declaration, refTypeName, this, referencer));
           } else if (EnumTransformer.transformable(declaration)) {
-            referenceTypes.push(new EnumTransformer(this).transform(declaration, refTypeName));
+            referenceTypes.push(new EnumTransformer().transform(this, declaration, refTypeName));
           } else {
             referenceTypes.push(this.getModelReference(declaration, refTypeName));
           }
@@ -846,7 +847,7 @@ export class TypeResolver {
       return referenceType;
     }
 
-    const properties = new PropertyTransformer(this).transform(modelType);
+    const properties = new PropertyTransformer().transform(this, modelType);
     const additionalProperties = this.getModelAdditionalProperties(modelType);
     const inheritedProperties = this.getModelInheritedProperties(modelType) || [];
 

@@ -68,16 +68,16 @@ export class ReferenceTransformer extends Transformer {
     return result;
   }
 
-  public transform(declaration: TypeAliasDeclaration, refTypeName: string, referencer?: Type): Tsoa.ReferenceType {
-    const example = this.resolver.getNodeExample(declaration);
+  public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Tsoa.ReferenceType {
+    const example = resolver.getNodeExample(declaration);
 
     const referenceType: Tsoa.ReferenceType = {
       dataType: 'refAlias',
       default: TypeResolver.getDefault(declaration),
-      description: this.resolver.getNodeDescription(declaration),
+      description: resolver.getNodeDescription(declaration),
       refName: refTypeName,
-      format: this.resolver.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, this.resolver.current, declaration, this.resolver.context, this.resolver.referencer || referencer).resolve(),
+      format: resolver.getNodeFormat(declaration),
+      type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
     };
