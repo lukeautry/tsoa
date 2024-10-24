@@ -1143,6 +1143,7 @@ export class TestClassModel extends TestClassBaseModel {
    * @maxLength 20
    * @pattern ^[a-zA-Z]+$
    * @example "classPropExample"
+   * @title Example title
    */
   public publicStringProperty!: string;
   /**
