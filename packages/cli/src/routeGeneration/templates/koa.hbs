@@ -77,6 +77,11 @@ export function RegisterRoutes(router: KoaRouter) {
 
     {{#each controllers}}
     {{#each actions}}
+        const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+            {{#each parameters}}
+                {{@key}}: {{{json this}}},
+            {{/each}}
+        };
         router.{{method}}('{{fullPath}}',
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
@@ -97,15 +102,10 @@ export function RegisterRoutes(router: KoaRouter) {
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
 
             async function {{../name}}_{{name}}(context: Context, next: Next) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                {{#each parameters}}
-                    {{@key}}: {{{json this}}},
-                {{/each}}
-            };
 
             let validatedArgs: any[] = [];
             try {
-              validatedArgs = templateService.getValidatedArgs({ args, context, next });
+              validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, context, next });
             } catch (err) {
               const error = err as any;
               error.message ||= JSON.stringify({ fields: error.fields });
