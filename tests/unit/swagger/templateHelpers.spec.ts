@@ -325,7 +325,7 @@ describe('ValidationService', () => {
   describe('Param validate', () => {
     it('should apply defaults for optional properties', () => {
       const value = undefined;
-      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: false, validators: {} };
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: 666, required: false, validators: {} };
       const result = new ValidationService(
         {},
         {
@@ -351,7 +351,7 @@ describe('ValidationService', () => {
 
     it('should apply defaults for required properties', () => {
       const value = undefined;
-      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: '666', required: true, validators: {} };
+      const propertySchema: TsoaRoute.PropertySchema = { dataType: 'integer', default: 666, required: true, validators: {} };
       const result = new ValidationService(
         {},
         {
