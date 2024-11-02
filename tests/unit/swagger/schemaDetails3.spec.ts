@@ -4669,6 +4669,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         type: 'object',
       });
     });
+
+    it('should generate schema with namespace type casted object', () => {
+      const response = specDefault.spec.paths['/GetTest/NamespaceWithTypeCastedObject']?.get?.responses;
+
+      expect(response).to.have.all.keys('200');
+    });
   });
 
   describe('@Res responses', () => {
