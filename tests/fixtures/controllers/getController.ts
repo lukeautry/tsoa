@@ -112,6 +112,14 @@ export class GetTestController extends Controller {
     return {} as TsoaTest.TestModel73;
   }
 
+  @Get('NamespaceWithTypeCastedObject')
+  public async getNamespaceWithTypeCastedObject() {
+    const test = { value: 'test' };
+    return {
+      value: test as TsoaTest.TestModel73,
+    };
+  }
+
   @Get('Multi')
   public async getMultipleModels(): Promise<TestModel[]> {
     return [new ModelService().getModel(), new ModelService().getModel(), new ModelService().getModel()];
