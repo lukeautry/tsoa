@@ -77,7 +77,7 @@ export default class ServerlessRouteGenerator extends AbstractRouteGenerator<Ser
     // This would need to generate a CDK "Stack" that takes the tsoa metadata as input and generates a valid serverless CDK infrastructure stack from template
     const templateFileName = this.options.stackTemplate;
     const fileName = `${this.options.routesDir}/stack.ts`;
-    const context = this.buildContext() as unknown as any;
+    const context = this.buildContext();
     context.controllers = context.controllers.map(controller => {
       controller.actions = controller.actions.map(action => {
         return {

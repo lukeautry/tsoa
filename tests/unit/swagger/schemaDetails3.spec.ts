@@ -14,13 +14,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
-  const optionsWithNoAdditional = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
-  const optionsWithXEnumVarnames = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithXEnumVarnames = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     xEnumVarnames: true,
   });
-  const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+  const optionsWithOperationIdTemplate = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
   });
 
@@ -91,7 +91,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should have relative URL when no host is defined', () => {
-      const optionsWithNoHost = Object.assign<{}, ExtendedSpecConfig>({}, defaultOptions);
+      const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
       const spec: Swagger.Spec3 = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
@@ -4708,6 +4708,34 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expectTestModelContent(responses?.['400']);
       expectTestModelContent(responses?.['500']);
     });
+
+    describe('With alias', () => {
+      it('creates a single error response for a single res parameter', () => {
+        const responses = specDefault.spec.paths['/GetTest/Res_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400');
+
+        expectTestModelContent(responses?.['400']);
+      });
+
+      it('creates multiple error responses for separate res parameters', () => {
+        const responses = specDefault.spec.paths['/GetTest/MultipleRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('200', '400', '401');
+
+        expectTestModelContent(responses?.['400']);
+        expectTestModelContent(responses?.['401']);
+      });
+
+      it('creates multiple error responses for a combined res parameter', () => {
+        const responses = specDefault.spec.paths['/GetTest/MultipleStatusCodeRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400', '500');
+
+        expectTestModelContent(responses?.['400']);
+        expectTestModelContent(responses?.['500']);
+      });
+    });
   });
 
   describe('inline title tag generation', () => {
@@ -4723,6 +4751,56 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       const currentSpec = new SpecGenerator3(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: false }).GetSpec();
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.responses['200'].content?.['application/json'].schema?.title).to.equal(undefined);
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
+    });
+  });
+
+  describe('should include valid params', () => {
+    it('should include query', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('query');
+    });
+
+    it('should include header', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('header');
+    });
+
+    it('should include path', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('path');
+    });
+  });
+
+  describe('should exclude @RequestProp', () => {
+    it('should exclude request-prop from method parameters', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(0);
+
+      method.forEach(p => {
+        expect(p.in).to.not.equal('request-prop');
+      });
     });
   });
 });

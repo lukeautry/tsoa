@@ -18,7 +18,6 @@ module.exports = {
         default: 'array-simple',
       },
     ],
-    '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -32,7 +31,6 @@ module.exports = {
     ],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
-    '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',

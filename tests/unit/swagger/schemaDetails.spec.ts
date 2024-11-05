@@ -349,7 +349,7 @@ describe('Schema details generation', () => {
 
     describe('methods', () => {
       describe('operationId', () => {
-        const optionsWithOperationIdTemplate = Object.assign<{}, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, getDefaultExtendedOptions(), {
+        const optionsWithOperationIdTemplate = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, getDefaultExtendedOptions(), {
           operationIdTemplate: "{{replace controllerName 'Controller' ''}}_{{titleCase method.name}}",
         });
 
@@ -746,6 +746,34 @@ describe('Schema details generation', () => {
       expectTestModelSchema(responses?.['400']);
       expectTestModelSchema(responses?.['500']);
     });
+
+    describe('With alias', () => {
+      it('creates a single error response for a single res parameter', () => {
+        const responses = spec.paths['/GetTest/Res_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400');
+
+        expectTestModelSchema(responses?.['400']);
+      });
+
+      it('creates multiple error responses for separate res parameters', () => {
+        const responses = spec.paths['/GetTest/MultipleRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('200', '400', '401');
+
+        expectTestModelSchema(responses?.['400']);
+        expectTestModelSchema(responses?.['401']);
+      });
+
+      it('creates multiple error responses for a combined res parameter', () => {
+        const responses = spec.paths['/GetTest/MultipleStatusCodeRes_Alias']?.get?.responses;
+
+        expect(responses).to.have.all.keys('204', '400', '500');
+
+        expectTestModelSchema(responses?.['400']);
+        expectTestModelSchema(responses?.['500']);
+      });
+    });
   });
 
   describe('security definitions', () => {
@@ -913,6 +941,78 @@ describe('Schema details generation', () => {
         example: undefined,
         format: undefined,
         description: 'Make all properties in T readonly',
+      });
+    });
+  });
+
+  describe('should include valid params', () => {
+    it('should include query', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('query');
+    });
+
+    it('should include body', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParamaterBodyAnyType'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('body');
+    });
+
+    it('should include header', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('header');
+    });
+
+    it('should include path', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('path');
+    });
+
+    it('should include formData', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/FormDataStringType'].get?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(1);
+      const queryParam = method[0];
+      expect(queryParam.in).to.equal('formData');
+    });
+  });
+
+  describe('should exclude @RequestProp', () => {
+    it('should exclude request-prop from method parameters', () => {
+      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+
+      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+
+      expect(method).to.have.lengthOf(0);
+
+      method.forEach(p => {
+        expect(p.in).to.not.equal('request-prop');
       });
     });
   });

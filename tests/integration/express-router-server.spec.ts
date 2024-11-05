@@ -3,6 +3,7 @@ import 'mocha';
 import * as request from 'supertest';
 import { app } from '../fixtures/express-router/server';
 import { TestModel } from '../fixtures/testModel';
+import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 
@@ -25,7 +26,7 @@ describe('Express Router Server', () => {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
 
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)

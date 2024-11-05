@@ -10,13 +10,15 @@ export const router = express.Router();
 app.use('/v1', router);
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
-router.use(methodOverride());
-router.use((req: any, res: any, next: any) => {
+router.use((req, res, next) => {
+  methodOverride()(req, res, next);
+});
+router.use((req: any, res: any, next: express.NextFunction) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });
 
-RegisterRoutes(router);
+(RegisterRoutes as (router: express.Router) => void)(router);
 
 // It's important that this come after the main routes are registered
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

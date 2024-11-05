@@ -20,6 +20,7 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
+import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 
@@ -193,42 +194,80 @@ describe('Express Server', () => {
     });
   });
 
-  it('Should return on @Res', () => {
-    return verifyGetRequest(
-      basePath + '/GetTest/Res',
-      (_err, res) => {
-        const model = res.body as TestModel;
-        expect(model.id).to.equal(1);
-        expect(res.get('custom-header')).to.eq('hello');
-      },
-      400,
-    );
-  });
-
-  [400, 500].forEach(statusCode =>
-    it('Should support multiple status codes with the same @Res structure', () => {
+  describe('@Res', () => {
+    it('Should return on @Res', () => {
       return verifyGetRequest(
-        basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+        basePath + '/GetTest/Res',
         (_err, res) => {
           const model = res.body as TestModel;
           expect(model.id).to.equal(1);
           expect(res.get('custom-header')).to.eq('hello');
         },
-        statusCode,
+        400,
       );
-    }),
-  );
+    });
 
-  it('Should not modify the response after headers sent', () => {
-    return verifyGetRequest(
-      basePath + '/GetTest/MultipleRes',
-      (_err, res) => {
-        const model = res.body as TestModel;
-        expect(model.id).to.equal(1);
-        expect(res.get('custom-header')).to.eq('hello');
-      },
-      400,
-    );
+    it('Should return on @Res with alias', () => {
+      return verifyGetRequest(
+        basePath + '/GetTest/Res_Alias',
+        (_err, res) => {
+          const model = res.body as TestModel;
+          expect(model.id).to.equal(1);
+          expect(res.get('name')).to.equal('some_thing');
+        },
+        400,
+      );
+    });
+
+    [400, 500].forEach(statusCode => {
+      it('Should support multiple status codes with the same @Res structure', () => {
+        return verifyGetRequest(
+          basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          statusCode,
+        );
+      });
+
+      it('Should support multiple status codes with the same @Res structure with alias', () => {
+        return verifyGetRequest(
+          basePath + `/GetTest/MultipleStatusCodeRes_Alias?statusCode=${statusCode}`,
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('name')).to.eq('combine');
+          },
+          statusCode,
+        );
+      });
+    });
+
+    it('Should not modify the response after headers sent', () => {
+      return verifyGetRequest(
+        basePath + '/GetTest/MultipleRes',
+        (_err, res) => {
+          const model = res.body as TestModel;
+          expect(model.id).to.equal(1);
+          expect(res.get('custom-header')).to.eq('hello');
+        },
+        400,
+      );
+    });
+
+    it('Should not modify the response after headers sent with alias', () => {
+      return verifyGetRequest(
+        basePath + '/GetTest/MultipleRes_Alias',
+        (_err, res) => {
+          const model = res.body as TestModel;
+          expect(model.id).to.equal(1);
+          expect(res.get('name')).to.eq('some_thing');
+        },
+        400,
+      );
+    });
   });
 
   it('parses buffer parameter', () => {
@@ -1295,12 +1334,12 @@ describe('Express Server', () => {
         },
         request => {
           return request.get(basePath + '/ParameterTest/Header').set({
-            age: 45,
+            age: '45',
             firstname: 'Tony',
             gender: 'MALE',
-            human: true,
+            human: 'true',
             last_name: 'Stark',
-            weight: 82.1,
+            weight: '82.1',
           });
         },
         200,
@@ -1323,8 +1362,8 @@ describe('Express Server', () => {
           return request.get(basePath + '/ParameterTest/Header').set({
             age: 'asdf',
             gender: 'male',
-            human: 123,
-            last_name: 123,
+            human: '123',
+            last_name: '123',
             weight: 'hello',
           });
         },
@@ -1649,7 +1688,13 @@ describe('Express Server', () => {
         request =>
           Object.keys(formData).reduce((req, key) => {
             const values = [].concat(formData[key]);
-            values.forEach((v: any) => (v.startsWith('@') ? req.attach(key, resolve(__dirname, v.slice(1))) : req.field(key, v)));
+            values.forEach((v: string) => {
+              if (v.startsWith('@')) {
+                req.attach(key, resolve(__dirname, v.slice(1)));
+              } else {
+                req.field(key, v);
+              }
+            });
             return req;
           }, request.post(path)),
         expectedStatus,
@@ -1665,7 +1710,7 @@ describe('Express Server', () => {
     return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
   }
 
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)

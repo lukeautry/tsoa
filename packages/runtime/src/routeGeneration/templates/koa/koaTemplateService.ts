@@ -10,7 +10,7 @@ const koaTsoaResponsed = Symbol('@tsoa:template_service:koa:is_responsed');
 
 type KoaApiHandlerParameters = {
   methodName: string;
-  controller: Controller | Object;
+  controller: Controller | object;
   context: Context;
   validatedArgs: any[];
   successStatus?: number;

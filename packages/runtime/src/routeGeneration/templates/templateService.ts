@@ -19,13 +19,13 @@ export abstract class TemplateService<ApiHandlerParameters, ValidationArgsParame
 
   protected abstract returnHandler(params: ReturnHandlerParameters): any;
 
-  protected isController(object: Controller | Object): object is Controller {
+  protected isController(object: Controller | object): object is Controller {
     return 'getHeaders' in object && 'getStatus' in object && 'setStatus' in object;
   }
 
-  protected buildPromise(methodName: string, controller: Controller | Object, validatedArgs: any) {
+  protected buildPromise(methodName: string, controller: Controller | object, validatedArgs: any) {
     const prototype = Object.getPrototypeOf(controller);
     const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
-    return descriptor!.value.apply(controller, validatedArgs);
+    return (descriptor!.value as () => Promise<PropertyDescriptor>).apply(controller, validatedArgs);
   }
 }

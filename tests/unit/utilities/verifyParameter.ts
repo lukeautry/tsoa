@@ -9,7 +9,15 @@ export function VerifyPathableParameter(params: Swagger.Parameter[], paramValue:
   }
 }
 
-export function VerifyPathableStringParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string, min?: number, max?: number, pattern?: string) {
+export function VerifyPathableStringParameter(
+  params: Swagger.PathParameter[] | Swagger.Parameter2[],
+  paramValue: string,
+  paramType: string,
+  paramIn: string,
+  min?: number,
+  max?: number,
+  pattern?: string,
+) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (min) {
@@ -23,7 +31,15 @@ export function VerifyPathableStringParameter(params: Swagger.PathParameter[], p
   }
 }
 
-export function VerifyPathableNumberParameter(params: Swagger.PathParameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string, min?: number, max?: number) {
+export function VerifyPathableNumberParameter(
+  params: Swagger.PathParameter[] | Swagger.Parameter2[],
+  paramValue: string,
+  paramType: string,
+  paramIn: string,
+  formatType?: string,
+  min?: number,
+  max?: number,
+) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (formatType) {

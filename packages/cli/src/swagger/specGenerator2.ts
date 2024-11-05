@@ -68,13 +68,13 @@ export class SpecGenerator2 extends SpecGenerator {
 
     if (this.config.spec) {
       this.config.specMerging = this.config.specMerging || 'immediate';
-      const mergeFuncs: { [key: string]: any } = {
+      const mergeFuncs: { [key: string]: (spec: UnspecifiedObject, merge: UnspecifiedObject) => UnspecifiedObject } = {
         immediate: Object.assign,
         recursive: mergeAnything,
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => deepMerge(spec, merge),
       };
 
-      spec = mergeFuncs[this.config.specMerging](spec, this.config.spec);
+      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as unknown as UnspecifiedObject) as unknown as Swagger.Spec2;
     }
     if (this.config.schemes) {
       spec.schemes = this.config.schemes;
@@ -192,7 +192,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
     pathMethod.parameters = method.parameters
       .filter(p => {
-        return ['request', 'body-prop', 'res', 'queries'].indexOf(p.in) === -1;
+        return ['request', 'body-prop', 'res', 'queries', 'request-prop'].indexOf(p.in) === -1;
       })
       .map(p => this.buildParameter(p));
 

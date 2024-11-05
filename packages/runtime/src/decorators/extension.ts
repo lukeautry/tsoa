@@ -1,4 +1,4 @@
-export function Extension(_name: string, _value: ExtensionType | ExtensionType[]): Function {
+export function Extension(_name: string, _value: ExtensionType | ExtensionType[]): PropertyDecorator {
   return () => {
     return;
   };

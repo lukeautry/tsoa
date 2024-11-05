@@ -1,7 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { TsoaRoute, fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+import type { TsoaRoute } from '@tsoa/runtime';
+import { fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -81,10 +82,16 @@ export function RegisterRoutes(router: KoaRouter) {
             authenticateMiddleware({{json security}}),
             {{/if}}
             {{#if uploadFile}}
-            upload.fields({{json uploadFileName}}),
-            {{/if}}
-            {{#if uploadFiles}}
-            upload.array('{{uploadFilesName}}'),
+            upload.fields([
+                {{#each uploadFileName}}
+                {
+                    name: {{json name}},
+                    {{#if maxCount}}
+                    maxCount: {{maxCount}}
+                    {{/if}}
+                }{{#if @last}}{{else}},{{/if}}
+                {{/each}}
+            ]),
             {{/if}}
             ...(fetchMiddlewares<Middleware>({{../name}})),
             ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),

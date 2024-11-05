@@ -1,23 +1,5 @@
-import type {
-  Token,
-  InterfaceDeclaration,
-  ClassDeclaration,
-  PropertyDeclaration,
-  ParameterDeclaration,
-  ConstructorDeclaration,
-  TypeElement,
-  ClassElement,
-  PropertySignature,
-} from 'typescript';
-import {
-  NodeFlags,
-  NodeBuilderFlags,
-  SyntaxKind,
-  isInterfaceDeclaration,
-  isPropertyDeclaration,
-  isConstructorDeclaration,
-  isPropertySignature,
-} from 'typescript';
+import type { Token, InterfaceDeclaration, ClassDeclaration, PropertyDeclaration, ParameterDeclaration, ConstructorDeclaration, TypeElement, ClassElement, PropertySignature } from 'typescript';
+import { NodeFlags, NodeBuilderFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -32,7 +14,7 @@ import { throwUnless } from '../../utils/flowUtils';
 type OverrideToken = Token<SyntaxKind.QuestionToken> | Token<SyntaxKind.PlusToken> | Token<SyntaxKind.MinusToken> | undefined;
 
 export class PropertyTransformer extends Transformer {
-  public transform(node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
+  public transform(resolver: TypeResolver, node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
     const isIgnored = (e: TypeElement | ClassElement) => {
       let ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       ignore = ignore || (e.flags & NodeFlags.ThisNodeHasError) > 0;
@@ -43,7 +25,7 @@ export class PropertyTransformer extends Transformer {
     if (isInterfaceDeclaration(node)) {
       return node.members
         .filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member))
-        .map((member: PropertySignature) => this.propertyFromSignature(member, overrideToken));
+        .map((member: PropertySignature) => this.propertyFromSignature(resolver, member, overrideToken));
     }
 
     const properties: Array<PropertyDeclaration | ParameterDeclaration> = [];
@@ -61,10 +43,10 @@ export class PropertyTransformer extends Transformer {
       properties.push(...constructorProperties);
     }
 
-    return properties.map(property => this.propertyFromDeclaration(property, overrideToken));
+    return properties.map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
   }
 
-  private propertyFromSignature(propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
+  private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
     throwUnless(propertySignature.type, new GenerateMetadataError(`No valid type found for property declaration.`));
 
     let required = !propertySignature.questionToken;
@@ -78,30 +60,30 @@ export class PropertyTransformer extends Transformer {
 
     const property: Tsoa.Property = {
       default: def,
-      description: this.resolver.getNodeDescription(propertySignature),
-      example: this.resolver.getNodeExample(propertySignature),
-      format: this.resolver.getNodeFormat(propertySignature),
-      name: this.resolver.getPropertyName(propertySignature),
+      description: resolver.getNodeDescription(propertySignature),
+      example: resolver.getNodeExample(propertySignature),
+      format: resolver.getNodeFormat(propertySignature),
+      name: resolver.getPropertyName(propertySignature),
       required,
-      type: new TypeResolver(propertySignature.type, this.resolver.current, propertySignature.type.parent, this.resolver.context).resolve(),
+      type: new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
-      extensions: this.resolver.getNodeExtension(propertySignature),
+      extensions: resolver.getNodeExtension(propertySignature),
     };
     return property;
   }
 
-  private propertyFromDeclaration(propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
+  private propertyFromDeclaration(resolver: TypeResolver, propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
     let typeNode = propertyDeclaration.type;
 
-    const tsType = this.resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
+    const tsType = resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
 
     if (!typeNode) {
       // Type is from initializer
-      typeNode = this.resolver.current.typeChecker.typeToTypeNode(tsType, undefined, NodeBuilderFlags.NoTruncation)!;
+      typeNode = resolver.current.typeChecker.typeToTypeNode(tsType, undefined, NodeBuilderFlags.NoTruncation)!;
     }
 
-    const type = new TypeResolver(typeNode, this.resolver.current, propertyDeclaration, this.resolver.context, tsType).resolve();
+    const type = new TypeResolver(typeNode, resolver.current, propertyDeclaration, resolver.context, tsType).resolve();
 
     let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
@@ -109,23 +91,23 @@ export class PropertyTransformer extends Transformer {
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
       required = false;
     }
-    let def = getInitializerValue(propertyDeclaration.initializer, this.resolver.current.typeChecker);
+    let def = getInitializerValue(propertyDeclaration.initializer, resolver.current.typeChecker);
     if (def === undefined) {
       def = TypeResolver.getDefault(propertyDeclaration);
     }
 
     const property: Tsoa.Property = {
       default: def,
-      description: this.resolver.getNodeDescription(propertyDeclaration),
-      example: this.resolver.getNodeExample(propertyDeclaration),
-      format: this.resolver.getNodeFormat(propertyDeclaration),
-      name: this.resolver.getPropertyName(propertyDeclaration),
+      description: resolver.getNodeDescription(propertyDeclaration),
+      example: resolver.getNodeExample(propertyDeclaration),
+      format: resolver.getNodeFormat(propertyDeclaration),
+      name: resolver.getPropertyName(propertyDeclaration),
       required,
       type,
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
       deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
-      extensions: this.resolver.getNodeExtension(propertyDeclaration),
+      extensions: resolver.getNodeExtension(propertyDeclaration),
     };
     return property;
   }

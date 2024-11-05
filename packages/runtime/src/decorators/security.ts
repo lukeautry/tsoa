@@ -1,7 +1,7 @@
 /**
  * Can be used to indicate that a method requires no security.
  */
-export function NoSecurity(): Function {
+export function NoSecurity(): ClassDecorator & MethodDecorator {
   return () => {
     return;
   };
@@ -10,7 +10,7 @@ export function NoSecurity(): Function {
 /**
  * @param {name} security name from securityDefinitions
  */
-export function Security(name: string | { [name: string]: string[] }, scopes?: string[]): Function {
+export function Security(name: string | { [name: string]: string[] }, scopes?: string[]): ClassDecorator & MethodDecorator {
   return () => {
     return;
   };
