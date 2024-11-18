@@ -15,7 +15,7 @@ container.bind('error').toFactory(() => {
 container.bind<AsyncErrorController>(AsyncErrorController).to(AsyncErrorController).inSingletonScope();
 
 const iocContainer = {
-  async get<T>(controller: interfaces.ServivceIdentifier ): Promise<T> {
+  async get<T>(controller: interfaces.ServiceIdentifier<T>): Promise<T> {
     return container.get(controller);
   },
 };
