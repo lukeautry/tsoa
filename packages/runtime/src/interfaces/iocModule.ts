@@ -12,6 +12,7 @@ export type ServiceIdentifier<T = unknown> =
   | Function;
 
 export interface IocContainer {
+  get<T>(controller: ServiceIdentifier<T>): T;
   get<T>(controller: ServiceIdentifier<T>): Promise<T>;
 }
 
