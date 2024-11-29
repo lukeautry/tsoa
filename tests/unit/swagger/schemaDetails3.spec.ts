@@ -4647,6 +4647,28 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
   });
 
+  describe('Inner interface', () => {
+    it('should generate the proper schema', () => {
+      const ref = specDefault.spec.paths['/GetTest/InnerInterface'].get?.responses['200'].content?.['application/json']['schema']?.['$ref'];
+      expect(ref).to.equal('#/components/schemas/InnerInterface');
+      expect(getComponentSchema('InnerInterface', specDefault)).to.deep.equal({
+        additionalProperties: true,
+        description: undefined,
+        properties: {
+          value: {
+            default: undefined,
+            description: undefined,
+            example: undefined,
+            format: undefined,
+            type: 'string',
+          },
+        },
+        required: undefined,
+        type: 'object',
+      });
+    });
+  });
+
   describe('module declarations with namespaces', () => {
     it('should generate the proper schema for a model declared in a namespace in a module', () => {
       /* tslint:disable:no-string-literal */

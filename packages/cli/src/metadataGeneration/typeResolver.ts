@@ -596,6 +596,9 @@ export class TypeResolver {
       const isGlobalDeclaration = (mod: ts.ModuleDeclaration) => mod.name.kind === ts.SyntaxKind.Identifier && mod.name.text === 'global';
 
       while (!ts.isSourceFile(actNode)) {
+        if (ts.isBlock(actNode)) {
+          break;
+        }
         if (!(isFirst && ts.isEnumDeclaration(actNode)) && !ts.isModuleBlock(actNode)) {
           throwUnless(ts.isModuleDeclaration(actNode), new GenerateMetadataError(`This node kind is unknown: ${actNode.kind}`, type));
 
