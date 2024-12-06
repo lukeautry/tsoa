@@ -269,4 +269,10 @@ export interface RoutesConfig {
    * @default true
    */
   bodyCoercion?: boolean;
+
+  /**
+   * When enabled, the imports in the routes files will keep having a `.ts` extention to support the TypeScript 5.7 feature rewriteRelativeImportExtensions.
+   * @default false
+   */
+  rewriteRelativeImportExtensions?: boolean;
 }
