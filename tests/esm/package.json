@@ -6,6 +6,7 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
+    "clean": "rimraf --glob dist fixtures/*/routes.ts fixtures/*/customRoutes.ts",
     "pretest": "node --loader=ts-node/esm prepare.ts",
     "test": "cross-env NODE_ENV=tsoa_test mocha"
   },
@@ -29,6 +30,7 @@
     "lerna": "^8.1.9",
     "mocha": "^10.7.3",
     "prettier": "^3.4.2",
+    "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2"
