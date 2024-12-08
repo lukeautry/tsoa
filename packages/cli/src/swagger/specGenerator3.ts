@@ -67,7 +67,6 @@ export class SpecGenerator3 extends SpecGenerator {
     if (this.config.license) {
       info.license = { name: this.config.license };
     }
-
     if (this.config.contact) {
       info.contact = this.config.contact;
     }
@@ -144,12 +143,9 @@ export class SpecGenerator3 extends SpecGenerator {
   private buildServers() {
     const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
     const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
-    const url = this.config.host ? `${scheme}://${this.config.host}${basePath}` : basePath;
-    return [
-      {
-        url,
-      } as Swagger.Server,
-    ];
+    const hosts = this.config.servers ? this.config.servers : this.config.host ? [this.config.host!] : undefined;
+    const convertHost = (host: string) => ({ url: `${scheme}://${host}${basePath}` });
+    return (hosts?.map(convertHost) || [{ url: basePath }]) as Swagger.Server[];
   }
 
   private buildSchema() {
