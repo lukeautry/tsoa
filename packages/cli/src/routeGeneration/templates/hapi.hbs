@@ -59,6 +59,11 @@ export function RegisterRoutes(server: any) {
     // ###########################################################################################################
     {{#each controllers}}
     {{#each actions}}
+        const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+          {{#each parameters}}
+            {{@key}}: {{{json this}}},
+          {{/each}}
+        };
         server.route({
             method: '{{method}}',
             path: '{{fullPath}}',
@@ -92,15 +97,10 @@ export function RegisterRoutes(server: any) {
                 },
                 {{/if}}
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
-                    const args: Record<string, TsoaRoute.ParameterSchema> = {
-                        {{#each parameters}}
-                            {{@key}}: {{{json this}}},
-                        {{/each}}
-                    };
 
                     let validatedArgs: any[] = [];
                     try {
-                        validatedArgs = templateService.getValidatedArgs({ args, request, h });
+                        validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, h });
                     } catch (err) {
                         const error = err as any;
                         if (isBoom(error)) {
