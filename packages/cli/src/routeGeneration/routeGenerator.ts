@@ -143,7 +143,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
           fileSize: 8388608, // 8mb
         },
         ...this.options.multerOpts,
-      },
+      } as Config['multerOpts'],
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
       esm: this.options.esm,
     };
