@@ -53,7 +53,10 @@ export class ValidationService {
         return value;
       }
     }
-
+    // performance improvement: if the provided value is the default value, no need to validate
+    if( property.default === value ){
+        return value;
+    }
     switch (property.dataType) {
       case 'string':
         return this.validateString(name, value, fieldErrors, property.validators as StringValidator, parent);
