@@ -8,13 +8,13 @@ jobs:
       matrix:
         node-version: [18, 20, 21]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^4.9.5', '^5.2.2']
+        typescript-version: ['^5.0.0']
 
     steps:
       - uses: actions/checkout@master
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
