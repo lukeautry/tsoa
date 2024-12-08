@@ -821,6 +821,130 @@ describe('Schema details generation', () => {
     });
   });
 
+  describe('Schema definitions generation', () => {
+    const name = 'Readonly_TestClassModel_';
+    const schema = spec.definitions?.[name];
+
+    it('should be equal to generated model', () => {
+      expect(schema).to.deep.eq({
+        properties: {
+          account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
+          defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
+          enumKeys: {
+            default: undefined,
+            description: undefined,
+            enum: ['OK', 'KO'],
+            example: undefined,
+            format: undefined,
+            type: 'string',
+            'x-nullable': false,
+          },
+          keyInterface: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['id'], 'x-nullable': false },
+          indexedType: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+          indexedTypeToInterface: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
+          indexedTypeToClass: { $ref: '#/definitions/IndexedClass', description: undefined, format: undefined, example: undefined },
+          indexedTypeToAlias: { $ref: '#/definitions/IndexedInterface', description: undefined, format: undefined, example: undefined },
+          indexedResponse: {
+            $ref: '#/definitions/Record_id.string_',
+            description: undefined,
+            example: undefined,
+            format: undefined,
+          },
+          indexedResponseObject: {
+            $ref: '#/definitions/Record_id._myProp1-string__',
+            description: undefined,
+            example: undefined,
+            format: undefined,
+          },
+          arrayUnion: {
+            default: undefined,
+            description: undefined,
+            enum: ['foo', 'bar'],
+            example: undefined,
+            format: undefined,
+            type: 'string',
+            'x-nullable': false,
+          },
+          objectUnion: {
+            default: undefined,
+            description: undefined,
+            enum: ['foo', 'bar'],
+            example: undefined,
+            format: undefined,
+            type: 'string',
+            'x-nullable': false,
+          },
+          publicStringProperty: {
+            type: 'string',
+            minLength: 3,
+            maxLength: 20,
+            pattern: '^[a-zA-Z]+$',
+            default: undefined,
+            description: 'This is a description of a public string property',
+            format: undefined,
+            example: 'classPropExample',
+            title: 'Example title',
+          },
+          optionalPublicStringProperty: { type: 'string', minLength: 0, maxLength: 10, default: undefined, description: undefined, format: undefined, example: undefined },
+          emailPattern: {
+            type: 'string',
+            default: undefined,
+            description: undefined,
+            format: 'email',
+            pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$',
+            example: undefined,
+          },
+          stringProperty: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+          deprecated1: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+          deprecated2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+          extensionTest: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+          extensionComment: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-key-1': 'value-1', 'x-key-2': 'value-2' },
+          stringExample: { type: 'string', default: undefined, description: undefined, format: undefined, example: 'stringValue' },
+          objectExample: {
+            type: 'object',
+            default: undefined,
+            description: undefined,
+            format: undefined,
+            example: {
+              id: 1,
+              label: 'labelValue',
+            },
+            properties: {
+              id: {
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: 'double',
+                type: 'number',
+              },
+              label: {
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+                type: 'string',
+              },
+            },
+            required: ['label', 'id'],
+          },
+          publicConstructorVar: { type: 'string', default: undefined, description: 'This is a description for publicConstructorVar', format: undefined, example: undefined },
+          readonlyConstructorArgument: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+          optionalPublicConstructorVar: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined },
+          deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+          deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
+          id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
+          defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
+        },
+        required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+        type: 'object',
+        default: undefined,
+        example: undefined,
+        format: undefined,
+        description: 'Make all properties in T readonly',
+      });
+    });
+  });
+
   describe('should include valid params', () => {
     it('should include query', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
