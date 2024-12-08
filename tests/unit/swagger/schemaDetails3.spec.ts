@@ -2353,6 +2353,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                     description: 'This is a description of a public string property',
                     format: undefined,
                     example: 'classPropExample',
+                    title: 'Example title',
                   },
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/components/schemas/Account', format: undefined, description: undefined, example: undefined },
@@ -4668,6 +4669,12 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         required: undefined,
         type: 'object',
       });
+    });
+
+    it('should generate schema with namespace type casted object', () => {
+      const response = specDefault.spec.paths['/GetTest/NamespaceWithTypeCastedObject']?.get?.responses;
+
+      expect(response).to.have.all.keys('200');
     });
   });
 

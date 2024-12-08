@@ -35,12 +35,12 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
-    "merge-anything": "^5.1.4",
+    "merge-anything": "^5.1.7",
     "minimatch": "^9.0.1",
-    "ts-deepmerge": "^7.0.1",
-    "typescript": "^5.6.2",
+    "ts-deepmerge": "^7.0.2",
+    "typescript": "^5.7.2",
     "validator": "^13.12.0",
-    "yaml": "^2.5.1",
+    "yaml": "^2.6.1",
     "yargs": "^17.7.1"
   },
   "devDependencies": {
