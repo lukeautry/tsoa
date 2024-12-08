@@ -179,5 +179,61 @@ describe('RouteGenerator', () => {
 
       expect(models).to.equal('./controller.cjs');
     });
+
+    it('uses ts for routes if esm is true and rewriteRelativeImportExtensions is true', () => {
+      const generator = new DefaultRouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controller.ts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          bodyCoercion: true,
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          esm: true,
+          rewriteRelativeImportExtensions: true,
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
+
+      expect(models).to.equal('./controller.ts');
+    });
+
+    it('uses mts for routes if rewriteRelativeImportExtensions and esm is true and source is mts', () => {
+      const generator = new DefaultRouteGenerator(
+        {
+          controllers: [
+            {
+              location: 'controller.mts',
+              methods: [],
+              name: '',
+              path: '',
+            },
+          ],
+          referenceTypeMap: {},
+        },
+        {
+          bodyCoercion: true,
+          entryFile: 'mockEntryFile',
+          routesDir: '.',
+          noImplicitAdditionalProperties: 'silently-remove-extras',
+          esm: true,
+          rewriteRelativeImportExtensions: true,
+        },
+      );
+
+      const models = generator.buildContent('{{#each controllers}}{{modulePath}}{{/each}}');
+
+      expect(models).to.equal('./controller.mts');
+    });
   });
 });

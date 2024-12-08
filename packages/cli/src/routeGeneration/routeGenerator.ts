@@ -151,9 +151,9 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
   protected getRelativeImportPath(fileLocation: string) {
     const currentExt = path.extname(fileLocation);
-    let newExtension = '';
+    let newExtension = this.options.rewriteRelativeImportExtensions ? currentExt : '';
 
-    if (this.options.esm) {
+    if (this.options.esm && !this.options.rewriteRelativeImportExtensions) {
       switch (currentExt) {
         case '.ts':
         default:
