@@ -107,6 +107,14 @@ export class GetTestController extends Controller {
     return {} as GetterInterfaceHerited;
   }
 
+  @Get('InnerInterface')
+  public async getInnerInterface() {
+    interface InnerInterface {
+      value?: string;
+    }
+    return { value: 'test' } as InnerInterface;
+  }
+
   @Get('ModuleRedeclarationAndNamespace')
   public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
     return {} as TsoaTest.TestModel73;
