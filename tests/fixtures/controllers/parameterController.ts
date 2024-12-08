@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp, FormField } from '@tsoa/runtime';
 import { Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -308,12 +308,27 @@ export class ParameterController {
     });
   }
 
-  @Get('ParamaterQueyAnyType')
+  @Get('ParameterHeaderStringType')
+  public async headerStringType(@Header() header: string): Promise<void> {
+    //
+  }
+
+  @Get('FormDataStringType')
+  public async formData(@FormField() data: string): Promise<void> {
+    //
+  }
+
+  @Get('Path/{test}')
+  public async pathStringType(@Path() test: string): Promise<void> {
+    //
+  }
+
+  @Get('ParamaterQueryAnyType')
   public async queryAnyType(@Query() name: any): Promise<void> {
     //
   }
 
-  @Post('ParamaterQueyArray')
+  @Post('ParamaterQueryArray')
   public async queyArray(@Query() name: string[]): Promise<void> {
     //
   }

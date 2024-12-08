@@ -23,7 +23,7 @@ import { RegisterRoutes } from './routes';
 
 export const server = new Server({});
 
-RegisterRoutes(server);
+(RegisterRoutes as (app: Server) => void)(server);
 
 server.start().catch(err => {
   if (err) {

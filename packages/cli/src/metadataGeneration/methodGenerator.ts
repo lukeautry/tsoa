@@ -197,7 +197,11 @@ export class MethodGenerator {
 
     return decorators.map(decorator => {
       const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
-      responseExamplesByName[name] = responseExamplesByName[name] ? [...responseExamplesByName[name], example] : [example];
+
+      if (example !== undefined) {
+        responseExamplesByName[name] = responseExamplesByName[name] ? [...responseExamplesByName[name], example] : [example];
+      }
+
       return {
         description: description || '',
         examples: responseExamplesByName[name] || undefined,

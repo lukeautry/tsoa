@@ -47,6 +47,11 @@ export interface Config {
    * @example {
    *   "dest": "/tmp"
    * } Allow multer to write to file instead of using Memory's buffer
+   * @deprecated
+   *  since v6.4.0 instroduces RegisterRoutes can pass multerOptions,
+   *  we will quickly remove this options soon at future version.
+   *  (https://github.com/lukeautry/tsoa/issues/1587#issuecomment-2391291433)
+   *  (https://github.com/lukeautry/tsoa/pull/1638)
    */
   multerOpts?: MulterOpts;
 

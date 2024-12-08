@@ -10,15 +10,17 @@ export const router = express.Router();
 app.use('/v1', router);
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
-router.use(methodOverride());
-router.use((req: any, res: any, next: any) => {
+router.use((req, res, next) => {
+  methodOverride()(req, res, next);
+});
+router.use((req: any, res: any, next: express.NextFunction) => {
   req.stringValue = 'fancyStringForContext';
   next();
 });
 
 import multer = require('multer');
 
-RegisterRoutes(router, {
+(RegisterRoutes as (router: express.Router, options: { multer: ReturnType<typeof multer> }) => void)(router, {
   multer: multer({
     limits: {
       fieldNameSize: 120,

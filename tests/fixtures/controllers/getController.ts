@@ -20,6 +20,9 @@ import {
 } from '../testModel';
 import { ModelService } from './../services/modelService';
 
+export type BadRequest = TsoaResponse<400, TestModel, { name: 'some_thing' }>;
+export type ForbiddenRequest = TsoaResponse<401, TestModel, { name: 'another some_thing' }>;
+export type BadAndInternalErrorRequest = TsoaResponse<400 | 500, TestModel, { name: 'combine' }>;
 export const PathFromConstant = 'PathFromConstantValue';
 export enum EnumPaths {
   PathFromEnum = 'PathFromEnumValue',
@@ -107,6 +110,14 @@ export class GetTestController extends Controller {
   @Get('ModuleRedeclarationAndNamespace')
   public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
     return {} as TsoaTest.TestModel73;
+  }
+
+  @Get('NamespaceWithTypeCastedObject')
+  public async getNamespaceWithTypeCastedObject() {
+    const test = { value: 'test' };
+    return {
+      value: test as TsoaTest.TestModel73,
+    };
   }
 
   @Get('Multi')
@@ -280,6 +291,14 @@ export class GetTestController extends Controller {
 
   /**
    * @param res The alternate response
+   */
+  @Get('Res_Alias')
+  public async getResAlias(@Res() res: BadRequest): Promise<void> {
+    res?.(400, new ModelService().getModel(), { name: 'some_thing' });
+  }
+
+  /**
+   * @param res The alternate response
    * @param res Another alternate response
    */
   @Get('MultipleRes')
@@ -294,9 +313,29 @@ export class GetTestController extends Controller {
   /**
    * @param res The alternate response
    */
+  @Get('MultipleRes_Alias')
+  public async multipleResAlias(@Res() res: BadRequest, @Res() anotherRes: ForbiddenRequest): Promise<Result> {
+    res?.(400, new ModelService().getModel(), { name: 'some_thing' });
+    anotherRes?.(401, new ModelService().getModel(), { name: 'another some_thing' });
+    return {
+      value: 'success',
+    };
+  }
+
+  /**
+   * @param res The alternate response
+   */
   @Get('MultipleStatusCodeRes')
   public async multipleStatusCodeRes(@Res() res: TsoaResponse<400 | 500, TestModel, { 'custom-header': string }>, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
     res?.(statusCode, new ModelService().getModel(), { 'custom-header': 'hello' });
+  }
+
+  /**
+   * @param res The alternate response
+   */
+  @Get('MultipleStatusCodeRes_Alias')
+  public async multipleStatusCodeResAlias(@Res() res: BadAndInternalErrorRequest, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
+    res?.(statusCode, new ModelService().getModel(), { name: 'combine' });
   }
 
   @Get(PathFromConstant)

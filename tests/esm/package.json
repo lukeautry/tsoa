@@ -2,7 +2,7 @@
   "name": "tsoa-tests-esm",
   "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "6.2.0",
+  "version": "6.5.0",
   "type": "module",
   "sideEffects": false,
   "scripts": {
@@ -21,14 +21,16 @@
   },
   "engineStrict": true,
   "devDependencies": {
-    "@types/chai-as-promised": "^7.1.8",
-    "@types/mocha": "^10.0.6",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^16.18.23",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^10.2.0",
+    "lerna": "^8.1.9",
+    "mocha": "^10.7.3",
+    "prettier": "^3.4.2",
     "ts-node": "^10.9.2",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"
   }
 }

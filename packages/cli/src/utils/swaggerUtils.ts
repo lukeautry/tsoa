@@ -1,8 +1,8 @@
 export const DEFAULT_REQUEST_MEDIA_TYPE = 'application/json';
 export const DEFAULT_RESPONSE_MEDIA_TYPE = 'application/json';
 
-export function getValue(type: 'string' | 'number' | 'integer' | 'boolean', member: unknown): string | number | boolean | null {
-  if (member === null) {
+export function getValue(type: 'string' | 'number' | 'integer' | 'boolean' | undefined, member: unknown): string | number | boolean | null {
+  if (type == null || member == null) {
     return null;
   }
 

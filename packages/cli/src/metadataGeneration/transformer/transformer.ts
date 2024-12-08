@@ -1,15 +1,9 @@
 import { SyntaxKind, getModifiers, type HasModifiers } from 'typescript';
 
-import { TypeResolver } from '../typeResolver';
-
 /**
  * Transformer responsible to transforming native ts node into tsoa type.
  */
 export abstract class Transformer {
-  constructor(
-    protected readonly resolver: TypeResolver,
-  ) {}
-
   protected hasPublicModifier(node: HasModifiers): boolean {
     return (
       !node.modifiers ||

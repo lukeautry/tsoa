@@ -1248,6 +1248,7 @@ describe('Definition generation', () => {
                     description: 'This is a description of a public string property',
                     format: undefined,
                     example: 'classPropExample',
+                    title: 'Example title',
                   },
                   defaultValue2: { type: 'string', default: 'Default Value 2', description: undefined, format: undefined, example: undefined },
                   account: { $ref: '#/definitions/Account', format: undefined, description: undefined, example: undefined },
@@ -3272,7 +3273,7 @@ describe('Definition generation', () => {
             throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
           }
           it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceName} for the ${currentSpec.specName}`, () => {
-            assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
+            assertionsPerProperty[aPropertyName as keyof TestModel](aPropertyName, propertySchema);
           });
         });
 

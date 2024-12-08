@@ -1,9 +1,10 @@
 import chai from 'chai';
 const { expect } = chai;
-import request from 'supertest';
+import request, { Test } from 'supertest';
 import { it, describe } from 'mocha';
 import { app } from '../fixtures/express/server.js';
 import type { TestModel } from '../fixtures/testModel.js';
+import type TestAgent from 'supertest/lib/agent.js';
 
 const basePath = '/v1';
 
@@ -19,7 +20,7 @@ describe('Express Server', () => {
     return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
   }
 
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: request.SuperTest<any>) => request.Test, expectedStatus = 200) {
+  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
       methodOperation(request(app))
         .expect(expectedStatus)

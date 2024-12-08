@@ -155,7 +155,7 @@ describe('Metadata generation', () => {
         throw new Error('Method tags not defined!');
       }
 
-      expect(method.tags).to.deep.equal(['Tag1', 'Tag2', 'Tag3']);
+      expect(method.tags).to.deep.equal(['Tag1', 'Tag2', 'Tag3', 'MethodTest']);
     });
 
     it('should generate multi response', () => {
@@ -166,14 +166,18 @@ describe('Metadata generation', () => {
 
       expect(method.responses.length).to.equal(5);
 
-      const badResponse = method.responses[1]
+      const badResponse = method.responses[1];
       expect(badResponse.name).to.equal('400');
       expect(badResponse.description).to.equal('Bad Request');
-      expect(badResponse.examples).to.deep.equal([{ status: 400, message: 'reason 1' }, { status: 400, message: 'reason 2' }]);
+      expect(badResponse.examples).to.deep.equal([
+        { status: 400, message: 'reason 1' },
+        { status: 400, message: 'reason 2' },
+      ]);
 
       const unauthResponse = method.responses[2];
       expect(unauthResponse.name).to.equal('401');
       expect(unauthResponse.description).to.equal('Unauthorized');
+      expect(unauthResponse.examples).to.be.undefined;
 
       const defaultResponse = method.responses[3];
       expect(defaultResponse.name).to.equal('default');
@@ -223,7 +227,7 @@ describe('Metadata generation', () => {
         secondSec: ['permission:admin', 'permission:owner'],
       });
 
-      expect(method.tags).to.deep.equal(['EnumTag1']);
+      expect(method.tags).to.deep.equal(['EnumTag1', 'MethodTest']);
     });
 
     it('should generate success response', () => {
@@ -316,6 +320,7 @@ describe('Metadata generation', () => {
         { key: 'x-attKey6', value: [{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }] },
         { key: 'x-attKey7', value: { test: ['testVal', 123, true, null] } },
         { key: 'x-attKey8', value: { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } } },
+        { key: 'x-attKey9', value: 'identifierAttValue' },
       ];
 
       expect(method.extensions).to.deep.equal(expectedExtensions);
@@ -1052,7 +1057,7 @@ describe('Metadata generation', () => {
 
     if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
 
-    const getControllerNumberMethods = controller => {
+    const getControllerNumberMethods = (controller: Tsoa.Controller) => {
       const getDefault = controller.methods.find(method => method.name === 'getDefault');
       const getDouble = controller.methods.find(method => method.name === 'getDouble');
       const getInteger = controller.methods.find(method => method.name === 'getInteger');
