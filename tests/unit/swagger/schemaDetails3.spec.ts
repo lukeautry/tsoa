@@ -1526,6 +1526,15 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
             expect(propertySchema.enum).to.include(3.1415, `for property ${propertyName}.enum`);
           },
+          negativeNumberLiteralType: (propertyName, propertySchema) => {
+            expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
+            expect(propertySchema.nullable).to.eq(false, `for property ${propertyName}.nullable`);
+            if (!propertySchema.enum) {
+              throw new Error(`There was no 'enum' property on ${propertyName}.`);
+            }
+            expect(propertySchema.enum).to.have.length(1, `for property ${propertyName}.enum`);
+            expect(propertySchema.enum).to.include(-1, `for property ${propertyName}.enum`);
+          },
           dateValue: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('string', `for property ${propertyName}.type`);
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}.nullable`);
