@@ -86,17 +86,13 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           const contextRequest = context.request as any;
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
-            if (contextRequest.files[name] === undefined) {
-              return undefined;
-            }
-
-            const fileArgs = this.validationService.ValidateParam(param, contextRequest.files[name], name, errorFields, false, undefined);
+            const fileArgs = this.validationService.ValidateParam(param, contextRequest.files?.[name], name, errorFields, false, undefined);
             if (param.dataType === 'array') {
               return fileArgs;
             }
-            return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
+            return Array.isArray(fileArgs) && fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           }
-          return this.validationService.ValidateParam(param, contextRequest.body[name], name, errorFields, false, undefined);
+          return this.validationService.ValidateParam(param, contextRequest.body?.[name], name, errorFields, false, undefined);
         }
         case 'res':
           return async (status: number | undefined, data: any, headers: any): Promise<void> => {
