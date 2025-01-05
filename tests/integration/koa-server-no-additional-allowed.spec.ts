@@ -482,6 +482,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

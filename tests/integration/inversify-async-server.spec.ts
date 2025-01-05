@@ -43,6 +43,7 @@ describe('Inversify async IoC Express Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

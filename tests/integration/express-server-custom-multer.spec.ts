@@ -41,6 +41,22 @@ describe('Express Server With custom multer', () => {
       });
     });
 
+    it('cannot post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+        expect(res.status).to.equal(400);
+        expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"An error occurred during the request.","name":"ValidateError","status":400}');
+      });
+    });
+
+    it('can post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.text).to.equal('no file');
+      });
+    });
+
     it('can post multiple files with other form fields', () => {
       const formData = {
         a: 'b',
@@ -197,6 +213,7 @@ describe('Express Server With custom multer', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

@@ -1437,8 +1437,24 @@ describe('Hapi Server', () => {
     it('cannot post a file with wrong attribute name', async () => {
       const formData = { wrongAttributeName: '@../package.json' };
       verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
-        expect(res.status).to.equal(500);
-        expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
+        expect(res.status).to.equal(400);
+        expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
+      });
+    });
+
+    it('cannot post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+        expect(res.status).to.equal(400);
+        expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
+      });
+    });
+
+    it('can post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.text).to.equal('no file');
       });
     });
 
@@ -1606,6 +1622,7 @@ describe('Hapi Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

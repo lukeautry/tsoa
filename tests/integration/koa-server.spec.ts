@@ -1418,7 +1418,23 @@ describe('Koa Server', () => {
       const formData = { wrongAttributeName: '@../package.json' };
       verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
-        expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
+        expect(res.text).to.equal('Unexpected field');
+      });
+    });
+
+    it('cannot post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+        expect(res.status).to.equal(400);
+        expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}}}');
+      });
+    });
+
+    it('can post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.text).to.equal('no file');
       });
     });
 
@@ -1589,6 +1605,7 @@ describe('Koa Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

@@ -50,6 +50,7 @@ describe('Inversify Express Server with ControllerPathGlob', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

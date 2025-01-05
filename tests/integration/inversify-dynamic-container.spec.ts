@@ -10,7 +10,7 @@ const basePath = '/v1';
 describe('Inversify Express Server Dynamic Container', () => {
   it('can handle get request with no path argument', () => {
     return verifyGetRequest(basePath + '/ManagedTest?tsoa=abc123456', (err, res) => {
-      const model = res.body as string;
+      const model = res.text;
       expect(model).to.equal(basePath + '/ManagedTest');
     });
   });
@@ -32,6 +32,7 @@ describe('Inversify Express Server Dynamic Container', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,
