@@ -97,6 +97,7 @@ describe('Koa Server (with multerOpts)', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

@@ -73,22 +73,19 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'body':
           return this.validationService.ValidateParam(param, request.body, name, fieldErrors, true, undefined);
         case 'body-prop':
-          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, true, 'body.');
+          return this.validationService.ValidateParam(param, request.body?.[name], name, fieldErrors, true, 'body.');
         case 'formData': {
           const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
-            const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] };
-            if (requestFiles[name] === undefined) {
-              return undefined;
-            }
+            const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] } | undefined;
 
-            const fileArgs = this.validationService.ValidateParam(param, requestFiles[name], name, fieldErrors, false, undefined);
+            const fileArgs = this.validationService.ValidateParam(param, requestFiles?.[name], name, fieldErrors, false, undefined);
             if (param.dataType === 'array') {
               return fileArgs;
             }
-            return fileArgs.length === 1 ? fileArgs[0] : fileArgs;
+            return Array.isArray(fileArgs) && fileArgs.length === 1 ? fileArgs[0] : fileArgs;
           }
-          return this.validationService.ValidateParam(param, request.body[name], name, fieldErrors, false, undefined);
+          return this.validationService.ValidateParam(param, request.body?.[name], name, fieldErrors, false, undefined);
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
@@ -114,11 +111,24 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     Object.keys(headers).forEach((name: string) => {
       response.set(name, headers[name]);
     });
+
+    // Check if the response is marked to be JSON
+    const isJsonResponse = response.get('Content-Type')?.includes('json') || false;
+
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
       (data as Readable).pipe(response);
-    } else if (data !== null && data !== undefined) {
-      response.status(statusCode || 200).json(data);
+    } else if (data !== undefined && (data !== null || isJsonResponse)) {
+      // allow null response when it is a json response
+      if (typeof data === 'number' || isJsonResponse) {
+        // express treats number data as status code so use the json method instead
+        // or if the response was marked as json then use the json so for example strings are quoted
+        response.status(statusCode || 200).json(data);
+      } else {
+        // do not use json for every type since internally the send will invoke json if needed
+        // but for string data it will not quote it, so we can send string as plain/text data
+        response.status(statusCode || 200).send(data);
+      }
     } else {
       response.status(statusCode || 204).end();
     }

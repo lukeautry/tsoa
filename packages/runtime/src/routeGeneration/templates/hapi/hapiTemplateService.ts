@@ -127,7 +127,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
       return tsoaResponsed.value;
     }
 
-    const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response('').code(204);
+    const response = data !== null && data !== undefined ? h.response(data).code(200) : h.response().code(204);
 
     Object.keys(headers).forEach((name: string) => {
       response.header(name, headers[name]);

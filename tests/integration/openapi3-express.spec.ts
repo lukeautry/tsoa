@@ -464,6 +464,7 @@ describe('OpenAPI3 Express Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

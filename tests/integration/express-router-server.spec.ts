@@ -39,6 +39,7 @@ describe('Express Router Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

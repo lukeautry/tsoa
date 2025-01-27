@@ -1514,7 +1514,7 @@ describe('Express Server', () => {
       const mainResourceId = 'main-123';
 
       return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
-        expect(res.body).to.equal(mainResourceId);
+        expect(res.text).to.equal(mainResourceId);
       });
     });
 
@@ -1523,7 +1523,7 @@ describe('Express Server', () => {
       const subResourceId = 'sub-456';
 
       return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
-        expect(res.body).to.equal(`${mainResourceId}:${subResourceId}`);
+        expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
       });
     });
   });
@@ -1556,6 +1556,22 @@ describe('Express Server', () => {
       verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
         expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
+      });
+    });
+
+    it('cannot post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+        expect(res.status).to.equal(400);
+        expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"An error occurred during the request.","name":"ValidateError","status":400}');
+      });
+    });
+
+    it('can post a file with no file', async () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.text).to.equal('no file');
       });
     });
 
@@ -1723,6 +1739,7 @@ describe('Express Server', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,

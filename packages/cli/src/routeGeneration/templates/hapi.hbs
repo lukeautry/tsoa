@@ -107,7 +107,7 @@ export function RegisterRoutes(server: any) {
                             throw error;
                         }
 
-                        const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+                        const boomErr = boomify(error instanceof Error ? error : new Error(error.message), { statusCode: error.status || 500 });
                         boomErr.output.statusCode = error.status || 500;
                         boomErr.output.payload = {
                             name: error.name,
@@ -199,7 +199,7 @@ export function RegisterRoutes(server: any) {
                     throw error;
                 }
 
-                const boomErr = boomify(error instanceof Error ? error : new Error(error.message));
+                const boomErr = boomify(error instanceof Error ? error : new Error(error.message), { statusCode: error.status || 500 });
                 boomErr.output.statusCode = error.status || 401;
                 boomErr.output.payload = {
                     name: error.name,

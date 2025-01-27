@@ -68,6 +68,7 @@ describe('Express Server with api_key Root Security', () => {
           }
 
           if (err) {
+            verifyResponse(err, res);
             reject({
               error: err,
               response: parsedError,
