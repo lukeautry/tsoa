@@ -508,6 +508,10 @@ export class TypeResolver {
         return typeNode.literal.text;
       case ts.SyntaxKind.NumericLiteral:
         return parseFloat(typeNode.literal.text);
+      case ts.SyntaxKind.PrefixUnaryExpression:
+        // make sure to only handle the MinusToken here
+        throwUnless((typeNode.literal as ts.PrefixUnaryExpression).operator === ts.SyntaxKind.MinusToken, new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`));
+        return parseFloat(typeNode.literal.getText());
       case ts.SyntaxKind.NullKeyword:
         return null;
       default:

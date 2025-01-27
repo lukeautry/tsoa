@@ -72,6 +72,7 @@ export interface TestModel extends Model {
   nullableUnionPrimitiveType?: 'String' | 1 | 20.0 | true | false | null;
   undefineableUnionPrimitiveType: 'String' | 1 | 20.0 | true | false | undefined;
   singleFloatLiteralType?: 3.1415;
+  negativeNumberLiteralType?: -1;
   dateValue?: Date;
   optionalString?: string;
   anyType?: any;
