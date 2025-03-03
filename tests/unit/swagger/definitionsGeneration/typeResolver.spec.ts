@@ -2,8 +2,6 @@ import { expect } from 'chai';
 import * as ts from 'typescript';
 import { TypeResolver } from '@tsoa/cli/metadataGeneration/typeResolver';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import { z } from 'zod';
-import { ref } from 'joi';
 
 const refAliasProperties = {
   default: undefined,
@@ -321,6 +319,7 @@ describe('TypeResolver.resolve', () => {
     });
   });
 
+  // works with nested types, but not with interfaces
   it.skip('should resolve nested interface types', () => {
     const source = `
       interface Address { line1: string; line2?: string; postalCode: string; };
@@ -364,23 +363,6 @@ describe('TypeResolver.resolve', () => {
       ...refAliasProperties,
       description: 'Obtain the parameters of a function type in a tuple',
     });
-  });
-
-  /**
-   * Tuple types aren't supported in Open API specs < 3.1
-   */
-  it.skip('should resolve tuple types', () => {
-    const { metadataGenerator, typeNode } = createProgramFromSource('type TupleType = [string, number];');
-    const resolver = new TypeResolver(typeNode, metadataGenerator);
-    const result = resolver.resolve();
-    // expect(result).to.deep.equal({ dataType: 'tuple', elementTypes: [{ dataType: 'string' }, { dataType: 'double' }] });
-  });
-
-  it.skip('should resolve named tuple member types', () => {
-    const { metadataGenerator, typeNode } = createProgramFromSource('type NamedTupleMemberType = [a: string, b: number];');
-    const resolver = new TypeResolver(typeNode, metadataGenerator);
-    const result = resolver.resolve();
-    // expect(result).to.deep.equal({ dataType: 'tuple', elementTypes: [{ dataType: 'string' }, { dataType: 'double' }] });
   });
 
   // Only template literal types with literal string unions are supported
@@ -432,6 +414,8 @@ describe('TypeResolver.resolve', () => {
     });
   });
 
+  // One of the issues that blocks zod's z.infer from working as expected
+  // see https://github.com/lukeautry/tsoa/issues/1256#issuecomment-2649340573
   it.skip('should resolve indexed generic types', () => {
     const source = `
       type Type<Output> = { _type: Output };
@@ -450,6 +434,7 @@ describe('TypeResolver.resolve', () => {
     });
   });
 
+  // Note: requires installing zod as a dependency as well
   it.skip('should resolve Zod inferred types', () => {
     const source = `
       import { z } from 'zod';
