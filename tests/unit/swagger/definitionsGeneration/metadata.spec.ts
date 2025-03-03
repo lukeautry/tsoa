@@ -825,6 +825,23 @@ describe('Metadata generation', () => {
       const deprecatedParam2 = method.parameters[2];
       expect(deprecatedParam2.deprecated).to.be.true;
     });
+
+    it('should handle type inference params', () => {
+      const method = controller.methods.find(m => m.name === 'typeInference');
+      if (!method) {
+        throw new Error('Method typeInference not defined!');
+      }
+      const parameter = method.parameters.find(param => param.parameterName === 'body');
+      if (!parameter) {
+        throw new Error('Parameter firstname not defined!');
+      }
+
+      expect(method.parameters.length).to.equal(1);
+      expect(parameter.in).to.equal('body');
+      expect(parameter.name).to.equal('body');
+      expect(parameter.parameterName).to.equal('body');
+      expect(parameter.required).to.be.true;
+    });
   });
 
   describe('HiddenMethodGenerator', () => {

@@ -303,6 +303,87 @@ export class TypeResolver {
       return new TypeResolver(this.typeNode.type, this.current, this.typeNode, this.context, this.referencer).resolve();
     }
 
+    if (ts.isTypeQueryNode(this.typeNode)) {
+      const isIntrinsicType = (type: ts.Type): boolean => {
+        const flags = ts.TypeFlags;
+        return (
+          this.hasFlag(type, flags.Number) ||
+          this.hasFlag(type, flags.String) ||
+          this.hasFlag(type, flags.Boolean) ||
+          this.hasFlag(type, flags.BigInt) ||
+          this.hasFlag(type, flags.ESSymbol) ||
+          this.hasFlag(type, flags.Undefined) ||
+          this.hasFlag(type, flags.Null)
+        );
+      };
+      const symbol = this.current.typeChecker.getSymbolAtLocation(this.typeNode.exprName);
+      if (symbol) {
+        // Access the first declaration of the symbol
+        const declaration = symbol.declarations?.[0];
+        throwUnless(declaration, new GenerateMetadataError(`Could not find declaration for symbol: ${symbol.name}`, this.typeNode));
+
+        if (ts.isVariableDeclaration(declaration)) {
+          const initializer = declaration.initializer;
+          const declarationType = this.current.typeChecker.getTypeAtLocation(declaration);
+          if (isIntrinsicType(declarationType)) {
+            return { dataType: this.current.typeChecker.typeToString(declarationType) as Tsoa.PrimitiveType['dataType'] };
+          }
+          if (initializer && (ts.isStringLiteral(initializer) || ts.isNumericLiteral(initializer) || ts.isBigIntLiteral(initializer))) {
+            return { dataType: 'enum', enums: [initializer.text] };
+          } else if (initializer && ts.isObjectLiteralExpression(initializer)) {
+            const getOneOrigDeclaration = (prop: ts.Symbol): ts.Declaration | undefined => {
+              if (prop.declarations) {
+                return prop.declarations[0];
+              }
+              const syntheticOrigin: ts.Symbol = (prop as any).links?.syntheticOrigin;
+              if (syntheticOrigin && syntheticOrigin.name === prop.name) {
+                return syntheticOrigin.declarations?.[0];
+              }
+              return undefined;
+            };
+
+            const isIgnored = (prop: ts.Symbol) => {
+              const declaration = getOneOrigDeclaration(prop);
+              return declaration !== undefined && getJSDocTagNames(declaration).some(tag => tag === 'ignore') && !ts.isPropertyAssignment(declaration);
+            };
+
+            const typeProperties: ts.Symbol[] = this.current.typeChecker.getPropertiesOfType(this.current.typeChecker.getTypeAtLocation(initializer));
+            const properties: Tsoa.Property[] = typeProperties
+              .filter(property => isIgnored(property) === false)
+              .map(property => {
+                const propertyType = this.current.typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
+                const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
+                const parent = getOneOrigDeclaration(property);
+                const type = new TypeResolver(typeNode, this.current, parent, this.context, propertyType).resolve();
+
+                const required = !this.hasFlag(property, ts.SymbolFlags.Optional);
+                const comments = property.getDocumentationComment(this.current.typeChecker);
+                const description = comments.length ? ts.displayPartsToString(comments) : undefined;
+
+                return {
+                  name: property.getName(),
+                  required,
+                  deprecated: parent ? isExistJSDocTag(parent, tag => tag.tagName.text === 'deprecated') || isDecorator(parent, identifier => identifier.text === 'Deprecated') : false,
+                  type,
+                  default: undefined,
+                  validators: (parent ? getPropertyValidators(parent) : {}) || {},
+                  description,
+                  format: parent ? this.getNodeFormat(parent) : undefined,
+                  example: parent ? this.getNodeExample(parent) : undefined,
+                  extensions: parent ? this.getNodeExtension(parent) : undefined,
+                };
+              });
+
+            const objectLiteral: Tsoa.NestedObjectLiteralType = {
+              dataType: 'nestedObjectLiteral',
+              properties,
+            };
+            return objectLiteral;
+          }
+        }
+      }
+    }
+
     throwUnless(this.typeNode.kind === ts.SyntaxKind.TypeReference, new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode));
 
     return this.resolveTypeReferenceNode(this.typeNode as ts.TypeReferenceNode, this.current, this.context, this.parentNode);
@@ -573,7 +654,7 @@ export class TypeResolver {
     if (this.context[name]) {
       //resolve name only interesting if entity is not qualifiedName
       name = this.context[name].name; //Not needed to check unicity, because generic parameters are checked previously
-    } else {
+    } else if (type.parent && !ts.isTypeQueryNode(type.parent)) {
       const declarations = this.getModelTypeDeclarations(type);
 
       //Two possible solutions for recognizing different types:

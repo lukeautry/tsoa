@@ -1,5 +1,5 @@
 import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp, FormField } from '@tsoa/runtime';
-import { Gender, ParameterTestModel } from '../testModel';
+import { Gender, ParameterTestModel, TypeOfLiteral } from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -401,5 +401,10 @@ export class ParameterController {
   @Post('Inline1')
   public async inline1(@Body() body: { requestString: string; requestNumber: number }): Promise<{ resultString: string; responseNumber: number }> {
     return { resultString: 'a', responseNumber: 1 };
+  }
+
+  @Post('TypeInference')
+  public async typeInference(@Body() body: TypeOfLiteral): Promise<TypeOfLiteral> {
+    return { a: 'a', b: 1 };
   }
 }
