@@ -1290,5 +1290,6 @@ type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
 
 type TemplateLiteralString = OrderOptions<ParameterTestModel>;
 
-const concrete = { a: 'a', b: 1 };
-export type TypeOfLiteral = typeof concrete;
+const value = { a: 'a', b: 1 };
+type Infer<T> = T;
+export type ValueType = Infer<typeof value>;
