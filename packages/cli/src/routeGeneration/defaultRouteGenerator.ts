@@ -22,6 +22,9 @@ export class DefaultRouteGenerator extends AbstractRouteGenerator<ExtendedRoutes
       case 'koa':
         this.template = path.join(__dirname, '..', 'routeGeneration/templates/koa.hbs');
         break;
+      case 'ultimate-express':
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/ultimate-express.hbs');
+        break;
       case 'express':
       default:
         this.template = path.join(__dirname, '..', 'routeGeneration/templates/express.hbs');

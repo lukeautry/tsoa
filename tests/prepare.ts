@@ -164,6 +164,17 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routesDir: './fixtures/hapi',
       }),
     ),
+    log('Ultimate Express Route Generation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        bodyCoercion: true,
+        authenticationModule: './fixtures/express/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/ultimate-express/server.ts',
+        middleware: 'ultimate-express',
+        routesDir: './fixtures/ultimate-express',
+      }),
+    ),
     log('Custom Route Generation', () =>
       generateRoutes(
         {

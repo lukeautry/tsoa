@@ -42,7 +42,6 @@
     "lerna": "lerna",
     "typedocs": "typedoc --options ./typedoc.json"
   },
-  "dependencies": {},
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "6.16.0",
     "@typescript-eslint/parser": "^6.16.0",
@@ -53,7 +52,8 @@
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.7"
+    "typedoc": "^0.26.7",
+    "ultimate-express": "^1.4.8"
   },
   "resolutions": {
     "typescript": "^5.2.2"
