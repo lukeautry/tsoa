@@ -20,7 +20,7 @@ OpenAPI-compliant REST APIs using TypeScript and Node
   - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the OpenAPI spec)
   - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
-  - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
+  - Express, Ultimate Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
   - Validate request payloads
 
 ## Philosophy
