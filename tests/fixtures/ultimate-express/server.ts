@@ -29,6 +29,10 @@ import '../controllers/middlewaresHierarchyController';
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();
+app.set('case sensitive routing', false);
+app.set('declarative responses', false);
+app.set('catch async errors', true);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use((req, res, next) => {
