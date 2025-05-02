@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import * as bodyParser from 'body-parser';
 import * as express from 'ultimate-express';
 import * as methodOverride from 'method-override';
 import '../controllers/rootController';
@@ -30,8 +29,8 @@ import '../controllers/middlewaresHierarchyController';
 import { RegisterRoutes } from './routes';
 
 export const app: express.Express = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use((req, res, next) => {
   methodOverride()(req, res, next);
 });
