@@ -1,0 +1,221 @@
+/* tslint:disable */
+/* eslint-disable */
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import type { TsoaRoute } from '@tsoa/runtime';
+import {  fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
+{{#each controllers}}
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
+{{#if authenticationModule}}
+import { expressAuthentication } from '{{authenticationModule}}';
+// @ts-ignore - no great way to install types from subpackage
+{{/if}}
+{{#if iocModule}}
+import { iocContainer } from '{{iocModule}}';
+import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+{{/if}}
+import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'ultimate-express';
+{{#if useFileUploads}}
+{{#if esm}}
+import multer from 'multer';
+{{else}}
+const multer = require('multer');
+{{/if}}
+
+{{/if}}
+
+{{#if authenticationModule}}
+const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, securityName: string, scopes?: string[], res?: ExResponse) => Promise<any>;
+{{/if}}
+
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+const models: TsoaRoute.Models = {
+    {{#each models}}
+    "{{@key}}": {
+        {{#if enums}}
+        "dataType": "refEnum",
+        "enums": {{{json enums}}},
+        {{/if}}
+        {{#if properties}}
+        "dataType": "refObject",
+        "properties": {
+            {{#each properties}}
+            "{{@key}}": {{{json this}}},
+            {{/each}}
+        },
+        "additionalProperties": {{{json additionalProperties}}},
+        {{/if}}
+        {{#if type}}
+        "dataType": "refAlias",
+        "type": {{{json type}}},
+        {{/if}}
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    {{/each}}
+};
+const templateService = new ExpressTemplateService(models, {{{ json minimalSwaggerConfig}}});
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+
+
+
+{{#if useFileUploads}}
+export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof multer>}) {
+{{else}}
+export function RegisterRoutes(app: Router) {
+{{/if}}
+
+    // ###########################################################################################################
+    //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
+    //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
+    // ###########################################################################################################
+
+    {{#if useFileUploads}}
+    const upload = opts?.multer ||  multer({{{json multerOpts}}});
+    {{/if}}
+
+    
+    {{#each controllers}}
+    {{#each actions}}
+        const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+            {{#each parameters}}
+                {{@key}}: {{{json this}}},
+            {{/each}}
+        };
+        app.{{method}}('{{fullPath}}',
+            {{#if security.length}}
+            authenticateMiddleware({{json security}}),
+            {{/if}}
+            {{#if uploadFile}}
+            upload.fields([
+                {{#each uploadFileName}}
+                {
+                    name: {{json name}},
+                    {{#if maxCount}}
+                    maxCount: {{maxCount}}
+                    {{/if}}
+                }{{#if @last}}{{else}},{{/if}}
+                {{/each}}
+            ]),
+            {{/if}}
+            ...(fetchMiddlewares<RequestHandler>({{../name}})),
+            ...(fetchMiddlewares<RequestHandler>({{../name}}.prototype.{{name}})),
+
+            async function {{../name}}_{{name}}(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, response });
+
+              {{#if ../../iocModule}}
+                const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+                const controller: any = await container.get<{{../name}}>({{../name}});
+                if (typeof controller['setStatus'] === 'function') {
+                controller.setStatus(undefined);
+                }
+              {{else}}
+                const controller = new {{../name}}();
+              {{/if}}
+
+              await templateService.apiHandler({
+                methodName: '{{name}}',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: {{successStatus}},
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    {{/each}}
+    {{/each}}
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    {{#if useSecurity}}
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return async function runAuthenticationMiddleware(request: any, response: any, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            // keep track of failed auth attempts so we can hand back the most
+            // recent one.  This behavior was previously existing so preserving it
+            // here
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
+            };
+
+            const secMethodOrPromises: Promise<any>[] = [];
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    const secMethodAndPromises: Promise<any>[] = [];
+
+                    for (const name in secMethod) {
+                        secMethodAndPromises.push(
+                            expressAuthenticationRecasted(request, name, secMethod[name], response)
+                                .catch(pushAndRethrow)
+                        );
+                    }
+
+                    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                        .then(users => { return users[0]; }));
+                } else {
+                    for (const name in secMethod) {
+                        secMethodOrPromises.push(
+                            expressAuthenticationRecasted(request, name, secMethod[name], response)
+                                .catch(pushAndRethrow)
+                        );
+                    }
+                }
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            try {
+                request['user'] = await Promise.any(secMethodOrPromises);
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
+
+                next();
+            }
+            catch(err) {
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                error.status = error.status || 401;
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
+                next(error);
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        }
+    }
+    {{/if}}
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+}
+
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

@@ -246,7 +246,7 @@ export interface RoutesConfig {
   /**
    * Middleware provider.
    */
-  middleware?: 'express' | 'hapi' | 'koa';
+  middleware?: 'express' | 'hapi' | 'koa' | 'ultimate-express';
 
   /**
    * Override the Middleware template
