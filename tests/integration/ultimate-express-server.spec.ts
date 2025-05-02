@@ -24,7 +24,7 @@ import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 
-describe('Express Server', () => {
+describe('Ultimate Express Server', () => {
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
