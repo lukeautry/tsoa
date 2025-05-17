@@ -1346,7 +1346,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
             //      So, let's convince TypeScript
-            const itemsAsSchema = propertySchema.items as Swagger.Schema;
+            const itemsAsSchema = propertySchema.items ;
             if (currentSpec.specName === 'specWithNoImplicitExtras') {
               expect(itemsAsSchema.additionalProperties).to.eq(false, forSpec(currentSpec));
             } else {

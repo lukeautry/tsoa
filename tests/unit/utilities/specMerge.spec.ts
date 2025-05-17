@@ -11,7 +11,7 @@ describe('specMergins', () => {
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
 
   describe('recursive', () => {
-    const addedParameter = {
+    const addedParameter: Swagger.Parameter3 = {
       name: 'deepQueryParamObject',
       in: 'query',
       style: 'deepObject',
@@ -27,7 +27,7 @@ describe('specMergins', () => {
         type: 'object',
         additionalProperties: true,
       },
-    } as unknown as Swagger.QueryParameter;
+    };
 
     const options: ExtendedSpecConfig = {
       ...defaultOptions,
@@ -64,7 +64,7 @@ describe('specMergins', () => {
   });
 
   describe('deepMerging', () => {
-    const addedParameter = {
+    const addedParameter: Swagger.Parameter3 = {
       name: 'appearance',
       in: 'query',
       style: 'deepObject',
@@ -80,7 +80,7 @@ describe('specMergins', () => {
         type: 'object',
         additionalProperties: true,
       },
-    } as unknown as Swagger.QueryParameter;
+    };
 
     const options: ExtendedSpecConfig = {
       ...defaultOptions,

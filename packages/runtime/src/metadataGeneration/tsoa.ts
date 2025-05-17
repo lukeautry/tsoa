@@ -49,6 +49,7 @@ export namespace Tsoa {
     validators: Validators;
     deprecated: boolean;
     exampleLabels?: Array<string | undefined>;
+    $ref?: Swagger.BaseSchema;
   }
 
   export interface ResParameter extends Response, Parameter {

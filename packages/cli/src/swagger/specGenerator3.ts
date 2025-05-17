@@ -503,7 +503,7 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     if (parameterType.$ref) {
-      parameter.schema = parameterType as Swagger.Schema;
+      parameter.schema = parameterType as Swagger.Schema3;
       return parameter;
     }
 
@@ -581,7 +581,7 @@ export class SpecGenerator3 extends SpecGenerator {
     return { $ref: `#/components/schemas/${encodeURIComponent(referenceType.refName)}` };
   }
 
-  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
+  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.BaseSchema {
     if (dataType === 'any') {
       // Setting additionalProperties causes issues with code generators for OpenAPI 3
       // Therefore, we avoid setting it explicitly (since it's the implicit default already)
@@ -602,8 +602,8 @@ export class SpecGenerator3 extends SpecGenerator {
   // grouping enums is helpful because it makes the spec more readable and it
   // bypasses a failure in openapi-generator caused by using anyOf with
   // duplicate types.
-  private groupEnums(types: Array<Swagger.Schema | Swagger.BaseSchema>) {
-    const returnTypes: Array<Swagger.Schema | Swagger.BaseSchema> = [];
+  private groupEnums(types: Swagger.BaseSchema[]) {
+    const returnTypes: Swagger.BaseSchema[] = [];
     const enumValuesByType: Record<string, Record<string, boolean | string | number | null>> = {};
     for (const type of types) {
       if (type.enum && type.type) {
@@ -630,7 +630,7 @@ export class SpecGenerator3 extends SpecGenerator {
     return returnTypes;
   }
 
-  protected removeDuplicateSwaggerTypes(types: Array<Swagger.Schema | Swagger.BaseSchema>): Array<Swagger.Schema | Swagger.BaseSchema> {
+  protected removeDuplicateSwaggerTypes(types: Swagger.BaseSchema[]): Swagger.BaseSchema[] {
     if (types.length === 1) {
       return types;
     } else {
