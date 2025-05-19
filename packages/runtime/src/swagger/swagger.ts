@@ -231,7 +231,8 @@ export namespace Swagger {
     [ext: `x-${string}`]: unknown;
   }
 
-  export interface Operation31 extends Omit<Operation3, 'responses' | 'requestBody'> {
+  export interface Operation31 extends Omit<Operation3, 'responses' | 'requestBody' | 'parameters'> {
+    parameters?: Parameter31[];
     requestBody?: RequestBody31;
     responses: { [name: string]: Response31 };
   }
