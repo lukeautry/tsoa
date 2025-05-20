@@ -94,6 +94,8 @@ export abstract class SpecGenerator {
       return this.getSwaggerTypeForIntersectionType(type, title);
     } else if (type.dataType === 'nestedObjectLiteral') {
       return this.getSwaggerTypeForObjectLiteral(type, title);
+    } else if (type.dataType === 'tuple') {
+      throw new Error('Tuple types are only supported in OpenAPI 3.1+');
     } else {
       return assertNever(type);
     }

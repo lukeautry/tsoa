@@ -339,7 +339,7 @@ export namespace Swagger {
   }
 
   export interface Schema31 extends Omit<BaseSchema, 'type' | 'items' | 'properties' | 'additionalProperties' | 'discriminator'> {
-    type?: DataType | DataType[];
+    type?: DataType; // could support an array, but we already do anyOf for that
     nullable?: boolean;
     deprecated?: boolean;
     example?: unknown;

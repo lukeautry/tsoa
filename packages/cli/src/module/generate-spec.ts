@@ -5,6 +5,7 @@ import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa, Swagger, Config } from '@tsoa/runtime';
 import { SpecGenerator2 } from '../swagger/specGenerator2';
 import { SpecGenerator3 } from '../swagger/specGenerator3';
+import { SpecGenerator31 } from '../swagger/specGenerator31';
 import { fsMkDir, fsWriteFile } from '../utils/fs';
 
 export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
@@ -29,8 +30,14 @@ export const generateSpec = async (
   }
 
   let spec: Swagger.Spec;
-  if (swaggerConfig.specVersion && swaggerConfig.specVersion === 3) {
-    spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
+  if (swaggerConfig.specVersion) {
+    if (swaggerConfig.specVersion === 3) {
+      spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
+    } else if (swaggerConfig.specVersion === 3.1) {
+      spec = new SpecGenerator31(metadata, swaggerConfig).GetSpec();
+    } else {
+      spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
+    }
   } else {
     spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
   }

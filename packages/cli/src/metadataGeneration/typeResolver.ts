@@ -62,6 +62,10 @@ export class TypeResolver {
       return arrayMetaType;
     }
 
+    if (ts.isRestTypeNode(this.typeNode)) {
+      return new TypeResolver(this.typeNode.type, this.current, this.parentNode, this.context).resolve();
+    }
+
     if (ts.isUnionTypeNode(this.typeNode)) {
       const types = this.typeNode.types.map(type => {
         return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
@@ -85,6 +89,33 @@ export class TypeResolver {
       };
 
       return intersectionMetaType;
+    }
+
+    if (ts.isTupleTypeNode(this.typeNode)) {
+      const elementTypes: Tsoa.Type[] = [];
+      let restType: Tsoa.Type | undefined;
+
+      for (const element of this.typeNode.elements) {
+        if (ts.isRestTypeNode(element)) {
+          const resolvedRest = new TypeResolver(element.type, this.current, element, this.context).resolve();
+
+          if (resolvedRest.dataType === 'array') {
+            restType = resolvedRest.elementType;
+          } else {
+            restType = resolvedRest;
+          }
+        } else {
+          const typeNode = ts.isNamedTupleMember(element) ? element.type : element;
+          const type = new TypeResolver(typeNode, this.current, element, this.context).resolve();
+          elementTypes.push(type);
+        }
+      }
+
+      return {
+        dataType: 'tuple',
+        types: elementTypes,
+        ...(restType ? { restType } : {}),
+      };
     }
 
     if (this.typeNode.kind === ts.SyntaxKind.AnyKeyword || this.typeNode.kind === ts.SyntaxKind.UnknownKeyword) {

@@ -500,14 +500,9 @@ export class SpecGenerator31 extends SpecGenerator {
     if (parameterType.format) {
       schema.format = this.throwIfNotDataFormat(parameterType.format);
     }
+
     if (parameterType.type) {
-      const isValid = Array.isArray(parameterType.type) ? parameterType.type.every(el => this.isDataType(el)) : this.isDataType(parameterType.type);
-
-      if (!isValid) {
-        throw new Error(`Unhandled discriminated union member: ${JSON.stringify(parameterType.type)}`);
-      }
-
-      schema.type = parameterType.type;
+      schema.type = this.throwIfNotDataType(parameterType.type);
     }
 
     // Handle ref case
@@ -715,24 +710,6 @@ export class SpecGenerator31 extends SpecGenerator {
     }
   }
 
-  public throwIfNotDataType(strToTest: string): Swagger.DataType {
-    const guiltyUntilInnocent = strToTest as Swagger.DataType;
-    if (
-      guiltyUntilInnocent === 'array' ||
-      guiltyUntilInnocent === 'boolean' ||
-      guiltyUntilInnocent === 'integer' ||
-      guiltyUntilInnocent === 'file' ||
-      guiltyUntilInnocent === 'number' ||
-      guiltyUntilInnocent === 'object' ||
-      guiltyUntilInnocent === 'string' ||
-      guiltyUntilInnocent === 'undefined'
-    ) {
-      return guiltyUntilInnocent;
-    } else {
-      return assertNever(guiltyUntilInnocent);
-    }
-  }
-
   protected buildExamples(source: Pick<Tsoa.Parameter, 'example' | 'exampleLabels'>): {
     example?: unknown;
     examples?: { [name: string]: Swagger.Example3 };
@@ -763,11 +740,28 @@ export class SpecGenerator31 extends SpecGenerator {
     return { examples };
   }
 
-  private isDataType(input: unknown): input is Swagger.DataType {
-    if (typeof input !== 'string') {
-      return false;
+  protected getSwaggerType(type: Tsoa.Type, title?: string): Swagger.BaseSchema {
+    if (type.dataType === 'tuple') {
+      const tupleType = type as Tsoa.TupleType;
+      const prefixItems = tupleType.types.map(t => this.getSwaggerType(t)) as Swagger.Schema31[];
+
+      const schema: Swagger.Schema31 = {
+        type: 'array',
+        prefixItems,
+        minItems: prefixItems.length,
+        ...(tupleType.restType
+          ? {
+              items: this.getSwaggerType(tupleType.restType) as Swagger.Schema31,
+            }
+          : {
+              maxItems: prefixItems.length,
+              items: false,
+            }),
+      };
+
+      return schema as unknown as Swagger.BaseSchema;
     }
 
-    return input === 'array' || input === 'boolean' || input === 'integer' || input === 'file' || input === 'number' || input === 'object' || input === 'string' || input === 'undefined';
+    return super.getSwaggerType(type, title);
   }
 }
