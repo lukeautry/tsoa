@@ -219,6 +219,31 @@ describe('GET route generation', () => {
     expect(deepObjectParams?.length).to.be.greaterThan(0);
   });
 
+  it('should accept complex types in @Query decorator', () => {
+    expect(() => {
+      const validMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
+      new SpecGenerator2(validMetadata, getDefaultExtendedOptions()).GetSpec();
+    }).to.not.throw();
+  });
+
+  it('should generate proper parameters for complex types in @Query decorator', () => {
+    const validMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
+    const spec = new SpecGenerator2(validMetadata, getDefaultExtendedOptions()).GetSpec();
+
+    const path = spec.paths['/GetTest/Complex'];
+    expect(path).to.exist;
+    expect(path.get).to.exist;
+    expect(path.get?.parameters).to.exist;
+
+    const parameters = path.get?.parameters;
+    expect(parameters).to.be.an('array');
+    expect(parameters?.length).to.be.greaterThan(0);
+
+    // Should have parameters for the complex object properties
+    const myModelParam = parameters?.find((p: any) => p.name === 'myModel');
+    expect(myModelParam).to.exist;
+  });
+
   it('should reject invalid header types', function () {
     this.timeout(10_000);
     expect(() => {
