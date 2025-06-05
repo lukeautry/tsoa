@@ -318,9 +318,36 @@ export class SpecGenerator2 extends SpecGenerator {
     if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
       const properties = source.type.properties;
 
-      return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
+      return properties.map(property => {
+        const param = this.queriesPropertyToQueryParameter(property);
+        const builtParam = this.buildParameter(param);
+
+        // Check if this property is a deep object (nested object or array of objects)
+        const isDeepObject = this.isDeepObject(property.type);
+
+        if (isDeepObject) {
+          // For Swagger 2.0, we mark deep objects with extension and use schema
+          (builtParam as any)['x-deep-object'] = true;
+          builtParam.schema = this.getSwaggerType(param.type) as Swagger.Schema2;
+          // Remove type/items since we're using schema
+          delete (builtParam as any).type;
+          delete (builtParam as any).items;
+        }
+
+        return builtParam;
+      });
     }
     throw new Error(`Queries '${source.name}' parameter must be an object.`);
+  }
+
+  private isDeepObject(type: Tsoa.Type): boolean {
+    if (type.dataType === 'nestedObjectLiteral' || type.dataType === 'refObject') {
+      return true;
+    }
+    if (type.dataType === 'array') {
+      return type.elementType.dataType === 'nestedObjectLiteral' || type.elementType.dataType === 'refObject';
+    }
+    return false;
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {

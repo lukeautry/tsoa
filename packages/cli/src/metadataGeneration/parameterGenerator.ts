@@ -492,6 +492,16 @@ export class ParameterGenerator {
       return !parameterType.types.map(t => t.dataType === 'undefined' || this.supportPathDataType(t)).some(t => t === false);
     }
 
+    // Support nested objects and reference objects for deep objects
+    if (parameterType.dataType === 'nestedObjectLiteral' || parameterType.dataType === 'refObject') {
+      return true;
+    }
+
+    // Support arrays (including arrays of objects)
+    if (parameterType.dataType === 'array') {
+      return this.supportPathDataType(parameterType.elementType);
+    }
+
     return false;
   }
 

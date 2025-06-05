@@ -183,13 +183,6 @@ describe('GET route generation', () => {
     expect(voidResponse).to.not.haveOwnProperty('content');
   });
 
-  it('should reject complex types as arguments', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
-  });
-
   it('should reject Query and Queries decorators at the same time', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueryController.ts').Generate();
@@ -204,11 +197,26 @@ describe('GET route generation', () => {
     }).to.throw("Only one queries parameter allowed in 'InvalidQueriesTestController.getWithMultipleQueriesParams' method.");
   });
 
-  it('should reject nested Query object inside Queries decorator', () => {
+  it('should accept deep objects in Queries decorator', () => {
     expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
+      const validMetadata = new MetadataGenerator('./fixtures/controllers/validDeepQueriesController.ts').Generate();
+      new SpecGenerator2(validMetadata, getDefaultExtendedOptions()).GetSpec();
+    }).to.not.throw();
+  });
+
+  it('should generate proper OpenAPI spec for deep objects in Queries', () => {
+    const validMetadata = new MetadataGenerator('./fixtures/controllers/validDeepQueriesController.ts').Generate();
+    const spec = new SpecGenerator3(validMetadata, getDefaultExtendedOptions()).GetSpec();
+
+    const path = spec.paths['/valid-deep-queries/with-deep-queries'];
+    expect(path).to.exist;
+    expect(path.get).to.exist;
+    expect(path.get?.parameters).to.exist;
+
+    // Check for deep object parameters with x-deep-object extension
+    const deepObjectParams = path.get?.parameters?.filter((p: any) => p['x-deep-object'] === true);
+    expect(deepObjectParams).to.exist;
+    expect(deepObjectParams?.length).to.be.greaterThan(0);
   });
 
   it('should reject invalid header types', function () {
