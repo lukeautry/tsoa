@@ -27,6 +27,7 @@
     "@types/node": "^16.18.23",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
+    "cross-env": "^7.0.3",
     "lerna": "^8.1.9",
     "mocha": "^10.7.3",
     "prettier": "^3.4.2",

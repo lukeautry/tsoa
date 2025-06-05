@@ -39,9 +39,7 @@
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
   },
-  "bin": {
-    "tsoa": "dist/cli.js"
-  },
+  "bin": "dist/cli.js",
   "engines": {
     "yarn": ">=1.9.4",
     "node": ">=18.0.0"
