@@ -213,10 +213,37 @@ describe('GET route generation', () => {
     expect(path.get).to.exist;
     expect(path.get?.parameters).to.exist;
 
-    // Check for deep object parameters with x-deep-object extension
-    const deepObjectParams = path.get?.parameters?.filter((p: any) => p['x-deep-object'] === true);
-    expect(deepObjectParams).to.exist;
-    expect(deepObjectParams?.length).to.be.greaterThan(0);
+    // Find the complex query parameter
+    const parameters = path.get?.parameters;
+    const criteriaParam = parameters?.find((p: any) => p.name === 'criteria') as any;
+
+    expect(criteriaParam).to.exist;
+    expect(criteriaParam.in).to.equal('query');
+
+    // Should use content-based serialization for complex objects
+    expect(criteriaParam.content).to.exist;
+    expect(criteriaParam.content['application/json']).to.exist;
+    expect(criteriaParam.content['application/json'].schema).to.exist;
+
+    const schema = criteriaParam.content['application/json'].schema;
+    expect(schema.type).to.equal('object');
+    expect(schema.properties).to.exist;
+
+    // Verify the nested structure matches CriteriaParams interface
+    expect(schema.properties.filters).to.exist;
+    expect(schema.properties.filters.type).to.equal('array');
+    expect(schema.properties.filters.items).to.exist;
+    expect(schema.properties.filters.items.type).to.equal('object');
+
+    // Verify DeepObjectFilter structure within the array
+    const filterItemSchema = schema.properties.filters.items;
+    expect(filterItemSchema.properties).to.exist;
+    expect(filterItemSchema.properties.field).to.exist;
+    expect(filterItemSchema.properties.field.type).to.equal('string');
+    expect(filterItemSchema.properties.operator).to.exist;
+    expect(filterItemSchema.properties.operator.type).to.equal('string');
+    expect(filterItemSchema.properties.value).to.exist;
+    expect(filterItemSchema.properties.value.type).to.equal('string');
   });
 
   it('should accept complex types in @Query decorator', () => {

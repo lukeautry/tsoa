@@ -477,29 +477,55 @@ export class SpecGenerator3 extends SpecGenerator {
     if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
       const properties = source.type.properties;
 
-      return properties.map(property => {
-        const param = this.queriesPropertyToQueryParameter(property);
+      // Check if any of the properties are deep objects
+      const hasDeepObjects = properties.some(property => this.isDeepObject(property.type));
 
-        // Check if this property is a deep object (nested object or array of objects)
-        const isDeepObject = this.isDeepObject(property.type);
+      if (hasDeepObjects) {
+        // If we have deep objects, create a single parameter with content-based serialization
+        // for the entire queries object
+        const schemaType = this.getSwaggerType(source.type) as Swagger.Schema3;
 
-        if (isDeepObject) {
-          // For deep objects, use a custom structure that supports content/application/json
-          // This will be handled specially in the OpenAPI output
-          const deepObjectParam = this.buildParameter(param);
-          (deepObjectParam as any)['x-deep-object'] = true;
-          (deepObjectParam as any)['content'] = {
-            'application/json': {
-              schema: this.getSwaggerType(param.type) as Swagger.Schema3,
-            },
-          };
-          // Remove schema from top-level since we're using content
-          delete (deepObjectParam as any).schema;
-          return deepObjectParam;
+        // For complex queries, we want to inline the schema rather than use $ref
+        let inlineSchema: Swagger.Schema3;
+        if (schemaType.$ref) {
+          // If it's a reference, we need to get the actual schema definition
+          const refName = schemaType.$ref.split('/').pop();
+          if (refName) {
+            const decodedRefName = decodeURIComponent(refName);
+            const componentSchema = this.metadata.referenceTypeMap[decodedRefName];
+            if (componentSchema && componentSchema.dataType === 'refObject') {
+              // Build the inline schema manually from the properties
+              inlineSchema = this.buildInlineSchema(componentSchema as Tsoa.RefObjectType);
+            } else {
+              inlineSchema = schemaType;
+            }
+          } else {
+            inlineSchema = schemaType;
+          }
         } else {
-          return this.buildParameter(param);
+          inlineSchema = schemaType;
         }
-      });
+
+        return [
+          {
+            description: source.description,
+            in: 'query',
+            name: source.name,
+            required: this.isRequiredWithoutDefault(source),
+            content: {
+              'application/json': {
+                schema: inlineSchema,
+              },
+            },
+          } as any,
+        ];
+      } else {
+        // For simple properties, use the original behavior of breaking down into individual parameters
+        return properties.map(property => {
+          const param = this.queriesPropertyToQueryParameter(property);
+          return this.buildParameter(param);
+        });
+      }
     }
     throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
@@ -512,6 +538,78 @@ export class SpecGenerator3 extends SpecGenerator {
       return type.elementType.dataType === 'nestedObjectLiteral' || type.elementType.dataType === 'refObject';
     }
     return false;
+  }
+
+  private buildInlineSchema(type: Tsoa.RefObjectType): Swagger.Schema3 {
+    const inlineSchema: Swagger.Schema3 = {
+      type: 'object',
+      properties: this.buildInlineProperties(type.properties),
+      required: type.properties.filter((p: Tsoa.Property) => p.required).map((p: Tsoa.Property) => p.name),
+    };
+
+    if (type.additionalProperties !== undefined) {
+      inlineSchema.additionalProperties = type.additionalProperties as any;
+    }
+
+    return inlineSchema;
+  }
+
+  private buildInlineProperties(source: Tsoa.Property[]): { [propertyName: string]: Swagger.Schema3 } {
+    const properties: { [propertyName: string]: Swagger.Schema3 } = {};
+
+    source.forEach(property => {
+      let swaggerType = this.getInlineSwaggerType(property.type) as Swagger.Schema3;
+      const format = property.format as Swagger.DataFormat;
+      swaggerType.description = property.description;
+      swaggerType.example = property.example;
+      swaggerType.format = format || swaggerType.format;
+      if (!swaggerType.$ref) {
+        swaggerType.default = property.default;
+
+        Object.keys(property.validators)
+          .filter(shouldIncludeValidatorInSchema)
+          .forEach(key => {
+            swaggerType = { ...swaggerType, [key]: property.validators[key]!.value };
+          });
+      }
+      if (property.deprecated) {
+        swaggerType.deprecated = true;
+      }
+
+      if (property.extensions) {
+        property.extensions.forEach(property => {
+          swaggerType[property.key] = property.value;
+        });
+      }
+
+      properties[property.name] = swaggerType;
+    });
+
+    return properties;
+  }
+
+  private getInlineSwaggerType(type: Tsoa.Type): Swagger.Schema3 {
+    // For references, inline them instead of using $ref
+    if (type.dataType === 'refObject') {
+      const refType = type as Tsoa.RefObjectType;
+      const componentSchema = this.metadata.referenceTypeMap[refType.refName];
+      if (componentSchema && componentSchema.dataType === 'refObject') {
+        return this.buildInlineSchema(componentSchema as Tsoa.RefObjectType);
+      }
+    }
+
+    // For arrays, check if the element type should be inlined
+    if (type.dataType === 'array') {
+      const arrayType = type as Tsoa.ArrayType;
+      const elementSchema = this.getInlineSwaggerType(arrayType.elementType);
+      return {
+        type: 'array',
+        items: elementSchema,
+      };
+    }
+
+    // For other types, use the regular method
+    return this.getSwaggerType(type) as Swagger.Schema3;
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter3 {
