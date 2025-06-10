@@ -4,6 +4,7 @@ import { Tsoa } from '@tsoa/runtime';
 const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prototype.hasOwnProperty.call(node, 'initializer');
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
 const extractImportSpecifier = (symbol?: ts.Symbol) => (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && symbol.declarations[0]) || undefined;
+const isIterable = (obj: any): obj is Iterable<any> => obj != null && typeof obj[Symbol.iterator] === 'function';
 
 export type InitializerValue = string | number | boolean | undefined | null | InitializerValue[];
 export type DefinedInitializerValue = string | number | boolean | null | DefinedInitializerValue[];
@@ -23,7 +24,19 @@ export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpeci
   switch (initializer.kind) {
     case ts.SyntaxKind.ArrayLiteralExpression: {
       const arrayLiteral = initializer as ts.ArrayLiteralExpression;
-      return arrayLiteral.elements.map(element => getInitializerValue(element, typeChecker));
+      return arrayLiteral.elements.reduce((acc, element) => {
+        if (ts.isSpreadElement(element)) {
+          const spreadValue = getInitializerValue(element.expression, typeChecker);
+          if (spreadValue && isIterable(spreadValue)) {
+            return acc.concat(...spreadValue);
+          } else {
+            throw new Error(`${typeof spreadValue} is not iterable`);
+          }
+        } else {
+          acc.push(getInitializerValue(element, typeChecker));
+        }
+        return acc;
+      }, [] as InitializerValue[]);
     }
     case ts.SyntaxKind.StringLiteral:
     case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
@@ -73,7 +86,18 @@ export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpeci
       const objectLiteral = initializer as ts.ObjectLiteralExpression;
       const nestedObject: any = {};
       objectLiteral.properties.forEach((p: any) => {
-        nestedObject[p.name.text] = getInitializerValue(p.initializer, typeChecker);
+        if (ts.isSpreadAssignment(p)) {
+          const spreadValue = getInitializerValue(p.expression, typeChecker);
+          if (spreadValue) {
+            if (typeof spreadValue === 'object') {
+              Object.assign(nestedObject, spreadValue);
+            } else {
+              throw new Error(`Spread types may only be created from object types.`);
+            }
+          }
+        } else {
+          nestedObject[p.name.text] = getInitializerValue(p.initializer, typeChecker);
+        }
       });
       return nestedObject;
     }

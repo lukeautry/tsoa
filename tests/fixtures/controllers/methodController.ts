@@ -169,6 +169,11 @@ export class MethodController extends Controller {
   @Extension('x-attKey7', { test: ['testVal', 123, true, null] })
   @Extension('x-attKey8', { test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } })
   @Extension(ATT_KEY9, 'identifierAttValue')
+  @Extension('x-attKey10', ['testVal1', ...['testVal2', 123, true, null]])
+  @Extension('x-attKey11', ['testVal1', ...'val'])
+  @Extension('x-attKey12', { ...[1, 2, 3, 4] })
+  @Extension('x-attKey13', { ...['testVal1', 123, true, null] })
+  @Extension('x-attKey14', { ...{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null } })
   @Get('Extension')
   public async extension(): Promise<TestModel> {
     return new ModelService().getModel();
