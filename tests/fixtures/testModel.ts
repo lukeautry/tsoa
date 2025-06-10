@@ -1289,3 +1289,7 @@ type OrderDirection = 'asc' | 'desc';
 type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
 
 type TemplateLiteralString = OrderOptions<ParameterTestModel>;
+
+const value = { a: 'a', b: 1 };
+type Infer<T> = T;
+export type ValueType = Infer<typeof value>;
