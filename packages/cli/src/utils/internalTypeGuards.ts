@@ -48,6 +48,8 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
       return true;
     case 'string':
       return false;
+    case 'tuple':
+      return false;
     case 'union':
       return false;
     case 'void':
