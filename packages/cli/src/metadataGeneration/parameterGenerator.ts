@@ -280,7 +280,7 @@ export class ParameterGenerator {
 
   private getFormFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type: Tsoa.Type = { dataType: 'string' };
+    const type = this.getValidatedType(parameter);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as form field parameter in '${this.method.toUpperCase()}'.`, parameter);
