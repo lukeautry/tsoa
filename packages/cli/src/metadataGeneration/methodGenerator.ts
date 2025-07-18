@@ -11,6 +11,7 @@ import { ParameterGenerator } from './parameterGenerator';
 import { Tsoa } from '@namecheap/tsoa-runtime';
 import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
+import { DecoratorProcessorContext } from './types/nodeDecoratorProcessor';
 
 export class MethodGenerator {
   private method: 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -54,7 +55,7 @@ export class MethodGenerator {
     const additionalResponses = parameters.filter((p): p is Tsoa.ResParameter => p.in === 'res');
     responses.push(...additionalResponses);
 
-    return {
+    const methodMetadata: Tsoa.Method = {
       extensions: this.getExtensions(),
       deprecated: this.getIsDeprecated(),
       description: getJSDocDescription(this.node),
@@ -73,6 +74,10 @@ export class MethodGenerator {
       tags: this.getTags(),
       type,
     };
+
+    this.processCustomDecorators(methodMetadata);
+
+    return methodMetadata;
   }
 
   private buildParameters() {
@@ -352,5 +357,27 @@ export class MethodGenerator {
       return [produces];
     }
     return;
+  }
+
+  private processCustomDecorators(methodMetadata: Tsoa.Method): void {
+    if (!this.current.customDecoratorProcessors) {
+      return;
+    }
+
+    for (const [decoratorName, processor] of Object.entries(this.current.customDecoratorProcessors)) {
+      const decorators = getDecorators(this.node, identifier => identifier.text === decoratorName);
+
+      for (const decorator of decorators) {
+        try {
+          const context: DecoratorProcessorContext = {
+            methodObject: methodMetadata,
+            decoratorArguments: getDecoratorValues(decorator, this.current.typeChecker),
+          };
+          processor(context);
+        } catch (error) {
+          throw new GenerateMetadataError(`Error in custom decorator processor for '${decoratorName}'`);
+        }
+      }
+    }
   }
 }

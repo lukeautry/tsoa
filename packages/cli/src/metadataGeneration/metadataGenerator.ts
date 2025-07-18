@@ -2,6 +2,7 @@ import * as mm from 'minimatch';
 import * as ts from 'typescript';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
+import { NodeDecoratorProcessor } from './types/nodeDecoratorProcessor';
 import { GenerateMetadataError } from './exceptions';
 import { Tsoa } from '@namecheap/tsoa-runtime';
 import { TypeResolver } from './typeResolver';
@@ -10,12 +11,14 @@ import { SecurityGenerator } from './securityGenerator';
 
 export interface MetadataGeneratorOptions {
   securityGenerator?: SecurityGenerator;
+  customDecoratorProcessors?: Record<string, NodeDecoratorProcessor>;
 }
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ts.ClassDeclaration>();
   public readonly typeChecker: ts.TypeChecker;
   public readonly securityGenerator: SecurityGenerator | undefined;
+  public readonly customDecoratorProcessors: Record<string, NodeDecoratorProcessor> | undefined;
 
   private readonly program: ts.Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
@@ -27,6 +30,7 @@ export class MetadataGenerator {
     this.typeChecker = this.program.getTypeChecker();
 
     this.securityGenerator = generatorOptions?.securityGenerator;
+    this.customDecoratorProcessors = generatorOptions?.customDecoratorProcessors;
   }
 
   public Generate(): Tsoa.Metadata {

@@ -367,7 +367,7 @@ export class TypeResolver {
         };
         return stringLiteralEnum;
       } else {
-        throw new GenerateMetadataError(`Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode);
+        throw new GenerateMetadataError(`Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode))}`, this.typeNode);
       }
     }
 
@@ -682,6 +682,7 @@ export class TypeResolver {
       type: new TypeResolver(declaration.type, this.current, declaration, this.context, this.referencer || referencer).resolve(),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
+      deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
     };
   }
 
