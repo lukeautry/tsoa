@@ -576,6 +576,44 @@ export class TypeResolver {
     } else {
       const declarations = this.getModelTypeDeclarations(type);
 
+      // Handle cases where declarations is empty (e.g., inline object types in generics)
+      if (!declarations || declarations.length === 0) {
+        // Check if this is a simple identifier (like Date, String, etc.)
+        if (ts.isIdentifier(type)) {
+          // For simple identifiers, just return the name
+          return type.text;
+        }
+
+        // For inline object types, we should use the resolve method to get the proper type
+        // This will handle TypeLiteralNode, UnionTypeNode, etc. properly
+        // Note: We need to cast to TypeNode since EntityName can be Identifier or QualifiedName
+        const typeNode = type as unknown as ts.TypeNode;
+        const resolvedType = new TypeResolver(typeNode, this.current, this.parentNode, this.context).resolve();
+
+        // Generate a deterministic name for this inline type based on its structure
+        const typeName = this.calcTypeName(typeNode);
+        const sanitizedName = typeName
+          .replace(/[^A-Za-z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .replace(/^_|_$/g, '');
+
+        const uniqueName = `Inline_${sanitizedName}`;
+
+        // Add to reference types so it can be properly serialized
+        // We need to create a proper ReferenceType object
+        const referenceType: Tsoa.ReferenceType = {
+          dataType: 'refAlias',
+          refName: uniqueName,
+          type: resolvedType,
+          validators: {},
+          deprecated: false,
+        };
+
+        this.current.AddReferenceType(referenceType);
+
+        return uniqueName;
+      }
+
       //Two possible solutions for recognizing different types:
       // - Add declaration positions into type names (In an order).
       //    - It accepts multiple types with same name, if the code compiles, there would be no conflicts in the type names
@@ -589,7 +627,7 @@ export class TypeResolver {
 
       const oneDeclaration = declarations[0]; //Every declarations should be in the same namespace hierarchy
       const identifiers = name.split('.');
-      if (ts.isEnumMember(oneDeclaration)) {
+      if (oneDeclaration && ts.isEnumMember(oneDeclaration)) {
         name = identifiers.slice(identifiers.length - 2).join('.');
       } else {
         name = identifiers.slice(identifiers.length - 1).join('.');
@@ -934,9 +972,16 @@ export class TypeResolver {
       const fullEnumSymbol = this.getSymbolAtLocation(type.left);
       symbol = fullEnumSymbol.exports?.get(typeName as any);
     }
-    const declarations = symbol?.getDeclarations();
 
-    throwUnless(symbol && declarations, new GenerateMetadataError(`No declarations found for referenced type ${typeName}.`));
+    // Handle built-in types that don't have declarations in user code
+    if (!symbol || !symbol.getDeclarations) {
+      return [];
+    }
+
+    const declarations = symbol.getDeclarations();
+    if (!declarations || declarations.length === 0) {
+      return [];
+    }
 
     if ((symbol.escapedName as string) !== typeName && (symbol.escapedName as string) !== 'default') {
       typeName = symbol.escapedName as string;
@@ -946,7 +991,10 @@ export class TypeResolver {
       return this.nodeIsUsable(node) && node.name?.getText() === typeName;
     });
 
-    throwUnless(modelTypes.length, new GenerateMetadataError(`No matching model found for referenced type ${typeName}.`));
+    // If no usable model types found, return empty array instead of throwing
+    if (modelTypes.length === 0) {
+      return [];
+    }
 
     if (modelTypes.length > 1) {
       // remove types that are from typescript e.g. 'Account'
@@ -987,8 +1035,18 @@ export class TypeResolver {
   private typeArgumentsToContext(type: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments, targetEntity: ts.EntityName): Context {
     let newContext: Context = {};
 
-    const declaration = this.getModelTypeDeclarations(targetEntity);
-    const typeParameters = 'typeParameters' in declaration[0] ? declaration[0].typeParameters : undefined;
+    // Handle cases where targetEntity might be an inline object type
+    // Inline object types don't have declarations, so we need to handle them differently
+    let declarations;
+    try {
+      declarations = this.getModelTypeDeclarations(targetEntity);
+    } catch (error) {
+      // If we can't get declarations (e.g., inline object type),
+      // we can't process type parameters, so return empty context
+      return newContext;
+    }
+
+    const typeParameters = 'typeParameters' in declarations[0] ? declarations[0].typeParameters : undefined;
 
     if (typeParameters) {
       for (let index = 0; index < typeParameters.length; index++) {
