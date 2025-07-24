@@ -44,6 +44,7 @@ export type HttpStatusCodeLiteral =
   | 422
   | 423
   | 424
+  | 425
   | 426
   | 428
   | 429
