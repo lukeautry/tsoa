@@ -8,7 +8,7 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { extname,isAbsolute } from 'node:path';
+import { extname, isAbsolute } from 'node:path';
 import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
@@ -54,7 +54,7 @@ const isJsExtension = (extension: string): boolean => extension === '.js' || ext
 const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   let config: Config;
   const ext = extname(configPath);
-  const configFullPath = isAbsolute(configPath) ? configPath : `${workingDir}/${configPath}`
+  const configFullPath = isAbsolute(configPath) ? configPath : `${workingDir}/${configPath}`;
   try {
     if (isYamlExtension(ext)) {
       const configRaw = await fsReadFile(configFullPath);
@@ -114,8 +114,9 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   config.spec.version = config.spec.version || (await versionDefault());
 
   config.spec.specVersion = config.spec.specVersion || 2;
-  if (config.spec.specVersion !== 2 && config.spec.specVersion !== 3) {
-    throw new Error('Unsupported Spec version.');
+  const supportedVersions = [2, 3, 3.1];
+  if (!supportedVersions.includes(config.spec.specVersion)) {
+    throw new Error(`Unsupported Spec version: ${config.spec.specVersion}.`);
   }
 
   if (config.spec.spec && !['immediate', 'recursive', 'deepmerge', undefined].includes(config.spec.specMerging)) {
