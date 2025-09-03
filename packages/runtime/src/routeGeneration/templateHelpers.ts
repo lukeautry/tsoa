@@ -516,7 +516,7 @@ export class ValidationService {
 
       // Clean value if it's not undefined or use undefined directly if it's undefined.
       // Value can be undefined if undefined is allowed datatype of the union
-      const validateableValue = value ? JSON.parse(JSON.stringify(value)) : value;
+      const validateableValue = value !== undefined ? this.deepClone(value) : value;
       const cleanValue = this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, validateableValue, name, subFieldError, isBodyParam, parent);
       subFieldErrors.push(subFieldError);
 
@@ -525,10 +525,7 @@ export class ValidationService {
       }
     }
 
-    fieldErrors[parent + name] = {
-      message: `Could not match the union against any of the items. Issues: ${JSON.stringify(subFieldErrors)}`,
-      value,
-    };
+    this.addSummarizedError(fieldErrors, parent + name, 'Could not match the union against any of the items. Issues: ', subFieldErrors, value);
     return;
   }
 
@@ -546,10 +543,9 @@ export class ValidationService {
 
     subSchemas.forEach(subSchema => {
       const subFieldError: FieldErrors = {};
-      const cleanValue = new ValidationService(this.models, {
+      const cleanValue = this.createChildValidationService({
         noImplicitAdditionalProperties: 'silently-remove-extras',
-        bodyCoercion: this.config.bodyCoercion,
-      }).ValidateParam(subSchema, JSON.parse(JSON.stringify(value)), name, subFieldError, isBodyParam, parent);
+      }).ValidateParam(subSchema, this.deepClone(value), name, subFieldError, isBodyParam, parent);
       cleanValues = {
         ...cleanValues,
         ...cleanValue,
@@ -560,10 +556,7 @@ export class ValidationService {
     const filtered = subFieldErrors.filter(subFieldError => Object.keys(subFieldError).length !== 0);
 
     if (filtered.length > 0) {
-      fieldErrors[parent + name] = {
-        message: `Could not match the intersection against every type. Issues: ${JSON.stringify(filtered)}`,
-        value,
-      };
+      this.addSummarizedError(fieldErrors, parent + name, 'Could not match the intersection against every type. Issues: ', filtered, value);
       return;
     }
 
@@ -571,12 +564,11 @@ export class ValidationService {
 
     const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
       const requiredPropError = {};
-      new ValidationService(this.models, {
+      this.createChildValidationService({
         noImplicitAdditionalProperties: 'ignore',
-        bodyCoercion: this.config.bodyCoercion,
       }).validateModel({
         name,
-        value: JSON.parse(JSON.stringify(value)),
+        value: this.deepClone(value),
         modelDefinition: schema,
         fieldErrors: requiredPropError,
         isBodyParam,
@@ -792,6 +784,141 @@ export class ValidationService {
     }
 
     return value;
+  }
+
+  /**
+   * Creates a new ValidationService instance with specific configuration
+   * @param overrides Configuration overrides
+   * @returns New ValidationService instance
+   */
+  private createChildValidationService(overrides: Partial<AdditionalProps> = {}): ValidationService {
+    return new ValidationService(this.models, {
+      ...this.config,
+      ...overrides,
+    });
+  }
+
+  /**
+   * Deep clones an object without using JSON.stringify/parse to avoid:
+   * 1. Loss of undefined values
+   * 2. Loss of functions
+   * 3. Conversion of dates to strings
+   * 4. Exponential escaping issues with nested objects
+   */
+  private deepClone<T>(obj: T): T {
+    // Fast path for primitives
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    const type = typeof obj;
+    if (type !== 'object') {
+      return obj;
+    }
+
+    // Handle built-in object types
+    if (obj instanceof Date) {
+      return new Date(obj.getTime()) as any;
+    }
+
+    if (obj instanceof RegExp) {
+      return new RegExp(obj.source, obj.flags) as any;
+    }
+
+    if (obj instanceof Array) {
+      const cloneArr: any[] = new Array(obj.length);
+      for (let i = 0; i < obj.length; i++) {
+        cloneArr[i] = this.deepClone(obj[i]);
+      }
+      return cloneArr as any;
+    }
+
+    if (Buffer && obj instanceof Buffer) {
+      return Buffer.from(obj) as any;
+    }
+
+    // Handle plain objects
+    const cloneObj: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        cloneObj[key] = this.deepClone(obj[key]);
+      }
+    }
+    return cloneObj;
+  }
+
+  /**
+   * Adds a summarized error to the fieldErrors object
+   * @param fieldErrors The errors object to add to
+   * @param errorKey The key for the error
+   * @param prefix The error message prefix
+   * @param subErrors Array of sub-errors to summarize
+   * @param value The value that failed validation
+   */
+  private addSummarizedError(fieldErrors: FieldErrors, errorKey: string, prefix: string, subErrors: FieldErrors[], value: any): void {
+    const maxErrorLength = this.config.maxValidationErrorSize ? this.config.maxValidationErrorSize - prefix.length : undefined;
+
+    fieldErrors[errorKey] = {
+      message: `${prefix}${this.summarizeValidationErrors(subErrors, maxErrorLength)}`,
+      value,
+    };
+  }
+
+  /**
+   * Summarizes validation errors to prevent extremely large error messages
+   * @param errors Array of field errors from union/intersection validation
+   * @param maxLength Maximum length of the summarized message
+   * @returns Summarized error message
+   */
+  private summarizeValidationErrors(errors: FieldErrors[], maxLength?: number): string {
+    const effectiveMaxLength = maxLength || this.config.maxValidationErrorSize || 1000;
+
+    // If there are no errors, return empty
+    if (errors.length === 0) {
+      return '[]';
+    }
+
+    // Start with a count of total errors
+    const errorCount = errors.length;
+    const summary: string[] = [];
+
+    // Try to include first few errors
+    let currentLength = 0;
+    let includedErrors = 0;
+
+    // Calculate the size of the suffix if we need to truncate
+    const truncatedSuffix = `,...and ${errorCount} more errors]`;
+    const reservedSpace = truncatedSuffix.length + 10; // +10 for safety margin
+
+    for (const error of errors) {
+      const errorStr = JSON.stringify(error);
+      const projectedLength = currentLength + errorStr.length + (summary.length > 0 ? 1 : 0) + 2; // +1 for comma if not first, +2 for brackets
+
+      if (projectedLength + reservedSpace < effectiveMaxLength && includedErrors < 3) {
+        summary.push(errorStr);
+        currentLength = projectedLength;
+        includedErrors++;
+      } else {
+        break;
+      }
+    }
+
+    // Build final message
+    if (includedErrors < errorCount) {
+      const result = `[${summary.join(',')},...and ${errorCount - includedErrors} more errors]`;
+      // Make sure we don't exceed the limit
+      if (result.length > effectiveMaxLength) {
+        // If still too long, remove the last error and try again
+        if (summary.length > 0) {
+          summary.pop();
+          includedErrors--;
+          return `[${summary.join(',')},...and ${errorCount - includedErrors} more errors]`;
+        }
+      }
+      return result;
+    } else {
+      return `[${summary.join(',')}]`;
+    }
   }
 }
 
