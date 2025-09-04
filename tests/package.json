@@ -57,7 +57,7 @@
     "inversify": "^6.1.6",
     "inversify-binding-decorators": "^4.0.0",
     "joi": "^17.13.3",
-    "koa": "^2.15.3",
+    "koa": "^3.0.1",
     "koa-bodyparser": "^4.4.0",
     "lerna": "^8.1.9",
     "lint-staged": "^15.2.10",
