@@ -1004,11 +1004,21 @@ describe('Schema details generation', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/FormDataStringType'].get?.parameters ?? [];
+      const method = spec.paths['/ParameterTest/FormData'].get?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(1);
-      const queryParam = method[0];
-      expect(queryParam.in).to.equal('formData');
+      expect(method).to.have.lengthOf(3);
+      const [data, indexes, gender] = method;
+
+      expect(data.in).to.equal('formData');
+      expect(data.type).to.equal('string');
+      // Can process numeric enum
+      expect(indexes.in).to.equal('formData');
+      expect(indexes.type).to.equal('number');
+      expect(indexes.enum).to.deep.equal([0, 2, 5]);
+      // Can process string enum
+      expect(gender.in).to.equal('formData');
+      expect(gender.type).to.equal('string');
+      expect(gender.enum).to.deep.equal(['MALE', 'FEMALE']);
     });
   });
 
