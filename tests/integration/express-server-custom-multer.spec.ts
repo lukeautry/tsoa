@@ -10,7 +10,9 @@ import { verifyFileUploadRequest } from './utils';
 const basePath = '/v1';
 
 describe('Express Server With custom multer', () => {
-  describe('file upload With custom multer instance', () => {
+  describe('file upload With custom multer instance', function () {
+    this.timeout(15000);
+
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {

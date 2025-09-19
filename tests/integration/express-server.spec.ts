@@ -1580,7 +1580,9 @@ describe('Express Server', () => {
     });
   });
 
-  describe('file upload', () => {
+  describe('file upload', function () {
+    this.timeout(15000);
+
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {

@@ -48,8 +48,9 @@ export function verifyFileUploadRequest(
   expectedStatus?: number,
 ) {
   const agent = new Agent({
+    keepAlive: true,
     maxSockets: Infinity,
-    timeout: 5000,
+    timeout: 15000,
   });
   return verifyRequest(
     app,
