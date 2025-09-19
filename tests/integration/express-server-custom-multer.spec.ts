@@ -2,10 +2,12 @@ import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import * as request from 'supertest';
 import { app } from '../fixtures/express/server';
 import TestAgent = require('supertest/lib/agent');
+import { Agent } from 'http';
+
 
 const basePath = '/v1';
 
@@ -34,7 +36,7 @@ describe('Express Server With custom multer', () => {
     });
 
     it('cannot post a file with wrong attribute name', async () => {
-      const formData = { wrongAttributeName: '@../package.json' };
+      const formData = { wrongAttributeName: join('@..', 'package.json') };
       verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
         expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
@@ -202,7 +204,13 @@ describe('Express Server With custom multer', () => {
 
   function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
     return new Promise<void>((resolve, reject) => {
+      const agent = new Agent({
+          keepAlive: true,
+          maxSockets: Infinity,
+          timeout: 10000
+      });
       methodOperation(request(app))
+        .agent(agent)
         .expect(expectedStatus)
         .end((err: any, res: any) => {
           let parsedError: any;

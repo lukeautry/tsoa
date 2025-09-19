@@ -5,6 +5,8 @@ import '../controllers/rootController';
 
 import { RegisterRoutes } from './routes';
 
+
+
 export const app: express.Express = express();
 export const router = express.Router();
 app.use('/v1', router);
