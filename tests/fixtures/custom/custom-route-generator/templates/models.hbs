@@ -44,9 +44,19 @@ export function getValidatedArgs(args: any, event: any): any[] {
             case 'header':
                 return validationService.ValidateParam(args[key], event.headers[name], name, fieldErrors, false, undefined);
             case 'body':
-                return validationService.ValidateParam(args[key], eventBody, name, fieldErrors, true, undefined);
+                const bodyFieldErrors: FieldErrors = {};
+                const bodyArgs = validationService.ValidateParam(args[key], eventBody, name, bodyFieldErrors, true, undefined);
+                Object.keys(bodyFieldErrors).forEach((key) => {
+                  fieldErrors[key] = { message: bodyFieldErrors[key].message }
+                });
+                return bodyArgs;
             case 'body-prop':
-                return validationService.ValidateParam(args[key], eventBody[name], name, fieldErrors, true, 'body.');
+                const bodyPropFieldErrors: FieldErrors = {};
+                const bodyPropArgs = validationService.ValidateParam(args[key], eventBody[name], name, bodyPropFieldErrors, true, 'body.');
+                Object.keys(bodyPropFieldErrors).forEach((key) => {
+                  fieldErrors[key] = { message: bodyPropFieldErrors[key].message }
+                });
+                return bodyPropArgs;
             case 'formData':
                 throw new Error('Multi-part form data not supported yet');
             case 'res':
