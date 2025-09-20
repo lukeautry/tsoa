@@ -125,30 +125,32 @@ export function RegisterRoutes(app: any) {
         const values = Object.keys(args).map(function(key) {
             const name = args[key].name;
             switch (args[key].in) {
-            case 'request':
-                return request;
-            case 'request-prop':
-                return ValidateParam(args[key], request[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
-            case 'query':
-                return ValidateParam(args[key], request.query[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
-            case 'path':
-                return ValidateParam(args[key], request.params[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
-            case 'header':
-                return ValidateParam(args[key], request.header(name), models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
-            case 'body':
-                const bodyFieldErrors: FieldErrors = {};
-                const bodyArgs = ValidateParam(args[key], request.body, models, name, bodyFieldErrors, true, undefined, {{{json minimalSwaggerConfig}}});
-                Object.keys(bodyFieldErrors).forEach((key) => {
-                  errorFields[key] = { message: bodyFieldErrors[key].message }
-                });
-                return bodyArgs;
-            case 'body-prop':
-                const bodyPropFieldErrors: FieldErrors = {};
-                const bodyPropArgs = ValidateParam(args[key], request.body[name], models, name, bodyPropFieldErrors, true, undefined, {{{json minimalSwaggerConfig}}});
-                Object.keys(bodyPropFieldErrors).forEach((key) => {
-                  errorFields[key] = { message: bodyPropFieldErrors[key].message }
-                });
-                return bodyPropArgs;
+                case 'request':
+                    return request;
+                case 'request-prop':
+                    return ValidateParam(args[key], request[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
+                case 'query':
+                    return ValidateParam(args[key], request.query[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
+                case 'path':
+                    return ValidateParam(args[key], request.params[name], models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
+                case 'header':
+                    return ValidateParam(args[key], request.header(name), models, name, errorFields, false, undefined, {{{json minimalSwaggerConfig}}});
+                case 'body': {
+                    const bodyFieldErrors: FieldErrors = {};
+                    const bodyArgs = ValidateParam(args[key], request.body, models, name, bodyFieldErrors, true, undefined, {{{json minimalSwaggerConfig}}});
+                    Object.keys(bodyFieldErrors).forEach((key) => {
+                      errorFields[key] = { message: bodyFieldErrors[key].message }
+                    });
+                    return bodyArgs;
+                }
+                case 'body-prop': {
+                    const bodyPropFieldErrors: FieldErrors = {};
+                    const bodyPropArgs = ValidateParam(args[key], request.body[name], models, name, bodyPropFieldErrors, true, undefined, {{{json minimalSwaggerConfig}}});
+                    Object.keys(bodyPropFieldErrors).forEach((key) => {
+                      errorFields[key] = { message: bodyPropFieldErrors[key].message }
+                    });
+                    return bodyPropArgs;
+                }
             }
         });
 
