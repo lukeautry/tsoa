@@ -1464,7 +1464,7 @@ describe('Hapi Server', () => {
   });
 
   describe('file upload', function () {
-    this.timeout(15000);
+    this.timeout(15_000);
 
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };

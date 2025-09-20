@@ -11,7 +11,7 @@ const basePath = '/v1';
 
 describe('Express Server With custom multer', () => {
   describe('file upload With custom multer instance', function () {
-    this.timeout(15000);
+    this.timeout(15_000);
 
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };

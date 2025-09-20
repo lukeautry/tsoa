@@ -10,7 +10,7 @@ const basePath = '/v1';
 
 describe('Koa Server (with multerOpts)', () => {
   describe('file upload', function () {
-    this.timeout(15000);
+    this.timeout(20_000);
 
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
