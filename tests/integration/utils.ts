@@ -2,8 +2,9 @@ import * as request from 'supertest';
 import TestAgent = require('supertest/lib/agent');
 import { Agent } from 'http';
 import { resolve } from 'path';
+import { App } from 'supertest/types';
 
-export function verifyRequest(app: any, verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
+export function verifyRequest(app: App, verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
   return new Promise<void>((resolve, reject) => {
     methodOperation(request(app))
       .expect(expectedStatus)
@@ -30,16 +31,16 @@ export function verifyRequest(app: any, verifyResponse: (err: any, res: request.
   });
 }
 
-export function verifyGetRequest(app: any, path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+export function verifyGetRequest(app: App, path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
   return verifyRequest(app, verifyResponse, request => request.get(path), expectedStatus);
 }
 
-export function verifyPostRequest(app: any, path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
+export function verifyPostRequest(app: App, path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
   return verifyRequest(app, verifyResponse, request => request.post(path).send(data), expectedStatus);
 }
 
 export function verifyFileUploadRequest(
-  app: any,
+  app: App,
   path: string,
   formData: any,
   verifyResponse: (err: any, res: request.Response) => any = () => {
