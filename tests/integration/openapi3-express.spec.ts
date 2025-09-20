@@ -237,44 +237,44 @@ describe('OpenAPI3 Express Server', () => {
         const body = JSON.parse(err.text);
 
         expect(body.fields['body.floatValue'].message).to.equal('Invalid float error message.');
-        expect(body.fields['body.floatValue'].value).to.equal(bodyModel.floatValue);
+        expect(body.fields['body.floatValue'].value).to.be.undefined;
         expect(body.fields['body.doubleValue'].message).to.equal('Invalid double error message.');
-        expect(body.fields['body.doubleValue'].value).to.equal(bodyModel.doubleValue);
+        expect(body.fields['body.doubleValue'].value).to.be.undefined;
         expect(body.fields['body.intValue'].message).to.equal('invalid integer number');
-        expect(body.fields['body.intValue'].value).to.equal(bodyModel.intValue);
+        expect(body.fields['body.intValue'].value).to.be.undefined;
         expect(body.fields['body.longValue'].message).to.equal('Custom Required long number.');
-        expect(body.fields['body.longValue'].value).to.equal(bodyModel.longValue);
+        expect(body.fields['body.longValue'].value).to.be.undefined;
         expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
-        expect(body.fields['body.booleanValue'].value).to.equal(bodyModel.booleanValue);
+        expect(body.fields['body.booleanValue'].value).to.be.undefined;
 
         expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
-        expect(body.fields['body.dateValue'].value).to.equal(bodyModel.dateValue);
+        expect(body.fields['body.dateValue'].value).to.be.undefined;
         expect(body.fields['body.datetimeValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-        expect(body.fields['body.datetimeValue'].value).to.equal(bodyModel.datetimeValue);
+        expect(body.fields['body.datetimeValue'].value).to.be.undefined;
 
         expect(body.fields['body.numberMax10'].message).to.equal('max 10');
-        expect(body.fields['body.numberMax10'].value).to.equal(bodyModel.numberMax10);
+        expect(body.fields['body.numberMax10'].value).to.be.undefined;
         expect(body.fields['body.numberMin5'].message).to.equal('min 5');
-        expect(body.fields['body.numberMin5'].value).to.equal(bodyModel.numberMin5);
+        expect(body.fields['body.numberMin5'].value).to.be.undefined;
         expect(body.fields['body.stringMax10Lenght'].message).to.equal('maxLength 10');
-        expect(body.fields['body.stringMax10Lenght'].value).to.equal(bodyModel.stringMax10Lenght);
+        expect(body.fields['body.stringMax10Lenght'].value).to.be.undefined;
         expect(body.fields['body.stringMin5Lenght'].message).to.equal('minLength 5');
-        expect(body.fields['body.stringMin5Lenght'].value).to.equal(bodyModel.stringMin5Lenght);
+        expect(body.fields['body.stringMin5Lenght'].value).to.be.undefined;
         expect(body.fields['body.stringPatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
-        expect(body.fields['body.stringPatternAZaz'].value).to.equal(bodyModel.stringPatternAZaz);
+        expect(body.fields['body.stringPatternAZaz'].value).to.be.undefined;
 
         expect(body.fields['body.arrayMax5Item'].message).to.equal('maxItems 5');
-        expect(body.fields['body.arrayMax5Item'].value).to.deep.equal(bodyModel.arrayMax5Item);
+        expect(body.fields['body.arrayMax5Item'].value).to.be.undefined;
         expect(body.fields['body.arrayMin2Item'].message).to.equal('minItems 2');
-        expect(body.fields['body.arrayMin2Item'].value).to.deep.equal(bodyModel.arrayMin2Item);
+        expect(body.fields['body.arrayMin2Item'].value).to.be.undefined;
         expect(body.fields['body.arrayUniqueItem'].message).to.equal('required unique array');
-        expect(body.fields['body.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
+        expect(body.fields['body.arrayUniqueItem'].value).to.be.undefined;
         expect(body.fields['body.intersection'].message).to.deep.equal(
           'Could not match the intersection against every type. Issues: [{"body.intersection.value2":{"message":"\'value2\' is required"}}]',
         );
-        expect(body.fields['body.intersection'].value).to.deep.equal(bodyModel.intersection);
+        expect(body.fields['body.intersection'].value).to.be.undefined;
         expect(body.fields['body.intersectionNoAdditional'].message).to.deep.equal('Could not match intersection against any of the possible combinations: [["value1","value2"]]');
-        expect(body.fields['body.intersectionNoAdditional'].value).to.deep.equal(bodyModel.intersectionNoAdditional);
+        expect(body.fields['body.intersectionNoAdditional'].value).to.be.undefined;
         expect(body.fields['body.mixedUnion'].message).to.equal(
           'Could not match the union against any of the items. ' +
             'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
@@ -284,40 +284,40 @@ describe('OpenAPI3 Express Server', () => {
         expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
 
         expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
-        expect(body.fields['body.nestedObject.floatValue'].value).to.equal(bodyModel.floatValue);
+        expect(body.fields['body.nestedObject.floatValue'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.doubleValue'].message).to.equal('Invalid double error message.');
-        expect(body.fields['body.nestedObject.doubleValue'].value).to.equal(bodyModel.doubleValue);
+        expect(body.fields['body.nestedObject.doubleValue'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.intValue'].message).to.equal('invalid integer number');
-        expect(body.fields['body.nestedObject.intValue'].value).to.equal(bodyModel.intValue);
+        expect(body.fields['body.nestedObject.intValue'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.longValue'].message).to.equal('Custom Required long number.');
-        expect(body.fields['body.nestedObject.longValue'].value).to.equal(bodyModel.longValue);
+        expect(body.fields['body.nestedObject.longValue'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.booleanValue'].message).to.equal('invalid boolean value');
-        expect(body.fields['body.nestedObject.booleanValue'].value).to.equal(bodyModel.booleanValue);
+        expect(body.fields['body.nestedObject.booleanValue'].value).to.be.undefined;
 
         expect(body.fields['body.nestedObject.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
-        expect(body.fields['body.nestedObject.dateValue'].value).to.equal(bodyModel.dateValue);
+        expect(body.fields['body.nestedObject.dateValue'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.datetimeValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-        expect(body.fields['body.nestedObject.datetimeValue'].value).to.equal(bodyModel.datetimeValue);
+        expect(body.fields['body.nestedObject.datetimeValue'].value).to.be.undefined;
 
         expect(body.fields['body.nestedObject.numberMax10'].message).to.equal('max 10');
-        expect(body.fields['body.nestedObject.numberMax10'].value).to.equal(bodyModel.numberMax10);
+        expect(body.fields['body.nestedObject.numberMax10'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.numberMin5'].message).to.equal('min 5');
-        expect(body.fields['body.nestedObject.numberMin5'].value).to.equal(bodyModel.numberMin5);
+        expect(body.fields['body.nestedObject.numberMin5'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.stringMax10Lenght'].message).to.equal('maxLength 10');
-        expect(body.fields['body.nestedObject.stringMax10Lenght'].value).to.equal(bodyModel.stringMax10Lenght);
+        expect(body.fields['body.nestedObject.stringMax10Lenght'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.stringMin5Lenght'].message).to.equal('minLength 5');
-        expect(body.fields['body.nestedObject.stringMin5Lenght'].value).to.equal(bodyModel.stringMin5Lenght);
+        expect(body.fields['body.nestedObject.stringMin5Lenght'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.stringPatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
-        expect(body.fields['body.nestedObject.stringPatternAZaz'].value).to.equal(bodyModel.stringPatternAZaz);
+        expect(body.fields['body.nestedObject.stringPatternAZaz'].value).to.be.undefined;
 
         expect(body.fields['body.nestedObject.arrayMax5Item'].message).to.equal('maxItems 5');
-        expect(body.fields['body.nestedObject.arrayMax5Item'].value).to.deep.equal(bodyModel.arrayMax5Item);
+        expect(body.fields['body.nestedObject.arrayMax5Item'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.arrayMin2Item'].message).to.equal('minItems 2');
-        expect(body.fields['body.nestedObject.arrayMin2Item'].value).to.deep.equal(bodyModel.arrayMin2Item);
+        expect(body.fields['body.nestedObject.arrayMin2Item'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.arrayUniqueItem'].message).to.equal('required unique array');
-        expect(body.fields['body.nestedObject.arrayUniqueItem'].value).to.deep.equal(bodyModel.arrayUniqueItem);
+        expect(body.fields['body.nestedObject.arrayUniqueItem'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.model'].message).to.equal('invalid object');
-        expect(body.fields['body.nestedObject.model'].value).to.deep.equal(bodyModel.model);
+        expect(body.fields['body.nestedObject.model'].value).to.be.undefined;
         expect(body.fields['body.nestedObject.mixedUnion'].message).to.equal(
           'Could not match the union against any of the items. ' +
             'Issues: [{"body.nestedObject.mixedUnion":{"message":"invalid string value","value":123}},' +
@@ -367,6 +367,52 @@ describe('OpenAPI3 Express Server', () => {
       400,
     );
   });
+
+    describe('BodyProp', () => {
+      it('should valid body props validate', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { 'name': 'Nick Yang' },
+          (_err, res) => {
+            const { body } = res;
+
+            expect(body.name).to.equal("Nick Yang-validated");
+          },
+          200,
+        )
+      });
+
+      it('should invalid body props missing required field', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { 'incorrect-field': 'incorrect' },
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+
+            expect(body.fields['body.name'].message).to.equal("'name' is required");
+            expect(body.fields['body.name'].value).to.be.undefined;
+          },
+          400,
+        )
+      });
+
+      it('should invalid body props incorrect type', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { 'name': 1234 },
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+
+            expect(body.fields['body.name'].message).to.equal("invalid string value");
+            expect(body.fields['body.name'].value).to.be.undefined;
+          },
+          400,
+        )
+      });
+    });
 
   describe('@Res', () => {
     it('Should return on @Res', () => {
