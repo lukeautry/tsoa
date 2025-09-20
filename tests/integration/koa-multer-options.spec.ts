@@ -4,7 +4,6 @@ import { server } from '../fixtures/koa-multer-options/server';
 import * as os from 'os';
 import { unlinkSync, writeFileSync } from 'fs';
 import { verifyFileUploadRequest } from './utils';
-import TestAgent = require('supertest/lib/agent');
 
 const app = server;
 const basePath = '/v1';

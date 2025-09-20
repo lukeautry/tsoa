@@ -20,7 +20,6 @@ import {
   ValidateModel,
 } from '../fixtures/testModel';
 import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
-import TestAgent = require('supertest/lib/agent');
 
 const basePath = '/v1';
 

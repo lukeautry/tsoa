@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
 import { base64image } from '../fixtures/base64image';
 import { app } from '../fixtures/express-dynamic-controllers/server';
 import {
@@ -15,41 +14,41 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
-import TestAgent = require('supertest/lib/agent');
+import { verifyGetRequest, verifyPostRequest, verifyRequest } from './utils';
 
 const basePath = '/v1';
 
 describe('Express Server', () => {
   it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath + '/', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request to root controller`s method path', () => {
-    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/rootControllerMethodWithPath', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest/Current', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/Current', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('respects toJSON for class serialization', () => {
-    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
       const getterClass = res.body;
       expect(getterClass).to.haveOwnProperty('a');
       expect(getterClass.a).to.equal('hello, world');
@@ -58,7 +57,7 @@ describe('Express Server', () => {
   });
 
   it('can handle get request with collection return value', () => {
-    return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/Multi', (_err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
       models.forEach(m => {
@@ -68,14 +67,14 @@ describe('Express Server', () => {
   });
 
   it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('injects express request in parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/Request`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/Request`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
       expect(model.stringValue).to.equal('fancyStringForContext');
@@ -84,6 +83,7 @@ describe('Express Server', () => {
 
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
@@ -95,6 +95,7 @@ describe('Express Server', () => {
 
   it('returns error and custom error message', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
@@ -109,7 +110,7 @@ describe('Express Server', () => {
     const boolValue = false;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/${numberValue}/${boolValue.toString()}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/${numberValue}/${boolValue.toString()}/${stringValue}?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.numberValue).to.equal(numberValue);
       expect(model.boolValue).to.equal(boolValue);
@@ -121,7 +122,7 @@ describe('Express Server', () => {
     const numberValue = 10;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/1/true/testing?booleanParam=true&stringParam=test1234&numberParam=${numberValue}&optionalStringParam=${stringValue}`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.optionalString).to.equal(stringValue);
     });
@@ -132,7 +133,7 @@ describe('Express Server', () => {
     const boolValue = true;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(basePath + `/GetTest/AllQueriesInOneObject?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/AllQueriesInOneObject?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
       const queryParams = res.body as TestModel;
 
       expect(queryParams.numberValue).to.equal(numberValue);
@@ -149,7 +150,7 @@ describe('Express Server', () => {
       baz: true,
     };
 
-    return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
       const queryParams = res.body as TestModel;
 
       expect(queryParams.anyType.foo).to.equal(object.foo);
@@ -166,6 +167,7 @@ describe('Express Server', () => {
     };
 
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
       (err, _res) => {
         const body = JSON.parse(err.text);
@@ -181,7 +183,7 @@ describe('Express Server', () => {
       bar: 10,
     };
 
-    return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
       const queryParams = res.body as TestModel;
 
       expect(queryParams.anyType.foo).to.equal(Number(object.foo));
@@ -194,13 +196,13 @@ describe('Express Server', () => {
 
     return Promise.all(
       invalidValues.map((value: any) => {
-        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
       }),
     );
   });
 
   it('parses buffer parameter', () => {
-    return verifyGetRequest(`${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, _res) => {
+    return verifyGetRequest(app, `${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, _res) => {
       return;
     });
   });
@@ -208,7 +210,7 @@ describe('Express Server', () => {
   it('parsed body parameters', () => {
     const data = getFakeModel();
 
-    return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
+    return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, res: any) => {
       const model = res.body as TestModel;
       expect(model).to.deep.equal(model);
     });
@@ -218,6 +220,7 @@ describe('Express Server', () => {
     const data = getFakeModel();
     const path = basePath + '/PostTest/WithDifferentReturnCode';
     return verifyPostRequest(
+      app,
       path,
       data,
       (_err, _res) => {
@@ -230,7 +233,7 @@ describe('Express Server', () => {
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
-    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
+    return verifyPostRequest(app, basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
       const model = res.body as TestClassModel;
       expect(model.id).to.equal(700); // this gets changed on the server
     });
@@ -244,7 +247,7 @@ describe('Express Server', () => {
         const data = getFakeModel();
         data.stringValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -254,6 +257,7 @@ describe('Express Server', () => {
     data.dateValue = '2016-01-01T00:00:00Z' as any;
 
     return verifyPostRequest(
+      app,
       basePath + '/PostTest',
       data,
       (_err: any, res: any) => {
@@ -265,6 +269,7 @@ describe('Express Server', () => {
 
   it('should parse valid date as query param', () => {
     return verifyGetRequest(
+      app,
       basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z',
       (_err: any, res: any) => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
@@ -281,7 +286,7 @@ describe('Express Server', () => {
         const data = getFakeModel();
         data.dateValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -294,13 +299,14 @@ describe('Express Server', () => {
         const data = getFakeModel();
         data.numberValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
 
   it('returns error if missing required path parameter', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         expect(err.text).to.contain('Cannot GET');
@@ -314,6 +320,7 @@ describe('Express Server', () => {
     data.dateValue = 1 as any;
 
     return verifyPostRequest(
+      app,
       basePath + '/PostTest',
       data,
       (err: any, _res: any) => {
@@ -327,6 +334,7 @@ describe('Express Server', () => {
 
   it('returns error if thrown in controller', () => {
     return verifyGetRequest(
+      app,
       basePath + '/GetTest/ThrowsError',
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
@@ -339,6 +347,7 @@ describe('Express Server', () => {
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/normalStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -349,6 +358,7 @@ describe('Express Server', () => {
 
     it('should normal status code with false boolean result', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/falseStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -359,6 +369,7 @@ describe('Express Server', () => {
 
     it('should normal status code with 0 result', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/zeroStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -369,6 +380,7 @@ describe('Express Server', () => {
 
     it('should no content status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/noContentStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(204);
@@ -379,6 +391,7 @@ describe('Express Server', () => {
 
     it('should custom status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/customStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(205);
@@ -389,6 +402,7 @@ describe('Express Server', () => {
 
     it('should custom header', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/customHeader`,
         (_err, res) => {
           expect(res.status).to.equal(204);
@@ -402,6 +416,7 @@ describe('Express Server', () => {
 
     it('should unavailable for legal reasons status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/unavailableForLegalReasonsStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(451);
@@ -416,6 +431,7 @@ describe('Express Server', () => {
       const minDate = '2019-01-01';
       const maxDate = '2015-01-01';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/date?minDateValue=${minDate}&maxDateValue=${maxDate}`,
         (_err, res) => {
           const { body } = res;
@@ -429,6 +445,7 @@ describe('Express Server', () => {
     it('should invalid minDate and maxDate validation of date type', () => {
       const date = '2017-01-01';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -445,6 +462,7 @@ describe('Express Server', () => {
       const minDate = '2019-01-01T00:00:00';
       const maxDate = '2015-01-01T00:00:00';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/datetime?minDateValue=${minDate}&maxDateValue=${maxDate}`,
         (_err, res) => {
           const { body } = res;
@@ -458,6 +476,7 @@ describe('Express Server', () => {
     it('should invalid minDate and maxDate validation of datetime type', () => {
       const date = '2017-01-01T00:00:00';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -472,6 +491,7 @@ describe('Express Server', () => {
 
     it('should valid max and min validation of integer type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/integer?value=6&value_max=2`,
         (_err, res) => {
           const { body } = res;
@@ -485,6 +505,7 @@ describe('Express Server', () => {
     it('should invalid max and min validation of integer type', () => {
       const value = 4;
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/integer?value=${value}&value_max=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -499,6 +520,7 @@ describe('Express Server', () => {
 
     it('should valid max and min validation of float type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/float?minValue=5.6&maxValue=3.4`,
         (_err, res) => {
           const { body } = res;
@@ -512,6 +534,7 @@ describe('Express Server', () => {
     it('should invalid max and min validation of float type', () => {
       const value = 4.5;
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -526,6 +549,7 @@ describe('Express Server', () => {
 
     it('should valid validation of boolean type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/boolean?boolValue=true`,
         (_err, res) => {
           const { body } = res;
@@ -538,6 +562,7 @@ describe('Express Server', () => {
     it('should invalid validation of boolean type', () => {
       const value = 'true0001';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/boolean?boolValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -550,6 +575,7 @@ describe('Express Server', () => {
 
     it('should valid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf&quotedPatternValue=A`,
         (_err, res) => {
           const { body } = res;
@@ -566,6 +592,7 @@ describe('Express Server', () => {
     it('should invalid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       const value = '1234';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}&quotedPatternValue=A@`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -656,6 +683,7 @@ describe('Express Server', () => {
       };
 
       return verifyPostRequest(
+        app,
         basePath + `/Validate/body`,
         bodyModel,
         (_err, res) => {
@@ -791,6 +819,7 @@ describe('Express Server', () => {
       } as any;
 
       return verifyPostRequest(
+        app,
         basePath + `/Validate/body`,
         bodyModel,
         (err, _res) => {
@@ -909,6 +938,7 @@ describe('Express Server', () => {
 
     it('should custom required error message', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/customRequiredErrorMsg`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -921,6 +951,7 @@ describe('Express Server', () => {
     it('should custom invalid datatype error message', () => {
       const value = '112ab';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/custominvalidErrorMsg?longValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -936,7 +967,7 @@ describe('Express Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/map', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/map', data, (_err, res) => {
         const response = res.body as number[];
         expect(response.sort()).to.eql([-1, 0, 1]);
       });
@@ -949,6 +980,7 @@ describe('Express Server', () => {
         key3: '-val1',
       };
       return verifyPostRequest(
+        app,
         basePath + '/Validate/map',
         data,
         (err, _res) => {
@@ -965,7 +997,7 @@ describe('Express Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([-1, '0', 1]);
       });
@@ -979,7 +1011,7 @@ describe('Express Server', () => {
         string: '',
         zero: 0,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([[], '', 0, false, null]);
       });
@@ -993,62 +1025,62 @@ describe('Express Server', () => {
 
     describe('Only API key', () => {
       it('returns the correct user for user id 1', () => {
-        return verifyGetRequest(basePath + '/SecurityTest?access_token=abc123456', (_err, res) => {
+        return verifyGetRequest(app, basePath + '/SecurityTest?access_token=abc123456', (_err, res) => {
           const model = res.body as UserResponseModel;
           expect(model.id).to.equal(1);
         });
       });
 
       it('returns the correct user for user id 2', () => {
-        return verifyGetRequest(basePath + '/SecurityTest?access_token=xyz123456', (_err, res) => {
+        return verifyGetRequest(app, basePath + '/SecurityTest?access_token=xyz123456', (_err, res) => {
           const model = res.body as UserResponseModel;
           expect(model.id).to.equal(2);
         });
       });
 
       it('returns 401 for an invalid key', () => {
-        return verifyGetRequest(basePath + '/SecurityTest?access_token=invalid', emptyHandler, 401);
+        return verifyGetRequest(app, basePath + '/SecurityTest?access_token=invalid', emptyHandler, 401);
       });
     });
 
     describe('API key or tsoa auth', () => {
       it('returns 200 if the API key is correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 200);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
       });
 
       it('returns 200 if tsoa auth is correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 200);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if neither API key nor tsoa auth are correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
       });
     });
 
     describe('API key and tsoa auth', () => {
       it('returns 200 if API and tsoa auth are correct', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 200);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if API key is incorrect', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
       });
 
       it('returns 401 if tsoa auth is incorrect', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
       });
     });
   });
 
   describe('Parameter data', () => {
     it('parses query parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1061,7 +1093,7 @@ describe('Express Server', () => {
     });
 
     it('parses queries parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1074,7 +1106,7 @@ describe('Express Server', () => {
     });
 
     it('parses path parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1087,6 +1119,7 @@ describe('Express Server', () => {
 
     it('parses header parameters', () => {
       return verifyRequest(
+        app,
         (_err, res) => {
           const model = res.body as ParameterTestModel;
           expect(model.firstname).to.equal('Tony');
@@ -1111,7 +1144,7 @@ describe('Express Server', () => {
     });
 
     it('parses request parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1130,7 +1163,7 @@ describe('Express Server', () => {
         human: true,
         weight: 50,
       };
-      return verifyPostRequest(`${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
+      return verifyPostRequest(app, `${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.age).to.equal(26);
         expect(model.firstname).to.equal('Nick');
@@ -1150,7 +1183,7 @@ describe('Express Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/ParameterTest/Body', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1170,7 +1203,7 @@ describe('Express Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1182,28 +1215,28 @@ describe('Express Server', () => {
     });
 
     it('can get request with generic type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModel', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModel', (_err, res) => {
         const model = res.body as GenericModel<TestModel>;
         expect(model.result.id).to.equal(1);
       });
     });
 
     it('can get request with generic array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModelArray', (_err, res) => {
         const model = res.body as GenericModel<TestModel[]>;
         expect(model.result[0].id).to.equal(1);
       });
     });
 
     it('can get request with generic primative type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitive', (_err, res) => {
         const model = res.body as GenericModel<string>;
         expect(model.result).to.equal('a string');
       });
     });
 
     it('can get request with generic primative array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
         const model = res.body as GenericModel<string[]>;
         expect(model.result[0]).to.equal('string one');
       });
@@ -1214,47 +1247,12 @@ describe('Express Server', () => {
         name: 'something',
         value: getFakeModel(),
       };
-      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/PostTest/GenericBody', data, (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
       });
     });
   });
-
-  function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
-  }
-
-  function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
-  }
-
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
-    return new Promise<void>((resolve, reject) => {
-      methodOperation(request(app))
-        .expect(expectedStatus)
-        .end((err: any, res: any) => {
-          let parsedError: any;
-          try {
-            parsedError = JSON.parse(res.error);
-          } catch (err) {
-            parsedError = res?.error;
-          }
-
-          if (err) {
-            verifyResponse(err, res);
-            reject({
-              error: err,
-              response: parsedError,
-            });
-            return;
-          }
-
-          verifyResponse(parsedError, res);
-          resolve();
-        });
-    });
-  }
 
   function getFakeModel(): TestModel {
     // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation

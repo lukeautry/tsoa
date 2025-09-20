@@ -7,7 +7,6 @@ import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { server } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
 import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
-import TestAgent = require('supertest/lib/agent');
 
 const app = server;
 const basePath = '/v1';
