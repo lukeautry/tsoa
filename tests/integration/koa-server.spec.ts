@@ -3,24 +3,24 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
-import * as request from 'supertest';
 import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { server } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
-import TestAgent = require('supertest/lib/agent');
+import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
 
+const app = server;
 const basePath = '/v1';
 
 describe('Koa Server', () => {
   it('can handle get request to root controller`s path', () => {
-    return verifyGetRequest(basePath, (_err, res) => {
+    return verifyGetRequest(app, basePath, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request to root controller`s method path', () => {
-    return verifyGetRequest(basePath + '/rootControllerMethodWithPath', (err, res) => {
+    return verifyGetRequest(app, basePath + '/rootControllerMethodWithPath', (err, res) => {
       expect(err).to.equal(false);
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
@@ -28,21 +28,21 @@ describe('Koa Server', () => {
   });
 
   it('can handle get request with no path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('can handle get request with path argument', () => {
-    return verifyGetRequest(basePath + '/GetTest/Current', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/Current', (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
   });
 
   it('respects toJSON for class serialization', () => {
-    return verifyGetRequest(basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
       const getterClass = res.body;
       expect(getterClass).to.haveOwnProperty('a');
       expect(getterClass.a).to.equal('hello, world');
@@ -51,7 +51,7 @@ describe('Koa Server', () => {
   });
 
   it('can handle get request with collection return value', () => {
-    return verifyGetRequest(basePath + '/GetTest/Multi', (_err, res) => {
+    return verifyGetRequest(app, basePath + '/GetTest/Multi', (_err, res) => {
       const models = res.body as TestModel[];
       expect(models.length).to.equal(3);
       models.forEach(m => {
@@ -61,7 +61,7 @@ describe('Koa Server', () => {
   });
 
   it('can handle get request with path and query parameters', () => {
-    return verifyGetRequest(basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+    return verifyGetRequest(app, basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
       const model = res.body as TestModel;
       expect(model.id).to.equal(1);
     });
@@ -69,6 +69,7 @@ describe('Koa Server', () => {
 
   it('returns error if missing required query parameter', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
@@ -80,6 +81,7 @@ describe('Koa Server', () => {
 
   it('returns error and custom error message', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
@@ -92,7 +94,7 @@ describe('Koa Server', () => {
   it('parsed body parameters', () => {
     const data = getFakeModel();
 
-    return verifyPostRequest(basePath + '/PostTest', data, (_err: any, res: any) => {
+    return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, res: any) => {
       const model = res.body as TestModel;
       expect(model).to.deep.equal(data);
     });
@@ -102,6 +104,7 @@ describe('Koa Server', () => {
     const data = getFakeModel();
     const path = basePath + '/PostTest/WithDifferentReturnCode';
     return verifyPostRequest(
+      app,
       path,
       data,
       (_err, _res) => {
@@ -114,7 +117,7 @@ describe('Koa Server', () => {
   it('parses class model as body parameter', () => {
     const data = getFakeClassModel();
 
-    return verifyPostRequest(basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
+    return verifyPostRequest(app, basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
       const model = res.body as TestClassModel;
       expect(model.id).to.equal(700); // this gets changed on the server
     });
@@ -123,6 +126,7 @@ describe('Koa Server', () => {
   it('correctly handles OPTIONS requests', () => {
     const path = basePath + '/OptionsTest/Current';
     return verifyRequest(
+      app,
       (_err, res) => {
         expect(res.text).to.equal('');
       },
@@ -139,7 +143,7 @@ describe('Koa Server', () => {
         const data = getFakeModel();
         data.stringValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -149,6 +153,7 @@ describe('Koa Server', () => {
     data.dateValue = '2016-01-01T00:00:00Z' as any;
 
     return verifyPostRequest(
+      app,
       basePath + '/PostTest',
       data,
       (_err: any, res: any) => {
@@ -160,6 +165,7 @@ describe('Koa Server', () => {
 
   it('should parse valid date as query param', () => {
     return verifyGetRequest(
+      app,
       basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z',
       (_err: any, res: any) => {
         expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
@@ -176,7 +182,7 @@ describe('Koa Server', () => {
         const data = getFakeModel();
         data.dateValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -189,13 +195,14 @@ describe('Koa Server', () => {
         const data = getFakeModel();
         data.numberValue = value;
 
-        return verifyPostRequest(basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
       }),
     );
   });
 
   it('returns error if missing required path parameter', () => {
     return verifyGetRequest(
+      app,
       basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
       (err: any, _res: any) => {
         expect(err.text).to.equal('Not Found');
@@ -209,7 +216,7 @@ describe('Koa Server', () => {
 
     return Promise.all(
       invalidValues.map((value: any) => {
-        return verifyPostRequest(basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
+        return verifyPostRequest(app, basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
       }),
     );
   });
@@ -219,6 +226,7 @@ describe('Koa Server', () => {
     data.dateValue = 1 as any;
 
     return verifyPostRequest(
+      app,
       basePath + '/PostTest',
       data,
       (err: any, _res: any) => {
@@ -232,6 +240,7 @@ describe('Koa Server', () => {
 
   it('returns error if thrown in controller', () => {
     return verifyGetRequest(
+      app,
       basePath + '/GetTest/ThrowsError',
       (err: any, _res: any) => {
         expect(err.text).to.equal('error thrown');
@@ -243,6 +252,7 @@ describe('Koa Server', () => {
   it('can invoke middlewares installed in routes and paths', () => {
     expect(stateOf('route')).to.be.undefined;
     return verifyGetRequest(
+      app,
       basePath + '/MiddlewareTestKoa/test1',
       (_err, _res) => {
         expect(stateOf('route')).to.be.true;
@@ -256,6 +266,7 @@ describe('Koa Server', () => {
   describe('Controller', () => {
     it('should normal status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/normalStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -266,6 +277,7 @@ describe('Koa Server', () => {
 
     it('should normal status code with false boolean result', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/falseStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -276,6 +288,7 @@ describe('Koa Server', () => {
 
     it('should normal status code with 0 result', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/zeroStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(200);
@@ -286,6 +299,7 @@ describe('Koa Server', () => {
 
     it('should no content status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/noContentStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(204);
@@ -296,6 +310,7 @@ describe('Koa Server', () => {
 
     it('should custom status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/customStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(205);
@@ -306,6 +321,7 @@ describe('Koa Server', () => {
 
     it('should custom header', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/customHeader`,
         (_err, res) => {
           expect(res.status).to.equal(204);
@@ -319,6 +335,7 @@ describe('Koa Server', () => {
 
     it('should unavailable for legal reasons status code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Controller/unavailableForLegalReasonsStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(451);
@@ -331,6 +348,7 @@ describe('Koa Server', () => {
   describe('Custom Content-Type', () => {
     it('should return custom content-type if given', () => {
       return verifyPostRequest(
+        app,
         basePath + '/MediaTypeTest/Custom',
         { name: 'foo' },
         (_err, res) => {
@@ -344,6 +362,7 @@ describe('Koa Server', () => {
   describe('NoExtends', () => {
     it('should ignore SuccessResponse code and use default code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/NoExtends/customSuccessResponseCode`,
         (_err, res) => {
           expect(res.status).to.equal(202);
@@ -354,6 +373,7 @@ describe('Koa Server', () => {
 
     it('should ignore SuccessResponse enum code and use default code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/NoExtends/enumSuccessResponseCode`,
         (_err, res) => {
           expect(res.status).to.equal(202);
@@ -364,6 +384,7 @@ describe('Koa Server', () => {
 
     it('should ignore SuccessResponse 2XX code and use default code', () => {
       return verifyGetRequest(
+        app,
         basePath + `/NoExtends/rangedSuccessResponse`,
         (_err, res) => {
           expect(res.status).to.equal(204);
@@ -378,6 +399,7 @@ describe('Koa Server', () => {
       const minDate = '2019-01-01';
       const maxDate = '2015-01-01';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/date?minDateValue=${minDate}&maxDateValue=${maxDate}`,
         (_err, res) => {
           const { body } = res;
@@ -391,6 +413,7 @@ describe('Koa Server', () => {
     it('should invalid minDate and maxDate validation of date type', () => {
       const date = '2017-01-01';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -407,6 +430,7 @@ describe('Koa Server', () => {
       const minDate = '2019-01-01T00:00:00';
       const maxDate = '2015-01-01T00:00:00';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/datetime?minDateValue=${minDate}&maxDateValue=${maxDate}`,
         (_err, res) => {
           const { body } = res;
@@ -420,6 +444,7 @@ describe('Koa Server', () => {
     it('should invalid minDate and maxDate validation of datetime type', () => {
       const date = '2017-01-01T00:00:00';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -434,6 +459,7 @@ describe('Koa Server', () => {
 
     it('should valid max and min validation of integer type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/integer?value=6&value_max=2`,
         (_err, res) => {
           const { body } = res;
@@ -447,6 +473,7 @@ describe('Koa Server', () => {
     it('should invalid max and min validation of integer type', () => {
       const value = 4;
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/integer?value=${value}&value_max=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -461,6 +488,7 @@ describe('Koa Server', () => {
 
     it('should valid max and min validation of float type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/float?minValue=5.6&maxValue=3.4`,
         (_err, res) => {
           const { body } = res;
@@ -474,6 +502,7 @@ describe('Koa Server', () => {
     it('should invalid max and min validation of float type', () => {
       const value = 4.5;
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -488,6 +517,7 @@ describe('Koa Server', () => {
 
     it('should valid validation of boolean type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/boolean?boolValue=true`,
         (_err, res) => {
           const { body } = res;
@@ -500,6 +530,7 @@ describe('Koa Server', () => {
     it('should invalid validation of boolean type', () => {
       const value = 'true0001';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/boolean?boolValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -512,6 +543,7 @@ describe('Koa Server', () => {
 
     it('should valid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf&quotedPatternValue=A`,
         (_err, res) => {
           const { body } = res;
@@ -528,6 +560,7 @@ describe('Koa Server', () => {
     it('should invalid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
       const value = '1234';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}&quotedPatternValue=A@`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -618,6 +651,7 @@ describe('Koa Server', () => {
       };
 
       return verifyPostRequest(
+        app,
         basePath + `/Validate/body`,
         bodyModel,
         (_err, res) => {
@@ -753,6 +787,7 @@ describe('Koa Server', () => {
       } as any;
 
       return verifyPostRequest(
+        app,
         basePath + `/Validate/body`,
         bodyModel,
         (err, _res) => {
@@ -869,6 +904,7 @@ describe('Koa Server', () => {
 
     it('should custom required error message', () => {
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/customRequiredErrorMsg`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -881,6 +917,7 @@ describe('Koa Server', () => {
     it('should custom invalid datatype error message', () => {
       const value = '112ab';
       return verifyGetRequest(
+        app,
         basePath + `/Validate/parameter/custominvalidErrorMsg?longValue=${value}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -896,7 +933,7 @@ describe('Koa Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/map', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/map', data, (_err, res) => {
         const response = res.body as number[];
         expect(response.sort()).to.eql([-1, 0, 1]);
       });
@@ -909,6 +946,7 @@ describe('Koa Server', () => {
         key3: '-val1',
       };
       return verifyPostRequest(
+        app,
         basePath + '/Validate/map',
         data,
         (err, _res) => {
@@ -925,7 +963,7 @@ describe('Koa Server', () => {
         key2: 1,
         key3: -1,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([-1, '0', 1]);
       });
@@ -939,7 +977,7 @@ describe('Koa Server', () => {
         string: '',
         zero: 0,
       };
-      return verifyPostRequest(basePath + '/Validate/mapAny', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
         const response = res.body as any[];
         expect(response.sort()).to.eql([[], '', 0, false, null]);
       });
@@ -952,27 +990,28 @@ describe('Koa Server', () => {
     };
 
     it('can handle get request with access_token user id == 1', () => {
-      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=abc123456', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=abc123456', (_err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(1);
       });
     });
 
     it('can handle get request with access_token user id == 2', () => {
-      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=xyz123456', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=xyz123456', (_err, res) => {
         const model = res.body as Model;
         expect(model.id).to.equal(2);
       });
     });
 
     it('returns response with header set in authentication middleware', () => {
-      return verifyGetRequest(basePath + '/SecurityTest/Koa?access_token=def123456', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=def123456', (_err, res) => {
         expect(res.headers['some-header']).to.equal('someValueFromAuthenticationMiddleware');
       });
     });
 
     it('returns custom response set in authentication middleware', () => {
       return verifyGetRequest(
+        app,
         basePath + '/SecurityTest/Koa?access_token=ghi123456',
         (_err, res) => {
           expect(res.text).to.equal('some custom response');
@@ -984,6 +1023,7 @@ describe('Koa Server', () => {
     it('resolves right away after first success', () => {
       const path = '/SecurityTest/ApiKeyOrTimesOut?access_token=abc123456';
       return verifyGetRequest(
+        app,
         basePath + path,
         (_err, res) => {
           const model = res.body as Model;
@@ -997,6 +1037,7 @@ describe('Koa Server', () => {
       it('returns 200 if the API key is correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
         return verifyGetRequest(
+          app,
           basePath + path,
           (_err, res) => {
             const model = res.body as Model;
@@ -1008,17 +1049,18 @@ describe('Koa Server', () => {
 
       it('returns 200 if tsoa auth is correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 200);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
       });
 
       it('returns 200 if multiple auth handlers are correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 200);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
       });
 
       it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
         return verifyGetRequest(
+          app,
           basePath + path,
           err => {
             expect(err.text).to.equal('api_key');
@@ -1029,6 +1071,7 @@ describe('Koa Server', () => {
 
       it('should pass through error if controller method crashes', () => {
         return verifyGetRequest(
+          app,
           basePath + `/SecurityTest/ServerErrorOauthOrApiKey?access_token=abc123456`,
           (_err, res) => {
             expect(res.status).to.equal(500);
@@ -1042,6 +1085,7 @@ describe('Koa Server', () => {
       it('returns 200 if API and tsoa auth pass validation, resolved with user from first key in object', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
         return verifyGetRequest(
+          app,
           basePath + path,
           (_err, res) => {
             const model = res.body as Model;
@@ -1053,16 +1097,17 @@ describe('Koa Server', () => {
 
       it('returns 401 if API key is incorrect', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
       });
 
       it('returns 401 if tsoa auth is incorrect', () => {
         const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
-        return verifyGetRequest(basePath + path, emptyHandler, 401);
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
       });
 
       it('should pass through error if controller method crashes', () => {
         return verifyGetRequest(
+          app,
           basePath + `/SecurityTest/ServerErrorOauthAndApiKey?access_token=abc123456&tsoa=abc123456`,
           (_err, res) => {
             expect(res.status).to.equal(500);
@@ -1075,7 +1120,7 @@ describe('Koa Server', () => {
 
   describe('Parameter data', () => {
     it('parses query parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1088,7 +1133,7 @@ describe('Koa Server', () => {
     });
 
     it('parses queries parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1107,7 +1152,7 @@ describe('Koa Server', () => {
         baz: true,
       };
 
-      return verifyGetRequest(basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+      return verifyGetRequest(app, basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
         const queryParams = res.body as TestModel;
 
         expect(queryParams.anyType.foo).to.equal(object.foo);
@@ -1124,6 +1169,7 @@ describe('Koa Server', () => {
       };
 
       return verifyGetRequest(
+        app,
         basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
         (err, _res) => {
           const body = JSON.parse(err.text);
@@ -1139,7 +1185,7 @@ describe('Koa Server', () => {
         bar: 10,
       };
 
-      return verifyGetRequest(basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+      return verifyGetRequest(app, basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
         const queryParams = res.body as TestModel;
 
         expect(queryParams.anyType.foo).to.equal(Number(object.foo));
@@ -1148,7 +1194,7 @@ describe('Koa Server', () => {
     });
 
     it('parses path parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1161,6 +1207,7 @@ describe('Koa Server', () => {
 
     it('parses header parameters', () => {
       return verifyRequest(
+        app,
         (_err, res) => {
           const model = res.body as ParameterTestModel;
           expect(model.firstname).to.equal('Tony');
@@ -1185,7 +1232,7 @@ describe('Koa Server', () => {
     });
 
     it('parses request parameters', () => {
-      return verifyGetRequest(basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1205,7 +1252,7 @@ describe('Koa Server', () => {
         human: true,
         weight: 50,
       };
-      return verifyPostRequest(`${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
+      return verifyPostRequest(app, `${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.age).to.equal(26);
         expect(model.firstname).to.equal('Nick');
@@ -1225,7 +1272,7 @@ describe('Koa Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/Body', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/ParameterTest/Body', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1245,7 +1292,7 @@ describe('Koa Server', () => {
         lastname: 'Stark',
         weight: 82.1,
       };
-      return verifyPostRequest(basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
         const model = res.body as ParameterTestModel;
         expect(model.firstname).to.equal('Tony');
         expect(model.lastname).to.equal('Stark');
@@ -1257,28 +1304,28 @@ describe('Koa Server', () => {
     });
 
     it('can get request with generic type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModel', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModel', (_err, res) => {
         const model = res.body as GenericModel<TestModel>;
         expect(model.result.id).to.equal(1);
       });
     });
 
     it('can get request with generic array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericModelArray', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModelArray', (_err, res) => {
         const model = res.body as GenericModel<TestModel[]>;
         expect(model.result[0].id).to.equal(1);
       });
     });
 
     it('can get request with generic primative type', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitive', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitive', (_err, res) => {
         const model = res.body as GenericModel<string>;
         expect(model.result).to.equal('a string');
       });
     });
 
     it('can get request with generic primative array', () => {
-      return verifyGetRequest(basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
         const model = res.body as GenericModel<string[]>;
         expect(model.result[0]).to.equal('string one');
       });
@@ -1289,7 +1336,7 @@ describe('Koa Server', () => {
         name: 'something',
         value: getFakeModel(),
       };
-      return verifyPostRequest(basePath + '/PostTest/GenericBody', data, (_err, res) => {
+      return verifyPostRequest(app, basePath + '/PostTest/GenericBody', data, (_err, res) => {
         const model = res.body as TestModel;
         expect(model.id).to.equal(1);
       });
@@ -1298,6 +1345,7 @@ describe('Koa Server', () => {
     describe('@Res', () => {
       it('Should return on @Res', () => {
         return verifyGetRequest(
+          app,
           basePath + '/GetTest/Res',
           (_err, res) => {
             const model = res.body as TestModel;
@@ -1310,6 +1358,7 @@ describe('Koa Server', () => {
 
       it('Should return on @Res with alias', () => {
         return verifyGetRequest(
+          app,
           basePath + '/GetTest/Res_Alias',
           (_err, res) => {
             const model = res.body as TestModel;
@@ -1323,6 +1372,7 @@ describe('Koa Server', () => {
       [400, 500].forEach(statusCode => {
         it('Should support multiple status codes with the same @Res structure', () => {
           return verifyGetRequest(
+            app,
             basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
             (_err, res) => {
               const model = res.body as TestModel;
@@ -1335,6 +1385,7 @@ describe('Koa Server', () => {
 
         it('Should support multiple status codes with the same @Res structure with alias', () => {
           return verifyGetRequest(
+            app,
             basePath + `/GetTest/MultipleStatusCodeRes_Alias?statusCode=${statusCode}`,
             (_err, res) => {
               const model = res.body as TestModel;
@@ -1348,6 +1399,7 @@ describe('Koa Server', () => {
 
       it('Should not modify the response after headers sent', () => {
         return verifyGetRequest(
+          app,
           basePath + '/GetTest/MultipleRes',
           (_err, res) => {
             const model = res.body as TestModel;
@@ -1360,6 +1412,7 @@ describe('Koa Server', () => {
 
       it('Should not modify the response after headers sent with alias', () => {
         return verifyGetRequest(
+          app,
           basePath + '/GetTest/MultipleRes_Alias',
           (_err, res) => {
             const model = res.body as TestModel;
@@ -1376,7 +1429,7 @@ describe('Koa Server', () => {
     it('parses path parameters from the controller description', () => {
       const mainResourceId = 'main-123';
 
-      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
+      return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
         expect(res.text).to.equal(mainResourceId);
       });
     });
@@ -1385,16 +1438,18 @@ describe('Koa Server', () => {
       const mainResourceId = 'main-123';
       const subResourceId = 'sub-456';
 
-      return verifyGetRequest(basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
+      return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
         expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
       });
     });
   });
 
-  describe('file upload', () => {
+  describe('file upload', function () {
+    this.timeout(20_000);
+
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         const packageJsonBuffer = readFileSync(resolve(__dirname, '../package.json'));
         const returnedBuffer = Buffer.from(res.body.buffer);
         expect(res.body).to.not.be.undefined;
@@ -1408,7 +1463,7 @@ describe('Koa Server', () => {
 
     it('can post a file without name', () => {
       const formData = { aFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
         expect(res.body).to.not.be.undefined;
         expect(res.body.fieldname).to.equal('aFile');
       });
@@ -1416,7 +1471,7 @@ describe('Koa Server', () => {
 
     it('cannot post a file with wrong attribute name', async () => {
       const formData = { wrongAttributeName: '@../package.json' };
-      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
         expect(res.text).to.equal('Unexpected field');
       });
@@ -1424,7 +1479,7 @@ describe('Koa Server', () => {
 
     it('cannot post a file with no file', async () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(400);
         expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}}}');
       });
@@ -1432,7 +1487,7 @@ describe('Koa Server', () => {
 
     it('can post a file with no file', async () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
         expect(res.text).to.equal('no file');
       });
@@ -1445,7 +1500,7 @@ describe('Koa Server', () => {
         someFiles: ['@../package.json', '@../tsconfig.json'],
       };
 
-      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
         for (const file of res.body as File[]) {
           const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
           const returnedBuffer = Buffer.from(file.buffer);
@@ -1466,7 +1521,7 @@ describe('Koa Server', () => {
         someFiles: ['@../package.json'],
       };
 
-      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
         expect(res.body).to.be.length(1);
       });
     });
@@ -1476,7 +1531,7 @@ describe('Koa Server', () => {
         file_a: '@../package.json',
         file_b: '@../tsconfig.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
         for (const file of res.body as File[]) {
           const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
           const returnedBuffer = Buffer.from(file.buffer);
@@ -1496,7 +1551,7 @@ describe('Koa Server', () => {
         file_b: '@../tsoa.json',
         files_c: ['@../tsconfig.json', '@../package.json'],
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
         for (const fileList of res.body as File[][]) {
           for (const file of fileList) {
             const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
@@ -1517,7 +1572,7 @@ describe('Koa Server', () => {
         username: 'test',
         avatar: '@../tsconfig.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
         const file = res.body.avatar;
         const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
         const returnedBuffer = Buffer.from(file.buffer);
@@ -1538,7 +1593,7 @@ describe('Koa Server', () => {
         avatar: '@../tsconfig.json',
         optionalAvatar: '@../package.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
         expect(res.body.username).to.equal(formData.username);
         for (const fieldName of ['avatar', 'optionalAvatar']) {
           const file = res.body[fieldName];
@@ -1553,71 +1608,9 @@ describe('Koa Server', () => {
         }
       });
     });
-
-    function verifyFileUploadRequest(
-      path: string,
-      formData: any,
-      verifyResponse: (err: any, res: request.Response) => any = () => {
-        /**/
-      },
-      expectedStatus?: number,
-    ) {
-      return verifyRequest(
-        verifyResponse,
-        request =>
-          Object.keys(formData).reduce((req, key) => {
-            const values = [].concat(formData[key]);
-            values.forEach((v: string) => {
-              if (v.startsWith('@')) {
-                req.attach(key, resolve(__dirname, v.slice(1)));
-              } else {
-                req.field(key, v);
-              }
-            });
-            return req;
-          }, request.post(path)),
-        expectedStatus,
-      );
-    }
   });
 
   it('shutdown server', () => server.close());
-
-  function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
-  }
-
-  function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
-  }
-
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
-    return new Promise<void>((resolve, reject) => {
-      methodOperation(request(server))
-        .expect(expectedStatus)
-        .end((err: any, res: any) => {
-          let parsedError: any;
-
-          try {
-            parsedError = JSON.parse(res.error);
-          } catch (err) {
-            parsedError = res?.error;
-          }
-
-          if (err) {
-            verifyResponse(err, res);
-            reject({
-              error: err,
-              response: parsedError,
-            });
-            return;
-          }
-
-          verifyResponse(parsedError, res);
-          resolve();
-        });
-    });
-  }
 
   function getFakeModel(): TestModel {
     // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation

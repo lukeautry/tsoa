@@ -1,9 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as request from 'supertest';
 import { app } from '../fixtures/express-openapi3/server';
 import { TestModel, ValidateModel } from '../fixtures/testModel';
-import TestAgent = require('supertest/lib/agent');
+import { verifyGetRequest, verifyPostRequest } from './utils';
 
 const basePath = '/v1';
 
@@ -86,6 +85,7 @@ describe('OpenAPI3 Express Server', () => {
     };
 
     return verifyPostRequest(
+      app,
       basePath + `/Validate/body`,
       bodyModel,
       (err, res) => {
@@ -230,6 +230,7 @@ describe('OpenAPI3 Express Server', () => {
     } as any;
 
     return verifyPostRequest(
+      app,
       basePath + `/Validate/body`,
       bodyModel,
       (err, _res) => {
@@ -370,6 +371,7 @@ describe('OpenAPI3 Express Server', () => {
   describe('@Res', () => {
     it('Should return on @Res', () => {
       return verifyGetRequest(
+        app,
         basePath + '/GetTest/Res',
         (_err, res) => {
           const model = res.body as TestModel;
@@ -382,6 +384,7 @@ describe('OpenAPI3 Express Server', () => {
 
     it('Should return on @Res with alias', () => {
       return verifyGetRequest(
+        app,
         basePath + '/GetTest/Res_Alias',
         (_err, res) => {
           const model = res.body as TestModel;
@@ -395,6 +398,7 @@ describe('OpenAPI3 Express Server', () => {
     [400, 500].forEach(statusCode => {
       it('Should support multiple status codes with the same @Res structure', () => {
         return verifyGetRequest(
+          app,
           basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
           (_err, res) => {
             const model = res.body as TestModel;
@@ -407,6 +411,7 @@ describe('OpenAPI3 Express Server', () => {
 
       it('Should support multiple status codes with the same @Res structure with alias', () => {
         return verifyGetRequest(
+          app,
           basePath + `/GetTest/MultipleStatusCodeRes_Alias?statusCode=${statusCode}`,
           (_err, res) => {
             const model = res.body as TestModel;
@@ -420,6 +425,7 @@ describe('OpenAPI3 Express Server', () => {
 
     it('Should not modify the response after headers sent', () => {
       return verifyGetRequest(
+        app,
         basePath + '/GetTest/MultipleRes',
         (_err, res) => {
           const model = res.body as TestModel;
@@ -432,6 +438,7 @@ describe('OpenAPI3 Express Server', () => {
 
     it('Should not modify the response after headers sent with alias', () => {
       return verifyGetRequest(
+        app,
         basePath + '/GetTest/MultipleRes_Alias',
         (_err, res) => {
           const model = res.body as TestModel;
@@ -442,39 +449,4 @@ describe('OpenAPI3 Express Server', () => {
       );
     });
   });
-
-  function verifyGetRequest(path: string, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.get(path), expectedStatus);
-  }
-
-  function verifyPostRequest(path: string, data: any, verifyResponse: (err: any, res: request.Response) => any, expectedStatus?: number) {
-    return verifyRequest(verifyResponse, request => request.post(path).send(data), expectedStatus);
-  }
-
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
-    return new Promise<void>((resolve, reject) => {
-      methodOperation(request(app))
-        .expect(expectedStatus)
-        .end((err: any, res: any) => {
-          let parsedError: any;
-          try {
-            parsedError = JSON.parse(res.error);
-          } catch (err) {
-            parsedError = res?.error;
-          }
-
-          if (err) {
-            verifyResponse(err, res);
-            reject({
-              error: err,
-              response: parsedError,
-            });
-            return;
-          }
-
-          verifyResponse(parsedError, res);
-          resolve();
-        });
-    });
-  }
 });
