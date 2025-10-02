@@ -93,8 +93,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should replace the parent hosts element', () => {
-      expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000/);
-      expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com/);
+      expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000\/v1/);
+      expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com\/v1/);
     });
 
     it('should replace the parent basePath element', () => {
