@@ -75,12 +75,22 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
         case 'body': {
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, true, undefined);
+          const bodyFieldErrors: FieldErrors = {};
+          const result = this.validationService.ValidateParam(param, value, name, bodyFieldErrors, true, undefined);
+          Object.keys(bodyFieldErrors).forEach((key) => {
+            errorFields[key] = { message: bodyFieldErrors[key].message }
+          });
+          return result;
         }
         case 'body-prop': {
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value[name] : undefined;
-          return this.validationService.ValidateParam(param, value, name, errorFields, true, 'body.');
+          const bodyFieldErrors: FieldErrors = {};
+          const result = this.validationService.ValidateParam(param, value, name, bodyFieldErrors, true, 'body.');
+          Object.keys(bodyFieldErrors).forEach((key) => {
+            errorFields[key] = { message: bodyFieldErrors[key].message }
+          });
+          return result;
         }
         case 'formData': {
           const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));

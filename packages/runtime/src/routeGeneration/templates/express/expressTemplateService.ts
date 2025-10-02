@@ -70,10 +70,22 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           return this.validationService.ValidateParam(param, request.params[name], name, fieldErrors, false, undefined);
         case 'header':
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
-        case 'body':
-          return this.validationService.ValidateParam(param, request.body, name, fieldErrors, true, undefined);
-        case 'body-prop':
-          return this.validationService.ValidateParam(param, request.body?.[name], name, fieldErrors, true, 'body.');
+        case 'body': {
+          const bodyFieldErrors: FieldErrors = {};
+          const bodyArgs = this.validationService.ValidateParam(param, request.body, name, bodyFieldErrors, true, undefined);
+          Object.keys(bodyFieldErrors).forEach(key => {
+            fieldErrors[key] = { message: bodyFieldErrors[key].message };
+          });
+          return bodyArgs;
+        }
+        case 'body-prop': {
+          const bodyPropFieldErrors: FieldErrors = {};
+          const bodyPropArgs = this.validationService.ValidateParam(param, request.body?.[name], name, bodyPropFieldErrors, true, 'body.');
+          Object.keys(bodyPropFieldErrors).forEach(key => {
+            fieldErrors[key] = { message: bodyPropFieldErrors[key].message };
+          });
+          return bodyPropArgs;
+        }
         case 'formData': {
           const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {

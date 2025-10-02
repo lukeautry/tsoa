@@ -193,7 +193,7 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
       (err: any, _res: any) => {
         const body = JSON.parse(err.text);
         expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
-        expect(body.fields['model.dateValue'].value).to.equal(1);
+        expect(body.fields['model.dateValue'].value).to.be.undefined;
       },
       400,
     );
