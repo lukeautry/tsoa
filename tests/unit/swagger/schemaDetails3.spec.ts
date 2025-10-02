@@ -17,6 +17,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const optionsWithServers = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     servers: ['localhost:3000', 'staging.api.com'],
   });
+  const optionsWithBasePathSlash = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
+    servers: ['localhost:3000', 'staging.api.com'],
+    disableBasePathPrefixSlash: true,
+  });
   const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
   });
@@ -32,7 +36,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithServers' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
+    specName: 'specDefault' | 'specWithServers' | 'specWithBasePathSlash' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
   }
 
   const specDefault: SpecAndName = {
@@ -42,6 +46,10 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   const specWithServers: SpecAndName = {
     spec: new SpecGenerator3(metadataGet, optionsWithServers).GetSpec(),
     specName: 'specWithServers',
+  };
+  const specWithBasePathSlash: SpecAndName = {
+    spec: new SpecGenerator3(metadataGet, optionsWithBasePathSlash).GetSpec(),
+    specName: 'specWithBasePathSlash',
   };
   const specWithNoImplicitExtras: SpecAndName = {
     spec: new SpecGenerator3(metadataGet, optionsWithNoAdditional).GetSpec(),
@@ -95,6 +103,11 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     it('should replace the parent hosts element', () => {
       expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000\/v1/);
       expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com\/v1/);
+    });
+
+    it('should not have trailing slash in each host element', () => {
+      expect(specWithBasePathSlash.spec.servers[0].url).to.match(/localhost:3000v1/);
+      expect(specWithBasePathSlash.spec.servers[1].url).to.match(/staging\.api\.comv1/);
     });
 
     it('should replace the parent basePath element', () => {
