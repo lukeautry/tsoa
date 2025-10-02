@@ -141,7 +141,8 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildServers() {
-    const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
+    const prefix = this.config.disableBasePathPrefixSlash ? undefined : '/';
+    const basePath = normalisePath(this.config.basePath as string, prefix, undefined, false);
     const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
     const hosts = this.config.servers ? this.config.servers : this.config.host ? [this.config.host!] : undefined;
     const convertHost = (host: string) => ({ url: `${scheme}://${host}${basePath}` });
