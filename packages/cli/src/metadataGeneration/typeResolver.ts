@@ -825,6 +825,14 @@ export class TypeResolver {
 
         const declarations = this.getModelTypeDeclarations(type);
         const referenceTypes: Tsoa.ReferenceType[] = [];
+
+        // If no declarations found, this might be a built-in type or a type that can't be resolved
+        if (declarations.length === 0) {
+          // For complex generic types with object literal type arguments,
+          // we need to handle them differently
+          throw new GenerateMetadataError(`Could not find declarations for type '${name}'. This might be a complex generic type that needs special handling.`);
+        }
+
         for (const declaration of declarations) {
           if (ts.isTypeAliasDeclaration(declaration)) {
             const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
@@ -1046,7 +1054,7 @@ export class TypeResolver {
       return newContext;
     }
 
-    const typeParameters = 'typeParameters' in declarations[0] ? declarations[0].typeParameters : undefined;
+    const typeParameters = declarations[0] && 'typeParameters' in declarations[0] ? declarations[0].typeParameters : undefined;
 
     if (typeParameters) {
       for (let index = 0; index < typeParameters.length; index++) {

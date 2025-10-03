@@ -376,8 +376,24 @@ export class ParameterGenerator {
   private validateQueriesProperties(property: Tsoa.Property, parentName: string) {
     if (property.type.dataType === 'array') {
       const arrayType = property.type;
-      if (!this.supportPathDataType(arrayType.elementType)) {
+      if (arrayType.elementType.dataType === 'nestedObjectLiteral') {
+        // For arrays of nestedObjectLiteral, validate each property recursively
+        const nestedType = arrayType.elementType;
+        if (nestedType.properties) {
+          for (const nestedProperty of nestedType.properties) {
+            this.validateQueriesProperties(nestedProperty, `${parentName}.${property.name}[]`);
+          }
+        }
+      } else if (!this.supportPathDataType(arrayType.elementType)) {
         throw new GenerateMetadataError(`@Queries('${parentName}') property '${property.name}' can't support array '${arrayType.elementType.dataType}' type.`);
+      }
+    } else if (property.type.dataType === 'nestedObjectLiteral') {
+      // For nestedObjectLiteral, validate each property recursively
+      const nestedType = property.type;
+      if (nestedType.properties) {
+        for (const nestedProperty of nestedType.properties) {
+          this.validateQueriesProperties(nestedProperty, `${parentName}.${property.name}`);
+        }
       }
     } else if (!this.supportPathDataType(property.type)) {
       throw new GenerateMetadataError(`@Queries('${parentName}') nested property '${property.name}' Can't support '${property.type.dataType}' type.`);
