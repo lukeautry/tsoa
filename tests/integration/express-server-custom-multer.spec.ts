@@ -3,17 +3,19 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
-import * as request from 'supertest';
 import { app } from '../fixtures/express/server';
-import TestAgent = require('supertest/lib/agent');
+
+import { verifyFileUploadRequest } from './utils';
 
 const basePath = '/v1';
 
 describe('Express Server With custom multer', () => {
-  describe('file upload With custom multer instance', () => {
+  describe('file upload With custom multer instance', function () {
+    this.timeout(15_000);
+
     it('can post a file', () => {
       const formData = { someFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         const packageJsonBuffer = readFileSync(resolve(__dirname, '../package.json'));
         const returnedBuffer = Buffer.from(res.body.buffer);
         expect(res.body).to.not.be.undefined;
@@ -27,7 +29,7 @@ describe('Express Server With custom multer', () => {
 
     it('can post a file without name', () => {
       const formData = { aFile: '@../package.json' };
-      return verifyFileUploadRequest(basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
         expect(res.body).to.not.be.undefined;
         expect(res.body.fieldname).to.equal('aFile');
       });
@@ -35,7 +37,7 @@ describe('Express Server With custom multer', () => {
 
     it('cannot post a file with wrong attribute name', async () => {
       const formData = { wrongAttributeName: '@../package.json' };
-      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(500);
         expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
       });
@@ -43,7 +45,7 @@ describe('Express Server With custom multer', () => {
 
     it('cannot post a file with no file', async () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(basePath + '/PostTest/File', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
         expect(res.status).to.equal(400);
         expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"An error occurred during the request.","name":"ValidateError","status":400}');
       });
@@ -51,7 +53,7 @@ describe('Express Server With custom multer', () => {
 
     it('can post a file with no file', async () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+      verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
         expect(res.text).to.equal('no file');
       });
@@ -64,7 +66,7 @@ describe('Express Server With custom multer', () => {
         someFiles: ['@../package.json', '@../tsconfig.json'],
       };
 
-      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
         for (const file of res.body as File[]) {
           const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
           const returnedBuffer = Buffer.from(file.buffer);
@@ -85,7 +87,7 @@ describe('Express Server With custom multer', () => {
         someFiles: ['@../package.json'],
       };
 
-      return verifyFileUploadRequest(basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
         expect(res.body).to.be.length(1);
       });
     });
@@ -95,7 +97,7 @@ describe('Express Server With custom multer', () => {
         file_a: '@../package.json',
         file_b: '@../tsconfig.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
         for (const file of res.body as File[]) {
           const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
           const returnedBuffer = Buffer.from(file.buffer);
@@ -115,7 +117,7 @@ describe('Express Server With custom multer', () => {
         file_b: '@../tsoa.json',
         files_c: ['@../tsconfig.json', '@../package.json'],
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
         for (const fileList of res.body as File[][]) {
           for (const file of fileList) {
             const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
@@ -136,7 +138,7 @@ describe('Express Server With custom multer', () => {
         username: 'test',
         avatar: '@../tsconfig.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
         const file = res.body.avatar;
         const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
         const returnedBuffer = Buffer.from(file.buffer);
@@ -157,7 +159,7 @@ describe('Express Server With custom multer', () => {
         avatar: '@../tsconfig.json',
         optionalAvatar: '@../package.json',
       };
-      return verifyFileUploadRequest(`${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
         expect(res.body.username).to.equal(formData.username);
         for (const fieldName of ['avatar', 'optionalAvatar']) {
           const file = res.body[fieldName];
@@ -172,58 +174,5 @@ describe('Express Server With custom multer', () => {
         }
       });
     });
-
-    function verifyFileUploadRequest(
-      path: string,
-      formData: any,
-      verifyResponse: (err: any, res: request.Response) => any = () => {
-        /**/
-      },
-      expectedStatus?: number,
-    ) {
-      return verifyRequest(
-        verifyResponse,
-        request =>
-          Object.keys(formData).reduce((req, key) => {
-            const values = [].concat(formData[key]);
-            values.forEach((v: string) => {
-              if (v.startsWith('@')) {
-                req.attach(key, resolve(__dirname, v.slice(1)));
-              } else {
-                req.field(key, v);
-              }
-            });
-            return req;
-          }, request.post(path)),
-        expectedStatus,
-      );
-    }
   });
-
-  function verifyRequest(verifyResponse: (err: any, res: request.Response) => any, methodOperation: (request: TestAgent<request.Test>) => request.Test, expectedStatus = 200) {
-    return new Promise<void>((resolve, reject) => {
-      methodOperation(request(app))
-        .expect(expectedStatus)
-        .end((err: any, res: any) => {
-          let parsedError: any;
-          try {
-            parsedError = JSON.parse(res.error);
-          } catch (err) {
-            parsedError = res?.error;
-          }
-
-          if (err) {
-            verifyResponse(err, res);
-            reject({
-              error: err,
-              response: parsedError,
-            });
-            return;
-          }
-
-          verifyResponse(parsedError, res);
-          resolve();
-        });
-    });
-  }
 });

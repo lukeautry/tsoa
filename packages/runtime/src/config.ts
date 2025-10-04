@@ -157,6 +157,15 @@ export interface SpecConfig {
   basePath?: string;
 
   /**
+   * Base API prefix slash toggle
+   * e.g. the 'v1' with toggle true will be https://myapi.comv1
+   * Otherwise, http://myapi.com/v1
+   *
+   * Only available with the specVersion 3
+   */
+  disableBasePathPrefixSlash?: boolean;
+
+  /**
    * Extend generated swagger spec with this object
    * Note that generated properties will always take precedence over what get specified here
    */
