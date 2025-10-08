@@ -20,6 +20,8 @@ export function ValidateParam(
 }
 
 export class ValidationService {
+  private validationStack: Set<string> = new Set();
+
   constructor(
     private readonly models: TsoaRoute.Models,
     private readonly config: AdditionalProps,
@@ -87,7 +89,18 @@ export class ValidationService {
         return this.validateNestedObjectLiteral(name, value, fieldErrors, isBodyParam, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
-          return this.validateModel({ name, value, modelDefinition: this.models[property.ref], fieldErrors, isBodyParam, parent });
+          // Detect circular references to prevent stack overflow
+          const refPath = `${parent}${name}:${property.ref}`;
+          if (this.validationStack.has(refPath)) {
+            return value;
+          }
+
+          this.validationStack.add(refPath);
+          try {
+            return this.validateModel({ name, value, modelDefinition: this.models[property.ref], fieldErrors, isBodyParam, parent });
+          } finally {
+            this.validationStack.delete(refPath);
+          }
         }
         return value;
     }
