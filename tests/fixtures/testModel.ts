@@ -828,6 +828,12 @@ export class ParameterTestModel {
   public nicknames?: string[];
 }
 
+export class FormTestModel {
+  public data!: string;
+  public indexes!: EnumNumberValue;
+  public gender!: Gender;
+}
+
 export class ValidateCustomErrorModel {}
 
 export class ValidateModel {
