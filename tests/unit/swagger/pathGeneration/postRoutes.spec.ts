@@ -12,7 +12,7 @@ describe('POST route generation', () => {
   const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
   const baseRoute = '/PostTest';
 
-  const getValidatedParameters = (actionRoute: string): Swagger.Parameter[] => {
+  const getValidatedParameters = (actionRoute: string): Swagger.Parameter2[] => {
     const path = verifyPath(actionRoute);
     if (!path.post) {
       throw new Error('No patch operation.');

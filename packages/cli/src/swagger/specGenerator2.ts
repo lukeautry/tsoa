@@ -227,7 +227,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if (res.produces) {
           produces.push(...res.produces);
         }
-        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema;
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema2;
       }
       if (res.examples && res.examples[0]) {
         if ((res.exampleLabels?.filter(e => e).length || 0) > 0) {
@@ -307,7 +307,7 @@ export class SpecGenerator2 extends SpecGenerator {
         title: `${this.getOperationId(controllerName, method)}Body`,
         type: 'object',
       },
-    } as Swagger.Parameter;
+    } as Swagger.Parameter2;
     if (required.length) {
       parameter.schema.required = required;
     }
@@ -324,17 +324,6 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {
-    let parameter = {
-      default: source.default,
-      description: source.description,
-      in: source.in,
-      name: source.name,
-      required: this.isRequiredWithoutDefault(source),
-    } as Swagger.Parameter2;
-    if (source.deprecated) {
-      parameter['x-deprecated'] = true;
-    }
-
     let type = source.type;
 
     if (source.in !== 'body' && source.type.dataType === 'refEnum') {
@@ -348,16 +337,23 @@ export class SpecGenerator2 extends SpecGenerator {
     }
 
     const parameterType = this.getSwaggerType(type);
-    if (parameterType.format) {
-      parameter.format = this.throwIfNotDataFormat(parameterType.format);
-    }
+
+    let parameter = {
+      default: source.default,
+      description: source.description,
+      in: source.in,
+      name: source.name,
+      required: this.isRequiredWithoutDefault(source),
+      ...(source.deprecated ? { 'x-deprecated': true } : {}),
+      ...(parameterType.$ref ? { schema: parameterType } : {}),
+      ...(parameterType.format ? { format: this.throwIfNotDataFormat(parameterType.format) } : {}),
+    } as Swagger.Parameter2;
 
     if (Swagger.isQueryParameter(parameter) && parameterType.type === 'array') {
       parameter.collectionFormat = 'multi';
     }
 
-    if (parameterType.$ref) {
-      parameter.schema = parameterType as Swagger.Schema2;
+    if (parameter.schema) {
       return parameter;
     }
 

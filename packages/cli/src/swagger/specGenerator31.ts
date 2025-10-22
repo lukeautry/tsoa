@@ -10,16 +10,7 @@ import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
 import { SpecGenerator } from './specGenerator';
 
-/**
- * TODO:
- * Handle formData parameters
- * Handle requestBodies of type other than json
- * Handle requestBodies as reusable objects
- * Handle headers, examples, responses, etc.
- * Cleaner interface between SpecGenerator2 and SpecGenerator3
- * Also accept OpenAPI 3.0.0 metadata, like components/securitySchemes instead of securityDefinitions
- */
-export class SpecGenerator3 extends SpecGenerator {
+export class SpecGenerator31 extends SpecGenerator {
   constructor(
     protected readonly metadata: Tsoa.Metadata,
     protected readonly config: ExtendedSpecConfig,
@@ -28,8 +19,8 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   public GetSpec() {
-    let spec: Swagger.Spec3 = {
-      openapi: '3.0.0',
+    let spec: Swagger.Spec31 = {
+      openapi: '3.1.0',
       components: this.buildComponents(),
       info: this.buildInfo(),
       paths: this.buildPaths(),
@@ -45,7 +36,7 @@ export class SpecGenerator3 extends SpecGenerator {
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => deepMerge(spec, merge),
       };
 
-      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec3;
+      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec31;
     }
 
     return spec;
@@ -141,54 +132,55 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildServers() {
-    const prefix = this.config.disableBasePathPrefixSlash ? undefined : '/';
-    const basePath = normalisePath(this.config.basePath as string, prefix, undefined, false);
+    const basePath = normalisePath(this.config.basePath as string, '/', undefined, false);
     const scheme = this.config.schemes ? this.config.schemes[0] : 'https';
     const hosts = this.config.servers ? this.config.servers : this.config.host ? [this.config.host!] : undefined;
     const convertHost = (host: string) => ({ url: `${scheme}://${host}${basePath}` });
     return (hosts?.map(convertHost) || [{ url: basePath }]) as Swagger.Server[];
   }
 
-  private buildSchema() {
-    const schema: { [name: string]: Swagger.Schema3 } = {};
-    Object.keys(this.metadata.referenceTypeMap).map(typeName => {
+  private buildSchema(): { [name: string]: Swagger.Schema31 } {
+    const schemas: { [name: string]: Swagger.Schema31 } = {};
+
+    Object.keys(this.metadata.referenceTypeMap).forEach(typeName => {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       if (referenceType.dataType === 'refObject') {
         const required = referenceType.properties.filter(p => this.isRequiredWithoutDefault(p) && !this.hasUndefined(p)).map(p => p.name);
-        schema[referenceType.refName] = {
+
+        const schema: Swagger.Schema31 = {
+          type: 'object',
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
-          required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
-          type: 'object',
+          required: required.length > 0 ? Array.from(new Set(required)) : undefined,
         };
 
         if (referenceType.additionalProperties) {
-          schema[referenceType.refName].additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties);
+          schema.additionalProperties = this.buildAdditionalProperties(referenceType.additionalProperties) as Swagger.Schema31;
         } else {
-          // Since additionalProperties was not explicitly set in the TypeScript interface for this model
-          //      ...we need to make a decision
-          schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
+          schema.additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
         if (referenceType.example) {
-          schema[referenceType.refName].example = referenceType.example;
+          schema.example = referenceType.example;
         }
+
+        if (referenceType.deprecated) {
+          schema.deprecated = true;
+        }
+
+        schemas[referenceType.refName] = schema;
       } else if (referenceType.dataType === 'refEnum') {
         const enumTypes = this.determineTypesUsedInEnum(referenceType.enums);
 
         if (enumTypes.size === 1) {
-          schema[referenceType.refName] = {
-            description: referenceType.description,
-            enum: referenceType.enums,
+          schemas[referenceType.refName] = {
             type: enumTypes.has('string') ? 'string' : 'number',
-          };
-          if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
-            schema[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
-          }
-        } else {
-          schema[referenceType.refName] = {
+            enum: referenceType.enums,
             description: referenceType.description,
+          };
+        } else {
+          schemas[referenceType.refName] = {
             anyOf: [
               {
                 type: 'number',
@@ -199,13 +191,23 @@ export class SpecGenerator3 extends SpecGenerator {
                 enum: referenceType.enums.filter(e => typeof e === 'string'),
               },
             ],
+            description: referenceType.description,
           };
         }
+
+        if (this.config.xEnumVarnames && referenceType.enumVarnames && referenceType.enums.length === referenceType.enumVarnames.length) {
+          (schemas[referenceType.refName] as any)['x-enum-varnames'] = referenceType.enumVarnames;
+        }
+
         if (referenceType.example) {
-          schema[referenceType.refName].example = referenceType.example;
+          schemas[referenceType.refName].example = referenceType.example;
+        }
+
+        if (referenceType.deprecated) {
+          schemas[referenceType.refName].deprecated = true;
         }
       } else if (referenceType.dataType === 'refAlias') {
-        const swaggerType = this.getSwaggerType(referenceType.type);
+        const swaggerType = this.getSwaggerType(referenceType.type) as Swagger.Schema31;
         const format = referenceType.format as Swagger.DataFormat;
         const validators = Object.keys(referenceType.validators)
           .filter(shouldIncludeValidatorInSchema)
@@ -216,23 +218,24 @@ export class SpecGenerator3 extends SpecGenerator {
             };
           }, {});
 
-        schema[referenceType.refName] = {
-          ...(swaggerType as Swagger.Schema3),
-          default: referenceType.default || swaggerType.default,
-          example: referenceType.example,
-          format: format || swaggerType.format,
+        schemas[referenceType.refName] = {
+          ...swaggerType,
+          default: referenceType.default ?? swaggerType.default,
+          format: format ?? swaggerType.format,
           description: referenceType.description,
+          example: referenceType.example,
           ...validators,
         };
+
+        if (referenceType.deprecated) {
+          schemas[referenceType.refName].deprecated = true;
+        }
       } else {
         assertNever(referenceType);
       }
-      if (referenceType.deprecated) {
-        schema[referenceType.refName].deprecated = true;
-      }
     });
 
-    return schema;
+    return schemas;
   }
 
   private buildPaths() {
@@ -256,7 +259,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
-    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
+    const pathMethod: Swagger.Operation31 = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -330,8 +333,8 @@ export class SpecGenerator3 extends SpecGenerator {
     method.extensions.forEach(ext => (pathMethod[ext.key] = ext.value));
   }
 
-  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string[]): Swagger.Operation3 {
-    const swaggerResponses: { [name: string]: Swagger.Response3 } = {};
+  protected buildOperation(controllerName: string, method: Tsoa.Method, defaultProduces?: string[]): Swagger.Operation31 {
+    const swaggerResponses: { [name: string]: Swagger.Response31 } = {};
 
     method.responses.forEach((res: Tsoa.Response) => {
       swaggerResponses[res.name] = {
@@ -346,7 +349,7 @@ export class SpecGenerator3 extends SpecGenerator {
           swaggerResponses[res.name].content = {
             ...content,
             [p]: {
-              schema: this.getSwaggerType(res.schema, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'Response' : undefined) as Swagger.Schema3,
+              schema: this.getSwaggerType(res.schema, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'Response' : undefined) as Swagger.Schema31,
             },
           };
         }
@@ -368,13 +371,13 @@ export class SpecGenerator3 extends SpecGenerator {
         const headers: { [name: string]: Swagger.Header3 } = {};
         if (res.headers.dataType === 'refObject') {
           headers[res.headers.refName] = {
-            schema: this.getSwaggerTypeForReferenceType(res.headers) as Swagger.Schema3,
+            schema: this.getSwaggerTypeForReferenceType(res.headers) as Swagger.Schema31,
             description: res.headers.description,
           };
         } else if (res.headers.dataType === 'nestedObjectLiteral') {
           res.headers.properties.forEach((each: Tsoa.Property) => {
             headers[each.name] = {
-              schema: this.getSwaggerType(each.type) as Swagger.Schema3,
+              schema: this.getSwaggerType(each.type) as Swagger.Schema31,
               description: each.description,
               required: this.isRequiredWithoutDefault(each),
             };
@@ -386,7 +389,7 @@ export class SpecGenerator3 extends SpecGenerator {
       }
     });
 
-    const operation: Swagger.Operation3 = {
+    const operation: Swagger.Operation31 = {
       operationId: this.getOperationId(controllerName, method),
       responses: swaggerResponses,
     };
@@ -394,52 +397,55 @@ export class SpecGenerator3 extends SpecGenerator {
     return operation;
   }
 
-  private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody {
+  private buildRequestBodyWithFormData(controllerName: string, method: Tsoa.Method, parameters: Tsoa.Parameter[]): Swagger.RequestBody31 {
     const required: string[] = [];
-    const properties: { [propertyName: string]: Swagger.Schema3 } = {};
+    const properties: Record<string, Swagger.Schema31> = {};
+
     for (const parameter of parameters) {
       const mediaType = this.buildMediaType(controllerName, method, parameter);
-      properties[parameter.name] = mediaType.schema!;
+      if (!mediaType.schema) continue;
+
+      const schema = { ...mediaType.schema } as Swagger.Schema31;
+
+      if (parameter.deprecated) {
+        schema.deprecated = true;
+      }
+
+      properties[parameter.name] = schema;
+
       if (this.isRequiredWithoutDefault(parameter)) {
         required.push(parameter.name);
       }
-      if (parameter.deprecated) {
-        properties[parameter.name].deprecated = parameter.deprecated;
-      }
     }
-    const requestBody: Swagger.RequestBody = {
+
+    return {
       required: required.length > 0,
       content: {
         'multipart/form-data': {
           schema: {
             type: 'object',
             properties,
-            // An empty list required: [] is not valid.
-            // If all properties are optional, do not specify the required keyword.
-            ...(required && required.length && { required }),
+            ...(required.length > 0 ? { required } : {}),
           },
         },
       },
     };
-    return requestBody;
   }
 
-  private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody {
+  private buildRequestBody(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.RequestBody31 {
     const mediaType = this.buildMediaType(controllerName, method, parameter);
     const consumes = method.consumes || DEFAULT_REQUEST_MEDIA_TYPE;
 
-    const requestBody: Swagger.RequestBody = {
+    return {
       description: parameter.description,
       required: this.isRequiredWithoutDefault(parameter),
       content: {
         [consumes]: mediaType,
       },
     };
-
-    return requestBody;
   }
 
-  private buildMediaType(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.MediaType {
+  private buildMediaType(controllerName: string, method: Tsoa.Method, parameter: Tsoa.Parameter): Swagger.MediaType31 {
     const validators = Object.keys(parameter.validators)
       .filter(shouldIncludeValidatorInSchema)
       .reduce((acc, key) => {
@@ -449,9 +455,9 @@ export class SpecGenerator3 extends SpecGenerator {
         };
       }, {});
 
-    const mediaType: Swagger.MediaType = {
+    const mediaType: Swagger.MediaType31 = {
       schema: {
-        ...(this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined) as Swagger.Schema3),
+        ...(this.getSwaggerType(parameter.type, this.config.useTitleTagsForInlineObjects ? this.getOperationId(controllerName, method) + 'RequestBody' : undefined) as Swagger.Schema31),
         ...validators,
         ...(parameter.description && { description: parameter.description }),
       },
@@ -474,7 +480,7 @@ export class SpecGenerator3 extends SpecGenerator {
     return mediaType;
   }
 
-  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter3[] {
+  private buildQueriesParameter(source: Tsoa.Parameter): Swagger.Parameter31[] {
     if (source.type.dataType === 'refObject' || source.type.dataType === 'nestedObjectLiteral') {
       const properties = source.type.properties;
 
@@ -483,92 +489,95 @@ export class SpecGenerator3 extends SpecGenerator {
     throw new Error(`Queries '${source.name}' parameter must be an object.`);
   }
 
-  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter3 {
-    const parameter = {
-      description: source.description,
-      in: source.in,
-      name: source.name,
-      required: this.isRequiredWithoutDefault(source),
-      schema: {
-        default: source.default,
-        format: undefined,
-      },
-    } as Swagger.Parameter3;
-    if (source.deprecated) {
-      parameter.deprecated = true;
-    }
+  private buildParameter(source: Tsoa.Parameter): Swagger.Parameter31 {
+    const schema: Swagger.Schema31 = {
+      default: source.default,
+    };
 
-    const parameterType = this.getSwaggerType(source.type);
+    const parameterType = this.getSwaggerType(source.type) as Swagger.Schema31;
+
+    // Use format and type if present
     if (parameterType.format) {
-      parameter.schema.format = this.throwIfNotDataFormat(parameterType.format);
+      schema.format = this.throwIfNotDataFormat(parameterType.format);
     }
 
+    if (parameterType.type) {
+      schema.type = this.throwIfNotDataType(parameterType.type);
+    }
+
+    // Handle ref case
     if (parameterType.$ref) {
-      parameter.schema = parameterType as Swagger.Schema3;
-      return parameter;
+      return {
+        name: source.name,
+        in: source.in as 'query' | 'header' | 'path' | 'cookie',
+        required: this.isRequiredWithoutDefault(source),
+        deprecated: source.deprecated || undefined,
+        description: source.description,
+        schema: parameterType,
+        ...this.buildExamples(source),
+      };
     }
 
-    const validatorObjs: { [key in Tsoa.SchemaValidatorKey]?: unknown } = {};
-    Object.keys(source.validators)
-      .filter(shouldIncludeValidatorInSchema)
-      .forEach(key => {
-        validatorObjs[key] = source.validators[key]!.value;
+    // Copy array-related and enum data
+    if (parameterType.items !== undefined) {
+      schema.items = parameterType.items;
+    }
+    if (parameterType.enum !== undefined) {
+      schema.enum = parameterType.enum;
+    }
+
+    // Apply validators
+    Object.entries(source.validators)
+      .filter(([key]) => shouldIncludeValidatorInSchema(key))
+      .forEach(([key, val]) => {
+        (schema as any)[key] = val!.value;
       });
 
-    if (source.type.dataType === 'any') {
-      parameter.schema.type = 'string';
-    } else {
-      if (parameterType.type) {
-        parameter.schema.type = this.throwIfNotDataType(parameterType.type);
-      }
-      parameter.schema.items = parameterType.items;
-      parameter.schema.enum = parameterType.enum;
-    }
-
-    parameter.schema = Object.assign({}, parameter.schema, validatorObjs);
-
-    const parameterExamples = source.example;
-    const parameterExampleLabels = source.exampleLabels;
-    if (parameterExamples === undefined) {
-      parameter.example = parameterExamples;
-    } else if (parameterExamples.length === 1) {
-      parameter.example = parameterExamples[0];
-    } else {
-      let exampleCounter = 1;
-      parameter.examples = parameterExamples.reduce((acc, ex, currentIndex) => {
-        const exampleLabel = parameterExampleLabels?.[currentIndex];
-        return { ...acc, [exampleLabel === undefined ? `Example ${exampleCounter++}` : exampleLabel]: { value: ex } };
-      }, {});
-    }
+    // Assemble final parameter object
+    const parameter: Swagger.Parameter31 = {
+      name: source.name,
+      in: source.in as 'query' | 'header' | 'path' | 'cookie',
+      required: this.isRequiredWithoutDefault(source),
+      deprecated: source.deprecated || undefined,
+      description: source.description,
+      schema,
+      ...this.buildExamples(source),
+    };
 
     return parameter;
   }
 
-  protected buildProperties(source: Tsoa.Property[]) {
-    const properties: { [propertyName: string]: Swagger.Schema3 } = {};
+  protected buildProperties(source: Tsoa.Property[]): { [propertyName: string]: Swagger.Schema31 } {
+    const properties: { [propertyName: string]: Swagger.Schema31 } = {};
 
     source.forEach(property => {
-      let swaggerType = this.getSwaggerType(property.type) as Swagger.Schema3;
+      let swaggerType = this.getSwaggerType(property.type) as Swagger.Schema31;
       const format = property.format as Swagger.DataFormat;
+
       swaggerType.description = property.description;
       swaggerType.example = property.example;
       swaggerType.format = format || swaggerType.format;
+
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;
 
         Object.keys(property.validators)
           .filter(shouldIncludeValidatorInSchema)
           .forEach(key => {
-            swaggerType = { ...swaggerType, [key]: property.validators[key]!.value };
+            swaggerType = {
+              ...swaggerType,
+              [key]: property.validators[key]!.value,
+            };
           });
       }
+
       if (property.deprecated) {
         swaggerType.deprecated = true;
       }
 
       if (property.extensions) {
-        property.extensions.forEach(property => {
-          swaggerType[property.key] = property.value;
+        property.extensions.forEach(ext => {
+          swaggerType[ext.key] = ext.value;
         });
       }
 
@@ -699,5 +708,60 @@ export class SpecGenerator3 extends SpecGenerator {
       const valuesDelimited = Array.from(types).join(',');
       throw new Error(`Enums can only have string or number values, but enum had ${valuesDelimited}`);
     }
+  }
+
+  protected buildExamples(source: Pick<Tsoa.Parameter, 'example' | 'exampleLabels'>): {
+    example?: unknown;
+    examples?: { [name: string]: Swagger.Example3 };
+  } {
+    const { example: parameterExamples, exampleLabels } = source;
+
+    if (parameterExamples === undefined) {
+      return {};
+    }
+
+    if (parameterExamples.length === 1) {
+      return {
+        example: parameterExamples[0],
+      };
+    }
+
+    let exampleCounter = 1;
+    const examples = parameterExamples.reduce(
+      (acc, ex, idx) => {
+        const label = exampleLabels?.[idx];
+        const name = label ?? `Example ${exampleCounter++}`;
+        acc[name] = { value: ex };
+        return acc;
+      },
+      {} as Record<string, Swagger.Example3>,
+    );
+
+    return { examples };
+  }
+
+  protected getSwaggerType(type: Tsoa.Type, title?: string): Swagger.BaseSchema {
+    if (type.dataType === 'tuple') {
+      const tupleType = type as Tsoa.TupleType;
+      const prefixItems = tupleType.types.map(t => this.getSwaggerType(t)) as Swagger.Schema31[];
+
+      const schema: Swagger.Schema31 = {
+        type: 'array',
+        prefixItems,
+        minItems: prefixItems.length,
+        ...(tupleType.restType
+          ? {
+              items: this.getSwaggerType(tupleType.restType) as Swagger.Schema31,
+            }
+          : {
+              maxItems: prefixItems.length,
+              items: false,
+            }),
+      };
+
+      return schema as unknown as Swagger.BaseSchema;
+    }
+
+    return super.getSwaggerType(type, title);
   }
 }
