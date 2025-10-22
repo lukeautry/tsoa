@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [18, 20, 21]
+        node-version: [22, 24, 25]
         os: [macos-latest, ubuntu-latest, windows-latest]
         typescript-version: ['^5.0.0']
 
