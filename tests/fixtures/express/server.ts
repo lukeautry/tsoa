@@ -18,6 +18,7 @@ import '../controllers/parameterController';
 import '../controllers/securityController';
 import '../controllers/testController';
 import '../controllers/validateController';
+import '../controllers/validationTestController';
 import '../controllers/exampleController';
 import '../controllers/tagController';
 import '../controllers/noExtendsController';
