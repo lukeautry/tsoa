@@ -16,6 +16,9 @@ export class EnumTransformer extends Transformer {
   }
 
   public static merge(first: Tsoa.RefEnumType, second: Tsoa.RefEnumType): Tsoa.RefEnumType {
+    if (!first) return second;
+    if (!second) return first;
+
     const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
 
     const deprecated = first.deprecated || second.deprecated;
