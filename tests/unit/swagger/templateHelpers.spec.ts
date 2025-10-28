@@ -1838,4 +1838,279 @@ describe('ValidationService', () => {
       expect(result).to.be.undefined;
     });
   });
+
+  describe('Circular reference handling', () => {
+    it('should handle self-referencing refAlias without stack overflow', () => {
+      const models: TsoaRoute.Models = {
+        RecursiveType: {
+          dataType: 'refAlias',
+          type: { ref: 'RecursiveType' },
+        },
+      };
+
+      const v = new ValidationService(models, {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      });
+
+      const fieldErrors: FieldErrors = {};
+      const value = { some: 'data' };
+
+      const result = v.validateModel({
+        name: '',
+        value,
+        modelDefinition: models.RecursiveType,
+        fieldErrors,
+        isBodyParam: true,
+      });
+
+      expect(result).to.deep.equal(value);
+    });
+
+    it('should handle deeply nested circular references', () => {
+      const models: TsoaRoute.Models = {
+        Widget: {
+          dataType: 'refAlias',
+          type: {
+            dataType: 'union',
+            subSchemas: [{ ref: 'Container' }, { ref: 'Wrapper' }],
+          },
+        },
+        Container: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'string', required: true },
+            items: {
+              dataType: 'array',
+              array: { ref: 'Widget' },
+              required: true,
+            },
+          },
+        },
+        Wrapper: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'string', required: true },
+            content: {
+              ref: 'Widget',
+              required: true,
+            },
+          },
+        },
+      };
+
+      const v = new ValidationService(models, {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      });
+
+      const fieldErrors: FieldErrors = {};
+
+      const value = {
+        type: 'container',
+        items: [
+          {
+            type: 'wrapper',
+            content: {
+              type: 'nested-container',
+              items: [
+                {
+                  type: 'deeply-nested-wrapper',
+                  content: {
+                    type: 'deeply-nested-container',
+                    items: [],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const result = v.validateModel({
+        name: '',
+        value,
+        modelDefinition: models.Container,
+        fieldErrors,
+        isBodyParam: true,
+      });
+
+      expect(result).to.exist;
+      expect(result.type).to.equal('container');
+    });
+
+    it('should handle circular references with arrays', () => {
+      const models: TsoaRoute.Models = {
+        Node: {
+          dataType: 'refObject',
+          properties: {
+            id: { dataType: 'string', required: true },
+            children: {
+              dataType: 'array',
+              array: { ref: 'Node' },
+              required: false,
+            },
+          },
+        },
+      };
+
+      const v = new ValidationService(models, {
+        noImplicitAdditionalProperties: 'ignore',
+        bodyCoercion: true,
+      });
+
+      const fieldErrors: FieldErrors = {};
+
+      const value = {
+        id: 'root',
+        children: [
+          {
+            id: 'child1',
+            children: [
+              {
+                id: 'grandchild1',
+              },
+            ],
+          },
+          {
+            id: 'child2',
+          },
+        ],
+      };
+
+      const result = v.validateModel({
+        name: '',
+        value,
+        modelDefinition: models.Node,
+        fieldErrors,
+        isBodyParam: true,
+      });
+
+      expect(result).to.exist;
+      expect(result.id).to.equal('root');
+      expect(result.children).to.have.lengthOf(2);
+    });
+
+    it('should properly fail validation for invalid data in circular types', () => {
+      const models: TsoaRoute.Models = {
+        Node: {
+          dataType: 'refObject',
+          properties: {
+            id: { dataType: 'string', required: true },
+            value: { dataType: 'integer', required: true },
+            children: {
+              dataType: 'array',
+              array: { ref: 'Node' },
+              required: false,
+            },
+          },
+        },
+      };
+
+      const v = new ValidationService(models, {
+        noImplicitAdditionalProperties: 'throw-on-extras',
+        bodyCoercion: true,
+      });
+
+      const fieldErrors: FieldErrors = {};
+
+      const value = {
+        id: 'root',
+        value: 1,
+        children: [
+          {
+            value: 2,
+            children: [
+              {
+                id: 'grandchild1',
+                value: 3,
+              },
+            ],
+          },
+          {
+            id: 'child2',
+            value: 'not-a-number',
+          },
+        ],
+      };
+
+      const result = v.validateModel({
+        name: '',
+        value,
+        modelDefinition: models.Node,
+        fieldErrors,
+        isBodyParam: true,
+      });
+
+      expect(Object.keys(fieldErrors)).to.not.be.empty;
+      expect(fieldErrors).to.have.property('children.$0.id');
+      expect(fieldErrors['children.$0.id'].message).to.include('required');
+      expect(fieldErrors).to.have.property('children.$1.value');
+      expect(fieldErrors['children.$1.value'].message).to.include('integer');
+      expect(result).to.be.undefined;
+    });
+
+    it('should detect validation errors in deeply nested circular structures', () => {
+      const models: TsoaRoute.Models = {
+        Widget: {
+          dataType: 'refAlias',
+          type: {
+            dataType: 'union',
+            subSchemas: [{ ref: 'Container' }, { ref: 'Wrapper' }],
+          },
+        },
+        Container: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'string', required: true },
+            items: {
+              dataType: 'array',
+              array: { ref: 'Widget' },
+              required: true,
+            },
+          },
+        },
+        Wrapper: {
+          dataType: 'refObject',
+          properties: {
+            type: { dataType: 'string', required: true },
+            content: {
+              ref: 'Widget',
+              required: true,
+            },
+          },
+        },
+      };
+
+      const v = new ValidationService(models, {
+        noImplicitAdditionalProperties: 'throw-on-extras',
+        bodyCoercion: true,
+      });
+
+      const fieldErrors: FieldErrors = {};
+
+      const value = {
+        type: 'container',
+        items: [
+          {
+            content: {
+              type: 'nested-container',
+              items: [],
+            },
+          },
+        ],
+      };
+
+      const result = v.validateModel({
+        name: '',
+        value,
+        modelDefinition: models.Container,
+        fieldErrors,
+        isBodyParam: true,
+      });
+
+      expect(Object.keys(fieldErrors)).to.not.be.empty;
+      expect(result).to.be.undefined;
+    });
+  });
 });
