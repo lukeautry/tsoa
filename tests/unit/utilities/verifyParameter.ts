@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Swagger } from '@tsoa/runtime';
 
-export function VerifyPathableParameter(params: Swagger.Parameter[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
+export function VerifyPathableParameter(params: Swagger.Parameter2[], paramValue: string, paramType: string, paramIn: string, formatType?: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (formatType) {
@@ -9,15 +9,7 @@ export function VerifyPathableParameter(params: Swagger.Parameter[], paramValue:
   }
 }
 
-export function VerifyPathableStringParameter(
-  params: Swagger.PathParameter[] | Swagger.Parameter2[],
-  paramValue: string,
-  paramType: string,
-  paramIn: string,
-  min?: number,
-  max?: number,
-  pattern?: string,
-) {
+export function VerifyPathableStringParameter(params: Swagger.Parameter2[], paramValue: string, paramType: string, paramIn: string, min?: number, max?: number, pattern?: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (min) {
@@ -31,15 +23,7 @@ export function VerifyPathableStringParameter(
   }
 }
 
-export function VerifyPathableNumberParameter(
-  params: Swagger.PathParameter[] | Swagger.Parameter2[],
-  paramValue: string,
-  paramType: string,
-  paramIn: string,
-  formatType?: string,
-  min?: number,
-  max?: number,
-) {
+export function VerifyPathableNumberParameter(params: Swagger.Parameter2[], paramValue: string, paramType: string, paramIn: string, formatType?: string, min?: number, max?: number) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.type).to.equal(paramType);
   if (formatType) {
@@ -53,12 +37,12 @@ export function VerifyPathableNumberParameter(
   }
 }
 
-export function VerifyBodyParameter(params: Swagger.Parameter[], paramValue: string, paramType: string, paramIn: string) {
+export function VerifyBodyParameter(params: Swagger.Parameter2[], paramValue: string, paramType: string, paramIn: string) {
   const parameter = verifyParameter(params, paramValue, paramIn);
   expect(parameter.schema.$ref).to.equal(paramType);
 }
 
-function verifyParameter(params: Swagger.Parameter[], paramValue: string, paramIn: string) {
+function verifyParameter(params: Swagger.Parameter2[], paramValue: string, paramIn: string) {
   const parameter = params.filter(p => p.name === paramValue)[0];
   expect(parameter, `Path parameter '${paramValue}' wasn't generated.`).to.exist;
   expect(parameter.in).to.equal(paramIn);

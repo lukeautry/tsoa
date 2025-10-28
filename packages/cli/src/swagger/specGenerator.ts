@@ -3,7 +3,10 @@ import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import * as handlebars from 'handlebars';
 
 export abstract class SpecGenerator {
-  constructor(protected readonly metadata: Tsoa.Metadata, protected readonly config: ExtendedSpecConfig) {}
+  constructor(
+    protected readonly metadata: Tsoa.Metadata,
+    protected readonly config: ExtendedSpecConfig,
+  ) {}
 
   protected buildAdditionalProperties(type: Tsoa.Type) {
     return this.getSwaggerType(type);
@@ -59,7 +62,7 @@ export abstract class SpecGenerator {
     }
   }
 
-  protected getSwaggerType(type: Tsoa.Type, title?: string): Swagger.Schema | Swagger.BaseSchema {
+  protected getSwaggerType(type: Tsoa.Type, title?: string): Swagger.BaseSchema {
     if (type.dataType === 'void' || type.dataType === 'undefined') {
       return this.getSwaggerTypeForVoid(type.dataType);
     } else if (type.dataType === 'refEnum' || type.dataType === 'refObject' || type.dataType === 'refAlias') {
@@ -91,18 +94,22 @@ export abstract class SpecGenerator {
       return this.getSwaggerTypeForIntersectionType(type, title);
     } else if (type.dataType === 'nestedObjectLiteral') {
       return this.getSwaggerTypeForObjectLiteral(type, title);
+    } else if (type.dataType === 'tuple') {
+      throw new Error('Tuple types are only supported in OpenAPI 3.1+');
     } else {
       return assertNever(type);
     }
   }
 
-  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string): Swagger.Schema | Swagger.BaseSchema;
+  protected abstract getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string): Swagger.BaseSchema;
 
-  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string): Swagger.Schema | Swagger.BaseSchema;
+  protected abstract getSwaggerTypeForIntersectionType(type: Tsoa.IntersectionType, title?: string): Swagger.BaseSchema;
 
-  protected abstract buildProperties(properties: Tsoa.Property[]): { [propertyName: string]: Swagger.Schema | Swagger.Schema3 };
+  protected abstract buildProperties(
+    properties: Tsoa.Property[],
+  ): { [propertyName: string]: Swagger.Schema2 } | { [propertyName: string]: Swagger.Schema3 } | { [propertyName: string]: Swagger.Schema31 };
 
-  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectLiteralType, title?: string): Swagger.Schema {
+  public getSwaggerTypeForObjectLiteral(objectLiteral: Tsoa.NestedObjectLiteralType, title?: string): Swagger.BaseSchema {
     const properties = this.buildProperties(objectLiteral.properties);
 
     const additionalProperties = objectLiteral.additionalProperties && this.getSwaggerType(objectLiteral.additionalProperties);
@@ -146,7 +153,7 @@ export abstract class SpecGenerator {
     }
   };
 
-  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.Schema {
+  protected getSwaggerTypeForPrimitiveType(dataType: Tsoa.PrimitiveTypeLiteral): Swagger.BaseSchema {
     if (dataType === 'object') {
       if (process.env.NODE_ENV !== 'tsoa_test') {
         // eslint-disable-next-line no-console
@@ -162,7 +169,7 @@ export abstract class SpecGenerator {
       }
     }
 
-    const map: Record<Tsoa.PrimitiveTypeLiteral, Swagger.Schema> = {
+    const map: Record<Tsoa.PrimitiveTypeLiteral, Swagger.BaseSchema> = {
       any: {
         // While the any type is discouraged, it does explicitly allows anything, so it should always allow additionalProperties
         additionalProperties: true,
@@ -188,7 +195,7 @@ export abstract class SpecGenerator {
     return map[dataType];
   }
 
-  protected getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType, title?: string): Swagger.Schema {
+  protected getSwaggerTypeForArrayType(arrayType: Tsoa.ArrayType, title?: string): Swagger.BaseSchema {
     return {
       items: this.getSwaggerType(arrayType.elementType, title),
       type: 'array',
