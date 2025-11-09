@@ -158,6 +158,7 @@ export class SpecGenerator3 extends SpecGenerator {
         const required = referenceType.properties.filter(p => this.isRequiredWithoutDefault(p) && !this.hasUndefined(p)).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
+          title: referenceType.title,
           properties: this.buildProperties(referenceType.properties),
           required: required && required.length > 0 ? Array.from(new Set(required)) : undefined,
           type: 'object',

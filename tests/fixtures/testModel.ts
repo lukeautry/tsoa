@@ -810,6 +810,9 @@ export interface UserResponseModel {
   name: string;
 }
 
+/**
+ * @title TitleTestModel
+ */
 export class ParameterTestModel {
   public firstname!: string;
   public lastname!: string;
