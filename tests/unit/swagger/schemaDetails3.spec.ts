@@ -8,6 +8,7 @@ import * as os from 'os';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../fixtures/testModel';
+import { title } from 'process';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
@@ -2440,6 +2441,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(defaultArgs).to.deep.eq(
               {
                 description: undefined,
+                title: undefined,
                 properties: {
                   t: { $ref: '#/components/schemas/GenericRequest_Word_', description: undefined, format: undefined, example: undefined },
                   u: { $ref: '#/components/schemas/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined, example: undefined },
@@ -2462,6 +2464,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
+                title: undefined,
               },
               `for schema linked by property ${propertyName}`,
             );
@@ -2476,6 +2479,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
+                title: undefined,
               },
               `for schema linked by property ${propertyName}`,
             );
@@ -2818,6 +2822,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 required: ['inModule', 'inNamespace2'],
                 type: 'object',
+                title: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
               },
@@ -2845,6 +2850,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 required: ['inModule'],
                 type: 'object',
                 description: undefined,
+                title: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
               `for property ${propertyName}.typeHolder2.inModule`,
@@ -2871,6 +2877,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 type: 'object',
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
+                title: undefined,
               },
               `for property ${propertyName}.typeHolder1`,
             );
@@ -2897,6 +2904,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 required: ['inFirstNamespace', 'inFirstNamespace2'],
                 type: 'object',
                 description: undefined,
+                title: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
               `for property ${propertyName}.typeHolder1.inNamespace1_1`,
@@ -2917,6 +2925,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 required: ['inSecondNamespace'],
                 type: 'object',
                 description: undefined,
+                title: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
               },
               `for property ${propertyName}.typeHolder2.inNamespace2`,
@@ -3054,6 +3063,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                   },
                 },
                 type: 'object',
+                title: undefined,
                 required: undefined,
                 description: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
@@ -3679,6 +3689,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 },
                 required: ['a', 'b'],
                 type: 'object',
+                title: undefined,
                 additionalProperties: currentSpec.specName === 'specWithNoImplicitExtras' ? false : true,
                 description: undefined,
               },
@@ -4698,6 +4709,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             type: 'string',
           },
         },
+        title: undefined,
         required: undefined,
         type: 'object',
       });
@@ -4713,6 +4725,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       expect(getComponentSchema('tsoaTest.TsoaTest.TestModel73', specDefault)).to.deep.equal({
         additionalProperties: true,
         description: undefined,
+        title: undefined,
         properties: {
           value: {
             default: undefined,

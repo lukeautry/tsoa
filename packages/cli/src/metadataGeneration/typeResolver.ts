@@ -117,6 +117,7 @@ export class TypeResolver {
           type,
           validators: getPropertyValidators(propertySignature) || {},
           deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+          title: this.getNodeTitle(propertySignature),
           extensions: this.getNodeExtension(propertySignature),
         };
 
@@ -1161,6 +1162,10 @@ export class TypeResolver {
 
   public getNodeFormat(node: ts.Node) {
     return getJSDocComment(node, 'format');
+  }
+
+  public getNodeTitle(node: ts.Node) {
+    return getJSDocComment(node, 'title');
   }
 
   public getPropertyName(prop: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): string {

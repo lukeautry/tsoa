@@ -59,9 +59,11 @@ export class ReferenceTransformer extends Transformer {
         : first.additionalProperties
       : second.additionalProperties;
 
+    const title = first.title || second.title;
     const result: Tsoa.RefObjectType = {
       dataType: 'refObject',
       description,
+      title,
       properties,
       additionalProperties,
       refName: first.refName,
@@ -75,10 +77,12 @@ export class ReferenceTransformer extends Transformer {
   public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Tsoa.ReferenceType {
     const example = resolver.getNodeExample(declaration);
 
+    const title = resolver.getNodeTitle(declaration);
     const referenceType: Tsoa.ReferenceType = {
       dataType: 'refAlias',
       default: TypeResolver.getDefault(declaration),
       description: resolver.getNodeDescription(declaration),
+      title,
       refName: refTypeName,
       format: resolver.getNodeFormat(declaration),
       type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
