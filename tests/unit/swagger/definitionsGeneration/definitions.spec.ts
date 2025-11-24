@@ -1629,6 +1629,9 @@ describe('Definition generation', () => {
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
           },
+          testModelWithAnnotations: () => {
+            // schema is validated in OpenAPI 3 specific tests
+          },
           extensionComment: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
               {

@@ -7,7 +7,7 @@ import { GenerateMetadataError } from '../exceptions';
 import { TypeResolver } from '../typeResolver';
 import { getInitializerValue } from '../initializer-value';
 import { getPropertyValidators } from '../../utils/validatorUtils';
-import { getJSDocComment, isExistJSDocTag } from '../../utils/jsDocUtils';
+import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { isDecorator } from '../../utils/decoratorUtils';
 import { throwUnless } from '../../utils/flowUtils';
 
@@ -68,7 +68,7 @@ export class PropertyTransformer extends Transformer {
       type: new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
-      title: getJSDocComment(propertySignature, 'title'),
+      title: resolver.getNodeTitle(propertySignature),
       extensions: resolver.getNodeExtension(propertySignature),
     };
     return property;
@@ -108,7 +108,7 @@ export class PropertyTransformer extends Transformer {
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
       deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
-      title: getJSDocComment(propertyDeclaration, 'title'),
+      title: resolver.getNodeTitle(propertyDeclaration),
       extensions: resolver.getNodeExtension(propertyDeclaration),
     };
     return property;

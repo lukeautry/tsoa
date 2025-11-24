@@ -107,6 +107,10 @@ export class SpecGenerator2 extends SpecGenerator {
         if (referenceType.example) {
           definitions[referenceType.refName].example = referenceType.example;
         }
+
+        if (referenceType.title) {
+          definitions[referenceType.refName].title = referenceType.title;
+        }
       } else if (referenceType.dataType === 'refEnum') {
         definitions[referenceType.refName] = {
           description: referenceType.description,
@@ -118,6 +122,9 @@ export class SpecGenerator2 extends SpecGenerator {
         }
         if (referenceType.example) {
           definitions[referenceType.refName].example = referenceType.example;
+        }
+        if (referenceType.title) {
+          definitions[referenceType.refName].title = referenceType.title;
         }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
@@ -137,6 +144,7 @@ export class SpecGenerator2 extends SpecGenerator {
           example: referenceType.example,
           format: format || swaggerType.format,
           description: referenceType.description,
+          ...(referenceType.title && { title: referenceType.title }),
           ...validators,
         };
       } else {

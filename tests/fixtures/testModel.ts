@@ -181,6 +181,7 @@ export interface TestModel extends Model {
 
   // prettier-ignore
   stringAndBoolArray?: Array<(string | boolean)>;
+  testModelWithAnnotations?: TestModelWithAnnotations;
 
   /**
    * @example {
@@ -810,9 +811,6 @@ export interface UserResponseModel {
   name: string;
 }
 
-/**
- * @title TitleTestModel
- */
 export class ParameterTestModel {
   public firstname!: string;
   public lastname!: string;
@@ -1298,3 +1296,13 @@ type OrderDirection = 'asc' | 'desc';
 type OrderOptions<E> = `${keyof E & string}:${OrderDirection}`;
 
 type TemplateLiteralString = OrderOptions<ParameterTestModel>;
+
+/**
+ * @title Title annotation for model
+ */
+interface TestModelWithAnnotations {
+  /**
+   * @title Title annotation for property
+   */
+  param: string;
+}

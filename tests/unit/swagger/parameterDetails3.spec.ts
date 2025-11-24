@@ -57,14 +57,6 @@ describe('Parameter generation for OpenAPI 3.0.0', () => {
           `for spec ${forSpec(currentSpec)}`,
         );
       });
-
-      it('should include title in schema if present', () => {
-        const schemas = currentSpec.spec.components.schemas;
-        const modelSchema = schemas ? schemas['ParameterTestModel'] : undefined;
-        if (modelSchema && modelSchema.title) {
-          expect(modelSchema.title).to.be.equal('TitleTestModel', `Title should be 'TitleTestModel' ${forSpec(currentSpec)}`);
-        }
-      });
     });
   });
 });
