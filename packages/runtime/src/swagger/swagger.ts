@@ -30,16 +30,9 @@ export namespace Swagger {
   }
 
   export interface Spec3 extends Spec {
-    openapi: '3.0.0';
+    openapi: '3.0.0' | '3.1.0';
     servers: Server[];
     components: Components;
-    paths: { [name: string]: Path3 };
-  }
-
-  export interface Spec31 extends Spec {
-    openapi: '3.1.0';
-    servers: Server[];
-    components: Components31;
     paths: { [name: string]: Path3 };
   }
 
