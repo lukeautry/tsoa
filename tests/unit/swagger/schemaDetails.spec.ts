@@ -701,6 +701,11 @@ describe('Schema details generation', () => {
     expect(extensionPath).to.have.property('x-attKey6');
     expect(extensionPath).to.have.property('x-attKey7');
     expect(extensionPath).to.have.property('x-attKey8');
+    expect(extensionPath).to.have.property('x-attKey10');
+    expect(extensionPath).to.have.property('x-attKey11');
+    expect(extensionPath).to.have.property('x-attKey12');
+    expect(extensionPath).to.have.property('x-attKey13');
+    expect(extensionPath).to.have.property('x-attKey14');
 
     // Verify that extensions have correct values
     expect(extensionPath['x-attKey']).to.deep.equal('attValue');
@@ -712,6 +717,11 @@ describe('Schema details generation', () => {
     expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
     expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
     expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
+    expect(extensionPath['x-attKey10']).to.deep.equal(['testVal1', 'testVal2', 123, true, null]);
+    expect(extensionPath['x-attKey11']).to.deep.equal(['testVal1', 'v', 'a', 'l']);
+    expect(extensionPath['x-attKey12']).to.deep.equal({ '0': 1, '1': 2, '2': 3, '3': 4 });
+    expect(extensionPath['x-attKey13']).to.deep.equal({ '0': 'testVal1', '1': 123, '2': true, '3': null });
+    expect(extensionPath['x-attKey14']).to.deep.equal({ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null });
   });
 
   describe('@Res responses', () => {
@@ -994,11 +1004,21 @@ describe('Schema details generation', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
       const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/FormDataStringType'].get?.parameters ?? [];
+      const method = spec.paths['/ParameterTest/FormData'].get?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(1);
-      const queryParam = method[0];
-      expect(queryParam.in).to.equal('formData');
+      expect(method).to.have.lengthOf(3);
+      const [data, indexes, gender] = method;
+
+      expect(data.in).to.equal('formData');
+      expect(data.type).to.equal('string');
+      // Can process numeric enum
+      expect(indexes.in).to.equal('formData');
+      expect(indexes.type).to.equal('number');
+      expect(indexes.enum).to.deep.equal([0, 2, 5]);
+      // Can process string enum
+      expect(gender.in).to.equal('formData');
+      expect(gender.type).to.equal('string');
+      expect(gender.enum).to.deep.equal(['MALE', 'FEMALE']);
     });
   });
 

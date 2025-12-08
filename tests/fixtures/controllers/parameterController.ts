@@ -1,5 +1,5 @@
 import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp, FormField } from '@tsoa/runtime';
-import { Gender, ParameterTestModel } from '../testModel';
+import { EnumNumberValue, FormTestModel, Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
 export class ParameterController {
@@ -308,13 +308,17 @@ export class ParameterController {
     });
   }
 
-  @Get('ParameterHeaderStringType')
-  public async headerStringType(@Header() header: string): Promise<void> {
-    //
+  @Get('FormData')
+  public async formData(@FormField() data: string, @FormField() indexes: EnumNumberValue, @FormField() gender: Gender): Promise<FormTestModel> {
+    return Promise.resolve<FormTestModel>({
+      data,
+      indexes,
+      gender,
+    });
   }
 
-  @Get('FormDataStringType')
-  public async formData(@FormField() data: string): Promise<void> {
+  @Get('ParameterHeaderStringType')
+  public async headerStringType(@Header() header: string): Promise<void> {
     //
   }
 

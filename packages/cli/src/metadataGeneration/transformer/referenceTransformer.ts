@@ -9,6 +9,10 @@ import { getPropertyValidators } from '../../utils/validatorUtils';
 
 export class ReferenceTransformer extends Transformer {
   public static merge(referenceTypes: Tsoa.ReferenceType[]): Tsoa.ReferenceType {
+    if (referenceTypes.length === 0) {
+      throw new GenerateMetadataError('Cannot merge empty reference types array');
+    }
+
     if (referenceTypes.length === 1) {
       return referenceTypes[0];
     }

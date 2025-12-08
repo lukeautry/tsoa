@@ -1,4 +1,4 @@
-import { Body, Get, Post, Query, Route } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Post, Query, Route } from '@tsoa/runtime';
 import { ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from './../testModel';
 
 export interface ValidateDateResponse {
@@ -17,6 +17,10 @@ export interface ValidateStringResponse {
   maxLength: string;
   patternValue: string;
   quotedPatternValue: string;
+}
+
+export interface ValidateBodyPropResponse {
+  name: string;
 }
 
 @Route('Validate')
@@ -132,6 +136,11 @@ export class ValidateController {
   @Post('body')
   public bodyValidate(@Body() body: ValidateModel): Promise<ValidateModel> {
     return Promise.resolve(body);
+  }
+
+  @Post('body-prop')
+  public bodyPropValidate(@BodyProp('name') name: string): Promise<ValidateBodyPropResponse> {
+    return Promise.resolve({ name: `${name}-validated` });
   }
 
   @Post('map')
