@@ -30,16 +30,17 @@ export const generateSpec = async (
   }
 
   let spec: Swagger.Spec;
-  if (swaggerConfig.specVersion) {
-    if (swaggerConfig.specVersion === 3) {
-      spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
-    } else if (swaggerConfig.specVersion === 3.1) {
-      spec = new SpecGenerator31(metadata, swaggerConfig).GetSpec();
-    } else {
+
+  switch (swaggerConfig.specVersion) {
+    case 2:
       spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
-    }
-  } else {
-    spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
+      break;
+    case 3:
+      spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
+      break;
+    case 3.1:
+    default:
+      spec = new SpecGenerator31(metadata, swaggerConfig).GetSpec();
   }
 
   await fsMkDir(swaggerConfig.outputDirectory, { recursive: true });
