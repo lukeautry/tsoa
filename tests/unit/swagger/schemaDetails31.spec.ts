@@ -28,7 +28,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   });
 
   interface SpecAndName {
-    spec: Swagger.Spec31;
+    spec: Swagger.Spec3;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
@@ -106,7 +106,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
-      const spec: Swagger.Spec31 = new SpecGenerator31(metadataGet, optionsWithNoHost).GetSpec();
+      const spec: Swagger.Spec3 = new SpecGenerator31(metadataGet, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });
@@ -830,8 +830,8 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
         });
 
         describe('media types', () => {
-          let mediaTypeTest: Swagger.Spec31;
-          let requestAcceptHeaderTest: Swagger.Spec31;
+          let mediaTypeTest: Swagger.Spec3;
+          let requestAcceptHeaderTest: Swagger.Spec3;
 
           before(function () {
             this.timeout(10_000);
