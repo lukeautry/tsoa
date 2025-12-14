@@ -316,7 +316,7 @@ describe('Definition generation', () => {
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
             //      So, let's convince TypeScript
-            const itemsAsSchema = propertySchema.items as Swagger.Schema;
+            const itemsAsSchema = propertySchema.items;
             if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
               expect(itemsAsSchema.additionalProperties).to.eq(false, forSpec(currentSpec));
             } else {
@@ -3574,7 +3574,7 @@ describe('Definition generation', () => {
           if (!property.items) {
             throw new Error(`There were no items on the property model.`);
           }
-          expect((property.items as Swagger.Schema).$ref).to.equal('#/definitions/TestModel');
+          expect(property.items.$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic primitive', () => {
           const definition = getValidatedDefinition('GenericModel_string_', currentSpec).properties;
@@ -3610,7 +3610,7 @@ describe('Definition generation', () => {
           if (!property.items) {
             throw new Error(`There were no items on the property model.`);
           }
-          expect((property.items as Swagger.Schema).type).to.equal('string');
+          expect(property.items.type).to.equal('string');
         });
         it('should propagate generics', () => {
           const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;

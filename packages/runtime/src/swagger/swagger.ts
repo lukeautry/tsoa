@@ -6,7 +6,7 @@ export namespace Swagger {
 
   export type Protocol = 'http' | 'https' | 'ws' | 'wss';
 
-  export type SupportedSpecMajorVersion = 2 | 3;
+  export type SupportedSpecMajorVersion = 2 | 3 | 3.1;
 
   export interface Spec {
     info: Info;
@@ -23,17 +23,54 @@ export namespace Swagger {
     produces?: string[];
     paths: { [name: string]: Path };
     definitions?: { [name: string]: Schema2 };
-    parameters?: { [name: string]: Parameter };
+    parameters?: { [name: string]: Parameter2 };
     responses?: { [name: string]: Response };
     security?: Security[];
     securityDefinitions?: { [name: string]: SecuritySchemes };
   }
 
-  export interface Spec3 extends Spec {
-    openapi: '3.0.0';
+  /**
+   * Base interface for all OpenAPI 3.x specifications
+   * Contains fields shared across all 3.x versions
+   */
+  export interface Spec3x extends Spec {
     servers: Server[];
+  }
+
+  /**
+   * OpenAPI 3.0.x specification
+   */
+  export interface Spec30 extends Spec3x {
+    openapi: '3.0.0';
     components: Components;
     paths: { [name: string]: Path3 };
+  }
+
+  /**
+   * OpenAPI 3.1.x specification
+   */
+  export interface Spec31 extends Spec3x {
+    openapi: '3.1.0';
+    components: Components31;
+    paths: { [name: string]: Path31 };
+  }
+
+  /**
+   * Union type representing any OpenAPI 3.x specification (3.0 or 3.1)
+   * Use Spec30 or Spec31 when you know the specific version
+   */
+  export type Spec3 = Spec30 | Spec31;
+
+  export interface Path31 {
+    $ref?: string;
+    get?: Operation31;
+    put?: Operation31;
+    post?: Operation31;
+    delete?: Operation31;
+    options?: Operation31;
+    head?: Operation31;
+    patch?: Operation31;
+    parameters?: Parameter31[];
   }
 
   export interface Components {
@@ -41,11 +78,15 @@ export namespace Swagger {
     examples?: { [name: string]: Example3 | string };
     headers?: { [name: string]: unknown };
     links?: { [name: string]: unknown };
-    parameters?: { [name: string]: Parameter };
+    parameters?: { [name: string]: Parameter3 };
     requestBodies?: { [name: string]: unknown };
     responses?: { [name: string]: Response };
     schemas?: { [name: string]: Schema3 };
     securitySchemes?: { [name: string]: SecuritySchemes };
+  }
+
+  export interface Components31 extends Omit<Components, 'schemas'> {
+    schemas?: { [name: string]: Schema31 };
   }
 
   export interface Server {
@@ -89,49 +130,78 @@ export namespace Swagger {
     description?: string;
   }
 
-  export interface BaseParameter extends BaseSchema {
+  export type BaseParameter = {
     name: string;
-    in: 'query' | 'header' | 'path' | 'formData' | 'body';
+    in: 'query' | 'header' | 'path' | 'formData' | 'body' | 'cookie';
     required?: boolean;
     description?: string;
-    example?: unknown;
-    examples?: { [name: string]: Example3 | string };
-    schema: Schema;
+    deprecated?: boolean;
+    [ext: `x-${string}`]: unknown;
+  } & Pick<BaseSchema, 'type' | 'items' | 'enum' | 'format' | 'minimum' | 'maximum' | 'minLength' | 'maxLength' | 'pattern'>;
+
+  export type BodyParameter = BaseParameter & {
+    in: 'body';
+  };
+
+  export type FormDataParameter = BaseParameter & {
+    in: 'formData';
     type: DataType;
     format?: DataFormat;
-    deprecated?: boolean;
-  }
+    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
+    default?: unknown;
+  };
 
-  export interface BodyParameter extends BaseParameter {
-    in: 'body';
-  }
-
-  export interface QueryParameter extends BaseParameter {
+  type QueryParameter = BaseParameter & {
     in: 'query';
-    allowEmptyValue?: boolean;
+    type: DataType;
+    format?: DataFormat;
     collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
-  }
+    default?: unknown;
+  };
 
-  export function isQueryParameter(parameter: BaseParameter): parameter is QueryParameter {
-    return parameter.in === 'query';
-  }
-
-  export interface PathParameter extends BaseParameter {
+  type PathParameter = BaseParameter & {
     in: 'path';
-  }
+    type: DataType;
+    format?: DataFormat;
+    default?: unknown;
+  };
 
-  export interface HeaderParameter extends BaseParameter {
+  type HeaderParameter = BaseParameter & {
     in: 'header';
+    type: DataType;
+    format?: DataFormat;
+    default?: unknown;
+  };
+
+  type Swagger2BaseParameter = BaseParameter & {
+    schema: Schema2;
+  };
+
+  export type Swagger2BodyParameter = Swagger2BaseParameter & BodyParameter;
+  export type Swagger2FormDataParameter = Swagger2BaseParameter & FormDataParameter;
+  export type Swagger2QueryParameter = Swagger2BaseParameter & QueryParameter;
+  export type Swagger2PathParameter = Swagger2BaseParameter & PathParameter;
+  export type Swagger2HeaderParameter = Swagger2BaseParameter & HeaderParameter;
+
+  export type Parameter2 = Swagger2BodyParameter | Swagger2FormDataParameter | Swagger2QueryParameter | Swagger2PathParameter | Swagger2HeaderParameter;
+
+  export function isQueryParameter(parameter: unknown): parameter is Swagger2QueryParameter {
+    return typeof parameter === 'object' && parameter !== null && 'in' in parameter && parameter.in === 'query';
   }
 
-  export interface FormDataParameter extends BaseParameter {
-    in: 'formData';
-    collectionFormat?: 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
+  export interface Parameter3 extends BaseParameter {
+    in: 'query' | 'header' | 'path' | 'cookie';
+    schema: Schema3;
+    style?: string;
+    explode?: boolean;
+    allowReserved?: boolean;
+    example?: unknown;
+    examples?: { [name: string]: Example3 | string };
   }
 
-  export type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
-  export type Parameter2 = Parameter & { 'x-deprecated'?: boolean };
-  export type Parameter3 = Parameter;
+  export interface Parameter31 extends Omit<Parameter3, 'schema'> {
+    schema: Schema31;
+  }
 
   export interface Path {
     $ref?: string;
@@ -191,10 +261,26 @@ export namespace Swagger {
     [ext: `x-${string}`]: unknown;
   }
 
+  export interface Operation31 extends Omit<Operation3, 'responses' | 'requestBody' | 'parameters'> {
+    parameters?: Parameter31[];
+    requestBody?: RequestBody31;
+    responses: { [name: string]: Response31 };
+  }
+
   export interface RequestBody {
     content: { [requestMediaType: string]: MediaType };
     description?: string;
     required?: boolean;
+  }
+
+  export interface RequestBody31 {
+    content: { [requestMediaType: string]: MediaType31 };
+    description?: string;
+    required?: boolean;
+    $ref?: string;
+    summary?: string;
+    examples?: { [media: string]: Example3 | string };
+    [ext: `x-${string}`]: unknown;
   }
 
   export interface MediaType {
@@ -204,9 +290,16 @@ export namespace Swagger {
     encoding?: { [name: string]: unknown };
   }
 
+  export interface MediaType31 {
+    schema?: Schema31;
+    example?: unknown;
+    examples?: { [name: string]: Example3 | string };
+    encoding?: { [name: string]: unknown };
+  }
+
   export interface Response {
     description: string;
-    schema?: Schema;
+    schema?: BaseSchema;
     headers?: { [name: string]: Header };
     examples?: { [responseMediaType: string]: { [exampleName: string]: Example3 | string } };
   }
@@ -222,7 +315,21 @@ export namespace Swagger {
     headers?: { [name: string]: Header3 };
   }
 
-  export interface BaseSchema {
+  export interface Response31 {
+    description: string;
+    content?: {
+      [responseMediaType: string]: {
+        schema?: Schema31;
+        examples?: { [name: string]: Example3 | string };
+        example?: unknown;
+        encoding?: { [name: string]: unknown };
+      };
+    };
+    headers?: { [name: string]: Header3 };
+    links?: { [name: string]: unknown }; // If needed per spec
+  }
+
+  export interface BaseSchema<P = unknown> {
     type?: string;
     format?: DataFormat;
     $ref?: string;
@@ -245,36 +352,58 @@ export namespace Swagger {
     minProperties?: number;
     enum?: Array<boolean | string | number | null>;
     'x-enum-varnames'?: string[];
-    items?: BaseSchema;
 
     [ext: `x-${string}`]: unknown;
-  }
 
-  export interface Schema3 extends Omit<Schema, 'type'> {
-    type?: DataType;
-    nullable?: boolean;
-    anyOf?: BaseSchema[];
-    allOf?: BaseSchema[];
-    deprecated?: boolean;
-  }
-
-  export interface Schema2 extends Schema {
-    properties?: { [propertyName: string]: Schema2 };
-    ['x-nullable']?: boolean;
-    ['x-deprecated']?: boolean;
-  }
-
-  export interface Schema extends BaseSchema {
-    type?: DataType;
-    format?: DataFormat;
+    // moved from Schema
     additionalProperties?: boolean | BaseSchema;
-    properties?: { [propertyName: string]: Schema3 };
+    properties?: { [propertyName: string]: P };
     discriminator?: string;
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
     example?: unknown;
     required?: string[];
+
+    items?: BaseSchema;
+  }
+
+  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf'> {
+    examples?: unknown[];
+
+    properties?: { [key: string]: Schema31 };
+    additionalProperties?: boolean | Schema31;
+
+    items?: Schema31 | false;
+    prefixItems?: Schema31[];
+    contains?: Schema31;
+
+    allOf?: Schema31[];
+    anyOf?: Schema31[];
+    oneOf?: Schema31[];
+    not?: Schema31;
+    propertyNames?: Schema31;
+
+    discriminator?: {
+      propertyName: string;
+      mapping?: Record<string, string>;
+    };
+  }
+
+  export interface Schema3 extends Omit<BaseSchema, 'type'> {
+    type?: DataType;
+    nullable?: boolean;
+    anyOf?: BaseSchema[];
+    allOf?: BaseSchema[];
+    deprecated?: boolean;
+    properties?: { [propertyName: string]: Schema3 };
+  }
+
+  export interface Schema2 extends BaseSchema {
+    type?: DataType;
+    properties?: { [propertyName: string]: Schema2 };
+    ['x-nullable']?: boolean;
+    ['x-deprecated']?: boolean;
   }
 
   export interface Header {
@@ -299,16 +428,29 @@ export namespace Swagger {
     multipleOf?: number;
   }
 
-  export interface Header3 extends BaseSchema {
-    required?: boolean;
+  export interface Header3 {
     description?: string;
+    required?: boolean;
+    deprecated?: boolean;
+    allowEmptyValue?: boolean;
+
+    style?: string;
+    explode?: boolean;
+    allowReserved?: boolean;
+
+    schema?: Schema3 | Schema31;
     example?: unknown;
-    examples?: {
-      [name: string]: Example3 | string;
+    examples?: { [media: string]: Example3 | string };
+
+    content?: {
+      [media: string]: {
+        schema?: Schema3 | Schema31;
+        example?: unknown;
+        examples?: { [name: string]: Example3 | string };
+      };
     };
-    schema: Schema;
-    type?: DataType;
-    format?: DataFormat;
+
+    [ext: `x-${string}`]: unknown;
   }
 
   export interface XML {

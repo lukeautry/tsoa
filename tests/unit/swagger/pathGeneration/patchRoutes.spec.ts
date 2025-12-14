@@ -25,7 +25,7 @@ describe('PATCH route generation', () => {
     verifyPath(actionRoute, true);
   });
 
-  const getValidatedParameters = (actionRoute: string): Swagger.Parameter[] => {
+  const getValidatedParameters = (actionRoute: string): Swagger.Parameter2[] => {
     const path = verifyPath(actionRoute);
     if (!path.patch) {
       throw new Error('No patch operation.');

@@ -79,7 +79,7 @@ describe('Configuration', () => {
           throw new Error('Should not get here, expecting error regarding unsupported Spec version');
         },
         err => {
-          expect(err.message).to.equal('Unsupported Spec version.');
+          expect(err.message).to.equal('Unsupported Spec version: -2.');
           done();
         },
       );
