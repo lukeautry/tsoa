@@ -1632,6 +1632,12 @@ describe('Definition generation', () => {
           testModelWithAnnotations: () => {
             // schema is validated in OpenAPI 3 specific tests
           },
+          enumWithTitle: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/EnumWithTitle', `for property ${propertyName}.$ref`);
+
+            const schema = getValidatedDefinition('EnumWithTitle', currentSpec);
+            expect(schema.title).to.eq('Title annotation for enum');
+          },
           extensionComment: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
               {

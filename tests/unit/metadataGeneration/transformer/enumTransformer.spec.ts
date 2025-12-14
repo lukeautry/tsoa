@@ -207,6 +207,57 @@ describe('EnumTransformer - Null Safety', () => {
         example: 'example1', // First example should be used
       });
     });
+
+    it('should merge title property correctly', () => {
+      const first: Tsoa.RefEnumType = {
+        dataType: 'refEnum',
+        refName: 'TestEnum',
+        enums: ['value1'],
+        enumVarnames: ['VALUE1'],
+        description: 'First enum',
+        deprecated: false,
+        title: 'First Title',
+      };
+
+      const second: Tsoa.RefEnumType = {
+        dataType: 'refEnum',
+        refName: 'TestEnum',
+        enums: ['value2'],
+        enumVarnames: ['VALUE2'],
+        description: 'Second enum',
+        deprecated: false,
+        title: 'Second Title',
+      };
+
+      const result = EnumTransformer.merge(first, second);
+
+      expect(result.title).to.equal('First Title'); // First title should be used
+    });
+
+    it('should use second title if first is undefined', () => {
+      const first: Tsoa.RefEnumType = {
+        dataType: 'refEnum',
+        refName: 'TestEnum',
+        enums: ['value1'],
+        enumVarnames: ['VALUE1'],
+        description: 'First enum',
+        deprecated: false,
+      };
+
+      const second: Tsoa.RefEnumType = {
+        dataType: 'refEnum',
+        refName: 'TestEnum',
+        enums: ['value2'],
+        enumVarnames: ['VALUE2'],
+        description: 'Second enum',
+        deprecated: false,
+        title: 'Second Title',
+      };
+
+      const result = EnumTransformer.merge(first, second);
+
+      expect(result.title).to.equal('Second Title');
+    });
   });
 
   describe('mergeMany method', () => {

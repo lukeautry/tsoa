@@ -182,6 +182,7 @@ export interface TestModel extends Model {
   // prettier-ignore
   stringAndBoolArray?: Array<(string | boolean)>;
   testModelWithAnnotations?: TestModelWithAnnotations;
+  enumWithTitle?: EnumWithTitle;
 
   /**
    * @example {
@@ -1305,4 +1306,12 @@ interface TestModelWithAnnotations {
    * @title Title annotation for property
    */
   param: string;
+}
+
+/**
+ * @title Title annotation for enum
+ */
+export enum EnumWithTitle {
+  Value1 = 'value1',
+  Value2 = 'value2',
 }

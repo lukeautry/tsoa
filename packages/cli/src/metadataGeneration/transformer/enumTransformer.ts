@@ -28,6 +28,7 @@ export class EnumTransformer extends Transformer {
     const enumVarnames = first.enumVarnames ? (second.enumVarnames ? [...first.enumVarnames, ...second.enumVarnames] : first.enumVarnames) : second.enumVarnames;
 
     const example = first.example || second.example;
+    const title = first.title || second.title;
 
     return {
       dataType: 'refEnum',
@@ -37,6 +38,7 @@ export class EnumTransformer extends Transformer {
       refName: first.refName,
       deprecated,
       example,
+      ...(title && { title }),
     };
   }
 
@@ -57,6 +59,7 @@ export class EnumTransformer extends Transformer {
     };
     const enums = declaration.members.map(e => resolver.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
     const enumVarnames = declaration.members.map(e => e.name.getText()).filter(isNotUndefined);
+    const title = resolver.getNodeTitle(declaration);
 
     return {
       dataType: 'refEnum',
@@ -66,6 +69,7 @@ export class EnumTransformer extends Transformer {
       enumVarnames,
       refName: enumName,
       deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
+      ...(title && { title }),
     };
   }
 

@@ -4500,6 +4500,12 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
             expect(paramSchema.title).to.eq('Title annotation for property');
           },
+          enumWithTitle: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/EnumWithTitle', `for property ${propertyName}.$ref`);
+
+            const schema = getComponentSchema('EnumWithTitle', currentSpec);
+            expect(schema.title).to.eq('Title annotation for enum');
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];
