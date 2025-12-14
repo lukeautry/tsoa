@@ -8,7 +8,6 @@ import * as os from 'os';
 import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../fixtures/testModel';
-import { title } from 'process';
 
 describe('Definition generation for OpenAPI 3.0.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();

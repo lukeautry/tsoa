@@ -208,6 +208,9 @@ export class SpecGenerator3 extends SpecGenerator {
         if (referenceType.example) {
           schema[referenceType.refName].example = referenceType.example;
         }
+        if (referenceType.title) {
+          schema[referenceType.refName].title = referenceType.title;
+        }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const format = referenceType.format as Swagger.DataFormat;
