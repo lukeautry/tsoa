@@ -24,12 +24,14 @@ export class SpecGenerator31 extends SpecGenerator3 {
     super(metadata, config);
   }
 
-  public GetSpec(): Swagger.Spec3 {
-    let spec: Swagger.Spec3 = {
+  // Override with OpenAPI 3.1 specific return type
+  // The base class returns Swagger.Spec30, but this generator produces Swagger.Spec31
+  public override GetSpec(): Swagger.Spec31 {
+    let spec: Swagger.Spec31 = {
       openapi: '3.1.0',
-      components: this.buildComponents(),
+      components: this.buildComponents() as Swagger.Components31,
       info: this.buildInfo(),
-      paths: this.buildPaths(),
+      paths: this.buildPaths() as { [name: string]: Swagger.Path31 },
       servers: this.buildServers(),
       tags: this.config.tags,
     };
@@ -42,7 +44,7 @@ export class SpecGenerator31 extends SpecGenerator3 {
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => deepMerge(spec, merge),
       };
 
-      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec3;
+      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec31;
     }
 
     return spec;

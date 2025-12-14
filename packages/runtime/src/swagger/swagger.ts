@@ -29,11 +29,48 @@ export namespace Swagger {
     securityDefinitions?: { [name: string]: SecuritySchemes };
   }
 
-  export interface Spec3 extends Spec {
-    openapi: '3.0.0' | '3.1.0';
+  /**
+   * Base interface for all OpenAPI 3.x specifications
+   * Contains fields shared across all 3.x versions
+   */
+  export interface Spec3x extends Spec {
     servers: Server[];
+  }
+
+  /**
+   * OpenAPI 3.0.x specification
+   */
+  export interface Spec30 extends Spec3x {
+    openapi: '3.0.0';
     components: Components;
     paths: { [name: string]: Path3 };
+  }
+
+  /**
+   * OpenAPI 3.1.x specification
+   */
+  export interface Spec31 extends Spec3x {
+    openapi: '3.1.0';
+    components: Components31;
+    paths: { [name: string]: Path31 };
+  }
+
+  /**
+   * Union type representing any OpenAPI 3.x specification (3.0 or 3.1)
+   * Use Spec30 or Spec31 when you know the specific version
+   */
+  export type Spec3 = Spec30 | Spec31;
+
+  export interface Path31 {
+    $ref?: string;
+    get?: Operation31;
+    put?: Operation31;
+    post?: Operation31;
+    delete?: Operation31;
+    options?: Operation31;
+    head?: Operation31;
+    patch?: Operation31;
+    parameters?: Parameter31[];
   }
 
   export interface Components {
@@ -331,11 +368,7 @@ export namespace Swagger {
     items?: BaseSchema;
   }
 
-  export interface Schema31 extends Omit<BaseSchema, 'type' | 'items' | 'properties' | 'additionalProperties' | 'discriminator'> {
-    type?: DataType; // could support an array, but we already do anyOf for that
-    nullable?: boolean;
-    deprecated?: boolean;
-    example?: unknown;
+  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf'> {
     examples?: unknown[];
 
     properties?: { [key: string]: Schema31 };

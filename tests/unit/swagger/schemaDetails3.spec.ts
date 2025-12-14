@@ -119,7 +119,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
-      const spec: Swagger.Spec3 = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
+      const spec = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });
@@ -1192,7 +1192,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
-        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema3) => void> = {
+        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema3 | Swagger.Schema31) => void> = {
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
@@ -1359,7 +1359,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
             //      So, let's convince TypeScript
-            const itemsAsSchema = propertySchema.items ;
+            const itemsAsSchema = propertySchema.items;
             if (currentSpec.specName === 'specWithNoImplicitExtras') {
               expect(itemsAsSchema.additionalProperties).to.eq(false, forSpec(currentSpec));
             } else {
@@ -1485,7 +1485,9 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            expect(propertySchema.items!.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
+            const items = propertySchema.items;
+            expect(items).to.not.eq(false, `for property ${propertyName}.items`);
+            expect((items as Swagger.Schema3).$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
@@ -4735,7 +4737,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   describe('@Res responses', () => {
-    const expectTestModelContent = (response?: Swagger.Response3) => {
+    const expectTestModelContent = (response?: Swagger.Response3 | Swagger.Response31) => {
       expect(response?.content).to.deep.equal({
         'application/json': {
           schema: {

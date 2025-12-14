@@ -28,7 +28,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   public GetSpec(): Swagger.Spec3 {
-    let spec: Swagger.Spec3 = {
+    let spec: Swagger.Spec30 = {
       openapi: '3.0.0',
       components: this.buildComponents(),
       info: this.buildInfo(),
@@ -45,7 +45,7 @@ export class SpecGenerator3 extends SpecGenerator {
         deepmerge: (spec: UnspecifiedObject, merge: UnspecifiedObject): UnspecifiedObject => deepMerge(spec, merge),
       };
 
-      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec3;
+      spec = mergeFuncs[this.config.specMerging](spec as unknown as UnspecifiedObject, this.config.spec as UnspecifiedObject) as unknown as Swagger.Spec30;
     }
 
     return spec;

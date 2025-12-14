@@ -28,7 +28,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   });
 
   interface SpecAndName {
-    spec: Swagger.Spec3;
+    spec: Swagger.Spec31;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
@@ -106,7 +106,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
-      const spec: Swagger.Spec3 = new SpecGenerator31(metadataGet, optionsWithNoHost).GetSpec();
+      const spec: Swagger.Spec31 = new SpecGenerator31(metadataGet, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });
@@ -830,8 +830,8 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
         });
 
         describe('media types', () => {
-          let mediaTypeTest: Swagger.Spec3;
-          let requestAcceptHeaderTest: Swagger.Spec3;
+          let mediaTypeTest: Swagger.Spec31;
+          let requestAcceptHeaderTest: Swagger.Spec31;
 
           before(function () {
             this.timeout(10_000);
@@ -4723,7 +4723,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   });
 
   describe('@Res responses', () => {
-    const expectTestModelContent = (response?: Swagger.Response3) => {
+    const expectTestModelContent = (response?: Swagger.Response31) => {
       expect(response?.content).to.deep.equal({
         'application/json': {
           schema: {
@@ -4856,13 +4856,10 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
   describe('Tuple support', () => {
     it('should generate prefixItems and items for fixed and variadic tuples', () => {
-      function resolveSchema(schema: Swagger.Schema31 | false, components: Record<string, Swagger.Schema31>): Swagger.Schema31 {
-        if (schema === false) {
-          throw new Error('Schema was explicitly false, cannot resolve.');
-        }
-
-        if ('$ref' in schema) {
-          const refName = schema.$ref!.replace('#/components/schemas/', '');
+      function resolveSchema(schema: Swagger.Schema31, components: Record<string, Swagger.Schema31>): Swagger.Schema31 {
+        const ref: string | undefined = schema.$ref;
+        if (ref) {
+          const refName = ref.replace('#/components/schemas/', '');
           return components[refName]!;
         }
         return schema;
@@ -4870,13 +4867,13 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
       const metadata = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
       const spec = new SpecGenerator31(metadata, defaultOptions).GetSpec();
-      const components = spec.components?.schemas ?? {};
+      const components: Record<string, Swagger.Schema31> = spec.components.schemas ?? {};
 
-      const fixedTupleSchema = components.StringAndNumberTuple;
-      const variadicTupleSchema = components.TupleWithRest;
+      const fixedTupleSchema = components.StringAndNumberTuple!;
+      const variadicTupleSchema = components.TupleWithRest!;
 
-      expect(fixedTupleSchema?.type).to.equal('array');
-      expect(fixedTupleSchema?.prefixItems).to.be.an('array').with.lengthOf(2);
+      expect(fixedTupleSchema.type).to.equal('array');
+      expect(fixedTupleSchema.prefixItems).to.be.an('array').with.lengthOf(2);
 
       const fixedFirst = resolveSchema(fixedTupleSchema.prefixItems![0], components);
       const fixedSecond = resolveSchema(fixedTupleSchema.prefixItems![1], components);
@@ -4893,7 +4890,12 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       expect(variadicTupleSchema).to.not.have.property('maxItems');
 
       const variadicFirst = resolveSchema(variadicTupleSchema.prefixItems![0], components);
-      const variadicItems = resolveSchema(variadicTupleSchema.items!, components);
+      // variadicTupleSchema.items can be Schema31 or false; filter false out for the test
+      const variadicItemsRaw = variadicTupleSchema.items;
+      if (variadicItemsRaw === false || variadicItemsRaw === undefined) {
+        throw new Error('Expected items to be a schema, not false or undefined');
+      }
+      const variadicItems = resolveSchema(variadicItemsRaw, components);
       expect(variadicFirst).to.deep.include({ type: 'string' });
       expect(variadicItems).to.deep.include({ type: 'number' });
     });

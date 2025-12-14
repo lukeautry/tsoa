@@ -121,7 +121,7 @@ describe('specMergins', () => {
 
       originalSpec.paths['/GetTest/DateParam'].get!.operationId = 'OverriddenId';
 
-      originalSpec.paths['/GetTest/DateParam'].get?.parameters?.push(addedParameter);
+      originalSpec.paths['/GetTest/DateParam'].get?.parameters?.push(addedParameter as any);
 
       expect(mergedSpec).to.deep.eq(originalSpec);
     });

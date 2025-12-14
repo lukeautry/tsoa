@@ -15,7 +15,7 @@ describe('Complex Type Resolution Integration Tests', () => {
     entryFile: defaultConfig.entryFile,
   };
 
-  const spec: Swagger.Spec3 = new SpecGenerator3(metadata, defaultOptions).GetSpec();
+  const spec = new SpecGenerator3(metadata, defaultOptions).GetSpec();
 
   describe('Zod z.infer types', () => {
     it('should generate correct OpenAPI spec for @Body with z.infer<UserSchema>', () => {
