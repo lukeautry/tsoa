@@ -1,6 +1,6 @@
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
-import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
 import { Swagger, Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
@@ -9,17 +9,13 @@ import { versionMajorMinor } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../fixtures/testModel';
 
-describe('Definition generation for OpenAPI 3.0.0', () => {
+describe('Definition generation for OpenAPI 3.1.0', () => {
   const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
-  const metadataPost = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
+  const metadataPost = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
   const optionsWithServers = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     servers: ['localhost:3000', 'staging.api.com'],
-  });
-  const optionsWithBasePathSlash = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
-    servers: ['localhost:3000', 'staging.api.com'],
-    disableBasePathPrefixSlash: true,
   });
   const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
     noImplicitAdditionalProperties: 'silently-remove-extras',
@@ -32,31 +28,27 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   interface SpecAndName {
-    spec: Swagger.Spec3;
+    spec: Swagger.Spec31;
     /**
      * If you want to add another spec here go for it. The reason why we use a string literal is so that tests below won't have "magic string" errors when expected test results differ based on the name of the spec you're testing.
      */
-    specName: 'specDefault' | 'specWithServers' | 'specWithBasePathSlash' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
+    specName: 'specDefault' | 'specWithServers' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
   }
 
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator3(metadataGet, defaultOptions).GetSpec(),
+    spec: new SpecGenerator31(metadataGet, defaultOptions).GetSpec(),
     specName: 'specDefault',
   };
   const specWithServers: SpecAndName = {
-    spec: new SpecGenerator3(metadataGet, optionsWithServers).GetSpec(),
+    spec: new SpecGenerator31(metadataGet, optionsWithServers).GetSpec(),
     specName: 'specWithServers',
   };
-  const specWithBasePathSlash: SpecAndName = {
-    spec: new SpecGenerator3(metadataGet, optionsWithBasePathSlash).GetSpec(),
-    specName: 'specWithBasePathSlash',
-  };
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator3(metadataGet, optionsWithNoAdditional).GetSpec(),
+    spec: new SpecGenerator31(metadataGet, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
   };
   const specWithXEnumVarnames: SpecAndName = {
-    spec: new SpecGenerator3(metadataGet, optionsWithXEnumVarnames).GetSpec(),
+    spec: new SpecGenerator31(metadataGet, optionsWithXEnumVarnames).GetSpec(),
     specName: 'specWithXEnumVarnames',
   };
 
@@ -101,13 +93,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
 
     it('should replace the parent hosts element', () => {
-      expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000\/v1/);
-      expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com\/v1/);
-    });
-
-    it('should not have trailing slash in each host element', () => {
-      expect(specWithBasePathSlash.spec.servers[0].url).to.match(/localhost:3000v1/);
-      expect(specWithBasePathSlash.spec.servers[1].url).to.match(/staging\.api\.comv1/);
+      expect(specWithServers.spec.servers[0].url).to.match(/localhost:3000/);
+      expect(specWithServers.spec.servers[1].url).to.match(/staging\.api\.com/);
     });
 
     it('should replace the parent basePath element', () => {
@@ -119,7 +106,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       const optionsWithNoHost = Object.assign<object, ExtendedSpecConfig>({}, defaultOptions);
       delete optionsWithNoHost.host;
 
-      const spec = new SpecGenerator3(metadataGet, optionsWithNoHost).GetSpec();
+      const spec: Swagger.Spec31 = new SpecGenerator31(metadataGet, optionsWithNoHost).GetSpec();
       expect(spec.servers[0].url).to.equal('/v1');
     });
   });
@@ -282,7 +269,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
 
       const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator3(metadata, optionsWithBearer).GetSpec();
+      const exampleSpec = new SpecGenerator31(metadata, optionsWithBearer).GetSpec();
 
       expect(exampleSpec.components.securitySchemes).to.eql({
         bearer,
@@ -301,7 +288,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
 
       const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator3(metadata, optionsWithOpenId).GetSpec();
+      const exampleSpec = new SpecGenerator31(metadata, optionsWithOpenId).GetSpec();
 
       expect(exampleSpec.components.securitySchemes).to.eql({
         openId,
@@ -311,7 +298,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   describe('example comment', () => {
     const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-    const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+    const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
     it('should generate single example for model', () => {
       if (exampleSpec.components === undefined) {
@@ -439,7 +426,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
     it('Supports custom example labels', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
       const examples = exampleSpec.paths['/ExampleTest/CustomBodyExampleLabels']?.post?.requestBody!.content!['application/json'].examples;
 
@@ -461,14 +448,14 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('paths', () => {
     describe('uploadedFiles', () => {
       /**
-       * Tests according to openapi v3 specs
-       * @link http://spec.openapis.org/oas/v3.0.0
+       * Tests according to openapi v3.1.0 specs
+       * @link http://spec.openapis.org/oas/v3.1.0
        * Validated and tested GUI with swagger.io
        * @link https://editor.swagger.io/
        */
       it('should have requestBody with single multipart/form-data', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/File'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -499,7 +486,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
       it('should consume multipart/form-data and have formData parameter with no name', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/FileWithoutName'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -530,7 +517,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
       it('should consume multipart/form-data and have multiple formData parameter', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/ManyFilesAndFormFields'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -570,7 +557,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
       it('should not treat optional file as required', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/FileOptional'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -600,7 +587,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       });
       it('should consume multipart/form-data and have multiple formData parameter with optional descriptions', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/DescriptionOfFileAndFormFields'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -635,7 +622,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
     describe('requestBody', () => {
       it('should replace the body parameter with a requestBody', () => {
-        const specPost = new SpecGenerator3(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specPost.paths) {
           throw new Error('Paths are not defined.');
@@ -664,17 +651,18 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         });
       });
     });
+
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
         const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHiddenMethod = new SpecGenerator3(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        const specHiddenMethod = new SpecGenerator31(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
       });
 
       it('should not contain hidden query params', () => {
         const metadataHidden = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHidden = new SpecGenerator3(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        const specHidden = new SpecGenerator31(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         if (!specHidden.paths) {
           throw new Error('Paths are not defined.');
@@ -698,7 +686,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
       it('should not contain paths for hidden controller', () => {
         const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
-        const specHiddenController = new SpecGenerator3(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        const specHiddenController = new SpecGenerator31(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
         expect(specHiddenController.paths).to.be.empty;
       });
@@ -709,13 +697,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         // for backwards compatibility.
         it('should default to title-cased method name.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
           expect(operationId).to.eq('Post');
         });
         it('should utilize operationIdTemplate if set.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, optionsWithOperationIdTemplate).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, optionsWithOperationIdTemplate).GetSpec();
           const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
           expect(operationId).to.eq('ExampleTest_Post');
         });
@@ -724,7 +712,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       describe('responses', () => {
         describe('should generate headers from method reponse decorator.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
-          const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
           it('proper schema ref for header class.', () => {
             const pathsWithHeaderClass = ['SuccessResponseWithHeaderClass', 'ResponseWithHeaderClass', 'TsoaResponseWithHeaderClass'];
@@ -795,7 +783,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         describe('should generate headers from class response decorator.', () => {
           it('with header class.', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
-            const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+            const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
             const paths = ['Response1', 'Response2'];
             paths.forEach((path: string) => {
               const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
@@ -810,7 +798,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
           it('with header object.', () => {
             const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
-            const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+            const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
             const paths = ['Response1', 'Response2'];
             paths.forEach((path: string) => {
               const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
@@ -837,21 +825,21 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('Should not generate models with hidden controller referenced.', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHiddenModelController.ts').Generate();
-          const responseSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           expect(responseSpec.components.schemas).to.be.deep.eq({});
         });
 
         describe('media types', () => {
-          let mediaTypeTest: Swagger.Spec3;
-          let requestAcceptHeaderTest: Swagger.Spec3;
+          let mediaTypeTest: Swagger.Spec31;
+          let requestAcceptHeaderTest: Swagger.Spec31;
 
           before(function () {
             this.timeout(10_000);
             const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
-            mediaTypeTest = new SpecGenerator3(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
+            mediaTypeTest = new SpecGenerator31(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
 
             const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
-            requestAcceptHeaderTest = new SpecGenerator3(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+            requestAcceptHeaderTest = new SpecGenerator31(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
@@ -911,7 +899,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('Supports multiple examples', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
           const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
@@ -927,7 +915,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('Supports custom example labels', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -957,7 +945,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('Supports example with produces', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithProduces']?.get?.responses?.[200]?.content?.['text/plain'].examples;
 
           expect(examples).to.deep.eq({
@@ -969,7 +957,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('Supports mutli examples with produces', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const produces = exampleSpec.paths['/ExampleTest/ResponseMultiExamplesWithProduces']?.get?.responses?.[200]?.content;
 
           expect(produces).to.deep.eq({
@@ -1004,7 +992,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('uses the correct imported value for the @Example<>', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -1016,7 +1004,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('uses the correct imported value for the @Example<> with label', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -1028,7 +1016,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('uses the correct imported value for multiple @Example<> with label', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseMultiExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -1046,7 +1034,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('uses minus prefix token number value at @Example model', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithMinusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -1061,7 +1049,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('uses plus prefix token number value at @Example model', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
           const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithPlusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
           expect(examples).to.deep.eq({
@@ -1078,7 +1066,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       describe('deprecation', () => {
         it('marks deprecated methods as deprecated', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
-          const deprecatedSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
           expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
           expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
@@ -1086,7 +1074,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
         it('marks deprecated parameters as deprecated', () => {
           const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-          const deprecatedSpec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+          const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
           const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
           expect(parameters.map(param => param.deprecated)).to.eql([undefined, true, true]);
@@ -1097,7 +1085,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     describe('form field deprecation', () => {
       it('should consume multipart/form-data and have deprecated formData parameter', () => {
         // Act
-        const specPost = new SpecGenerator3(metadataPost, getDefaultExtendedOptions()).GetSpec();
+        const specPost = new SpecGenerator31(metadataPost, getDefaultExtendedOptions()).GetSpec();
         const pathPost = specPost.paths['/PostTest/DeprecatedFormField'].post;
         if (!pathPost) {
           throw new Error('PostTest file method not defined');
@@ -1192,7 +1180,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         /**
          * By creating a record of "keyof T" we ensure that contributors will need add a test for any new property that is added to the model
          */
-        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema3 | Swagger.Schema31) => void> = {
+        const assertionsPerProperty: Record<keyof TestModel, (propertyName: string, schema: Swagger.Schema31) => void> = {
           id: (propertyName, propertySchema) => {
             // should generate properties from extended interface
             expect(propertySchema.type).to.eq('number', `for property ${propertyName}.type`);
@@ -1485,9 +1473,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           },
           strLiteralArr: (propertyName, propertySchema) => {
             expect(propertySchema.type).to.eq('array', `for property ${propertyName}.type`);
-            const items = propertySchema.items;
-            expect(items).to.not.eq(false, `for property ${propertyName}.items`);
-            expect((items as Swagger.Schema3).$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
+            expect(propertySchema.items && propertySchema.items.$ref).to.eq('#/components/schemas/StrLiteral', `for property ${propertyName}.$ref`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
 
             expect(propertySchema.nullable).to.eq(undefined, `for property ${propertyName}[x-nullable]`);
@@ -4634,7 +4620,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       };
 
       // Act
-      const spec = new SpecGenerator3(metadataForEnums, swaggerConfig).GetSpec();
+      const spec = new SpecGenerator31(metadataForEnums, swaggerConfig).GetSpec();
 
       // Assert
       expect(getComponentSchema(schemaName, { specName: 'specDefault', spec })).to.deep.eq({
@@ -4649,7 +4635,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
   describe('Extensions schema generation', () => {
     const metadata = new MetadataGenerator('./fixtures/controllers/methodController').Generate();
-    const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+    const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
     if (!spec.paths) {
       throw new Error('No spec info.');
@@ -4737,7 +4723,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   });
 
   describe('@Res responses', () => {
-    const expectTestModelContent = (response?: Swagger.Response3 | Swagger.Response31) => {
+    const expectTestModelContent = (response?: Swagger.Response31) => {
       expect(response?.content).to.deep.equal({
         'application/json': {
           schema: {
@@ -4806,13 +4792,13 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
 
     it('should generate title tag for request', () => {
-      const currentSpec = new SpecGenerator3(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: true }).GetSpec();
+      const currentSpec = new SpecGenerator31(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: true }).GetSpec();
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.responses['200'].content?.['application/json'].schema?.title).to.equal('Inline1Response');
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal('Inline1RequestBody');
     });
 
     it('should not generate title tag for request', () => {
-      const currentSpec = new SpecGenerator3(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: false }).GetSpec();
+      const currentSpec = new SpecGenerator31(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: false }).GetSpec();
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.responses['200'].content?.['application/json'].schema?.title).to.equal(undefined);
       expect(currentSpec.paths['/ParameterTest/Inline1'].post?.requestBody?.content['application/json'].schema?.title).to.equal(undefined);
     });
@@ -4821,7 +4807,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('should include valid params', () => {
     it('should include query', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
       const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
 
@@ -4832,7 +4818,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
     it('should include header', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
       const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
 
@@ -4843,7 +4829,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
     it('should include path', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
       const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
 
@@ -4856,7 +4842,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
   describe('should exclude @RequestProp', () => {
     it('should exclude request-prop from method parameters', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
       const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
 
@@ -4865,6 +4851,53 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
       method.forEach(p => {
         expect(p.in).to.not.equal('request-prop');
       });
+    });
+  });
+
+  describe('Tuple support', () => {
+    it('should generate prefixItems and items for fixed and variadic tuples', () => {
+      function resolveSchema(schema: Swagger.Schema31, components: Record<string, Swagger.Schema31>): Swagger.Schema31 {
+        const ref: string | undefined = schema.$ref;
+        if (ref) {
+          const refName = ref.replace('#/components/schemas/', '');
+          return components[refName]!;
+        }
+        return schema;
+      }
+
+      const metadata = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
+      const spec = new SpecGenerator31(metadata, defaultOptions).GetSpec();
+      const components: Record<string, Swagger.Schema31> = spec.components.schemas ?? {};
+
+      const fixedTupleSchema = components.StringAndNumberTuple!;
+      const variadicTupleSchema = components.TupleWithRest!;
+
+      expect(fixedTupleSchema.type).to.equal('array');
+      expect(fixedTupleSchema.prefixItems).to.be.an('array').with.lengthOf(2);
+
+      const fixedFirst = resolveSchema(fixedTupleSchema.prefixItems![0], components);
+      const fixedSecond = resolveSchema(fixedTupleSchema.prefixItems![1], components);
+      expect(fixedFirst).to.deep.include({ type: 'string' });
+      expect(fixedSecond).to.deep.include({ type: 'number' });
+      expect(fixedTupleSchema).to.have.property('items');
+      expect(fixedTupleSchema.items).to.be.false;
+      expect(fixedTupleSchema.minItems).to.equal(2);
+      expect(fixedTupleSchema.maxItems).to.equal(2);
+
+      expect(variadicTupleSchema.type).to.equal('array');
+      expect(variadicTupleSchema.prefixItems).to.be.an('array').with.lengthOf(1);
+      expect(variadicTupleSchema.minItems).to.equal(1);
+      expect(variadicTupleSchema).to.not.have.property('maxItems');
+
+      const variadicFirst = resolveSchema(variadicTupleSchema.prefixItems![0], components);
+      // variadicTupleSchema.items can be Schema31 or false; filter false out for the test
+      const variadicItemsRaw = variadicTupleSchema.items;
+      if (variadicItemsRaw === false || variadicItemsRaw === undefined) {
+        throw new Error('Expected items to be a schema, not false or undefined');
+      }
+      const variadicItems = resolveSchema(variadicItemsRaw, components);
+      expect(variadicFirst).to.deep.include({ type: 'string' });
+      expect(variadicItems).to.deep.include({ type: 'number' });
     });
   });
 });

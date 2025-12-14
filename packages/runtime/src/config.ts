@@ -103,6 +103,7 @@ export interface SpecConfig {
    * Possible values:
    *  - 2: generates OpenAPI version 2.
    *  - 3: generates OpenAPI version 3.
+   *  - 3.1: generates OpenAPI version 3.1.
    */
   specVersion?: Swagger.SupportedSpecMajorVersion;
 

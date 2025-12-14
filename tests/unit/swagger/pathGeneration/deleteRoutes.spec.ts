@@ -42,7 +42,7 @@ describe('DELETE route generation', () => {
     return VerifyPath(spec, route, path => path.delete, isCollection, isNoContent);
   }
 
-  function getVerifiedParameters(actionRoute: string): Swagger.Parameter[] {
+  function getVerifiedParameters(actionRoute: string): Swagger.Parameter2[] {
     const path = verifyPath(actionRoute, false, true);
     if (!path.delete) {
       throw new Error('No delete operation.');
