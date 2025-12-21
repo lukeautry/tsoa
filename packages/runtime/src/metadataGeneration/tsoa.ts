@@ -49,6 +49,7 @@ export namespace Tsoa {
     validators: Validators;
     deprecated: boolean;
     exampleLabels?: Array<string | undefined>;
+    title?: string;
     $ref?: Swagger.BaseSchema;
   }
 
@@ -99,6 +100,7 @@ export namespace Tsoa {
     validators: Validators;
     deprecated: boolean;
     extensions?: Extension[];
+    title?: string;
   }
 
   export type TypeStringLiteral =
@@ -272,6 +274,7 @@ export namespace Tsoa {
     refName: string;
     example?: unknown;
     deprecated: boolean;
+    title?: string;
   }
 
   export interface UnionType extends TypeBase {

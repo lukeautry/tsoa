@@ -174,6 +174,10 @@ export class SpecGenerator3 extends SpecGenerator {
         if (referenceType.example) {
           schema[referenceType.refName].example = referenceType.example;
         }
+
+        if (referenceType.title) {
+          schema[referenceType.refName].title = referenceType.title;
+        }
       } else if (referenceType.dataType === 'refEnum') {
         const enumTypes = this.determineTypesUsedInEnum(referenceType.enums);
 
@@ -204,6 +208,9 @@ export class SpecGenerator3 extends SpecGenerator {
         if (referenceType.example) {
           schema[referenceType.refName].example = referenceType.example;
         }
+        if (referenceType.title) {
+          schema[referenceType.refName].title = referenceType.title;
+        }
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const format = referenceType.format as Swagger.DataFormat;
@@ -222,6 +229,7 @@ export class SpecGenerator3 extends SpecGenerator {
           example: referenceType.example,
           format: format || swaggerType.format,
           description: referenceType.description,
+          ...(referenceType.title && { title: referenceType.title }),
           ...validators,
         };
       } else {
@@ -578,6 +586,10 @@ export class SpecGenerator3 extends SpecGenerator {
       }
       if (property.deprecated) {
         swaggerType.deprecated = true;
+      }
+
+      if (property.title) {
+        swaggerType.title = property.title;
       }
 
       if (property.extensions) {

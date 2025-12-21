@@ -316,7 +316,7 @@ describe('Definition generation', () => {
             expect(propertySchema.items.type).to.equal('object');
             // The "PetShop" Swagger editor considers it valid to have additionalProperties on an array of objects
             //      So, let's convince TypeScript
-            const itemsAsSchema = propertySchema.items ;
+            const itemsAsSchema = propertySchema.items;
             if (currentSpec.specName === 'specWithNoImplicitExtras' || currentSpec.specName === 'dynamicSpecWithNoImplicitExtras') {
               expect(itemsAsSchema.additionalProperties).to.eq(false, forSpec(currentSpec));
             } else {
@@ -1628,6 +1628,15 @@ describe('Definition generation', () => {
             expect(propertySchema.items.format).to.eq(undefined, `for property ${propertyName}.items.format`);
             expect(propertySchema.description).to.eq(undefined, `for property ${propertyName}.description`);
             expect(propertySchema).to.not.haveOwnProperty('additionalProperties', `for property ${propertyName}`);
+          },
+          testModelWithAnnotations: () => {
+            // schema is validated in OpenAPI 3 specific tests
+          },
+          enumWithTitle: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/definitions/EnumWithTitle', `for property ${propertyName}.$ref`);
+
+            const schema = getValidatedDefinition('EnumWithTitle', currentSpec);
+            expect(schema.title).to.eq('Title annotation for enum');
           },
           extensionComment: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
@@ -3571,7 +3580,7 @@ describe('Definition generation', () => {
           if (!property.items) {
             throw new Error(`There were no items on the property model.`);
           }
-          expect((property.items ).$ref).to.equal('#/definitions/TestModel');
+          expect(property.items.$ref).to.equal('#/definitions/TestModel');
         });
         it('should generate different definitions for a generic primitive', () => {
           const definition = getValidatedDefinition('GenericModel_string_', currentSpec).properties;
@@ -3607,7 +3616,7 @@ describe('Definition generation', () => {
           if (!property.items) {
             throw new Error(`There were no items on the property model.`);
           }
-          expect((property.items ).type).to.equal('string');
+          expect(property.items.type).to.equal('string');
         });
         it('should propagate generics', () => {
           const definition = getValidatedDefinition('GenericModel_TestModel-Array_', currentSpec).properties;

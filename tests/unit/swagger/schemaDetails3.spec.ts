@@ -1159,6 +1159,22 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         expect(testModel.properties.optionalString).to.not.have.property('x-nullable');
         expect(testModel.properties.optionalString.nullable).to.be.undefined;
       });
+
+      it('should add title to schema if annotation exists', () => {
+        if (!specDefault.spec.components.schemas) {
+          throw new Error('Schemas not defined.');
+        }
+        if (!specDefault.spec.components.schemas.TestModelWithAnnotations) {
+          throw new Error('TestModelWithAnnotations not defined.');
+        }
+        const testModel = specDefault.spec.components.schemas.TestModelWithAnnotations;
+        expect(testModel.title).to.equal('Title annotation for model', `Schema - ${JSON.stringify(testModel)}`);
+        expect(testModel.properties).to.exist;
+        if (!testModel.properties) {
+          throw new Error('TestModelWithAnnotations should have had properties');
+        }
+        expect(testModel.properties.param.title).to.equal('Title annotation for property');
+      });
     });
   });
 
@@ -1971,6 +1987,25 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               format: undefined,
             });
           },
+          testModelWithAnnotations: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/TestModelWithAnnotations', `for property ${propertyName}.$ref`);
+
+            const schema = getComponentSchema('TestModelWithAnnotations', currentSpec);
+            expect(schema.title).to.eq('Title annotation for model');
+
+            const paramSchema = schema.properties?.param;
+            if (!paramSchema) {
+              throw new Error('TestModelWithAnnotations should have had a param property');
+            }
+
+            expect(paramSchema.title).to.eq('Title annotation for property');
+          },
+          enumWithTitle: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/EnumWithTitle', `for property ${propertyName}.$ref`);
+
+            const schema = getComponentSchema('EnumWithTitle', currentSpec);
+            expect(schema.title).to.eq('Title annotation for enum');
+          },
           advancedTypeAliases: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
               {
@@ -2442,6 +2477,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             expect(defaultArgs).to.deep.eq(
               {
                 description: undefined,
+
                 properties: {
                   t: { $ref: '#/components/schemas/GenericRequest_Word_', description: undefined, format: undefined, example: undefined },
                   u: { $ref: '#/components/schemas/DefaultArgs_Omit_ErrorResponseModel.status__', description: undefined, format: undefined, example: undefined },

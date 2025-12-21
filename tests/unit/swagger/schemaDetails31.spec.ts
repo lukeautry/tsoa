@@ -4487,6 +4487,25 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
               `for property ${propertyName}`,
             );
           },
+          testModelWithAnnotations: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/TestModelWithAnnotations', `for property ${propertyName}.$ref`);
+
+            const schema = getComponentSchema('TestModelWithAnnotations', currentSpec);
+            expect(schema.title).to.eq('Title annotation for model');
+
+            const paramSchema = schema.properties?.param;
+            if (!paramSchema) {
+              throw new Error('TestModelWithAnnotations should have had a param property');
+            }
+
+            expect(paramSchema.title).to.eq('Title annotation for property');
+          },
+          enumWithTitle: (propertyName, propertySchema) => {
+            expect(propertySchema.$ref).to.eq('#/components/schemas/EnumWithTitle', `for property ${propertyName}.$ref`);
+
+            const schema = getComponentSchema('EnumWithTitle', currentSpec);
+            expect(schema.title).to.eq('Title annotation for enum');
+          },
         };
 
         const testModel = currentSpec.spec.components.schemas[interfaceModelName];

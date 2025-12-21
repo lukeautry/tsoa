@@ -68,6 +68,7 @@ export class PropertyTransformer extends Transformer {
       type: new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+      title: resolver.getNodeTitle(propertySignature),
       extensions: resolver.getNodeExtension(propertySignature),
     };
     return property;
@@ -107,6 +108,7 @@ export class PropertyTransformer extends Transformer {
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
       deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
+      title: resolver.getNodeTitle(propertyDeclaration),
       extensions: resolver.getNodeExtension(propertyDeclaration),
     };
     return property;

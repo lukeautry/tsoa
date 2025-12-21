@@ -255,6 +255,43 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
   });
 
   describe('mergeManyRefObj method', () => {
+    it('should merge title field from refObjects', () => {
+      const refObjects: Tsoa.RefObjectType[] = [
+        {
+          dataType: 'refObject',
+          refName: 'TestObject',
+          properties: [createProperty('id', { dataType: 'string' })],
+          additionalProperties: false as any,
+          description: 'First object',
+          deprecated: false,
+          title: 'FirstTitle',
+        },
+        {
+          dataType: 'refObject',
+          refName: 'TestObject',
+          properties: [createProperty('name', { dataType: 'string' })],
+          additionalProperties: false as any,
+          description: 'Second object',
+          deprecated: false,
+          title: 'SecondTitle',
+        },
+      ];
+
+      const result = ReferenceTransformer.mergeManyRefObj(refObjects);
+
+      expect(result.title).to.equal('FirstTitle');
+      expect(result).to.include({
+        dataType: 'refObject',
+        refName: 'TestObject',
+        description: 'First object\nSecond object',
+        deprecated: false,
+        example: undefined,
+      });
+      expect(result.properties).to.deep.include.members([
+        { name: 'id', type: { dataType: 'string' }, required: true },
+        { name: 'name', type: { dataType: 'string' }, required: true },
+      ]);
+    });
     it('should handle single refObject', () => {
       const refObject: Tsoa.RefObjectType = {
         dataType: 'refObject',

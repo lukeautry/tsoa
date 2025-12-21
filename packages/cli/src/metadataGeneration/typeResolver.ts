@@ -148,6 +148,7 @@ export class TypeResolver {
           type,
           validators: getPropertyValidators(propertySignature) || {},
           deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
+          title: this.getNodeTitle(propertySignature),
           extensions: this.getNodeExtension(propertySignature),
         };
 
@@ -905,6 +906,7 @@ export class TypeResolver {
     const example = this.getNodeExample(modelType);
     const description = this.getNodeDescription(modelType);
     const deprecated = isExistJSDocTag(modelType, tag => tag.tagName.text === 'deprecated') || isDecorator(modelType, identifier => identifier.text === 'Deprecated');
+    const title = this.getNodeTitle(modelType);
 
     // Handle toJSON methods
     throwUnless(modelType.name, new GenerateMetadataError("Can't get Symbol from anonymous class", modelType));
@@ -927,6 +929,7 @@ export class TypeResolver {
         validators: {},
         deprecated,
         ...(example && { example }),
+        ...(title && { title }),
       };
       return referenceType;
     }
@@ -943,6 +946,7 @@ export class TypeResolver {
       refName: refTypeName,
       deprecated,
       ...(example && { example }),
+      ...(title && { title }),
     };
 
     referenceType.properties = referenceType.properties.concat(properties);
@@ -1192,6 +1196,10 @@ export class TypeResolver {
 
   public getNodeFormat(node: ts.Node) {
     return getJSDocComment(node, 'format');
+  }
+
+  public getNodeTitle(node: ts.Node) {
+    return getJSDocComment(node, 'title');
   }
 
   public getPropertyName(prop: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): string {
