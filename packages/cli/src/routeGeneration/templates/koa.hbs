@@ -16,7 +16,7 @@ import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
 import type { Context, Next, Middleware, Request as KRequest, Response as KResponse } from 'koa';
-import type * as KoaRouter from '@koa/router';
+import type { Router as KoaRouter } from '@koa/router';
 {{#if useFileUploads}}
 {{#if esm}}
 import multer from '@koa/multer';
