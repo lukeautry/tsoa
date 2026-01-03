@@ -8,7 +8,8 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { extname, isAbsolute } from 'node:path';
+import { extname, isAbsolute, dirname, join } from 'node:path';
+import * as ts from 'typescript';
 import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
@@ -88,8 +89,70 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
-const validateCompilerOptions = (config?: Record<string, unknown>): CompilerOptions => {
-  return (config || {}) as CompilerOptions;
+const readTsConfig = async (tsconfigPath: string, workingDir: string): Promise<CompilerOptions> => {
+  const fullPath = isAbsolute(tsconfigPath) ? tsconfigPath : join(workingDir, tsconfigPath);
+  
+  try {
+    const configFileText = await fsReadFile(fullPath);
+    const result = ts.readConfigFile(fullPath, () => configFileText.toString('utf8'));
+    
+    if (result.error) {
+      throw new Error(`Error reading tsconfig.json at '${tsconfigPath}': ${result.error.messageText.toString()}`);
+    }
+    
+    const parsed = ts.parseJsonConfigFileContent(
+      result.config,
+      ts.sys,
+      dirname(fullPath)
+    );
+    
+    return parsed.options;
+  } catch (err) {
+    // Re-throw with more context, preserving the original error code if it exists
+    if (err instanceof Error) {
+      const errorWithCode = err as Error & { code?: string };
+      if (errorWithCode.code === 'ENOENT') {
+        // Preserve the ENOENT error so it can be caught upstream
+        const notFoundError = new Error(`tsconfig.json not found at '${tsconfigPath}'`);
+        (notFoundError as Error & { code: string }).code = 'ENOENT';
+        throw notFoundError;
+      }
+      throw new Error(`Failed to read tsconfig.json at '${tsconfigPath}': ${err.message}`);
+    }
+    throw err;
+  }
+};
+
+export const validateCompilerOptions = async (config: Config, workingDir: string): Promise<CompilerOptions> => {
+  let compilerOptions: CompilerOptions = {};
+  
+  // First, read compilerOptions from tsconfig.json if specified
+  const tsconfigPath = config.tsconfig || 'tsconfig.json';
+  try {
+    compilerOptions = await readTsConfig(tsconfigPath, workingDir);
+  } catch (err) {
+    // If tsconfig.json doesn't exist and no explicit tsconfig path was provided, that's okay
+    // Check if it's a file not found error
+    const isFileNotFound = err instanceof Error && 
+      ('code' in err && err.code === 'ENOENT' || err.message.includes('ENOENT'));
+    
+    if (config.tsconfig || !isFileNotFound) {
+      throw err;
+    }
+    // If no explicit tsconfig was provided and file doesn't exist, continue with empty compilerOptions
+  }
+  
+  // Then merge with compilerOptions from tsoa.json (tsoa.json takes precedence)
+  if (config.compilerOptions) {
+    // Convert string values to proper TypeScript enum values by parsing a temporary config
+    const tempConfig = {
+      compilerOptions: { ...compilerOptions, ...config.compilerOptions },
+    };
+    const parsed = ts.parseJsonConfigFileContent(tempConfig, ts.sys, workingDir);
+    compilerOptions = parsed.options;
+  }
+  
+  return compilerOptions;
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
@@ -337,7 +400,7 @@ async function SpecGenerator(args: SwaggerArgs) {
       config.spec.yaml = false;
     }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const compilerOptions = await validateCompilerOptions(config, workingDir);
     const swaggerConfig = await validateSpecConfig(config);
 
     await generateSpec(swaggerConfig, compilerOptions, config.ignore);
@@ -355,7 +418,7 @@ async function routeGenerator(args: ConfigArgs) {
       config.routes.basePath = args.basePath;
     }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const compilerOptions = await validateCompilerOptions(config, workingDir);
     const routesConfig = await validateRoutesConfig(config);
 
     await generateRoutes(routesConfig, compilerOptions, config.ignore);
@@ -382,7 +445,7 @@ export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.M
       config.spec.yaml = false;
     }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
+    const compilerOptions = await validateCompilerOptions(config, workingDir);
     const routesConfig = await validateRoutesConfig(config);
     const swaggerConfig = await validateSpecConfig(config);
 
