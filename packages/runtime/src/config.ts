@@ -33,7 +33,17 @@ export interface Config {
   noImplicitAdditionalProperties?: 'throw-on-extras' | 'silently-remove-extras' | 'ignore';
 
   /**
-   * Typescript CompilerOptions to be used during generation
+   * Path to tsconfig.json file to read compilerOptions from.
+   * If not specified, defaults to 'tsconfig.json' in the working directory.
+   * The compilerOptions from tsconfig.json will be merged with compilerOptions
+   * from this config, with this config's compilerOptions taking precedence.
+   */
+  tsconfig?: string;
+
+  /**
+   * Typescript CompilerOptions to be used during generation.
+   * These will be merged with compilerOptions from tsconfig.json (if specified),
+   * with these options taking precedence over tsconfig.json.
    *
    * @type {Record<string, unknown>}
    * @memberof RoutesConfig

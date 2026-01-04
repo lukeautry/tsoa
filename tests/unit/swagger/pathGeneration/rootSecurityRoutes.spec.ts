@@ -8,13 +8,11 @@ import type { Swagger } from '@tsoa/runtime';
 
 describe('Security route generation with root security', () => {
   describe('with @Security() on controller', () => {
-    const noSecurityControllerMetadata = new MetadataGenerator(
-      './fixtures/controllers/noSecurityController.ts',
-      undefined,
-      undefined,
-      undefined, [{
-        root_level_auth: []
-    }]).Generate();
+    const noSecurityControllerMetadata = new MetadataGenerator('./fixtures/controllers/noSecurityController.ts', undefined, undefined, undefined, [
+      {
+        root_level_auth: [],
+      },
+    ]).Generate();
     const noSecuritySpec = new SpecGenerator2(noSecurityControllerMetadata, getDefaultExtendedOptions()).GetSpec();
 
     it('should use the method level security over root/controller security', () => {
@@ -46,17 +44,14 @@ describe('Security route generation with root security', () => {
 
       expect(path.get.security).to.deep.equal([{ tsoa_auth: ['write:pets', 'read:pets'] }]);
     });
-
   });
 
   describe('with undefined controller level security', () => {
-    const plainControllerMetadata = new MetadataGenerator(
-      './fixtures/controllers/pathlessGetController.ts',
-      undefined,
-      undefined,
-      undefined, [{
-        root_level_auth: []
-    }]).Generate();
+    const plainControllerMetadata = new MetadataGenerator('./fixtures/controllers/pathlessGetController.ts', undefined, undefined, undefined, [
+      {
+        root_level_auth: [],
+      },
+    ]).Generate();
     const plainSpec = new SpecGenerator2(plainControllerMetadata, getDefaultExtendedOptions()).GetSpec();
 
     it('should use root level security if no security defined on method', () => {
@@ -66,21 +61,20 @@ describe('Security route generation with root security', () => {
         throw new Error('No get operation.');
       }
 
-      expect(path.get.security).to.deep.equal([{
-        root_level_auth: []
-      }]);
+      expect(path.get.security).to.deep.equal([
+        {
+          root_level_auth: [],
+        },
+      ]);
     });
-
   });
 
   describe('with @NoSecurity() on controller', () => {
-    const noSecurityControllerMetadata = new MetadataGenerator(
-      './fixtures/controllers/noSecurityOnController.ts',
-      undefined,
-      undefined,
-      undefined, [{
-        root_level_auth: []
-    }]).Generate();
+    const noSecurityControllerMetadata = new MetadataGenerator('./fixtures/controllers/noSecurityOnController.ts', undefined, undefined, undefined, [
+      {
+        root_level_auth: [],
+      },
+    ]).Generate();
     const noSecurityOnControllerSpec = new SpecGenerator2(noSecurityControllerMetadata, getDefaultExtendedOptions()).GetSpec();
 
     it('should use the method level security over root/controller security', () => {
@@ -112,8 +106,7 @@ describe('Security route generation with root security', () => {
 
       expect(path.get.security).to.deep.equal([]);
     });
-
-  })
+  });
 
   function verifyPath(spec: Swagger.Spec2, route: string, model = 'UserResponseModel') {
     return VerifyPath(spec, route, path => path.get, undefined, false, `#/definitions/${model}`);
