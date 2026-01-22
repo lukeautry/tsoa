@@ -66,7 +66,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value))) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
@@ -165,7 +165,7 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value))) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
@@ -245,4 +245,55 @@ function removeSurroundingQuotes(str: string) {
 
 export function shouldIncludeValidatorInSchema(key: string): key is Tsoa.SchemaValidatorKey {
   return !key.startsWith('is') && key !== 'minDate' && key !== 'maxDate';
+}
+
+/**
+ * Validates if a string is in ISO 8601 format (strict mode, matching validator.js behavior)
+ * Supports date-only (YYYY-MM-DD) and datetime with strict 'T' separator (YYYY-MM-DDTHH:mm:ss[.sss][Z])
+ * Based on validator.js with strictSeparator: true and strict: true options
+ */
+export function isISO8601(value: string): boolean {
+  // ISO 8601 strict separator regex from validator.js
+  // Time portion is optional, but if present, requires 'T' separator
+  const iso8601Regex = /^([+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-3])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([.,]\d+(?!:))?)?(\17[0-5]\d([.,]\d+)?)?([zZ]|([+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
+
+  if (!iso8601Regex.test(value)) {
+    return false;
+  }
+
+  // Validate the actual date is correct (catches invalid dates like 2009-02-31)
+  // This matches validator.js isValidDate function behavior
+
+  // Check for ordinal dates (YYYY-DDD format)
+  const ordinalMatch = value.match(/^(\d{4})-?(\d{3})([ T]{1}\.*|$)/);
+  if (ordinalMatch) {
+    const oYear = Number(ordinalMatch[1]);
+    const oDay = Number(ordinalMatch[2]);
+    // Check if leap year
+    if ((oYear % 4 === 0 && oYear % 100 !== 0) || oYear % 400 === 0) {
+      return oDay <= 366;
+    }
+    return oDay <= 365;
+  }
+
+  // Regular date format
+  const match = value.match(/(\d{4})-?(\d{0,2})-?(\d*)/)?.map(Number);
+  if (!match) {
+    return false;
+  }
+
+  const year = match[1];
+  const month = match[2];
+  const day = match[3];
+  const monthString = month ? `0${month}`.slice(-2) : month;
+  const dayString = day ? `0${day}`.slice(-2) : day;
+
+  // Create a date object and compare
+  const d = new Date(`${year}-${monthString || '01'}-${dayString || '01'}`);
+  if (month && day) {
+    return d.getUTCFullYear() === year
+      && (d.getUTCMonth() + 1) === month
+      && d.getUTCDate() === day;
+  }
+  return true;
 }
