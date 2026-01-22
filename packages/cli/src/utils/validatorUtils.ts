@@ -1,6 +1,5 @@
 import { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
-import validator from 'validator';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
