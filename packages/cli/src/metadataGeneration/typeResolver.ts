@@ -490,6 +490,15 @@ export class TypeResolver {
         return new TypeResolver(node, current, typeNode, context, this.referencer).resolve();
       }
     }
+
+    // Fallback: let TypeScript evaluate the indexed access type and resolve the result.
+    // This handles patterns like T[keyof U], MappedType[UnionKey], (typeof x)[keyof typeof y], etc.
+    const type = this.getReferencer();
+    const resolvedNode = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.InTypeAlias | ts.NodeBuilderFlags.NoTruncation);
+    if (resolvedNode && !ts.isIndexedAccessTypeNode(resolvedNode)) {
+      return new TypeResolver(resolvedNode, current, typeNode, context, type).resolve();
+    }
+
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`, typeNode);
   }
 

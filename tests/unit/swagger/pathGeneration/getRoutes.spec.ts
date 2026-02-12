@@ -222,10 +222,9 @@ describe('GET route generation', () => {
     }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
-  it('should reject unsupported indexed types', () => {
+  it('should reject generic-dependent indexed access types (issue #1375)', () => {
     expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      new MetadataGenerator('./fixtures/controllers/genericIndexedAccessTypeController.ts').Generate();
     }).to.throw(/^Unknown type: IndexedAccessType.*/);
   });
 
