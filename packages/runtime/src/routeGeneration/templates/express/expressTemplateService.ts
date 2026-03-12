@@ -71,8 +71,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'header':
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body': {
+          const body = Object.keys(request.body ?? {}).length === 0 ? undefined : request.body
           const bodyFieldErrors: FieldErrors = {};
-          const bodyArgs = this.validationService.ValidateParam(param, request.body, name, bodyFieldErrors, true, undefined);
+          const bodyArgs = this.validationService.ValidateParam(param, body, name, bodyFieldErrors, true, undefined);
           Object.keys(bodyFieldErrors).forEach(key => {
             fieldErrors[key] = { message: bodyFieldErrors[key].message };
           });
