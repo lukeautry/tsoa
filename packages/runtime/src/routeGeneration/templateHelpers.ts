@@ -223,6 +223,24 @@ export class ValidationService {
         return;
       }
     }
+    if (validators.exclusiveMinimum && validators.exclusiveMinimum.value !== undefined) {
+      if (validators.exclusiveMinimum.value >= numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.exclusiveMinimum.errorMsg || `exclusiveMin ${validators.exclusiveMinimum.value}`,
+          value,
+        };
+        return;
+      }
+    }
+    if (validators.exclusiveMaximum && validators.exclusiveMaximum.value !== undefined) {
+      if (validators.exclusiveMaximum.value <= numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.exclusiveMaximum.errorMsg || `exclusiveMax ${validators.exclusiveMaximum.value}`,
+          value,
+        };
+        return;
+      }
+    }
     return numberValue;
   }
 
@@ -261,6 +279,24 @@ export class ValidationService {
       if (validators.maximum.value < numberValue) {
         fieldErrors[parent + name] = {
           message: validators.maximum.errorMsg || `max ${validators.maximum.value}`,
+          value,
+        };
+        return;
+      }
+    }
+    if (validators.exclusiveMinimum && validators.exclusiveMinimum.value !== undefined) {
+      if (validators.exclusiveMinimum.value >= numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.exclusiveMinimum.errorMsg || `exclusiveMin ${validators.exclusiveMinimum.value}`,
+          value,
+        };
+        return;
+      }
+    }
+    if (validators.exclusiveMaximum && validators.exclusiveMaximum.value !== undefined) {
+      if (validators.exclusiveMaximum.value <= numberValue) {
+        fieldErrors[parent + name] = {
+          message: validators.exclusiveMaximum.errorMsg || `exclusiveMax ${validators.exclusiveMaximum.value}`,
           value,
         };
         return;
@@ -940,6 +976,8 @@ export interface IntegerValidator {
   isLong?: { errorMsg?: string };
   minimum?: { value: number; errorMsg?: string };
   maximum?: { value: number; errorMsg?: string };
+  exclusiveMinimum?: { value: number; errorMsg?: string };
+  exclusiveMaximum?: { value: number; errorMsg?: string };
 }
 
 export interface FloatValidator {
@@ -947,6 +985,8 @@ export interface FloatValidator {
   isDouble?: { errorMsg?: string };
   minimum?: { value: number; errorMsg?: string };
   maximum?: { value: number; errorMsg?: string };
+  exclusiveMinimum?: { value: number; errorMsg?: string };
+  exclusiveMaximum?: { value: number; errorMsg?: string };
 }
 
 export interface DateValidator {

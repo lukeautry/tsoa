@@ -676,6 +676,8 @@ describe('Hapi Server', () => {
 
       bodyModel.numberMax10 = 10;
       bodyModel.numberMin5 = 5;
+      bodyModel.numberExclusiveMin5 = 6;
+      bodyModel.numberExclusiveMax10 = 9;
       bodyModel.stringMax10Lenght = 'abcdef';
       bodyModel.stringMin5Lenght = 'abcdef';
       bodyModel.stringPatternAZaz = 'aBcD';
@@ -701,6 +703,8 @@ describe('Hapi Server', () => {
 
         numberMax10: 10,
         numberMin5: 5,
+        numberExclusiveMin5: 6,
+        numberExclusiveMax10: 9,
         stringMax10Lenght: 'abcdef',
         stringMin5Lenght: 'abcdef',
         stringPatternAZaz: 'aBcD',
@@ -754,6 +758,8 @@ describe('Hapi Server', () => {
 
           expect(body.numberMax10).to.equal(bodyModel.numberMax10);
           expect(body.numberMin5).to.equal(bodyModel.numberMin5);
+          expect(body.numberExclusiveMin5).to.equal(bodyModel.numberExclusiveMin5);
+          expect(body.numberExclusiveMax10).to.equal(bodyModel.numberExclusiveMax10);
           expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
           expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
           expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
@@ -779,6 +785,8 @@ describe('Hapi Server', () => {
 
           expect(body.nestedObject.numberMax10).to.equal(bodyModel.nestedObject.numberMax10);
           expect(body.nestedObject.numberMin5).to.equal(bodyModel.nestedObject.numberMin5);
+          expect(body.nestedObject.numberExclusiveMin5).to.equal(bodyModel.nestedObject.numberExclusiveMin5);
+          expect(body.nestedObject.numberExclusiveMax10).to.equal(bodyModel.nestedObject.numberExclusiveMax10);
           expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
           expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
           expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);
@@ -814,6 +822,8 @@ describe('Hapi Server', () => {
 
       bodyModel.numberMax10 = 20;
       bodyModel.numberMin5 = 0;
+      bodyModel.numberExclusiveMin5 = 5;
+      bodyModel.numberExclusiveMax10 = 10;
       bodyModel.stringMax10Lenght = 'abcdefghijk';
       bodyModel.stringMin5Lenght = 'abcd';
       bodyModel.stringPatternAZaz = 'ab01234';
@@ -838,6 +848,8 @@ describe('Hapi Server', () => {
 
         numberMax10: 20,
         numberMin5: 0,
+        numberExclusiveMin5: 5,
+        numberExclusiveMax10: 10,
         stringMax10Lenght: 'abcdefghijk',
         stringMin5Lenght: 'abcd',
         stringPatternAZaz: 'ab01234',
@@ -898,6 +910,10 @@ describe('Hapi Server', () => {
           expect(body.fields['body.numberMax10'].value).to.be.undefined;
           expect(body.fields['body.numberMin5'].message).to.equal('min 5');
           expect(body.fields['body.numberMin5'].value).to.be.undefined;
+          expect(body.fields['body.numberExclusiveMin5'].message).to.equal('exclusiveMin 5');
+          expect(body.fields['body.numberExclusiveMin5'].value).to.be.undefined;
+          expect(body.fields['body.numberExclusiveMax10'].message).to.equal('exclusiveMax 10');
+          expect(body.fields['body.numberExclusiveMax10'].value).to.be.undefined;
           expect(body.fields['body.stringMax10Lenght'].message).to.equal('maxLength 10');
           expect(body.fields['body.stringMax10Lenght'].value).to.be.undefined;
           expect(body.fields['body.stringMin5Lenght'].message).to.equal('minLength 5');
@@ -941,6 +957,10 @@ describe('Hapi Server', () => {
           expect(body.fields['body.nestedObject.numberMax10'].value).to.be.undefined;
           expect(body.fields['body.nestedObject.numberMin5'].message).to.equal('min 5');
           expect(body.fields['body.nestedObject.numberMin5'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.numberExclusiveMin5'].message).to.equal('exclusiveMin 5');
+          expect(body.fields['body.nestedObject.numberExclusiveMin5'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.numberExclusiveMax10'].message).to.equal('exclusiveMax 10');
+          expect(body.fields['body.nestedObject.numberExclusiveMax10'].value).to.be.undefined;
           expect(body.fields['body.nestedObject.stringMax10Lenght'].message).to.equal('maxLength 10');
           expect(body.fields['body.nestedObject.stringMax10Lenght'].value).to.be.undefined;
           expect(body.fields['body.nestedObject.stringMin5Lenght'].message).to.equal('minLength 5');

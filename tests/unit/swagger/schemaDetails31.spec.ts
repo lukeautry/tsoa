@@ -4919,4 +4919,46 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       expect(variadicItems).to.deep.include({ type: 'number' });
     });
   });
+
+  describe('ValidateModel schema should include exclusiveMinimum and exclusiveMaximum (OAS 3.1 numeric form)', () => {
+    const validateMetadata = new MetadataGenerator('./fixtures/controllers/validateController.ts').Generate();
+    const validateSpec: SpecAndName = {
+      spec: new SpecGenerator31(validateMetadata, getDefaultExtendedOptions()).GetSpec(),
+      specName: 'specDefault',
+    };
+
+    it('should emit exclusiveMinimum as a number, not a boolean', () => {
+      const schema = getComponentSchema('ValidateModel', validateSpec);
+      const properties = (schema as any).properties;
+      expect(properties).to.have.property('numberExclusiveMin5');
+      expect(properties.numberExclusiveMin5).to.have.property('exclusiveMinimum', 5);
+      expect(properties.numberExclusiveMin5.exclusiveMinimum).to.be.a('number');
+    });
+
+    it('should emit exclusiveMaximum as a number, not a boolean', () => {
+      const schema = getComponentSchema('ValidateModel', validateSpec);
+      const properties = (schema as any).properties;
+      expect(properties).to.have.property('numberExclusiveMax10');
+      expect(properties.numberExclusiveMax10).to.have.property('exclusiveMaximum', 10);
+      expect(properties.numberExclusiveMax10.exclusiveMaximum).to.be.a('number');
+    });
+
+    it('should allow both minimum and exclusiveMinimum as numbers when both are present', () => {
+      const generator = new SpecGenerator31(validateMetadata, getDefaultExtendedOptions());
+      const validators = { minimum: { value: 3 }, exclusiveMinimum: { value: 5 } };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const result = (generator as any).transformValidatorsForSchema(validators) as Record<string, unknown>;
+      expect(result).to.have.property('minimum', 3);
+      expect(result).to.have.property('exclusiveMinimum', 5);
+    });
+
+    it('should allow both maximum and exclusiveMaximum as numbers when both are present', () => {
+      const generator = new SpecGenerator31(validateMetadata, getDefaultExtendedOptions());
+      const validators = { maximum: { value: 12 }, exclusiveMaximum: { value: 10 } };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const result = (generator as any).transformValidatorsForSchema(validators) as Record<string, unknown>;
+      expect(result).to.have.property('maximum', 12);
+      expect(result).to.have.property('exclusiveMaximum', 10);
+    });
+  });
 });

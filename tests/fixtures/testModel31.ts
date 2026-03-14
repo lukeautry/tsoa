@@ -873,6 +873,14 @@ export class ValidateModel {
    */
   public numberMin5!: number;
   /**
+   * @exclusiveMinimum 5
+   */
+  public numberExclusiveMin5!: number;
+  /**
+   * @exclusiveMaximum 10
+   */
+  public numberExclusiveMax10!: number;
+  /**
    * @maxLength 10
    */
   public stringMax10Lenght!: string;
@@ -982,6 +990,14 @@ export class ValidateModel {
      * @minimum 5
      */
     numberMin5: number;
+    /**
+     * @exclusiveMinimum 5
+     */
+    numberExclusiveMin5: number;
+    /**
+     * @exclusiveMaximum 10
+     */
+    numberExclusiveMax10: number;
     /**
      * @maxLength 10
      */
