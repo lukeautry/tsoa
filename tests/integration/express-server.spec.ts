@@ -148,6 +148,25 @@ describe('Express Server', () => {
     });
   });
 
+  it('parses queries parameters with a type alias', () => {
+    const numberValue = 10;
+    const boolValue = true;
+    const stringValue = 'the-string';
+
+    return verifyGetRequest(
+      app,
+      basePath + `/GetTest/AllQueriesInOneObjectWithTypeAlias?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`,
+      (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.numberValue).to.equal(numberValue);
+        expect(queryParams.boolValue).to.equal(boolValue);
+        expect(queryParams.stringValue).to.equal(stringValue);
+        expect(queryParams.optionalString).to.be.undefined;
+      },
+    );
+  });
+
   it('accepts any parameter using a wildcard', () => {
     const object = {
       foo: 'foo',

@@ -211,6 +211,18 @@ describe('GET route generation', () => {
     }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
   });
 
+  it('should support TypeScript type aliases for @Queries', () => {
+    const operation = getValidatedGetOperation(`${baseRoute}/AllQueriesInOneObjectWithTypeAlias`);
+    expect(operation.parameters).to.have.length(4);
+
+    const paramNames = operation.parameters!.map((p: any) => p.name);
+    expect(paramNames).to.include.members(['numberParam', 'stringParam', 'booleanParam', 'optionalStringParam']);
+
+    operation.parameters!.forEach((param: any) => {
+      expect(param.in).to.equal('query');
+    });
+  });
+
   it('should reject invalid header types', function () {
     this.timeout(10_000);
     expect(() => {
