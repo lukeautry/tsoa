@@ -193,6 +193,17 @@ export class GetTestController extends Controller {
     return model;
   }
 
+  @Get('AllQueriesInOneObjectWithTypeAlias')
+  public async getAllQueriesInOneObjectWithTypeAlias(@Queries() queryParams: QueryParamsType) {
+    const model = new ModelService().getModel();
+    model.optionalString = queryParams.optionalStringParam;
+    model.numberValue = queryParams.numberParam;
+    model.boolValue = queryParams.booleanParam;
+    model.stringValue = queryParams.stringParam;
+
+    return model;
+  }
+
   @Get('ResponseWithUnionTypeProperty')
   public async getResponseWithUnionTypeProperty(): Promise<Result> {
     return {
@@ -402,3 +413,10 @@ export interface QueryParams {
   booleanParam: boolean;
   optionalStringParam?: string;
 }
+
+export type QueryParamsType = {
+  numberParam: number;
+  stringParam: string;
+  booleanParam: boolean;
+  optionalStringParam?: string;
+};
