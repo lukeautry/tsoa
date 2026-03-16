@@ -213,6 +213,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
       bodyModel.numberMax10 = 10;
       bodyModel.numberMin5 = 5;
+      bodyModel.numberExclusiveMin5 = 6;
+      bodyModel.numberExclusiveMax10 = 9;
       bodyModel.stringMax10Lenght = 'abcdef';
       bodyModel.stringMin5Lenght = 'abcdef';
       bodyModel.stringPatternAZaz = 'aBcD';
@@ -238,6 +240,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
         numberMax10: 10,
         numberMin5: 5,
+        numberExclusiveMin5: 6,
+        numberExclusiveMax10: 9,
         stringMax10Lenght: 'abcdef',
         stringMin5Lenght: 'abcdef',
         stringPatternAZaz: 'aBcD',
@@ -291,6 +295,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
           expect(body.numberMax10).to.equal(bodyModel.numberMax10);
           expect(body.numberMin5).to.equal(bodyModel.numberMin5);
+          expect(body.numberExclusiveMin5).to.equal(bodyModel.numberExclusiveMin5);
+          expect(body.numberExclusiveMax10).to.equal(bodyModel.numberExclusiveMax10);
           expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
           expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
           expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
@@ -316,6 +322,8 @@ describe('Koa Server (with noImplicitAdditionalProperties turned on)', () => {
 
           expect(body.nestedObject.numberMax10).to.equal(bodyModel.nestedObject.numberMax10);
           expect(body.nestedObject.numberMin5).to.equal(bodyModel.nestedObject.numberMin5);
+          expect(body.nestedObject.numberExclusiveMin5).to.equal(bodyModel.nestedObject.numberExclusiveMin5);
+          expect(body.nestedObject.numberExclusiveMax10).to.equal(bodyModel.nestedObject.numberExclusiveMax10);
           expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
           expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
           expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);

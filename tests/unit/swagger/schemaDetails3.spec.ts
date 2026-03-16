@@ -4889,6 +4889,44 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
     });
   });
 
+  describe('ValidateModel schema should include exclusiveMinimum and exclusiveMaximum (OAS 3.0 boolean form)', () => {
+    const validateMetadata = new MetadataGenerator('./fixtures/controllers/validateController.ts').Generate();
+    const validateSpec: SpecAndName = {
+      spec: new SpecGenerator3(validateMetadata, getDefaultExtendedOptions()).GetSpec(),
+      specName: 'specDefault',
+    };
+
+    it('should emit minimum + exclusiveMinimum:true for @exclusiveMinimum without @minimum', () => {
+      const schema = getComponentSchema('ValidateModel', validateSpec);
+      const properties = (schema as any).properties;
+      expect(properties).to.have.property('numberExclusiveMin5');
+      expect(properties.numberExclusiveMin5).to.have.property('minimum', 5);
+      expect(properties.numberExclusiveMin5).to.have.property('exclusiveMinimum', true);
+    });
+
+    it('should emit maximum + exclusiveMaximum:true for @exclusiveMaximum without @maximum', () => {
+      const schema = getComponentSchema('ValidateModel', validateSpec);
+      const properties = (schema as any).properties;
+      expect(properties).to.have.property('numberExclusiveMax10');
+      expect(properties.numberExclusiveMax10).to.have.property('maximum', 10);
+      expect(properties.numberExclusiveMax10).to.have.property('exclusiveMaximum', true);
+    });
+
+    it('should throw when both @minimum and @exclusiveMinimum are present', () => {
+      const generator = new SpecGenerator3(validateMetadata, getDefaultExtendedOptions());
+      const validators = { minimum: { value: 3 }, exclusiveMinimum: { value: 5 } };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      expect(() => (generator as any).transformValidatorsForSchema(validators)).to.throw(/Cannot use both @minimum and @exclusiveMinimum/);
+    });
+
+    it('should throw when both @maximum and @exclusiveMaximum are present', () => {
+      const generator = new SpecGenerator3(validateMetadata, getDefaultExtendedOptions());
+      const validators = { maximum: { value: 12 }, exclusiveMaximum: { value: 10 } };
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      expect(() => (generator as any).transformValidatorsForSchema(validators)).to.throw(/Cannot use both @maximum and @exclusiveMaximum/);
+    });
+  });
+
   describe('should exclude @RequestProp', () => {
     it('should exclude request-prop from method parameters', () => {
       const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();

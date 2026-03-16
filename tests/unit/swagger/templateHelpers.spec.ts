@@ -447,6 +447,56 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal('invalid integer number');
       expect(error[name].value).to.equal('10');
     });
+
+    it('should validate exclusiveMinimum for integers', () => {
+      const name = 'name';
+      const value: any = 6;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMinimum: { value: 5 } };
+      const result = new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateInt(name, value, error, true, validator);
+      expect(result).to.equal(6);
+      expect(Object.keys(error)).to.be.empty;
+    });
+
+    it('should reject value equal to exclusiveMinimum for integers', () => {
+      const name = 'name';
+      const value: any = 5;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMinimum: { value: 5 } };
+      new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateInt(name, value, error, true, validator);
+      expect(error[name].message).to.equal('exclusiveMin 5');
+    });
+
+    it('should validate exclusiveMaximum for integers', () => {
+      const name = 'name';
+      const value: any = 9;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMaximum: { value: 10 } };
+      const result = new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateInt(name, value, error, true, validator);
+      expect(result).to.equal(9);
+      expect(Object.keys(error)).to.be.empty;
+    });
+
+    it('should reject value equal to exclusiveMaximum for integers', () => {
+      const name = 'name';
+      const value: any = 10;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMaximum: { value: 10 } };
+      new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateInt(name, value, error, true, validator);
+      expect(error[name].message).to.equal('exclusiveMax 10');
+    });
   });
 
   describe('Float validate', () => {
@@ -532,6 +582,56 @@ describe('ValidationService', () => {
       expect(result).to.deep.equal(undefined);
       expect(error[name].message).to.equal('invalid float number');
       expect(error[name].value).to.equal('10.1');
+    });
+
+    it('should validate exclusiveMinimum for floats', () => {
+      const name = 'name';
+      const value: any = 5.5;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMinimum: { value: 5 } };
+      const result = new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateFloat(name, value, error, true, validator);
+      expect(result).to.equal(5.5);
+      expect(Object.keys(error)).to.be.empty;
+    });
+
+    it('should reject value equal to exclusiveMinimum for floats', () => {
+      const name = 'name';
+      const value: any = 5;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMinimum: { value: 5 } };
+      new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateFloat(name, value, error, true, validator);
+      expect(error[name].message).to.equal('exclusiveMin 5');
+    });
+
+    it('should validate exclusiveMaximum for floats', () => {
+      const name = 'name';
+      const value: any = 9.5;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMaximum: { value: 10 } };
+      const result = new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateFloat(name, value, error, true, validator);
+      expect(result).to.equal(9.5);
+      expect(Object.keys(error)).to.be.empty;
+    });
+
+    it('should reject value equal to exclusiveMaximum for floats', () => {
+      const name = 'name';
+      const value: any = 10;
+      const error: FieldErrors = {};
+      const validator = { exclusiveMaximum: { value: 10 } };
+      new ValidationService(
+        {},
+        { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true },
+      ).validateFloat(name, value, error, true, validator);
+      expect(error[name].message).to.equal('exclusiveMax 10');
     });
   });
 

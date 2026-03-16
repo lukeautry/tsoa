@@ -4,6 +4,7 @@ import { merge as deepMerge } from 'ts-deepmerge';
 
 import { ExtendedSpecConfig } from '../cli';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
+import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 import { SpecGenerator3 } from './specGenerator3';
 
 /**
@@ -48,6 +49,17 @@ export class SpecGenerator31 extends SpecGenerator3 {
     }
 
     return spec;
+  }
+
+  // In OAS 3.1, exclusiveMinimum/exclusiveMaximum are standalone numbers.
+  protected override transformValidatorsForSchema(validators: Tsoa.Validators): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    Object.keys(validators)
+      .filter(shouldIncludeValidatorInSchema)
+      .forEach(key => {
+        result[key] = validators[key]!.value;
+      });
+    return result;
   }
 
   /**

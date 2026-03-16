@@ -18,6 +18,32 @@ export class SpecGenerator2 extends SpecGenerator {
     super(metadata, config);
   }
 
+  // In Swagger 2.0, exclusiveMinimum/exclusiveMaximum are boolean modifiers on minimum/maximum.
+  private transformValidatorsForSchema(validators: Tsoa.Validators): Record<string, unknown> {
+    if (validators.exclusiveMinimum !== undefined && validators.minimum !== undefined) {
+      throw new Error('Cannot use both @minimum and @exclusiveMinimum in Swagger 2.0. Use one or the other, or target OpenAPI 3.1.');
+    }
+    if (validators.exclusiveMaximum !== undefined && validators.maximum !== undefined) {
+      throw new Error('Cannot use both @maximum and @exclusiveMaximum in Swagger 2.0. Use one or the other, or target OpenAPI 3.1.');
+    }
+
+    const result: Record<string, unknown> = {};
+    Object.keys(validators)
+      .filter(shouldIncludeValidatorInSchema)
+      .forEach(key => {
+        if (key === 'exclusiveMinimum') {
+          result['minimum'] = validators.exclusiveMinimum!.value;
+          result['exclusiveMinimum'] = true;
+        } else if (key === 'exclusiveMaximum') {
+          result['maximum'] = validators.exclusiveMaximum!.value;
+          result['exclusiveMaximum'] = true;
+        } else {
+          result[key] = validators[key]!.value;
+        }
+      });
+    return result;
+  }
+
   public GetSpec() {
     let spec: Swagger.Spec2 = {
       basePath: normalisePath(this.config.basePath as string, '/', undefined, false),
@@ -129,14 +155,7 @@ export class SpecGenerator2 extends SpecGenerator {
       } else if (referenceType.dataType === 'refAlias') {
         const swaggerType = this.getSwaggerType(referenceType.type);
         const format = referenceType.format as Swagger.DataFormat;
-        const validators = Object.keys(referenceType.validators)
-          .filter(shouldIncludeValidatorInSchema)
-          .reduce((acc, key) => {
-            return {
-              ...acc,
-              [key]: referenceType.validators[key]!.value,
-            };
-          }, {});
+        const validators = this.transformValidatorsForSchema(referenceType.validators);
 
         definitions[referenceType.refName] = {
           ...(swaggerType as Swagger.Schema2),
@@ -365,12 +384,7 @@ export class SpecGenerator2 extends SpecGenerator {
       return parameter;
     }
 
-    const validatorObjs: Partial<Record<Tsoa.SchemaValidatorKey, unknown>> = {};
-    Object.keys(source.validators)
-      .filter(shouldIncludeValidatorInSchema)
-      .forEach(key => {
-        validatorObjs[key] = source.validators[key]!.value;
-      });
+    const validatorObjs = this.transformValidatorsForSchema(source.validators);
 
     if (source.in === 'body' && source.type.dataType === 'array') {
       parameter.schema = {
@@ -414,11 +428,8 @@ export class SpecGenerator2 extends SpecGenerator {
       if (!swaggerType.$ref) {
         swaggerType.default = property.default;
 
-        Object.keys(property.validators)
-          .filter(shouldIncludeValidatorInSchema)
-          .forEach(key => {
-            swaggerType = { ...swaggerType, [key]: property.validators[key]!.value };
-          });
+        const propertyValidators = this.transformValidatorsForSchema(property.validators);
+        swaggerType = { ...swaggerType, ...propertyValidators };
       }
       if (property.deprecated) {
         swaggerType['x-deprecated'] = true;

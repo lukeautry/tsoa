@@ -339,9 +339,7 @@ export namespace Swagger {
     default?: string | boolean | number | unknown;
     multipleOf?: number;
     maximum?: number;
-    exclusiveMaximum?: number;
     minimum?: number;
-    exclusiveMinimum?: number;
     maxLength?: number;
     minLength?: number;
     pattern?: string;
@@ -368,8 +366,10 @@ export namespace Swagger {
     items?: BaseSchema;
   }
 
-  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf'> {
+  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf' | 'exclusiveMinimum' | 'exclusiveMaximum'> {
     examples?: unknown[];
+    exclusiveMinimum?: number;
+    exclusiveMaximum?: number;
 
     properties?: { [key: string]: Schema31 };
     additionalProperties?: boolean | Schema31;
@@ -397,6 +397,8 @@ export namespace Swagger {
     allOf?: BaseSchema[];
     deprecated?: boolean;
     properties?: { [propertyName: string]: Schema3 };
+    exclusiveMinimum?: boolean;
+    exclusiveMaximum?: boolean;
   }
 
   export interface Schema2 extends BaseSchema {
@@ -404,6 +406,8 @@ export namespace Swagger {
     properties?: { [propertyName: string]: Schema2 };
     ['x-nullable']?: boolean;
     ['x-deprecated']?: boolean;
+    exclusiveMinimum?: boolean;
+    exclusiveMaximum?: boolean;
   }
 
   export interface Header {
