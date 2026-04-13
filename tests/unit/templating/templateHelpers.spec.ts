@@ -122,6 +122,64 @@ it('should throw if the data has additionalProperties (on a union) if noImplicit
   }
 });
 
+it('should return null (not false) when validating null against a union of `boolean | null` (bodyCoercion enabled)', () => {
+  const unionProperty: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ dataType: 'boolean' }, { dataType: 'enum', enums: [null] }],
+  };
+  const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+  const errors: FieldErrors = {};
+
+  // Act
+  const result = v.validateUnion('field', null, errors, true, unionProperty, '');
+
+  // Assert
+  expect(errors).to.deep.eq({});
+  expect(result).to.equal(null);
+});
+
+it('should return null when validating null against a union of `null | boolean` (order reversed, regression guard)', () => {
+  const unionProperty: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ dataType: 'enum', enums: [null] }, { dataType: 'boolean' }],
+  };
+  const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+  const errors: FieldErrors = {};
+
+  const result = v.validateUnion('field', null, errors, true, unionProperty, '');
+
+  expect(errors).to.deep.eq({});
+  expect(result).to.equal(null);
+});
+
+it('should return true when validating true against a union of `boolean | null`', () => {
+  const unionProperty: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ dataType: 'boolean' }, { dataType: 'enum', enums: [null] }],
+  };
+  const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+  const errors: FieldErrors = {};
+
+  const result = v.validateUnion('field', true, errors, true, unionProperty, '');
+
+  expect(errors).to.deep.eq({});
+  expect(result).to.equal(true);
+});
+
+it('should return false when validating false against a union of `boolean | null`', () => {
+  const unionProperty: TsoaRoute.PropertySchema = {
+    dataType: 'union',
+    subSchemas: [{ dataType: 'boolean' }, { dataType: 'enum', enums: [null] }],
+  };
+  const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+  const errors: FieldErrors = {};
+
+  const result = v.validateUnion('field', false, errors, true, unionProperty, '');
+
+  expect(errors).to.deep.eq({});
+  expect(result).to.equal(false);
+});
+
 it('should throw if the data has additionalProperties (on a intersection) if noImplicitAdditionalProperties is set to throw-on-extras', () => {
   // Arrange
   const refName = 'ExampleModel';
