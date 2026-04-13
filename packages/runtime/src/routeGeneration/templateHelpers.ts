@@ -522,6 +522,19 @@ export class ValidationService {
       );
     }
 
+    // When value is null or undefined, prefer explicit null/undefined subschemas over
+    // coercive type matches. Without this, e.g. `boolean | null` with value null would
+    // coerce null to false (via validateBool) before ever reaching the null type.
+    if (value === null || value === undefined) {
+      for (const subSchema of property.subSchemas) {
+        const isExactNull = value === null && subSchema.dataType === 'enum' && subSchema.enums?.includes(null);
+        const isExactUndefined = value === undefined && subSchema.dataType === 'undefined';
+        if (isExactNull || isExactUndefined) {
+          return value;
+        }
+      }
+    }
+
     const subFieldErrors: FieldErrors[] = [];
 
     for (const subSchema of property.subSchemas) {
