@@ -272,23 +272,47 @@ export class TypeResolver {
             const type = new TypeResolver(typeNode, this.current, mappedTypeNode, this.context, indexInfo.type).resolve();
             return [type];
           });
-          if (indexTypes.length) {
-            if (indexTypes.length === 1) {
-              objectLiteral.additionalProperties = indexTypes[0];
-            } else {
-              // { [k: string]: string; } & { [k: number]: number; }
+          if (indexTypes.length === 1) {
+            objectLiteral.additionalProperties = indexTypes[0];
+          } else if (indexTypes.length > 1) {
+            // { [k: string]: string; } & { [k: number]: number; }
 
-              // A | B is sometimes A type or B type, sometimes optionally accepts both A & B members.
-              // Most people & TSOA thinks that A | B can be only A or only B.
-              // So we can accept this merge
+            // A | B is sometimes A type or B type, sometimes optionally accepts both A & B members.
+            // Most people & TSOA thinks that A | B can be only A or only B.
+            // So we can accept this merge
 
-              //Every additional property key assumed as string
-              objectLiteral.additionalProperties = {
-                dataType: 'union',
-                types: indexTypes,
-              };
+            //Every additional property key assumed as string
+            objectLiteral.additionalProperties = {
+              dataType: 'union',
+              types: indexTypes,
+            };
+          } else if (objectLiteral.properties.length === 0 && mappedTypeNode.type !== undefined) {
+            // fallback for mapped types like Record<string, V>
+            const constraintNode = mappedTypeNode.typeParameter.constraint;
+
+            if (constraintNode !== undefined) {
+              let constraintType
+              try {
+                constraintType = new TypeResolver(constraintNode, this.current, mappedTypeNode, this.context).resolve();
+              } catch (_error) {
+                // Constraint could not be resolved (e.g. complex union types). Skip
+                return objectLiteral
+              }
+
+              if (constraintType.dataType === 'string') {
+                objectLiteral.additionalProperties = new TypeResolver(
+                  mappedTypeNode.type,
+                  this.current,
+                  mappedTypeNode,
+                  this.context
+                ).resolve();
+              } else if (['double', 'float', 'integer', 'long', 'boolean'].includes(constraintType.dataType)) {
+                // Refuse Record<number, number>, Record<boolean, string>,...
+                throw new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode);
+              }
             }
           }
+
           return objectLiteral;
         }
         // Known issues & easy to implement: Partial<string>, Partial<never>, ... But I think a programmer not writes types like this
