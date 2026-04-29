@@ -281,7 +281,7 @@ export class TypeResolver {
             // Most people & TSOA thinks that A | B can be only A or only B.
             // So we can accept this merge
 
-            //Every additional property key assumed as string
+            // Every additional property key assumed as string
             objectLiteral.additionalProperties = {
               dataType: 'union',
               types: indexTypes,
