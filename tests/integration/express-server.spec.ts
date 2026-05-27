@@ -291,6 +291,13 @@ describe('Express Server', () => {
     });
   });
 
+  it('abort response on stream error', async () => {
+    return verifyGetRequest(app, `${basePath}/GetTest/HandleStreamFailure`, (_err, res) => {
+      expect(_err).to.instanceOf(Error)
+      return;
+    }).catch(_ => {});
+  });
+
   it('should reject invalid additionalProperties', () => {
     const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 

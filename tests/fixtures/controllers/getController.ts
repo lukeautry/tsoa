@@ -256,6 +256,15 @@ export class GetTestController extends Controller {
     return readable;
   }
 
+  @Get('HandleStreamFailure')
+  public async getStreamFailure(): Promise<Readable> {
+    return new Readable({
+      read() {
+        this.destroy(new Error('stream_test_error'));
+      }
+    });
+  }
+
   @Get('GenericModel')
   public async getGenericModel(): Promise<GenericModel<TestModel>> {
     return {
