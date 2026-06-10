@@ -45,6 +45,9 @@
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
   },
+  "bugs": {
+    "url": "https://github.com/lukeautry/tsoa/issues"
+  },
   "engines": {
     "yarn": ">=1.9.4",
     "node": ">=18.0.0"
