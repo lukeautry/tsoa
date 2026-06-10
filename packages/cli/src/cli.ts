@@ -8,7 +8,8 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { extname, isAbsolute } from 'node:path';
+import { dirname, extname, isAbsolute } from 'node:path';
+import * as ts from 'typescript';
 import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
@@ -88,8 +89,32 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
-const validateCompilerOptions = (config?: Record<string, unknown>): CompilerOptions => {
-  return (config || {}) as CompilerOptions;
+// Exported for testing. The `cwd` parameter overrides the working directory used when
+// searching for tsconfig.json; defaults to the process working directory.
+export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = workingDir): CompilerOptions => {
+  // Discover and parse the project's tsconfig.json using TypeScript's own API so that
+  // numeric enum values (module, target, moduleResolution, etc.) and exports conditions
+  // are resolved correctly. Without this, createProgram defaults to Node10/CommonJS
+  // resolution and ignores exports maps, causing z.infer<> and similar constructs to
+  // resolve to {} when types come from compiled .d.ts files instead of .ts sources.
+  const tsconfigPath = ts.findConfigFile(cwd, p => ts.sys.fileExists(p));
+  let baseOptions: CompilerOptions = {};
+  let basePath = cwd;
+  if (tsconfigPath) {
+    const readResult = ts.readConfigFile(tsconfigPath, p => ts.sys.readFile(p));
+    if (!readResult.error) {
+      const parsed = ts.parseJsonConfigFileContent(readResult.config, ts.sys, dirname(tsconfigPath));
+      baseOptions = parsed.options;
+      basePath = dirname(tsconfigPath);
+    }
+  }
+  if (!config || Object.keys(config).length === 0) {
+    return baseOptions;
+  }
+  // Convert string enum values (e.g. "ESNext") to their numeric equivalents via
+  // TypeScript's own API, then merge on top of the tsconfig-derived base options.
+  const { options: overrideOptions } = ts.convertCompilerOptionsFromJson(config, basePath);
+  return { ...baseOptions, ...overrideOptions };
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
