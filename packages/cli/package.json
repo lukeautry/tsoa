@@ -56,6 +56,9 @@
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
   },
+  "bugs": {
+    "url": "https://github.com/lukeautry/tsoa/issues"
+  },
   "bin": {
     "tsoa": "dist/cli.js"
   },
