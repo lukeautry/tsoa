@@ -75,15 +75,17 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
             value,
           };
           break;
-        case 'pattern':
-          if (typeof value !== 'string') {
+        case 'pattern': {
+          const pattern = getPatternValueAndErrorMsg(comment);
+          if (typeof pattern.value !== 'string') {
             throw new GenerateMetadataError(`${name} parameter use string.`);
           }
           validateObj[name] = {
-            errorMsg: getErrorMsg(comment),
-            value: removeSurroundingQuotes(value),
+            errorMsg: pattern.errorMsg,
+            value: pattern.value,
           };
           break;
+        }
         default:
           if (name.startsWith('is')) {
             const errorMsg = getErrorMsg(comment, false);
@@ -174,15 +176,17 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
             value,
           };
           break;
-        case 'pattern':
-          if (typeof value !== 'string') {
+        case 'pattern': {
+          const pattern = getPatternValueAndErrorMsg(commentToString(comment));
+          if (typeof pattern.value !== 'string') {
             throw new GenerateMetadataError(`${name} parameter use string.`);
           }
           validateObj[name] = {
-            errorMsg: getErrorMsg(commentToString(comment)),
-            value: removeSurroundingQuotes(value),
+            errorMsg: pattern.errorMsg,
+            value: pattern.value,
           };
           break;
+        }
         case 'title':
           if (typeof value !== 'string') {
             throw new GenerateMetadataError(`${name} parameter use string.`);
@@ -242,6 +246,36 @@ function removeSurroundingQuotes(str: string) {
     return str.substring(3, str.length - 3);
   }
   return str;
+}
+
+function getPatternValueAndErrorMsg(comment?: string) {
+  if (!comment) {
+    return { errorMsg: undefined, value: undefined };
+  }
+
+  const trimmedComment = comment.trim();
+  if (trimmedComment.startsWith('/')) {
+    let escaped = false;
+    for (let index = 1; index < trimmedComment.length; index++) {
+      const character = trimmedComment[index];
+      if (escaped) {
+        escaped = false;
+      } else if (character === '\\') {
+        escaped = true;
+      } else if (character === '/') {
+        return {
+          errorMsg: trimmedComment.substring(index + 1).trim() || undefined,
+          value: trimmedComment.substring(1, index),
+        };
+      }
+    }
+  }
+
+  const [value, ...errorMsg] = trimmedComment.split(' ');
+  return {
+    errorMsg: errorMsg.join(' ') || undefined,
+    value: removeSurroundingQuotes(value),
+  };
 }
 
 export function shouldIncludeValidatorInSchema(key: string): key is Tsoa.SchemaValidatorKey {
