@@ -1042,6 +1042,17 @@ describe('Metadata generation', () => {
       expect(method.responses[0].name).to.equal('200');
       expect(method.responses[0].description).to.equal(description);
     });
+
+    it('ignores empty and type-only @returns tags', () => {
+      for (const methodName of ['emptyReturnsTag', 'typeOnlyReturnsTag']) {
+        const method = controller.methods.find(m => m.name === methodName);
+        if (!method) {
+          throw new Error(`method ${methodName} not defined`);
+        }
+        expect(method.responses[0].description).to.equal('Ok');
+      }
+    });
+
     it("should not override @SuccessResponse's description even if @returns is present", () => {
       const description = 'Success Response description';
       const method = controller.methods.find(m => m.name === 'successResponseAndJsDocAnnotation');

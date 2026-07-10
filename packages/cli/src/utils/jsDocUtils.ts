@@ -39,7 +39,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
     tags = getJSDocTags(node.parent as any, tag => {
       if (ts.isJSDocParameterTag(tag)) {
         return false;
-      } else if (tag.comment === undefined) {
+      } else if (tag.comment === undefined && !ts.isJSDocReturnTag(tag)) {
         throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.escapedText)} should have a parameter name follows with.`);
       }
 
