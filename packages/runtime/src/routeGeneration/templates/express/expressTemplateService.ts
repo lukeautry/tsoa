@@ -52,7 +52,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     const { args, request, response } = params;
 
     const fieldErrors: FieldErrors = {};
-    const values = Object.values(args).map(param => {
+    const values = this.getParameters(args).map(param => {
       const name = param.name;
       switch (param.in) {
         case 'request':
@@ -87,7 +87,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           return bodyPropArgs;
         }
         case 'formData': {
-          const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
+          const files = this.getParameters(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
             const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] } | undefined;
 
@@ -106,7 +106,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
       }
     });
 
-    if (Object.keys(fieldErrors).length > 0) {
+    if (this.hasFieldErrors(fieldErrors)) {
       throw new ValidateError(fieldErrors, '');
     }
     return values;

@@ -54,7 +54,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
     const { args, context, next } = params;
 
     const errorFields: FieldErrors = {};
-    const values = Object.values(args).map(param => {
+    const values = this.getParameters(args).map(param => {
       const name = param.name;
       switch (param.in) {
         case 'request':
@@ -93,7 +93,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           return result;
         }
         case 'formData': {
-          const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
+          const files = this.getParameters(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           const contextRequest = context.request as any;
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
             const fileArgs = this.validationService.ValidateParam(param, contextRequest.files?.[name], name, errorFields, false, undefined);
@@ -110,7 +110,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           };
       }
     });
-    if (Object.keys(errorFields).length > 0) {
+    if (this.hasFieldErrors(errorFields)) {
       throw new ValidateError(errorFields, '');
     }
     return values;
