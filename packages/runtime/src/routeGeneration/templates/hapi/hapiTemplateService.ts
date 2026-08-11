@@ -75,7 +75,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     const { args, request, h } = params;
 
     const errorFields: FieldErrors = {};
-    const values = Object.values(args).map(param => {
+    const values = this.getParameters(args).map(param => {
       const name = param.name;
       switch (param.in) {
         case 'request':
@@ -122,7 +122,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
           };
       }
     });
-    if (Object.keys(errorFields).length > 0) {
+    if (this.hasFieldErrors(errorFields)) {
       throw new ValidateError(errorFields, '');
     }
     return values;
