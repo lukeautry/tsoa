@@ -8,7 +8,7 @@ jobs:
       matrix:
         node-version: [22, 24, 25]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^5.0.0']
+        typescript-version: ['^5.0.0', '^6.0.0']
 
     steps:
       - uses: actions/checkout@master

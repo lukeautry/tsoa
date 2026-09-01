@@ -39,7 +39,7 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/validator": "^13.12.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2 || ^6.0.0"
   },
   "repository": {
     "type": "git",

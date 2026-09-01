@@ -1,11 +1,9 @@
-import * as bodyParser from 'body-parser';
-import * as express from 'express';
-import * as methodOverride from 'method-override';
+import bodyParser from 'body-parser';
+import express from 'express';
+import methodOverride from 'method-override';
 import '../controllers/rootController';
 
 import { RegisterRoutes } from './routes';
-
-
 
 export const app: express.Express = express();
 export const router = express.Router();

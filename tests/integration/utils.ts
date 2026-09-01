@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import TestAgent = require('supertest/lib/agent');
 import { Agent } from 'http';
 import { resolve } from 'path';

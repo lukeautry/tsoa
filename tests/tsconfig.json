@@ -1,22 +1,23 @@
 {
   "compilerOptions": {
     "rootDir": ".",
-    "baseUrl": ".",
     "module": "commonjs",
     "target": "es2021",
     "lib": ["es2021"],
     "typeRoots": ["node_modules/@types", "./typings"],
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "newLine": "LF",
     "noEmit": true,
+    "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": false,
     "skipLibCheck": true,
     "paths": {
       "@tsoa/cli/*": ["../packages/cli/src/*"],
-      "@tsoa/runtime/*": ["../packages/runtime/src/*"]
+      "@tsoa/runtime/*": ["../packages/runtime/src/*"],
+      "fixtures/*": ["./fixtures/*"],
+      "unit/*": ["./unit/*"]
     }
   },
   "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }],
