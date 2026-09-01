@@ -1040,10 +1040,14 @@ export class TypeResolver {
     }
 
     if (modelTypes.length > 1) {
-      // remove types that are from typescript e.g. 'Account'
-      modelTypes = modelTypes.filter(modelType => {
+      // remove types that are from typescript e.g. 'Account',
+      // but keep the lib declarations when the type only exists in the typescript libs (e.g. 'Error')
+      const nonLibModelTypes = modelTypes.filter(modelType => {
         return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
+      if (nonLibModelTypes.length > 0) {
+        modelTypes = nonLibModelTypes;
+      }
 
       modelTypes = this.getDesignatedModels(modelTypes, typeName);
     }
