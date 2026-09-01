@@ -4,7 +4,7 @@ import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { DefaultRouteGenerator } from '../routeGeneration/defaultRouteGenerator';
 import { fsMkDir } from '../utils/fs';
-import path = require('path');
+import * as path from 'path';
 import { Config as BaseConfig } from '@tsoa/runtime';
 
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
