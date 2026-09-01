@@ -60,7 +60,7 @@ export class ValidationService {
       case 'string':
         return this.validateString(name, value, fieldErrors, property.validators as StringValidator, parent);
       case 'boolean':
-        return this.validateBool(name, value, fieldErrors, isBodyParam, property.validators as BooleanValidator, parent);
+        return this.validateBool(name, value, fieldErrors, isBodyParam, property.validators, parent);
       case 'integer':
       case 'long':
         return this.validateInt(name, value, fieldErrors, isBodyParam, property.validators as IntegerValidator, parent);

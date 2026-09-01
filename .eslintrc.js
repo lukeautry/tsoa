@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   root: true,
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json'],
@@ -66,6 +66,16 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
+        // chai assertions like expect(x).to.be.ok are expressions by design
+        '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
+        '@typescript-eslint/only-throw-error': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
+        // Fires inconsistently across TS versions on fixtures that import generated (lint-excluded) routes
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       },
     },
   ],

@@ -58,6 +58,7 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
   try {
     if (isYamlExtension(ext)) {
       const configRaw = await fsReadFile(configFullPath);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- yaml's types resolve for tsc but not for typescript-eslint's project service on TS 5.x
       config = YAML.parse(configRaw.toString('utf8'));
     } else if (isJsExtension(ext)) {
       config = await import(configFullPath);

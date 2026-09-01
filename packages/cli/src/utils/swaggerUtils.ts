@@ -14,6 +14,7 @@ export function getValue(type: 'string' | 'number' | 'integer' | 'boolean' | und
       return !!member;
     case 'string':
     default:
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string -- enum member values are primitives at runtime
       return String(member);
   }
 }

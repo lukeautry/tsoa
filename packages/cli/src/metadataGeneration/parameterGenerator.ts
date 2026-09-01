@@ -309,7 +309,7 @@ export class ParameterGenerator {
       let typeNode = parameter.type;
       if (!typeNode) {
         const typeFromChecker = this.current.typeChecker.getTypeAtLocation(parameter);
-        typeNode = this.current.typeChecker.typeToTypeNode(typeFromChecker, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
+        typeNode = this.current.typeChecker.typeToTypeNode(typeFromChecker, undefined, ts.NodeBuilderFlags.NoTruncation)!;
       }
 
       // If it's a TypeReferenceNode (like z.infer), try to resolve it differently
@@ -562,7 +562,7 @@ export class ParameterGenerator {
     let typeNode = parameter.type;
     if (!typeNode) {
       const type = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
+      typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
     return new TypeResolver(typeNode, this.current, parameter).resolve();
   }

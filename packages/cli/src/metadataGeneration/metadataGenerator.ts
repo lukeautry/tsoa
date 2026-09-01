@@ -14,10 +14,11 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
+  private readonly compilerOptions: CompilerOptions;
 
   constructor(
     entryFile: string,
-    private readonly compilerOptions?: CompilerOptions,
+    compilerOptions?: CompilerOptions,
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
@@ -25,7 +26,10 @@ export class MetadataGenerator {
     esm = false,
   ) {
     TypeResolver.clearCache();
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], compilerOptions || {});
+    // TypeScript 6.0 turned strict null checking on by default; when the user does not provide
+    // compiler options, keep tsoa's historical non-strict defaults so generated specs stay stable
+    this.compilerOptions = compilerOptions ?? { strictNullChecks: false };
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
   }
 

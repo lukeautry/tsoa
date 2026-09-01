@@ -1,5 +1,5 @@
-import * as bodyParser from 'body-parser';
-import * as express from 'express';
+import bodyParser from 'body-parser';
+import express from 'express';
 import '../controllers/noSecurityOnController';
 import '../controllers/pathlessGetController';
 

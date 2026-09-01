@@ -1,5 +1,4 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
-import type { Payload } from '@hapi/boom';
 
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
@@ -57,16 +56,18 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
       }
       return this.returnHandler({ h, headers, statusCode, data });
     } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- injected by the generated routes as @hapi/boom's isBoom
       if (this.hapi.isBoom(error)) {
         throw error;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- injected by the generated routes as @hapi/boom's boomify
       const boomErr = this.hapi.boomify(error instanceof Error ? error : new Error(error.message));
       boomErr.output.statusCode = error.status || 500;
       boomErr.output.payload = {
         name: error.name,
         message: error.message,
-      } as unknown as Payload;
+      };
       throw boomErr;
     }
   }

@@ -348,7 +348,7 @@ export class TypeResolver {
         if (type.isIndexType()) {
           // in case of generic: keyof T. Not handles all possible cases
           const symbol = type.type.getSymbol();
-          if (symbol && symbol.getFlags() & ts.TypeFlags.TypeParameter) {
+          if (symbol && symbol.getFlags() & ts.SymbolFlags.TypeParameter) {
             const typeName = symbol.getEscapedName();
             throwUnless(typeof typeName === 'string', new GenerateMetadataError(`typeName is not string, but ${typeof typeName}`, typeNode));
 
@@ -1040,10 +1040,14 @@ export class TypeResolver {
     }
 
     if (modelTypes.length > 1) {
-      // remove types that are from typescript e.g. 'Account'
-      modelTypes = modelTypes.filter(modelType => {
+      // remove types that are from typescript e.g. 'Account',
+      // but keep the lib declarations when the type only exists in the typescript libs (e.g. 'Error')
+      const nonLibModelTypes = modelTypes.filter(modelType => {
         return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
+      if (nonLibModelTypes.length > 0) {
+        modelTypes = nonLibModelTypes;
+      }
 
       modelTypes = this.getDesignatedModels(modelTypes, typeName);
     }
