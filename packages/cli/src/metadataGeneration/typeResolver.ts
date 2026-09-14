@@ -17,6 +17,9 @@ import { PropertyTransformer } from './transformer/propertyTransformer';
 import { ReferenceTransformer } from './transformer/referenceTransformer';
 
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
+
+const libDeclaredErrorTypes = new Set(['Error', 'AggregateError', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']);
+
 const inProgressTypes: { [typeName: string]: Array<(realType: Tsoa.ReferenceType) => void> } = {};
 
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
@@ -348,7 +351,7 @@ export class TypeResolver {
         if (type.isIndexType()) {
           // in case of generic: keyof T. Not handles all possible cases
           const symbol = type.type.getSymbol();
-          if (symbol && symbol.getFlags() & ts.TypeFlags.TypeParameter) {
+          if (symbol && this.hasFlag(symbol, ts.SymbolFlags.TypeParameter)) {
             const typeName = symbol.getEscapedName();
             throwUnless(typeof typeName === 'string', new GenerateMetadataError(`typeName is not string, but ${typeof typeName}`, typeNode));
 
@@ -1040,10 +1043,13 @@ export class TypeResolver {
     }
 
     if (modelTypes.length > 1) {
-      // remove types that are from typescript e.g. 'Account'
-      modelTypes = modelTypes.filter(modelType => {
+      const nonLibModelTypes = modelTypes.filter(modelType => {
         return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
+      const keepLibDeclarations = nonLibModelTypes.length === 0 && libDeclaredErrorTypes.has(typeName);
+      if (!keepLibDeclarations) {
+        modelTypes = nonLibModelTypes;
+      }
 
       modelTypes = this.getDesignatedModels(modelTypes, typeName);
     }

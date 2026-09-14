@@ -15,7 +15,11 @@ export class ControllerGenerator {
   private readonly commonResponses: Tsoa.Response[];
   private readonly produces?: string[];
 
-  constructor(private readonly node: ClassDeclaration, private readonly current: MetadataGenerator, private readonly parentSecurity: Tsoa.Security[] = []) {
+  constructor(
+    private readonly node: ClassDeclaration,
+    private readonly current: MetadataGenerator,
+    private readonly parentSecurity: Tsoa.Security[] = [],
+  ) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
@@ -90,7 +94,7 @@ export class ControllerGenerator {
         name,
         schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
-      } as Tsoa.Response;
+      };
     });
   }
 

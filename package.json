@@ -44,9 +44,9 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
-    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^8.69.0",
+    "@typescript-eslint/parser": "^8.69.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^4.3.0",
     "lerna": "^8.1.8",
@@ -56,7 +56,7 @@
     "typedoc": "^0.26.7"
   },
   "resolutions": {
-    "typescript": "^5.2.2"
+    "typescript": "^6.0.3"
   },
   "repository": {
     "type": "git",
