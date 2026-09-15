@@ -1,5 +1,5 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
-import type { Payload } from '@hapi/boom';
+import type { boomify, isBoom, Payload } from '@hapi/boom';
 
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
@@ -36,8 +36,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     protected readonly models: TsoaRoute.Models,
     protected readonly config: AdditionalProps,
     private readonly hapi: {
-      boomify: CallableFunction;
-      isBoom: CallableFunction;
+      boomify: typeof boomify;
+      isBoom: typeof isBoom;
     },
   ) {
     super(models, config);

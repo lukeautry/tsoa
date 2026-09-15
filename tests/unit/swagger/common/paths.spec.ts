@@ -52,7 +52,7 @@ describe('Paths normalisation', () => {
     expect(normalisePath('')).to.equal('');
 
     expect(normalisePath('path', null as any, null as any)).to.equal('path');
-    expect(normalisePath('path', undefined as any, undefined as any)).to.equal('path');
+    expect(normalisePath('path', undefined, undefined)).to.equal('path');
     expect(normalisePath('path', 1 as any, 2 as any)).to.equal('1path2');
     expect(normalisePath('path', {} as any, {} as any)).to.equal('[object/Object]path[object/Object]');
   });

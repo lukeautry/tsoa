@@ -14,10 +14,11 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
+  private readonly compilerOptions: CompilerOptions;
 
   constructor(
     entryFile: string,
-    private readonly compilerOptions?: CompilerOptions,
+    compilerOptions?: CompilerOptions,
     private readonly ignorePaths?: string[],
     controllers?: string[],
     private readonly rootSecurity: Tsoa.Security[] = [],
@@ -25,7 +26,8 @@ export class MetadataGenerator {
     esm = false,
   ) {
     TypeResolver.clearCache();
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], compilerOptions || {});
+    this.compilerOptions = { strictNullChecks: false, ...compilerOptions };
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
   }
 
@@ -49,7 +51,7 @@ export class MetadataGenerator {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    return createProgram(allGlobFiles, this.compilerOptions || {});
+    return createProgram(allGlobFiles, this.compilerOptions);
   }
 
   private extractNodeFromProgramSourceFiles() {

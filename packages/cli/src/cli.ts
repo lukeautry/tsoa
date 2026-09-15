@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';

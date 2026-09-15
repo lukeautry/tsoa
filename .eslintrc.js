@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   root: true,
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json'],
@@ -66,6 +66,16 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
+        '@typescript-eslint/no-require-imports': ['error', { allowAsImport: true }],
+      },
+    },
+    {
+      files: 'tests/fixtures/*/server.ts',
+      rules: {
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       },
     },
   ],

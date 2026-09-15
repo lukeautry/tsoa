@@ -36,7 +36,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
   let tags: ts.JSDocTag[];
   if (node.kind === ts.SyntaxKind.Parameter) {
     const parameterName = ((node as any).name as ts.Identifier).text;
-    tags = getJSDocTags(node.parent as any, tag => {
+    tags = getJSDocTags(node.parent, tag => {
       if (ts.isJSDocParameterTag(tag)) {
         return false;
       } else if (tag.comment === undefined) {
@@ -46,7 +46,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
       return commentToString(tag.comment)?.startsWith(parameterName) || false;
     });
   } else {
-    tags = getJSDocTags(node as any, tag => {
+    tags = getJSDocTags(node, tag => {
       return requireTagName ? tag.comment !== undefined : true;
     });
   }
