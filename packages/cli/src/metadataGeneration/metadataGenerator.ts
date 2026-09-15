@@ -1,19 +1,42 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type TypeChecker } from 'typescript';
+import {
+  createProgram,
+  forEachChild,
+  isClassDeclaration,
+  isEnumDeclaration,
+  isInterfaceDeclaration,
+  isModuleBlock,
+  isModuleDeclaration,
+  isTypeAliasDeclaration,
+  type ClassDeclaration,
+  type CompilerOptions,
+  type EnumDeclaration,
+  type InterfaceDeclaration,
+  type Node,
+  type Program,
+  type TypeAliasDeclaration,
+  type TypeChecker,
+} from 'typescript';
 import { getDecorators } from '../utils/decoratorUtils';
+import { isExistJSDocTag } from '../utils/jsDocUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { ModelDefinitionIdentity, type ModelDefinitionPosition } from './modelDefinitionIdentity';
 import { TypeResolver } from './typeResolver';
+
+export type DesignatedModelDeclaration = InterfaceDeclaration | ClassDeclaration | TypeAliasDeclaration | EnumDeclaration;
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
   public readonly typeChecker: TypeChecker;
   private readonly program: Program;
+  private readonly modelDefinitionIdentity = new ModelDefinitionIdentity();
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
-  private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
+  private modelDefinitionPosMap: { [name: string]: ModelDefinitionPosition[] } = {};
   private expressionOrigNameMap: Record<string, string> = {};
+  private designatedModelIndex?: Map<string, DesignatedModelDeclaration[]>;
 
   constructor(
     entryFile: string,
@@ -223,15 +246,66 @@ export class MetadataGenerator {
     return this.referenceTypeMap[refName];
   }
 
-  public CheckModelUnicity(refName: string, positions: Array<{ fileName: string; pos: number }>) {
+  public CheckModelUnicity(refName: string, positions: ModelDefinitionPosition[]) {
     if (!this.modelDefinitionPosMap[refName]) {
       this.modelDefinitionPosMap[refName] = positions;
     } else {
       const origPositions = this.modelDefinitionPosMap[refName];
-      if (!(origPositions.length === positions.length && positions.every(pos => origPositions.find(origPos => pos.pos === origPos.pos && pos.fileName === origPos.fileName)))) {
-        throw new Error(`Found 2 different model definitions for model ${refName}: orig: ${JSON.stringify(origPositions)}, act: ${JSON.stringify(positions)}`);
+      if (!(origPositions.length === positions.length && positions.every(pos => origPositions.find(origPos => this.modelDefinitionIdentity.areDefinitionsEquivalent(pos, origPos))))) {
+        const printable = (definitionPositions: ModelDefinitionPosition[]) => JSON.stringify(definitionPositions.map(({ fileName, pos }) => ({ fileName, pos })));
+        if (this.GetDesignatedModels(refName).length > 1) {
+          throw new GenerateMetadataError(`Multiple models for ${refName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`);
+        }
+        throw new Error(
+          `Found 2 different model definitions for model ${refName}: orig: ${printable(origPositions)}, act: ${printable(positions)}. ` +
+            `If both definitions describe the same model, mark the canonical declaration with a '@tsoaModel' JSDoc tag; otherwise rename one of the types to resolve the collision.`,
+        );
       }
     }
+  }
+
+  /**
+   * Returns the declarations marked with '@tsoaModel' for the given type name anywhere in the
+   * program. Such a declaration is the canonical model for that name: same-named declarations in
+   * other files resolve to it instead of raising a model definition conflict. Designations that
+   * are the same logical declaration reached through different files (e.g. a marked source file
+   * whose built declaration file, which keeps the JSDoc, is also in the program) are deduplicated.
+   */
+  public GetDesignatedModels(typeName: string): DesignatedModelDeclaration[] {
+    if (!this.designatedModelIndex) {
+      this.designatedModelIndex = this.buildDesignatedModelIndex();
+    }
+    const designated = this.designatedModelIndex.get(typeName);
+    if (!designated) {
+      return [];
+    }
+    return designated.filter(
+      (declaration, index) => !designated.slice(0, index).some(other => this.modelDefinitionIdentity.areDefinitionsEquivalent(toDefinitionPosition(declaration), toDefinitionPosition(other))),
+    );
+  }
+
+  private buildDesignatedModelIndex(): Map<string, DesignatedModelDeclaration[]> {
+    const index = new Map<string, DesignatedModelDeclaration[]>();
+    const visit = (node: Node) => {
+      if (
+        (isInterfaceDeclaration(node) || isClassDeclaration(node) || isTypeAliasDeclaration(node) || isEnumDeclaration(node)) &&
+        node.name &&
+        isExistJSDocTag(node, tag => tag.tagName.text === 'tsoaModel')
+      ) {
+        const declarations = index.get(node.name.text) || [];
+        declarations.push(node);
+        index.set(node.name.text, declarations);
+      } else if (isModuleDeclaration(node) || isModuleBlock(node)) {
+        forEachChild(node, visit);
+      }
+    };
+    for (const sourceFile of this.program.getSourceFiles()) {
+      if (!sourceFile.text.includes('@tsoaModel')) {
+        continue;
+      }
+      forEachChild(sourceFile, visit);
+    }
+    return index;
   }
 
   public CheckExpressionUnicity(formattedRefName: string, refName: string) {
@@ -253,4 +327,8 @@ export class MetadataGenerator {
       .filter(generator => generator.IsValid())
       .map(generator => generator.Generate());
   }
+}
+
+function toDefinitionPosition(declaration: DesignatedModelDeclaration): ModelDefinitionPosition {
+  return { fileName: declaration.getSourceFile().fileName, pos: declaration.pos, declaration };
 }
