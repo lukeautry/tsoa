@@ -233,26 +233,82 @@ describe('Complex Type Resolution Integration Tests', () => {
   });
 
   describe('Discriminated union types', () => {
-    it('should generate correct OpenAPI spec for @Body with discriminated union', () => {
+    it('should NOT generate oneOf/discriminator for a union whose members are inline object literals (not $ref-able)', () => {
+      // UserEvent's members are inline nestedObjectLiteral types (no separate declaration of
+      // their own), so they aren't $ref-able and must keep using anyOf.
       const path = spec.paths['/ComplexType/DiscriminatedUnionBody'];
       expect(path).to.exist;
       expect(path.post).to.exist;
 
       const operation = path.post!;
-      expect(operation.requestBody).to.exist;
-      expect(operation.requestBody!.content).to.exist;
-      expect(operation.requestBody!.content['application/json']).to.exist;
+      let schema = operation.requestBody!.content['application/json'].schema as Swagger.Schema3 | Swagger.Schema31;
+      expect(schema).to.exist;
 
+      // UserEvent is itself a refAlias to another refAlias, so follow every $ref hop until we
+      // reach the actual union schema.
+      while (schema.$ref) {
+        const schemaName = schema.$ref.replace('#/components/schemas/', '');
+        const nextSchema = spec.components?.schemas?.[schemaName];
+        expect(nextSchema, `expected component schema "${schemaName}" to exist`).to.exist;
+        schema = nextSchema!;
+      }
+
+      expect(schema.oneOf).to.not.exist;
+      expect(schema.discriminator).to.not.exist;
+      expect(schema.anyOf).to.be.an('array').with.length(3);
+    });
+
+    it('should generate oneOf + discriminator for a union of named interfaces sharing a literal discriminant property', () => {
+      const path = spec.paths['/ComplexType/ContentBlockBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      const operation = path.post!;
       const requestBodySchema = operation.requestBody!.content['application/json'].schema as Swagger.Schema3;
       expect(requestBodySchema).to.exist;
+      expect(requestBodySchema.$ref).to.equal('#/components/schemas/ContentBlock');
 
-      // Check that it's a discriminated union (oneOf with discriminator)
-      if ((requestBodySchema as any).oneOf) {
-        expect((requestBodySchema as any).oneOf).to.be.an('array');
-        expect((requestBodySchema as any).oneOf.length).to.be.greaterThan(1);
-        expect((requestBodySchema as any).discriminator).to.exist;
-        expect((requestBodySchema as any).discriminator.propertyName).to.equal('type');
-      }
+      const contentBlockSchema = spec.components?.schemas?.['ContentBlock'];
+      expect(contentBlockSchema).to.exist;
+      expect(contentBlockSchema!.anyOf).to.not.exist;
+      expect(contentBlockSchema!.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(contentBlockSchema!.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
+    });
+
+    it('should generate oneOf + discriminator + nullable:true for a nullable discriminated union', () => {
+      const path = spec.paths['/ComplexType/NullableContentBlockBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      const requestBodySchema = path.post!.requestBody!.content['application/json'].schema as Swagger.Schema3;
+      expect(requestBodySchema).to.exist;
+
+      expect(requestBodySchema.anyOf).to.not.exist;
+      expect(requestBodySchema.nullable).to.equal(true);
+      expect(requestBodySchema.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(requestBodySchema.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
     });
 
     it('should generate correct OpenAPI spec for @Body with user created event', () => {

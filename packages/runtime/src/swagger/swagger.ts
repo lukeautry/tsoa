@@ -358,7 +358,6 @@ export namespace Swagger {
     // moved from Schema
     additionalProperties?: boolean | BaseSchema;
     properties?: { [propertyName: string]: P };
-    discriminator?: string;
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
@@ -368,7 +367,7 @@ export namespace Swagger {
     items?: BaseSchema;
   }
 
-  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf'> {
+  export interface Schema31 extends Omit<Schema3, 'items' | 'properties' | 'additionalProperties' | 'discriminator' | 'anyOf' | 'allOf' | 'oneOf'> {
     examples?: unknown[];
 
     properties?: { [key: string]: Schema31 };
@@ -393,10 +392,15 @@ export namespace Swagger {
   export interface Schema3 extends Omit<BaseSchema, 'type'> {
     type?: DataType;
     nullable?: boolean;
+    oneOf?: BaseSchema[];
     anyOf?: BaseSchema[];
     allOf?: BaseSchema[];
     deprecated?: boolean;
     properties?: { [propertyName: string]: Schema3 };
+    discriminator?: {
+      propertyName: string;
+      mapping?: Record<string, string>;
+    };
   }
 
   export interface Schema2 extends BaseSchema {
@@ -404,6 +408,7 @@ export namespace Swagger {
     properties?: { [propertyName: string]: Schema2 };
     ['x-nullable']?: boolean;
     ['x-deprecated']?: boolean;
+    discriminator?: string;
   }
 
   export interface Header {
