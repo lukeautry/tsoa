@@ -638,6 +638,38 @@ describe('Express Server', () => {
       );
     });
 
+    it('should hand a raw octet-stream request body to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/octet-stream')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand a raw request body with a custom media type to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary/Custom')
+            .set('Content-Type', 'image/png')
+            .send(payload),
+        200,
+      );
+    });
+
     it('should return custom content-type based on "Accept" header', () => {
       return verifyRequest(
         app,

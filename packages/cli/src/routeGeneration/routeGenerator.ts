@@ -104,6 +104,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
+              binaryBody: method.parameters.some(parameter => parameter.in === 'body' && parameter.type.dataType === 'binary'),
               parameters: parameterObjs,
               path: normalisedMethodPath,
               uploadFile: uploadFilesWithDifferentFieldParameter.length > 0,

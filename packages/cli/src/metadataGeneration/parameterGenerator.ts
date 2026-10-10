@@ -199,7 +199,7 @@ export class ParameterGenerator {
 
   private getBodyParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type: Tsoa.Type = this.isReadableType(parameter) ? { dataType: 'binary' } : this.getValidatedType(parameter);
 
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@Body('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
@@ -556,6 +556,11 @@ export class ParameterGenerator {
     }
 
     return false;
+  }
+
+  private isReadableType(parameter: ts.ParameterDeclaration): boolean {
+    const typeNode = parameter.type;
+    return !!typeNode && ts.isTypeReferenceNode(typeNode) && ts.isIdentifier(typeNode.typeName) && typeNode.typeName.text === 'Readable';
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {

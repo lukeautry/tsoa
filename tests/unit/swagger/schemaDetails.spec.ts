@@ -551,6 +551,38 @@ describe('Schema details generation', () => {
             expect(consumesDefault).to.deep.eq(['application/json']);
             expect(consumesCustom).to.deep.eq(['application/vnd.mycompany.myapp.v2+json']);
           });
+
+          it('Should default a Readable request body to application/octet-stream with a binary schema', () => {
+            const { consumes, parameters } = mediaTypeTest.paths['/MediaTypeTest/Binary']?.post;
+
+            expect(consumes).to.deep.eq(['application/octet-stream']);
+            expect(parameters).to.have.length(1);
+            expect(parameters[0].in).to.eq('body');
+            expect(parameters[0].required).to.eq(true);
+            expect(parameters[0]).to.not.have.property('format');
+            expect(parameters[0].schema).to.deep.eq({ type: 'string', format: 'binary' });
+          });
+
+          it('Should let the Consumes decorator override the media type of a Readable request body', () => {
+            const { consumes, parameters } = mediaTypeTest.paths['/MediaTypeTest/Binary/Custom']?.post;
+
+            expect(consumes).to.deep.eq(['image/png']);
+            expect(parameters[0].schema).to.deep.eq({ type: 'string', format: 'binary' });
+          });
+
+          it('Should keep a Buffer request body as a JSON byte string', () => {
+            const { consumes, parameters } = mediaTypeTest.paths['/MediaTypeTest/Buffer']?.post;
+
+            expect(consumes).to.deep.eq(['application/json']);
+            expect(parameters[0].format).to.eq('byte');
+          });
+
+          it('Should keep a Readable response as a byte string', () => {
+            const getSpec = new SpecGenerator2(metadataGet, getDefaultExtendedOptions()).GetSpec();
+            const schema = getSpec.paths['/GetTest/HandleStreamType']?.get?.responses?.[200]?.schema;
+
+            expect(schema).to.deep.eq({ type: 'string', format: 'byte' });
+          });
         });
 
         it('Falls back to the first @Example<>', () => {

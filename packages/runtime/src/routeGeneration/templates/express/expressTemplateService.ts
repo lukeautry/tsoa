@@ -71,6 +71,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'header':
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            return request;
+          }
           const bodyFieldErrors: FieldErrors = {};
           const bodyArgs = this.validationService.ValidateParam(param, request.body, name, bodyFieldErrors, true, undefined);
           Object.keys(bodyFieldErrors).forEach(key => {
