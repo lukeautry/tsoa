@@ -26,7 +26,8 @@ export function ValidateParam(
 }
 
 export class ValidationService {
-  private validationStack: Set<string> = new Set();
+  private refsInProgress = new Map<unknown, Set<string>>();
+  private cloneSources = new WeakMap<object, object>();
 
   constructor(
     private readonly models: TsoaRoute.Models,
@@ -95,21 +96,41 @@ export class ValidationService {
         return this.validateNestedObjectLiteral(name, value, fieldErrors, isBodyParam, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
-          // Detect circular references to prevent stack overflow
-          const refPath = `${parent}${name}:${property.ref}`;
-          if (this.validationStack.has(refPath)) {
-            return value;
-          }
-
-          this.validationStack.add(refPath);
-          try {
-            return this.validateModel({ name, value, modelDefinition: this.models[property.ref], fieldErrors, isBodyParam, parent });
-          } finally {
-            this.validationStack.delete(refPath);
-          }
+          return this.validateRef(name, value, fieldErrors, isBodyParam, property.ref, parent);
         }
         return value;
     }
+  }
+
+  // Recursive schemas terminate with the input. Only the same value re-entering the same ref makes no progress:
+  // the input is cyclic or the schema loops without consuming input. Unions validate clones, hence sourceOf().
+  private validateRef(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, ref: string, parent: string) {
+    const source = this.sourceOf(value);
+    const activeRefs = this.refsInProgress.get(source) ?? new Set<string>();
+    if (activeRefs.has(ref)) {
+      fieldErrors[parent + name] = {
+        message: `circular reference to '${ref}' cannot be validated`,
+      };
+      return;
+    }
+
+    activeRefs.add(ref);
+    this.refsInProgress.set(source, activeRefs);
+    try {
+      return this.validateModel({ name, value, modelDefinition: this.models[ref], fieldErrors, isBodyParam, parent });
+    } finally {
+      activeRefs.delete(ref);
+      if (activeRefs.size === 0) {
+        this.refsInProgress.delete(source);
+      }
+    }
+  }
+
+  private sourceOf(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null) {
+      return value;
+    }
+    return this.cloneSources.get(value) ?? value;
   }
 
   public hasCorrectJsType(value: any, type: 'object' | 'boolean' | 'number' | 'string', isBodyParam: boolean) {
@@ -468,10 +489,10 @@ export class ValidationService {
     const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
       arrayValue = value.map((elementValue, index) => {
-        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, name + '.');
+        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, parent + name + '.');
       });
     } else {
-      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, name + '.')];
+      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, parent + name + '.')];
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {
@@ -837,10 +858,13 @@ export class ValidationService {
    * @returns New ValidationService instance
    */
   private createChildValidationService(overrides: Partial<AdditionalProps> = {}): ValidationService {
-    return new ValidationService(this.models, {
+    const child = new ValidationService(this.models, {
       ...this.config,
       ...overrides,
     });
+    child.refsInProgress = this.refsInProgress;
+    child.cloneSources = this.cloneSources;
+    return child;
   }
 
   /**
@@ -875,6 +899,7 @@ export class ValidationService {
       for (let i = 0; i < obj.length; i++) {
         cloneArr[i] = this.deepClone(obj[i]);
       }
+      this.cloneSources.set(cloneArr, this.sourceOf(obj) as object);
       return cloneArr as any;
     }
 
@@ -889,6 +914,7 @@ export class ValidationService {
         cloneObj[key] = this.deepClone(obj[key]);
       }
     }
+    this.cloneSources.set(cloneObj, this.sourceOf(obj) as object);
     return cloneObj;
   }
 
