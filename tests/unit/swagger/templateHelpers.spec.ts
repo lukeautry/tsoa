@@ -1915,6 +1915,61 @@ describe('ValidationService', () => {
     });
   });
 
+  describe('Buffer validate', () => {
+    const service = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+
+    it('should convert a string as utf8', () => {
+      const error: FieldErrors = {};
+      const result = service.validateBuffer('name', 'h\u00e9llo', error);
+      expect(result).to.deep.equal(Buffer.from('h\u00e9llo', 'utf8'));
+      expect(error).to.deep.equal({});
+    });
+
+    it('should convert an array of bytes', () => {
+      const error: FieldErrors = {};
+      const result = service.validateBuffer('name', [0, 104, 255], error);
+      expect(result).to.deep.equal(Buffer.from([0, 104, 255]));
+      expect(error).to.deep.equal({});
+    });
+
+    it('should copy an existing buffer', () => {
+      const value = Buffer.from('abc');
+      const result = service.validateBuffer('name', value, {});
+      expect(result).to.deep.equal(value);
+    });
+
+    it('should reject an object with a length property without allocating', () => {
+      const error: FieldErrors = {};
+      const value = { length: 1e9 };
+      const result = service.validateBuffer('name', value, error, 'body.');
+      expect(result).to.equal(undefined);
+      expect(error).to.deep.equal({ 'body.name': { message: 'invalid buffer value', value } });
+    });
+
+    it('should reject a number', () => {
+      const error: FieldErrors = {};
+      const result = service.validateBuffer('name', 5, error);
+      expect(result).to.equal(undefined);
+      expect(error.name.message).to.equal('invalid buffer value');
+    });
+
+    it('should reject arrays containing non-byte values', () => {
+      for (const value of [[256], [-1], [1.5], ['1'], [null], [[1]]]) {
+        const error: FieldErrors = {};
+        const result = service.validateBuffer('name', value, error);
+        expect(result).to.equal(undefined);
+        expect(error.name.message).to.equal('invalid buffer value');
+      }
+    });
+
+    it('should report a field error through ValidateParam', () => {
+      const error: FieldErrors = {};
+      const result = service.ValidateParam({ dataType: 'buffer', required: true }, 42, 'payload', error, true);
+      expect(result).to.equal(undefined);
+      expect(error).to.deep.equal({ payload: { message: 'invalid buffer value', value: 42 } });
+    });
+  });
+
   describe('undefined validate', () => {
     const replacer = (key, value) => (typeof value === 'undefined' ? null : value);
 

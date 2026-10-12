@@ -82,7 +82,7 @@ export class ValidationService {
       case 'datetime':
         return this.validateDateTime(name, value, fieldErrors, isBodyParam, property.validators as DateTimeValidator, parent);
       case 'buffer':
-        return this.validateBuffer(name, value);
+        return this.validateBuffer(name, value, fieldErrors, parent);
       case 'union':
         return this.validateUnion(name, value, fieldErrors, isBodyParam, property, parent);
       case 'intersection':
@@ -537,8 +537,18 @@ export class ValidationService {
     return false;
   }
 
-  public validateBuffer(_name: string, value: string) {
-    return Buffer.from(value);
+  public validateBuffer(name: string, value: unknown, fieldErrors: FieldErrors, parent = '') {
+    if (typeof value === 'string' || Buffer.isBuffer(value)) {
+      return Buffer.from(value);
+    }
+    if (Array.isArray(value) && value.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)) {
+      return Buffer.from(value);
+    }
+    fieldErrors[parent + name] = {
+      message: 'invalid buffer value',
+      value,
+    };
+    return;
   }
 
   public validateUnion(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, property: TsoaRoute.PropertySchema, parent = ''): any {
