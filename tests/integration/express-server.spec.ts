@@ -1,9 +1,12 @@
 import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
+import { get as httpGet } from 'http';
 import 'mocha';
 import { resolve } from 'path';
+import { setTimeout as delay } from 'timers/promises';
 import { base64image } from '../fixtures/base64image';
+import { endlessStreamState } from '../fixtures/controllers/getController';
 import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
 import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { app } from '../fixtures/express/server';
@@ -310,11 +313,42 @@ describe('Express Server', () => {
     });
   });
 
-  it('abort response on stream error', async () => {
-    return verifyGetRequest(app, `${basePath}/GetTest/HandleStreamFailure`, (_err, res) => {
-      expect(_err).to.instanceOf(Error)
-      return;
-    }).catch(_ => {});
+  it('aborts the connection on a stream error before data was sent', async () => {
+    let failure: unknown;
+    try {
+      await verifyGetRequest(app, `${basePath}/GetTest/HandleStreamFailure`, () => undefined);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).to.have.nested.property('error.code', 'ECONNRESET');
+  });
+
+  it('aborts the connection on a stream error after data was sent', async () => {
+    const response = await getRawResponse(`${basePath}/GetTest/HandleStreamFailureMidTransfer`);
+
+    expect(response.statusCode).to.equal(200);
+    expect(response.body).to.equal('first chunk');
+    expect(response.complete).to.equal(false);
+  });
+
+  it('destroys the source stream when the client disconnects', async () => {
+    await withHttpServer(async port => {
+      await new Promise<void>((resolve, reject) => {
+        let receivedData = false;
+        const request = httpGet({ port, path: `${basePath}/GetTest/HandleEndlessStream` }, response => {
+          response.on('error', () => undefined);
+          response.once('data', () => {
+            receivedData = true;
+            request.destroy();
+          });
+        });
+        request.setTimeout(1000, () => request.destroy(new Error('stream request timed out')));
+        request.on('error', reject);
+        request.on('close', () => (receivedData ? resolve() : reject(new Error('stream closed before data arrived'))));
+      });
+      await delay(100);
+      expect(endlessStreamState.destroyed).to.equal(true);
+    });
   });
 
   it('should reject invalid additionalProperties', () => {
@@ -1877,3 +1911,39 @@ describe('Express Server', () => {
     return model;
   }
 });
+
+async function withHttpServer<T>(run: (port: number) => Promise<T>): Promise<T> {
+  const server = app.listen(0);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once('listening', resolve);
+      server.once('error', reject);
+    });
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('HTTP test server has no TCP address');
+    }
+    return await run(address.port);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => (error ? reject(error) : resolve())));
+  }
+}
+
+type RawResponse = { statusCode?: number; body: string; complete: boolean };
+
+function getRawResponse(path: string) {
+  return withHttpServer(
+    port =>
+      new Promise<RawResponse>((resolve, reject) => {
+        const request = httpGet({ port, path }, response => {
+          let body = '';
+          response.setEncoding('utf8');
+          response.on('data', (chunk: string) => (body += chunk));
+          response.on('error', () => undefined);
+          response.on('close', () => resolve({ statusCode: response.statusCode, body, complete: response.complete }));
+        });
+        request.setTimeout(1000, () => request.destroy(new Error('stream request timed out')));
+        request.on('error', reject);
+      }),
+  );
+}
