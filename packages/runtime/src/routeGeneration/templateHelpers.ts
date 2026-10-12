@@ -74,7 +74,7 @@ export class ValidationService {
       case 'double':
         return this.validateFloat(name, value, fieldErrors, isBodyParam, property.validators as FloatValidator, parent);
       case 'enum':
-        return this.validateEnum(name, value, fieldErrors, property.enums, parent);
+        return this.validateEnum(name, value, fieldErrors, property.enums, parent, isBodyParam);
       case 'array':
         return this.validateArray(name, value, fieldErrors, isBodyParam, property.array, property.validators as ArrayValidator, parent);
       case 'date':
@@ -275,7 +275,7 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateEnum(name: string, value: unknown, fieldErrors: FieldErrors, members?: Array<string | number | boolean | null>, parent = ''): unknown {
+  public validateEnum(name: string, value: unknown, fieldErrors: FieldErrors, members?: Array<string | number | boolean | null>, parent = '', isBodyParam = false): unknown {
     if (!members || members.length === 0) {
       fieldErrors[parent + name] = {
         message: 'no member',
@@ -284,7 +284,7 @@ export class ValidationService {
       return;
     }
 
-    const enumMatchIndex = members.map(member => String(member)).findIndex(member => equals(member, String(value)));
+    const enumMatchIndex = this.findEnumMember(value, members, isBodyParam);
 
     if (enumMatchIndex === -1) {
       const membersInQuotes = members.map(member => (typeof member === 'string' ? `'${member}'` : String(member)));
@@ -296,6 +296,16 @@ export class ValidationService {
     }
 
     return members[enumMatchIndex];
+  }
+
+  private findEnumMember(value: unknown, members: Array<string | number | boolean | null>, isBodyParam: boolean): number {
+    if (value !== null && typeof value === 'object') {
+      return -1;
+    }
+    if (isBodyParam && !this.config.bodyCoercion) {
+      return members.findIndex(member => member === value);
+    }
+    return members.map(member => String(member)).findIndex(member => equals(member, String(value)));
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateValidator, parent = '') {
@@ -763,7 +773,7 @@ export class ValidationService {
 
     if (modelDefinition) {
       if (modelDefinition.dataType === 'refEnum') {
-        return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent);
+        return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent, isBodyParam);
       }
 
       if (modelDefinition.dataType === 'refAlias') {

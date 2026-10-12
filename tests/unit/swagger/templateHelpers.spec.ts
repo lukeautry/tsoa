@@ -1026,6 +1026,77 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`should be one of the following; ['1']`);
     });
+
+    it('should reject a single-element array matching a member', () => {
+      const name = 'name';
+      const value = ['admin'];
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateEnum(name, value, error, ['admin', 'user'], '', true);
+      expect(result).to.equal(undefined);
+      expect(error[name]).to.deep.equal({ message: `should be one of the following; ['admin','user']`, value });
+    });
+
+    it('should reject a single-element array matching a member outside the body', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateEnum(name, [1], error, [1, 2]);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal('should be one of the following; [1,2]');
+    });
+
+    it('should reject an object whose string form matches a member', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateEnum(name, {}, error, ['[object Object]'], '', true);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal(`should be one of the following; ['[object Object]']`);
+    });
+
+    it('should not coerce a string body value to a number member when bodyCoercion is false', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }).validateEnum(name, '1', error, [1, 2], '', true);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal('should be one of the following; [1,2]');
+    });
+
+    it('should not coerce a string body value to a boolean member when bodyCoercion is false', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }).validateEnum(name, 'true', error, [true], '', true);
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal('should be one of the following; [true]');
+    });
+
+    it('should match a body value of the member type when bodyCoercion is false', () => {
+      const service = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false });
+      expect(service.validateEnum('name', 2, {}, [1, 2], '', true)).to.equal(2);
+      expect(service.validateEnum('name', 'admin', {}, ['admin'], '', true)).to.equal('admin');
+      expect(service.validateEnum('name', null, {}, ['admin', null], '', true)).to.equal(null);
+    });
+
+    it('should coerce a string body value to a number member when bodyCoercion is true', () => {
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateEnum('name', '1', {}, [1, 2], '', true);
+      expect(result).to.equal(1);
+    });
+
+    it('should coerce a string query value to a number member when bodyCoercion is false', () => {
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }).validateEnum('name', '1', {}, [1, 2], '', false);
+      expect(result).to.equal(1);
+    });
+
+    it('should reject an array for a refEnum body property', () => {
+      const error: FieldErrors = {};
+      const result = new ValidationService({ Role: { dataType: 'refEnum', enums: ['admin', 'user'] } }, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).ValidateParam(
+        { ref: 'Role', required: true },
+        ['admin'],
+        'role',
+        error,
+        true,
+      );
+      expect(result).to.equal(undefined);
+      expect(error.role.message).to.equal(`should be one of the following; ['admin','user']`);
+    });
   });
 
   describe('String validate', () => {
