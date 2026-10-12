@@ -937,8 +937,27 @@ export class ValidationService {
 
     fieldErrors[errorKey] = {
       message: `${prefix}${this.summarizeValidationErrors(subErrors, maxErrorLength)}`,
-      value,
+      value: this.truncateErrorValue(value),
     };
+  }
+
+  /**
+   * Replaces a value whose string or JSON form exceeds the error size limit with a truncated string
+   * @param value The value that failed validation
+   * @returns The value itself, or a truncated string if it is too large
+   */
+  private truncateErrorValue(value: unknown): unknown {
+    const maxLength = this.config.maxValidationErrorSize || 1000;
+    let serialized: string | undefined;
+    try {
+      serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    } catch {
+      return value;
+    }
+    if (serialized === undefined || serialized.length <= maxLength) {
+      return value;
+    }
+    return `${serialized.substring(0, maxLength)}...`;
   }
 
   /**

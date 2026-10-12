@@ -1559,6 +1559,50 @@ describe('ValidationService', () => {
       });
       expect(result).to.be.undefined;
     });
+
+    it('truncates a large value in the summarized error to maxValidationErrorSize', () => {
+      const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true, maxValidationErrorSize: 500 });
+      const errors: FieldErrors = {};
+      const value = { items: Array.from({ length: 5000 }, (_, index) => `item${index}`) };
+      const schema: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ dataType: 'integer' }, { dataType: 'string' }], required: true };
+
+      v.validateUnion('union', value, errors, true, schema);
+
+      expect(errors.union.value).to.equal(`${JSON.stringify(value).substring(0, 500)}...`);
+      expect(errors.union.message.length).to.be.lessThanOrEqual(500);
+    });
+
+    it('truncates a large value in the summarized error to 1000 characters by default', () => {
+      const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      const errors: FieldErrors = {};
+      const value = 'x'.repeat(90000);
+      const schema: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ dataType: 'integer' }, { dataType: 'boolean' }], required: true };
+
+      v.validateUnion('union', value, errors, true, schema);
+
+      expect(errors.union.value).to.equal(`${'x'.repeat(1000)}...`);
+    });
+
+    it('keeps a value within the limit unchanged in the summarized error', () => {
+      const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      const errors: FieldErrors = {};
+      const value = { a: 'b' };
+      const schema: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ dataType: 'integer' }, { dataType: 'string' }], required: true };
+
+      v.validateUnion('union', value, errors, true, schema);
+
+      expect(errors.union.value).to.deep.equal(value);
+    });
+
+    it('keeps the full value in non-summarized errors', () => {
+      const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true, maxValidationErrorSize: 500 });
+      const errors: FieldErrors = {};
+      const value = 'x'.repeat(5000);
+
+      v.validateInt('name', value, errors, true);
+
+      expect(errors.name.value).to.equal(value);
+    });
   });
 
   describe('Intersection Validate', () => {
