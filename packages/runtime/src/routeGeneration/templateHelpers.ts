@@ -464,6 +464,10 @@ export class ValidationService {
       return;
     }
 
+    if (validators && !this.hasValidItemCount(name, value, fieldErrors, validators, parent)) {
+      return;
+    }
+
     let arrayValue = [] as any[];
     const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
@@ -478,41 +482,49 @@ export class ValidationService {
       return;
     }
 
-    if (!validators) {
-      return arrayValue;
-    }
-    if (validators.minItems && validators.minItems.value) {
-      if (validators.minItems.value > arrayValue.length) {
-        fieldErrors[parent + name] = {
-          message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
-          value,
-        };
-        return;
-      }
-    }
-    if (validators.maxItems && validators.maxItems.value) {
-      if (validators.maxItems.value < arrayValue.length) {
-        fieldErrors[parent + name] = {
-          message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
-          value,
-        };
-        return;
-      }
-    }
-    if (validators.uniqueItems) {
-      const unique = arrayValue.some((elem, index, arr) => {
-        const indexOf = arr.indexOf(elem);
-        return indexOf > -1 && indexOf !== index;
-      });
-      if (unique) {
-        fieldErrors[parent + name] = {
-          message: validators.uniqueItems.errorMsg || `required unique array`,
-          value,
-        };
-        return;
-      }
+    if (validators?.uniqueItems && this.hasDuplicateItems(arrayValue)) {
+      fieldErrors[parent + name] = {
+        message: validators.uniqueItems.errorMsg || `required unique array`,
+        value,
+      };
+      return;
     }
     return arrayValue;
+  }
+
+  private hasValidItemCount(name: string, value: unknown, fieldErrors: FieldErrors, validators: ArrayValidator, parent: string): boolean {
+    const itemCount = Array.isArray(value) ? value.length : 1;
+    if (validators.minItems && validators.minItems.value !== undefined && validators.minItems.value > itemCount) {
+      fieldErrors[parent + name] = {
+        message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
+        value,
+      };
+      return false;
+    }
+    if (validators.maxItems && validators.maxItems.value !== undefined && validators.maxItems.value < itemCount) {
+      fieldErrors[parent + name] = {
+        message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
+        value,
+      };
+      return false;
+    }
+    return true;
+  }
+
+  private hasDuplicateItems(items: unknown[]): boolean {
+    // Same identity semantics as the former indexOf scan: SameValueZero for primitives, reference identity for objects.
+    // NaN is skipped because indexOf never matched it.
+    const seen = new Set<unknown>();
+    for (const item of items) {
+      if (Number.isNaN(item)) {
+        continue;
+      }
+      if (seen.has(item)) {
+        return true;
+      }
+      seen.add(item);
+    }
+    return false;
   }
 
   public validateBuffer(_name: string, value: string) {

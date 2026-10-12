@@ -1309,6 +1309,102 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`required unique array`);
     });
 
+    it('should reject an array exceeding maxItems before validating its elements', () => {
+      const name = 'name';
+      const value = ['A', 'B', 'C'];
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray(
+        name,
+        value,
+        error,
+        true,
+        { dataType: 'integer' },
+        { maxItems: { value: 2 } },
+      );
+      expect(result).to.equal(undefined);
+      expect(error).to.deep.equal({ [name]: { message: 'maxItems 2', value } });
+    });
+
+    it('should reject an array shorter than minItems before validating its elements', () => {
+      const name = 'name';
+      const value = ['A'];
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray(
+        name,
+        value,
+        error,
+        true,
+        { dataType: 'integer' },
+        { minItems: { value: 2 } },
+      );
+      expect(result).to.equal(undefined);
+      expect(error).to.deep.equal({ [name]: { message: 'minItems 2', value } });
+    });
+
+    it('should enforce maxItems 0', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const service = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      expect(service.validateArray(name, [], error, true, { dataType: 'integer' }, { maxItems: { value: 0 } })).to.deep.equal([]);
+      expect(service.validateArray(name, [1], error, true, { dataType: 'integer' }, { maxItems: { value: 0 } })).to.equal(undefined);
+      expect(error[name].message).to.equal('maxItems 0');
+    });
+
+    it('should accept an empty array with minItems 0', () => {
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray(
+        'name',
+        [],
+        error,
+        true,
+        { dataType: 'integer' },
+        { minItems: { value: 0 } },
+      );
+      expect(result).to.deep.equal([]);
+      expect(error).to.deep.equal({});
+    });
+
+    it('should count a coerced single value against maxItems', () => {
+      const name = 'name';
+      const value: any = '1';
+      const error: FieldErrors = {};
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray(
+        name,
+        value,
+        error,
+        false,
+        { dataType: 'integer' },
+        { maxItems: { value: 0 } },
+      );
+      expect(result).to.equal(undefined);
+      expect(error[name].message).to.equal('maxItems 0');
+    });
+
+    it('should detect duplicate strings with uniqueItems', () => {
+      const name = 'name';
+      const error: FieldErrors = {};
+      const service = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      expect(service.validateArray(name, ['a', 'b', 'c'], error, true, { dataType: 'string' }, { uniqueItems: {} })).to.deep.equal(['a', 'b', 'c']);
+      expect(service.validateArray(name, ['a', 'b', 'a'], error, true, { dataType: 'string' }, { uniqueItems: {} })).to.equal(undefined);
+      expect(error[name].message).to.equal('required unique array');
+    });
+
+    it('should not treat distinct primitives of different types as duplicates with uniqueItems', () => {
+      const error: FieldErrors = {};
+      const value = [1, '1', true, 'true', null, 'null'];
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray('name', value, error, true, { dataType: 'any' }, { uniqueItems: {} });
+      expect(result).to.deep.equal(value);
+      expect(error).to.deep.equal({});
+    });
+
+    it('should keep comparing objects by identity with uniqueItems', () => {
+      const error: FieldErrors = {};
+      const value = [{ a: 1 }, { a: 1 }];
+      const result = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).validateArray('name', value, error, true, { dataType: 'any' }, { uniqueItems: {} });
+      expect(result).to.deep.equal(value);
+      expect(error).to.deep.equal({});
+    });
+
     it('Should validate refEnum Arrays', () => {
       const enumModel: TsoaRoute.RefEnumModelSchema = {
         dataType: 'refEnum',
