@@ -1,3 +1,6 @@
 node_modules
 dist
 .eslintrc.js
+tests/fixtures/**/routes.ts
+tests/fixtures/**/customRoutes.ts
+tests/fixtures/**/custom-route-generator/routes/

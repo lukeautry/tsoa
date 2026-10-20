@@ -25,7 +25,7 @@ describe('Koa Server (with multerOpts)', () => {
     });
 
     it('can post file less than default 8mb', () => {
-      writeFileSync('./lessThan8mb', new Buffer(8 * 1024 * 1024 - 1));
+      writeFileSync('./lessThan8mb', Buffer.alloc(8 * 1024 * 1024 - 1));
       const formData = { someFile: '@../lessThan8mb' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (req, res) => {
         expect(res.body).to.not.be.undefined;
@@ -38,7 +38,7 @@ describe('Koa Server (with multerOpts)', () => {
     });
 
     it('cannot post file more than default 8mb', async () => {
-      writeFileSync('./moreThan8mb', new Buffer(8 * 1024 * 1024));
+      writeFileSync('./moreThan8mb', Buffer.alloc(8 * 1024 * 1024 + 1));
       const formData = { someFile: '@../moreThan8mb' };
       let hasError = false;
       try {
