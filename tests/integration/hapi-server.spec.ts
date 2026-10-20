@@ -1535,25 +1535,37 @@ describe('Hapi Server', () => {
       });
     });
 
-    it('cannot post a file with wrong attribute name', async () => {
+    it('cannot post a file with wrong attribute name', () => {
       const formData = { wrongAttributeName: '@../package.json' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
-        expect(res.status).to.equal(400);
-        expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
-      });
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(400);
+          expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
+        },
+        400,
+      );
     });
 
-    it('cannot post a file with no file', async () => {
+    it('cannot post a file with no file', () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
-        expect(res.status).to.equal(400);
-        expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
-      });
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(400);
+          expect(res.text).to.equal('{"name":"ValidateError","fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"Bad Request"}');
+        },
+        400,
+      );
     });
 
-    it('can post a file with no file', async () => {
+    it('can post a file with no file', () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
         expect(res.text).to.equal('no file');
       });
