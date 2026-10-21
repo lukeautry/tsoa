@@ -528,17 +528,8 @@ export class ValidationService {
       );
     }
 
-    // When value is null or undefined, prefer explicit null/undefined subschemas over
-    // coercive type matches. Without this, e.g. `boolean | null` with value null would
-    // coerce null to false (via validateBool) before ever reaching the null type.
-    if (value === null || value === undefined) {
-      for (const subSchema of property.subSchemas) {
-        const isExactNull = value === null && subSchema.dataType === 'enum' && subSchema.enums?.includes(null);
-        const isExactUndefined = value === undefined && subSchema.dataType === 'undefined';
-        if (isExactNull || isExactUndefined) {
-          return value;
-        }
-      }
+    if (value === null && this.hasExplicitNull(property)) {
+      return null;
     }
 
     const subFieldErrors: FieldErrors[] = [];
@@ -559,6 +550,28 @@ export class ValidationService {
 
     this.addSummarizedError(fieldErrors, parent + name, 'Could not match the union against any of the items. Issues: ', subFieldErrors, value);
     return;
+  }
+
+  private hasExplicitNull(property: TsoaRoute.PropertySchema): boolean {
+    const reachable = new Set([property]);
+
+    for (const schema of reachable) {
+      if (schema.dataType === 'enum' && schema.enums?.includes(null)) {
+        return true;
+      }
+      if (schema.dataType === 'union') {
+        for (const subSchema of schema.subSchemas ?? []) {
+          reachable.add(subSchema);
+        }
+      } else if (schema.ref) {
+        const model = this.models[schema.ref];
+        if (model?.dataType === 'refAlias') {
+          reachable.add(model.type);
+        }
+      }
+    }
+
+    return false;
   }
 
   public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {

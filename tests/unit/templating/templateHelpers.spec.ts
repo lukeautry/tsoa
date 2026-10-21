@@ -130,10 +130,8 @@ it('should return null (not false) when validating null against a union of `bool
   const v = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
   const errors: FieldErrors = {};
 
-  // Act
   const result = v.validateUnion('field', null, errors, true, unionProperty, '');
 
-  // Assert
   expect(errors).to.deep.eq({});
   expect(result).to.equal(null);
 });
