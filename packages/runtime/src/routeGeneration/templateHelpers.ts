@@ -1,4 +1,10 @@
-import validator from 'validator';
+import equals from 'validator/lib/equals';
+import isFloat from 'validator/lib/isFloat';
+import isInt from 'validator/lib/isInt';
+import isISO8601 from 'validator/lib/isISO8601';
+import matches from 'validator/lib/matches';
+import toFloat from 'validator/lib/toFloat';
+import toInt from 'validator/lib/toInt';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
 import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
@@ -184,7 +190,7 @@ export class ValidationService {
   }
 
   public validateInt(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: IntegerValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'number', isBodyParam) || !validator.isInt(String(value))) {
+    if (!this.hasCorrectJsType(value, 'number', isBodyParam) || !isInt(String(value))) {
       let message = `invalid integer number`;
       if (validators) {
         if (validators.isInt && validators.isInt.errorMsg) {
@@ -201,7 +207,7 @@ export class ValidationService {
       return;
     }
 
-    const numberValue = validator.toInt(String(value), 10);
+    const numberValue = toInt(String(value), 10);
     if (!validators) {
       return numberValue;
     }
@@ -227,7 +233,7 @@ export class ValidationService {
   }
 
   public validateFloat(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: FloatValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'number', isBodyParam) || !validator.isFloat(String(value))) {
+    if (!this.hasCorrectJsType(value, 'number', isBodyParam) || !isFloat(String(value))) {
       let message = 'invalid float number';
       if (validators) {
         if (validators.isFloat && validators.isFloat.errorMsg) {
@@ -244,7 +250,7 @@ export class ValidationService {
       return;
     }
 
-    const numberValue = validator.toFloat(String(value));
+    const numberValue = toFloat(String(value));
     if (!validators) {
       return numberValue;
     }
@@ -278,7 +284,7 @@ export class ValidationService {
       return;
     }
 
-    const enumMatchIndex = members.map(member => String(member)).findIndex(member => validator.equals(member, String(value)));
+    const enumMatchIndex = members.map(member => String(member)).findIndex(member => equals(member, String(value)));
 
     if (enumMatchIndex === -1) {
       const membersInQuotes = members.map(member => (typeof member === 'string' ? `'${member}'` : String(member)));
@@ -293,7 +299,7 @@ export class ValidationService {
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !validator.isISO8601(String(value), { strict: true })) {
+    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
@@ -330,7 +336,7 @@ export class ValidationService {
   }
 
   public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateTimeValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !validator.isISO8601(String(value), { strict: true })) {
+    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !isISO8601(String(value), { strict: true })) {
       const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
@@ -399,7 +405,7 @@ export class ValidationService {
       }
     }
     if (validators.pattern && validators.pattern.value) {
-      if (!validator.matches(String(stringValue), validators.pattern.value)) {
+      if (!matches(String(stringValue), validators.pattern.value)) {
         fieldErrors[parent + name] = {
           message: validators.pattern.errorMsg || `Not match in '${validators.pattern.value}'`,
           value,
