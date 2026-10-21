@@ -24,6 +24,7 @@ export type BadRequest = TsoaResponse<400, TestModel, { name: 'some_thing' }>;
 export type ForbiddenRequest = TsoaResponse<401, TestModel, { name: 'another some_thing' }>;
 export type BadAndInternalErrorRequest = TsoaResponse<400 | 500, TestModel, { name: 'combine' }>;
 export const PathFromConstant = 'PathFromConstantValue';
+export const endlessStreamState = { destroyed: false };
 export enum EnumPaths {
   PathFromEnum = 'PathFromEnumValue',
 }
@@ -264,6 +265,41 @@ export class GetTestController extends Controller {
     readable._read = () => ({});
     readable.push(Buffer.from('testbuffer'));
     readable.push(null);
+    return readable;
+  }
+
+  @Get('HandleStreamFailure')
+  public async getStreamFailure(): Promise<Readable> {
+    return new Readable({
+      read() {
+        this.destroy(new Error('stream_test_error'));
+      },
+    });
+  }
+
+  @Get('HandleStreamFailureMidTransfer')
+  public async getStreamFailureMidTransfer(): Promise<Readable> {
+    let chunksSent = 0;
+    return new Readable({
+      read() {
+        if (chunksSent++ === 0) {
+          this.push('first chunk');
+          return;
+        }
+        setTimeout(() => this.destroy(new Error('stream_test_error')), 50);
+      },
+    });
+  }
+
+  @Get('HandleEndlessStream')
+  public async getEndlessStream(): Promise<Readable> {
+    endlessStreamState.destroyed = false;
+    const readable = new Readable({
+      read() {
+        setTimeout(() => this.push('chunk'), 10);
+      },
+    });
+    readable.on('close', () => (endlessStreamState.destroyed = true));
     return readable;
   }
 
