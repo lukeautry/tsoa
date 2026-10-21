@@ -89,6 +89,22 @@ describe('validateCompilerOptions', () => {
       expect(options.baseUrl).to.equal('./src');
       expect(options.typeRoots).to.deep.equal(['./types']);
     });
+
+    it('resolves native aliases from their own working directory', () => {
+      const childDir = join(projectDir, 'child');
+      mkdirSync(childDir);
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { paths: { project: ['./project.ts'] } } }));
+      writeFileSync(join(projectDir, 'model.ts'), 'export interface Model { ancestor: number }');
+      writeFileSync(join(childDir, 'model.ts'), 'export interface Model { child: string }');
+      const overrides = Object.freeze({ paths: { model: ['./model.ts'] } });
+      const host = { ...ts.sys, getCurrentDirectory: () => childDir };
+      const containingFile = join(childDir, 'controller.ts');
+      const control = ts.resolveModuleName('model', containingFile, overrides, host);
+      const options = validateCompilerOptions(overrides, childDir);
+      const resolved = ts.resolveModuleName('model', containingFile, options, host);
+      expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(childDir, 'model.ts'));
+      expect(resolved.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
+    });
   });
   describe('tsconfig.json discovery', () => {
     it('should read moduleResolution from the project tsconfig.json', () => {
@@ -131,6 +147,38 @@ describe('validateCompilerOptions', () => {
       const options = validateCompilerOptions(parsed.options, fixtureDir);
       expect(options).to.deep.include(parsed.options);
       expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Bundler);
+    });
+
+    it('preserves parser metadata that controls package self-name resolution', () => {
+      const packageDir = join(projectDir, 'package');
+      mkdirSync(join(packageDir, 'src'), { recursive: true });
+      mkdirSync(join(packageDir, 'dist'));
+      writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'self-pkg', exports: { '.': './dist/model.d.ts' } }));
+      writeFileSync(join(packageDir, 'src/model.ts'), 'export interface Model { source: string }');
+      writeFileSync(join(packageDir, 'dist/model.d.ts'), 'export interface Model { declaration: string }');
+      const configPath = join(projectDir, 'tsconfig.json');
+      writeFileSync(configPath, JSON.stringify({ compilerOptions: { module: 'nodenext', moduleResolution: 'nodenext', rootDir: './package/src', outDir: './package/dist' } }));
+      const parsed = ts.getParsedCommandLineOfConfigFile(
+        configPath,
+        {},
+        {
+          ...ts.sys,
+          onUnRecoverableConfigFileDiagnostic: diagnostic => {
+            throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+          },
+        },
+      );
+      if (!parsed) {
+        throw new Error('Expected the valid project configuration to parse');
+      }
+      const overrides = Object.freeze(parsed.options);
+      const containingFile = join(packageDir, 'src/controller.ts');
+      const control = ts.resolveModuleName('self-pkg', containingFile, overrides, ts.sys);
+      const options = validateCompilerOptions(overrides, projectDir);
+      const resolved = ts.resolveModuleName('self-pkg', containingFile, options, ts.sys);
+      expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'dist/model.d.ts'));
+      expect(resolved.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
+      expect(options.configFile).to.equal(overrides.configFile);
     });
 
     it('should apply compilerOptions on top of tsconfig.json settings', () => {

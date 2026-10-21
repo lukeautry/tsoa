@@ -114,7 +114,10 @@ export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = 
     );
   }
   const nativeOverrides = (config || {}) as CompilerOptions;
-  return { ...baseOptions, ...nativeOverrides };
+  if (nativeOverrides.paths) {
+    baseOptions.pathsBasePath = cwd;
+  }
+  return Object.defineProperties(baseOptions, Object.getOwnPropertyDescriptors(nativeOverrides));
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
