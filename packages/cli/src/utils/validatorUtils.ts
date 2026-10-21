@@ -1,6 +1,6 @@
 import { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
-import validator from 'validator';
+import isISO8601 from 'validator/lib/isISO8601';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
@@ -67,7 +67,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value), { strict: true })) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
@@ -166,7 +166,7 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value), { strict: true })) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
