@@ -27,7 +27,9 @@ interface Model {
 }
 ```
 
-`\x60` also represents a literal backtick within the source. A backtick followed by ordinary source text does not close the wrapper.
+`\x60` also represents a literal backtick within the source. Use this spelling when the source also contains a space followed by `@`, as in `` `^a\x60b @c$` Invalid value ``. An inner backtick can cause TypeScript to end the JSDoc tag at the later `@`, even when a backslash escapes the backtick.
+
+A backtick followed by ordinary source text does not close the wrapper.
 
 An unclosed wrapper uses the existing first-space split. An annotation that starts with two or more backticks also keeps that split and removes at most one outer backtick pair from the first token. Two backticks produce an empty source, a lone backtick stays literal, and three backticks at each end leave two at each end. These forms do not wrap a source that contains spaces.
 
