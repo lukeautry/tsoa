@@ -27,7 +27,7 @@ describe('validateCompilerOptions', () => {
   let projectDir: string;
 
   beforeEach(() => {
-    projectDir = realpathSync(mkdtempSync(join(tmpdir(), 'tsoa-compiler-options-')));
+    projectDir = realpathSync.native(mkdtempSync(join(tmpdir(), 'tsoa-compiler-options-')));
   });
 
   afterEach(() => {
