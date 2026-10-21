@@ -37,7 +37,7 @@ describe('validateCompilerOptions', () => {
   describe('configuration errors', () => {
     it('reports malformed project configuration', () => {
       writeFileSync(join(projectDir, 'tsconfig.json'), '{"compilerOptions":');
-      expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/Expression expected/);
+      expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/tsconfig\.json.*error TS/);
     });
 
     it('reports invalid project compiler options', () => {
@@ -176,8 +176,11 @@ describe('validateCompilerOptions', () => {
       const control = ts.resolveModuleName('self-pkg', containingFile, overrides, ts.sys);
       const options = validateCompilerOptions(overrides, projectDir);
       const resolved = ts.resolveModuleName('self-pkg', containingFile, options, ts.sys);
+      const discovered = validateCompilerOptions(undefined, projectDir);
+      const discoveredResolution = ts.resolveModuleName('self-pkg', containingFile, discovered, ts.sys);
       expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'dist/model.d.ts'));
       expect(resolved.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
+      expect(discoveredResolution.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
       expect(options.configFile).to.equal(overrides.configFile);
     });
 

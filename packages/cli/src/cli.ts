@@ -8,7 +8,7 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { dirname, extname, isAbsolute } from 'node:path';
+import { extname, isAbsolute } from 'node:path';
 import * as ts from 'typescript';
 import type { CompilerOptions } from 'typescript';
 
@@ -94,11 +94,15 @@ export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = 
   const tsconfigPath = ts.findConfigFile(cwd, path => ts.sys.fileExists(path));
   let baseOptions: CompilerOptions = {};
   if (tsconfigPath) {
-    const readResult = ts.readConfigFile(tsconfigPath, path => ts.sys.readFile(path));
-    if (readResult.error) {
-      diagnostics.push(readResult.error);
-    } else {
-      const parsed = ts.parseJsonConfigFileContent(readResult.config, ts.sys, dirname(tsconfigPath), undefined, tsconfigPath);
+    const parsed = ts.getParsedCommandLineOfConfigFile(
+      tsconfigPath,
+      {},
+      {
+        ...ts.sys,
+        onUnRecoverableConfigFileDiagnostic: diagnostic => diagnostics.push(diagnostic),
+      },
+    );
+    if (parsed) {
       baseOptions = parsed.options;
       diagnostics.push(...parsed.errors.filter(error => error.code !== 18002 && error.code !== 18003));
     }
@@ -117,7 +121,7 @@ export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = 
   if (nativeOverrides.paths) {
     baseOptions.pathsBasePath = cwd;
   }
-  return Object.defineProperties(baseOptions, Object.getOwnPropertyDescriptors(nativeOverrides));
+  return Object.defineProperties({}, { ...Object.getOwnPropertyDescriptors(baseOptions), ...Object.getOwnPropertyDescriptors(nativeOverrides) });
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
