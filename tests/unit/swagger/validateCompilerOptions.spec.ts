@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import 'mocha';
 import { join, normalize } from 'path';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import * as ts from 'typescript';
 import { validateCompilerOptions } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 
-// Unwrap nested refAlias chains until we reach a type with properties.
 function resolveProperties(type: Tsoa.Type): Tsoa.Property[] {
   if (type.dataType === 'refObject') {
     return type.properties;
@@ -20,11 +21,75 @@ function resolveProperties(type: Tsoa.Type): Tsoa.Property[] {
   return [];
 }
 
-// Fixture: tests/fixtures/tsconfig-bundler/tsconfig.json sets
-//   moduleResolution: "bundler" and customConditions: ["source"]
 const fixtureDir = normalize(join(__dirname, '../../fixtures/tsconfig-bundler'));
 
 describe('validateCompilerOptions', () => {
+  let projectDir: string;
+
+  beforeEach(() => {
+    projectDir = mkdtempSync(join(tmpdir(), 'tsoa-compiler-options-'));
+  });
+
+  afterEach(() => {
+    rmSync(projectDir, { recursive: true, force: true });
+  });
+
+  describe('configuration errors', () => {
+    it('reports malformed project configuration', () => {
+      writeFileSync(join(projectDir, 'tsconfig.json'), '{"compilerOptions":');
+      expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/Expression expected/);
+    });
+
+    it('reports invalid project compiler options', () => {
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { moduleResolution: 'typo' } }));
+      expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/moduleResolution/);
+    });
+
+    it('reports missing inherited configuration', () => {
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ extends: './missing.json' }));
+      expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/missing.json/);
+    });
+  });
+
+  describe('project boundaries', () => {
+    it('keeps the bundler fixture out of the parent test compiler project', () => {
+      const configPath = normalize(join(__dirname, '../../tsconfig.json'));
+      const config = ts.readConfigFile(configPath, path => ts.sys.readFile(path));
+      const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, normalize(join(__dirname, '../..')));
+      expect(parsed.fileNames.filter(file => normalize(file).startsWith(fixtureDir))).to.deep.equal([]);
+    });
+
+    it('accepts compiler options when the project has no input files', () => {
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true } }));
+      expect(validateCompilerOptions(undefined, projectDir).strict).to.equal(true);
+    });
+
+    it('accepts an empty files list in an options-only project', () => {
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true }, files: [] }));
+      expect(validateCompilerOptions(undefined, projectDir).strict).to.equal(true);
+    });
+
+    it('resolves inherited paths from the configuration that declares them', () => {
+      const baseDir = join(projectDir, 'base');
+      const childDir = join(projectDir, 'child');
+      mkdirSync(baseDir);
+      mkdirSync(childDir);
+      writeFileSync(join(baseDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { baseUrl: '.', typeRoots: ['./types'] } }));
+      writeFileSync(join(childDir, 'tsconfig.json'), JSON.stringify({ extends: '../base/tsconfig.json' }));
+      const options = validateCompilerOptions(undefined, childDir);
+      expect(options.baseUrl && normalize(options.baseUrl)).to.equal(baseDir);
+      expect(options.typeRoots?.map(path => normalize(path))).to.deep.equal([join(baseDir, 'types')]);
+    });
+
+    it('preserves native override paths when an ancestor holds the tsconfig', () => {
+      const childDir = join(projectDir, 'child');
+      mkdirSync(childDir);
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true } }));
+      const options = validateCompilerOptions({ baseUrl: './src', typeRoots: ['./types'] }, childDir);
+      expect(options.baseUrl).to.equal('./src');
+      expect(options.typeRoots).to.deep.equal(['./types']);
+    });
+  });
   describe('tsconfig.json discovery', () => {
     it('should read moduleResolution from the project tsconfig.json', () => {
       const options = validateCompilerOptions(undefined, fixtureDir);
@@ -37,8 +102,6 @@ describe('validateCompilerOptions', () => {
     });
 
     it('should return empty options when no tsconfig.json exists in the given directory', () => {
-      // Pass a directory that has no tsconfig.json anywhere in its ancestry
-      // (we use the filesystem root, which never has one)
       const options = validateCompilerOptions(undefined, '/');
       expect(options.moduleResolution).to.be.undefined;
       expect(options.customConditions).to.be.undefined;
@@ -46,25 +109,65 @@ describe('validateCompilerOptions', () => {
   });
 
   describe('compilerOptions overrides', () => {
-    it('should apply compilerOptions on top of tsconfig.json settings', () => {
-      const options = validateCompilerOptions({ customConditions: ['custom'] }, fixtureDir);
-      // Override takes precedence over tsconfig value
-      expect(options.customConditions).to.deep.equal(['custom']);
-      // moduleResolution from tsconfig is still present
+    it('preserves normalized numeric enum overrides from object and JavaScript configs', () => {
+      const overrides: ts.CompilerOptions = {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+        moduleResolution: ts.ModuleResolutionKind.Node10,
+        newLine: ts.NewLineKind.CarriageReturnLineFeed,
+      };
+      const options = validateCompilerOptions(overrides, fixtureDir);
+      expect(options).to.include(overrides);
+    });
+
+    it('preserves compiler options normalized by TypeScript, including library filenames', () => {
+      const overrides = ts.convertCompilerOptionsFromJson({ module: 'commonjs', target: 'es2022', lib: ['es2022'] }, projectDir);
+      expect(overrides.errors).to.deep.equal([]);
+      expect(validateCompilerOptions(overrides.options, projectDir)).to.deep.equal(overrides.options);
+    });
+
+    it('preserves config paths and resolution state produced by the TypeScript config parser', () => {
+      const parsed = ts.parseJsonConfigFileContent({ compilerOptions: { baseUrl: '.', paths: { external: ['./external.ts'] } } }, ts.sys, projectDir, undefined, join(projectDir, 'other.json'));
+      const options = validateCompilerOptions(parsed.options, fixtureDir);
+      expect(options).to.deep.include(parsed.options);
       expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Bundler);
     });
 
-    it('should convert string enum values in compilerOptions (e.g. moduleResolution)', () => {
-      const options = validateCompilerOptions({ moduleResolution: 'node16' }, fixtureDir);
+    it('should apply compilerOptions on top of tsconfig.json settings', () => {
+      const options = validateCompilerOptions({ customConditions: ['custom'] }, fixtureDir);
+      expect(options.customConditions).to.deep.equal(['custom']);
+      expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Bundler);
+    });
+
+    it('lets native enum overrides win over project options', () => {
+      const options = validateCompilerOptions({ moduleResolution: ts.ModuleResolutionKind.Node16 }, fixtureDir);
       expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Node16);
     });
   });
 
+  describe('conditional package exports', () => {
+    it('selects the source condition from project options with a default-condition control', () => {
+      const packageDir = join(projectDir, 'node_modules', 'conditional-pkg');
+      mkdirSync(packageDir, { recursive: true });
+      writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'conditional-pkg', exports: { '.': { source: './source.ts', types: './types.d.ts' } } }));
+      writeFileSync(join(packageDir, 'source.ts'), 'export interface Widget { source: string }');
+      writeFileSync(join(packageDir, 'types.d.ts'), 'export interface Widget { declaration: string }');
+      writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { module: 'esnext', moduleResolution: 'bundler', customConditions: ['source'] } }));
+      const options = validateCompilerOptions(undefined, projectDir);
+      const containingFile = join(projectDir, 'controller.ts');
+      const source = ts.resolveModuleName('conditional-pkg', containingFile, options, ts.sys);
+      const control = ts.resolveModuleName('conditional-pkg', containingFile, { ...options, customConditions: [] }, ts.sys);
+      expect(source.resolvedModule && normalize(source.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'source.ts'));
+      expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'types.d.ts'));
+    });
+  });
+
   describe('cross-package type resolution', () => {
-    // The fixture tsconfig maps 'external-pkg' via paths to a local .ts source file.
-    // Without reading the tsconfig, TypeScript cannot find external-pkg and treats
-    // Widget as `any`, so it never appears in the reference type map.
     const controllerPath = normalize(join(__dirname, '../../fixtures/tsconfig-bundler/controller.ts'));
+
+    it('cannot resolve the external package without project options', () => {
+      expect(() => new MetadataGenerator(controllerPath).Generate()).to.throw(/Could not find declarations for type 'Widget'/);
+    });
 
     it('should expand Widget from a cross-package import when tsconfig is read', () => {
       const options = validateCompilerOptions(undefined, fixtureDir);
@@ -76,17 +179,10 @@ describe('validateCompilerOptions', () => {
     });
 
     it('should expand z.infer<> from a cross-package import when tsconfig is read', () => {
-      // This is the core failure mode: without reading tsconfig.json, TypeScript
-      // defaults to Node10/CommonJS resolution and cannot follow the paths mapping
-      // to the .ts source. As a result, ZodWidget resolves to `any` and is absent
-      // from the reference type map — the same way z.infer<> collapses to {} when
-      // read from compiled .d.ts files that lack the full Zod generic structure.
       const options = validateCompilerOptions(undefined, fixtureDir);
       const metadata = new MetadataGenerator(controllerPath, options).Generate();
       const zodWidgetType = metadata.referenceTypeMap['ZodWidget'];
       expect(zodWidgetType).to.exist;
-      // ZodWidget is a refAlias wrapping z.infer<>, which itself is a refAlias
-      // wrapping the resolved nestedObjectLiteral — traverse the chain.
       const propNames = resolveProperties(zodWidgetType).map(p => p.name);
       expect(propNames).to.include.members(['id', 'label', 'enabled']);
     });

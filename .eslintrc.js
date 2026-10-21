@@ -7,7 +7,7 @@ module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json'],
+    project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json', './tests/fixtures/tsconfig-bundler/tsconfig.json'],
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint'],
@@ -64,9 +64,6 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
-        // Consistent with no-unsafe-assignment/argument/member-access/return being off globally:
-        // test helpers and assertion libraries often have loose or any-typed signatures.
-        '@typescript-eslint/no-unsafe-call': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
       },
