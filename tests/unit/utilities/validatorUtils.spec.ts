@@ -42,12 +42,11 @@ describe('Validator JSDoc utilities', () => {
         { name: 'double backticks', annotation: '``^a$`` message', value: '`^a$`', errorMsg: 'message' },
         { name: 'triple backticks', annotation: '```^a$``` message', value: '``^a$``', errorMsg: 'message' },
         { name: 'double-backtick fallback', annotation: '``^a b$`` message', value: '``^a', errorMsg: 'b$`` message' },
+        { name: 'double-backtick raw source', annotation: '``foo bar`` Message', value: '``foo', errorMsg: 'bar`` Message' },
         { name: 'triple-backtick fallback', annotation: '```^a b$``` message', value: '```^a', errorMsg: 'b$``` message' },
         { name: 'unclosed wrapper', annotation: '`^a b$ message', value: '`^a', errorMsg: 'b$ message' },
         { name: 'unclosed no-space wrapper', annotation: '`^a$', value: '`^a$', errorMsg: undefined },
-        { name: 'escaped delimiter', annotation: '`^a\\` b$` bad value', value: '^a\\` b$', errorMsg: 'bad value' },
         { name: 'even backslashes', annotation: '`^a\\\\` message `tail`', value: '^a\\\\', errorMsg: 'message `tail`' },
-        { name: 'odd backslashes', annotation: '`^a\\\\\\` b$` message', value: '^a\\\\\\` b$', errorMsg: 'message' },
         { name: 'hex backtick before an at sign', annotation: '`^a\\x60b @c$` Invalid value', value: '^a\\x60b @c$', errorMsg: 'Invalid value' },
         { name: 'backtick within source', annotation: '`^a`b c$` message', value: '^a`b c$', errorMsg: 'message' },
         { name: 'bare literal tab', annotation: '^[a-z\t]+$', value: '^[a-z\t]+$', errorMsg: undefined },
@@ -72,22 +71,42 @@ describe('Validator JSDoc utilities', () => {
         { annotation: '[ Invalid pattern', source: '[' },
         { annotation: '`[a z` Invalid pattern', source: '[a z' },
         { annotation: '`[a z Invalid pattern', source: '`[a' },
+        { annotation: '`^a\\` b$` bad value', source: '^a\\' },
+        { annotation: '`^a\\\\\\` b$` message', source: '^a\\\\\\' },
       ]) {
         it(`rejects invalid source ${JSON.stringify(source)} during generation`, () => {
           expect(() => readValidators(annotation, parameter))
             .to.throw(GenerateMetadataError)
             .with.property('message')
-            .that.includes(source)
-            .and.includes('At: validators.ts:');
+            .that.includes(`Invalid @pattern ${JSON.stringify(source)}`)
+            .and.includes('Invalid regular expression:')
+            .and.includes(`At: validators.ts:${parameter ? '1:1' : '2:2'}.`);
         });
       }
+
+      it('uses hex backticks in Unicode patterns and keeps the custom runtime message', () => {
+        const validators = readValidators('`^a\\x60 b$`  use  `a b`', parameter);
+        expect(validators?.pattern).to.deep.equal({ value: '^a\\x60 b$', errorMsg: ' use  `a b`' });
+        const source = validators?.pattern?.value;
+        if (typeof source !== 'string') {
+          throw new Error('Expected a pattern source');
+        }
+        const unicodePattern = new RegExp(source, 'u');
+        expect(unicodePattern.test('a` b')).to.equal(true);
+        expect(unicodePattern.test('ab')).to.equal(false);
+
+        const service = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+        const errors: FieldErrors = {};
+        expect(service.ValidateParam({ dataType: 'string', validators }, 'ab', 'value', errors, false)).to.equal(undefined);
+        expect(errors).to.deep.equal({ value: { message: ' use  `a b`', value: 'ab' } });
+      });
 
       for (const { annotation, accepted, rejected, message } of [
         { annotation: '`^[a-z ]+$`  only letters and `spaces`', accepted: 'a b', rejected: 'a\tb', message: ' only letters and `spaces`' },
         { annotation: '/api/.* Invalid path', accepted: '/api/path', rejected: 'api', message: 'Invalid path' },
         { annotation: '/api/v[0-9]+ Invalid path', accepted: '/api/v1', rejected: 'api', message: 'Invalid path' },
         { annotation: '`^a\\x60b @c$` Invalid value', accepted: 'a`b @c', rejected: 'ab @c', message: 'Invalid value' },
-        { annotation: '`^a\\` b$` bad value', accepted: 'a` b', rejected: 'ab', message: 'bad value' },
+        { annotation: '``foo bar`` Message', accepted: '``foo', rejected: '`foo bar`', message: 'bar`` Message' },
         { annotation: '`^a\\\\` bad value', accepted: 'a\\', rejected: 'a`', message: 'bad value' },
         { annotation: '^[a-z\t]+$ Only letters and tabs', accepted: 'a\tb', rejected: 'a b', message: 'Only letters and tabs' },
       ]) {

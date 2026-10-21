@@ -1,7 +1,7 @@
 import { Body, Post, Route } from '@tsoa/runtime';
 
 interface InvalidPatternBody {
-  /** @pattern `[a z` Invalid value */
+  /** @pattern `^a\` b$` Invalid value */
   value: string;
 }
 

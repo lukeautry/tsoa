@@ -28,14 +28,15 @@ describe('Pattern generation', () => {
   });
 
   for (const { fixture, line, annotation } of [
-    { fixture: 'invalidProperty.ts', line: 4, annotation: '/** @pattern `[a z` Invalid value */' },
-    { fixture: 'invalidParameter.ts', line: 5, annotation: '/** @pattern value `[a z` Invalid value */' },
+    { fixture: 'invalidProperty.ts', line: 4, annotation: '/** @pattern `^a\\` b$` Invalid value */' },
+    { fixture: 'invalidParameter.ts', line: 5, annotation: '/** @pattern value `^a\\` b$` Invalid value */' },
   ]) {
     it(`reports the invalid annotation location in ${fixture}`, () => {
       expect(() => new MetadataGenerator(`./fixtures/patterns/${fixture}`).Generate())
         .to.throw(GenerateMetadataError)
         .with.property('message')
-        .that.includes('Invalid @pattern "[a z"')
+        .that.includes(`Invalid @pattern ${JSON.stringify('^a\\')}`)
+        .and.includes('Invalid regular expression:')
         .and.includes(`At: ${normalize(`fixtures/patterns/${fixture}:${line}:${line}`)}.`)
         .and.includes(annotation);
     });
