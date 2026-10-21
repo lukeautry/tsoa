@@ -9,6 +9,7 @@ import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 import { extname, isAbsolute } from 'node:path';
+import * as ts from 'typescript';
 import type { CompilerOptions } from 'typescript';
 
 const workingDir: string = process.cwd();
@@ -88,8 +89,39 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
-const validateCompilerOptions = (config?: Record<string, unknown>): CompilerOptions => {
-  return (config || {}) as CompilerOptions;
+export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = workingDir): CompilerOptions => {
+  const diagnostics: ts.Diagnostic[] = [];
+  const tsconfigPath = ts.findConfigFile(cwd, path => ts.sys.fileExists(path));
+  let baseOptions: CompilerOptions = {};
+  if (tsconfigPath) {
+    const parsed = ts.getParsedCommandLineOfConfigFile(
+      tsconfigPath,
+      {},
+      {
+        ...ts.sys,
+        onUnRecoverableConfigFileDiagnostic: diagnostic => diagnostics.push(diagnostic),
+      },
+    );
+    if (parsed) {
+      baseOptions = parsed.options;
+      diagnostics.push(...parsed.errors.filter(error => error.code !== 18002 && error.code !== 18003));
+    }
+  }
+
+  if (diagnostics.length) {
+    throw new Error(
+      ts.formatDiagnostics(diagnostics, {
+        getCanonicalFileName: fileName => fileName,
+        getCurrentDirectory: () => cwd,
+        getNewLine: () => ts.sys.newLine,
+      }),
+    );
+  }
+  const nativeOverrides = (config || {}) as CompilerOptions;
+  if (nativeOverrides.paths) {
+    baseOptions.pathsBasePath = cwd;
+  }
+  return Object.defineProperties({}, { ...Object.getOwnPropertyDescriptors(baseOptions), ...Object.getOwnPropertyDescriptors(nativeOverrides) });
 };
 
 export interface ExtendedSpecConfig extends SpecConfig {
