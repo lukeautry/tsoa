@@ -222,33 +222,16 @@ function getParameterTagSupport() {
   ];
 }
 
-function parsePattern(comment: string | undefined, node: ts.Node) {
+function parsePattern(comment: string | undefined, node: ts.Node): { value: string; errorMsg?: string } {
   if (!comment) {
     throw new GenerateMetadataError('pattern parameter use string.', node);
   }
 
-  const separator = comment.indexOf(' ');
-  let value = separator === -1 ? comment : comment.substring(0, separator);
-  let errorMsg = separator > 0 ? comment.substring(separator + 1) : undefined;
-  if (value.startsWith('`') && value.endsWith('`')) {
-    value = value.substring(1, value.length - 1);
-  }
-
-  if (comment.startsWith('`') && !comment.startsWith('``')) {
-    let escaped = false;
-    for (let index = 1; index < comment.length; index++) {
-      const character = comment[index];
-      if (character === '\r' || character === '\n') {
-        break;
-      }
-      if (character === '`' && !escaped && (index + 1 === comment.length || comment[index + 1] === ' ')) {
-        value = comment.substring(1, index);
-        errorMsg = index + 1 === comment.length ? undefined : comment.substring(index + 2);
-        break;
-      }
-      escaped = character === '\\' && !escaped;
-    }
-  }
+  const quoted = /^`(?!`)[^\r\n]*?`(?= |$)/.exec(comment);
+  const separator = quoted ? quoted[0].length : comment.indexOf(' ');
+  const source = separator === -1 ? comment : comment.substring(0, separator);
+  const value = source.startsWith('`') && source.endsWith('`') ? source.substring(1, source.length - 1) : source;
+  const errorMsg = separator > 0 && separator < comment.length ? comment.substring(separator + 1) : undefined;
 
   try {
     new RegExp(value);
