@@ -75,17 +75,9 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
             value,
           };
           break;
-        case 'pattern': {
-          const pattern = getPatternValueAndErrorMsg(comment);
-          if (typeof pattern.value !== 'string') {
-            throw new GenerateMetadataError(`${name} parameter use string.`);
-          }
-          validateObj[name] = {
-            errorMsg: pattern.errorMsg,
-            value: pattern.value,
-          };
+        case 'pattern':
+          validateObj[name] = parsePattern(comment, tag);
           break;
-        }
         default:
           if (name.startsWith('is')) {
             const errorMsg = getErrorMsg(comment, false);
@@ -176,17 +168,9 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
             value,
           };
           break;
-        case 'pattern': {
-          const pattern = getPatternValueAndErrorMsg(commentToString(comment));
-          if (typeof pattern.value !== 'string') {
-            throw new GenerateMetadataError(`${name} parameter use string.`);
-          }
-          validateObj[name] = {
-            errorMsg: pattern.errorMsg,
-            value: pattern.value,
-          };
+        case 'pattern':
+          validateObj[name] = parsePattern(commentToString(comment), tag);
           break;
-        }
         case 'title':
           if (typeof value !== 'string') {
             throw new GenerateMetadataError(`${name} parameter use string.`);
@@ -238,44 +222,43 @@ function getParameterTagSupport() {
   ];
 }
 
-function removeSurroundingQuotes(str: string) {
-  if (str.startsWith('`') && str.endsWith('`')) {
-    return str.substring(1, str.length - 1);
-  }
-  if (str.startsWith('```') && str.endsWith('```')) {
-    return str.substring(3, str.length - 3);
-  }
-  return str;
-}
-
-function getPatternValueAndErrorMsg(comment?: string) {
+function parsePattern(comment: string | undefined, node: ts.Node) {
   if (!comment) {
-    return { errorMsg: undefined, value: undefined };
+    throw new GenerateMetadataError('pattern parameter use string.', node);
   }
 
-  const trimmedComment = comment.trim();
-  if (trimmedComment.startsWith('/')) {
+  const separator = comment.indexOf(' ');
+  let value = separator === -1 ? comment : comment.substring(0, separator);
+  let errorMsg = separator > 0 ? comment.substring(separator + 1) : undefined;
+  if (value.startsWith('`') && value.endsWith('`')) {
+    value = value.substring(1, value.length - 1);
+  }
+
+  if (comment.startsWith('`') && !comment.startsWith('``')) {
     let escaped = false;
-    for (let index = 1; index < trimmedComment.length; index++) {
-      const character = trimmedComment[index];
-      if (escaped) {
-        escaped = false;
-      } else if (character === '\\') {
-        escaped = true;
-      } else if (character === '/') {
-        return {
-          errorMsg: trimmedComment.substring(index + 1).trim() || undefined,
-          value: trimmedComment.substring(1, index),
-        };
+    for (let index = 1; index < comment.length; index++) {
+      const character = comment[index];
+      if (character === '\r' || character === '\n') {
+        break;
       }
+      if (character === '`' && !escaped && (index + 1 === comment.length || comment[index + 1] === ' ')) {
+        value = comment.substring(1, index);
+        errorMsg = index + 1 === comment.length ? undefined : comment.substring(index + 2);
+        break;
+      }
+      escaped = character === '\\' && !escaped;
     }
   }
 
-  const [value, ...errorMsg] = trimmedComment.split(' ');
-  return {
-    errorMsg: errorMsg.join(' ') || undefined,
-    value: removeSurroundingQuotes(value),
-  };
+  try {
+    new RegExp(value);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new GenerateMetadataError(`Invalid @pattern ${JSON.stringify(value)}. ${error.message}`, node);
+    }
+    throw error;
+  }
+  return { value, errorMsg };
 }
 
 export function shouldIncludeValidatorInSchema(key: string): key is Tsoa.SchemaValidatorKey {
