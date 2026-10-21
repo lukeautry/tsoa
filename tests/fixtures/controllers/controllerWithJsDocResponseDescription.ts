@@ -1,4 +1,4 @@
-import { Controller, Get, Route, SuccessResponse } from '@tsoa/runtime';
+import { Body, Controller, Get, Post, Route, SuccessResponse } from '@tsoa/runtime';
 import { TestModel } from '../testModel';
 import { ModelService } from 'fixtures/services/modelService';
 
@@ -14,6 +14,18 @@ export class CustomResponseDescController extends Controller {
   @Get('descriptionWithJsDocAnnotation')
   public async descriptionWithJsDocAnnotation(): Promise<TestModel> {
     return new ModelService().getModel();
+  }
+
+  /** @returns */
+  @Post('emptyReturnsTag')
+  public async emptyReturnsTag(@Body() body: TestModel): Promise<number> {
+    return body.id;
+  }
+
+  /** @returns {Promise<number>} */
+  @Post('typeOnlyReturnsTag')
+  public async typeOnlyReturnsTag(@Body() body: TestModel): Promise<number> {
+    return body.id;
   }
 
   @Get('successResponseAndJsDocAnnotation')
