@@ -528,6 +528,10 @@ export class ValidationService {
       );
     }
 
+    if (value === null && this.hasExplicitNull(property)) {
+      return null;
+    }
+
     const subFieldErrors: FieldErrors[] = [];
 
     for (const subSchema of property.subSchemas) {
@@ -546,6 +550,28 @@ export class ValidationService {
 
     this.addSummarizedError(fieldErrors, parent + name, 'Could not match the union against any of the items. Issues: ', subFieldErrors, value);
     return;
+  }
+
+  private hasExplicitNull(property: TsoaRoute.PropertySchema): boolean {
+    const reachable = new Set([property]);
+
+    for (const schema of reachable) {
+      if (schema.dataType === 'enum' && schema.enums?.includes(null)) {
+        return true;
+      }
+      if (schema.dataType === 'union') {
+        for (const subSchema of schema.subSchemas ?? []) {
+          reachable.add(subSchema);
+        }
+      } else if (schema.ref) {
+        const model = this.models[schema.ref];
+        if (model?.dataType === 'refAlias') {
+          reachable.add(model.type);
+        }
+      }
+    }
+
+    return false;
   }
 
   public validateIntersection(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, subSchemas: TsoaRoute.PropertySchema[] | undefined, parent = ''): any {
