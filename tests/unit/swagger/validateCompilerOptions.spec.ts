@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { join, normalize } from 'path';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as ts from 'typescript';
 import { validateCompilerOptions } from '@tsoa/cli/cli';
@@ -27,7 +27,7 @@ describe('validateCompilerOptions', () => {
   let projectDir: string;
 
   beforeEach(() => {
-    projectDir = mkdtempSync(join(tmpdir(), 'tsoa-compiler-options-'));
+    projectDir = realpathSync(mkdtempSync(join(tmpdir(), 'tsoa-compiler-options-')));
   });
 
   afterEach(() => {
