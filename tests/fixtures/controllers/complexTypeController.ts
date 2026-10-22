@@ -126,6 +126,25 @@ export const UserEventSchema = z.discriminatedUnion('type', [UserCreatedEventSch
 
 export type UserEvent = z.infer<typeof UserEventSchema>;
 
+// Unlike UserEvent above, these are separately-declared interfaces, so they resolve to named
+// refObject types rather than inline object literals.
+export interface TextContentBlock {
+  type: 'TEXT';
+  text: string;
+}
+
+export interface ImageContentBlock {
+  type: 'IMAGE';
+  imageUrl: string;
+}
+
+export interface CarouselContentBlock {
+  type: 'CAROUSEL';
+  imageUrls: string[];
+}
+
+export type ContentBlock = TextContentBlock | ImageContentBlock | CarouselContentBlock;
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -231,6 +250,24 @@ export class ComplexTypeController {
       received: body,
       processed: true,
     };
+  }
+
+  /**
+   * Test @Body with a discriminated union of named interfaces
+   */
+  @Post('ContentBlockBody')
+  public async postContentBlockBody(@Body() body: ContentBlock): Promise<ContentBlock> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a nullable discriminated union
+   */
+  @Post('NullableContentBlockBody')
+  public async postNullableContentBlockBody(
+    @Body() body: TextContentBlock | ImageContentBlock | CarouselContentBlock | null,
+  ): Promise<TextContentBlock | ImageContentBlock | CarouselContentBlock | null> {
+    return body;
   }
 
   /**
