@@ -73,7 +73,7 @@ module.exports = {
     {
       files: ['tests/integration/**/*.ts', 'tests/esm/integration/**/*.ts'],
       rules: {
-        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }],
       },
     },
     {

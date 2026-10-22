@@ -18,8 +18,6 @@ import { ReferenceTransformer } from './transformer/referenceTransformer';
 
 const localReferenceTypeCache: { [typeName: string]: Tsoa.ReferenceType } = {};
 
-const libDeclaredErrorTypes = new Set(['Error', 'AggregateError', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']);
-
 const inProgressTypes: { [typeName: string]: Array<(realType: Tsoa.ReferenceType) => void> } = {};
 
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
@@ -1046,7 +1044,8 @@ export class TypeResolver {
       const nonLibModelTypes = modelTypes.filter(modelType => {
         return modelType.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1;
       });
-      const keepLibDeclarations = nonLibModelTypes.length === 0 && libDeclaredErrorTypes.has(typeName);
+      // ES2022 adds cause to Error in a second library declaration.
+      const keepLibDeclarations = nonLibModelTypes.length === 0 && typeName === 'Error';
       if (!keepLibDeclarations) {
         modelTypes = nonLibModelTypes;
       }
