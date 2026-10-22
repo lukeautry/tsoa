@@ -67,9 +67,19 @@ module.exports = {
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
-        '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/prefer-promise-reject-errors': 'off',
         '@typescript-eslint/no-require-imports': ['error', { allowAsImport: true }],
+      },
+    },
+    {
+      files: ['tests/integration/**/*.ts', 'tests/esm/integration/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-misused-promises': 'off',
+      },
+    },
+    {
+      files: ['tests/fixtures/**/authentication.ts', 'tests/esm/fixtures/**/authentication.ts', 'tests/integration/utils.ts', 'tests/esm/integration/express.spec.ts'],
+      rules: {
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
       },
     },
     {

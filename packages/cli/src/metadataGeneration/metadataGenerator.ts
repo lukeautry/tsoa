@@ -26,7 +26,7 @@ export class MetadataGenerator {
     esm = false,
   ) {
     TypeResolver.clearCache();
-    this.compilerOptions = { strictNullChecks: false, ...compilerOptions };
+    this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
   }
