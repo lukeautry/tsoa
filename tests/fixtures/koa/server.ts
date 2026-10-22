@@ -29,7 +29,7 @@ app.use(bodyParser());
 
 const router = new KoaRouter();
 
-(RegisterRoutes as (router: KoaRouter) => void)(router);
+RegisterRoutes(router);
 
 // It's important that this come after the main routes are registered
 app.use(async (context, next) => {

@@ -82,11 +82,5 @@ module.exports = {
         '@typescript-eslint/prefer-promise-reject-errors': 'off',
       },
     },
-    {
-      files: 'tests/fixtures/*/server.ts',
-      rules: {
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-      },
-    },
   ],
 };
