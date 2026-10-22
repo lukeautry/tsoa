@@ -688,6 +688,7 @@ export class TypeResolver {
       const declarationPositions = declarations.map(declaration => ({
         fileName: declaration.getSourceFile().fileName,
         pos: declaration.pos,
+        declaration,
       }));
       this.current.CheckModelUnicity(name, declarationPositions);
     }
@@ -1048,7 +1049,31 @@ export class TypeResolver {
       modelTypes = this.getDesignatedModels(modelTypes, typeName);
     }
 
-    return modelTypes;
+    return this.resolveDesignatedModelTypes(modelTypes, typeName);
+  }
+
+  /**
+   * Resolves a declaration to the canonical declaration marked with '@tsoaModel' when the program
+   * contains one for the same type name. Without this, two same-named declarations in different
+   * files raise a model definition conflict even though the developer explicitly designated the
+   * canonical one (see https://github.com/lukeautry/tsoa/issues/1650).
+   */
+  private resolveDesignatedModelTypes(modelTypes: UsableDeclarationWithoutPropertySignature[], typeName: string): UsableDeclarationWithoutPropertySignature[] {
+    if (modelTypes.length === 0 || modelTypes.some(modelType => ts.isEnumMember(modelType))) {
+      return modelTypes;
+    }
+    const designatedModels = this.current.GetDesignatedModels(typeName) as UsableDeclarationWithoutPropertySignature[];
+    if (designatedModels.length === 0 || designatedModels.some(designated => modelTypes.includes(designated))) {
+      return modelTypes;
+    }
+    throwUnless(designatedModels.length === 1, new GenerateMetadataError(`Multiple models for ${typeName} marked with '@tsoaModel'; '@tsoaModel' should only be applied to one model.`));
+    const designated = designatedModels[0];
+    // Same-named declarations in different namespaces get different reference names and never
+    // collide, so a designation only substitutes declarations in the same namespace hierarchy.
+    if (!modelTypes.every(modelType => getNamespaceQualifier(modelType) === getNamespaceQualifier(designated))) {
+      return modelTypes;
+    }
+    return [designated];
   }
 
   private getSymbolAtLocation(type: ts.Node): ts.Symbol {
@@ -1289,4 +1314,21 @@ export class TypeResolver {
     }
     return undefined;
   }
+}
+
+/**
+ * The namespace hierarchy a declaration lives in, e.g. 'A.B' for a declaration nested in
+ * namespaces A and B, or '' for a top-level declaration. Global augmentations count as top-level,
+ * matching how calcRefTypeName builds reference names.
+ */
+function getNamespaceQualifier(declaration: ts.Node): string {
+  const parts: string[] = [];
+  let actNode: ts.Node | undefined = declaration.parent;
+  while (actNode && !ts.isSourceFile(actNode)) {
+    if (ts.isModuleDeclaration(actNode) && !(actNode.name.kind === ts.SyntaxKind.Identifier && actNode.name.text === 'global')) {
+      parts.unshift(actNode.name.text);
+    }
+    actNode = actNode.parent;
+  }
+  return parts.join('.');
 }
