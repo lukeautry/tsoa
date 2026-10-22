@@ -68,8 +68,9 @@ export class TypeResolver {
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
+      const memberReferencer = this.unionMemberReferencer(this.typeNode);
       const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
+        return new TypeResolver(type, this.current, this.parentNode, this.context, memberReferencer(type)).resolve();
       });
 
       const unionMetaType: Tsoa.UnionType = {
@@ -574,6 +575,33 @@ export class TypeResolver {
     return (type.flags & flag) === flag;
   }
 
+  /**
+   * Members of a synthetic union node (built by `typeToTypeNode`, e.g. for a
+   * property of a mapped type) have no source position, so their types cannot
+   * be recovered with `getTypeFromTypeNode`. Without them, a generic alias
+   * among the members (`DeepPartial<Inner>`) is later resolved from its
+   * uninstantiated declaration and loses every property. Hand each member the
+   * concrete type it was printed from, matched by its printed form because the
+   * checker's member order differs from the printed node's.
+   */
+  private unionMemberReferencer(unionNode: ts.UnionTypeNode): (member: ts.TypeNode) => ts.Type | undefined {
+    const referencer = this.referencer;
+    if (unionNode.pos !== -1 || !referencer || !referencer.isUnion()) {
+      return () => undefined;
+    }
+    const printer = ts.createPrinter();
+    const sourceFile = ts.createSourceFile('', '', ts.ScriptTarget.Latest);
+    const print = (node: ts.TypeNode) => printer.printNode(ts.EmitHint.Unspecified, node, sourceFile);
+    const byPrintedNode = new Map<string, ts.Type>();
+    for (const memberType of referencer.types) {
+      const memberNode = this.current.typeChecker.typeToTypeNode(memberType, undefined, ts.NodeBuilderFlags.NoTruncation);
+      if (memberNode) {
+        byPrintedNode.set(print(memberNode), memberType);
+      }
+    }
+    return member => byPrintedNode.get(print(member));
+  }
+
   private getReferencer(): ts.Type {
     if (this.referencer) {
       return this.referencer;
@@ -868,7 +896,9 @@ export class TypeResolver {
 
         for (const declaration of declarations) {
           if (ts.isTypeAliasDeclaration(declaration)) {
-            const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
+            // A synthetic node (built by typeToTypeNode) has no source to recover its
+            // type from; use the concrete type it was printed from, if we have it.
+            const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : this.referencer;
             referenceTypes.push(new ReferenceTransformer().transform(declaration, refTypeName, this, referencer));
           } else if (EnumTransformer.transformable(declaration)) {
             referenceTypes.push(new EnumTransformer().transform(this, declaration, refTypeName));
