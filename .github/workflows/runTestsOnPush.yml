@@ -50,8 +50,8 @@ jobs:
       - name: Build
         run: yarn run build
 
-      - name: Lint
-        run: yarn run lint
-
       - name: Test
         run: yarn run test
+
+      - name: Lint
+        run: yarn run lint
