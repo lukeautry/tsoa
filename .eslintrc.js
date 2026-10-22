@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   root: true,
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './tests/tsconfig.json', './tests/esm/tsconfig.json', './tests/fixtures/tsconfig-bundler/tsconfig.json'],
@@ -66,6 +66,20 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         // Crashes also fail the test
         'no-unsafe-optional-chaining': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-require-imports': ['error', { allowAsImport: true }],
+      },
+    },
+    {
+      files: ['tests/integration/**/*.ts', 'tests/esm/integration/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }],
+      },
+    },
+    {
+      files: ['tests/fixtures/**/authentication.ts', 'tests/esm/fixtures/**/authentication.ts', 'tests/integration/utils.ts', 'tests/esm/integration/express.spec.ts'],
+      rules: {
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
       },
     },
   ],

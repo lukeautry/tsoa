@@ -38,13 +38,13 @@ export class RequestAcceptHeaderTestController extends Controller {
       return Promise.resolve({
         id: userId,
         name: 'foo',
-      } as UserResponseModel);
+      });
     } else if (req.accepts('application/vnd.mycompany.myapp.v2+json')) {
       this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v2+json');
       return Promise.resolve({
         id: userId,
         username: 'foo',
-      } as UserResponseV2Model);
+      });
     }
     throw new Error('unsupported media type');
   }
@@ -60,25 +60,25 @@ export class RequestAcceptHeaderTestController extends Controller {
       return Promise.resolve({
         id: userId,
         name: 'foo',
-      } as UserResponseModel);
+      });
     } else if (req.accepts('application/vnd.mycompany.myapp.v2+json')) {
       this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v2+json');
       return Promise.resolve({
         id: userId,
         username: 'foo',
-      } as UserResponseV2Model);
+      });
     } else if (req.accepts('application/vnd.mycompany.myapp.v3+json')) {
       this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v3+json');
       return Promise.resolve({
         id: userId,
         nickname: 'foo',
-      } as UserResponseV3Model);
+      });
     } else if (req.accepts('application/vnd.mycompany.myapp.v4+json')) {
       this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v4+json');
       return Promise.resolve({
         id: userId,
         codename: 'foo',
-      } as UserResponseV4Model);
+      });
     }
     throw new Error('unsupported media type');
   }

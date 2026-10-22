@@ -118,7 +118,7 @@ export class GetTestController extends Controller {
 
   @Get('ModuleRedeclarationAndNamespace')
   public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
-    return {} as TsoaTest.TestModel73;
+    return {};
   }
 
   @Get('NamespaceWithTypeCastedObject')
@@ -236,6 +236,7 @@ export class GetTestController extends Controller {
   @Get('ThrowsError')
   @Response<CustomError>('400')
   public async getThrowsError(): Promise<TestModel> {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw {
       message: 'error thrown',
       status: 400,

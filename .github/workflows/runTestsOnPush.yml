@@ -8,7 +8,7 @@ jobs:
       matrix:
         node-version: [22, 24, 25]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^5.0.0']
+        typescript-version: ['^5.0.0', '^6.0.3']
 
     steps:
       - uses: actions/checkout@v7
@@ -50,8 +50,8 @@ jobs:
       - name: Build
         run: yarn run build
 
-      - name: Lint
-        run: yarn run lint
-
       - name: Test
         run: yarn run test
+
+      - name: Lint
+        run: yarn run lint

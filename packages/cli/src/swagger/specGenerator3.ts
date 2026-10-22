@@ -99,7 +99,7 @@ export class SpecGenerator3 extends SpecGenerator {
         defs[key] = {
           scheme: 'basic',
           type: 'http',
-        } as Swagger.BasicSecurity3;
+        };
       } else if (definitions[key].type === 'oauth2') {
         /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
         const definition = definitions[key] as
