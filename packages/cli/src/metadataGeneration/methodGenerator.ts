@@ -44,7 +44,7 @@ export class MethodGenerator {
     const signature = this.current.typeChecker.getSignatureFromDeclaration(this.node);
     const type = this.node.type
       ? TypeResolver.fromSource(this.node.type, this.current).resolve()
-      : TypeResolver.fromComputed(this.current.typeChecker.getReturnTypeOfSignature(signature!), this.current).resolve();
+      : TypeResolver.fromComputed(this.current.typeChecker.getReturnTypeOfSignature(signature!), this.current, undefined, TypeResolver.methodOrigin(this.node, [{ kind: 'return' }])).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -134,7 +134,7 @@ export class MethodGenerator {
     if (!extensionDecorators || !extensionDecorators.length) {
       return [];
     }
-    return getExtensions(extensionDecorators, this.current);
+    return getExtensions(extensionDecorators, this.current.typeChecker);
   }
 
   private getCurrentLocation() {

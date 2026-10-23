@@ -5,10 +5,12 @@ import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { OwnedCompiler } from './ownedCompiler';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
   public readonly typeChecker: TypeChecker;
+  public readonly compiler: OwnedCompiler;
   private readonly program: Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
@@ -26,7 +28,8 @@ export class MetadataGenerator {
   ) {
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
-    this.typeChecker = this.program.getTypeChecker();
+    this.compiler = new OwnedCompiler(this.program);
+    this.typeChecker = this.compiler.checker;
   }
 
   public Generate(): Tsoa.Metadata {

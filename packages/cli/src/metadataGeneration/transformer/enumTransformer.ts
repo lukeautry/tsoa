@@ -57,7 +57,7 @@ export class EnumTransformer extends Transformer {
     const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
       return item === undefined ? false : true;
     };
-    const enums = declaration.members.map(e => resolver.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
+    const enums = declaration.members.map(e => resolver.compiler.checker.getConstantValue(e)).filter(isNotUndefined);
     const enumVarnames = declaration.members.map(e => e.name.getText()).filter(isNotUndefined);
     const title = resolver.getNodeTitle(declaration);
 
@@ -77,7 +77,7 @@ export class EnumTransformer extends Transformer {
     return {
       dataType: 'refEnum',
       refName: enumName,
-      enums: [resolver.current.typeChecker.getConstantValue(declaration)!],
+      enums: [resolver.compiler.checker.getConstantValue(declaration)!],
       enumVarnames: [declaration.name.getText()],
       deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
     };

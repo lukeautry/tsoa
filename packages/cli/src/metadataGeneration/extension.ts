@@ -1,10 +1,9 @@
 import * as ts from 'typescript';
 import { getInitializerValue, isNonUndefinedInitializerValue } from './initializer-value';
-import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { safeFromJson } from '../utils/jsonUtils';
 
-export function getExtensions(decorators: ts.Identifier[], metadataGenerator: MetadataGenerator): Tsoa.Extension[] {
+export function getExtensions(decorators: ts.Identifier[], typeChecker: ts.TypeChecker): Tsoa.Extension[] {
   const extensions: Tsoa.Extension[] = decorators.map(extensionDecorator => {
     if (!ts.isCallExpression(extensionDecorator.parent)) {
       throw new Error('The parent of the @Extension is not a CallExpression. Are you using it in the right place?');
@@ -16,7 +15,7 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
       throw new Error('The first argument of @Extension must be a string');
     }
 
-    const attributeKey = ts.isIdentifier(decoratorKeyArg) ? getInitializerValue(decoratorKeyArg, metadataGenerator.typeChecker) : decoratorKeyArg.text;
+    const attributeKey = ts.isIdentifier(decoratorKeyArg) ? getInitializerValue(decoratorKeyArg, typeChecker) : decoratorKeyArg.text;
 
     if (typeof attributeKey !== 'string') {
       throw new Error('The first argument of @Extension must be a string');
@@ -28,7 +27,7 @@ export function getExtensions(decorators: ts.Identifier[], metadataGenerator: Me
 
     assertValidExtensionKey(attributeKey);
 
-    const attributeValue = getInitializerValue(decoratorValueArg, metadataGenerator.typeChecker);
+    const attributeValue = getInitializerValue(decoratorValueArg, typeChecker);
     if (!isNonUndefinedInitializerValue(attributeValue)) {
       throw new Error(`Extension '${attributeKey}' cannot have an undefined initializer value`);
     }

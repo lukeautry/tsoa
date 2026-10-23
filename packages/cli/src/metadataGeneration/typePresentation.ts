@@ -11,7 +11,6 @@ export type TypePresentation =
   | { kind: 'union' | 'intersection'; exact: ts.Type; node: ts.TypeNode; members: readonly TypePresentation[] }
   | { kind: 'array'; exact: ts.Type; node: ts.TypeNode; element: TypePresentation };
 
-/** Owns the compiler's private origin contract for one checker's lifetime. No metadata is built here. */
 export class TypePresentationBuilder {
   private readonly printer = ts.createPrinter();
   private readonly source = ts.createSourceFile('', '', ts.ScriptTarget.Latest);
@@ -86,7 +85,6 @@ export class TypePresentationBuilder {
     return value;
   }
 
-  /** The compiler supplies these opaque instances. This checks its prototype contract, not the cyclic type graph. */
   private compilerMember(value: unknown, owner: ts.Type): ts.Type {
     this.require(typeof value === 'object' && value !== null && Object.getPrototypeOf(value) === Object.getPrototypeOf(owner), 'Compiler origin member has a foreign prototype.');
     this.require('flags' in value && Number.isInteger(value.flags), 'Compiler origin member has no type flags.');

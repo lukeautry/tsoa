@@ -15,6 +15,12 @@ type OverrideToken = Token<SyntaxKind.QuestionToken> | Token<SyntaxKind.PlusToke
 
 export class PropertyTransformer extends Transformer {
   public transform(resolver: TypeResolver, node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
+    return this.getMembers(node)
+      .filter(member => resolver.includesMember(member))
+      .map(member => (isPropertySignature(member) ? this.propertyFromSignature(resolver, member, overrideToken) : this.propertyFromDeclaration(resolver, member, overrideToken)));
+  }
+
+  public getMembers(node: InterfaceDeclaration | ClassDeclaration): Array<PropertySignature | PropertyDeclaration | ParameterDeclaration> {
     const isIgnored = (e: TypeElement | ClassElement) => {
       let ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       ignore = ignore || (e.flags & NodeFlags.ThisNodeHasError) > 0;
@@ -23,10 +29,7 @@ export class PropertyTransformer extends Transformer {
 
     // Interface model
     if (isInterfaceDeclaration(node)) {
-      return node.members
-        .filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member))
-        .filter(member => resolver.includesMember(member))
-        .map((member: PropertySignature) => this.propertyFromSignature(resolver, member, overrideToken));
+      return node.members.filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member));
     }
 
     const properties: Array<PropertyDeclaration | ParameterDeclaration> = [];
@@ -44,7 +47,7 @@ export class PropertyTransformer extends Transformer {
       properties.push(...constructorProperties);
     }
 
-    return properties.filter(property => resolver.includesMember(property)).map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
+    return properties;
   }
 
   private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
@@ -84,7 +87,7 @@ export class PropertyTransformer extends Transformer {
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
       required = false;
     }
-    let def = getInitializerValue(propertyDeclaration.initializer, resolver.current.typeChecker);
+    let def = getInitializerValue(propertyDeclaration.initializer, resolver.compiler.checker);
     if (def === undefined) {
       def = TypeResolver.getDefault(propertyDeclaration);
     }

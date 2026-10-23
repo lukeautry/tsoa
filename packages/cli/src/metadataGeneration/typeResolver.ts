@@ -16,27 +16,24 @@ import { EnumTransformer } from './transformer/enumTransformer';
 import { PropertyTransformer } from './transformer/propertyTransformer';
 import { ReferenceTransformer } from './transformer/referenceTransformer';
 import { TypePresentation, TypePresentationBuilder } from './typePresentation';
+import { ComputedOrigin, Context, Occurrence, SourceRecipe } from './typeOccurrence';
+
+import { OwnedCompiler } from './ownedCompiler';
+import { ProjectionStep } from './compilerQueries';
 
 type ReferenceState = { kind: 'building'; complete: Array<(type: Tsoa.ReferenceType) => void> } | { kind: 'complete'; type: Tsoa.ReferenceType };
 const referenceCaches = new WeakMap<MetadataGenerator, Map<string, ReferenceState>>();
-const presentations = new WeakMap<MetadataGenerator, TypePresentationBuilder>();
 
 type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
 type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
-type Context = ReadonlyMap<ts.Symbol, Binding>;
-type Meaning = { kind: 'bound' } | { kind: 'exact'; type: ts.Type };
-type SourceRecipe = { kind: 'source'; node: ts.TypeNode; context: Context; meaning: Meaning };
-type Occurrence =
-  | SourceRecipe
-  | { kind: 'computed'; presentation: TypePresentation; context: Context; recipes: ReadonlyMap<ts.Type, SourceRecipe> }
-  | { kind: 'heritage'; node: ts.TypeNode; context: Context; meaning: Meaning; baseNode: ts.ExpressionWithTypeArguments; owner: Meaning; excluded: ReadonlySet<string> };
-type Binding = { occurrence: Occurrence; name: string };
+type Binding = Context extends ReadonlyMap<ts.Symbol, infer Value> ? Value : never;
 
 export class TypeResolver {
   private readonly typeNode: ts.TypeNode;
   private readonly context: Context;
   private readonly cache: Map<string, ReferenceState>;
   private readonly presentation: TypePresentationBuilder;
+  public readonly compiler: OwnedCompiler;
 
   private constructor(
     private readonly occurrence: Occurrence,
@@ -48,35 +45,28 @@ export class TypeResolver {
     let cache = referenceCaches.get(current);
     if (!cache) referenceCaches.set(current, (cache = new Map()));
     this.cache = cache;
-    let presentation = presentations.get(current);
-    if (!presentation) presentations.set(current, (presentation = new TypePresentationBuilder(current.typeChecker)));
-    this.presentation = presentation;
+    this.compiler = occurrence.compiler;
+    this.presentation = this.compiler.presentation;
   }
 
   public static fromSource(node: ts.TypeNode, current: MetadataGenerator, parentNode?: ts.Node): TypeResolver {
-    return new TypeResolver({ kind: 'source', node, context: new Map(), meaning: { kind: 'exact', type: current.typeChecker.getTypeFromTypeNode(node) } }, current, parentNode);
+    return new TypeResolver(current.compiler.source(node, new Map()), current, parentNode);
   }
 
-  public static fromComputed(type: ts.Type, current: MetadataGenerator, parentNode?: ts.Node): TypeResolver {
-    let presentation = presentations.get(current);
-    if (!presentation) presentations.set(current, (presentation = new TypePresentationBuilder(current.typeChecker)));
-    return new TypeResolver({ kind: 'computed', presentation: presentation.read(type), context: new Map(), recipes: new Map() }, current, parentNode);
+  public static fromComputed(type: ts.Type, current: MetadataGenerator, parentNode?: ts.Node, origin?: ComputedOrigin): TypeResolver {
+    const compiler = current.compiler;
+    return new TypeResolver({ kind: 'computed', compiler, presentation: compiler.presentation.read(type), context: new Map(), origin }, current, parentNode);
+  }
+
+  public static methodOrigin(method: ts.MethodDeclaration, steps: readonly ProjectionStep[]): ComputedOrigin | undefined {
+    const owner = method.parent;
+    if (!ts.isClassDeclaration(owner) || !owner.name || !ts.isIdentifier(method.name)) return undefined;
+    const instance: ProjectionStep[] = method.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.StaticKeyword) ? [] : [{ kind: 'instance' }];
+    return { kind: 'value', node: owner.name, steps: [...instance, { kind: 'property', name: method.name.text }, ...steps] };
   }
 
   private sourceOccurrence(node: ts.TypeNode, context: Context, meaning?: ts.Type): SourceRecipe {
-    const mentionsBinding = (child: ts.Node): boolean => {
-      if (ts.isIdentifier(child)) {
-        const symbol = this.current.typeChecker.getSymbolAtLocation(child);
-        if (symbol && context.has(symbol)) return true;
-      }
-      return ts.forEachChild(child, mentionsBinding) || false;
-    };
-    return {
-      kind: 'source',
-      node,
-      context,
-      meaning: meaning ? { kind: 'exact', type: meaning } : mentionsBinding(node) ? { kind: 'bound' } : { kind: 'exact', type: this.current.typeChecker.getTypeFromTypeNode(node) },
-    };
+    return this.compiler.source(node, context, meaning);
   }
 
   private isTupleReference(type: ts.Type): type is ts.TupleTypeReference {
@@ -85,7 +75,7 @@ export class TypeResolver {
       'objectFlags' in type &&
       typeof type.objectFlags === 'number' &&
       Boolean(type.objectFlags & ts.ObjectFlags.Reference) &&
-      this.current.typeChecker.isTupleType(type)
+      this.compiler.checker.isTupleType(type)
     );
   }
 
@@ -101,15 +91,14 @@ export class TypeResolver {
     return new TypeResolver(this.sourceOccurrence(node, this.context, meaning), this.current, parent);
   }
 
-  private computedChild(type: ts.Type, parent = this.parentNode, expandAlias = false): TypeResolver {
-    const recipes = this.occurrence.kind === 'computed' ? this.occurrence.recipes : new Map<ts.Type, SourceRecipe>();
+  private computedChild(type: ts.Type, parent = this.parentNode, expandAlias = false, steps?: readonly ProjectionStep[]): TypeResolver {
     const presentation = this.presentation.read(type, expandAlias);
-    return this.presentationChild(presentation, recipes, parent);
+    return this.presentationChild(presentation, parent, steps);
   }
 
-  private presentationChild(presentation: TypePresentation, recipes: ReadonlyMap<ts.Type, SourceRecipe>, parent = this.parentNode): TypeResolver {
-    const recipe = recipes.get(presentation.exact);
-    return new TypeResolver(recipe || { kind: 'computed', presentation, context: new Map(), recipes }, this.current, parent);
+  private presentationChild(presentation: TypePresentation, parent = this.parentNode, steps?: readonly ProjectionStep[]): TypeResolver {
+    const origin: ComputedOrigin | undefined = steps && { kind: 'projection', owner: this.occurrence, steps };
+    return new TypeResolver({ kind: 'computed', compiler: this.compiler, presentation, context: new Map(), origin }, this.current, parent);
   }
 
   private binding(node: ts.EntityName): Binding | undefined {
@@ -119,25 +108,7 @@ export class TypeResolver {
 
   public resolveAliasBody(declaration: ts.TypeAliasDeclaration): Tsoa.Type {
     if (this.occurrence.kind === 'heritage') return new TypeResolver({ ...this.occurrence, node: declaration.type }, this.current, declaration).resolve();
-    const exact = this.exactType();
-    if (this.occurrence.kind !== 'computed') return this.sourceChild(declaration.type, declaration, exact).resolve();
-    const presentation = this.presentation.read(this.occurrence.presentation.exact, true);
-    if (!declaration.typeParameters?.length || ts.isMappedTypeNode(declaration.type)) {
-      return this.sourceChild(declaration.type, declaration, exact).resolve();
-    }
-    const recipes = new Map<ts.Type, SourceRecipe>();
-    const collect = (node: ts.Node): void => {
-      if (ts.isTypeNode(node)) {
-        const recipe = this.sourceOccurrence(node, this.context);
-        if (recipe.meaning.kind === 'exact') {
-          recipes.set(recipe.meaning.type, recipe);
-          return;
-        }
-      }
-      ts.forEachChild(node, collect);
-    };
-    collect(declaration.type);
-    return this.presentationChild(presentation, recipes, declaration).resolve();
+    return this.sourceChild(declaration.type, declaration, this.exactType()).resolve();
   }
 
   public includesMember(member: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): boolean {
@@ -146,26 +117,41 @@ export class TypeResolver {
 
   public resolveMember(member: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): Tsoa.Type {
     const owner = this.memberOwner();
-    const property = owner && this.current.typeChecker.getPropertyOfType(owner, this.getPropertyName(member));
-    const exact = property && this.current.typeChecker.getTypeOfSymbol(property);
+    const property = owner && this.compiler.checker.getPropertyOfType(owner, this.getPropertyName(member));
+    const exact = property && this.compiler.checker.getTypeOfSymbol(property);
     if (this.occurrence.kind === 'computed') {
       throwUnless(exact, new GenerateMetadataError('Computed property has no concrete owner.', member));
-      return this.computedChild(exact, member).resolve();
+      return this.computedChild(exact, member, false, [{ kind: 'property', name: this.getPropertyName(member) }]).resolve();
     }
-    if (member.type) return this.sourceChild(member.type, member, exact).resolve();
-    return this.computedChild(exact || this.current.typeChecker.getTypeAtLocation(member), member).resolve();
+    if (member.type) return this.sourceChild(member.type, member, member.questionToken ? undefined : exact).resolve();
+    return this.computedChild(exact || this.compiler.checker.getTypeAtLocation(member), member, false, [{ kind: 'property', name: this.getPropertyName(member) }]).resolve();
   }
 
   public resolve(): Tsoa.Type {
+    if (this.occurrence.kind === 'source' && ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword && ts.isTypeReferenceNode(this.typeNode.type)) {
+      const binding = this.binding(this.typeNode.type.typeName);
+      if (binding) new TypeResolver(binding.occurrence, this.current, this.parentNode).resolve();
+    }
+    if (
+      this.occurrence.kind === 'source' &&
+      this.occurrence.meaning.kind === 'bound' &&
+      (ts.isMappedTypeNode(this.typeNode) ||
+        ts.isConditionalTypeNode(this.typeNode) ||
+        ts.isTemplateLiteralTypeNode(this.typeNode) ||
+        (ts.isTypeOperatorNode(this.typeNode) && this.typeNode.operator === ts.SyntaxKind.KeyOfKeyword))
+    ) {
+      const query = this.compiler.query(this.occurrence, this.parentNode);
+      return new TypeResolver(query.occurrence, this.current, query.parent).resolve();
+    }
     if (this.occurrence.kind === 'computed') {
-      const { presentation, recipes } = this.occurrence;
+      const { presentation } = this.occurrence;
       const type = presentation.exact;
       if (presentation.kind === 'union' || presentation.kind === 'intersection') {
-        return { dataType: presentation.kind, types: presentation.members.map(member => this.presentationChild(member, recipes).resolve()) };
+        return { dataType: presentation.kind, types: presentation.members.map(member => this.presentationChild(member).resolve()) };
       }
-      if (presentation.kind === 'array') return { dataType: 'array', elementType: this.presentationChild(presentation.element, recipes).resolve() };
+      if (presentation.kind === 'array') return { dataType: 'array', elementType: this.presentationChild(presentation.element).resolve() };
       if (presentation.kind === 'leaf' && this.isTupleReference(type)) {
-        const elements = this.current.typeChecker.getTypeArguments(type);
+        const elements = this.compiler.checker.getTypeArguments(type);
         const types: Tsoa.Type[] = [];
         let restType: Tsoa.Type | undefined;
         for (let index = 0; index < elements.length; index++) {
@@ -195,7 +181,8 @@ export class TypeResolver {
     }
 
     if (ts.isUnionTypeNode(this.typeNode)) {
-      const types = this.typeNode.types.map(type => this.sourceChild(type).resolve());
+      const children = this.typeNode.types.map(type => this.sourceChild(type));
+      const types = children.map(child => child.resolve());
 
       const unionMetaType: Tsoa.UnionType = {
         dataType: 'union',
@@ -205,9 +192,8 @@ export class TypeResolver {
     }
 
     if (ts.isIntersectionTypeNode(this.typeNode)) {
-      const types = this.typeNode.types.map(type => {
-        return this.sourceChild(type).resolve();
-      });
+      const children = this.typeNode.types.map(type => this.sourceChild(type));
+      const types = children.map(child => child.resolve());
 
       const intersectionMetaType: Tsoa.IntersectionType = {
         dataType: 'intersection',
@@ -220,19 +206,20 @@ export class TypeResolver {
     if (ts.isTupleTypeNode(this.typeNode)) {
       const elementTypes: Tsoa.Type[] = [];
       let restType: Tsoa.Type | undefined;
+      const owner = this.exactType();
+      const elements = owner && this.isTupleReference(owner) ? this.compiler.checker.getTypeArguments(owner) : [];
 
-      for (const element of this.typeNode.elements) {
-        if (ts.isRestTypeNode(element)) {
-          const resolvedRest = this.sourceChild(element.type, element).resolve();
-
-          if (resolvedRest.dataType === 'array') {
-            restType = resolvedRest.elementType;
-          } else {
-            restType = resolvedRest;
+      for (let index = 0; index < this.typeNode.elements.length; index++) {
+        const element = this.typeNode.elements[index];
+        const typeNode = ts.isNamedTupleMember(element) || ts.isRestTypeNode(element) ? element.type : element;
+        if (ts.isRestTypeNode(element) || (ts.isNamedTupleMember(element) && element.dotDotDotToken)) {
+          if (ts.isArrayTypeNode(typeNode)) restType = this.sourceChild(typeNode.elementType, element, elements[index]).resolve();
+          else {
+            const resolved = this.sourceChild(typeNode, element, elements[index]).resolve();
+            restType = resolved.dataType === 'array' ? resolved.elementType : resolved;
           }
         } else {
-          const typeNode = ts.isNamedTupleMember(element) ? element.type : element;
-          const type = this.sourceChild(typeNode, element).resolve();
+          const type = this.sourceChild(typeNode, element, elements[index]).resolve();
           elementTypes.push(type);
         }
       }
@@ -338,8 +325,7 @@ export class TypeResolver {
             // Transform to property
             .map(property => {
               const owner = this.memberOwner();
-              const member =
-                this.occurrence.kind === 'heritage' && this.occurrence.meaning.kind === 'bound' ? owner && this.current.typeChecker.getPropertyOfType(owner, property.getName()) : property;
+              const member = this.occurrence.kind === 'heritage' && this.occurrence.meaning.kind === 'bound' ? owner && this.compiler.checker.getPropertyOfType(owner, property.getName()) : property;
               const required = !this.hasFlag(property, ts.SymbolFlags.Optional);
               const valueNode =
                 !member &&
@@ -350,9 +336,9 @@ export class TypeResolver {
                   ? mappedTypeNode.type
                   : undefined;
               throwUnless(member || valueNode, new GenerateMetadataError('Inherited mapped property has no concrete owner or captured value.', this.typeNode));
-              const propertyType = this.current.typeChecker.getTypeOfSymbol(member || property);
+              const propertyType = this.compiler.checker.getTypeOfSymbol(member || property);
 
-              const parent = getOneOrigDeclaration(property); //If there are more declarations, we need to get one of them, from where we want to recognize jsDoc
+              const parent = getOneOrigDeclaration(property);
               const value = valueNode && this.sourceChild(valueNode, parent).resolve();
               const type: Tsoa.Type = value
                 ? propertyType.isUnion() && propertyType.types.some(type => type.flags & ts.TypeFlags.Undefined)
@@ -360,11 +346,11 @@ export class TypeResolver {
                   : value
                 : this.computedChild(propertyType, parent).resolve();
 
-              const comments = property.getDocumentationComment(this.current.typeChecker);
+              const comments = property.getDocumentationComment(this.compiler.checker);
               const description = comments.length ? ts.displayPartsToString(comments) : undefined;
 
               const initializer = (parent as any)?.initializer;
-              const def = initializer ? getInitializerValue(initializer, this.current.typeChecker) : parent ? TypeResolver.getDefault(parent) : undefined;
+              const def = initializer ? getInitializerValue(initializer, this.compiler.checker) : parent ? TypeResolver.getDefault(parent) : undefined;
 
               // Push property
               return {
@@ -388,7 +374,7 @@ export class TypeResolver {
             dataType: 'nestedObjectLiteral',
             properties,
           };
-          const indexInfos = this.current.typeChecker.getIndexInfosOfType(type);
+          const indexInfos = this.compiler.checker.getIndexInfosOfType(type);
           const indexTypes = indexInfos.flatMap(indexInfo => {
             if (indexInfo.type.flags & ts.TypeFlags.Never) {
               // { [k: string]: never; }
@@ -420,28 +406,31 @@ export class TypeResolver {
         throw new GenerateMetadataError(`Unhandled mapped type has found, flags: ${type.flags}`, this.typeNode);
       };
 
-      return calcMappedType(this.occurrence.kind === 'heritage' ? this.current.typeChecker.getTypeAtLocation(this.occurrence.baseNode) : this.requiredType());
+      return calcMappedType(this.occurrence.kind === 'heritage' ? this.compiler.checker.getTypeAtLocation(this.occurrence.baseNode) : this.requiredType());
     }
 
     if (ts.isConditionalTypeNode(this.typeNode)) {
-      return this.computedChild(this.requiredType(), this.typeNode, true).resolve();
+      const exact = this.requiredType();
+      const declaration = this.typeNode.parent;
+      const alias = ts.isTypeAliasDeclaration(declaration) && this.compiler.checker.getSymbolAtLocation(declaration.name);
+      return this.computedChild(exact, this.typeNode, exact.aliasSymbol === alias).resolve();
     }
 
     // keyof & readonly arrays
     if (ts.isTypeOperatorNode(this.typeNode)) {
-      return this.resolveTypeOperatorNode(this.typeNode, this.current.typeChecker, this.current, this.context, this.parentNode);
+      return this.resolveTypeOperatorNode(this.typeNode, this.compiler.checker, this.current, this.context, this.parentNode);
     }
 
     // Indexed type
     if (ts.isIndexedAccessTypeNode(this.typeNode)) {
-      return this.resolveIndexedAccessTypeNode(this.typeNode, this.current.typeChecker, this.current);
+      return this.resolveIndexedAccessTypeNode(this.typeNode, this.compiler.checker, this.current);
     }
 
     if (ts.isTemplateLiteralTypeNode(this.typeNode)) {
       const type = this.requiredType();
       throwUnless(
         type.isUnion() && type.types.every((unionElementType): unionElementType is ts.StringLiteralType => unionElementType.isStringLiteral()),
-        new GenerateMetadataError(`Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode),
+        new GenerateMetadataError(`Could not the type of ${this.compiler.checker.typeToString(this.compiler.checker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode),
       );
 
       // `a${'c' | 'd'}b`
@@ -469,7 +458,7 @@ export class TypeResolver {
     switch (typeNode.operator) {
       case ts.SyntaxKind.KeyOfKeyword: {
         // keyof
-        const type = typeChecker.getTypeFromTypeNode(typeNode);
+        const type = this.exactType() || typeChecker.getTypeFromTypeNode(typeNode);
         if (type.isIndexType()) {
           // in case of generic: keyof T. Not handles all possible cases
           const symbol = type.type.getSymbol();
@@ -585,6 +574,14 @@ export class TypeResolver {
       if (bound) object = new TypeResolver(bound.occurrence, current, this.parentNode);
     }
     const owner = object.exactType();
+    if (indexType.kind === ts.SyntaxKind.NumberKeyword && object.occurrence.kind !== 'computed') {
+      const node = object.typeNode;
+      const exact = owner?.getNumberIndexType() || this.exactType();
+      if (ts.isArrayTypeNode(node)) return object.sourceChild(node.elementType, typeNode, exact).resolve();
+      if (ts.isTypeReferenceNode(node) && ts.isIdentifier(node.typeName) && (node.typeName.text === 'Array' || node.typeName.text === 'ReadonlyArray') && node.typeArguments?.length === 1) {
+        return object.sourceChild(node.typeArguments[0], typeNode, exact).resolve();
+      }
+    }
     if (ts.isLiteralTypeNode(indexType) && (ts.isStringLiteral(indexType.literal) || ts.isNumericLiteral(indexType.literal))) {
       const declarationOwner = object.occurrence.kind === 'source' ? typeChecker.getTypeFromTypeNode(object.occurrence.node) : undefined;
       const propertyOwner = owner || declarationOwner;
@@ -604,6 +601,10 @@ export class TypeResolver {
       return this.computedChild(exact, typeNode).resolve();
     }
     const exact = this.exactType();
+    if (!exact && this.occurrence.kind === 'source') {
+      const query = this.compiler.query(this.occurrence, this.parentNode);
+      return new TypeResolver(query.occurrence, this.current, query.parent).resolve();
+    }
     throwUnless(exact, new GenerateMetadataError('Indexed expression has no concrete compiler owner.', typeNode));
     return this.computedChild(exact, typeNode, true).resolve();
   }
@@ -641,7 +642,7 @@ export class TypeResolver {
         if (binding) {
           const use = binding.occurrence;
           const exact = this.exactType();
-          const occurrence: Occurrence = use.kind === 'source' && exact ? { ...use, meaning: { kind: 'exact', type: exact } } : use;
+          const occurrence: Occurrence = use.kind === 'source' && use.meaning.kind === 'bound' && exact ? { ...use, meaning: { kind: 'exact', type: exact } } : use;
           return new TypeResolver(occurrence, current, parentNode).resolve();
         }
       }
@@ -765,10 +766,7 @@ export class TypeResolver {
         actNode = actNode.parent;
       }
 
-      const declarationPositions = declarations.map(declaration => ({
-        fileName: declaration.getSourceFile().fileName,
-        pos: declaration.pos,
-      }));
+      const declarationPositions = declarations.map(declaration => this.compiler.originalLocation(declaration));
       this.current.CheckModelUnicity(name, declarationPositions);
     }
     return name;
@@ -779,7 +777,7 @@ export class TypeResolver {
     const isDeprecated = isExistJSDocTag(arg, tag => tag.tagName.text === 'deprecated') || isDecorator(arg, identifier => identifier.text === 'Deprecated');
 
     const symbol = this.getSymbolAtLocation(arg.name);
-    const comments = symbol ? symbol.getDocumentationComment(this.current.typeChecker) : [];
+    const comments = symbol ? symbol.getDocumentationComment(this.compiler.checker) : [];
     const description = comments.length ? ts.displayPartsToString(comments) : undefined;
 
     const validators = getPropertyValidators(arg);
@@ -966,17 +964,17 @@ export class TypeResolver {
     // Handle toJSON methods
     throwUnless(modelType.name, new GenerateMetadataError("Can't get Symbol from anonymous class", modelType));
 
-    const owner = this.memberOwner() || this.current.typeChecker.getTypeAtLocation(modelType.name);
-    const toJSON = this.current.typeChecker.getPropertyOfType(owner, 'toJSON');
+    const owner = this.memberOwner() || this.compiler.checker.getTypeAtLocation(modelType.name);
+    const toJSON = this.compiler.checker.getPropertyOfType(owner, 'toJSON');
     if (toJSON && toJSON.valueDeclaration && (ts.isMethodDeclaration(toJSON.valueDeclaration) || ts.isMethodSignature(toJSON.valueDeclaration))) {
-      const method = this.current.typeChecker.getTypeOfSymbol(toJSON);
-      const signature = this.current.typeChecker.getSignaturesOfType(method, ts.SignatureKind.Call)[0];
+      const method = this.compiler.checker.getTypeOfSymbol(toJSON);
+      const signature = this.compiler.checker.getSignaturesOfType(method, ts.SignatureKind.Call)[0];
       throwUnless(signature, new GenerateMetadataError('toJSON has no call signature.', toJSON.valueDeclaration));
-      const exact = this.current.typeChecker.getReturnTypeOfSignature(signature);
+      const exact = this.compiler.checker.getReturnTypeOfSignature(signature);
       const type =
         toJSON.valueDeclaration.type && this.occurrence.kind !== 'computed'
           ? new TypeResolver(this.sourceOccurrence(toJSON.valueDeclaration.type, this.context, exact), this.current).resolve()
-          : TypeResolver.fromComputed(exact, this.current).resolve();
+          : this.computedChild(exact, toJSON.valueDeclaration, false, [{ kind: 'property', name: 'toJSON' }, { kind: 'return' }]).resolve();
       const referenceType: Tsoa.ReferenceType = {
         refName: refTypeName,
         dataType: 'refAlias',
@@ -1107,9 +1105,9 @@ export class TypeResolver {
   }
 
   private getSymbolAtLocation(type: ts.Node): ts.Symbol {
-    const symbol = this.current.typeChecker.getSymbolAtLocation(type) || (ts.isQualifiedName(type) ? this.getSymbolAtLocation(type.right) : ((type as any).symbol as ts.Symbol));
+    const symbol = this.compiler.checker.getSymbolAtLocation(type) || (ts.isQualifiedName(type) ? this.getSymbolAtLocation(type.right) : ((type as any).symbol as ts.Symbol));
     // resolve alias if it is an alias, otherwise take symbol directly
-    return (symbol && this.hasFlag(symbol, ts.SymbolFlags.Alias) && this.current.typeChecker.getAliasedSymbol(symbol)) || symbol;
+    return (symbol && this.hasFlag(symbol, ts.SymbolFlags.Alias) && this.compiler.checker.getAliasedSymbol(symbol)) || symbol;
   }
 
   private getModelAdditionalProperties(node: UsableDeclaration) {
@@ -1121,11 +1119,11 @@ export class TypeResolver {
     const key = index.parameters[0].type;
     throwUnless(key, new GenerateMetadataError('Index signature has no key type.', index));
     throwUnless(this.occurrence.kind !== 'computed' || key.kind === ts.SyntaxKind.StringKeyword, new GenerateMetadataError('Only string indexers are supported.', index));
-    const keyType = this.occurrence.kind === 'computed' ? this.current.typeChecker.getStringType() : undefined;
+    const keyType = this.occurrence.kind === 'computed' ? this.compiler.checker.getStringType() : undefined;
     const resolvedKey = keyType ? this.computedChild(keyType).resolve() : this.sourceChild(key).resolve();
     throwUnless(resolvedKey.dataType === 'string', new GenerateMetadataError('Only string indexers are supported.', index));
     const owner = this.memberOwner();
-    const exact = owner && this.current.typeChecker.getIndexTypeOfType(owner, ts.IndexKind.String);
+    const exact = owner && this.compiler.checker.getIndexTypeOfType(owner, ts.IndexKind.String);
     if (this.occurrence.kind === 'computed') {
       throwUnless(exact, new GenerateMetadataError('Computed index has no value owner.', index));
       return this.computedChild(exact).resolve();
@@ -1141,7 +1139,7 @@ export class TypeResolver {
     const exactArguments = this.compilerArguments();
     for (let index = 0; parameters && index < parameters.length; index++) {
       const parameter = parameters[index];
-      const symbol = this.current.typeChecker.getSymbolAtLocation(parameter.name);
+      const symbol = this.compiler.checker.getSymbolAtLocation(parameter.name);
       throwUnless(symbol, new GenerateMetadataError('Type parameter has no declaration symbol.', parameter));
       if (this.occurrence.kind === 'computed') {
         const exact = exactArguments[index];
@@ -1173,7 +1171,7 @@ export class TypeResolver {
     const symbol = name && this.getSymbolAtLocation(name);
     if (exact.aliasSymbol === symbol && exact.aliasTypeArguments) return exact.aliasTypeArguments;
     if (exact.flags & ts.TypeFlags.Object && 'objectFlags' in exact && typeof exact.objectFlags === 'number' && exact.objectFlags & ts.ObjectFlags.Reference) {
-      return this.current.typeChecker.getTypeArguments(exact as ts.TypeReference);
+      return this.compiler.checker.getTypeArguments(exact as ts.TypeReference);
     }
     return [];
   }
@@ -1191,11 +1189,7 @@ export class TypeResolver {
     let properties: Tsoa.Property[] = [];
 
     const excluded = new Set(this.occurrence.kind === 'heritage' ? this.occurrence.excluded : []);
-    for (const member of modelTypeDeclaration.members) {
-      if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) excluded.add(this.getPropertyName(member));
-      if (ts.isConstructorDeclaration(member))
-        member.parameters.filter(parameter => ts.isParameterPropertyDeclaration(parameter, member)).forEach(parameter => excluded.add(this.getPropertyName(parameter)));
-    }
+    new PropertyTransformer().getMembers(modelTypeDeclaration).forEach(member => excluded.add(this.getPropertyName(member)));
     const heritageClauses = modelTypeDeclaration.heritageClauses;
     if (!heritageClauses) {
       return properties;
@@ -1255,7 +1249,7 @@ export class TypeResolver {
       symbol.flags = 0;
     }
 
-    const comments = symbol.getDocumentationComment(this.current.typeChecker);
+    const comments = symbol.getDocumentationComment(this.compiler.checker);
     if (comments.length) {
       return ts.displayPartsToString(comments);
     }
@@ -1273,7 +1267,7 @@ export class TypeResolver {
 
   public getPropertyName(prop: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): string {
     if (ts.isComputedPropertyName(prop.name) && ts.isPropertyAccessExpression(prop.name.expression)) {
-      const initializerValue = getInitializerValue(prop.name.expression, this.current.typeChecker);
+      const initializerValue = getInitializerValue(prop.name.expression, this.compiler.checker);
       if (initializerValue) {
         return initializerValue?.toString();
       }
@@ -1287,12 +1281,12 @@ export class TypeResolver {
       return safeFromJson(exampleJSDoc);
     }
 
-    return getNodeFirstDecoratorValue(node, this.current.typeChecker, dec => dec.text === 'Example');
+    return getNodeFirstDecoratorValue(node, this.compiler.checker, dec => dec.text === 'Example');
   }
 
   public getNodeExtension(node: ts.Node) {
     const decorators = this.getDecoratorsByIdentifier(node, 'Extension');
-    const extensionDecorator = getExtensions(decorators, this.current);
+    const extensionDecorator = getExtensions(decorators, this.compiler.checker);
 
     const extensionComments = getJSDocComments(node, 'extension');
     const extensionJSDoc = extensionComments ? getExtensionsFromJSDocComments(extensionComments) : [];

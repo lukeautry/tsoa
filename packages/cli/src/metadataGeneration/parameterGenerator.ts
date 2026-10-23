@@ -535,7 +535,14 @@ export class ParameterGenerator {
   private getValidatedType(parameter: ts.ParameterDeclaration) {
     return parameter.type
       ? TypeResolver.fromSource(parameter.type, this.current, parameter).resolve()
-      : TypeResolver.fromComputed(this.current.typeChecker.getTypeAtLocation(parameter), this.current, parameter).resolve();
+      : TypeResolver.fromComputed(
+          this.current.typeChecker.getTypeAtLocation(parameter),
+          this.current,
+          parameter,
+          ts.isMethodDeclaration(parameter.parent)
+            ? TypeResolver.methodOrigin(parameter.parent, [{ kind: 'parameters' }, { kind: 'index', index: parameter.parent.parameters.indexOf(parameter) }])
+            : undefined,
+        ).resolve();
   }
 
   private getQueryParameterIsHidden(parameter: ts.ParameterDeclaration) {
