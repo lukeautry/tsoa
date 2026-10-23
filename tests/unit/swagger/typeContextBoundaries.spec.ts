@@ -23,6 +23,9 @@ const fixtureNames = [
   'preservation',
   'declarationCollision',
   'expressionCollision',
+  'unionArray',
+  'unionOptional',
+  'anonymousViews',
 ];
 
 function required<T>(value: T | undefined, name: string): T {
@@ -44,8 +47,8 @@ function generate(name: string, strictNullChecks: boolean) {
     const value = required(schemas[reference.replace('#/components/schemas/', '')], reference);
     return value.$ref ? resolve(value) : value;
   };
-  const response = (suffix = '') => {
-    const schema = required(spec.paths[`/type-context-boundaries${suffix}`].get?.responses['200'].content?.['application/json'].schema, 'response schema');
+  const response = (suffix = '', method: 'get' | 'post' = 'get') => {
+    const schema = required(spec.paths[`/type-context-boundaries${suffix}`][method]?.responses['200'].content?.['application/json'].schema, 'response schema');
     return schema.$ref ? resolve(schema) : schema;
   };
   return { metadata, spec, schemas, resolve, response };
@@ -244,6 +247,39 @@ describe('Type context at child and entry boundaries', () => {
         expect(value.anyOf).to.deep.equal([{ type: 'number', format: 'double' }, { $ref: '#/components/schemas/Pair' }]);
         expect(value.nullable).to.equal(strictNullChecks ? true : undefined);
         expect(schemas.Pair.anyOf).to.deep.equal([{ $ref: '#/components/schemas/Left' }, { $ref: '#/components/schemas/Right' }]);
+      });
+
+      it('keeps both populated branches of a computed array union', () => {
+        const { response } = generate('unionArray', strictNullChecks);
+        expect(response('/array-union').properties?.value.anyOf).to.deep.equal([
+          { type: 'array', items: { type: 'string' } },
+          { type: 'array', items: { type: 'number', format: 'double' } },
+        ]);
+      });
+
+      it('populates both branches of a computed Optional union', () => {
+        const { response, schemas } = generate('unionOptional', strictNullChecks);
+        expect(response('/optional-union', 'post').properties?.value.anyOf).to.deep.equal([{ $ref: '#/components/schemas/Optional_Left_' }, { $ref: '#/components/schemas/Optional_Right_' }]);
+        expectOptionalLeaf(schemas.Optional_Left_, { left: 'string' });
+        expectOptionalLeaf(schemas.Optional_Right_, { right: 'number' });
+      });
+
+      it('keeps the two source Box views and their distinct annotations', () => {
+        const { response, resolve } = generate('anonymousViews', strictNullChecks);
+        const views = response('/anonymous-source').properties?.value.anyOf;
+        expect(views).to.have.length(2);
+        const properties = views?.map(view => resolve(view).properties?.value.properties?.value);
+        expect(properties?.[0]).to.deep.include({ type: 'integer', format: 'int32', description: 'Integer property description.', default: 3 });
+        expect(properties?.[1]).to.deep.include({ type: 'number', format: 'float', description: 'Float property description.', default: 4.5 });
+      });
+
+      it('keeps the current single plain-double Box view for a computed anonymous union', () => {
+        const { response, resolve } = generate('anonymousViews', strictNullChecks);
+        const box = resolve(response('/anonymous-computed').properties?.value);
+        const value = required(box.properties?.value.properties?.value, 'computed value');
+        expect(value).to.deep.include({ type: 'number', format: 'double' });
+        expect(value.description).to.equal(undefined);
+        expect(value.default).to.equal(undefined);
       });
 
       it('rejects different declarations that use the same output model name', () => {
