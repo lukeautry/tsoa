@@ -269,11 +269,11 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
     const host = ts.createCompilerHost(options, true);
     const nativeRead = host.readFile.bind(host);
     const nativeSource = host.getSourceFile.bind(host);
-    host.readFile = file => virtualSources.get(path.resolve(file)) ?? nativeRead(file);
+    host.readFile = file => virtualSources.get(path.resolve(file)) ?? files.get(path.resolve(file))?.text ?? nativeRead(file);
     host.getSourceFile = (file, languageOptions, onError, fresh) => {
       const native = nativeSource(file, languageOptions, onError, fresh);
-      const text = virtualSources.get(path.resolve(file));
-      if (text === undefined) return native;
+      const text = virtualSources.get(path.resolve(file)) ?? files.get(path.resolve(file))?.text;
+      if (text === undefined || text === native?.text) return native;
       const parsedOptions =
         typeof languageOptions === 'number' && native?.impliedNodeFormat !== undefined ? { languageVersion: languageOptions, impliedNodeFormat: native.impliedNodeFormat } : languageOptions;
       return ts.createSourceFile(file, text, parsedOptions, true);
