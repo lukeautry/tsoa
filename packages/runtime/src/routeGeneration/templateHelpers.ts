@@ -1022,6 +1022,22 @@ export interface Exception extends Error {
   status: number;
 }
 
+/**
+ * Reject with this error from your authentication function to signal that the request carries no credentials
+ * for the requested security scheme (as opposed to invalid credentials, which should reject with any other error).
+ * It only has an effect on operations that allow anonymous access, i.e. whose security list contains an empty
+ * entry (`@Security({})`): if every scheme rejected with this error, the request continues without authentication.
+ */
+export class MissingCredentialsError extends Error implements Exception {
+  public status = 401;
+  public name = 'MissingCredentialsError';
+
+  constructor(public message: string = 'No credentials provided') {
+    super(message);
+    Object.setPrototypeOf(this, MissingCredentialsError.prototype);
+  }
+}
+
 export class ValidateError extends Error implements Exception {
   public status = 400;
   public name = 'ValidateError';

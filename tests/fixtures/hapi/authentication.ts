@@ -1,10 +1,11 @@
+import { MissingCredentialsError } from '@tsoa/runtime';
 export function hapiAuthentication(request: any, name: string, scopes?: string[]): Promise<any> {
   if (name === 'api_key') {
     let token;
     if (request.query && request.query.access_token) {
       token = request.query.access_token;
     } else {
-      return Promise.reject({ message: 'api_key' });
+      return Promise.reject(new MissingCredentialsError('api_key'));
     }
 
     if (token === 'abc123456') {
@@ -25,8 +26,12 @@ export function hapiAuthentication(request: any, name: string, scopes?: string[]
   } else {
     if (request.query && request.query.tsoa && request.query.tsoa === 'abc123456') {
       return Promise.resolve({});
-    } else {
+    } else if (request.query && request.query.tsoa === 'slow-invalid') {
+      return new Promise((_, reject) => setTimeout(() => reject({ message: 'other' }), 10));
+    } else if (request.query && request.query.tsoa) {
       return Promise.reject({ message: 'other' });
+    } else {
+      return Promise.reject(new MissingCredentialsError('other'));
     }
   }
 }

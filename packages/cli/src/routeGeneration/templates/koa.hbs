@@ -3,6 +3,9 @@
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
 import { fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+{{#if useSecurity}}
+import { MissingCredentialsError } from '@tsoa/runtime';
+{{/if}}
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -154,6 +157,12 @@ export function RegisterRoutes(router: KoaRouter) {
                 throw error;
             };
 
+            // An empty entry (`{}`) in the security list allows anonymous access. It is only used
+            // when every scheme failed because credentials were missing (MissingCredentialsError);
+            // invalid credentials are still rejected.
+            const allowsAnonymous = security.some(secMethod => Object.keys(secMethod).length === 0);
+            const isAnonymousAllowed = () => allowsAnonymous && failedAttempts.every(failure => failure instanceof MissingCredentialsError);
+
             const secMethodOrPromises: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
@@ -166,7 +175,19 @@ export function RegisterRoutes(router: KoaRouter) {
                         );
                     }
 
-                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                    // When anonymous access is allowed, wait for every member so that a slow invalid
+                    // credential is not hidden by a faster missing one.
+                    const secMethodAndSettled = allowsAnonymous
+                        ? Promise.allSettled(secMethodAndPromises).then(results => {
+                            const rejected = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+                            if (rejected) {
+                                throw rejected.reason;
+                            }
+                            return results.map(result => (result as PromiseFulfilledResult<any>).value);
+                        })
+                        : Promise.all(secMethodAndPromises);
+
+                    secMethodOrPromises.push(secMethodAndSettled
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
@@ -192,10 +213,14 @@ export function RegisterRoutes(router: KoaRouter) {
                     return;
                 }
 
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                context.status = error.status || 401;
-                context.throw(context.status, error.message, error);
+                if (isAnonymousAllowed()) {
+                    success = true;
+                } else {
+                    // Show most recent error as response
+                    const error = failedAttempts.pop();
+                    context.status = error.status || 401;
+                    context.throw(context.status, error.message, error);
+                }
             }
 
             // Response was sent in middleware, abort

@@ -54,6 +54,16 @@ describe('Security route generation', () => {
     ]);
   });
 
+  it('should generate a route with optional security (empty entry)', () => {
+    const path = verifyPath('/SecurityTest/ApiKeyOrAnonymous');
+
+    if (!path.get) {
+      throw new Error('No get operation.');
+    }
+
+    expect(path.get.security).to.deep.equal([{ api_key: [] }, {}]);
+  });
+
   function verifyPath(route: string, isCollection?: boolean) {
     return VerifyPath(spec, route, path => path.get, isCollection, false, '#/definitions/UserResponseModel');
   }

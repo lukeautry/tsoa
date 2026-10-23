@@ -85,4 +85,39 @@ export class SecurityTestController {
   public async GetServerErrorAndAuth(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.reject(new Error('Unexpected'));
   }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Security({})
+  @Get('ApiKeyOrAnonymous')
+  public async GetWithOptionalSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('api_key')
+  @Security('tsoa_auth', ['write:pets', 'read:pets'])
+  @Security({})
+  @Get('ApiKeyOrOauthOrAnonymous')
+  public async GetWithOptionalOrSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security({
+    api_key: [],
+    tsoa_auth: ['write:pets', 'read:pets'],
+  })
+  @Security({})
+  @Get('ApiKeyAndOauthOrAnonymous')
+  public async GetWithOptionalAndSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security({})
+  @Get('AnonymousOnly')
+  public async GetWithOnlyEmptySecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
 }

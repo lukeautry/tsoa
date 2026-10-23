@@ -1394,6 +1394,58 @@ describe('Express Server', () => {
       });
     });
 
+    describe('Optional security (empty entry)', () => {
+      const anonymous = '/SecurityTest/ApiKeyOrAnonymous';
+
+      it('passes the user when the API key is valid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=abc123456', (_err, res) => {
+          expect(res.body.id).to.equal(1);
+        });
+      });
+
+      it('continues without a user when no credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + anonymous,
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 when the API key is invalid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when one scheme has no credentials and another has invalid ones', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('continues without a user when all schemes have no credentials', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous', emptyHandler, 200);
+      });
+
+      it('returns 401 when an AND group has one missing and one invalid credential', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when an AND group has a missing credential and a slower invalid one', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-invalid', emptyHandler, 401);
+      });
+
+      it('returns 200 for a route with only an empty security entry', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/AnonymousOnly',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+    });
+
     describe('API key or tsoa auth', () => {
       it('returns 200 if the API key is correct', () => {
         const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
