@@ -26,6 +26,8 @@ const fixtureNames = [
   'unionArray',
   'unionOptional',
   'anonymousViews',
+  'annotatedGroup',
+  'recursiveAlias',
 ];
 
 function required<T>(value: T | undefined, name: string): T {
@@ -271,6 +273,24 @@ describe('Type context at child and entry boundaries', () => {
         const properties = views?.map(view => resolve(view).properties?.value.properties?.value);
         expect(properties?.[0]).to.deep.include({ type: 'integer', format: 'int32', description: 'Integer property description.', default: 3 });
         expect(properties?.[1]).to.deep.include({ type: 'number', format: 'float', description: 'Float property description.', default: 4.5 });
+      });
+
+      it('preserves the closed annotated Box source view through a computed alias', () => {
+        const { response, schemas } = generate('annotatedGroup', strictNullChecks);
+        const value = required(response('/annotated-group').properties?.value, 'annotated value');
+        expect(value.anyOf).to.deep.equal([{ type: 'number', format: 'double' }, { $ref: '#/components/schemas/Annotated_Left.Left_' }]);
+        expect(value.nullable).to.equal(strictNullChecks ? true : undefined);
+        expect(schemas['Annotated_Left.Left_'].anyOf).to.deep.equal([{ $ref: '#/components/schemas/Box_IntegerView_' }, { $ref: '#/components/schemas/Optional_Left_' }]);
+        expect(schemas.Box_IntegerView_.properties?.value.$ref).to.equal('#/components/schemas/IntegerView');
+        expect(schemas.IntegerView).to.deep.include({ type: 'integer', format: 'int32', default: 3, description: 'Integer description.' });
+        expect(schemas.Box_number_).to.equal(undefined);
+      });
+
+      it('emits a named recursive alias reference for array items', () => {
+        const { spec, schemas } = generate('recursiveAlias', strictNullChecks);
+        const root = required(spec.paths['/type-context-boundaries/recursive-alias'].get?.responses['200'].content?.['application/json'].schema, 'recursive alias response schema');
+        expect(root.$ref).to.equal('#/components/schemas/Recursive');
+        expect(schemas.Recursive.anyOf).to.deep.equal([{ type: 'string' }, { type: 'array', items: { $ref: '#/components/schemas/Recursive' } }]);
       });
 
       it('keeps the current single plain-double Box view for a computed anonymous union', () => {
