@@ -2,7 +2,6 @@ import { getDecorators, getDecoratorValues, getProduces, getSecurites } from './
 import { GenerateMetadataError } from './exceptions';
 import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
-import { TypeResolver } from './typeResolver';
 import { Tsoa } from '@tsoa/runtime';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 import { isMethodDeclaration, type ClassDeclaration, type CallExpression, type StringLiteral } from 'typescript';
@@ -92,7 +91,7 @@ export class ControllerGenerator {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name,
-        schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? new TypeResolver(expression.typeArguments[0], this.current).resolve() : undefined,
+        schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? this.current.resolveType(expression.typeArguments[0]) : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       };
     });

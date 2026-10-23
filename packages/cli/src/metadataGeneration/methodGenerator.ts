@@ -9,7 +9,6 @@ import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
 
 import { Tsoa } from '@tsoa/runtime';
-import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 type HttpMethod = 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -48,7 +47,7 @@ export class MethodGenerator {
       const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
-    const type = new TypeResolver(nodeType, this.current).resolve();
+    const type = this.current.resolveType(nodeType);
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -263,7 +262,7 @@ export class MethodGenerator {
     if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
       return undefined;
     }
-    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
+    return this.current.resolveType(expression.typeArguments[schemaIndex]);
   }
 
   private getMethodSuccessExamples() {

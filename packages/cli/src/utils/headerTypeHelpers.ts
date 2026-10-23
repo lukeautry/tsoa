@@ -2,14 +2,13 @@ import { Tsoa } from '@tsoa/runtime';
 import { NodeArray, TypeNode } from 'typescript';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
-import { TypeResolver } from '../metadataGeneration/typeResolver';
 
 export function getHeaderType(typeArgumentNodes: NodeArray<TypeNode> | undefined, index: number, metadataGenerator: MetadataGenerator): Tsoa.HeaderType | undefined {
   if (!typeArgumentNodes || !typeArgumentNodes[index]) {
     return undefined;
   }
 
-  const candidate = new TypeResolver(typeArgumentNodes[index], metadataGenerator).resolve();
+  const candidate = metadataGenerator.resolveType(typeArgumentNodes[index]);
 
   if (candidate && isSupportedHeaderDataType(candidate)) {
     return candidate;

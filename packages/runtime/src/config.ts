@@ -60,6 +60,14 @@ export interface Config {
    * @default double
    */
   defaultNumberType?: 'double' | 'float' | 'integer' | 'long';
+
+  /*
+   * How TypeScript types are turned into metadata.
+   * 'legacy' walks type annotations; 'checker' takes types from the TypeScript checker.
+   * Overridable with the TSOA_TYPE_RESOLVER environment variable when unset.
+   * @default legacy
+   */
+  typeResolver?: 'legacy' | 'checker';
 }
 
 /**

@@ -6,7 +6,6 @@ import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
-import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ParameterGenerator {
@@ -144,7 +143,7 @@ export class ParameterGenerator {
 
       const status = String(statusArgumentType.value);
 
-      const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
+      const type = this.current.resolveType(bodyArgument, typeNode);
       const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
       return {
         description: this.getParameterDescription(parameter) || '',
@@ -356,7 +355,7 @@ export class ParameterGenerator {
       try {
         const actualType = this.current.typeChecker.getTypeAtLocation(typeNode);
         const typeNodeFromType = this.current.typeChecker.typeToTypeNode(actualType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
-        const resolvedType = new TypeResolver(typeNodeFromType, this.current, parameter).resolve();
+        const resolvedType = this.current.resolveType(typeNodeFromType, parameter, actualType);
 
         if (resolvedType.dataType === 'refObject' || resolvedType.dataType === 'nestedObjectLiteral') {
           return resolvedType;
@@ -560,7 +559,7 @@ export class ParameterGenerator {
       const type = this.current.typeChecker.getTypeAtLocation(parameter);
       typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
-    return new TypeResolver(typeNode, this.current, parameter).resolve();
+    return this.current.resolveType(typeNode, parameter);
   }
 
   private getQueryParameterIsHidden(parameter: ts.ParameterDeclaration) {

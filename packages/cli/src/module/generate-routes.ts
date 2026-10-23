@@ -16,9 +16,19 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
    */
   metadata?: Tsoa.Metadata,
   defaultNumberType?: BaseConfig['defaultNumberType'],
+  typeResolver?: BaseConfig['typeResolver'],
 ) {
   if (!metadata) {
-    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate();
+    metadata = new MetadataGenerator(
+      routesConfig.entryFile,
+      compilerOptions,
+      ignorePaths,
+      routesConfig.controllerPathGlobs,
+      routesConfig.rootSecurity,
+      defaultNumberType,
+      undefined,
+      typeResolver,
+    ).Generate();
   }
 
   const routeGenerator = await getRouteGenerator(metadata, routesConfig);
