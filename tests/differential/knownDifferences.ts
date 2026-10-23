@@ -21,6 +21,12 @@ export const knownDifferences: KnownDifference[] = [
   testModel('TestSubModel2.properties', 'legacy copies inherited properties from a base that is still being built (cycle) and drops them', 1124),
   testModel('TestSubModelNamespace.TestSubModelNS.properties', 'legacy copies inherited properties from a base that is still being built (cycle) and drops them', 1124),
   testModel('NestedTypeLiteral', 'legacy registers the operand of `keyof T` (T = NestedTypeLiteral) as a model although nothing references it'),
+  testModel('Record_id.string_.type.properties', 'strict mode: legacy emits {} for Record with literal keys'),
+  testModel('Record_id._myProp1-string__.type.properties', 'strict mode: legacy emits {} for Record with literal keys'),
+  testModel(
+    'Pick_Partial__a-string--b-string__.Exclude_keyofPartial__a-string--b-string__.a__.type.properties',
+    'strict mode: legacy emits {} for Omit of a Partial (keyof Partial<X> includes undefined there)',
+  ),
   testModel('Record_string.any_.type.additionalProperties', 'legacy drops the index signature of `Record<string, any>` when it reaches it through a defaulted type parameter'),
   {
     entry: 'fixtures/controllers/unsupportedIndexedTypeController.ts',

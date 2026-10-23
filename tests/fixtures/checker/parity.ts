@@ -144,3 +144,38 @@ export class Parity3Controller {
     return null as any;
   }
 }
+
+export interface Wrapper<T> {
+  value: T;
+}
+export interface GenericOwner<T = string> {
+  nested?: Wrapper<T>;
+  either?: T | number;
+  plain?: string;
+}
+
+@Route('parity4')
+export class Parity4Controller {
+  @Get('owner')
+  public async owner(): Promise<GenericOwner> {
+    return null as any;
+  }
+
+  @Get('optionalUnion')
+  public async optionalUnion(): Promise<{ v?: 'a' | 'b' }> {
+    return null as any;
+  }
+}
+
+export class Defaults {
+  public annotated?: boolean;
+  public inferred? = true;
+}
+
+@Route('parity5')
+export class Parity5Controller {
+  @Get('defaults')
+  public async defaults(): Promise<Defaults> {
+    return null as any;
+  }
+}

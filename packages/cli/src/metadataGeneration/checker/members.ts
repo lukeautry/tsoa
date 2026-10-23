@@ -148,10 +148,13 @@ function declaredProperty(resolver: CheckerTypeResolver, ownerType: ts.Type, { n
   } else {
     type = symbol ? checker.getTypeOfSymbol(symbol) : checker.getTypeAtLocation(member);
   }
-  let resolved = resolver.resolve(type, site);
-  if (!required && member.type && substitutions.size > 0) {
-    resolved = withoutAddedUndefined(resolved, member.type);
-  }
+  const resolved =
+    !required && member.type && type.isUnion() && !writesUndefined(member.type)
+      ? resolver.resolveMembers(
+          type.types.filter(t => !(t.flags & ts.TypeFlags.Undefined)),
+          site,
+        )
+      : resolver.resolve(type, site);
 
   const initialValue = initializer ? getInitializerValue(initializer, checker) : undefined;
   return {
@@ -245,14 +248,9 @@ function indexSignatureType(resolver: CheckerTypeResolver, index: ts.IndexSignat
   return resolver.resolve(valueType, { node: index.type, declaration: site.declaration, substitutions: site.substitutions });
 }
 
-/** Optional properties of instantiated generics carry an `undefined` the source did not write. */
-function withoutAddedUndefined(type: Tsoa.Type, written: ts.TypeNode): Tsoa.Type {
-  const writesUndefined = ts.isUnionTypeNode(written) && written.types.some(t => t.kind === ts.SyntaxKind.UndefinedKeyword);
-  if (writesUndefined || type.dataType !== 'union') {
-    return type;
-  }
-  const types = type.types.filter(member => member.dataType !== 'undefined');
-  return types.length === 1 ? types[0] : { ...type, types };
+/** Optional properties carry an `undefined` in strict mode that the source did not write. */
+function writesUndefined(written: ts.TypeNode | undefined): boolean {
+  return written !== undefined && ts.isUnionTypeNode(written) && written.types.some(t => t.kind === ts.SyntaxKind.UndefinedKeyword);
 }
 
 /** Legacy `getPropertyName`: computed names that are property accesses use their value. */

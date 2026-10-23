@@ -100,4 +100,25 @@ describe('checker resolver parity with legacy naming of evaluated types', () => 
       ],
     });
   });
+
+  it('resolves optional generic properties without the undefined strict mode adds', () => {
+    const owner = refOf(md, 'GenericOwner') as Tsoa.RefObjectType;
+    const [nested, either] = owner.properties;
+    expect(nested.type).to.include({ dataType: 'refObject', refName: 'Wrapper_string_' });
+    expect((refOf(md, 'Wrapper_string_') as Tsoa.RefObjectType).properties[0].type).to.deep.equal({ dataType: 'string' });
+    expect(either.type).to.deep.equal({ dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'double' }] });
+  });
+
+  it('lists null and undefined last in unions with no written form (legacy printing order)', () => {
+    const md2 = checkerMetadata('parity.ts', { strict: true });
+    const partial = refOf(md2, 'DeepPartial_Leaf_') as Tsoa.RefAliasType;
+    const leaves = (partial.type as Tsoa.NestedObjectLiteralType).properties[0].type as Tsoa.UnionType;
+    expect(leaves.types.map(t => t.dataType)).to.deep.equal(['array', 'undefined']);
+  });
+
+  it('keeps the inferred undefined of unannotated optional class fields (legacy printed it)', () => {
+    const [annotated, inferred] = (refOf(md, 'Defaults') as Tsoa.RefObjectType).properties;
+    expect(annotated.type).to.deep.equal({ dataType: 'boolean' });
+    expect(inferred.type).to.deep.equal({ dataType: 'union', types: [{ dataType: 'boolean' }, { dataType: 'undefined' }] });
+  });
 });

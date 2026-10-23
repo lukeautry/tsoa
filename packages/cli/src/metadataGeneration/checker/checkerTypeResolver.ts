@@ -60,7 +60,7 @@ export class CheckerTypeResolver {
     }
 
     if (followed.node && ts.isUnionTypeNode(followed.node)) {
-      return this.resolveWrittenUnion(type, followed, followed.node);
+      return this.resolveWrittenUnion(type.isUnion() ? type.types : [type], followed, followed.node);
     }
     if (followed.node && ts.isIntersectionTypeNode(followed.node)) {
       const written = this.resolveWrittenIntersection(followed, followed.node);
@@ -215,8 +215,8 @@ export class CheckerTypeResolver {
    * like `UUID | null` stay named). In non-strict programs the checker drops null/undefined, so
    * written null/undefined members are added back — the one place syntax adds to a schema.
    */
-  private resolveWrittenUnion(type: ts.Type, site: Site, node: ts.UnionTypeNode): Tsoa.Type {
-    const remaining = type.isUnion() ? [...type.types] : [type];
+  private resolveWrittenUnion(members: readonly ts.Type[], site: Site, node: ts.UnionTypeNode): Tsoa.Type {
+    const remaining = [...members];
     const resolved: Tsoa.Type[] = [];
     const take = (parts: readonly ts.Type[]) => {
       if (!parts.every(part => remaining.includes(part))) {
@@ -288,6 +288,9 @@ export class CheckerTypeResolver {
    */
   private resolveCheckerUnion(types: readonly ts.Type[], site: Site): Tsoa.Type {
     const memberSite = site.node && ts.isMappedTypeNode(site.node) ? site : childSite(site, undefined);
+    const nullish = (t: ts.Type) => (t.flags & ts.TypeFlags.Null ? 1 : t.flags & ts.TypeFlags.Undefined ? 2 : 0);
+    // Printed unions (what legacy walked) list null, then undefined, last.
+    types = [...types].sort((a, b) => nullish(a) - nullish(b));
     const members: Array<ts.Type | 'boolean'> = [];
     const hasTrue = types.some(t => t.flags & ts.TypeFlags.BooleanLiteral && literalValue(t) === true);
     const hasFalse = types.some(t => t.flags & ts.TypeFlags.BooleanLiteral && literalValue(t) === false);
@@ -302,6 +305,26 @@ export class CheckerTypeResolver {
     }
     const resolved = members.map((member): Tsoa.Type => (member === 'boolean' ? { dataType: 'boolean' } : this.resolve(member, memberSite)));
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
+  }
+
+  /**
+   * A union of some of a type's members (e.g. an optional property without the `undefined` strict
+   * mode adds), keeping what the written node at `site` says about them.
+   */
+  public resolveMembers(members: readonly ts.Type[], site: Site): Tsoa.Type {
+    if (members.length === 1) {
+      return this.resolve(members[0], site);
+    }
+    const written = this.writtenType(site);
+    const writtenMembers = written ? (written.isUnion() ? written.types : [written]) : [];
+    if (written && writtenMembers.length === members.length && writtenMembers.every(member => members.includes(member))) {
+      return this.resolve(written, site);
+    }
+    const followed = this.descriptive(followSite(site));
+    if (followed.node && ts.isUnionTypeNode(followed.node)) {
+      return this.resolveWrittenUnion(members, followed, followed.node);
+    }
+    return this.resolveCheckerUnion(members, followed);
   }
 
   /** Property keys (`keyof X`): literal keys as enums; `string | number` for indexable keys (legacy). */
