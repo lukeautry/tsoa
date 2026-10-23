@@ -32,6 +32,12 @@ export const literalSchema = Type.Union([
   Type.Object({ kind: Type.Literal('bigint'), value: Type.String({ pattern: '^-?(0|[1-9][0-9]*)$' }) }),
 ]);
 const bindingSchema = Type.Object({ parameter: sourceKeySchema, capture: Type.Integer({ minimum: 0 }) });
+const objectPropertySchema = Type.Object({ name: Type.String(), capture: Type.Integer({ minimum: 0 }), optional: Type.Boolean(), readonly: Type.Boolean() });
+const objectIndexSchema = Type.Object({ key: Type.Union([Type.Literal('string'), Type.Literal('number')]), capture: Type.Integer({ minimum: 0 }), readonly: Type.Boolean() });
+const tupleElementSchema = Type.Object({
+  kind: Type.Union([Type.Literal('required'), Type.Literal('optional'), Type.Literal('rest'), Type.Literal('variadic')]),
+  capture: Type.Integer({ minimum: 0 }),
+});
 export const queryCaptureSchema = Type.Union([
   Type.Object({ kind: Type.Literal('source'), id: Type.Integer({ minimum: 0 }), expression: sourceKeySchema, context: Type.Array(bindingSchema) }),
   Type.Object({
@@ -42,6 +48,11 @@ export const queryCaptureSchema = Type.Union([
       Type.Object({ kind: Type.Literal('reference'), declaration: sourceKeySchema, arguments: Type.Array(Type.Integer({ minimum: 0 })) }),
       Type.Object({ kind: Type.Literal('literal'), site: sourceKeySchema, value: literalSchema }),
       Type.Object({ kind: Type.Literal('query'), query: Type.Integer({ minimum: 0 }) }),
+      Type.Object({ kind: Type.Literal('union'), members: Type.Array(Type.Integer({ minimum: 0 }), { minItems: 1 }) }),
+      Type.Object({ kind: Type.Literal('intersection'), members: Type.Array(Type.Integer({ minimum: 0 }), { minItems: 1 }) }),
+      Type.Object({ kind: Type.Literal('object'), properties: Type.Array(objectPropertySchema), indexes: Type.Array(objectIndexSchema) }),
+      Type.Object({ kind: Type.Literal('array'), element: Type.Integer({ minimum: 0 }), readonly: Type.Boolean() }),
+      Type.Object({ kind: Type.Literal('tuple'), elements: Type.Array(tupleElementSchema), readonly: Type.Boolean() }),
     ]),
     projection: Type.Array(projectionStepSchema),
   }),
@@ -51,6 +62,9 @@ export type ProjectionStep = Static<typeof projectionStepSchema>;
 export type QueryLiteral = Static<typeof literalSchema>;
 export type SemanticLiteral = QueryLiteral;
 export type QueryCapture = Static<typeof queryCaptureSchema>;
+type ObjectProperty = Omit<Static<typeof objectPropertySchema>, 'capture'> & { capture: QueryCapture };
+type ObjectIndex = Omit<Static<typeof objectIndexSchema>, 'capture'> & { capture: QueryCapture };
+type TupleElement = Omit<Static<typeof tupleElementSchema>, 'capture'> & { capture: QueryCapture };
 export const originalLocationSchema = Type.Object({ fileName: Type.String(), pos: Type.Integer({ minimum: 0 }), end: Type.Integer({ minimum: 0 }), kind: Type.Integer({ minimum: 0 }) });
 export type OriginalLocation = Static<typeof originalLocationSchema>;
 const preparedQuerySchema = Type.Object({ source: sourceKeySchema, site: Type.String(), name: Type.String(), bindings: Type.Array(bindingSchema) });
@@ -136,7 +150,44 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
   };
   const addLiteral = (value: QueryLiteral, site: ts.Node): QueryCapture =>
     register({ kind: 'computed', id: requests.size, root: { kind: 'literal', site: sourceKey(site), value }, projection: [] }, site, []);
-  const addReference = (name: ts.Identifier, arguments_: readonly QueryCapture[] = []): QueryCapture => {
+  const addComposition = (kind: 'union' | 'intersection', members: readonly QueryCapture[], node: ts.Node): QueryCapture => {
+    const site = siteFor(scopeOf(node), members);
+    return register({ kind: 'computed', id: requests.size, root: { kind, members: members.map(member => member.id) }, projection: [] }, site.container, [], site);
+  };
+  const addObject = (properties: readonly ObjectProperty[], indexes: readonly ObjectIndex[], node: ts.Node): QueryCapture => {
+    const site = siteFor(
+      scopeOf(node),
+      [...properties, ...indexes].map(member => member.capture),
+    );
+    return register(
+      {
+        kind: 'computed',
+        id: requests.size,
+        root: { kind: 'object', properties: properties.map(member => ({ ...member, capture: member.capture.id })), indexes: indexes.map(member => ({ ...member, capture: member.capture.id })) },
+        projection: [],
+      },
+      site.container,
+      [],
+      site,
+    );
+  };
+  const addArray = (element: QueryCapture, readonly: boolean, node: ts.Node): QueryCapture => {
+    const site = siteFor(scopeOf(node), [element]);
+    return register({ kind: 'computed', id: requests.size, root: { kind: 'array', element: element.id, readonly }, projection: [] }, site.container, [], site);
+  };
+  const addTuple = (elements: readonly TupleElement[], readonly: boolean, node: ts.Node): QueryCapture => {
+    const site = siteFor(
+      scopeOf(node),
+      elements.map(element => element.capture),
+    );
+    return register(
+      { kind: 'computed', id: requests.size, root: { kind: 'tuple', elements: elements.map(element => ({ ...element, capture: element.capture.id })), readonly }, projection: [] },
+      site.container,
+      [],
+      site,
+    );
+  };
+  const addReference = (name: ts.Identifier | ts.StringLiteral, arguments_: readonly QueryCapture[] = []): QueryCapture => {
     ownedNode(name);
     const declaration = name.parent;
     const parameters = ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration) || ts.isTypeAliasDeclaration(declaration) ? declaration.typeParameters : undefined;
@@ -197,11 +248,11 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
       steps.reduce((value, step) => {
         switch (step.kind) {
           case 'return':
-            return `ReturnType<${value}>`;
+            return `((${value}) extends (...args: any[]) => infer ${prefix}Return ? ${prefix}Return : any)`;
           case 'instance':
-            return `InstanceType<${value}>`;
+            return `((${value}) extends abstract new (...args: any[]) => infer ${prefix}Instance ? ${prefix}Instance : any)`;
           case 'parameters':
-            return `Parameters<${value}>`;
+            return `((${value}) extends (...args: infer ${prefix}Parameters) => any ? ${prefix}Parameters : never)`;
           case 'property':
             return `(${value})[${JSON.stringify(step.name)}]`;
           case 'index':
@@ -209,7 +260,7 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
           case 'element':
             return `(${value})[number]`;
           case 'nonNullable':
-            return `NonNullable<${value}>`;
+            return `((${value}) & {})`;
         }
       }, expression);
     const close = (query: Request, expression: ts.Node = query.node): string => {
@@ -242,8 +293,37 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
       if (descriptor.kind === 'source') expression = close(query);
       else if (descriptor.root.kind === 'value') expression = project(`typeof ${query.node.getText()}`, descriptor.projection);
       else if (descriptor.root.kind === 'query') expression = project(captureType(byId(descriptor.root.query).descriptor, query.site), descriptor.projection);
-      else if (descriptor.root.kind === 'reference') {
-        const name = ts.isEnumMember(query.node.parent) ? `${query.node.parent.parent.name.text}.${query.node.getText()}` : query.node.getText();
+      else if (descriptor.root.kind === 'union' || descriptor.root.kind === 'intersection') {
+        expression = descriptor.root.members.map(member => `(${captureType(byId(member).descriptor, query.site)})`).join(descriptor.root.kind === 'union' ? ' | ' : ' & ');
+      } else if (descriptor.root.kind === 'array') {
+        expression = `${descriptor.root.readonly ? 'readonly ' : ''}(${captureType(byId(descriptor.root.element).descriptor, query.site)})[]`;
+      } else if (descriptor.root.kind === 'tuple') {
+        const elements = descriptor.root.elements.map(element => {
+          const type = captureType(byId(element.capture).descriptor, query.site);
+          switch (element.kind) {
+            case 'required':
+              return type;
+            case 'optional':
+              return `(${type})?`;
+            case 'rest':
+              return `...(${type})[]`;
+            case 'variadic':
+              return `...${type}`;
+          }
+        });
+        expression = `${descriptor.root.readonly ? 'readonly ' : ''}[${elements.join(', ')}]`;
+      } else if (descriptor.root.kind === 'object') {
+        const properties = descriptor.root.properties.map(
+          member => `${member.readonly ? 'readonly ' : ''}${JSON.stringify(member.name)}${member.optional ? '?' : ''}: ${captureType(byId(member.capture).descriptor, query.site)};`,
+        );
+        const indexes = descriptor.root.indexes.map(member => `${member.readonly ? 'readonly ' : ''}[key: ${member.key}]: ${captureType(byId(member.capture).descriptor, query.site)};`);
+        expression = `{ ${[...properties, ...indexes].join(' ')} }`;
+      } else if (descriptor.root.kind === 'reference') {
+        let name = query.node.getText();
+        if (ts.isEnumMember(query.node.parent)) {
+          const member = seedChecker.getSymbolAtLocation(query.node) || fail('A captured enum member has no source symbol.', query.node);
+          name = `(typeof ${query.node.parent.parent.name.text})[${JSON.stringify(member.getName())}]`;
+        }
         expression = `${name}${query.bindings.length ? `<${query.bindings.map(binding => binding.name).join(', ')}>` : ''}`;
       } else {
         const literal = descriptor.root.value;
@@ -351,7 +431,7 @@ export function createCompilerQueries(seedProgram: ts.Program, options: ts.Compi
     };
     return { program, checker, diagnostics: ts.getPreEmitDiagnostics(program), get, originalNode, originalLocation, originalLocationAt, virtualSources, sourceKey, prefix };
   };
-  return { addSource, addValue, addProjection, addLiteral, addReference, compile, sourceKey };
+  return { addSource, addValue, addProjection, addLiteral, addComposition, addObject, addArray, addTuple, addReference, compile, sourceKey };
 }
 
 export type CompilerQueries = ReturnType<typeof createCompilerQueries>;

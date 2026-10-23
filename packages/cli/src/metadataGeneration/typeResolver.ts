@@ -116,15 +116,21 @@ export class TypeResolver {
   }
 
   public resolveMember(member: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): Tsoa.Type {
-    const owner = this.memberOwner();
-    const property = owner && this.compiler.checker.getPropertyOfType(owner, this.getPropertyName(member));
-    const exact = property && this.compiler.checker.getTypeOfSymbol(property);
-    if (this.occurrence.kind === 'computed') {
-      throwUnless(exact, new GenerateMetadataError('Computed property has no concrete owner.', member));
-      return this.computedChild(exact, member, false, [{ kind: 'property', name: this.getPropertyName(member) }]).resolve();
-    }
+    const exact = this.memberType(member);
     if (member.type) return this.sourceChild(member.type, member, member.questionToken ? undefined : exact).resolve();
     return this.computedChild(exact || this.compiler.checker.getTypeAtLocation(member), member, false, [{ kind: 'property', name: this.getPropertyName(member) }]).resolve();
+  }
+
+  private memberType(member: ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration): ts.Type | undefined {
+    const owner = this.memberOwner();
+    const property = owner && this.compiler.checker.getPropertyOfType(owner, this.getPropertyName(member));
+    return property && this.compiler.checker.getTypeOfSymbol(property);
+  }
+
+  private resolveComputedMember(member: ts.PropertySignature): Tsoa.Type {
+    const exact = this.memberType(member);
+    throwUnless(exact, new GenerateMetadataError('Computed property has no concrete owner.', member));
+    return this.computedChild(exact, member, false, [{ kind: 'property', name: this.getPropertyName(member) }]).resolve();
   }
 
   public resolve(): Tsoa.Type {
@@ -248,7 +254,7 @@ export class TypeResolver {
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
       const properties = this.typeNode.members.filter(ts.isPropertySignature).reduce<Tsoa.Property[]>((res, propertySignature: ts.PropertySignature) => {
-        const type = this.resolveMember(propertySignature);
+        const type = this.occurrence.kind === 'computed' ? this.resolveComputedMember(propertySignature) : this.resolveMember(propertySignature);
 
         const def = TypeResolver.getDefault(propertySignature);
         const property: Tsoa.Property = {
@@ -305,6 +311,7 @@ export class TypeResolver {
       };
 
       const calcMappedType = (type: ts.Type): Tsoa.Type => {
+        if (this.compiler.checker.isArrayType(type) || this.isTupleReference(type)) return this.computedChild(type, mappedTypeNode, true).resolve();
         if (type.isUnionOrIntersection()) {
           return { dataType: type.isUnion() ? 'union' : 'intersection', types: type.types.map(calcMappedType) };
         } else if (this.hasFlag(type, ts.TypeFlags.Undefined)) {
@@ -860,6 +867,14 @@ export class TypeResolver {
     } else if (ts.isArrayTypeNode(arg)) {
       const typeName = this.calcTypeName(arg.elementType);
       return `${typeName}[]`;
+    } else if (ts.isTupleTypeNode(arg)) {
+      const elements = arg.elements.map(element => {
+        if (ts.isNamedTupleMember(element)) return `${element.dotDotDotToken ? '...' : ''}${element.name.text}${element.questionToken ? '?' : ''}: ${this.calcTypeName(element.type)}`;
+        if (ts.isOptionalTypeNode(element)) return `${this.calcTypeName(element.type)}?`;
+        if (ts.isRestTypeNode(element)) return `...${this.calcTypeName(element.type)}`;
+        return this.calcTypeName(element);
+      });
+      return `[${elements.join(', ')}]`;
     } else if (ts.isIntersectionTypeNode(arg)) {
       const memberTypeNames = arg.types.map(type => this.calcTypeName(type));
       return memberTypeNames.join(' & ');

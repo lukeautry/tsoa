@@ -44,19 +44,62 @@ export class OwnedCompiler {
     const captures = new Map<Occurrence, QueryCapture>();
     const inputs = new Map<QueryCapture, Occurrence>();
     const captureType = (type: ts.Type, site: ts.Node): QueryCapture => {
-      const literal = this.literal(type);
-      if (literal) return builder.addLiteral(literal, site);
       const symbol = type.aliasSymbol || type.getSymbol();
-      const declaration = symbol?.declarations?.find(node => ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node));
-      if (declaration && declaration.name) {
+      const declaration = symbol?.declarations?.find(
+        node => ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isEnumDeclaration(node) || ts.isEnumMember(node),
+      );
+      if (declaration && declaration.name && (type.aliasSymbol || !this.checker.isArrayType(type)) && (ts.isIdentifier(declaration.name) || ts.isStringLiteral(declaration.name))) {
         const arguments_ = type.aliasSymbol ? type.aliasTypeArguments || [] : this.isReference(type) ? this.checker.getTypeArguments(type) : [];
         return builder.addReference(
           declaration.name,
           arguments_.map(argument => captureType(argument, site)),
         );
       }
-      const typeLiteral = symbol?.declarations?.find(ts.isTypeLiteralNode);
-      if (typeLiteral) return builder.addSource(typeLiteral);
+      const literal = this.literal(type);
+      if (literal) return builder.addLiteral(literal, site);
+      if (type.isUnionOrIntersection())
+        return builder.addComposition(
+          type.isUnion() ? 'union' : 'intersection',
+          type.types.map(member => captureType(member, site)),
+          site,
+        );
+      if (this.isTuple(type)) {
+        const elements = this.checker.getTypeArguments(type).map((element, index) => {
+          const flags = type.target.elementFlags[index];
+          const kind = flags & ts.ElementFlags.Variadic ? 'variadic' : flags & ts.ElementFlags.Rest ? 'rest' : flags & ts.ElementFlags.Optional ? 'optional' : 'required';
+          return { kind, capture: captureType(element, site) } satisfies Parameters<typeof builder.addTuple>[0][number];
+        });
+        return builder.addTuple(elements, type.target.readonly, site);
+      }
+      if (this.checker.isArrayType(type)) {
+        const element = this.checker.getIndexTypeOfType(type, ts.IndexKind.Number);
+        if (!element) throw new GenerateMetadataError('A captured array has no element type.', site);
+        return builder.addArray(captureType(element, site), type.getSymbol()?.getName() === 'ReadonlyArray', site);
+      }
+      if (type.flags & ts.TypeFlags.Object && !type.getCallSignatures().length && !type.getConstructSignatures().length) {
+        const node = this.presentation.read(type).node;
+        if (!ts.isTypeLiteralNode(node)) throw new GenerateMetadataError('A captured object has no property presentation.', site);
+        const properties = this.checker.getPropertiesOfType(type).map(property => {
+          const declaration = node.members.find(
+            member =>
+              ts.isPropertySignature(member) && (ts.isIdentifier(member.name) || ts.isStringLiteral(member.name) || ts.isNumericLiteral(member.name)) && member.name.text === property.getName(),
+          );
+          if (!declaration || !ts.isPropertySignature(declaration)) throw new GenerateMetadataError('A captured object property has no presentation.', site);
+          return {
+            name: property.getName(),
+            capture: captureType(this.checker.getTypeOfSymbol(property), site),
+            optional: Boolean(property.flags & ts.SymbolFlags.Optional),
+            readonly: Boolean(declaration.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword)),
+          };
+        });
+        const indexes = this.checker.getIndexInfosOfType(type).map(index => {
+          if (!(index.keyType.flags & (ts.TypeFlags.String | ts.TypeFlags.Number))) throw new GenerateMetadataError('A captured object index needs a string or number key.', site);
+          return { key: index.keyType.flags & ts.TypeFlags.String ? 'string' : 'number', capture: captureType(index.type, site), readonly: index.isReadonly } satisfies Parameters<
+            typeof builder.addObject
+          >[1][number];
+        });
+        return builder.addObject(properties, indexes, site);
+      }
       throw new GenerateMetadataError('A computed capture needs a source declaration or an owned value projection.', site);
     };
     const capture = (occurrence: Occurrence): QueryCapture => {
@@ -140,6 +183,10 @@ export class OwnedCompiler {
 
   private isReference(type: ts.Type): type is ts.TypeReference {
     return Boolean(type.flags & ts.TypeFlags.Object) && 'objectFlags' in type && typeof type.objectFlags === 'number' && Boolean(type.objectFlags & ts.ObjectFlags.Reference);
+  }
+
+  private isTuple(type: ts.Type): type is ts.TupleTypeReference {
+    return this.isReference(type) && this.checker.isTupleType(type);
   }
 
   private literal(type: ts.Type): SemanticLiteral | undefined {
