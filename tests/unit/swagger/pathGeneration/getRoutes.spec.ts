@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { resolveTypeResolverMode } from '@tsoa/cli/metadataGeneration/typeResolverMode';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
@@ -234,11 +235,20 @@ describe('GET route generation', () => {
     }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
-  it('should reject unsupported indexed types', () => {
+  it('should reject unsupported indexed types', function () {
+    if (resolveTypeResolverMode() === 'checker') {
+      // The checker resolver evaluates indexed access into imported values (see tests/differential/knownDifferences.ts).
+      this.skip();
+    }
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
     }).to.throw(/^Unknown type: IndexedAccessType.*/);
+  });
+
+  it('should resolve indexed access into imported values with the checker resolver', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts', undefined, undefined, undefined, [], 'double', false, 'checker').Generate();
+    expect(metadata.referenceTypeMap.ForeignIndexedValue).to.deep.include({ dataType: 'refAlias', type: { dataType: 'enum', enums: ['FOO'] } });
   });
 
   it('should generate a path description from jsdoc comment', () => {
