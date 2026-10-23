@@ -62,6 +62,12 @@ export class CheckerTypeResolver {
     if (followed.node && ts.isUnionTypeNode(followed.node)) {
       return this.resolveWrittenUnion(type, followed, followed.node);
     }
+    if (followed.node && ts.isIntersectionTypeNode(followed.node)) {
+      const written = this.resolveWrittenIntersection(followed, followed.node);
+      if (written) {
+        return written;
+      }
+    }
     if (followed.node && ts.isTypeOperatorNode(followed.node) && followed.node.operator === ts.SyntaxKind.KeyOfKeyword) {
       return this.resolveKeys(type, followed);
     }
@@ -106,8 +112,13 @@ export class CheckerTypeResolver {
       return site;
     }
     if (ts.isIndexedAccessTypeNode(node)) {
+      // Legacy read the indexed property's (or element's) type node, but kept the outer declaration's JSDoc.
+      const element = node.indexType.kind === ts.SyntaxKind.NumberKeyword ? writtenArrayElement(node.objectType) : undefined;
+      if (element) {
+        return this.descriptive(followSite({ ...site, node: element }));
+      }
       const declaration = this.indexedDeclaration(site, node);
-      return declaration ? this.descriptive(followSite({ node: declaration.type, declaration, substitutions: emptySubstitutions })) : { ...site, node: undefined };
+      return declaration ? this.descriptive(followSite({ node: declaration.type, declaration: site.declaration, substitutions: emptySubstitutions })) : { ...site, node: undefined };
     }
     const opaque =
       ts.isConditionalTypeNode(node) ||
@@ -230,6 +241,11 @@ export class CheckerTypeResolver {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
       }
+      if (memberType && memberType.flags & (ts.TypeFlags.Null | ts.TypeFlags.Undefined) && !this.strictNullChecks) {
+        // An alias of null/undefined, erased from the checker's union in non-strict programs.
+        resolved.push(this.resolve(memberType, memberSite));
+        continue;
+      }
       const sameModel = this.sameModel(remaining, memberSite.node);
       if (sameModel && take([sameModel])) {
         resolved.push(this.resolve(sameModel, memberSite));
@@ -241,6 +257,20 @@ export class CheckerTypeResolver {
       resolved.push(...(rest.dataType === 'union' ? rest.types : [rest]));
     }
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
+  }
+
+  /**
+   * An intersection written in source, member by member, when every member's type is known.
+   * The checker flattens (`(A & B) & C`) and distributes (`(A | B) & C`) intersections; legacy kept
+   * the written members, and their intersection is the same type.
+   */
+  private resolveWrittenIntersection(site: Site, node: ts.IntersectionTypeNode): Tsoa.IntersectionType | undefined {
+    const members = node.types.map(member => childSite(site, member));
+    const types = members.map(member => this.writtenType(member));
+    if (types.some(type => type === undefined)) {
+      return undefined;
+    }
+    return { dataType: 'intersection', types: members.map((member, i) => this.resolve(types[i]!, member)) };
   }
 
   /** The remaining member that is an instance of the model a written reference names. */
@@ -328,6 +358,15 @@ export class CheckerTypeResolver {
     }
     throw new GenerateMetadataError(`Can not succeeded to calculate referencer type.`, typeNode);
   }
+}
+
+/** The written element type of `E[]` or `Array<E>`, for `X[number]`. */
+function writtenArrayElement(node: ts.TypeNode): ts.TypeNode | undefined {
+  const inner = ts.isParenthesizedTypeNode(node) ? node.type : node;
+  if (ts.isArrayTypeNode(inner)) {
+    return inner.elementType;
+  }
+  return ts.isTypeReferenceNode(inner) && ts.isIdentifier(inner.typeName) && inner.typeName.text === 'Array' ? inner.typeArguments?.[0] : undefined;
 }
 
 /** Whether a written node refers to any of the type parameters in scope. */

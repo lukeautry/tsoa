@@ -28,6 +28,10 @@ export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Ty
   if (reference.declarations.length === 0) {
     return undefined;
   }
+  // An alias whose body evaluates to the alias itself must not name its own body.
+  if (!written && site.declaration && (reference.declarations as ts.Node[]).includes(site.declaration)) {
+    return undefined;
+  }
 
   return resolver.registry.reference(
     reference.refName,

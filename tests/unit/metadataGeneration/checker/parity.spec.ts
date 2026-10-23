@@ -47,4 +47,57 @@ describe('checker resolver parity with legacy naming of evaluated types', () => 
     ]);
     expect(md.referenceTypeMap).not.to.have.property('Base');
   });
+
+  describe('non-strict programs', () => {
+    const loose = checkerMetadata('parity.ts');
+    it('keeps written aliases of null in unions', () => {
+      const body = refOf(loose, 'NullUnionBody') as Tsoa.RefObjectType;
+      expect(body.properties.map(p => (p.type as Tsoa.UnionType).types.map(t => (t as Tsoa.ReferenceType).refName ?? t.dataType))).to.deep.equal([
+        ['boolean', 'NullAlias'],
+        ['boolean', 'IndirectNull'],
+      ]);
+    });
+  });
+
+  it('does not let an alias name itself when its body is evaluated', () => {
+    expect((refOf(md, 'ValueOf') as Tsoa.RefAliasType).type).to.deep.equal({
+      dataType: 'union',
+      types: [
+        { dataType: 'enum', enums: ['x'] },
+        { dataType: 'enum', enums: ['y'] },
+      ],
+    });
+  });
+
+  it('keeps written intersection members even when the checker flattens or distributes them', () => {
+    const names = (refName: string) => ((refOf(md, refName) as Tsoa.RefAliasType).type as Tsoa.IntersectionType).types.map(t => (t as Tsoa.ReferenceType).refName);
+    expect(names('Triple')).to.deep.equal(['Pair', 'Target']);
+    expect(names('Distributed')).to.deep.equal(['OneOrTwo', 'Target']);
+  });
+
+  it('does not use an original property type as a hint when a mapped type transforms it', () => {
+    const deep = refOf(md, 'DeepPartial_Leaf_') as Tsoa.RefAliasType;
+    // strict mode: `leaves?: (DeepPartial<Leaf> | undefined)[] | undefined`
+    const leaves = (deep.type as Tsoa.NestedObjectLiteralType).properties[0].type as Tsoa.UnionType;
+    const array = leaves.types.find((t): t is Tsoa.ArrayType => t.dataType === 'array')!;
+    expect((array.elementType as Tsoa.UnionType).types).to.deep.include({ dataType: 'undefined' });
+    expect((array.elementType as Tsoa.UnionType).types.map(t => (t as Tsoa.ReferenceType).refName)).to.include('DeepPartial_Leaf_');
+  });
+
+  it('keeps properties declared by object literals (typeof, z.infer)', () => {
+    expect(((refOf(md, 'Shape') as Tsoa.RefAliasType).type as Tsoa.NestedObjectLiteralType).properties.map(p => p.name)).to.have.members(['id', 'count']);
+  });
+
+  it('reads indexed access through the property node but keeps the outer JSDoc (legacy)', () => {
+    const loose = checkerMetadata('parity.ts');
+    const [only, element] = (refOf(loose, 'UsesFormats') as Tsoa.RefObjectType).properties;
+    expect(only.type).to.deep.equal({ dataType: 'double' });
+    expect((element.type as Tsoa.NestedObjectLiteralType).properties[0].type).to.deep.equal({
+      dataType: 'union',
+      types: [
+        { dataType: 'enum', enums: ['lit'] },
+        { dataType: 'enum', enums: [null] },
+      ],
+    });
+  });
 });

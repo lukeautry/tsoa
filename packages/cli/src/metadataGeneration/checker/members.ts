@@ -65,13 +65,16 @@ export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.T
   }
 
   const checker = resolver.generator.typeChecker;
+  const mapped = node !== undefined && ts.isMappedTypeNode(node);
+  // Written mapped types drop non-property members and @ignore (legacy mapped branch); unwritten
+  // object types drop methods and accessors, as legacy's printed type literal did.
   const properties = checker
     .getPropertiesOfType(type)
-    .filter(property => !isIgnoredMapped(property))
+    .filter(property => (mapped ? !isIgnoredMapped(property) : !(property.flags & (ts.SymbolFlags.Method | ts.SymbolFlags.Accessor))))
     .map(property => mappedProperty(resolver, property, site));
   const result: Tsoa.NestedObjectLiteralType = {
     dataType: 'nestedObjectLiteral',
-    properties: node && ts.isMappedTypeNode(node) ? properties : properties.reverse(),
+    properties: mapped ? properties : properties.reverse(),
   };
   const indexTypes = checker
     .getIndexInfosOfType(type)
@@ -171,18 +174,15 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
   const checker = resolver.generator.typeChecker;
   const origin = originDeclaration(property);
   const annotations = origin ? readAnnotations(origin, resolver.generator) : undefined;
-  const written = origin && (origin as { type?: ts.TypeNode }).type;
-  const hintSite: Site =
-    written && substitutionsCover(origin, site.substitutions)
-      ? { node: written, declaration: origin, substitutions: site.substitutions }
-      : { node: undefined, declaration: origin, substitutions: site.substitutions };
+  const propertyType = checker.getTypeOfSymbol(property);
+  const hintSite = mappedHint(resolver, origin, propertyType, site);
   const initializer = origin && (origin as { initializer?: ts.Expression }).initializer;
   const comments = property.getDocumentationComment(checker);
   return {
     name: property.getName(),
     required: !(property.flags & ts.SymbolFlags.Optional),
     deprecated: annotations?.deprecated ?? false,
-    type: resolver.resolve(checker.getTypeOfSymbol(property), hintSite),
+    type: resolver.resolve(propertyType, hintSite),
     default: initializer ? getInitializerValue(initializer, checker) : annotations?.default,
     validators: annotations?.validators ?? {},
     description: comments.length ? ts.displayPartsToString(comments) : undefined,
@@ -190,6 +190,17 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
     example: annotations?.example,
     extensions: annotations?.extensions,
   };
+}
+
+/**
+ * The original declaration's written type is a hint for a mapped property only when it names
+ * exactly the property's type (e.g. `id: UUID` through `Omit`); mapped types may transform types.
+ */
+function mappedHint(resolver: CheckerTypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site): Site {
+  const written = origin && (origin as { type?: ts.TypeNode }).type;
+  const hint: Site = { node: written, declaration: origin, substitutions: site.substitutions };
+  const usable = written && ts.isTypeReferenceNode(written) && substitutionsCover(origin, site.substitutions) && resolver.writtenType(hint) === propertyType;
+  return usable ? hint : { ...hint, node: undefined };
 }
 
 function originDeclaration(property: ts.Symbol): ts.Declaration | undefined {

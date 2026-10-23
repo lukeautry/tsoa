@@ -73,3 +73,74 @@ export class ParityController {
     return null as any;
   }
 }
+
+export type NullAlias = null;
+export type IndirectNull = NullAlias;
+export interface NullUnionBody {
+  a: boolean | NullAlias;
+  b: boolean | IndirectNull;
+}
+
+export type ValueOf = Cfg[keyof Cfg];
+
+export type Pair = First & Second;
+export type Triple = Pair & Target;
+export type Distributed = OneOrTwo & Target;
+
+export interface Leaf {
+  leaves: Leaf[];
+}
+export type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
+
+@Route('parity2')
+export class Parity2Controller {
+  @Get('nullUnion')
+  public async nullUnion(): Promise<NullUnionBody> {
+    return null as any;
+  }
+
+  @Get('valueOf')
+  public async valueOf(): Promise<ValueOf> {
+    return null as any;
+  }
+
+  @Get('triple')
+  public async triple(): Promise<Triple> {
+    return null as any;
+  }
+
+  @Get('distributed')
+  public async distributed(): Promise<Distributed> {
+    return null as any;
+  }
+
+  @Get('deep')
+  public async deep(): Promise<DeepPartial<Leaf>> {
+    return null as any;
+  }
+}
+
+const shape = { id: 'x', count: 1 };
+export type Shape = typeof shape;
+
+export interface Formats {
+  /** @isInt */
+  n: number;
+}
+export interface UsesFormats {
+  only: Formats['n'];
+  element: Array<{ p: 'lit' | null }>[number];
+}
+
+@Route('parity3')
+export class Parity3Controller {
+  @Get('shape')
+  public async shape(): Promise<Shape> {
+    return null as any;
+  }
+
+  @Get('formats')
+  public async formats(): Promise<UsesFormats> {
+    return null as any;
+  }
+}

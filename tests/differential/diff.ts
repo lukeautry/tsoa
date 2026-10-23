@@ -64,7 +64,7 @@ export function diffJson(legacy: unknown, checker: unknown, path = ''): Differen
 }
 
 export function isKnown(known: KnownDifference[], entry: string, path: string): boolean {
-  return known.some(k => k.entry === entry && (path === k.path || path.startsWith(`${k.path}.`) || path.startsWith(`${k.path}[`)));
+  return known.some(k => (k.entry === '*' || k.entry === entry) && (path === k.path || path.startsWith(`${k.path}.`) || path.startsWith(`${k.path}[`)));
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

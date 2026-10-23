@@ -50,4 +50,8 @@ describe('resolver differential diff', () => {
   it('replaces generation-time timestamps', () => {
     expect(normalizeOutcome({ metadata: { controllers: [{ example: '2026-10-23T19:47:02.053Z' }] } as any }, '/repo')).to.deep.equal({ metadata: { controllers: [{ example: '<timestamp>' }] } });
   });
+
+  it("matches known differences for every entry with entry '*'", () => {
+    expect(isKnown([{ entry: '*', path: 'metadata.referenceTypeMap.Foo', reason: 'r' }], 'fixtures/any.ts', 'metadata.referenceTypeMap.Foo.type')).to.equal(true);
+  });
 });
