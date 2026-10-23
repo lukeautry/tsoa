@@ -73,6 +73,9 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
         case 'header':
           return this.validationService.ValidateParam(param, context.request.headers[name], name, errorFields, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            return context.req;
+          }
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value : undefined;
           const bodyFieldErrors: FieldErrors = {};
