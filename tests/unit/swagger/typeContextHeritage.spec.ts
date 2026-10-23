@@ -7,7 +7,7 @@ import { createProgram, flattenDiagnosticMessageText, getPreEmitDiagnostics, Mod
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 
 const fixtureRoot = './fixtures/controllers/typeContextHeritage/';
-const fixtureNames = ['direct', 'interface', 'class', 'generic', 'objectGeneric', 'sibling', 'baseFirst', 'derivedFirst'];
+const fixtureNames = ['direct', 'interface', 'class', 'generic', 'objectGeneric', 'genericClass', 'sibling', 'baseFirst', 'derivedFirst'];
 
 function required<T>(value: T | undefined, name: string): T {
   if (value === undefined) {
@@ -145,6 +145,17 @@ describe('Mapped alias heritage', () => {
         expect(response()).to.deep.include({ $ref: '#/components/schemas/ObjectGeneric_Left_' });
         expectGeneric(schemas, 'ObjectGeneric_Left_');
         expectMetadataFields(metadata, 'ObjectGeneric_Left_', ['value', 'extra']);
+      });
+
+      it('keeps optional mapped implements fields absent from a generic class', () => {
+        const { metadata, schemas, response } = generate('genericClass', strictNullChecks);
+        expect(response()).to.deep.include({ $ref: '#/components/schemas/GenericClass_Left_' });
+        expectFields(schemas.GenericClass_Left_, ['value', 'other', 'extra']);
+        expect(schemas.GenericClass_Left_.properties?.value).to.deep.include({ $ref: '#/components/schemas/Left' });
+        expect(schemas.GenericClass_Left_.properties?.other).to.deep.include({ $ref: '#/components/schemas/Left' });
+        expect(schemas.GenericClass_Left_.properties?.extra).to.deep.include({ type: 'string', default: 'extra' });
+        expect(schemas).not.to.have.property('Slots_Left_');
+        expectMetadataFields(metadata, 'GenericClass_Left_', ['value', 'other', 'extra']);
       });
 
       it('keeps a two-base own override and excludes duplicate inherited fields', () => {

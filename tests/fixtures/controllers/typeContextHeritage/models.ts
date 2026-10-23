@@ -34,3 +34,10 @@ export interface Sibling extends Base<Left>, Base<Right> {
   shared: 'own';
   extra: boolean;
 }
+
+export type Slots<T> = { [K in 'value' | 'other']?: T };
+
+export class GenericClass<T> implements Slots<T> {
+  public value?: T;
+  public extra = 'extra';
+}
