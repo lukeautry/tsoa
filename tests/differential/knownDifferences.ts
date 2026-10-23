@@ -42,5 +42,7 @@ export const knownDifferences: KnownDifference[] = [
   checkerFixture('members.ts', 'metadata.referenceTypeMap.UUID', 'legacy drops the UUID alias (and its @pattern) through Omit', 1543),
   checkerFixture('parity.ts', 'error', 'legacy throws `Unknown type: TypeQuery` for `typeof value`', 737),
   checkerFixture('parity.ts', 'metadata', 'see error'),
+  checkerFixture('regressions.ts', 'error', 'legacy rejects typeof, enum-member indexed access, Uppercase, template literals, Exclude, keyof typeof, z.infer'),
+  checkerFixture('regressions.ts', 'metadata', 'see error'),
   checkerFixture('referenceModels.ts', 'metadata.referenceTypeMap.Item.properties', 'legacy copies inherited properties from a base that is still being built (cycle) and drops them', 1124),
 ];

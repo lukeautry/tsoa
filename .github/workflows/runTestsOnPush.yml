@@ -59,8 +59,6 @@ jobs:
   checker-resolver:
     name: Checker type resolver
     runs-on: ubuntu-latest
-    # Allowed to fail until the checker resolver reaches parity with legacy.
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v7
@@ -88,3 +86,7 @@ jobs:
       - name: Compare resolvers
         working-directory: tests
         run: yarn diff:resolvers && yarn diff:resolvers --strict
+
+      - name: Compare resolver performance
+        working-directory: tests
+        run: yarn time:resolvers --runs 3
