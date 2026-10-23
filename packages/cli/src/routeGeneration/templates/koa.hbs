@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import { fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+import { fetchMiddlewares, KoaTemplateService{{#if useSecurity}}, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -155,6 +155,7 @@ export function RegisterRoutes(router: KoaRouter) {
             };
 
             const secMethodOrPromises: Promise<any>[] = [];
+            const secMethodAndPromisesAll: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -166,6 +167,7 @@ export function RegisterRoutes(router: KoaRouter) {
                         );
                     }
 
+                    secMethodAndPromisesAll.push(...secMethodAndPromises);
                     secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
@@ -187,8 +189,16 @@ export function RegisterRoutes(router: KoaRouter) {
                 context.request['user'] = user;
             }
             catch(err) {
+                // An empty security entry (`@Security({})`) allows requests without credentials
+                const anonymous = await isAnonymousFallback(security, secMethodAndPromisesAll, failedAttempts);
+
                 // Response was sent in middleware, abort
                 if(context.response.body) {
+                    return;
+                }
+
+                if (anonymous) {
+                    await next();
                     return;
                 }
 
