@@ -15,7 +15,7 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
-  private readonly compilerOptions: CompilerOptions;
+  public readonly compilerOptions: CompilerOptions;
   public readonly typeResolverMode: TypeResolverMode;
 
   constructor(
