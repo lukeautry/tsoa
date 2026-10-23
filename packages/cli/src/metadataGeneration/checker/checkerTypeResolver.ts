@@ -9,9 +9,9 @@ import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { LegacyNamer } from './naming';
 import { ReferenceRegistry } from './registry';
-import { symbolAt } from './declarations';
-import { childSite, emptySubstitutions, followSite, rootSite, substitutionsCover, type Site, type Substitutions } from './site';
+import { childSite, followSite, rootSite, type Site } from './site';
 import { resolveSpecialType } from './specialTypes';
+import { arrayElementNode, descriptiveSite, nullishKeyword, sameModel, typeArgumentNode, writtenType } from './written';
 
 type LiteralValue = string | number | boolean | null;
 
@@ -40,7 +40,7 @@ export class CheckerTypeResolver {
 
   /** The single classification dispatch. Order matters; see the design doc "Type classification". */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
-    const followed = this.descriptive(followSite(site));
+    const followed = descriptiveSite(this.checker, followSite(site));
     if (isErrorType(type)) {
       const name = followed.node && followed.node.pos !== -1 ? followed.node.getText() : this.checker.typeToString(type);
       throw new GenerateMetadataError(`Could not find declarations for type '${name}'.`, followed.node);
@@ -75,71 +75,6 @@ export class CheckerTypeResolver {
       return { dataType: 'enum', enums: type.types.map(t => t.value) };
     }
     return this.resolveStructure(type, followed);
-  }
-
-  /**
-   * The type the written node at `site` denotes, when the checker can tell: the node mentions no
-   * type parameter in scope, or it is an identity alias (`type Id<T> = T`) of such a node.
-   */
-  public writtenType(site: Site): ts.Type | undefined {
-    const followed = followSite(site);
-    const node = followed.node;
-    if (!node || node.pos === -1) {
-      return undefined;
-    }
-    if (!mentions(node, followed.substitutions)) {
-      return this.checker.getTypeFromTypeNode(node);
-    }
-    if (ts.isTypeReferenceNode(node)) {
-      const declaration = symbolAt(this.checker, node.typeName)?.declarations?.find(ts.isTypeAliasDeclaration);
-      const body = declaration?.type;
-      const index =
-        body && ts.isTypeReferenceNode(body) && ts.isIdentifier(body.typeName) ? (declaration.typeParameters ?? []).findIndex(p => p.name.text === (body.typeName as ts.Identifier).text) : -1;
-      const argument = index >= 0 ? (node.typeArguments?.[index] ?? declaration?.typeParameters?.[index].default) : undefined;
-      return argument ? this.writtenType(childSite(followed, argument)) : undefined;
-    }
-    return undefined;
-  }
-
-  /**
-   * Nodes that do not describe their type's shape (conditional, indexed access, type queries…) are
-   * replaced: indexed access by the indexed property's declaration, the others by nothing, so the
-   * type is named as the checker prints it (what legacy did with `typeToTypeNode`).
-   */
-  private descriptive(site: Site): Site {
-    const node = site.node;
-    if (!node) {
-      return site;
-    }
-    if (ts.isIndexedAccessTypeNode(node)) {
-      // Legacy read the indexed property's (or element's) type node, but kept the outer declaration's JSDoc.
-      const element = node.indexType.kind === ts.SyntaxKind.NumberKeyword ? writtenArrayElement(node.objectType) : undefined;
-      if (element) {
-        return this.descriptive(followSite({ ...site, node: element }));
-      }
-      const declaration = this.indexedDeclaration(site, node);
-      return declaration ? this.descriptive(followSite({ node: declaration.type, declaration: site.declaration, substitutions: emptySubstitutions })) : { ...site, node: undefined };
-    }
-    const opaque =
-      ts.isConditionalTypeNode(node) ||
-      ts.isTypeQueryNode(node) ||
-      ts.isInferTypeNode(node) ||
-      ts.isThisTypeNode(node) ||
-      node.kind === ts.SyntaxKind.IntrinsicKeyword ||
-      (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.UniqueKeyword);
-    return opaque ? { ...site, node: undefined } : site;
-  }
-
-  /** The declaration of `Obj['prop']`'s property, when it is written outside any generic scope. */
-  private indexedDeclaration(site: Site, node: ts.IndexedAccessTypeNode): (ts.Declaration & { type: ts.TypeNode }) | undefined {
-    const index = node.indexType;
-    if (!ts.isLiteralTypeNode(index) || !(ts.isStringLiteral(index.literal) || ts.isNumericLiteral(index.literal))) {
-      return undefined;
-    }
-    const objectType = this.writtenType(childSite(site, node.objectType));
-    const declaration = objectType && this.checker.getPropertyOfType(objectType, index.literal.text)?.valueDeclaration;
-    const typed = declaration && (declaration as { type?: ts.TypeNode }).type;
-    return typed && substitutionsCover(declaration, emptySubstitutions) ? (declaration as ts.Declaration & { type: ts.TypeNode }) : undefined;
   }
 
   /** Named models: aliases, interfaces, classes and enums. */
@@ -236,7 +171,7 @@ export class CheckerTypeResolver {
         }
         continue;
       }
-      const memberType = this.writtenType(memberSite);
+      const memberType = writtenType(this.checker, memberSite);
       if (memberType && take(memberType.isUnion() ? memberType.types : [memberType])) {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
@@ -246,9 +181,9 @@ export class CheckerTypeResolver {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
       }
-      const sameModel = this.sameModel(remaining, memberSite.node);
-      if (sameModel && take([sameModel])) {
-        resolved.push(this.resolve(sameModel, memberSite));
+      const instance = sameModel(this.checker, remaining, memberSite.node);
+      if (instance && take([instance])) {
+        resolved.push(this.resolve(instance, memberSite));
       }
     }
 
@@ -266,20 +201,11 @@ export class CheckerTypeResolver {
    */
   private resolveWrittenIntersection(site: Site, node: ts.IntersectionTypeNode): Tsoa.IntersectionType | undefined {
     const members = node.types.map(member => childSite(site, member));
-    const types = members.map(member => this.writtenType(member));
+    const types = members.map(member => writtenType(this.checker, member));
     if (types.some(type => type === undefined)) {
       return undefined;
     }
     return { dataType: 'intersection', types: members.map((member, i) => this.resolve(types[i]!, member)) };
-  }
-
-  /** The remaining member that is an instance of the model a written reference names. */
-  private sameModel(remaining: readonly ts.Type[], node: ts.TypeNode | undefined): ts.Type | undefined {
-    if (!node || !ts.isTypeReferenceNode(node)) {
-      return undefined;
-    }
-    const symbol = symbolAt(this.checker, node.typeName);
-    return symbol ? remaining.find(member => member.aliasSymbol === symbol || (!member.aliasSymbol && member.getSymbol() === symbol)) : undefined;
   }
 
   /**
@@ -315,12 +241,12 @@ export class CheckerTypeResolver {
     if (members.length === 1) {
       return this.resolve(members[0], site);
     }
-    const written = this.writtenType(site);
+    const written = writtenType(this.checker, site);
     const writtenMembers = written ? (written.isUnion() ? written.types : [written]) : [];
     if (written && writtenMembers.length === members.length && writtenMembers.every(member => members.includes(member))) {
       return this.resolve(written, site);
     }
-    const followed = this.descriptive(followSite(site));
+    const followed = descriptiveSite(this.checker, followSite(site));
     if (followed.node && ts.isUnionTypeNode(followed.node)) {
       return this.resolveWrittenUnion(members, followed, followed.node);
     }
@@ -383,35 +309,6 @@ export class CheckerTypeResolver {
   }
 }
 
-/** The written element type of `E[]` or `Array<E>`, for `X[number]`. */
-function writtenArrayElement(node: ts.TypeNode): ts.TypeNode | undefined {
-  const inner = ts.isParenthesizedTypeNode(node) ? node.type : node;
-  if (ts.isArrayTypeNode(inner)) {
-    return inner.elementType;
-  }
-  return ts.isTypeReferenceNode(inner) && ts.isIdentifier(inner.typeName) && inner.typeName.text === 'Array' ? inner.typeArguments?.[0] : undefined;
-}
-
-/** Whether a written node refers to any of the type parameters in scope. */
-function mentions(node: ts.Node, substitutions: Substitutions): boolean {
-  if (substitutions.size === 0) {
-    return false;
-  }
-  let found = false;
-  const visit = (child: ts.Node) => {
-    if (found) {
-      return;
-    }
-    if (ts.isTypeReferenceNode(child) && ts.isIdentifier(child.typeName) && substitutions.has(child.typeName.text)) {
-      found = true;
-      return;
-    }
-    ts.forEachChild(child, visit);
-  };
-  visit(node);
-  return found;
-}
-
 function literalValue(type: ts.Type): LiteralValue | undefined {
   if (type.isStringLiteral() || type.isNumberLiteral()) {
     return type.value;
@@ -436,35 +333,4 @@ function literalEnums(values: LiteralValue[]): Tsoa.Type {
     };
   }
   return { dataType: 'enum', enums: values };
-}
-
-function nullishKeyword(node: ts.TypeNode | undefined): 'null' | 'undefined' | undefined {
-  if (!node) {
-    return undefined;
-  }
-  if (ts.isLiteralTypeNode(node) && node.literal.kind === ts.SyntaxKind.NullKeyword) {
-    return 'null';
-  }
-  return node.kind === ts.SyntaxKind.UndefinedKeyword ? 'undefined' : undefined;
-}
-
-function typeArgumentNode(node: ts.TypeNode | undefined, index: number): ts.TypeNode | undefined {
-  return node && ts.isTypeReferenceNode(node) ? node.typeArguments?.[index] : undefined;
-}
-
-/** The written element type of `T[]`, `readonly T[]`, `Array<T>` or `ReadonlyArray<T>`. */
-function arrayElementNode(node: ts.TypeNode | undefined): ts.TypeNode | undefined {
-  if (!node) {
-    return undefined;
-  }
-  if (ts.isArrayTypeNode(node)) {
-    return node.elementType;
-  }
-  if (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.ReadonlyKeyword) {
-    return arrayElementNode(node.type);
-  }
-  if (ts.isParenthesizedTypeNode(node)) {
-    return arrayElementNode(node.type);
-  }
-  return typeArgumentNode(node, 0);
 }

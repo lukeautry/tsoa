@@ -8,6 +8,7 @@ import type { CheckerTypeResolver } from './checkerTypeResolver';
 import { modelDeclarations } from './declarations';
 import { resolveNamedReference } from './models';
 import { syntheticOrigin } from './internals';
+import { writtenType } from './written';
 import { childSite, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
 type Owner = ts.InterfaceDeclaration | ts.ClassDeclaration;
@@ -202,7 +203,7 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
 function mappedHint(resolver: CheckerTypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site): Site {
   const written = origin && (origin as { type?: ts.TypeNode }).type;
   const hint: Site = { node: written, declaration: origin, substitutions: site.substitutions };
-  const usable = written && ts.isTypeReferenceNode(written) && substitutionsCover(origin, site.substitutions) && resolver.writtenType(hint) === propertyType;
+  const usable = written && ts.isTypeReferenceNode(written) && substitutionsCover(origin, site.substitutions) && writtenType(resolver.generator.typeChecker, hint) === propertyType;
   return usable ? hint : { ...hint, node: undefined };
 }
 
