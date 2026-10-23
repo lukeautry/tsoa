@@ -53,6 +53,9 @@ describe('Explicit index values in computed type contexts', () => {
 
         const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
         const directSpec = new SpecGenerator3(directMetadata, getDefaultExtendedOptions()).GetSpec();
+        if (spec.openapi !== '3.0.0' || directSpec.openapi !== '3.0.0') {
+          throw new Error('Expected OpenAPI 3.0 specifications');
+        }
         const schemas = required(spec.components.schemas, 'component schemas');
         const resolve = (schema: Swagger.Schema3 | undefined): Swagger.Schema3 => {
           const value = required(schema, 'schema');

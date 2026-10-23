@@ -28,15 +28,15 @@ function generate(name: string, strictNullChecks: boolean) {
   return { response, schemas };
 }
 
-function expectOptionalProperties(schema: Swagger.Schema3, properties: Record<string, string>) {
+function expectOptionalProperties(schema: Pick<Swagger.BaseSchema, 'properties' | 'required'>, properties: Record<string, string>) {
   expect(schema.properties, 'mapped properties').to.have.all.keys(Object.keys(properties));
   for (const [name, type] of Object.entries(properties)) {
-    expect(schema.properties?.[name].type, name).to.equal(type);
+    expect(schema.properties?.[name], name).to.deep.include({ type });
   }
   expect(schema.required, 'mapped properties stay optional').to.equal(undefined);
 }
 
-function expectSchemaReference(schema: Swagger.Schema3 | undefined, name: string) {
+function expectSchemaReference(schema: Pick<Swagger.BaseSchema, '$ref'> | undefined, name: string) {
   expect(required(schema, name).$ref).to.equal(`#/components/schemas/${name}`);
 }
 
