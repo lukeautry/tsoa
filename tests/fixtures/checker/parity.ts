@@ -120,9 +120,6 @@ export class Parity2Controller {
   }
 }
 
-const shape = { id: 'x', count: 1 };
-export type Shape = typeof shape;
-
 export interface Formats {
   /** @isInt */
   n: number;
@@ -134,11 +131,6 @@ export interface UsesFormats {
 
 @Route('parity3')
 export class Parity3Controller {
-  @Get('shape')
-  public async shape(): Promise<Shape> {
-    return null as any;
-  }
-
   @Get('formats')
   public async formats(): Promise<UsesFormats> {
     return null as any;

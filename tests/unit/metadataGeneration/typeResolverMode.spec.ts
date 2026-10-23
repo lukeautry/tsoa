@@ -20,6 +20,10 @@ describe('typeResolver mode selection', () => {
     expect(() => resolveTypeResolverMode(undefined, { TSOA_TYPE_RESOLVER: 'fast' })).to.throw(/TSOA_TYPE_RESOLVER must be 'legacy' or 'checker', got 'fast'/);
   });
 
+  it('rejects unknown explicit values (e.g. from tsoa.json)', () => {
+    expect(() => resolveTypeResolverMode('Checker' as never, {})).to.throw(/typeResolver must be 'legacy' or 'checker', got 'Checker'/);
+  });
+
   it('exposes the chosen mode on MetadataGenerator', () => {
     const generator = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, undefined, [], 'double', false, 'checker');
     expect(generator.typeResolverMode).to.equal('checker');

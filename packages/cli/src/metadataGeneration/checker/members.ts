@@ -9,7 +9,7 @@ import { modelDeclarations } from './declarations';
 import { resolveNamedReference } from './models';
 import { syntheticOrigin } from './internals';
 import { writtenType } from './written';
-import { childSite, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
+import { childSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
 type Owner = ts.InterfaceDeclaration | ts.ClassDeclaration;
 type Member = ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration;
@@ -95,19 +95,36 @@ export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.T
  */
 function modelProperties(resolver: CheckerTypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
   const checker = resolver.generator.typeChecker;
+  const own = ownMembers(declaration).map(member => declaredProperty(resolver, ownerType, { name: propertyName(resolver, member), member, substitutions }));
+  const seen = new Set(own.map(property => property.name));
   const clauses: readonly ts.HeritageClause[] = declaration.heritageClauses ?? [];
   const inherited = clauses.flatMap(clause =>
     clause.types.flatMap((heritage): Tsoa.Property[] => {
       const bases = modelDeclarations(checker, heritage.expression as ts.EntityName);
       const owners = bases.filter((base): base is Owner => ts.isInterfaceDeclaration(base) || ts.isClassDeclaration(base));
       if (owners.length) {
-        return owners.flatMap(base => modelProperties(resolver, base, ownerType, substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer)));
+        const properties = owners.flatMap(base => modelProperties(resolver, base, ownerType, substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer)));
+        properties.forEach(property => seen.add(property.name));
+        return properties;
       }
-      const base = resolveNamedReference(resolver, checker.getTypeAtLocation(heritage), { node: heritage, declaration: undefined, substitutions }, resolveModel, false);
-      return base ? propertiesOf(base) : [];
+      const site: Site = { node: heritage, declaration: undefined, substitutions };
+      const baseType = writtenType(checker, site);
+      if (baseType) {
+        const base = resolveNamedReference(resolver, baseType, site, resolveModel, false);
+        const properties = base ? propertiesOf(base) : [];
+        properties.forEach(property => seen.add(property.name));
+        return properties;
+      }
+      // A base that mentions the owner's type parameters (`interface Envelope<T> extends Patch<T>`):
+      // its instantiated properties are the owner's properties not declared anywhere else.
+      const properties = checker
+        .getPropertiesOfType(ownerType)
+        .filter(property => !seen.has(property.getName()) && !isIgnoredMapped(property))
+        .map(property => mappedProperty(resolver, property, { node: undefined, declaration: undefined, substitutions: emptySubstitutions }));
+      properties.forEach(property => seen.add(property.name));
+      return properties;
     }),
   );
-  const own = ownMembers(declaration).map(member => declaredProperty(resolver, ownerType, { name: propertyName(resolver, member), member, substitutions }));
   return [...inherited, ...own];
 }
 

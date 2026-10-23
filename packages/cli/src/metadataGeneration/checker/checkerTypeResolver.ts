@@ -4,7 +4,7 @@ import { getJSDocTagNames } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
-import { isArrayType, isErrorType, isTupleType, tupleElementFlags } from './internals';
+import { isArrayType, isErrorType, isTupleType, tupleElementFlags, unionOf } from './internals';
 import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { LegacyNamer } from './naming';
@@ -181,7 +181,7 @@ export class CheckerTypeResolver {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
       }
-      const instance = sameModel(this.checker, remaining, memberSite.node);
+      const instance = sameModel(this.checker, remaining, memberSite);
       if (instance && take([instance])) {
         resolved.push(this.resolve(instance, memberSite));
       }
@@ -241,6 +241,10 @@ export class CheckerTypeResolver {
     if (members.length === 1) {
       return this.resolve(members[0], site);
     }
+    const union = unionOf(this.checker, members);
+    if (union) {
+      return this.resolve(union, site);
+    }
     const written = writtenType(this.checker, site);
     const writtenMembers = written ? (written.isUnion() ? written.types : [written]) : [];
     if (written && writtenMembers.length === members.length && writtenMembers.every(member => members.includes(member))) {
@@ -277,8 +281,11 @@ export class CheckerTypeResolver {
   }
 
   private resolveTuple(type: ts.TypeReference, site: Site): Tsoa.TupleType {
-    const elements = site.node && ts.isTupleTypeNode(site.node) ? site.node.elements : undefined;
     const flags = tupleElementFlags(type);
+    const written = site.node && ts.isTupleTypeNode(site.node) ? site.node.elements : undefined;
+    // Spreads of tuple aliases (`[...Pair, X]`) expand in the checker; written elements only line up without them.
+    const spreadsTuple = written?.some(element => ts.isRestTypeNode(element) && !ts.isArrayTypeNode(element.type));
+    const elements = written && !spreadsTuple && written.length === flags.length ? written : undefined;
     const types: Tsoa.Type[] = [];
     let restType: Tsoa.Type | undefined;
     this.checker.getTypeArguments(type).forEach((elementType, i) => {

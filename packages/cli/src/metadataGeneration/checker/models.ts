@@ -35,6 +35,7 @@ export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Ty
 
   return resolver.registry.reference(
     reference.refName,
+    type,
     () => {
       const outer: Site = { ...site, node, substitutions };
       const models = reference.declarations.map(declaration => {

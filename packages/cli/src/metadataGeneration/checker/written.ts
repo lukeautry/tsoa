@@ -71,13 +71,31 @@ function indexedDeclaration(checker: ts.TypeChecker, site: Site, node: ts.Indexe
   return typed && substitutionsCover(declaration, emptySubstitutions) ? (declaration as ts.Declaration & { type: ts.TypeNode }) : undefined;
 }
 
-/** The remaining member that is an instance of the model a written reference names. */
-export function sameModel(checker: ts.TypeChecker, remaining: readonly ts.Type[], node: ts.TypeNode | undefined): ts.Type | undefined {
+/**
+ * The remaining member that is an instance of the model a written reference names. When several
+ * instantiations of one generic remain (`Result<L> | Result<R>`), the written type arguments —
+ * resolved through the substitutions — pick one; if they cannot, there is no match.
+ */
+export function sameModel(checker: ts.TypeChecker, remaining: readonly ts.Type[], site: Site): ts.Type | undefined {
+  const node = site.node;
   if (!node || !ts.isTypeReferenceNode(node)) {
     return undefined;
   }
   const symbol = symbolAt(checker, node.typeName);
-  return symbol ? remaining.find(member => member.aliasSymbol === symbol || (!member.aliasSymbol && member.getSymbol() === symbol)) : undefined;
+  const candidates = symbol ? remaining.filter(member => member.aliasSymbol === symbol || (!member.aliasSymbol && member.getSymbol() === symbol)) : [];
+  if (candidates.length <= 1) {
+    return candidates[0];
+  }
+  const written = (node.typeArguments ?? []).map(argument => writtenType(checker, childSite(site, argument)));
+  if (!written.length || written.some(argument => argument === undefined)) {
+    return undefined;
+  }
+  const argumentsOf = (member: ts.Type) => member.aliasTypeArguments ?? (member.flags & ts.TypeFlags.Object ? checker.getTypeArguments(member as ts.TypeReference) : []);
+  const matching = candidates.filter(member => {
+    const actual = argumentsOf(member);
+    return actual.length === written.length && actual.every((argument, i) => argument === written[i]);
+  });
+  return matching.length === 1 ? matching[0] : undefined;
 }
 
 /** The written element type of `E[]` or `Array<E>`, for `X[number]`. */

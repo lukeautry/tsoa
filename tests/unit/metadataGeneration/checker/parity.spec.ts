@@ -85,7 +85,10 @@ describe('checker resolver parity with legacy naming of evaluated types', () => 
   });
 
   it('keeps properties declared by object literals (typeof, z.infer)', () => {
-    expect(((refOf(md, 'Shape') as Tsoa.RefAliasType).type as Tsoa.NestedObjectLiteralType).properties.map(p => p.name)).to.have.members(['id', 'count']);
+    expect(((refOf(checkerMetadata('parityTypeof.ts', { strict: true }), 'Shape') as Tsoa.RefAliasType).type as Tsoa.NestedObjectLiteralType).properties.map(p => p.name)).to.have.members([
+      'id',
+      'count',
+    ]);
   });
 
   it('reads indexed access through the property node but keeps the outer JSDoc (legacy)', () => {

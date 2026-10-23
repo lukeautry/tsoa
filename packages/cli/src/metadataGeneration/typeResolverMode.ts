@@ -15,6 +15,9 @@ const modes: readonly TypeResolverMode[] = ['legacy', 'checker'];
  */
 export function resolveTypeResolverMode(explicit?: TypeResolverMode, env: NodeJS.ProcessEnv = process.env): TypeResolverMode {
   if (explicit) {
+    if (!modes.includes(explicit)) {
+      throw new GenerateMetadataError(`typeResolver must be 'legacy' or 'checker', got '${String(explicit)}'`);
+    }
     return explicit;
   }
   const fromEnv = env.TSOA_TYPE_RESOLVER;
