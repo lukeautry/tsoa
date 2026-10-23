@@ -48,11 +48,16 @@ export class PrimitiveTransformer extends Transformer {
   }
 
   private transformNumber(defaultNumberType: DefaultNumberType, partentJsDocTagNames?: string[]): Tsoa.PrimitiveType {
-    if (!partentJsDocTagNames || partentJsDocTagNames.length === 0) {
+    return PrimitiveTransformer.numberType(defaultNumberType, partentJsDocTagNames);
+  }
+
+  /** The number format selected by `@isInt`/`@isLong`/`@isFloat`/`@isDouble`, else the default. */
+  public static numberType(defaultNumberType: DefaultNumberType, jsDocTagNames?: string[]): Tsoa.PrimitiveType {
+    if (!jsDocTagNames || jsDocTagNames.length === 0) {
       return { dataType: defaultNumberType };
     }
 
-    const tags = partentJsDocTagNames.filter(name => {
+    const tags = jsDocTagNames.filter(name => {
       return ['isInt', 'isLong', 'isFloat', 'isDouble'].some(m => m === name);
     });
 
