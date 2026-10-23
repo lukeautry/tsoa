@@ -8,7 +8,19 @@ import { createProgram, flattenDiagnosticMessageText, getPreEmitDiagnostics, Mod
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 
 const fixtureRoot = './fixtures/controllers/typeContextSourceOccurrences/';
-const fixtureNames = ['union', 'intersection', 'tuple', 'fixedFirst', 'valueFirst', 'inferredUnion', 'optionalTemplates', 'staticShadow'];
+const fixtureNames = [
+  'union',
+  'intersection',
+  'tuple',
+  'fixedFirst',
+  'valueFirst',
+  'inferredUnion',
+  'optionalTemplates',
+  'staticShadow',
+  'recursiveFractionFirst',
+  'recursiveWholeFirst',
+  'optionalWrapper',
+];
 
 function required<T>(value: T | undefined, name: string): T {
   if (value === undefined) {
@@ -221,6 +233,52 @@ describe('Type context at source occurrences', () => {
         expect(derived.properties.map(property => ({ name: property.name, required: property.required, type: property.type }))).to.deep.equal([
           { name: 'value', required: true, type: { dataType: 'string' } },
         ]);
+      });
+
+      for (const name of ['recursiveFractionFirst', 'recursiveWholeFirst']) {
+        it(`keeps recursive forwarded number aliases distinct with ${name} property order`, () => {
+          const { schemas, response, resolve } = generate(name, strictNullChecks);
+          const target = response();
+          expect(target.properties).to.have.all.keys('fraction', 'whole');
+          expect(target.required).to.have.members(['fraction', 'whole']);
+          for (const [property, alias] of [
+            ['fraction', 'Fraction'],
+            ['whole', 'Whole'],
+          ]) {
+            expect(target.properties?.[property].$ref).to.equal(`#/components/schemas/Forward_${alias}_`);
+            expect(schemas[`Forward_${alias}_`].$ref).to.equal(`#/components/schemas/Node_${alias}_`);
+            const node = resolve(target.properties?.[property]);
+            expect(node.properties).to.have.all.keys('value', 'next');
+            expect(node.required).to.deep.equal(['value']);
+            expect(node.properties?.value.$ref).to.equal(`#/components/schemas/${alias}`);
+            expect(node.properties?.next.$ref).to.equal(`#/components/schemas/Node_${alias}_`);
+          }
+          expect(schemas.Fraction).to.deep.include({ type: 'number', format: 'float' });
+          expect(schemas.Whole).to.deep.include({ type: 'integer', format: 'int32' });
+        });
+      }
+
+      it('keeps a declared optional generic container without an implicit undefined union', () => {
+        const { metadata, schemas, response, resolve } = generate('optionalWrapper', strictNullChecks);
+        const wrapper = required(metadata.referenceTypeMap.Wrapper_Leaf_, 'Wrapper metadata');
+        if (wrapper.dataType !== 'refObject') {
+          throw new Error('Expected Wrapper object metadata');
+        }
+        expect(wrapper.properties).to.have.length(1);
+        expect(wrapper.properties[0].name).to.equal('value');
+        expect(wrapper.properties[0].required).to.equal(false);
+        expect(wrapper.properties[0].type).to.deep.include({ dataType: 'refObject', refName: 'Box_Leaf_' });
+        expect(response().properties).to.have.all.keys('value');
+        expect(response().required).to.equal(undefined);
+        expect(response().properties?.value.$ref).to.equal('#/components/schemas/Box_Leaf_');
+        const box = resolve(response().properties?.value);
+        expect(box.properties).to.have.all.keys('item');
+        expect(box.required).to.deep.equal(['item']);
+        expect(box.properties?.item.$ref).to.equal('#/components/schemas/Leaf');
+        expect(schemas.Leaf.properties).to.have.all.keys('text', 'count');
+        expect(schemas.Leaf.required).to.have.members(['text', 'count']);
+        expect(schemas.Leaf.properties?.text).to.deep.include({ type: 'string' });
+        expect(schemas.Leaf.properties?.count).to.deep.include({ type: 'number', format: 'double' });
       });
     });
   }
