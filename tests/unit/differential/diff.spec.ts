@@ -1,3 +1,4 @@
+import type { Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import { diffJson, isKnown, normalizeOutcome } from '../../differential/diff';
@@ -32,5 +33,21 @@ describe('resolver differential diff', () => {
     expect(isKnown(known, 'fixtures/a.ts', 'referenceTypeMap.Foo.type.dataType')).to.equal(true);
     expect(isKnown(known, 'fixtures/a.ts', 'referenceTypeMap.Foobar')).to.equal(false);
     expect(isKnown(known, 'fixtures/b.ts', 'referenceTypeMap.Foo')).to.equal(false);
+  });
+
+  it('replaces nested references by their refName so cyclic metadata can be compared', () => {
+    const user: { dataType: string; refName: string; properties: Array<{ name: string; type: unknown }> } = { dataType: 'refObject', refName: 'User', properties: [] };
+    user.properties.push({ name: 'self', type: user });
+    const metadata = { controllers: [{ methods: [{ type: user }] }], referenceTypeMap: { User: user } };
+    expect(normalizeOutcome({ metadata: metadata as unknown as Tsoa.Metadata }, '/repo')).to.deep.equal({
+      metadata: {
+        controllers: [{ methods: [{ type: { $ref: 'User' } }] }],
+        referenceTypeMap: { User: { dataType: 'refObject', refName: 'User', properties: [{ name: 'self', type: { $ref: 'User' } }] } },
+      },
+    });
+  });
+
+  it('replaces generation-time timestamps', () => {
+    expect(normalizeOutcome({ metadata: { controllers: [{ example: '2026-10-23T19:47:02.053Z' }] } as any }, '/repo')).to.deep.equal({ metadata: { controllers: [{ example: '<timestamp>' }] } });
   });
 });

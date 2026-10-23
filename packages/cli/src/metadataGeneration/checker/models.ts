@@ -16,7 +16,7 @@ export type ModelBuilder = (resolver: CheckerTypeResolver, declaration: ts.Inter
  * has no written form — the reference the checker would print for it (as legacy did).
  * Returns undefined for anything that is not a named model.
  */
-export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Type, site: Site, buildModel: ModelBuilder): Tsoa.ReferenceType | undefined {
+export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Type, site: Site, buildModel: ModelBuilder, register = true): Tsoa.ReferenceType | undefined {
   const written = site.node;
   const node = written ?? resolver.generator.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation);
   if (!node || !(ts.isTypeReferenceNode(node) || ts.isExpressionWithTypeArguments(node)) || isStructuralArray(node)) {
@@ -29,21 +29,25 @@ export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Ty
     return undefined;
   }
 
-  return resolver.registry.reference(reference.refName, () => {
-    const outer: Site = { ...site, node, substitutions };
-    const models = reference.declarations.map(declaration => {
-      const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
-      const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
-      if (ts.isTypeAliasDeclaration(declaration)) {
-        return aliasModel(resolver, declaration, type, reference.refName, { ...inner, node: declaration.type });
-      }
-      if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
-        return enumModel(resolver, declaration, reference.refName);
-      }
-      return buildModel(resolver, declaration, type, reference.refName, inner);
-    });
-    return ReferenceTransformer.merge(models);
-  });
+  return resolver.registry.reference(
+    reference.refName,
+    () => {
+      const outer: Site = { ...site, node, substitutions };
+      const models = reference.declarations.map(declaration => {
+        const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
+        const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
+        if (ts.isTypeAliasDeclaration(declaration)) {
+          return aliasModel(resolver, declaration, type, reference.refName, { ...inner, node: declaration.type });
+        }
+        if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
+          return enumModel(resolver, declaration, reference.refName);
+        }
+        return buildModel(resolver, declaration, type, reference.refName, inner);
+      });
+      return ReferenceTransformer.merge(models);
+    },
+    register,
+  );
 }
 
 /** `Array<T>` and `ReadonlyArray<T>` are arrays, not models (legacy). */

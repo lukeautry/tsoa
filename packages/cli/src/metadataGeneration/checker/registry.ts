@@ -12,10 +12,13 @@ export class ReferenceRegistry {
 
   constructor(private readonly generator: MetadataGenerator) {}
 
-  public reference(refName: string, build: () => Tsoa.ReferenceType): Tsoa.ReferenceType {
+  /** `register: false` builds (and caches) the model without adding it to the metadata, as legacy does for heritage bases. */
+  public reference(refName: string, build: () => Tsoa.ReferenceType, register = true): Tsoa.ReferenceType {
     const existing = this.built.get(refName);
     if (existing) {
-      this.generator.AddReferenceType(existing);
+      if (register) {
+        this.generator.AddReferenceType(existing);
+      }
       return existing;
     }
 
@@ -33,7 +36,9 @@ export class ReferenceRegistry {
         Object.assign(shell, result);
       }
       this.built.set(refName, result);
-      this.generator.AddReferenceType(result);
+      if (register) {
+        this.generator.AddReferenceType(result);
+      }
       return result;
     } finally {
       this.shells.delete(refName);

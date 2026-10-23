@@ -68,13 +68,32 @@ describe('checker resolver dispatch (non-object types)', () => {
     expect(strict('StrOrBool')).to.deep.equal({ dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'boolean' }] });
   });
 
+  it('maps keyof results like legacy', () => {
+    expect(strict('KeysOfAny')).to.deep.equal({ dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'double' }] });
+    expect(strict('KeysMixed')).to.deep.equal({
+      dataType: 'union',
+      types: [
+        { dataType: 'enum', enums: ['a'] },
+        { dataType: 'enum', enums: [2] },
+      ],
+    });
+    expect(strict('KeysIndexed')).to.deep.equal({ dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'double' }] });
+    expect(strict('KeysOne')).to.deep.equal({ dataType: 'enum', enums: ['only'] });
+  });
+
   it('maps arrays and tuples', () => {
     expect(strict('Arr')).to.deep.equal({ dataType: 'array', elementType: { dataType: 'double' } });
     expect(strict('Tup')).to.deep.equal({ dataType: 'tuple', types: [{ dataType: 'string' }], restType: { dataType: 'double' } });
   });
 
   it('evaluates intrinsic string types (repro 04)', () => {
-    expect(unwrap(strict('Upper'))).to.deep.equal({ dataType: 'enum', enums: ['ABC', 'DEF'] });
+    expect(unwrap(strict('Upper'))).to.deep.equal({
+      dataType: 'union',
+      types: [
+        { dataType: 'enum', enums: ['ABC'] },
+        { dataType: 'enum', enums: ['DEF'] },
+      ],
+    });
   });
 
   it('maps infinite template literals to string (repro 05) and finite ones to enums', () => {

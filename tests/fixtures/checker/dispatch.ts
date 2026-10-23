@@ -21,6 +21,10 @@ export type Template = `user_${string}`;
 export type FiniteTemplate = `a${'c' | 'd'}`;
 export type NullableString = string | null;
 export type Neg = -1;
+export type KeysOfAny = keyof any;
+export type KeysMixed = keyof { a: 1; 2: 'x' };
+export type KeysIndexed = keyof { [k: string]: number };
+export type KeysOne = keyof { only: string };
 
 @Route('dispatch')
 export class DispatchController {

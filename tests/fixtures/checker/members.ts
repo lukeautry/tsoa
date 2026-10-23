@@ -91,6 +91,11 @@ export class MembersController {
     return null as any;
   }
 
+  @Get('omitAccount')
+  public async omitAccount(): Promise<Omit<Account, 'id'>> {
+    return null as any;
+  }
+
   @Get('jsonable')
   public async jsonable(): Promise<Jsonable> {
     return null as any;
@@ -104,6 +109,11 @@ export class MembersController {
   @Get('tree')
   public async tree(): Promise<RecursivePartial<Tree>> {
     return null as any;
+  }
+
+  @Get('inferred')
+  public async inferred() {
+    return Promise.resolve({ ok: true, count: 1 });
   }
 
   @Get('literal')

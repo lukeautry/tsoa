@@ -66,6 +66,11 @@ describe('checker resolver object members', () => {
     expect(account.properties[1].type).to.deep.equal({ dataType: 'enum', enums: ['a'] });
   });
 
+  it('maps constructor parameter properties through utility types after resolving the class', () => {
+    const omit = properties(ret('omitAccount'));
+    expect(omit.map(p => [p.name, p.type])).to.deep.include(['owner', { dataType: 'string' }]);
+  });
+
   it('uses toJSON for the shape', () => {
     const jsonable = refOf(md, 'Jsonable') as Tsoa.RefAliasType;
     expect(jsonable.dataType).to.equal('refAlias');
@@ -84,6 +89,13 @@ describe('checker resolver object members', () => {
     const tree = ret('tree') as Tsoa.RefAliasType;
     expect(tree.refName).to.equal('RecursivePartial_Tree_');
     expect(names(tree)).to.deep.equal(['children', 'label']);
+  });
+
+  it('maps inferred return types in legacy (reverse) order', () => {
+    expect(properties(ret('inferred')).map(p => [p.name, p.type.dataType])).to.deep.equal([
+      ['count', 'double'],
+      ['ok', 'boolean'],
+    ]);
   });
 
   it('lists written object literal members in legacy (reverse) order', () => {

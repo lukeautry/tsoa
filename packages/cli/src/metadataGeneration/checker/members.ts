@@ -6,6 +6,7 @@ import { getInitializerValue } from '../initializer-value';
 import { readAnnotations } from './annotations';
 import type { CheckerTypeResolver } from './checkerTypeResolver';
 import { modelDeclarations } from './declarations';
+import { resolveNamedReference } from './models';
 import { syntheticOrigin } from './internals';
 import { childSite, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
@@ -38,7 +39,7 @@ export function resolveModel(resolver: CheckerTypeResolver, declaration: Owner, 
     return { dataType: 'refAlias', ...header, type: toJSON, validators: {} };
   }
 
-  const properties = writtenMembers(resolver, declaration, site.substitutions).map(written => declaredProperty(resolver, type, written));
+  const properties = modelProperties(resolver, declaration, type, site.substitutions);
   return {
     additionalProperties: ts.isInterfaceDeclaration(declaration) ? ownIndexSignature(resolver, declaration, type, site) : undefined,
     dataType: 'refObject',
@@ -82,22 +83,35 @@ export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.T
   return result;
 }
 
-/** Inherited members first (each base resolved the same way), then the declaration's own. */
-function writtenMembers(resolver: CheckerTypeResolver, declaration: Owner, substitutions: Substitutions): WrittenMember[] {
-  const inherited = (declaration.heritageClauses ?? []).flatMap(clause =>
-    clause.types.flatMap(heritage => {
-      const entity = heritage.expression as ts.EntityName;
-      return modelDeclarations(resolver.generator.typeChecker, entity).flatMap(base => {
-        if (!ts.isInterfaceDeclaration(base) && !ts.isClassDeclaration(base)) {
-          return [];
-        }
-        const baseSubstitutions = substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer);
-        return writtenMembers(resolver, base, baseSubstitutions);
-      });
+/**
+ * Inherited properties first (heritage clause order), then the declaration's own. Interface and
+ * class bases are read member by member against the derived type, so a base that is still being
+ * built (a cycle) cannot leave properties out. Other bases (aliases such as `Partial<X>`) are
+ * resolved as models without being registered, and their properties are taken (legacy).
+ */
+function modelProperties(resolver: CheckerTypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
+  const checker = resolver.generator.typeChecker;
+  const clauses: readonly ts.HeritageClause[] = declaration.heritageClauses ?? [];
+  const inherited = clauses.flatMap(clause =>
+    clause.types.flatMap((heritage): Tsoa.Property[] => {
+      const bases = modelDeclarations(checker, heritage.expression as ts.EntityName);
+      const owners = bases.filter((base): base is Owner => ts.isInterfaceDeclaration(base) || ts.isClassDeclaration(base));
+      if (owners.length) {
+        return owners.flatMap(base => modelProperties(resolver, base, ownerType, substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer)));
+      }
+      const base = resolveNamedReference(resolver, checker.getTypeAtLocation(heritage), { node: heritage, declaration: undefined, substitutions }, resolveModel, false);
+      return base ? propertiesOf(base) : [];
     }),
   );
-  const own = ownMembers(declaration).map(member => ({ name: propertyName(resolver, member), member, substitutions }));
+  const own = ownMembers(declaration).map(member => declaredProperty(resolver, ownerType, { name: propertyName(resolver, member), member, substitutions }));
   return [...inherited, ...own];
+}
+
+function propertiesOf(type: Tsoa.Type): Tsoa.Property[] {
+  if (type.dataType === 'refAlias') {
+    return propertiesOf(type.type);
+  }
+  return type.dataType === 'refObject' || type.dataType === 'nestedObjectLiteral' ? (type.properties ?? []) : [];
 }
 
 /** Legacy PropertyTransformer member selection. */
@@ -125,7 +139,7 @@ function declaredProperty(resolver: CheckerTypeResolver, ownerType: ts.Type, { n
 
   const symbol = checker.getPropertyOfType(ownerType, name);
   let type: ts.Type;
-  if (member.type && substitutions.size === 0) {
+  if (member.type && member.type.pos !== -1 && substitutions.size === 0) {
     // The declared type, without the `undefined` strict mode adds to optional properties.
     type = checker.getTypeFromTypeNode(member.type);
   } else {

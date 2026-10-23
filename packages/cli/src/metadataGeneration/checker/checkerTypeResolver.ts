@@ -9,7 +9,8 @@ import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { LegacyNamer } from './naming';
 import { ReferenceRegistry } from './registry';
-import { childSite, followSite, rootSite, type Site } from './site';
+import { symbolAt } from './declarations';
+import { childSite, emptySubstitutions, followSite, rootSite, substitutionsCover, type Site, type Substitutions } from './site';
 import { resolveSpecialType } from './specialTypes';
 
 type LiteralValue = string | number | boolean | null;
@@ -39,7 +40,7 @@ export class CheckerTypeResolver {
 
   /** The single classification dispatch. Order matters; see the design doc "Type classification". */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
-    const followed = followSite(site);
+    const followed = this.descriptive(followSite(site));
     if (isErrorType(type)) {
       const name = followed.node && followed.node.pos !== -1 ? followed.node.getText() : this.checker.typeToString(type);
       throw new GenerateMetadataError(`Could not find declarations for type '${name}'.`, followed.node);
@@ -61,7 +62,73 @@ export class CheckerTypeResolver {
     if (followed.node && ts.isUnionTypeNode(followed.node)) {
       return this.resolveWrittenUnion(type, followed, followed.node);
     }
+    if (followed.node && ts.isTypeOperatorNode(followed.node) && followed.node.operator === ts.SyntaxKind.KeyOfKeyword) {
+      return this.resolveKeys(type, followed);
+    }
+    if (followed.node && ts.isTemplateLiteralTypeNode(followed.node) && type.isUnion() && type.types.every(t => t.isStringLiteral())) {
+      return { dataType: 'enum', enums: type.types.map(t => t.value) };
+    }
     return this.resolveStructure(type, followed);
+  }
+
+  /**
+   * The type the written node at `site` denotes, when the checker can tell: the node mentions no
+   * type parameter in scope, or it is an identity alias (`type Id<T> = T`) of such a node.
+   */
+  public writtenType(site: Site): ts.Type | undefined {
+    const followed = followSite(site);
+    const node = followed.node;
+    if (!node || node.pos === -1) {
+      return undefined;
+    }
+    if (!mentions(node, followed.substitutions)) {
+      return this.checker.getTypeFromTypeNode(node);
+    }
+    if (ts.isTypeReferenceNode(node)) {
+      const declaration = symbolAt(this.checker, node.typeName)?.declarations?.find(ts.isTypeAliasDeclaration);
+      const body = declaration?.type;
+      const index =
+        body && ts.isTypeReferenceNode(body) && ts.isIdentifier(body.typeName) ? (declaration.typeParameters ?? []).findIndex(p => p.name.text === (body.typeName as ts.Identifier).text) : -1;
+      const argument = index >= 0 ? (node.typeArguments?.[index] ?? declaration?.typeParameters?.[index].default) : undefined;
+      return argument ? this.writtenType(childSite(followed, argument)) : undefined;
+    }
+    return undefined;
+  }
+
+  /**
+   * Nodes that do not describe their type's shape (conditional, indexed access, type queries…) are
+   * replaced: indexed access by the indexed property's declaration, the others by nothing, so the
+   * type is named as the checker prints it (what legacy did with `typeToTypeNode`).
+   */
+  private descriptive(site: Site): Site {
+    const node = site.node;
+    if (!node) {
+      return site;
+    }
+    if (ts.isIndexedAccessTypeNode(node)) {
+      const declaration = this.indexedDeclaration(site, node);
+      return declaration ? this.descriptive(followSite({ node: declaration.type, declaration, substitutions: emptySubstitutions })) : { ...site, node: undefined };
+    }
+    const opaque =
+      ts.isConditionalTypeNode(node) ||
+      ts.isTypeQueryNode(node) ||
+      ts.isInferTypeNode(node) ||
+      ts.isThisTypeNode(node) ||
+      node.kind === ts.SyntaxKind.IntrinsicKeyword ||
+      (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.UniqueKeyword);
+    return opaque ? { ...site, node: undefined } : site;
+  }
+
+  /** The declaration of `Obj['prop']`'s property, when it is written outside any generic scope. */
+  private indexedDeclaration(site: Site, node: ts.IndexedAccessTypeNode): (ts.Declaration & { type: ts.TypeNode }) | undefined {
+    const index = node.indexType;
+    if (!ts.isLiteralTypeNode(index) || !(ts.isStringLiteral(index.literal) || ts.isNumericLiteral(index.literal))) {
+      return undefined;
+    }
+    const objectType = this.writtenType(childSite(site, node.objectType));
+    const declaration = objectType && this.checker.getPropertyOfType(objectType, index.literal.text)?.valueDeclaration;
+    const typed = declaration && (declaration as { type?: ts.TypeNode }).type;
+    return typed && substitutionsCover(declaration, emptySubstitutions) ? (declaration as ts.Declaration & { type: ts.TypeNode }) : undefined;
   }
 
   /** Named models: aliases, interfaces, classes and enums. */
@@ -158,9 +225,14 @@ export class CheckerTypeResolver {
         }
         continue;
       }
-      const memberType = memberSite.node && memberSite.node.pos !== -1 ? this.checker.getTypeFromTypeNode(memberSite.node) : undefined;
+      const memberType = this.writtenType(memberSite);
       if (memberType && take(memberType.isUnion() ? memberType.types : [memberType])) {
         resolved.push(this.resolve(memberType, memberSite));
+        continue;
+      }
+      const sameModel = this.sameModel(remaining, memberSite.node);
+      if (sameModel && take([sameModel])) {
+        resolved.push(this.resolve(sameModel, memberSite));
       }
     }
 
@@ -171,13 +243,21 @@ export class CheckerTypeResolver {
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
   }
 
-  /** A union with no written form: checker order, true|false collapsed, literal-only unions as enums. */
-  private resolveCheckerUnion(types: readonly ts.Type[], site: Site): Tsoa.Type {
-    const literals = types.map(literalValue);
-    if (literals.every(value => value !== undefined) && types.every(t => !(t.flags & (ts.TypeFlags.BooleanLiteral | ts.TypeFlags.EnumLiteral)))) {
-      return literalEnums(literals);
+  /** The remaining member that is an instance of the model a written reference names. */
+  private sameModel(remaining: readonly ts.Type[], node: ts.TypeNode | undefined): ts.Type | undefined {
+    if (!node || !ts.isTypeReferenceNode(node)) {
+      return undefined;
     }
+    const symbol = symbolAt(this.checker, node.typeName);
+    return symbol ? remaining.find(member => member.aliasSymbol === symbol || (!member.aliasSymbol && member.getSymbol() === symbol)) : undefined;
+  }
 
+  /**
+   * A union with no written form, in checker order, with true|false collapsed to boolean. Members of
+   * a mapped type over a union stay on the mapped site, so they remain inline objects (legacy).
+   */
+  private resolveCheckerUnion(types: readonly ts.Type[], site: Site): Tsoa.Type {
+    const memberSite = site.node && ts.isMappedTypeNode(site.node) ? site : childSite(site, undefined);
     const members: Array<ts.Type | 'boolean'> = [];
     const hasTrue = types.some(t => t.flags & ts.TypeFlags.BooleanLiteral && literalValue(t) === true);
     const hasFalse = types.some(t => t.flags & ts.TypeFlags.BooleanLiteral && literalValue(t) === false);
@@ -190,8 +270,31 @@ export class CheckerTypeResolver {
       }
       members.push(member);
     }
-    const resolved = members.map((member): Tsoa.Type => (member === 'boolean' ? { dataType: 'boolean' } : this.resolve(member, childSite(site, undefined))));
+    const resolved = members.map((member): Tsoa.Type => (member === 'boolean' ? { dataType: 'boolean' } : this.resolve(member, memberSite)));
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
+  }
+
+  /** Property keys (`keyof X`): literal keys as enums; `string | number` for indexable keys (legacy). */
+  private resolveKeys(type: ts.Type, site: Site): Tsoa.Type {
+    const members = type.isUnion() ? type.types : [type];
+    const literals = members.map(literalValue).filter((value): value is string | number => typeof value === 'string' || typeof value === 'number');
+    if (literals.length) {
+      return literalEnums(literals);
+    }
+    const has = (flag: ts.TypeFlags) => members.some(member => member.flags & flag);
+    if (has(ts.TypeFlags.String) && has(ts.TypeFlags.Number)) {
+      return { dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'double' }] };
+    }
+    if (type.flags & ts.TypeFlags.Never) {
+      throw new GenerateMetadataError(`TypeOperator 'keyof' on node produced a never type`, site.node);
+    }
+    if (type.flags & ts.TypeFlags.TemplateLiteral) {
+      return { dataType: 'string' };
+    }
+    if (type.flags & ts.TypeFlags.Number) {
+      return { dataType: 'double' };
+    }
+    throw new GenerateMetadataError(`Could not determine the keys on ${this.checker.typeToString(type)}`, site.node);
   }
 
   private resolveTuple(type: ts.TypeReference, site: Site): Tsoa.TupleType {
@@ -225,6 +328,26 @@ export class CheckerTypeResolver {
     }
     throw new GenerateMetadataError(`Can not succeeded to calculate referencer type.`, typeNode);
   }
+}
+
+/** Whether a written node refers to any of the type parameters in scope. */
+function mentions(node: ts.Node, substitutions: Substitutions): boolean {
+  if (substitutions.size === 0) {
+    return false;
+  }
+  let found = false;
+  const visit = (child: ts.Node) => {
+    if (found) {
+      return;
+    }
+    if (ts.isTypeReferenceNode(child) && ts.isIdentifier(child.typeName) && substitutions.has(child.typeName.text)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+  visit(node);
+  return found;
 }
 
 function literalValue(type: ts.Type): LiteralValue | undefined {

@@ -14,8 +14,40 @@ export function normalizeOutcome(raw: { metadata: Tsoa.Metadata } | { error: unk
     const message = raw.error instanceof Error ? raw.error.message : String(raw.error);
     return { error: message.split('\n')[0].split(root).join('<root>') };
   }
-  const json = JSON.stringify(raw.metadata, (_key, value: unknown) => (typeof value === 'string' ? value.split(root).join('<root>') : value));
-  return { metadata: JSON.parse(json) as Tsoa.Metadata };
+  const { referenceTypeMap, ...rest } = raw.metadata;
+  const normalized = normalizeValue(rest, root, false) as Record<string, unknown>;
+  if (referenceTypeMap) {
+    normalized.referenceTypeMap = Object.fromEntries(Object.entries(referenceTypeMap).map(([name, ref]) => [name, normalizeValue(ref, root, true)]));
+  }
+  return { metadata: normalized as unknown as Tsoa.Metadata };
+}
+
+const refTypes = new Set(['refObject', 'refAlias', 'refEnum']);
+
+/**
+ * Plain JSON with undefined dropped and the root replaced. References below the top level become
+ * `{ $ref: refName }`: their definition is compared once, in referenceTypeMap (this also breaks cycles).
+ */
+function normalizeValue(value: unknown, root: string, isDefinition: boolean): unknown {
+  if (typeof value === 'string') {
+    // `new Date()` examples are evaluated at generation time.
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) ? '<timestamp>' : value.split(root).join('<root>');
+  }
+  if (Array.isArray(value)) {
+    return value.map(item => (item === undefined ? null : normalizeValue(item, root, false)));
+  }
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    if (!isDefinition && refTypes.has(record.dataType as string) && typeof record.refName === 'string') {
+      return { $ref: record.refName };
+    }
+    return Object.fromEntries(
+      Object.entries(record)
+        .filter(([, v]) => v !== undefined && typeof v !== 'function')
+        .map(([k, v]) => [k, normalizeValue(v, root, false)]),
+    );
+  }
+  return value;
 }
 
 /** Leaf-level differences between two JSON values; object key order is ignored. */

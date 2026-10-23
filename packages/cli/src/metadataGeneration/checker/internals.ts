@@ -14,11 +14,17 @@ export function syntheticOrigin(symbol: ts.Symbol): ts.Symbol | undefined {
 
 /**
  * TypeScript does not read JSDoc for a parameter symbol flagged as a property (constructor
- * parameter properties). Legacy clears the flags before asking; so do we.
+ * parameter properties). Legacy clears the flags before asking; we clear them only for the
+ * duration of the call — leaving them cleared makes the checker type the property as an error.
  */
 export function parameterDocumentation(symbol: ts.Symbol, checker: ts.TypeChecker): ts.SymbolDisplayPart[] {
+  const flags = symbol.flags;
   symbol.flags = 0;
-  return symbol.getDocumentationComment(checker);
+  try {
+    return symbol.getDocumentationComment(checker);
+  } finally {
+    symbol.flags = flags;
+  }
 }
 
 /** The checker's error type: what an unresolvable reference resolves to. */
