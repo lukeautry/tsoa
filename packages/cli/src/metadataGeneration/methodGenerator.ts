@@ -41,14 +41,10 @@ export class MethodGenerator {
       throw new GenerateMetadataError("This isn't a valid a controller method.");
     }
 
-    let nodeType = this.node.type;
-    if (!nodeType) {
-      const typeChecker = this.current.typeChecker;
-      const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-      nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-    }
-    const type = new TypeResolver(nodeType, this.current).resolve();
+    const signature = this.current.typeChecker.getSignatureFromDeclaration(this.node);
+    const type = this.node.type
+      ? TypeResolver.fromSource(this.node.type, this.current).resolve()
+      : TypeResolver.fromComputed(this.current.typeChecker.getReturnTypeOfSignature(signature!), this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -263,7 +259,7 @@ export class MethodGenerator {
     if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
       return undefined;
     }
-    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
+    return TypeResolver.fromSource(expression.typeArguments[schemaIndex], this.current).resolve();
   }
 
   private getMethodSuccessExamples() {

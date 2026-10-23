@@ -1,4 +1,4 @@
-import type { TypeAliasDeclaration, Type } from 'typescript';
+import type { TypeAliasDeclaration } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -74,7 +74,7 @@ export class ReferenceTransformer extends Transformer {
     return result;
   }
 
-  public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Tsoa.ReferenceType {
+  public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver): Tsoa.ReferenceType {
     const example = resolver.getNodeExample(declaration);
 
     const title = resolver.getNodeTitle(declaration);
@@ -84,7 +84,7 @@ export class ReferenceTransformer extends Transformer {
       description: resolver.getNodeDescription(declaration),
       refName: refTypeName,
       format: resolver.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
+      type: resolver.resolveAliasBody(declaration),
       validators: getPropertyValidators(declaration) || {},
       ...(example && { example }),
       ...(title && { title }),

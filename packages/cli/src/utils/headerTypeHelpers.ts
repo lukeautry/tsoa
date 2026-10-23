@@ -9,7 +9,7 @@ export function getHeaderType(typeArgumentNodes: NodeArray<TypeNode> | undefined
     return undefined;
   }
 
-  const candidate = new TypeResolver(typeArgumentNodes[index], metadataGenerator).resolve();
+  const candidate = TypeResolver.fromSource(typeArgumentNodes[index], metadataGenerator).resolve();
 
   if (candidate && isSupportedHeaderDataType(candidate)) {
     return candidate;

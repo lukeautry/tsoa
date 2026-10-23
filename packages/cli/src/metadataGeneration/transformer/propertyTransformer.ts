@@ -1,5 +1,5 @@
 import type { Token, InterfaceDeclaration, ClassDeclaration, PropertyDeclaration, ParameterDeclaration, ConstructorDeclaration, TypeElement, ClassElement, PropertySignature } from 'typescript';
-import { NodeFlags, NodeBuilderFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from 'typescript';
+import { NodeFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -25,6 +25,7 @@ export class PropertyTransformer extends Transformer {
     if (isInterfaceDeclaration(node)) {
       return node.members
         .filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member))
+        .filter(member => resolver.includesMember(member))
         .map((member: PropertySignature) => this.propertyFromSignature(resolver, member, overrideToken));
     }
 
@@ -43,7 +44,7 @@ export class PropertyTransformer extends Transformer {
       properties.push(...constructorProperties);
     }
 
-    return properties.map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
+    return properties.filter(property => resolver.includesMember(property)).map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
   }
 
   private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
@@ -65,7 +66,7 @@ export class PropertyTransformer extends Transformer {
       format: resolver.getNodeFormat(propertySignature),
       name: resolver.getPropertyName(propertySignature),
       required,
-      type: new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context).resolve(),
+      type: resolver.resolveMember(propertySignature),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
       title: resolver.getNodeTitle(propertySignature),
@@ -75,16 +76,7 @@ export class PropertyTransformer extends Transformer {
   }
 
   private propertyFromDeclaration(resolver: TypeResolver, propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
-    let typeNode = propertyDeclaration.type;
-
-    const tsType = resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
-
-    if (!typeNode) {
-      // Type is from initializer
-      typeNode = resolver.current.typeChecker.typeToTypeNode(tsType, undefined, NodeBuilderFlags.NoTruncation)!;
-    }
-
-    const type = new TypeResolver(typeNode, resolver.current, propertyDeclaration, resolver.context, tsType).resolve();
+    const type = resolver.resolveMember(propertyDeclaration);
 
     let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {

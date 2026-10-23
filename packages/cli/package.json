@@ -30,6 +30,7 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
+    "@sinclair/typebox": "^0.34.52",
     "@tsoa/runtime": "^7.0.0-alpha.0",
     "@types/multer": "^1.4.12",
     "fs-extra": "^11.2.0",
