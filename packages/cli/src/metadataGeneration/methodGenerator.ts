@@ -41,13 +41,14 @@ export class MethodGenerator {
     }
 
     let nodeType = this.node.type;
+    let implicitType: ts.Type | undefined;
     if (!nodeType) {
       const typeChecker = this.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+      implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
-    const type = this.current.resolveType(nodeType);
+    const type = this.current.resolveType(nodeType, undefined, implicitType);
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);

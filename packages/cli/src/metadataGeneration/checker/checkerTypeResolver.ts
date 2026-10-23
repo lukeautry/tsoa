@@ -5,7 +5,9 @@ import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
 import { isArrayType, isErrorType, isTupleType, tupleElementFlags } from './internals';
+import { resolveNamedReference } from './models';
 import { LegacyNamer } from './naming';
+import { ReferenceRegistry } from './registry';
 import { childSite, followSite, rootSite, type Site } from './site';
 import { resolveSpecialType } from './specialTypes';
 
@@ -18,9 +20,11 @@ type LiteralValue = string | number | boolean | null;
  */
 export class CheckerTypeResolver {
   public readonly namer: LegacyNamer;
+  public readonly registry: ReferenceRegistry;
 
   constructor(public readonly generator: MetadataGenerator) {
     this.namer = new LegacyNamer(generator);
+    this.registry = new ReferenceRegistry(generator);
   }
 
   private get checker(): ts.TypeChecker {
@@ -59,9 +63,11 @@ export class CheckerTypeResolver {
     return this.resolveStructure(type, followed);
   }
 
-  /** Named models (aliases, interfaces, classes, enums). Implemented with the model registry. */
-  protected resolveNamed(_type: ts.Type, _site: Site): Tsoa.ReferenceType | undefined {
-    return undefined;
+  /** Named models: aliases, interfaces, classes and enums. */
+  private resolveNamed(type: ts.Type, site: Site): Tsoa.ReferenceType | undefined {
+    return resolveNamedReference(this, type, site, (_resolver, declaration) => {
+      throw new GenerateMetadataError(`not implemented: interface and class models (${declaration.name?.text ?? 'anonymous'})`, declaration);
+    });
   }
 
   /** Object types that are not named models. Implemented with the member resolver. */

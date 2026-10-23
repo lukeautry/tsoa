@@ -5,6 +5,7 @@ import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { CheckerTypeResolver } from './checker/checkerTypeResolver';
 import { TypeResolver } from './typeResolver';
 import { resolveTypeResolverMode, type TypeResolverMode } from './typeResolverMode';
 
@@ -16,6 +17,7 @@ export class MetadataGenerator {
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
   public readonly compilerOptions: CompilerOptions;
+  private checkerResolver?: CheckerTypeResolver;
   public readonly typeResolverMode: TypeResolverMode;
 
   constructor(
@@ -218,10 +220,12 @@ export class MetadataGenerator {
    * Resolves a type annotation to tsoa metadata with the configured resolver.
    * `type` may be passed when the checker type is already known (e.g. for synthesized nodes).
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public resolveType(typeNode: TypeNode, parentNode?: Node, type?: Type): Tsoa.Type {
+    if (this.typeResolverMode === 'checker') {
+      this.checkerResolver ??= new CheckerTypeResolver(this);
+      return this.checkerResolver.resolveNode(typeNode, parentNode, type);
+    }
     // The legacy resolver ignores `type` so its behavior stays exactly as before.
-    // Checker mode delegates to the legacy resolver until the checker resolver is complete.
     return new TypeResolver(typeNode, this, parentNode).resolve();
   }
 
