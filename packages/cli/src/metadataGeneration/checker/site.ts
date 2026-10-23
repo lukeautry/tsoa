@@ -22,6 +22,8 @@ export interface Substitution {
   name: string;
   /** The substitutions in scope where `node` was written. */
   scope: Substitutions;
+  /** The generic declaration whose type parameter this binds. */
+  owner: ts.Node;
 }
 
 export type Substitutions = ReadonlyMap<string, Substitution>;
@@ -72,14 +74,28 @@ export function substitutionsFor(
     const typeArg = reference.typeArguments?.[index];
     const forwarded = typeArg && ts.isTypeReferenceNode(typeArg) && ts.isIdentifier(typeArg.typeName) ? outer.substitutions.get(typeArg.typeName.text) : undefined;
     if (forwarded) {
-      substitutions.set(typeParameter.name.text, forwarded);
+      substitutions.set(typeParameter.name.text, { ...forwarded, owner: typeParameter.parent });
       return;
     }
     const node = typeArg ?? typeParameter.default;
     if (!node) {
       throw new GenerateMetadataError(`Could not find a value for type parameter ${typeParameter.name.text}`, reference);
     }
-    substitutions.set(typeParameter.name.text, { node, name: namer.typeName(node, outer.substitutions), scope: outer.substitutions });
+    substitutions.set(typeParameter.name.text, { node, name: namer.typeName(node, outer.substitutions), scope: outer.substitutions, owner: typeParameter.parent });
   });
   return substitutions;
+}
+
+/**
+ * Whether written nodes inside `node` can be read with `substitutions`: true when the nearest
+ * enclosing generic declaration has all of its type parameters bound by these substitutions.
+ */
+export function substitutionsCover(node: ts.Node, substitutions: Substitutions): boolean {
+  for (let current: ts.Node | undefined = node.parent; current; current = current.parent) {
+    const typeParameters = (current as { typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration> }).typeParameters;
+    if (typeParameters?.length && (ts.isInterfaceDeclaration(current) || ts.isClassDeclaration(current) || ts.isTypeAliasDeclaration(current))) {
+      return typeParameters.every(parameter => substitutions.get(parameter.name.text)?.owner === current);
+    }
+  }
+  return true;
 }

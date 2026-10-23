@@ -5,6 +5,7 @@ import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
 import { isArrayType, isErrorType, isTupleType, tupleElementFlags } from './internals';
+import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { LegacyNamer } from './naming';
 import { ReferenceRegistry } from './registry';
@@ -65,14 +66,12 @@ export class CheckerTypeResolver {
 
   /** Named models: aliases, interfaces, classes and enums. */
   private resolveNamed(type: ts.Type, site: Site): Tsoa.ReferenceType | undefined {
-    return resolveNamedReference(this, type, site, (_resolver, declaration) => {
-      throw new GenerateMetadataError(`not implemented: interface and class models (${declaration.name?.text ?? 'anonymous'})`, declaration);
-    });
+    return resolveNamedReference(this, type, site, resolveModel);
   }
 
-  /** Object types that are not named models. Implemented with the member resolver. */
-  protected resolveObject(type: ts.Type, site: Site): Tsoa.Type {
-    throw new GenerateMetadataError(`not implemented: object types (${this.checker.typeToString(type)})`, site.node);
+  /** Object types that are not named models. */
+  private resolveObject(type: ts.Type, site: Site): Tsoa.Type {
+    return resolveAnonymousObject(this, type, site);
   }
 
   private resolveStructure(type: ts.Type, site: Site): Tsoa.Type {

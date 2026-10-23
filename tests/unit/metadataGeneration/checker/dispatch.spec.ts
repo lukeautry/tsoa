@@ -99,7 +99,7 @@ describe('checker resolver dispatch (non-object types)', () => {
   });
 
   // Review focus 1. Needs object members (Task 7).
-  it.skip('keeps a nullable type argument nullable in non-strict programs', () => {
+  it('keeps a nullable type argument nullable in non-strict programs', () => {
     const md = checkerMetadata('nonStrictNull.ts');
     const page = returnTypeOf(md) as Tsoa.ReferenceType;
     const items = (refOf(md, page.refName) as Tsoa.RefObjectType).properties.find(p => p.name === 'items')!;

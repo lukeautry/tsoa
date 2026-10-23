@@ -46,18 +46,18 @@ describe('checker resolver named references', () => {
   });
 
   describe('backed by interfaces (needs object members)', () => {
-    it.skip('emits A and B for two aliases of one interface', () => {
+    it('emits A and B for two aliases of one interface', () => {
       const models = checkerMetadata('referenceModels.ts', { strict: true });
       expect((refOf(models, 'A') as Tsoa.RefAliasType).type).to.include({ refName: 'User' });
       expect((refOf(models, 'B') as Tsoa.RefAliasType).type).to.include({ refName: 'User' });
     });
 
-    it.skip('merges interface declarations (review focus 3)', () => {
+    it('merges interface declarations (review focus 3)', () => {
       const models = checkerMetadata('referenceModels.ts', { strict: true });
       expect((refOf(models, 'Merged') as Tsoa.RefObjectType).properties.map(p => p.name)).to.deep.equal(['a', 'b']);
     });
 
-    it.skip('includes inherited members of recursive models, inherited first (repro 08)', () => {
+    it('includes inherited members of recursive models, inherited first (repro 08)', () => {
       const models = checkerMetadata('referenceModels.ts', { strict: true });
       expect((refOf(models, 'Item') as Tsoa.RefObjectType).properties.map(p => p.name)).to.deep.equal(['items', 'name']);
     });
