@@ -2,10 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import { fetchMiddlewares, HapiTemplateService } from '@tsoa/runtime';
-{{#if useSecurity}}
-import { MissingCredentialsError } from '@tsoa/runtime';
-{{/if}}
+import { fetchMiddlewares, HapiTemplateService{{#if useSecurity}}, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -163,13 +160,8 @@ export function RegisterRoutes(server: any) {
                 throw error;
             };
 
-            // An empty entry (`{}`) in the security list allows anonymous access. It is only used
-            // when every scheme failed because credentials were missing (MissingCredentialsError);
-            // invalid credentials are still rejected.
-            const allowsAnonymous = security.some(secMethod => Object.keys(secMethod).length === 0);
-            const isAnonymousAllowed = () => allowsAnonymous && failedAttempts.every(failure => failure instanceof MissingCredentialsError);
-
             const secMethodOrPromises: Promise<any>[] = [];
+            const secMethodAndPromisesAll: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -183,19 +175,8 @@ export function RegisterRoutes(server: any) {
 
                     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-                    // When anonymous access is allowed, wait for every member so that a slow invalid
-                    // credential is not hidden by a faster missing one.
-                    const secMethodAndSettled = allowsAnonymous
-                        ? Promise.allSettled(secMethodAndPromises).then(results => {
-                            const rejected = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
-                            if (rejected) {
-                                throw rejected.reason;
-                            }
-                            return results.map(result => (result as PromiseFulfilledResult<any>).value);
-                        })
-                        : Promise.all(secMethodAndPromises);
-
-                    secMethodOrPromises.push(secMethodAndSettled
+                    secMethodAndPromisesAll.push(...secMethodAndPromises);
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
@@ -214,7 +195,8 @@ export function RegisterRoutes(server: any) {
                 return request['user'];
             }
             catch(err) {
-                if (isAnonymousAllowed()) {
+                // An empty security entry (`@Security({})`) allows requests without credentials
+                if (await isAnonymousFallback(security, secMethodAndPromisesAll, failedAttempts)) {
                     return h.continue;
                 }
 

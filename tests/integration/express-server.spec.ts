@@ -156,18 +156,14 @@ describe('Express Server', () => {
     const boolValue = true;
     const stringValue = 'the-string';
 
-    return verifyGetRequest(
-      app,
-      basePath + `/GetTest/AllQueriesInOneObjectWithTypeAlias?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`,
-      (_err, res) => {
-        const queryParams = res.body as TestModel;
+    return verifyGetRequest(app, basePath + `/GetTest/AllQueriesInOneObjectWithTypeAlias?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`, (_err, res) => {
+      const queryParams = res.body as TestModel;
 
-        expect(queryParams.numberValue).to.equal(numberValue);
-        expect(queryParams.boolValue).to.equal(boolValue);
-        expect(queryParams.stringValue).to.equal(stringValue);
-        expect(queryParams.optionalString).to.be.undefined;
-      },
-    );
+      expect(queryParams.numberValue).to.equal(numberValue);
+      expect(queryParams.boolValue).to.equal(boolValue);
+      expect(queryParams.stringValue).to.equal(stringValue);
+      expect(queryParams.optionalString).to.be.undefined;
+    });
   });
 
   it('accepts any parameter using a wildcard', () => {
@@ -1229,14 +1225,14 @@ describe('Express Server', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 'Nick Yang' },
+          { name: 'Nick Yang' },
           (_err, res) => {
             const { body } = res;
 
-            expect(body.name).to.equal("Nick Yang-validated");
+            expect(body.name).to.equal('Nick Yang-validated');
           },
           200,
-        )
+        );
       });
 
       it('should invalid body props missing required field', () => {
@@ -1251,22 +1247,22 @@ describe('Express Server', () => {
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
 
       it('should invalid body props incorrect type', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 1234 },
+          { name: 1234 },
           (err, _res) => {
             const body = JSON.parse(err.text);
 
-            expect(body.fields['body.name'].message).to.equal("invalid string value");
+            expect(body.fields['body.name'].message).to.equal('invalid string value');
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
     });
 
@@ -1423,7 +1419,14 @@ describe('Express Server', () => {
       });
 
       it('continues without a user when all schemes have no credentials', () => {
-        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous', emptyHandler, 200);
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
       });
 
       it('returns 401 when an AND group has one missing and one invalid credential', () => {
@@ -1432,6 +1435,98 @@ describe('Express Server', () => {
 
       it('returns 401 when an AND group has a missing credential and a slower invalid one', () => {
         return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-invalid', emptyHandler, 401);
+      });
+
+      it('passes the user of the second scheme when only its credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body).to.deep.equal({});
+          },
+          200,
+        );
+      });
+
+      it('continues without a user when an AND group has one valid and one missing credential', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user when every member of an AND group is valid', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?access_token=abc123456&tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('continues without a user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest?access_token=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 for controller-level security without credentials', () => {
+        return verifyGetRequest(app, basePath + '/OverriddenSecurityTest', emptyHandler, 401);
+      });
+
+      it('continues without a user when a method-level empty entry overrides controller security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OverriddenSecurityTest/Anonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('keeps the response a slower AND group member sent before rejecting', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-custom-response',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+      });
+
+      it('keeps the response an authentication function sent before rejecting with missing credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-custom-response-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
       });
 
       it('returns 200 for a route with only an empty security entry', () => {

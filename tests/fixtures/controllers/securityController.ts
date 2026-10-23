@@ -121,3 +121,31 @@ export class SecurityTestController {
     return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
   }
 }
+
+@Security('api_key')
+@Security({})
+@Route('OptionalSecurityTest')
+export class OptionalSecurityTestController {
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Get()
+  public async GetWithControllerOptionalSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+}
+
+@Security('api_key')
+@Route('OverriddenSecurityTest')
+export class OverriddenSecurityTestController {
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Get()
+  public async GetWithControllerSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user);
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security({})
+  @Get('Anonymous')
+  public async GetWithMethodEmptySecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+}

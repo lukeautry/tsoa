@@ -34,6 +34,20 @@ export function expressAuthentication(req: express.Request, name: string, scopes
       return Promise.resolve({});
     } else if (req.query && req.query.tsoa === 'slow-invalid') {
       return new Promise((_, reject) => setTimeout(() => reject({ message: 'other' }), 10));
+    } else if (req.query && req.query.tsoa === 'slow-custom-response') {
+      return new Promise((_, reject) =>
+        setTimeout(() => {
+          response.status(403).send('some custom response');
+          reject({ message: 'other' });
+        }, 10),
+      );
+    } else if (req.query && req.query.tsoa === 'slow-custom-response-missing') {
+      return new Promise((_, reject) =>
+        setTimeout(() => {
+          response.status(403).send('some custom response');
+          reject(new MissingCredentialsError('other'));
+        }, 10),
+      );
     } else if (req.query && req.query.tsoa) {
       return Promise.reject({ message: 'other' });
     } else {

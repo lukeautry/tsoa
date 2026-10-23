@@ -37,6 +37,22 @@ export function koaAuthentication(request: Request, name: string, scopes: string
       return Promise.resolve({});
     } else if (request.query && request.query.tsoa === 'slow-invalid') {
       return new Promise((_, reject) => setTimeout(() => reject({ message: 'other' }), 10));
+    } else if (request.query && request.query.tsoa === 'slow-custom-response') {
+      return new Promise((_, reject) =>
+        setTimeout(() => {
+          response.status = 403;
+          response.body = 'some custom response';
+          reject({ message: 'other' });
+        }, 10),
+      );
+    } else if (request.query && request.query.tsoa === 'slow-custom-response-missing') {
+      return new Promise((_, reject) =>
+        setTimeout(() => {
+          response.status = 403;
+          response.body = 'some custom response';
+          reject(new MissingCredentialsError('other'));
+        }, 10),
+      );
     } else if (request.query && request.query.tsoa) {
       return Promise.reject({ message: 'other' });
     } else {
