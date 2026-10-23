@@ -6,9 +6,6 @@ import { expect } from 'chai';
 import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 
-// Under strictNullChecks a mapped property's type is a union (`DeepPartial<Nested> | undefined`)
-// that tsoa re-reads through a synthetic type node. The nested generic alias in that union used
-// to be resolved from its uninstantiated declaration, so it came out with no properties at all.
 describe('Recursive generic mapped types (strictNullChecks)', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/recursiveMappedTypeController.ts', { strictNullChecks: true }).Generate();
   const defaultConfig = getDefaultOptions();
@@ -25,7 +22,6 @@ describe('Recursive generic mapped types (strictNullChecks)', () => {
     if (schema?.$ref) {
       return resolve(schemas[schema.$ref.replace('#/components/schemas/', '')]);
     }
-    // `T | null` is emitted as the object schema plus `nullable`, or as anyOf/allOf
     const branch = (schema?.anyOf ?? schema?.allOf)?.find(s => s.$ref || s.properties);
     return branch ? resolve(branch as Swagger.Schema3) : (schema as Swagger.Schema3);
   };
