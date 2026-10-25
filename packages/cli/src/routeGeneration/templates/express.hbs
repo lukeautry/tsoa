@@ -201,19 +201,20 @@ export function RegisterRoutes(app: Router) {
             }
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
-                if (await isAnonymousFallback(security, attempts) && !response.writableEnded) {
-                    next();
-                    return;
-                }
-
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                error.status = error.status || 401;
+                const anonymous = await isAnonymousFallback(security, attempts);
 
                 // Response was sent in middleware, abort
                 if (response.writableEnded) {
                     return;
                 }
+
+                if (anonymous) {
+                    return next();
+                }
+
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                error.status = error.status || 401;
                 next(error);
             }
 

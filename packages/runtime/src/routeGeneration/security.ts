@@ -17,8 +17,10 @@ export class MissingCredentialsError extends Error implements Exception {
 }
 
 // The name match also accepts an error created by another copy of `@tsoa/runtime`.
-function isMissingCredentialsError(error: unknown): boolean {
-  return error instanceof MissingCredentialsError || (error as { name?: unknown } | undefined)?.name === 'MissingCredentialsError';
+function ignoreMissingCredentials(error: unknown): void {
+  if (!(error instanceof MissingCredentialsError || (error instanceof Error && error.name === 'MissingCredentialsError'))) {
+    throw error;
+  }
 }
 
 function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
@@ -28,8 +30,8 @@ function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
 /**
  * Decides, after authentication failed, whether the request may continue anonymously: the security list must contain
  * an empty entry (`@Security({})`) and no authentication attempt may have failed with anything but a
- * {@link MissingCredentialsError}. Waits for all attempts to settle, so that a slow invalid credential is not hidden
- * by a faster missing one.
+ * {@link MissingCredentialsError}. Answers false as soon as one attempt fails otherwise, and else waits for the
+ * remaining attempts, so that a slow invalid credential is not hidden by a faster missing one.
  *
  * @param security the security list of the operation
  * @param attempts every authentication promise: single schemes and the members of AND groups
@@ -38,6 +40,7 @@ export async function isAnonymousFallback(security: TsoaRoute.Security[], attemp
   if (!allowsAnonymous(security)) {
     return false;
   }
-  const settled = await Promise.allSettled(attempts);
-  return settled.every(result => result.status === 'fulfilled' || isMissingCredentialsError(result.reason));
+  return Promise.all(attempts.map(attempt => attempt.catch(ignoreMissingCredentials)))
+    .then(() => true)
+    .catch(() => false);
 }
