@@ -1,5 +1,5 @@
 import { Readable } from 'stream';
-import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Body, Consumes, Controller, Get, Produces, Path, Post, Query, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 type UserRequestModel = Pick<UserResponseModel, 'name'>;
@@ -58,6 +58,11 @@ export class MediaTypeTestController extends Controller {
   @Post('Binary/Custom')
   async postBinaryCustom(@Body() body: Readable): Promise<{ length: number }> {
     return { length: await countBytes(body) };
+  }
+
+  @Post('Binary/Query')
+  async postBinaryWithQuery(@Query() tag: number, @Body() body: Readable): Promise<{ length: number; tag: number }> {
+    return { length: await countBytes(body), tag };
   }
 
   @Post('Buffer')

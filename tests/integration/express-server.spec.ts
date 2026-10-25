@@ -782,6 +782,18 @@ describe('Express Server', () => {
       );
     });
 
+    it('should report a consumed body and an invalid query parameter together', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body.name).to.eq('ValidateError');
+          expect(Object.keys(res.body.fields)).to.have.members(['body', 'tag']);
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary/Query?tag=abc').send({ name: 'foo' }),
+        400,
+      );
+    });
+
     it('should hand an empty request body to the controller as an empty stream', () => {
       return verifyRequest(
         app,
