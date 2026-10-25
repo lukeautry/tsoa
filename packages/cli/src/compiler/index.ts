@@ -83,6 +83,7 @@ function backend(): typeof ts {
 }
 
 // Preserve import() when compiling the CLI to CommonJS.
+// eslint-disable-next-line @typescript-eslint/no-implied-eval
 const importModule = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
 export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T> {
   if (activeCompiler.getStore()) return generate();
@@ -109,14 +110,10 @@ function namespace<T extends object>(select: () => T): T {
   });
 }
 
-export type EmitHint = ts.EmitHint;
-export const EmitHint = namespace(() => backend().EmitHint);
 export type NodeBuilderFlags = ts.NodeBuilderFlags;
 export const NodeBuilderFlags = namespace(() => backend().NodeBuilderFlags);
 export type NodeFlags = ts.NodeFlags;
 export const NodeFlags = namespace(() => backend().NodeFlags);
-export type ScriptTarget = ts.ScriptTarget;
-export const ScriptTarget = namespace(() => backend().ScriptTarget);
 export type SymbolFlags = ts.SymbolFlags;
 export const SymbolFlags = namespace(() => backend().SymbolFlags);
 export type SyntaxKind = ts.SyntaxKind;
@@ -126,9 +123,7 @@ export const TypeFlags = namespace(() => backend().TypeFlags);
 export const sys = namespace(() => backend().sys);
 
 export const canHaveDecorators = ((...args: any[]) => (backend().canHaveDecorators as (...args: any[]) => any)(...args)) as typeof ts.canHaveDecorators;
-export const createPrinter = ((...args: any[]) => (backend().createPrinter as (...args: any[]) => any)(...args)) as typeof ts.createPrinter;
 export const createProgram = ((...args: any[]) => (backend().createProgram as (...args: any[]) => any)(...args)) as typeof ts.createProgram;
-export const createSourceFile = ((...args: any[]) => (backend().createSourceFile as (...args: any[]) => any)(...args)) as typeof ts.createSourceFile;
 export const displayPartsToString = ((...args: any[]) => (backend().displayPartsToString as (...args: any[]) => any)(...args)) as typeof ts.displayPartsToString;
 export const findConfigFile = ((...args: any[]) => (backend().findConfigFile as (...args: any[]) => any)(...args)) as typeof ts.findConfigFile;
 export const forEachChild = ((...args: any[]) => (backend().forEachChild as (...args: any[]) => any)(...args)) as typeof ts.forEachChild;
@@ -183,6 +178,21 @@ export const isTypeReferenceNode = ((...args: any[]) => (backend().isTypeReferen
 export const isUnionTypeNode = ((...args: any[]) => (backend().isUnionTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isUnionTypeNode;
 
 export function firstToken(node: ts.Node): ts.Node | undefined {
-  if (!node || node.pos === -1) return undefined;
-  return node.getFirstToken ? node.getFirstToken() : (backend() as any).getTokenAtPosition(node.getSourceFile(), node.getStart()) as ts.Node;
+  if (!node) return undefined;
+  if (node.pos === -1) {
+    try {
+      void node.getSourceFile()?.fileName;
+    } catch {
+      throw new Error(`Synthetic node source locations are not supported with the ${compilerPackage()} compiler backend.`);
+    }
+    return undefined;
+  }
+  return node.getFirstToken
+    ? node.getFirstToken()
+    : (backend() as unknown as { getTokenAtPosition(file: ts.SourceFile, start: number): ts.Node }).getTokenAtPosition(node.getSourceFile(), node.getStart());
+}
+
+export function printNode(node: ts.Node): string {
+  const compiler = backend() as typeof ts & { printNode?: (node: ts.Node) => string };
+  return compiler.printNode ? compiler.printNode(node) : compiler.createPrinter().printNode(compiler.EmitHint.Unspecified, node, compiler.createSourceFile('', '', compiler.ScriptTarget.Latest));
 }

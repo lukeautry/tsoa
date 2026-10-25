@@ -1,6 +1,6 @@
 import * as ts from '../compiler/index';
 
-const printNode = (node: ts.Node) => ts.createPrinter().printNode(ts.EmitHint.Unspecified, node, ts.createSourceFile('', '', ts.ScriptTarget.Latest));
+const printNode = ts.printNode;
 
 const noChildTypes: ReadonlyMap<ts.Node, ts.Type> = new Map();
 
