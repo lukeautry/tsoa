@@ -111,8 +111,12 @@ describe('anonymous security helpers', () => {
       expect(await Promise.race([answer, timeout])).to.be.false;
     });
 
+    it('answers false at once, not as a promise, when the operation has no empty entry', () => {
+      expect(isAnonymousFallback([{ api_key: [] }], [failed(new MissingCredentialsError())])).to.equal(false);
+    });
+
     it('is false for an entry that a security name set as its prototype', async () => {
-      // the generated route for @Security('__proto__') contains the literal {"__proto__":[]}
+      // generation refuses @Security('__proto__'); this guards the runtime should the literal {"__proto__":[]} reach a route anyway
       const entry = { __proto__: [] };
       expect(Object.keys(entry)).to.be.empty;
 
@@ -174,6 +178,12 @@ describe('anonymous security helpers', () => {
       expect(() => Object.assign(reported as object, { status: 401 })).to.not.throw();
       expect(reported).to.be.instanceOf(Error).and.have.property('message', 'frozen');
       expect(frozen.status).to.equal(403);
+    });
+
+    it('reports a sealed failure itself when its status can still be set', () => {
+      const sealed = Object.seal({ status: 403, message: 'denied', code: 'INVALID_TOKEN' });
+
+      expect(failureToReport(required, [sealed])).to.equal(sealed);
     });
 
     it('reports the last failure when every failure is a missing credential', () => {

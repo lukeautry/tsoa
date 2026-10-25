@@ -201,7 +201,8 @@ export function RegisterRoutes(server: any) {
             }
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
-                if (await isAnonymousFallback(security, attempts)) {
+                const fallback = isAnonymousFallback(security, attempts);
+                if (fallback !== false && (await fallback)) {
                     return request.raw.res.writableEnded ? h.abandon : h.continue;
                 }
 

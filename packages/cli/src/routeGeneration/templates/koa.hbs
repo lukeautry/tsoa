@@ -191,7 +191,8 @@ export function RegisterRoutes(router: KoaRouter) {
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
                 const prepared = () => context.status !== status || context.body !== body;
-                const anonymous = await isAnonymousFallback(security, prepared() ? [] : attempts); // a prepared response ends the wait
+                const fallback = isAnonymousFallback(security, prepared() ? [] : attempts); // a prepared response ends the wait
+                const anonymous = fallback !== false && (await fallback);
 
                 // Response was sent in middleware, abort
                 if(context.response.body || (anonymous && prepared())) {

@@ -14,6 +14,7 @@ describe('Security declarations', () => {
       named: [{ api_key: [] }],
       scoped: [{ api_key: ['read'] }],
       and: [{ api_key: ['read'], oauth: [] }],
+      templated: [{ api_key: [undefined] }],
     });
   });
 

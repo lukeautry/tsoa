@@ -1,5 +1,7 @@
 import { Get, Route, Security } from '@tsoa/runtime';
 
+const scopePrefix = 'users';
+
 @Route('ValidSecurity')
 export class ValidSecurityController {
   @Security({})
@@ -24,5 +26,11 @@ export class ValidSecurityController {
   @Get('And')
   public and(): string {
     return 'and';
+  }
+
+  @Security('api_key', [`${scopePrefix}:read`])
+  @Get('Templated')
+  public templated(): string {
+    return 'templated';
   }
 }

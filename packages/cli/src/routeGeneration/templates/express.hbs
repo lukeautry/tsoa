@@ -201,7 +201,8 @@ export function RegisterRoutes(app: Router) {
             }
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
-                const anonymous = await isAnonymousFallback(security, attempts);
+                const fallback = isAnonymousFallback(security, attempts);
+                const anonymous = fallback !== false && (await fallback);
 
                 // Response was sent in middleware, abort
                 if (response.writableEnded) {

@@ -61,10 +61,9 @@ export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeCheck
   const [argument] = (decorator.parent as ts.CallExpression).arguments;
   const names = Object.keys(security);
   const kept = names.length
-    ? Object.getPrototypeOf(security) === Object.prototype &&
-      names.every(name => name !== '__proto__' && Array.isArray(security[name]) && security[name].every((scope: unknown) => typeof scope === 'string'))
+    ? Object.getPrototypeOf(security) === Object.prototype && names.every(name => name !== '__proto__' && Array.isArray(security[name]))
     : ts.isObjectLiteralExpression(argument) && !argument.properties.length;
-  if (!kept) throw new GenerateMetadataError(`Invalid @Security: name each scheme (not '__proto__') and give it an array of scope strings. Only a literal {} may be empty.`, decorator);
+  if (!kept) throw new GenerateMetadataError(`Invalid @Security: name each scheme (not '__proto__') and give it an array of scopes. Only a literal {} may be empty.`, decorator);
   return security;
 }
 

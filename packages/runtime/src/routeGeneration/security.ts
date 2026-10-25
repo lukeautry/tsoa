@@ -33,7 +33,7 @@ function ignoreMissingCredentials(error: unknown): void {
 }
 
 function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
-  // The emitted literal {"__proto__":[]} has no own keys but is not the empty entry
+  // Generation refuses a scheme named __proto__; should the literal {"__proto__":[]} reach a route anyway, it has no own keys but is not the empty entry
   return security.some(secMethod => Object.getPrototypeOf(secMethod) === Object.prototype && Object.keys(secMethod).length === 0);
 }
 
@@ -41,12 +41,13 @@ function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
  * Decides, after authentication failed, whether the request may continue anonymously: the security list must contain
  * an empty entry (`@Security({})`) and no authentication attempt may have failed with anything but a
  * {@link MissingCredentialsError}. Answers false as soon as one attempt fails otherwise, and else waits for the
- * remaining attempts, so that a slow invalid credential is not hidden by a faster missing one.
+ * remaining attempts, so that a slow invalid credential is not hidden by a faster missing one. Without an empty entry it
+ * returns false at once, not a promise, so that a caller can skip the await and report failures as it did before.
  *
  * @param security the security list of the operation
  * @param attempts every authentication promise: single schemes and the members of AND groups
  */
-export async function isAnonymousFallback(security: TsoaRoute.Security[], attempts: Array<Promise<unknown>>): Promise<boolean> {
+export function isAnonymousFallback(security: TsoaRoute.Security[], attempts: Array<Promise<unknown>>): false | Promise<boolean> {
   // A rejection after an early answer must not surface as an unhandled rejection.
   void Promise.allSettled(attempts);
   if (!allowsAnonymous(security)) {
@@ -60,7 +61,9 @@ export async function isAnonymousFallback(security: TsoaRoute.Security[], attemp
 /** The failure to answer with: on an operation that allows anonymous access the first one that is not a missing credential, else the last. */
 export function failureToReport(security: TsoaRoute.Security[], failures: unknown[]): Partial<Exception> {
   const blocking = allowsAnonymous(security) ? failures.filter(failure => !isMissingCredentials(failure)) : [];
-  // Object() makes a null or string rejection readable. A frozen failure refuses the status that the response sets, so an object that inherits from it stands in.
+  // Object() makes a null or string rejection readable. Only a failure that refuses the status the response sets, such as a frozen one, is replaced by an object that inherits from it.
   const failure = Object(blocking.length ? blocking[0] : failures[failures.length - 1]);
-  return Object.isExtensible(failure) ? failure : Object.create(failure, { status: { value: failure.status, writable: true } });
+  const status = Object.getOwnPropertyDescriptor(failure, 'status');
+  const settable = status ? status.writable === true || status.set !== undefined : Object.isExtensible(failure);
+  return settable ? failure : Object.create(failure, { status: { value: failure.status, writable: true } });
 }
