@@ -99,8 +99,7 @@ export function RegisterRoutes(server: any) {
                 {{#if binaryBody}}
                 payload: {
                   output: 'stream',
-                  parse: false,
-                  maxBytes: Number.MAX_SAFE_INTEGER
+                  parse: false
                 },
                 {{/if}}
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
