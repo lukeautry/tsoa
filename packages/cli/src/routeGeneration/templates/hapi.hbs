@@ -202,11 +202,11 @@ export function RegisterRoutes(server: any) {
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
                 if (await isAnonymousFallback(security, attempts)) {
-                    return h.continue;
+                    return request.raw.res.writableEnded ? h.abandon : h.continue;
                 }
 
                 // Show most recent error as response
-                const error = failedAttempts.pop();
+                const error = Object(failedAttempts.pop()); // wraps a null or string rejection so its fields can be read
                 if (isBoom(error)) {
                     throw error;
                 }

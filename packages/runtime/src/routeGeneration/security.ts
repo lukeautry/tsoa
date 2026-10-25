@@ -24,7 +24,7 @@ function ignoreMissingCredentials(error: unknown): void {
 }
 
 function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
-  return security.some(secMethod => Object.keys(secMethod).length === 0);
+  return security.some(secMethod => Object.getPrototypeOf(secMethod) === Object.prototype && Object.keys(secMethod).length === 0);
 }
 
 /**

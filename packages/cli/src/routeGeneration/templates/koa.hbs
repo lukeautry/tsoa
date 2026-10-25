@@ -189,7 +189,7 @@ export function RegisterRoutes(router: KoaRouter) {
             }
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
-                const anonymous = await isAnonymousFallback(security, attempts);
+                const anonymous = context.status === 404 && await isAnonymousFallback(security, attempts) && context.status === 404; // 404 is Koa's default: no authentication function set a response
 
                 // Response was sent in middleware, abort
                 if(context.response.body) {
@@ -202,7 +202,7 @@ export function RegisterRoutes(router: KoaRouter) {
                 }
 
                 // Show most recent error as response
-                const error = failedAttempts.pop();
+                const error = Object(failedAttempts.pop()); // wraps a null or string rejection so its fields can be read
                 context.status = error.status || 401;
                 context.throw(context.status, error.message, error);
             }

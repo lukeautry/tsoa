@@ -213,7 +213,7 @@ export function RegisterRoutes(app: Router) {
                 }
 
                 // Show most recent error as response
-                const error = failedAttempts.pop();
+                const error = Object(failedAttempts.pop()); // wraps a null or string rejection so its fields can be read
                 error.status = error.status || 401;
                 next(error);
             }
