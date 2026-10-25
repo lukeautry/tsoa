@@ -104,7 +104,7 @@ export class SpecGenerator2 extends SpecGenerator {
           definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           definitions[referenceType.refName].example = referenceType.example;
         }
 
@@ -120,7 +120,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
           definitions[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
         }
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           definitions[referenceType.refName].example = referenceType.example;
         }
         if (referenceType.title) {
@@ -353,8 +353,8 @@ export class SpecGenerator2 extends SpecGenerator {
       name: source.name,
       required: this.isRequiredWithoutDefault(source),
       ...(source.deprecated ? { 'x-deprecated': true } : {}),
-      ...(parameterType.$ref ? { schema: parameterType } : {}),
-      ...(parameterType.format ? { format: this.throwIfNotDataFormat(parameterType.format) } : {}),
+      ...(parameterType.$ref || source.type.dataType === 'binary' ? { schema: parameterType } : {}),
+      ...(parameterType.format && source.type.dataType !== 'binary' ? { format: this.throwIfNotDataFormat(parameterType.format) } : {}),
     } as Swagger.Parameter2;
 
     if (Swagger.isQueryParameter(parameter) && parameterType.type === 'array') {
