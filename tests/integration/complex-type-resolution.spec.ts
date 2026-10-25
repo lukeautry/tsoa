@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultOptions } from '../fixtures/defaultOptions';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
@@ -311,6 +313,52 @@ describe('Complex Type Resolution Integration Tests', () => {
       });
     });
 
+    describe('unions whose tag cannot discriminate', () => {
+      const expectAnyOfWithoutDiscriminator = (name: string, memberCount: number) => {
+        const unionSchema = spec.components?.schemas?.[name] as Swagger.Schema3;
+        expect(unionSchema, `expected component schema "${name}" to exist`).to.exist;
+        expect(unionSchema.oneOf).to.not.exist;
+        expect(unionSchema.discriminator).to.not.exist;
+        expect(unionSchema.anyOf).to.be.an('array').with.length(memberCount);
+      };
+
+      it('should keep anyOf when the shared tag has a default', () => {
+        expect(spec.components?.schemas?.DefaultedTagFirst.required).to.not.exist;
+        expect(spec.components?.schemas?.DefaultedTagSecond.required).to.not.exist;
+        expectAnyOfWithoutDiscriminator('DefaultedTagUnion', 2);
+      });
+
+      it('should keep anyOf when the tag is optional on one member', () => {
+        expect(spec.components?.schemas?.RequiredTagBlock.required).to.deep.equal(['kind', 'requiredValue']);
+        expect(spec.components?.schemas?.OptionalTagBlock.required).to.deep.equal(['optionalValue']);
+        expectAnyOfWithoutDiscriminator('OptionalTagUnion', 2);
+      });
+
+      it('should keep anyOf when tag values overlap between members', () => {
+        expectAnyOfWithoutDiscriminator('OverlappingTagUnion', 2);
+      });
+
+      it('should keep anyOf when a member has no schema of its own', () => {
+        expectAnyOfWithoutDiscriminator('MixedMemberUnion', 2);
+      });
+    });
+
+    it('should list tag values such as "__proto__" and "constructor" as mapping keys', () => {
+      const unionSchema = spec.components?.schemas?.SpecialTagUnion as Swagger.Schema3;
+      expect(unionSchema, 'expected component schema "SpecialTagUnion" to exist').to.exist;
+      expect(unionSchema.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/PrototypeTagBlock' },
+        { $ref: '#/components/schemas/ConstructorTagBlock' },
+        { $ref: '#/components/schemas/PlainTagBlock' },
+      ]);
+      expect(unionSchema.discriminator?.propertyName).to.equal('kind');
+      expect(Object.entries(unionSchema.discriminator!.mapping!)).to.deep.equal([
+        ['__proto__', '#/components/schemas/PrototypeTagBlock'],
+        ['constructor', '#/components/schemas/ConstructorTagBlock'],
+        ['plain', '#/components/schemas/PlainTagBlock'],
+      ]);
+    });
+
     it('should generate correct OpenAPI spec for @Body with user created event', () => {
       const path = spec.paths['/ComplexType/UserCreatedEventBody'];
       expect(path).to.exist;
@@ -404,6 +452,33 @@ describe('Complex Type Resolution Integration Tests', () => {
       expect(spec.paths).to.exist;
       expect(spec.components).to.exist;
       expect(spec.components.schemas).to.exist;
+    });
+  });
+
+  describe('Discriminated unions in other OpenAPI versions', () => {
+    it('should generate oneOf + discriminator for OpenAPI 3.1.0', () => {
+      const contentBlockSchema = new SpecGenerator31(metadata, defaultOptions).GetSpec().components?.schemas?.['ContentBlock'];
+      expect(contentBlockSchema, 'expected component schema "ContentBlock" to exist').to.exist;
+      expect(contentBlockSchema!.anyOf).to.not.exist;
+      expect(contentBlockSchema!.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(contentBlockSchema!.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
+    });
+
+    it('should not generate oneOf or discriminator for OpenAPI 2.0', () => {
+      const swagger2 = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+      expect(swagger2.definitions?.['ContentBlock'], 'expected definition "ContentBlock" to exist').to.exist;
+      expect(JSON.stringify(swagger2)).to.not.match(/"(oneOf|discriminator)"/);
     });
   });
 });

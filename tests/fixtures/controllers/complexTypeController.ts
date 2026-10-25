@@ -145,6 +145,64 @@ export interface CarouselContentBlock {
 
 export type ContentBlock = TextContentBlock | ImageContentBlock | CarouselContentBlock;
 
+// The generated schema leaves a tag with a default out of `required`, so it cannot discriminate.
+export interface DefaultedTagFirst {
+  /** @default "FIRST" */
+  kind: 'FIRST';
+  first?: string;
+}
+
+export interface DefaultedTagSecond {
+  /** @default "SECOND" */
+  kind: 'SECOND';
+  second?: string;
+}
+
+export type DefaultedTagUnion = DefaultedTagFirst | DefaultedTagSecond;
+
+export interface RequiredTagBlock {
+  kind: 'required';
+  requiredValue: string;
+}
+
+export interface OptionalTagBlock {
+  kind?: 'optional';
+  optionalValue: string;
+}
+
+export type OptionalTagUnion = RequiredTagBlock | OptionalTagBlock;
+
+export interface OverlappingTagFirst {
+  kind: 'shared';
+  first: string;
+}
+
+export interface OverlappingTagSecond {
+  kind: 'shared';
+  second: string;
+}
+
+export type OverlappingTagUnion = OverlappingTagFirst | OverlappingTagSecond;
+
+export type MixedMemberUnion = TextContentBlock | { type: 'INLINE'; inlineText: string };
+
+export interface PrototypeTagBlock {
+  kind: '__proto__';
+  prototypeValue: string;
+}
+
+export interface ConstructorTagBlock {
+  kind: 'constructor';
+  constructorValue: string;
+}
+
+export interface PlainTagBlock {
+  kind: 'plain';
+  plainValue: string;
+}
+
+export type SpecialTagUnion = PrototypeTagBlock | ConstructorTagBlock | PlainTagBlock;
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -267,6 +325,46 @@ export class ComplexTypeController {
   public async postNullableContentBlockBody(
     @Body() body: TextContentBlock | ImageContentBlock | CarouselContentBlock | null,
   ): Promise<TextContentBlock | ImageContentBlock | CarouselContentBlock | null> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose shared tag has a default
+   */
+  @Post('DefaultedTagUnionBody')
+  public async postDefaultedTagUnionBody(@Body() body: DefaultedTagUnion): Promise<DefaultedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where the tag is optional on one member
+   */
+  @Post('OptionalTagUnionBody')
+  public async postOptionalTagUnionBody(@Body() body: OptionalTagUnion): Promise<OptionalTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag values overlap between members
+   */
+  @Post('OverlappingTagUnionBody')
+  public async postOverlappingTagUnionBody(@Body() body: OverlappingTagUnion): Promise<OverlappingTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union that has an inline object member
+   */
+  @Post('MixedMemberUnionBody')
+  public async postMixedMemberUnionBody(@Body() body: MixedMemberUnion): Promise<MixedMemberUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag values include '__proto__' and 'constructor'
+   */
+  @Post('SpecialTagUnionBody')
+  public async postSpecialTagUnionBody(@Body() body: SpecialTagUnion): Promise<SpecialTagUnion> {
     return body;
   }
 
