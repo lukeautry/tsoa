@@ -179,14 +179,7 @@ export const isUnionTypeNode = ((...args: any[]) => (backend().isUnionTypeNode a
 
 export function firstToken(node: ts.Node): ts.Node | undefined {
   if (!node) return undefined;
-  if (node.pos === -1) {
-    try {
-      void node.getSourceFile()?.fileName;
-    } catch {
-      throw new Error(`Synthetic node source locations are not supported with the ${compilerPackage()} compiler backend.`);
-    }
-    return undefined;
-  }
+  if (node.pos === -1) return undefined;
   return node.getFirstToken
     ? node.getFirstToken()
     : (backend() as unknown as { getTokenAtPosition(file: ts.SourceFile, start: number): ts.Node }).getTokenAtPosition(node.getSourceFile(), node.getStart());

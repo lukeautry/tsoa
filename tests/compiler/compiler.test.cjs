@@ -101,3 +101,38 @@ test('optionalPropertyController preserves optional interface and class properti
     ],
   );
 });
+
+test('prettyLocationOfNode falls back for synthetic nodes without changing source locations', async () => {
+  const { prettyLocationOfNode } = require('../../packages/cli/dist/metadataGeneration/exceptions');
+  await compiler.withCompiler(() => {
+    const program = compiler.createProgram([fixture], { experimentalDecorators: true });
+    const source = program.getSourceFiles().find(source => source.fileName === fixture);
+    const model = source.statements.find(node => node.name?.text === 'BackendModel');
+    const checker = program.getTypeChecker();
+    const synthetic = checker.typeToTypeNode(checker.getTypeAtLocation(model), undefined, compiler.NodeBuilderFlags.NoTruncation);
+    assert.equal(synthetic.pos, -1);
+    assert.equal(compiler.firstToken(synthetic), undefined);
+    assert.equal(prettyLocationOfNode(model.name), `At: ${fixture}:4:4.`);
+    assert.equal(prettyLocationOfNode({ pos: -1, getSourceFile: () => source }), `At: ${fixture}.`);
+  });
+  const error = new Error('source lookup failed');
+  const node = {
+    pos: -1,
+    getSourceFile: () => {
+      throw error;
+    },
+  };
+  assert.equal(compiler.firstToken(node), undefined);
+  assert.equal(prettyLocationOfNode(node), 'At unknown position...');
+  assert.throws(() => prettyLocationOfNode({ ...node, pos: 0 }), error);
+  const lazySource = {
+    pos: -1,
+    getSourceFile: () => ({
+      get fileName() {
+        throw error;
+      },
+    }),
+  };
+  assert.equal(prettyLocationOfNode(lazySource), 'At unknown position...');
+  assert.throws(() => prettyLocationOfNode({ ...lazySource, pos: 0 }), error);
+});

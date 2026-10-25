@@ -23,7 +23,14 @@ export class GenerateMetaDataWarning {
 }
 
 export function prettyLocationOfNode(node: Node | TypeNode) {
-  const sourceFile = node.getSourceFile();
+  let sourceFile: ReturnType<Node['getSourceFile']> | undefined;
+  try {
+    sourceFile = node.getSourceFile();
+    void sourceFile?.fileName;
+  } catch (error) {
+    if (node.pos !== -1) throw error;
+    sourceFile = undefined;
+  }
   if (sourceFile) {
     const token = firstToken(node) || firstToken(node.parent);
     const start = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getStart()).line + 1}` : '';
