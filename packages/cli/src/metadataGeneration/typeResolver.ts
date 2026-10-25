@@ -916,7 +916,7 @@ export class TypeResolver {
         type,
         validators: {},
         deprecated,
-        ...(example && { example }),
+        ...(example !== undefined && { example }),
         ...(title && { title }),
       };
       return referenceType;
@@ -933,7 +933,7 @@ export class TypeResolver {
       properties: inheritedProperties,
       refName: refTypeName,
       deprecated,
-      ...(example && { example }),
+      ...(example !== undefined && { example }),
       ...(title && { title }),
     };
 

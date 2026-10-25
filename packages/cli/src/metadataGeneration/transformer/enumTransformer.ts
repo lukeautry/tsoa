@@ -27,7 +27,7 @@ export class EnumTransformer extends Transformer {
 
     const enumVarnames = first.enumVarnames ? (second.enumVarnames ? [...first.enumVarnames, ...second.enumVarnames] : first.enumVarnames) : second.enumVarnames;
 
-    const example = first.example || second.example;
+    const example = first.example ?? second.example;
     const title = first.title || second.title;
 
     return {
