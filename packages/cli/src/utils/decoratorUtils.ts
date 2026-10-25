@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { getInitializerValue } from '../metadataGeneration/initializer-value';
 
 function tsHasDecorators(tsNamespace: typeof ts): tsNamespace is typeof ts & {
@@ -56,10 +57,14 @@ export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Typ
 
 export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
   const [first, second] = getDecoratorValues(decorator, typeChecker);
-  if (isObject(first)) {
-    return first;
-  }
-  return { [first]: second || [] };
+  const security = isObject(first) ? first : { [first]: second || [] };
+  const [argument] = (decorator.parent as ts.CallExpression).arguments;
+  const names = Object.keys(security);
+  const kept = names.length
+    ? Object.getPrototypeOf(security) === Object.prototype && names.every(name => name !== '__proto__' && Array.isArray(security[name]))
+    : ts.isObjectLiteralExpression(argument) && !argument.properties.length;
+  if (!kept) throw new GenerateMetadataError(`Invalid @Security: name each scheme (not '__proto__') and give it an array of scopes. Only a literal {} may be empty.`, decorator);
+  return security;
 }
 
 export function isDecorator(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {

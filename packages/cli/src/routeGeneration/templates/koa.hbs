@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import { fetchMiddlewares, KoaTemplateService } from '@tsoa/runtime';
+import { fetchMiddlewares, KoaTemplateService{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -155,6 +155,8 @@ export function RegisterRoutes(router: KoaRouter) {
             };
 
             const secMethodOrPromises: Promise<any>[] = [];
+            const attempts: Promise<any>[] = [];
+            const { status, body } = context;
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -166,14 +168,14 @@ export function RegisterRoutes(router: KoaRouter) {
                         );
                     }
 
+                    attempts.push(...secMethodAndPromises);
                     secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            koaAuthenticationRecasted(context.request, name, secMethod[name], context.response)
-                                .catch(pushAndRethrow)
-                        );
+                        const attempt = koaAuthenticationRecasted(context.request, name, secMethod[name], context.response).catch(pushAndRethrow);
+                        attempts.push(attempt);
+                        secMethodOrPromises.push(attempt);
                     }
                 }
             }
@@ -187,13 +189,22 @@ export function RegisterRoutes(router: KoaRouter) {
                 context.request['user'] = user;
             }
             catch(err) {
+                // An empty security entry (`@Security({})`) allows requests without credentials
+                const prepared = () => context.status !== status || context.body !== body;
+                const fallback = isAnonymousFallback(security, prepared() ? [] : attempts); // a prepared response ends the wait
+                const anonymous = fallback !== false && (await fallback);
+
                 // Response was sent in middleware, abort
-                if(context.response.body) {
+                if(context.response.body || (anonymous && prepared())) {
                     return;
                 }
 
-                // Show most recent error as response
-                const error = failedAttempts.pop();
+                if (anonymous) {
+                    await next();
+                    return;
+                }
+
+                const error = failureToReport(security, failedAttempts);
                 context.status = error.status || 401;
                 context.throw(context.status, error.message, error);
             }

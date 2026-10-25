@@ -4,7 +4,9 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
+import { setTimeout as delay } from 'timers/promises';
 import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
+import { optionalOrSecurityState } from '../fixtures/controllers/securityController';
 import { RegisterRoutes } from '../fixtures/hapi/routes';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
@@ -1091,14 +1093,14 @@ describe('Hapi Server', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 'Nick Yang' },
+          { name: 'Nick Yang' },
           (_err, res) => {
             const { body } = res;
 
-            expect(body.name).to.equal("Nick Yang-validated");
+            expect(body.name).to.equal('Nick Yang-validated');
           },
           200,
-        )
+        );
       });
 
       it('should invalid body props missing required field', () => {
@@ -1113,22 +1115,22 @@ describe('Hapi Server', () => {
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
 
       it('should invalid body props incorrect type', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 1234 },
+          { name: 1234 },
           (err, _res) => {
             const body = JSON.parse(err.text);
 
-            expect(body.fields['body.name'].message).to.equal("invalid string value");
+            expect(body.fields['body.name'].message).to.equal('invalid string value');
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
     });
 
@@ -1244,6 +1246,191 @@ describe('Hapi Server', () => {
         },
         200,
       );
+    });
+
+    describe('Optional security (empty entry)', () => {
+      const anonymous = '/SecurityTest/ApiKeyOrAnonymous';
+
+      it('passes the user when the API key is valid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=abc123456', (_err, res) => {
+          expect(res.body.id).to.equal(1);
+        });
+      });
+
+      it('continues without a user when no credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + anonymous,
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 when the API key is invalid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when one scheme has no credentials and another has invalid ones', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('reports the invalid credential, not the scheme without credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=invalid',
+          err => {
+            expect(JSON.parse(err.text).message).to.equal('api_key');
+          },
+          401,
+        );
+      });
+
+      it('returns 401 when a scheme rejects with an unrelated error named MissingCredentialsError', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=named-error', emptyHandler, 401);
+      });
+
+      it('continues without a user when all schemes have no credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 when an AND group has one missing and one invalid credential', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when an AND group has a missing credential and a slower invalid one', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-invalid', emptyHandler, 401);
+      });
+
+      it('passes the user of the second scheme when only its credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body).to.deep.equal({});
+          },
+          200,
+        );
+      });
+
+      it('continues without a user when an AND group has one valid and one missing credential', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user when every member of an AND group is valid', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?access_token=abc123456&tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('continues without a user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest?access_token=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 for controller-level security without credentials', () => {
+        return verifyGetRequest(app, basePath + '/OverriddenSecurityTest', emptyHandler, 401);
+      });
+
+      it('continues without a user when a method-level empty entry overrides controller security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OverriddenSecurityTest/Anonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 200 for a route with only an empty security entry', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/AnonymousOnly',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      for (const kind of ['null', 'string']) {
+        it(`returns 401 when a later AND group member rejects with a ${kind} value`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=${kind}-rejection`, emptyHandler, 401);
+        });
+      }
+
+      for (const [description, token, status] of [
+        ['without a status', 'frozen', 401],
+        ['with a status', 'frozen-status', 403],
+      ] as const) {
+        it(`answers a frozen error ${description}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=${token}`,
+            (_err, res) => {
+              expect(res.body.message).to.equal('api_key');
+            },
+            status,
+          );
+        });
+      }
+
+      it('does not run the controller after an authentication function ended the response and rejected with missing credentials', async () => {
+        const anonymousPath = basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous';
+        const before = optionalOrSecurityState.calls;
+        await verifyGetRequest(app, anonymousPath, emptyHandler, 200);
+        expect(optionalOrSecurityState.calls).to.equal(before + 1);
+
+        await verifyGetRequest(
+          app,
+          anonymousPath + '?tsoa=ended-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+        await delay(20);
+
+        expect(optionalOrSecurityState.calls).to.equal(before + 1);
+      });
     });
 
     describe('API key or tsoa auth', () => {

@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import {  fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
+import {  fetchMiddlewares, ExpressTemplateService{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -161,6 +161,7 @@ export function RegisterRoutes(app: Router) {
             };
 
             const secMethodOrPromises: Promise<any>[] = [];
+            const attempts: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -174,14 +175,14 @@ export function RegisterRoutes(app: Router) {
 
                     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
+                    attempts.push(...secMethodAndPromises);
                     secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            expressAuthenticationRecasted(request, name, secMethod[name], response)
-                                .catch(pushAndRethrow)
-                        );
+                        const attempt = expressAuthenticationRecasted(request, name, secMethod[name], response).catch(pushAndRethrow);
+                        attempts.push(attempt);
+                        secMethodOrPromises.push(attempt);
                     }
                 }
             }
@@ -199,14 +200,21 @@ export function RegisterRoutes(app: Router) {
                 next();
             }
             catch(err) {
-                // Show most recent error as response
-                const error = failedAttempts.pop();
-                error.status = error.status || 401;
+                // An empty security entry (`@Security({})`) allows requests without credentials
+                const fallback = isAnonymousFallback(security, attempts);
+                const anonymous = fallback !== false && (await fallback);
 
                 // Response was sent in middleware, abort
                 if (response.writableEnded) {
                     return;
                 }
+
+                if (anonymous) {
+                    return next();
+                }
+
+                const error = failureToReport(security, failedAttempts);
+                error.status = error.status || 401;
                 next(error);
             }
 
