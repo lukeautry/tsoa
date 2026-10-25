@@ -532,6 +532,30 @@ export class ValidationService {
       return null;
     }
 
+    if (property.discriminator && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const { propertyName, mapping } = property.discriminator;
+      const tag = value[propertyName];
+
+      // The tag is matched like an enum member (by its string form); a key that is not an own key of the mapping (e.g. 'toString') selects no member
+      if (tag !== undefined && Object.prototype.hasOwnProperty.call(mapping, String(tag))) {
+        const subSchema = property.subSchemas.find(candidate => candidate.ref === mapping[String(tag)]);
+        // Only the member the tag selects is validated, so its errors are reported as they are
+        if (subSchema) {
+          return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.deepClone(value), name, fieldErrors, isBodyParam, parent);
+        }
+      } else {
+        const tagPath = parent + name + '.' + propertyName;
+        if (tag === undefined) {
+          // Unlike ValidateParam, this does not look up a custom `is*` error message of the tag property
+          fieldErrors[tagPath] = { message: `'${propertyName}' is required`, value: tag };
+        } else {
+          const tagsInQuotes = Object.keys(mapping).map(key => `'${key}'`);
+          fieldErrors[tagPath] = { message: `should be one of the following; [${tagsInQuotes.join(',')}]`, value: tag };
+        }
+        return;
+      }
+    }
+
     const subFieldErrors: FieldErrors[] = [];
 
     for (const subSchema of property.subSchemas) {

@@ -5,6 +5,8 @@ import { merge as deepMerge } from 'ts-deepmerge';
 import { ExtendedSpecConfig } from '../cli';
 import { isVoidType } from '../utils/isVoidType';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
+import { isNullType } from '../utils/internalTypeGuards';
+import { getUnionDiscriminator } from '../utils/unionDiscriminator';
 import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 import { convertColonPathParams, normalisePath } from './../utils/pathUtils';
 import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from './../utils/swaggerUtils';
@@ -621,7 +623,7 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected isNull(type: Tsoa.Type) {
-    return type.dataType === 'enum' && type.enums.length === 1 && type.enums[0] === null;
+    return isNullType(type);
   }
 
   // Join disparate enums with the same type into one.
@@ -670,63 +672,21 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   /**
-   * Detects a discriminated union of $ref-able types: every member is a refObject or a refAlias of
-   * an inline object literal, and exactly one property is required on every member with a non-empty,
-   * string-only enum type (a string literal, or `keyof` an object type) whose values don't repeat in
-   * another member. Members that aren't $ref-able can't be targeted by a discriminator mapping, so
-   * those unions fall back to `anyOf`.
+   * Describes a discriminated union as `oneOf` plus a `discriminator` mapping; unions without a usable
+   * discriminator (see `getUnionDiscriminator`) fall back to `anyOf`.
    */
   protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
-    const isRefObject = (t: Tsoa.Type): t is Tsoa.RefObjectType => t.dataType === 'refObject';
-    const isRefAlias = (t: Tsoa.Type): t is Tsoa.RefAliasType => t.dataType === 'refAlias';
-    const isNestedObjectLiteral = (t: Tsoa.Type): t is Tsoa.NestedObjectLiteralType => t.dataType === 'nestedObjectLiteral';
-    const isStringEnum = (t: Tsoa.Type): t is Tsoa.EnumType => t.dataType === 'enum' && t.enums.length > 0 && t.enums.every(value => typeof value === 'string');
-
-    if (types.length < 2 || !types.every(t => isRefObject(t) || isRefAlias(t))) {
-      return null;
-    }
-    const refTypes = types as Array<Tsoa.RefObjectType | Tsoa.RefAliasType>;
-
-    // Collect every required, string-literal-enum property found on each member, keyed by property name.
-    const enumsByPropertyName = new Map<string, string[][]>();
-    for (const refType of refTypes) {
-      // A refAlias pointing at another ref type (rather than an inline object) is not unwrapped further.
-      const properties = isRefObject(refType) ? refType.properties : isNestedObjectLiteral(refType.type) ? refType.type.properties : undefined;
-      if (!properties) {
-        return null;
-      }
-      // The emitted schema keeps the last property of each name and drops one named `__proto__`.
-      for (const property of new Map(properties.map(p => [p.name, p])).values()) {
-        if (property.name !== '__proto__' && this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
-          const enums = enumsByPropertyName.get(property.name) ?? [];
-          enums.push(property.type.enums as string[]);
-          enumsByPropertyName.set(property.name, enums);
-        }
-      }
-    }
-
-    // A usable discriminator property must appear on every member, with values that don't overlap.
-    const candidates = Array.from(enumsByPropertyName.entries()).filter(([, enumsPerMember]) => {
-      if (enumsPerMember.length !== refTypes.length) {
-        return false;
-      }
-      const allValues = enumsPerMember.flat();
-      const uniqueValues = new Set(allValues);
-      return uniqueValues.size === allValues.length;
-    });
-
-    // If more than one property qualifies, the discriminator would be ambiguous - bail out.
-    if (candidates.length !== 1) {
+    const detected = getUnionDiscriminator(types);
+    if (!detected) {
       return null;
     }
 
-    const [propertyName, enumsPerMember] = candidates[0];
-    const oneOf = refTypes.map(t => this.getSwaggerType(t));
-    const mapping = Object.fromEntries(enumsPerMember.flatMap((values, index) => values.map((value): [string, string] => [value, oneOf[index].$ref!])));
+    const oneOf = detected.members.map(member => this.getSwaggerType(member.type));
+    const mapping = Object.fromEntries(detected.members.flatMap((member, index) => member.values.map((value): [string, string] => [value, oneOf[index].$ref!])));
 
     return {
       oneOf,
-      discriminator: { propertyName, mapping },
+      discriminator: { propertyName: detected.propertyName, mapping },
     };
   }
 
@@ -734,7 +694,7 @@ export class SpecGenerator3 extends SpecGenerator {
     const nonNullTypes = type.types.filter(x => !this.isNull(x)).filter(x => x.dataType !== 'undefined');
     const nullable = type.types.some(x => this.isNull(x));
 
-    const discriminated = this.getUnionDiscriminator(nonNullTypes);
+    const discriminated = this.getUnionDiscriminator(type.types);
     if (discriminated) {
       return { ...(title && { title }), ...discriminated, ...(nullable && { nullable }) };
     }

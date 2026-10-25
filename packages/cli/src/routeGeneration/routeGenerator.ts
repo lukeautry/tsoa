@@ -2,6 +2,7 @@ import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
 import { isRefType } from '../utils/internalTypeGuards';
+import { getUnionDiscriminator } from '../utils/unionDiscriminator';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
 import { fsExists, fsReadFile } from '../utils/fs';
 
@@ -229,6 +230,17 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
     if (type.dataType === 'union' || type.dataType === 'intersection') {
       schema.subSchemas = type.types.map(type => this.buildProperty(type));
+    }
+
+    if (type.dataType === 'union') {
+      const discriminator = getUnionDiscriminator(type.types);
+      // Models are printed as object literals, where a `__proto__` key would set the prototype instead of a mapping entry.
+      if (discriminator && !discriminator.members.some(member => member.values.includes('__proto__'))) {
+        schema.discriminator = {
+          propertyName: discriminator.propertyName,
+          mapping: Object.fromEntries(discriminator.members.flatMap(member => member.values.map((value): [string, string] => [value, member.type.refName]))),
+        };
+      }
     }
 
     if (type.dataType === 'nestedObjectLiteral') {

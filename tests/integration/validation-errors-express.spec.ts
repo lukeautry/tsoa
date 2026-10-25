@@ -32,6 +32,27 @@ describe('Validation Error Size - Express Server', () => {
     });
   });
 
+  describe('Discriminated Union Validation Errors', () => {
+    it('should report an invalid field of the member selected by the tag', async () => {
+      const response = await request(app)
+        .post(basePath + '/ValidationTest/UnionType')
+        .send({ unionProperty: { type: 'typeB', valueB: 'not a number' } })
+        .expect(400);
+
+      expect(Object.keys(response.body.fields)).to.deep.equal(['body.unionProperty.valueB']);
+      expect(response.body.fields['body.unionProperty.valueB'].message).to.equal('invalid float number');
+    });
+
+    it('should report an unknown tag at the tag property', async () => {
+      const response = await request(app)
+        .post(basePath + '/ValidationTest/UnionType')
+        .send({ unionProperty: { type: 'invalid' } })
+        .expect(400);
+
+      expect(response.body.fields['body.unionProperty.type'].message).to.equal("should be one of the following; ['typeA','typeB','typeC']");
+    });
+  });
+
   describe('Deep Model Validation Errors', () => {
     it('should not have excessive escaping in deep model errors', async () => {
       // Create deeply nested invalid data
