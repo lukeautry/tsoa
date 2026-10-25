@@ -59,9 +59,10 @@ export class TestController extends Controller {
   @Get('unavailableForLegalReasonsStatusCode')
   @Response(451)
   public async getUnavailableForLegalReasonsError(): Promise<ErrorResponseModel> {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw {
       status: 451,
-      messgage: 'error'
+      messgage: 'error',
     };
   }
 }

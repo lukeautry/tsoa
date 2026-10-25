@@ -1,9 +1,12 @@
 import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
+import { get as httpGet } from 'http';
 import 'mocha';
 import { resolve } from 'path';
+import { setTimeout as delay } from 'timers/promises';
 import { base64image } from '../fixtures/base64image';
+import { endlessStreamState } from '../fixtures/controllers/getController';
 import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
 import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { app } from '../fixtures/express/server';
@@ -146,6 +149,25 @@ describe('Express Server', () => {
       expect(queryParams.stringValue).to.equal(stringValue);
       expect(queryParams.optionalString).to.be.undefined;
     });
+  });
+
+  it('parses queries parameters with a type alias', () => {
+    const numberValue = 10;
+    const boolValue = true;
+    const stringValue = 'the-string';
+
+    return verifyGetRequest(
+      app,
+      basePath + `/GetTest/AllQueriesInOneObjectWithTypeAlias?booleanParam=${boolValue.toString()}&stringParam=${stringValue}&numberParam=${numberValue}`,
+      (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.numberValue).to.equal(numberValue);
+        expect(queryParams.boolValue).to.equal(boolValue);
+        expect(queryParams.stringValue).to.equal(stringValue);
+        expect(queryParams.optionalString).to.be.undefined;
+      },
+    );
   });
 
   it('accepts any parameter using a wildcard', () => {
@@ -291,6 +313,44 @@ describe('Express Server', () => {
     });
   });
 
+  it('aborts the connection on a stream error before data was sent', async () => {
+    let failure: unknown;
+    try {
+      await verifyGetRequest(app, `${basePath}/GetTest/HandleStreamFailure`, () => undefined);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).to.have.nested.property('error.code', 'ECONNRESET');
+  });
+
+  it('aborts the connection on a stream error after data was sent', async () => {
+    const response = await getRawResponse(`${basePath}/GetTest/HandleStreamFailureMidTransfer`);
+
+    expect(response.statusCode).to.equal(200);
+    expect(response.body).to.equal('first chunk');
+    expect(response.complete).to.equal(false);
+  });
+
+  it('destroys the source stream when the client disconnects', async () => {
+    await withHttpServer(async port => {
+      await new Promise<void>((resolve, reject) => {
+        let receivedData = false;
+        const request = httpGet({ port, path: `${basePath}/GetTest/HandleEndlessStream` }, response => {
+          response.on('error', () => undefined);
+          response.once('data', () => {
+            receivedData = true;
+            request.destroy();
+          });
+        });
+        request.setTimeout(1000, () => request.destroy(new Error('stream request timed out')));
+        request.on('error', reject);
+        request.on('close', () => (receivedData ? resolve() : reject(new Error('stream closed before data arrived'))));
+      });
+      await delay(100);
+      expect(endlessStreamState.destroyed).to.equal(true);
+    });
+  });
+
   it('should reject invalid additionalProperties', () => {
     const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
 
@@ -361,6 +421,45 @@ describe('Express Server', () => {
     return verifyPostRequest(app, basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
       const model = res.body as TestClassModel;
       expect(model.id).to.equal(700); // this gets changed on the server
+    });
+  });
+
+  describe('optional body parameter', () => {
+    const path = basePath + '/PostTest/OptionalBody';
+
+    it('treats a request without a body as absent', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => expect(res.body).to.deep.equal({ received: false }),
+        request => request.post(path),
+      );
+    });
+
+    it('validates a sent empty object', () => {
+      return verifyPostRequest(
+        app,
+        path,
+        {},
+        (_err, res) => {
+          expect(res.body.fields).to.have.property('body.foo');
+        },
+        400,
+      );
+    });
+
+    it('passes a sent object through', () => {
+      return verifyPostRequest(app, path, { foo: true }, (_err, res) => expect(res.body).to.deep.equal({ received: true }));
+    });
+  });
+
+  describe('required body parameter', () => {
+    it('passes a request without a body to a body of any type', () => {
+      return verifyRequest(
+        app,
+        () => undefined,
+        request => request.post(basePath + '/ParameterTest/ParamaterBodyAnyType'),
+        204,
+      );
     });
   });
 
@@ -1682,25 +1781,38 @@ describe('Express Server', () => {
       });
     });
 
-    it('cannot post a file with wrong attribute name', async () => {
+    it('cannot post a file with wrong attribute name', () => {
       const formData = { wrongAttributeName: '@../package.json' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
-        expect(res.status).to.equal(500);
-        expect(res.text).to.equal('{"message":"Unexpected field","name":"MulterError","status":500}');
-      });
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(500);
+          expect(res.body).to.deep.include({ name: 'MulterError', status: 500 });
+          expect(res.body.message).to.be.oneOf(['Unexpected field', 'Unexpected file field']);
+        },
+        500,
+      );
     });
 
-    it('cannot post a file with no file', async () => {
+    it('cannot post a file with no file', () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
-        expect(res.status).to.equal(400);
-        expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"An error occurred during the request.","name":"ValidateError","status":400}');
-      });
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(400);
+          expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}},"message":"An error occurred during the request.","name":"ValidateError","status":400}');
+        },
+        400,
+      );
     });
 
-    it('can post a file with no file', async () => {
+    it('can post a file with no file', () => {
       const formData = { notAFileAttribute: 'not a file' };
-      verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
         expect(res.text).to.equal('no file');
       });
@@ -1870,3 +1982,39 @@ describe('Express Server', () => {
     return model;
   }
 });
+
+async function withHttpServer<T>(run: (port: number) => Promise<T>): Promise<T> {
+  const server = app.listen(0);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once('listening', resolve);
+      server.once('error', reject);
+    });
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('HTTP test server has no TCP address');
+    }
+    return await run(address.port);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => (error ? reject(error) : resolve())));
+  }
+}
+
+type RawResponse = { statusCode?: number; body: string; complete: boolean };
+
+function getRawResponse(path: string) {
+  return withHttpServer(
+    port =>
+      new Promise<RawResponse>((resolve, reject) => {
+        const request = httpGet({ port, path }, response => {
+          let body = '';
+          response.setEncoding('utf8');
+          response.on('data', (chunk: string) => (body += chunk));
+          response.on('error', () => undefined);
+          response.on('close', () => resolve({ statusCode: response.statusCode, body, complete: response.complete }));
+        });
+        request.setTimeout(1000, () => request.destroy(new Error('stream request timed out')));
+        request.on('error', reject);
+      }),
+  );
+}

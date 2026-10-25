@@ -6,6 +6,7 @@ import { EnumTransformer } from './enumTransformer';
 import { TypeResolver } from '../typeResolver';
 import { GenerateMetadataError } from '../exceptions';
 import { getPropertyValidators } from '../../utils/validatorUtils';
+import { isExistJSDocTag } from '../../utils/jsDocUtils';
 
 export class ReferenceTransformer extends Transformer {
   public static merge(referenceTypes: Tsoa.ReferenceType[]): Tsoa.ReferenceType {
@@ -42,7 +43,7 @@ export class ReferenceTransformer extends Transformer {
     const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
 
     const deprecated = first.deprecated || second.deprecated;
-    const example = first.example || second.example;
+    const example = first.example ?? second.example;
 
     const properties = [...first.properties, ...second.properties.filter(prop => first.properties.every(firstProp => firstProp.name !== prop.name))];
 
@@ -86,7 +87,8 @@ export class ReferenceTransformer extends Transformer {
       format: resolver.getNodeFormat(declaration),
       type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
       validators: getPropertyValidators(declaration) || {},
-      ...(example && { example }),
+      deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
+      ...(example !== undefined && { example }),
       ...(title && { title }),
     };
     return referenceType;

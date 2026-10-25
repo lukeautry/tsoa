@@ -33,11 +33,14 @@
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2 || ^6.0.3"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/lukeautry/tsoa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lukeautry/tsoa/issues"
   },
   "bin": {
     "tsoa": "dist/cli.js"

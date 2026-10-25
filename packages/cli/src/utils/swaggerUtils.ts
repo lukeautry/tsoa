@@ -1,8 +1,10 @@
+import type { Tsoa } from '@tsoa/runtime';
+
 export const DEFAULT_REQUEST_MEDIA_TYPE = 'application/json';
 export const DEFAULT_BINARY_REQUEST_MEDIA_TYPE = 'application/octet-stream';
 export const DEFAULT_RESPONSE_MEDIA_TYPE = 'application/json';
 
-export function getValue(type: 'string' | 'number' | 'integer' | 'boolean' | undefined, member: unknown): string | number | boolean | null {
+export function getValue(type: 'string' | 'number' | 'integer' | 'boolean' | undefined, member: Tsoa.EnumType['enums'][number]): string | number | boolean | null {
   if (type == null || member == null) {
     return null;
   }

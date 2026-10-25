@@ -1,5 +1,5 @@
 import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
-import type { Payload } from '@hapi/boom';
+import type { boomify, isBoom, Payload } from '@hapi/boom';
 
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
@@ -36,8 +36,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     protected readonly models: TsoaRoute.Models,
     protected readonly config: AdditionalProps,
     private readonly hapi: {
-      boomify: CallableFunction;
-      isBoom: CallableFunction;
+      boomify: typeof boomify;
+      isBoom: typeof isBoom;
     },
   ) {
     super(models, config);
@@ -75,7 +75,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
     const { args, request, h } = params;
 
     const errorFields: FieldErrors = {};
-    const values = Object.values(args).map(param => {
+    const values = this.getParameters(args).map(param => {
       const name = param.name;
       switch (param.in) {
         case 'request':
@@ -125,7 +125,7 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
           };
       }
     });
-    if (Object.keys(errorFields).length > 0) {
+    if (this.hasFieldErrors(errorFields)) {
       throw new ValidateError(errorFields, '');
     }
     return values;

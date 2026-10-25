@@ -5,7 +5,7 @@ import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
 import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
-import { Readable } from 'node:stream';
+import { Readable, pipeline } from 'node:stream';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
@@ -28,6 +28,10 @@ type ExpressReturnHandlerParameters = {
   statusCode?: number;
   data?: any;
 };
+
+// body-parser leaves `{}` when a request has neither `Content-Length` nor `Transfer-Encoding`, or has `Content-Length: 0`
+const isEmptyBodyPlaceholder = ({ headers, body }: ExRequest) =>
+  !headers?.['transfer-encoding'] && Number(headers?.['content-length'] ?? 0) === 0 && body?.constructor === Object && Object.keys(body).length === 0;
 
 export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
   async apiHandler(params: ExpressApiHandlerParameters) {
@@ -52,7 +56,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
     const { args, request, response } = params;
 
     const fieldErrors: FieldErrors = {};
-    const values = Object.values(args).map(param => {
+    const values = this.getParameters(args).map(param => {
       const name = param.name;
       switch (param.in) {
         case 'request':
@@ -74,8 +78,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           if (param.dataType === 'binary') {
             return request;
           }
+          const body = !param.required && isEmptyBodyPlaceholder(request) ? undefined : request.body;
           const bodyFieldErrors: FieldErrors = {};
-          const bodyArgs = this.validationService.ValidateParam(param, request.body, name, bodyFieldErrors, true, undefined);
+          const bodyArgs = this.validationService.ValidateParam(param, body, name, bodyFieldErrors, true, undefined);
           Object.keys(bodyFieldErrors).forEach(key => {
             fieldErrors[key] = { message: bodyFieldErrors[key].message };
           });
@@ -90,7 +95,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           return bodyPropArgs;
         }
         case 'formData': {
-          const files = Object.values(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
+          const files = this.getParameters(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
             const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] } | undefined;
 
@@ -109,7 +114,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
       }
     });
 
-    if (Object.keys(fieldErrors).length > 0) {
+    if (this.hasFieldErrors(fieldErrors)) {
       throw new ValidateError(fieldErrors, '');
     }
     return values;
@@ -132,7 +137,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
 
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
-      (data as Readable).pipe(response);
+      pipeline(data as Readable, response, _ => {});
     } else if (data !== undefined && (data !== null || isJsonResponse)) {
       // allow null response when it is a json response
       if (typeof data === 'number' || isJsonResponse) {

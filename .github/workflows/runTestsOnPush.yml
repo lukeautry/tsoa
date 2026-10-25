@@ -8,27 +8,31 @@ jobs:
       matrix:
         node-version: [22, 24, 25]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^5.0.0']
+        typescript-version: ['^5.0.0', '^6.0.3']
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
 
       - name: Install Yarn
-        run: npm install -g yarn
+        run: npm install -g yarn@1.22.22
 
       - name: Set resolutions to correct typescript version
-        uses: jossef/action-set-json-field@v2.1
-        with:
-          file: package.json
-          field: resolutions
-          value: '{ "typescript": "${{ matrix.typescript-version }}"}'
-          parse_json: true
+        shell: bash
+        env:
+          TYPESCRIPT_VERSION: ${{ matrix.typescript-version }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          packageJson.resolutions.typescript = process.env.TYPESCRIPT_VERSION;
+          fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n');
+          NODE
 
       # for yarn3
       # - name: Set Typescript version
@@ -46,8 +50,8 @@ jobs:
       - name: Build
         run: yarn run build
 
-      - name: Lint
-        run: yarn run lint
-
       - name: Test
         run: yarn run test
+
+      - name: Lint
+        run: yarn run lint

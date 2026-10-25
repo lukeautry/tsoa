@@ -99,7 +99,7 @@ export class SpecGenerator3 extends SpecGenerator {
         defs[key] = {
           scheme: 'basic',
           type: 'http',
-        } as Swagger.BasicSecurity3;
+        };
       } else if (definitions[key].type === 'oauth2') {
         /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
         const definition = definitions[key] as
@@ -171,7 +171,7 @@ export class SpecGenerator3 extends SpecGenerator {
           schema[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           schema[referenceType.refName].example = referenceType.example;
         }
 
@@ -205,7 +205,7 @@ export class SpecGenerator3 extends SpecGenerator {
             ],
           };
         }
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           schema[referenceType.refName].example = referenceType.example;
         }
         if (referenceType.title) {
@@ -669,17 +669,77 @@ export class SpecGenerator3 extends SpecGenerator {
     }
   }
 
+  /**
+   * Detects a discriminated union of $ref-able types: every member is a refObject or a refAlias of
+   * an inline object literal, and exactly one property is required on every member with a non-empty,
+   * string-only enum type (a string literal, or `keyof` an object type) whose values don't repeat in
+   * another member. Members that aren't $ref-able can't be targeted by a discriminator mapping, so
+   * those unions fall back to `anyOf`.
+   */
+  protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
+    const isRefObject = (t: Tsoa.Type): t is Tsoa.RefObjectType => t.dataType === 'refObject';
+    const isRefAlias = (t: Tsoa.Type): t is Tsoa.RefAliasType => t.dataType === 'refAlias';
+    const isNestedObjectLiteral = (t: Tsoa.Type): t is Tsoa.NestedObjectLiteralType => t.dataType === 'nestedObjectLiteral';
+    const isStringEnum = (t: Tsoa.Type): t is Tsoa.EnumType => t.dataType === 'enum' && t.enums.length > 0 && t.enums.every(value => typeof value === 'string');
+
+    if (types.length < 2 || !types.every(t => isRefObject(t) || isRefAlias(t))) {
+      return null;
+    }
+    const refTypes = types as Array<Tsoa.RefObjectType | Tsoa.RefAliasType>;
+
+    // Collect every required, string-literal-enum property found on each member, keyed by property name.
+    const enumsByPropertyName = new Map<string, string[][]>();
+    for (const refType of refTypes) {
+      // A refAlias pointing at another ref type (rather than an inline object) is not unwrapped further.
+      const properties = isRefObject(refType) ? refType.properties : isNestedObjectLiteral(refType.type) ? refType.type.properties : undefined;
+      if (!properties) {
+        return null;
+      }
+      // The emitted schema keeps the last property of each name and drops one named `__proto__`.
+      for (const property of new Map(properties.map(p => [p.name, p])).values()) {
+        if (property.name !== '__proto__' && this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
+          const enums = enumsByPropertyName.get(property.name) ?? [];
+          enums.push(property.type.enums as string[]);
+          enumsByPropertyName.set(property.name, enums);
+        }
+      }
+    }
+
+    // A usable discriminator property must appear on every member, with values that don't overlap.
+    const candidates = Array.from(enumsByPropertyName.entries()).filter(([, enumsPerMember]) => {
+      if (enumsPerMember.length !== refTypes.length) {
+        return false;
+      }
+      const allValues = enumsPerMember.flat();
+      const uniqueValues = new Set(allValues);
+      return uniqueValues.size === allValues.length;
+    });
+
+    // If more than one property qualifies, the discriminator would be ambiguous - bail out.
+    if (candidates.length !== 1) {
+      return null;
+    }
+
+    const [propertyName, enumsPerMember] = candidates[0];
+    const oneOf = refTypes.map(t => this.getSwaggerType(t));
+    const mapping = Object.fromEntries(enumsPerMember.flatMap((values, index) => values.map((value): [string, string] => [value, oneOf[index].$ref!])));
+
+    return {
+      oneOf,
+      discriminator: { propertyName, mapping },
+    };
+  }
+
   protected getSwaggerTypeForUnionType(type: Tsoa.UnionType, title?: string) {
-    // Filter out nulls and undefineds
-    const actualSwaggerTypes = this.removeDuplicateSwaggerTypes(
-      this.groupEnums(
-        type.types
-          .filter(x => !this.isNull(x))
-          .filter(x => x.dataType !== 'undefined')
-          .map(x => this.getSwaggerType(x)),
-      ),
-    );
+    const nonNullTypes = type.types.filter(x => !this.isNull(x)).filter(x => x.dataType !== 'undefined');
     const nullable = type.types.some(x => this.isNull(x));
+
+    const discriminated = this.getUnionDiscriminator(nonNullTypes);
+    if (discriminated) {
+      return { ...(title && { title }), ...discriminated, ...(nullable && { nullable }) };
+    }
+
+    const actualSwaggerTypes = this.removeDuplicateSwaggerTypes(this.groupEnums(nonNullTypes.map(x => this.getSwaggerType(x))));
 
     if (nullable) {
       if (actualSwaggerTypes.length === 1) {

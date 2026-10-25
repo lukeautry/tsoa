@@ -4908,7 +4908,7 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
         const ref: string | undefined = schema.$ref;
         if (ref) {
           const refName = ref.replace('#/components/schemas/', '');
-          return components[refName]!;
+          return components[refName];
         }
         return schema;
       }
@@ -4917,8 +4917,8 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       const spec = new SpecGenerator31(metadata, defaultOptions).GetSpec();
       const components: Record<string, Swagger.Schema31> = spec.components.schemas ?? {};
 
-      const fixedTupleSchema = components.StringAndNumberTuple!;
-      const variadicTupleSchema = components.TupleWithRest!;
+      const fixedTupleSchema = components.StringAndNumberTuple;
+      const variadicTupleSchema = components.TupleWithRest;
 
       expect(fixedTupleSchema.type).to.equal('array');
       expect(fixedTupleSchema.prefixItems).to.be.an('array').with.lengthOf(2);

@@ -1,6 +1,6 @@
 import { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
-import validator from 'validator';
+import isISO8601 from 'validator/lib/isISO8601';
 import { GenerateMetadataError } from './../metadataGeneration/exceptions';
 import { commentToString, getJSDocTags } from './jsDocUtils';
 
@@ -67,7 +67,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value), { strict: true })) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
@@ -76,13 +76,7 @@ export function getParameterValidators(parameter: ts.ParameterDeclaration, param
           };
           break;
         case 'pattern':
-          if (typeof value !== 'string') {
-            throw new GenerateMetadataError(`${name} parameter use string.`);
-          }
-          validateObj[name] = {
-            errorMsg: getErrorMsg(comment),
-            value: removeSurroundingQuotes(value),
-          };
+          validateObj[name] = parsePattern(comment, tag);
           break;
         default:
           if (name.startsWith('is')) {
@@ -166,7 +160,7 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
           break;
         case 'minDate':
         case 'maxDate':
-          if (!validator.isISO8601(String(value), { strict: true })) {
+          if (!isISO8601(String(value), { strict: true })) {
             throw new GenerateMetadataError(`${name} parameter use date format ISO 8601 ex. 2017-05-14, 2017-05-14T05:18Z`);
           }
           validateObj[name] = {
@@ -175,13 +169,7 @@ export function getPropertyValidators(property: ts.Node): Tsoa.Validators | unde
           };
           break;
         case 'pattern':
-          if (typeof value !== 'string') {
-            throw new GenerateMetadataError(`${name} parameter use string.`);
-          }
-          validateObj[name] = {
-            errorMsg: getErrorMsg(commentToString(comment)),
-            value: removeSurroundingQuotes(value),
-          };
+          validateObj[name] = parsePattern(commentToString(comment), tag);
           break;
         case 'title':
           if (typeof value !== 'string') {
@@ -234,14 +222,26 @@ function getParameterTagSupport() {
   ];
 }
 
-function removeSurroundingQuotes(str: string) {
-  if (str.startsWith('`') && str.endsWith('`')) {
-    return str.substring(1, str.length - 1);
+function parsePattern(comment: string | undefined, node: ts.Node): { value: string; errorMsg?: string } {
+  if (!comment) {
+    throw new GenerateMetadataError('pattern parameter use string.', node);
   }
-  if (str.startsWith('```') && str.endsWith('```')) {
-    return str.substring(3, str.length - 3);
+
+  const quoted = /^`(?!`)[^\r\n]*?`(?= |$)/.exec(comment);
+  const separator = quoted ? quoted[0].length : comment.indexOf(' ');
+  const source = separator === -1 ? comment : comment.substring(0, separator);
+  const value = source.startsWith('`') && source.endsWith('`') ? source.substring(1, source.length - 1) : source;
+  const errorMsg = separator > 0 && separator < comment.length ? comment.substring(separator + 1) : undefined;
+
+  try {
+    new RegExp(value);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new GenerateMetadataError(`Invalid @pattern ${JSON.stringify(value)}. ${error.message}`, node);
+    }
+    throw error;
   }
-  return str;
+  return { value, errorMsg };
 }
 
 export function shouldIncludeValidatorInSchema(key: string): key is Tsoa.SchemaValidatorKey {

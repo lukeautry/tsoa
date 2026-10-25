@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import TestAgent = require('supertest/lib/agent');
 import { Agent } from 'http';
 import { resolve } from 'path';
@@ -9,24 +9,28 @@ export function verifyRequest(app: App, verifyResponse: (err: any, res: request.
     methodOperation(request(app))
       .expect(expectedStatus)
       .end((err: any, res: any) => {
-        let parsedError: any;
         try {
-          parsedError = JSON.parse(res.error);
-        } catch (err) {
-          parsedError = res?.error;
-        }
+          let parsedError: any;
+          try {
+            parsedError = JSON.parse(res.error);
+          } catch (err) {
+            parsedError = res?.error;
+          }
 
-        if (err) {
-          verifyResponse(err, res);
-          reject({
-            error: err,
-            response: parsedError,
-          });
-          return;
-        }
+          if (err) {
+            verifyResponse(err, res);
+            reject({
+              error: err,
+              response: parsedError,
+            });
+            return;
+          }
 
-        verifyResponse(parsedError, res);
-        resolve();
+          verifyResponse(parsedError, res);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
       });
   });
 }

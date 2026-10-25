@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
 import { Swagger } from '@tsoa/runtime';
 import { getDefaultOptions } from '../fixtures/defaultOptions';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
@@ -233,26 +235,183 @@ describe('Complex Type Resolution Integration Tests', () => {
   });
 
   describe('Discriminated union types', () => {
-    it('should generate correct OpenAPI spec for @Body with discriminated union', () => {
+    it('should NOT generate oneOf/discriminator for a union whose members are inline object literals (not $ref-able)', () => {
+      // UserEvent's members are inline nestedObjectLiteral types (no separate declaration of
+      // their own), so they aren't $ref-able and must keep using anyOf.
       const path = spec.paths['/ComplexType/DiscriminatedUnionBody'];
       expect(path).to.exist;
       expect(path.post).to.exist;
 
       const operation = path.post!;
-      expect(operation.requestBody).to.exist;
-      expect(operation.requestBody!.content).to.exist;
-      expect(operation.requestBody!.content['application/json']).to.exist;
+      let schema = operation.requestBody!.content['application/json'].schema as Swagger.Schema3 | Swagger.Schema31;
+      expect(schema).to.exist;
 
+      // UserEvent is itself a refAlias to another refAlias, so follow every $ref hop until we
+      // reach the actual union schema.
+      while (schema.$ref) {
+        const schemaName = schema.$ref.replace('#/components/schemas/', '');
+        const nextSchema = spec.components?.schemas?.[schemaName];
+        expect(nextSchema, `expected component schema "${schemaName}" to exist`).to.exist;
+        schema = nextSchema!;
+      }
+
+      expect(schema.oneOf).to.not.exist;
+      expect(schema.discriminator).to.not.exist;
+      expect(schema.anyOf).to.be.an('array').with.length(3);
+    });
+
+    it('should generate oneOf + discriminator for a union of named interfaces sharing a literal discriminant property', () => {
+      const path = spec.paths['/ComplexType/ContentBlockBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      const operation = path.post!;
       const requestBodySchema = operation.requestBody!.content['application/json'].schema as Swagger.Schema3;
       expect(requestBodySchema).to.exist;
+      expect(requestBodySchema.$ref).to.equal('#/components/schemas/ContentBlock');
 
-      // Check that it's a discriminated union (oneOf with discriminator)
-      if ((requestBodySchema as any).oneOf) {
-        expect((requestBodySchema as any).oneOf).to.be.an('array');
-        expect((requestBodySchema as any).oneOf.length).to.be.greaterThan(1);
-        expect((requestBodySchema as any).discriminator).to.exist;
-        expect((requestBodySchema as any).discriminator.propertyName).to.equal('type');
-      }
+      const contentBlockSchema = spec.components?.schemas?.['ContentBlock'];
+      expect(contentBlockSchema).to.exist;
+      expect(contentBlockSchema!.anyOf).to.not.exist;
+      expect(contentBlockSchema!.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(contentBlockSchema!.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
+    });
+
+    it('should generate oneOf + discriminator + nullable:true for a nullable discriminated union', () => {
+      const path = spec.paths['/ComplexType/NullableContentBlockBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      const requestBodySchema = path.post!.requestBody!.content['application/json'].schema as Swagger.Schema3;
+      expect(requestBodySchema).to.exist;
+
+      expect(requestBodySchema.anyOf).to.not.exist;
+      expect(requestBodySchema.nullable).to.equal(true);
+      expect(requestBodySchema.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(requestBodySchema.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
+    });
+
+    const expectOneOfOnKind = (name: string, mapping: Record<string, string>) => {
+      const unionSchema = spec.components?.schemas?.[name] as Swagger.Schema3;
+      expect(unionSchema, `expected component schema "${name}" to exist`).to.exist;
+      expect(unionSchema.anyOf).to.not.exist;
+      expect(unionSchema.oneOf).to.deep.equal(Object.values(mapping).map($ref => ({ $ref })));
+      expect(unionSchema.discriminator).to.deep.equal({ propertyName: 'kind', mapping });
+    };
+
+    it('should generate oneOf + discriminator when classes implement interfaces that declare the tag', () => {
+      expectOneOfOnKind('ImplementedTagUnion', {
+        'implemented-first': '#/components/schemas/ImplementedTagFirst',
+        'implemented-second': '#/components/schemas/ImplementedTagSecond',
+      });
+    });
+
+    it('should generate oneOf + discriminator when a member declares an inherited tag again', () => {
+      expectOneOfOnKind('RedeclaredTagUnion', {
+        redeclared: '#/components/schemas/RedeclaredTagChild',
+        sibling: '#/components/schemas/RedeclaredTagSibling',
+      });
+    });
+
+    it('should generate oneOf + discriminator for a union of aliases of inline object types', () => {
+      expectOneOfOnKind('AliasedTagUnion', {
+        first: '#/components/schemas/AliasedTagFirst',
+        second: '#/components/schemas/AliasedTagSecond',
+      });
+    });
+
+    it('should keep the nullable $ref for a single tagged type that can be null', () => {
+      const path = spec.paths['/ComplexType/NullableSingleTagBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      expect(path.post!.requestBody!.content['application/json'].schema).to.deep.equal({
+        allOf: [{ $ref: '#/components/schemas/SingleTagBlock' }],
+        nullable: true,
+      });
+    });
+
+    describe('unions whose tag cannot discriminate', () => {
+      const expectAnyOfWithoutDiscriminator = (name: string, memberCount: number) => {
+        const unionSchema = spec.components?.schemas?.[name] as Swagger.Schema3;
+        expect(unionSchema, `expected component schema "${name}" to exist`).to.exist;
+        expect(unionSchema.oneOf).to.not.exist;
+        expect(unionSchema.discriminator).to.not.exist;
+        expect(unionSchema.anyOf).to.be.an('array').with.length(memberCount);
+      };
+
+      it('should keep anyOf when the shared tag has a default', () => {
+        expect(spec.components?.schemas?.DefaultedTagFirst.required).to.not.exist;
+        expect(spec.components?.schemas?.DefaultedTagSecond.required).to.not.exist;
+        expectAnyOfWithoutDiscriminator('DefaultedTagUnion', 2);
+      });
+
+      it('should keep anyOf when the tag is optional on one member', () => {
+        expect(spec.components?.schemas?.RequiredTagBlock.required).to.deep.equal(['kind', 'requiredValue']);
+        expect(spec.components?.schemas?.OptionalTagBlock.required).to.deep.equal(['optionalValue']);
+        expectAnyOfWithoutDiscriminator('OptionalTagUnion', 2);
+      });
+
+      it('should keep anyOf when tag values overlap between members', () => {
+        expectAnyOfWithoutDiscriminator('OverlappingTagUnion', 2);
+      });
+
+      it('should keep anyOf when a member has no schema of its own', () => {
+        expectAnyOfWithoutDiscriminator('MixedMemberUnion', 2);
+      });
+
+      it('should keep anyOf when a member overrides the inherited tag with an unconstrained type', () => {
+        const kind = spec.components?.schemas?.UnconstrainedTagChild.properties?.kind;
+        expect(kind).to.exist;
+        expect(kind!.enum).to.not.exist;
+        expectAnyOfWithoutDiscriminator('UnconstrainedTagUnion', 2);
+      });
+
+      it('should keep anyOf when two properties could both discriminate', () => {
+        expectAnyOfWithoutDiscriminator('AmbiguousTagUnion', 2);
+      });
+
+      it('should keep anyOf when the tag property is named "__proto__"', () => {
+        expectAnyOfWithoutDiscriminator('PrototypeNamedTagUnion', 2);
+      });
+    });
+
+    it('should list tag values such as "__proto__" and "constructor" as mapping keys', () => {
+      const unionSchema = spec.components?.schemas?.SpecialTagUnion as Swagger.Schema3;
+      expect(unionSchema, 'expected component schema "SpecialTagUnion" to exist').to.exist;
+      expect(unionSchema.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/PrototypeTagBlock' },
+        { $ref: '#/components/schemas/ConstructorTagBlock' },
+        { $ref: '#/components/schemas/PlainTagBlock' },
+      ]);
+      expect(unionSchema.discriminator?.propertyName).to.equal('kind');
+      expect(Object.entries(unionSchema.discriminator!.mapping!)).to.deep.equal([
+        ['__proto__', '#/components/schemas/PrototypeTagBlock'],
+        ['constructor', '#/components/schemas/ConstructorTagBlock'],
+        ['plain', '#/components/schemas/PlainTagBlock'],
+      ]);
     });
 
     it('should generate correct OpenAPI spec for @Body with user created event', () => {
@@ -348,6 +507,33 @@ describe('Complex Type Resolution Integration Tests', () => {
       expect(spec.paths).to.exist;
       expect(spec.components).to.exist;
       expect(spec.components.schemas).to.exist;
+    });
+  });
+
+  describe('Discriminated unions in other OpenAPI versions', () => {
+    it('should generate oneOf + discriminator for OpenAPI 3.1.0', () => {
+      const contentBlockSchema = new SpecGenerator31(metadata, defaultOptions).GetSpec().components?.schemas?.['ContentBlock'];
+      expect(contentBlockSchema, 'expected component schema "ContentBlock" to exist').to.exist;
+      expect(contentBlockSchema!.anyOf).to.not.exist;
+      expect(contentBlockSchema!.oneOf).to.deep.equal([
+        { $ref: '#/components/schemas/TextContentBlock' },
+        { $ref: '#/components/schemas/ImageContentBlock' },
+        { $ref: '#/components/schemas/CarouselContentBlock' },
+      ]);
+      expect(contentBlockSchema!.discriminator).to.deep.equal({
+        propertyName: 'type',
+        mapping: {
+          TEXT: '#/components/schemas/TextContentBlock',
+          IMAGE: '#/components/schemas/ImageContentBlock',
+          CAROUSEL: '#/components/schemas/CarouselContentBlock',
+        },
+      });
+    });
+
+    it('should not generate oneOf or discriminator for OpenAPI 2.0', () => {
+      const swagger2 = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+      expect(swagger2.definitions?.['ContentBlock'], 'expected definition "ContentBlock" to exist').to.exist;
+      expect(JSON.stringify(swagger2)).to.not.match(/"(oneOf|discriminator)"/);
     });
   });
 });

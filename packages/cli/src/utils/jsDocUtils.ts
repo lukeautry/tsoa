@@ -36,17 +36,17 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
   let tags: ts.JSDocTag[];
   if (node.kind === ts.SyntaxKind.Parameter) {
     const parameterName = ((node as any).name as ts.Identifier).text;
-    tags = getJSDocTags(node.parent as any, tag => {
+    tags = getJSDocTags(node.parent, tag => {
       if (ts.isJSDocParameterTag(tag)) {
         return false;
-      } else if (tag.comment === undefined) {
+      } else if (tag.comment === undefined && !ts.isJSDocReturnTag(tag)) {
         throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.escapedText)} should have a parameter name follows with.`);
       }
 
       return commentToString(tag.comment)?.startsWith(parameterName) || false;
     });
   } else {
-    tags = getJSDocTags(node as any, tag => {
+    tags = getJSDocTags(node, tag => {
       return requireTagName ? tag.comment !== undefined : true;
     });
   }

@@ -1,5 +1,5 @@
-import * as Koa from 'koa';
-import * as KoaRouter from '@koa/router';
+import Koa from 'koa';
+import KoaRouter from '@koa/router';
 import '../controllers/rootController';
 
 import '../controllers/optionsController';
@@ -21,7 +21,7 @@ import '../controllers/subresourceController';
 
 import '../controllers/middlewaresKoaController';
 
-import * as bodyParser from 'koa-bodyparser';
+import bodyParser from 'koa-bodyparser';
 import { RegisterRoutes } from './routes';
 
 const app = new Koa();
@@ -29,7 +29,7 @@ app.use(bodyParser());
 
 const router = new KoaRouter();
 
-(RegisterRoutes as (router: KoaRouter) => void)(router);
+RegisterRoutes(router);
 
 // It's important that this come after the main routes are registered
 app.use(async (context, next) => {

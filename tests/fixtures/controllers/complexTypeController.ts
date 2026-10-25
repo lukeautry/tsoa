@@ -126,6 +126,163 @@ export const UserEventSchema = z.discriminatedUnion('type', [UserCreatedEventSch
 
 export type UserEvent = z.infer<typeof UserEventSchema>;
 
+// Unlike UserEvent above, these are separately-declared interfaces, so they resolve to named
+// refObject types rather than inline object literals.
+export interface TextContentBlock {
+  type: 'TEXT';
+  text: string;
+}
+
+export interface ImageContentBlock {
+  type: 'IMAGE';
+  imageUrl: string;
+}
+
+export interface CarouselContentBlock {
+  type: 'CAROUSEL';
+  imageUrls: string[];
+}
+
+export type ContentBlock = TextContentBlock | ImageContentBlock | CarouselContentBlock;
+
+// The generated schema leaves a tag with a default out of `required`, so it cannot discriminate.
+export interface DefaultedTagFirst {
+  /** @default "FIRST" */
+  kind: 'FIRST';
+  first?: string;
+}
+
+export interface DefaultedTagSecond {
+  /** @default "SECOND" */
+  kind: 'SECOND';
+  second?: string;
+}
+
+export type DefaultedTagUnion = DefaultedTagFirst | DefaultedTagSecond;
+
+export interface RequiredTagBlock {
+  kind: 'required';
+  requiredValue: string;
+}
+
+export interface OptionalTagBlock {
+  kind?: 'optional';
+  optionalValue: string;
+}
+
+export type OptionalTagUnion = RequiredTagBlock | OptionalTagBlock;
+
+export interface OverlappingTagFirst {
+  kind: 'shared';
+  first: string;
+}
+
+export interface OverlappingTagSecond {
+  kind: 'shared';
+  second: string;
+}
+
+export type OverlappingTagUnion = OverlappingTagFirst | OverlappingTagSecond;
+
+export type MixedMemberUnion = TextContentBlock | { type: 'INLINE'; inlineText: string };
+
+export interface PrototypeTagBlock {
+  kind: '__proto__';
+  prototypeValue: string;
+}
+
+export interface ConstructorTagBlock {
+  kind: 'constructor';
+  constructorValue: string;
+}
+
+export interface PlainTagBlock {
+  kind: 'plain';
+  plainValue: string;
+}
+
+export type SpecialTagUnion = PrototypeTagBlock | ConstructorTagBlock | PlainTagBlock;
+
+export interface InheritedTagParent {
+  kind: 'inherited';
+}
+
+// The generated schema takes `kind` from the child, where `any` accepts every tag.
+export interface UnconstrainedTagChild extends InheritedTagParent {
+  kind: any;
+}
+
+export interface UnconstrainedTagOther {
+  kind: 'other';
+}
+
+export type UnconstrainedTagUnion = UnconstrainedTagChild | UnconstrainedTagOther;
+
+export interface ImplementedTagFirstContract {
+  kind: 'implemented-first';
+}
+
+export interface ImplementedTagSecondContract {
+  kind: 'implemented-second';
+}
+
+export class ImplementedTagFirst implements ImplementedTagFirstContract {
+  public kind!: 'implemented-first';
+}
+
+export class ImplementedTagSecond implements ImplementedTagSecondContract {
+  public kind!: 'implemented-second';
+}
+
+export type ImplementedTagUnion = ImplementedTagFirst | ImplementedTagSecond;
+
+export interface RedeclaredTagBase {
+  kind: 'redeclared';
+}
+
+export interface RedeclaredTagChild extends RedeclaredTagBase {
+  kind: 'redeclared';
+}
+
+export interface RedeclaredTagSibling {
+  kind: 'sibling';
+}
+
+export type RedeclaredTagUnion = RedeclaredTagChild | RedeclaredTagSibling;
+
+// The generated schemas drop a property named `__proto__`, so it cannot discriminate.
+export interface PrototypeNamedTagFirst {
+  __proto__: 'first';
+}
+
+export interface PrototypeNamedTagSecond {
+  __proto__: 'second';
+}
+
+export type PrototypeNamedTagUnion = PrototypeNamedTagFirst | PrototypeNamedTagSecond;
+
+export interface SingleTagBlock {
+  kind: 'single';
+}
+
+export interface AmbiguousTagFirst {
+  kind: 'first';
+  type: 'one';
+}
+
+export interface AmbiguousTagSecond {
+  kind: 'second';
+  type: 'two';
+}
+
+export type AmbiguousTagUnion = AmbiguousTagFirst | AmbiguousTagSecond;
+
+export type AliasedTagFirst = { kind: 'first'; firstValue: string };
+
+export type AliasedTagSecond = { kind: 'second'; secondValue: string };
+
+export type AliasedTagUnion = AliasedTagFirst | AliasedTagSecond;
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -231,6 +388,120 @@ export class ComplexTypeController {
       received: body,
       processed: true,
     };
+  }
+
+  /**
+   * Test @Body with a discriminated union of named interfaces
+   */
+  @Post('ContentBlockBody')
+  public async postContentBlockBody(@Body() body: ContentBlock): Promise<ContentBlock> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a nullable discriminated union
+   */
+  @Post('NullableContentBlockBody')
+  public async postNullableContentBlockBody(
+    @Body() body: TextContentBlock | ImageContentBlock | CarouselContentBlock | null,
+  ): Promise<TextContentBlock | ImageContentBlock | CarouselContentBlock | null> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose shared tag has a default
+   */
+  @Post('DefaultedTagUnionBody')
+  public async postDefaultedTagUnionBody(@Body() body: DefaultedTagUnion): Promise<DefaultedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where the tag is optional on one member
+   */
+  @Post('OptionalTagUnionBody')
+  public async postOptionalTagUnionBody(@Body() body: OptionalTagUnion): Promise<OptionalTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag values overlap between members
+   */
+  @Post('OverlappingTagUnionBody')
+  public async postOverlappingTagUnionBody(@Body() body: OverlappingTagUnion): Promise<OverlappingTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union that has an inline object member
+   */
+  @Post('MixedMemberUnionBody')
+  public async postMixedMemberUnionBody(@Body() body: MixedMemberUnion): Promise<MixedMemberUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag values include '__proto__' and 'constructor'
+   */
+  @Post('SpecialTagUnionBody')
+  public async postSpecialTagUnionBody(@Body() body: SpecialTagUnion): Promise<SpecialTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where one member overrides the inherited tag with `any`
+   */
+  @Post('UnconstrainedTagUnionBody')
+  public async postUnconstrainedTagUnionBody(@Body() body: UnconstrainedTagUnion): Promise<UnconstrainedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of classes that implement interfaces declaring the tag
+   */
+  @Post('ImplementedTagUnionBody')
+  public async postImplementedTagUnionBody(@Body() body: ImplementedTagUnion): Promise<ImplementedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where one member declares an inherited tag again
+   */
+  @Post('RedeclaredTagUnionBody')
+  public async postRedeclaredTagUnionBody(@Body() body: RedeclaredTagUnion): Promise<RedeclaredTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag property is named '__proto__'
+   */
+  @Post('PrototypeNamedTagUnionBody')
+  public async postPrototypeNamedTagUnionBody(@Body() body: PrototypeNamedTagUnion): Promise<PrototypeNamedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a single tagged type that can be null
+   */
+  @Post('NullableSingleTagBody')
+  public async postNullableSingleTagBody(@Body() body: SingleTagBlock | null): Promise<SingleTagBlock | null> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of members that share two qualifying tags
+   */
+  @Post('AmbiguousTagUnionBody')
+  public async postAmbiguousTagUnionBody(@Body() body: AmbiguousTagUnion): Promise<AmbiguousTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of aliases of inline object types
+   */
+  @Post('AliasedTagUnionBody')
+  public async postAliasedTagUnionBody(@Body() body: AliasedTagUnion): Promise<AliasedTagUnion> {
+    return body;
   }
 
   /**

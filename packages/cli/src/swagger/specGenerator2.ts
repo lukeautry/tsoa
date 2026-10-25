@@ -104,7 +104,7 @@ export class SpecGenerator2 extends SpecGenerator {
           definitions[referenceType.refName].additionalProperties = this.determineImplicitAdditionalPropertiesValue();
         }
 
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           definitions[referenceType.refName].example = referenceType.example;
         }
 
@@ -120,7 +120,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if (this.config.xEnumVarnames && referenceType.enumVarnames !== undefined && referenceType.enums.length === referenceType.enumVarnames.length) {
           definitions[referenceType.refName]['x-enum-varnames'] = referenceType.enumVarnames;
         }
-        if (referenceType.example) {
+        if (referenceType.example !== undefined) {
           definitions[referenceType.refName].example = referenceType.example;
         }
         if (referenceType.title) {
@@ -235,7 +235,7 @@ export class SpecGenerator2 extends SpecGenerator {
         if (res.produces) {
           produces.push(...res.produces);
         }
-        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema) as Swagger.Schema2;
+        swaggerResponses[res.name].schema = this.getSwaggerType(res.schema);
       }
       if (res.examples && res.examples[0]) {
         if ((res.exampleLabels?.filter(e => e).length || 0) > 0) {
@@ -489,9 +489,10 @@ export class SpecGenerator2 extends SpecGenerator {
           }, {});
         return { ...acc, ...props };
       } else {
-        process.env.NODE_ENV !== 'tsoa_test' &&
+        if (process.env.NODE_ENV !== 'tsoa_test') {
           // eslint-disable-next-line no-console
           console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+        }
         return { ...acc };
       }
     }, {});

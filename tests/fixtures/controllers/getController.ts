@@ -24,6 +24,7 @@ export type BadRequest = TsoaResponse<400, TestModel, { name: 'some_thing' }>;
 export type ForbiddenRequest = TsoaResponse<401, TestModel, { name: 'another some_thing' }>;
 export type BadAndInternalErrorRequest = TsoaResponse<400 | 500, TestModel, { name: 'combine' }>;
 export const PathFromConstant = 'PathFromConstantValue';
+export const endlessStreamState = { destroyed: false };
 export enum EnumPaths {
   PathFromEnum = 'PathFromEnumValue',
 }
@@ -117,7 +118,7 @@ export class GetTestController extends Controller {
 
   @Get('ModuleRedeclarationAndNamespace')
   public async getModuleRedeclarationAndNamespace(): Promise<TsoaTest.TestModel73> {
-    return {} as TsoaTest.TestModel73;
+    return {};
   }
 
   @Get('NamespaceWithTypeCastedObject')
@@ -193,6 +194,17 @@ export class GetTestController extends Controller {
     return model;
   }
 
+  @Get('AllQueriesInOneObjectWithTypeAlias')
+  public async getAllQueriesInOneObjectWithTypeAlias(@Queries() queryParams: QueryParamsType) {
+    const model = new ModelService().getModel();
+    model.optionalString = queryParams.optionalStringParam;
+    model.numberValue = queryParams.numberParam;
+    model.boolValue = queryParams.booleanParam;
+    model.stringValue = queryParams.stringParam;
+
+    return model;
+  }
+
   @Get('ResponseWithUnionTypeProperty')
   public async getResponseWithUnionTypeProperty(): Promise<Result> {
     return {
@@ -224,6 +236,7 @@ export class GetTestController extends Controller {
   @Get('ThrowsError')
   @Response<CustomError>('400')
   public async getThrowsError(): Promise<TestModel> {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw {
       message: 'error thrown',
       status: 400,
@@ -253,6 +266,41 @@ export class GetTestController extends Controller {
     readable._read = () => ({});
     readable.push(Buffer.from('testbuffer'));
     readable.push(null);
+    return readable;
+  }
+
+  @Get('HandleStreamFailure')
+  public async getStreamFailure(): Promise<Readable> {
+    return new Readable({
+      read() {
+        this.destroy(new Error('stream_test_error'));
+      },
+    });
+  }
+
+  @Get('HandleStreamFailureMidTransfer')
+  public async getStreamFailureMidTransfer(): Promise<Readable> {
+    let chunksSent = 0;
+    return new Readable({
+      read() {
+        if (chunksSent++ === 0) {
+          this.push('first chunk');
+          return;
+        }
+        setTimeout(() => this.destroy(new Error('stream_test_error')), 50);
+      },
+    });
+  }
+
+  @Get('HandleEndlessStream')
+  public async getEndlessStream(): Promise<Readable> {
+    endlessStreamState.destroyed = false;
+    const readable = new Readable({
+      read() {
+        setTimeout(() => this.push('chunk'), 10);
+      },
+    });
+    readable.on('close', () => (endlessStreamState.destroyed = true));
     return readable;
   }
 
@@ -402,3 +450,10 @@ export interface QueryParams {
   booleanParam: boolean;
   optionalStringParam?: string;
 }
+
+export type QueryParamsType = {
+  numberParam: number;
+  stringParam: string;
+  booleanParam: boolean;
+  optionalStringParam?: string;
+};
