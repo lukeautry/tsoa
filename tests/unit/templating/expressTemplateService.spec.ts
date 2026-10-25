@@ -54,7 +54,7 @@ describe('ExpressTemplateService body parameter', () => {
         .that.has.property('body.foo');
     });
 
-    it('reports a missing body-prop parameter as on any request with a body', () => {
+    it('reports a missing body-prop as required', () => {
       const bodyProp: TsoaRoute.ParameterSchema = { in: 'body-prop', name: 'foo', dataType: 'boolean', required: true };
       expect(() => getValidatedArgs(bodyProp, {}, {}))
         .to.throw(ValidateError)
@@ -74,6 +74,13 @@ describe('ExpressTemplateService body parameter', () => {
 
     it('validates a sent empty object instead of dropping it', () => {
       expect(() => getValidatedArgs({ ...objectWithFoo, required: false }, { 'content-length': '2' }, {}))
+        .to.throw(ValidateError)
+        .with.property('fields')
+        .that.has.property('body.foo');
+    });
+
+    it('validates a sent empty object for an optional body when the length is unknown (transfer-encoding)', () => {
+      expect(() => getValidatedArgs({ ...objectWithFoo, required: false }, { 'transfer-encoding': 'chunked' }, {}))
         .to.throw(ValidateError)
         .with.property('fields')
         .that.has.property('body.foo');
