@@ -1022,53 +1022,6 @@ export interface Exception extends Error {
   status: number;
 }
 
-/**
- * Reject with this error from your authentication function to signal that the request carries no credentials
- * for the requested security scheme (as opposed to invalid credentials, which should reject with any other error).
- * It only has an effect on operations that allow anonymous access, i.e. whose security list contains an empty
- * entry (`@Security({})`): if every scheme rejected with this error, the request continues without authentication.
- */
-export class MissingCredentialsError extends Error implements Exception {
-  public status = 401;
-  public name = 'MissingCredentialsError';
-
-  constructor(public message: string = 'No credentials provided') {
-    super(message);
-  }
-}
-
-/**
- * Detects a {@link MissingCredentialsError}, also when it was created by another copy of `@tsoa/runtime`.
- */
-export function isMissingCredentialsError(error: unknown): boolean {
-  return error instanceof MissingCredentialsError || (error as { name?: unknown } | undefined)?.name === 'MissingCredentialsError';
-}
-
-/**
- * Whether the security list contains an empty entry (`@Security({})`), i.e. authentication is optional.
- */
-export function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
-  return security.some(secMethod => Object.keys(secMethod).length === 0);
-}
-
-/**
- * Decides, after authentication failed, whether the request may continue anonymously: the security list must allow
- * anonymous access and every authentication attempt must have failed with a {@link MissingCredentialsError}.
- * Invalid credentials are still rejected. Waits for all attempts (e.g. members of an AND group that are still
- * pending) to settle first, so that a slow invalid credential is not hidden by a faster missing one.
- *
- * @param security the security list of the operation
- * @param attempts the authentication promises; each must record its failure in `failures` before settling
- * @param failures the failures recorded so far
- */
-export async function isAnonymousFallback(security: TsoaRoute.Security[], attempts: Array<Promise<unknown>>, failures: unknown[]): Promise<boolean> {
-  if (!allowsAnonymous(security)) {
-    return false;
-  }
-  await Promise.allSettled(attempts);
-  return failures.every(isMissingCredentialsError);
-}
-
 export class ValidateError extends Error implements Exception {
   public status = 400;
   public name = 'ValidateError';

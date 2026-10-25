@@ -167,7 +167,7 @@ export function RegisterRoutes(server: any) {
             };
 
             const secMethodOrPromises: Promise<any>[] = [];
-            const secMethodAndPromisesAll: Promise<any>[] = [];
+            const attempts: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -181,15 +181,14 @@ export function RegisterRoutes(server: any) {
 
                     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
-                    secMethodAndPromisesAll.push(...secMethodAndPromises);
+                    attempts.push(...secMethodAndPromises);
                     secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
+                        const attempt = hapiAuthentication(request, name, secMethod[name]).catch(pushAndRethrow);
+                        attempts.push(attempt);
+                        secMethodOrPromises.push(attempt);
                     }
                 }
             }
@@ -202,7 +201,7 @@ export function RegisterRoutes(server: any) {
             }
             catch(err) {
                 // An empty security entry (`@Security({})`) allows requests without credentials
-                if (await isAnonymousFallback(security, secMethodAndPromisesAll, failedAttempts)) {
+                if (await isAnonymousFallback(security, attempts)) {
                     return h.continue;
                 }
 

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MissingCredentialsError, allowsAnonymous, isAnonymousFallback, isMissingCredentialsError } from '@tsoa/runtime';
+import { MissingCredentialsError, isAnonymousFallback } from '@tsoa/runtime';
 
 describe('anonymous security helpers', () => {
   describe('MissingCredentialsError', () => {
@@ -19,70 +19,61 @@ describe('anonymous security helpers', () => {
     });
   });
 
-  describe('isMissingCredentialsError', () => {
-    it('detects instances', () => {
-      expect(isMissingCredentialsError(new MissingCredentialsError())).to.be.true;
+  describe('isAnonymousFallback', () => {
+    const failed = (reason: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- the cases reject with non-Error values on purpose
+      const attempt = Promise.reject(reason);
+      attempt.catch(() => undefined);
+      return attempt;
+    };
+
+    it('is true when anonymous access is allowed and every failure is a missing credential', async () => {
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(new MissingCredentialsError())])).to.be.true;
     });
 
-    it('detects errors by name, e.g. from another copy of @tsoa/runtime', () => {
+    it('is true for an empty-entry-only security list without attempts', async () => {
+      expect(await isAnonymousFallback([{}], [])).to.be.true;
+    });
+
+    it('is true when the other members of an AND group succeeded', async () => {
+      expect(await isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [Promise.resolve({ id: 1 }), failed(new MissingCredentialsError())])).to.be.true;
+    });
+
+    it('recognizes a missing credential error by name, e.g. from another copy of @tsoa/runtime', async () => {
       const foreign = Object.assign(new Error('no token'), { name: 'MissingCredentialsError' });
 
-      expect(isMissingCredentialsError(foreign)).to.be.true;
-    });
-
-    it('rejects other values', () => {
-      expect(isMissingCredentialsError(new Error('invalid token'))).to.be.false;
-      expect(isMissingCredentialsError({ status: 401 })).to.be.false;
-      expect(isMissingCredentialsError('MissingCredentialsError')).to.be.false;
-      expect(isMissingCredentialsError(undefined)).to.be.false;
-      expect(isMissingCredentialsError(null)).to.be.false;
-    });
-  });
-
-  describe('allowsAnonymous', () => {
-    it('is true when the security list contains an empty entry', () => {
-      expect(allowsAnonymous([{ api_key: [] }, {}])).to.be.true;
-      expect(allowsAnonymous([{}])).to.be.true;
-    });
-
-    it('is false otherwise', () => {
-      expect(allowsAnonymous([])).to.be.false;
-      expect(allowsAnonymous([{ api_key: [] }, { api_key: [], tsoa_auth: ['read'] }])).to.be.false;
-    });
-  });
-
-  describe('isAnonymousFallback', () => {
-    it('is true when anonymous access is allowed and every failure is a missing credential', async () => {
-      expect(await isAnonymousFallback([{ api_key: [] }, {}], [], [new MissingCredentialsError()])).to.be.true;
-    });
-
-    it('is true for an empty-entry-only security list without failures', async () => {
-      expect(await isAnonymousFallback([{}], [], [])).to.be.true;
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(foreign)])).to.be.true;
     });
 
     it('is false when anonymous access is not allowed', async () => {
-      expect(await isAnonymousFallback([{ api_key: [] }], [], [new MissingCredentialsError()])).to.be.false;
+      expect(await isAnonymousFallback([{ api_key: [] }], [failed(new MissingCredentialsError())])).to.be.false;
     });
 
     it('is false when any failure is not a missing credential', async () => {
-      expect(await isAnonymousFallback([{ api_key: [] }, {}], [], [new MissingCredentialsError(), new Error('invalid token')])).to.be.false;
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(new MissingCredentialsError()), failed(new Error('invalid token'))])).to.be.false;
     });
 
-    it('waits for pending attempts so a slow invalid credential is not hidden', async () => {
-      const failures: unknown[] = [new MissingCredentialsError()];
-      const slowInvalid = new Promise((_resolve, reject) => setTimeout(() => reject(new Error('invalid token')), 10)).catch((error: unknown) => {
-        failures.push(error);
-        throw error;
+    for (const [description, reason] of [
+      ['an object with a status', { status: 401 }],
+      ['the error name as a string', 'MissingCredentialsError'],
+      ['undefined', undefined],
+      ['null', null],
+    ] as const) {
+      it(`is false when a failure is ${description}`, async () => {
+        expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(reason)])).to.be.false;
       });
+    }
 
-      expect(await isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [slowInvalid], failures)).to.be.false;
-      expect(failures).to.have.length(2);
+    it('waits for pending attempts so a slow invalid credential is not hidden', async () => {
+      const slowInvalid = new Promise((_resolve, reject) => setTimeout(() => reject(new Error('invalid token')), 10));
+
+      expect(await isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [failed(new MissingCredentialsError()), slowInvalid])).to.be.false;
     });
 
     it('does not wait for pending attempts when anonymous access is not allowed', async () => {
       const neverSettles = new Promise(() => undefined);
 
-      expect(await isAnonymousFallback([{ api_key: [] }], [neverSettles], [])).to.be.false;
+      expect(await isAnonymousFallback([{ api_key: [] }], [neverSettles])).to.be.false;
     });
   });
 });
