@@ -74,6 +74,7 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           return this.validationService.ValidateParam(param, context.request.headers[name], name, errorFields, false, undefined);
         case 'body': {
           if (param.dataType === 'binary') {
+            if (context.req.readableEnded) throw new ValidateError({ [name]: { message: 'request body was already consumed by a body parser' } }, '');
             return context.req;
           }
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');

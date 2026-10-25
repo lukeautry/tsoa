@@ -6,7 +6,7 @@ import { SpecGenerator } from './specGenerator';
 import { ExtendedSpecConfig } from '../cli';
 import { isVoidType } from '../utils/isVoidType';
 import { convertColonPathParams, normalisePath } from '../utils/pathUtils';
-import { DEFAULT_BINARY_REQUEST_MEDIA_TYPE, DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from '../utils/swaggerUtils';
+import { DEFAULT_REQUEST_MEDIA_TYPE, DEFAULT_RESPONSE_MEDIA_TYPE, getValue } from '../utils/swaggerUtils';
 import { UnspecifiedObject } from '../utils/unspecifiedObject';
 import { shouldIncludeValidatorInSchema } from '../utils/validatorUtils';
 
@@ -272,12 +272,11 @@ export class SpecGenerator2 extends SpecGenerator {
     };
 
     const hasBody = method.parameters.some(p => p.in === 'body');
-    const hasBinaryBody = method.parameters.some(p => p.in === 'body' && p.type.dataType === 'binary');
     const hasFormData = method.parameters.some(p => p.in === 'formData');
     if (hasBody || hasFormData) {
       operation.consumes = [];
       if (hasBody) {
-        operation.consumes.push(method.consumes || (hasBinaryBody ? DEFAULT_BINARY_REQUEST_MEDIA_TYPE : DEFAULT_REQUEST_MEDIA_TYPE));
+        operation.consumes.push(method.consumes || DEFAULT_REQUEST_MEDIA_TYPE);
       }
       if (hasFormData) {
         operation.consumes.push('multipart/form-data');
@@ -354,8 +353,8 @@ export class SpecGenerator2 extends SpecGenerator {
       name: source.name,
       required: this.isRequiredWithoutDefault(source),
       ...(source.deprecated ? { 'x-deprecated': true } : {}),
-      ...(parameterType.$ref ? { schema: parameterType } : {}),
-      ...(parameterType.format && !(source.in === 'body' && source.type.dataType === 'binary') ? { format: this.throwIfNotDataFormat(parameterType.format) } : {}),
+      ...(parameterType.$ref || source.type.dataType === 'binary' ? { schema: parameterType } : {}),
+      ...(parameterType.format && source.type.dataType !== 'binary' ? { format: this.throwIfNotDataFormat(parameterType.format) } : {}),
     } as Swagger.Parameter2;
 
     if (Swagger.isQueryParameter(parameter) && parameterType.type === 'array') {
@@ -373,9 +372,7 @@ export class SpecGenerator2 extends SpecGenerator {
         validatorObjs[key] = source.validators[key]!.value;
       });
 
-    if (source.in === 'body' && source.type.dataType === 'binary') {
-      parameter.schema = { type: 'string', format: 'binary' };
-    } else if (source.in === 'body' && source.type.dataType === 'array') {
+    if (source.in === 'body' && source.type.dataType === 'array') {
       parameter.schema = {
         items: parameterType.items,
         type: 'array',
