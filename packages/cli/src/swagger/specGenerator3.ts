@@ -99,7 +99,7 @@ export class SpecGenerator3 extends SpecGenerator {
         defs[key] = {
           scheme: 'basic',
           type: 'http',
-        } as Swagger.BasicSecurity3;
+        };
       } else if (definitions[key].type === 'oauth2') {
         /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
         const definition = definitions[key] as
@@ -670,10 +670,11 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   /**
-   * Detects a discriminated union of $ref-able types: every member is a refObject (or a refAlias
-   * of one), and exactly one property is required on every member with a non-empty, string-only
-   * enum whose values don't overlap between members. Members that aren't $ref-able can't be
-   * targeted by a discriminator mapping, so those unions fall back to `anyOf`.
+   * Detects a discriminated union of $ref-able types: every member is a refObject or a refAlias of
+   * an inline object literal, and exactly one property is required on every member with a non-empty,
+   * string-only enum type (a string literal, or `keyof` an object type) whose values don't repeat in
+   * another member. Members that aren't $ref-able can't be targeted by a discriminator mapping, so
+   * those unions fall back to `anyOf`.
    */
   protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
     const isRefObject = (t: Tsoa.Type): t is Tsoa.RefObjectType => t.dataType === 'refObject';
@@ -694,8 +695,9 @@ export class SpecGenerator3 extends SpecGenerator {
       if (!properties) {
         return null;
       }
-      for (const property of properties) {
-        if (this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
+      // The emitted schema keeps the last property of each name and drops one named `__proto__`.
+      for (const property of new Map(properties.map(p => [p.name, p])).values()) {
+        if (property.name !== '__proto__' && this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
           const enums = enumsByPropertyName.get(property.name) ?? [];
           enums.push(property.type.enums as string[]);
           enumsByPropertyName.set(property.name, enums);
@@ -737,7 +739,6 @@ export class SpecGenerator3 extends SpecGenerator {
       return { ...(title && { title }), ...discriminated, ...(nullable && { nullable }) };
     }
 
-    // Filter out nulls and undefineds
     const actualSwaggerTypes = this.removeDuplicateSwaggerTypes(this.groupEnums(nonNullTypes.map(x => this.getSwaggerType(x))));
 
     if (nullable) {

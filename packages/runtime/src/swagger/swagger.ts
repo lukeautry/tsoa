@@ -358,6 +358,7 @@ export namespace Swagger {
     // moved from Schema
     additionalProperties?: boolean | BaseSchema;
     properties?: { [propertyName: string]: P };
+    discriminator?: string | { propertyName: string; mapping?: Record<string, string> };
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
