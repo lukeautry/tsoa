@@ -509,6 +509,49 @@ describe('Hapi Server', () => {
         200,
       );
     });
+
+    it('should hand a JSON body to the controller as raw bytes', () => {
+      const payload = JSON.stringify({ name: 'foo' });
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: Buffer.byteLength(payload) });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/json')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should accept a request body above 1 MiB that declares its Content-Length', () => {
+      const payload = Buffer.alloc(2 * 1024 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/octet-stream')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand an empty request body to the controller as an empty stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: 0 });
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').set('Content-Type', 'application/octet-stream'),
+        200,
+      );
+    });
   });
 
   describe('Validate', () => {
