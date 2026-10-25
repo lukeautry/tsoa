@@ -70,13 +70,12 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
       const checker = classicChecker(project.checker, sync.TypeFlags, sync.SymbolFlags, name);
       return {
         getTypeChecker: () => checker,
-        getSourceFiles: () => project.program.getSourceFileNames().map((file: string) => normalizeNode(project.program.getSourceFile(file))),
+        getSourceFiles: () => project.program.getSourceFileNames().map((file: string) => normalizeNode(project.program.getSourceFile(file), ast.SyntaxKind.QuestionToken)),
       };
     },
   };
   function propertyKind(node: any, kind: number) {
     if (node.kind !== kind) return false;
-    if (node.postfixToken?.kind === ast.SyntaxKind.QuestionToken) throw new Error(`Optional properties are not supported with the ${name} compiler backend.`);
     return true;
   }
   return {
@@ -91,8 +90,9 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
   };
 }
 
-function normalizeNode(node: any): any {
+function normalizeNode(node: any, questionToken: number): any {
   if (node.defaultType) Object.defineProperty(node, 'default', { get: () => node.defaultType });
+  if (node.postfixToken?.kind === questionToken) Object.defineProperty(node, 'questionToken', { get: () => node.postfixToken });
   for (const key of ['type', 'text', 'initializer']) {
     if (node[key] === undefined || Object.prototype.hasOwnProperty.call(node, key)) continue;
     let prototype = Object.getPrototypeOf(node);
@@ -102,7 +102,7 @@ function normalizeNode(node: any): any {
     Object.defineProperty(node, key, { get: () => getter.call(node) });
   }
   node.forEachChild((child: any) => {
-    normalizeNode(child);
+    normalizeNode(child, questionToken);
   });
   return node;
 }

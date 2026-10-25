@@ -89,13 +89,15 @@ test('the built CommonJS CLI generates spec and routes with the selected peer', 
   }
 });
 
-test('optional properties retain classic behavior or fail explicitly on native backends', async () => {
+test('optionalPropertyController preserves optional interface and class properties', async () => {
   const optionalFixture = path.resolve(__dirname, '../fixtures/compiler/optionalPropertyController.ts');
-  const generate = () => compiler.withCompiler(() => new MetadataGenerator(optionalFixture, { experimentalDecorators: true }).Generate());
-  const native = process.env.TSOA_COMPILER === 'tsrs' || typeof require('typescript').createProgram !== 'function';
-  if (native) await assert.rejects(generate(), /Optional properties are not supported with the (typescript|tsrs) compiler backend/);
-  else {
-    const metadata = await generate();
-    assert.equal(metadata.referenceTypeMap.OptionalModel.properties[0].required, false);
-  }
+  const metadata = await compiler.withCompiler(() => new MetadataGenerator(optionalFixture, { experimentalDecorators: true }).Generate());
+  assert.equal(metadata.referenceTypeMap.OptionalModel.properties[0].required, false);
+  assert.deepEqual(
+    metadata.referenceTypeMap.OptionalClassModel.properties.map(({ name, required }) => ({ name, required })),
+    [
+      { name: 'label', required: false },
+      { name: 'requiredLabel', required: true },
+    ],
+  );
 });

@@ -21,8 +21,6 @@ The repository still builds and runs its main tests with TypeScript 6.
 Native support is incomplete. These features fail explicitly rather than emit
 incorrect output:
 
-- Optional object/class properties (`property?: Type`). Native ASTs expose these
-  tokens differently. Optional method parameters are supported.
 - Synthetic reference lookup when the compiler cannot resolve a printed type
   name in its original source context.
 - Synthetic node source locations that the backend cannot decode.
@@ -31,10 +29,13 @@ incorrect output:
   settings.
 
 The generation comparison isolates each fixture controller. In the checked
-TypeScript 7.0.2 and tsrs 0.18.0-ts7.1.0-dev.20260929 runs, 23 controllers produced
-identical specs and routes; 21 otherwise-valid controllers hit the optional
-property limit. Another 13 controllers already failed under TypeScript 6.
-The full default fixture, which includes optional properties, is not supported.
+TypeScript 7.0.2 and tsrs 0.18.0-ts7.1.0-dev.20260929 runs, each backend compared
+30 controllers with identical specs and routes (zero differences); 14
+otherwise-valid controllers hit the synthetic node source location limit.
+The TypeScript 6 baseline passed 44 controllers and failed 13. Each native run
+passed 30 and failed 27 (14 native limits plus the 13 baseline-invalid controllers).
+Optional interface and class properties are supported. The full default fixture
+remains unsupported because of the synthetic node source location limit.
 
 Run the comparison after building:
 
@@ -47,10 +48,12 @@ node tests/compiler/generation.cjs /tmp/tsoa-native /tmp/tsoa-classic
 
 ### Excluded fixture controllers
 
-All 21 native exclusions hit the optional property limit:
+Both native backends exclude these 14 controllers with the error
+`Synthetic node source locations are not supported with the typescript compiler backend.`
+for TypeScript 7, or
+`Synthetic node source locations are not supported with the tsrs compiler backend.`
+for tsrs:
 
-- `commonResponseHeaderClassController`
-- `commonResponseHeaderObjectController`
 - `complexTypeController`
 - `deleteController`
 - `deprecatedController`
@@ -59,17 +62,12 @@ All 21 native exclusions hit the optional property limit:
 - `hiddenMethodController`
 - `injectParameterController`
 - `methodController`
-- `parameterController`
 - `patchController`
 - `pathlessGetController`
 - `postController`
 - `putController`
-- `requestExpressController`
-- `responseHeaderController`
 - `rootController`
 - `testController`
-- `typeInferenceController`
-- `validateController`
 
 Baseline-invalid controllers (13, not counted as native exclusions):
 
