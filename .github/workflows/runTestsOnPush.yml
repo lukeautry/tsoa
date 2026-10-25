@@ -8,7 +8,7 @@ jobs:
       matrix:
         node-version: [22, 24, 26]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^5.0.0', '^6.0.3']
+        typescript-version: ['^5.7.2', '^6.0.3']
 
     steps:
       - uses: actions/checkout@v7
@@ -55,3 +55,36 @@ jobs:
 
       - name: Lint
         run: yarn run lint
+
+  native-compiler:
+    name: Generation (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [typescript, tsrs]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: yarn
+      - run: npm install -g yarn@1.22.22
+      - run: yarn install --ignore-scripts --frozen-lockfile
+      - run: yarn build
+      - name: Generate classic reference
+        run: |
+          node --test tests/compiler/compiler.test.cjs
+          node tests/compiler/generation.cjs "$RUNNER_TEMP/classic"
+      - name: Install native compilers without replacing the build compiler
+        run: npm install --prefix "$RUNNER_TEMP/native" --no-save typescript@7.0.2 tsrs@0.18.0-ts7.1.0-dev.20260929
+      - name: Select native peer
+        run: |
+          mv node_modules/typescript node_modules/typescript-classic
+          ln -s "$RUNNER_TEMP/native/node_modules/typescript" node_modules/typescript
+          ln -s "$RUNNER_TEMP/native/node_modules/tsrs" node_modules/tsrs
+      - name: Test native sessions and generation parity
+        env:
+          TSOA_COMPILER: ${{ matrix.compiler }}
+        run: |
+          node --test tests/compiler/compiler.test.cjs
+          node tests/compiler/generation.cjs "$RUNNER_TEMP/native-output" "$RUNNER_TEMP/classic"
