@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 import { ExtendedRoutesConfig, RouteGeneratorModule } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';

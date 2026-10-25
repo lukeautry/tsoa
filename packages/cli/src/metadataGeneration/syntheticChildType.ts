@@ -1,8 +1,6 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 
-const printer = ts.createPrinter();
-const printTarget = ts.createSourceFile('', '', ts.ScriptTarget.Latest);
-const printNode = (node: ts.Node) => printer.printNode(ts.EmitHint.Unspecified, node, printTarget);
+const printNode = (node: ts.Node) => ts.createPrinter().printNode(ts.EmitHint.Unspecified, node, ts.createSourceFile('', '', ts.ScriptTarget.Latest));
 
 const noChildTypes: ReadonlyMap<ts.Node, ts.Type> = new Map();
 

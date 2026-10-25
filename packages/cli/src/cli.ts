@@ -9,8 +9,8 @@ import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 import { extname, isAbsolute } from 'node:path';
-import * as ts from 'typescript';
-import type { CompilerOptions } from 'typescript';
+import * as ts from './compiler/index';
+import type { CompilerOptions } from './compiler/index';
 
 const workingDir: string = process.cwd();
 

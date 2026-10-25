@@ -1,5 +1,5 @@
 import { normalize } from 'path';
-import { Node, TypeNode } from 'typescript';
+import { Node, TypeNode } from '../compiler/index';
 
 export class GenerateMetadataError extends Error {
   constructor(message?: string, node?: Node | TypeNode, onlyCurrent = false) {

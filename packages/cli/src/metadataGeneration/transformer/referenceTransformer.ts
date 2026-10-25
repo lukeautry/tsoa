@@ -1,4 +1,4 @@
-import type { TypeAliasDeclaration, Type } from 'typescript';
+import type { TypeAliasDeclaration, Type } from '../../compiler/index';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
