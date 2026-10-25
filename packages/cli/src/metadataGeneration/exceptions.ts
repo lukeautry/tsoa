@@ -1,5 +1,5 @@
 import { normalize } from 'path';
-import { Node, TypeNode } from '../compiler/index';
+import { Node, TypeNode, firstToken } from '../compiler/index';
 
 export class GenerateMetadataError extends Error {
   constructor(message?: string, node?: Node | TypeNode, onlyCurrent = false) {
@@ -25,7 +25,7 @@ export class GenerateMetaDataWarning {
 export function prettyLocationOfNode(node: Node | TypeNode) {
   const sourceFile = node.getSourceFile();
   if (sourceFile) {
-    const token = node.getFirstToken() || node.parent.getFirstToken();
+    const token = firstToken(node) || firstToken(node.parent);
     const start = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getStart()).line + 1}` : '';
     const end = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getEnd()).line + 1}` : '';
     const normalizedPath = normalize(`${sourceFile.fileName}${start}${end}`);

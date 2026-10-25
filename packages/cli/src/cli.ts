@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { withCompiler } from './compiler';
 import * as YAML from 'yaml';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -355,24 +356,26 @@ if (require.main === module) {
 
 async function SpecGenerator(args: SwaggerArgs) {
   try {
-    const config = await resolveConfig(args.configuration);
-    if (args.basePath) {
-      config.spec.basePath = args.basePath;
-    }
-    if (args.host) {
-      config.spec.host = args.host;
-    }
-    if (args.yaml) {
-      config.spec.yaml = args.yaml;
-    }
-    if (args.json) {
-      config.spec.yaml = false;
-    }
+    return await withCompiler(async () => {
+      const config = await resolveConfig(args.configuration);
+      if (args.basePath) {
+        config.spec.basePath = args.basePath;
+      }
+      if (args.host) {
+        config.spec.host = args.host;
+      }
+      if (args.yaml) {
+        config.spec.yaml = args.yaml;
+      }
+      if (args.json) {
+        config.spec.yaml = false;
+      }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const swaggerConfig = await validateSpecConfig(config);
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
+      const swaggerConfig = await validateSpecConfig(config);
 
-    await generateSpec(swaggerConfig, compilerOptions, config.ignore);
+      await generateSpec(swaggerConfig, compilerOptions, config.ignore);
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate swagger error.\n', err);
@@ -382,15 +385,17 @@ async function SpecGenerator(args: SwaggerArgs) {
 
 async function routeGenerator(args: ConfigArgs) {
   try {
-    const config = await resolveConfig(args.configuration);
-    if (args.basePath) {
-      config.routes.basePath = args.basePath;
-    }
+    return await withCompiler(async () => {
+      const config = await resolveConfig(args.configuration);
+      if (args.basePath) {
+        config.routes.basePath = args.basePath;
+      }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const routesConfig = await validateRoutesConfig(config);
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
+      const routesConfig = await validateRoutesConfig(config);
 
-    await generateRoutes(routesConfig, compilerOptions, config.ignore);
+      await generateRoutes(routesConfig, compilerOptions, config.ignore);
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);
@@ -400,30 +405,40 @@ async function routeGenerator(args: ConfigArgs) {
 
 export async function generateSpecAndRoutes(args: SwaggerArgs, metadata?: Tsoa.Metadata) {
   try {
-    const config = await resolveConfig(args.configuration);
-    if (args.basePath) {
-      config.spec.basePath = args.basePath;
-    }
-    if (args.host) {
-      config.spec.host = args.host;
-    }
-    if (args.yaml) {
-      config.spec.yaml = args.yaml;
-    }
-    if (args.json) {
-      config.spec.yaml = false;
-    }
+    return await withCompiler(async () => {
+      const config = await resolveConfig(args.configuration);
+      if (args.basePath) {
+        config.spec.basePath = args.basePath;
+      }
+      if (args.host) {
+        config.spec.host = args.host;
+      }
+      if (args.yaml) {
+        config.spec.yaml = args.yaml;
+      }
+      if (args.json) {
+        config.spec.yaml = false;
+      }
 
-    const compilerOptions = validateCompilerOptions(config.compilerOptions);
-    const routesConfig = await validateRoutesConfig(config);
-    const swaggerConfig = await validateSpecConfig(config);
+      const compilerOptions = validateCompilerOptions(config.compilerOptions);
+      const routesConfig = await validateRoutesConfig(config);
+      const swaggerConfig = await validateSpecConfig(config);
 
-    if (!metadata) {
-      metadata = new MetadataGenerator(config.entryFile, compilerOptions, config.ignore, config.controllerPathGlobs, config.spec.rootSecurity, config.defaultNumberType, config.routes.esm).Generate();
-    }
+      if (!metadata) {
+        metadata = new MetadataGenerator(
+          config.entryFile,
+          compilerOptions,
+          config.ignore,
+          config.controllerPathGlobs,
+          config.spec.rootSecurity,
+          config.defaultNumberType,
+          config.routes.esm,
+        ).Generate();
+      }
 
-    await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
-    return metadata;
+      await Promise.all([generateRoutes(routesConfig, compilerOptions, config.ignore, metadata), generateSpec(swaggerConfig, compilerOptions, config.ignore, metadata)]);
+      return metadata;
+    });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Generate routes error.\n', err);

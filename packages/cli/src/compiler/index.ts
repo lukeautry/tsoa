@@ -1,4 +1,7 @@
 import type * as ts from 'typescript';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { pathToFileURL } from 'node:url';
+import { nativeCompiler } from './native';
 
 export type {
   ArrayLiteralExpression,
@@ -61,13 +64,41 @@ export type {
   UnionType,
 } from 'typescript';
 
+const activeCompiler = new AsyncLocalStorage<typeof ts>();
 let classic: typeof ts | undefined;
+export function compilerPackage(): 'typescript' | 'tsrs' {
+  const name = process.env.TSOA_COMPILER ?? 'typescript';
+  if (name !== 'typescript' && name !== 'tsrs') throw new Error(`Unknown TSOA_COMPILER "${name}". Use "typescript" or "tsrs".`);
+  return name;
+}
 function backend(): typeof ts {
-  // Keep loading lazy: TypeScript 7 has no classic compiler API.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  classic ??= require('typescript') as typeof ts;
-  if (!classic.createProgram) throw new Error('This compiler requires the async metadata generation entry point.');
-  return classic;
+  const active = activeCompiler.getStore();
+  if (active) return active;
+  if (compilerPackage() === 'typescript') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    classic ??= require('typescript') as typeof ts;
+    if (typeof classic.createProgram === 'function') return classic;
+  }
+  throw new Error(`${compilerPackage()}: native compilers require an async generation entry point (generateSpec, generateRoutes or generateSpecAndRoutes).`);
+}
+
+// Preserve import() when compiling the CLI to CommonJS.
+const importModule = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T> {
+  if (activeCompiler.getStore()) return generate();
+  const name = compilerPackage();
+  if (name === 'typescript') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const installed = require('typescript') as typeof ts;
+    if (typeof installed.createProgram === 'function') return generate();
+  }
+  const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(require.resolve(`${name}/unstable/${part}`)).href)));
+  const compiler = nativeCompiler(sync, ast, name);
+  try {
+    return await activeCompiler.run(compiler.surface, generate);
+  } finally {
+    compiler.close();
+  }
 }
 
 function namespace<T extends object>(select: () => T): T {
@@ -150,3 +181,8 @@ export const isTypeOperatorNode = ((...args: any[]) => (backend().isTypeOperator
 export const isTypeQueryNode = ((...args: any[]) => (backend().isTypeQueryNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeQueryNode;
 export const isTypeReferenceNode = ((...args: any[]) => (backend().isTypeReferenceNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeReferenceNode;
 export const isUnionTypeNode = ((...args: any[]) => (backend().isUnionTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isUnionTypeNode;
+
+export function firstToken(node: ts.Node): ts.Node | undefined {
+  if (!node || node.pos === -1) return undefined;
+  return node.getFirstToken ? node.getFirstToken() : (backend() as any).getTokenAtPosition(node.getSourceFile(), node.getStart()) as ts.Node;
+}
