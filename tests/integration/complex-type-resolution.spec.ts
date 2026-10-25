@@ -313,6 +313,46 @@ describe('Complex Type Resolution Integration Tests', () => {
       });
     });
 
+    const expectOneOfOnKind = (name: string, mapping: Record<string, string>) => {
+      const unionSchema = spec.components?.schemas?.[name] as Swagger.Schema3;
+      expect(unionSchema, `expected component schema "${name}" to exist`).to.exist;
+      expect(unionSchema.anyOf).to.not.exist;
+      expect(unionSchema.oneOf).to.deep.equal(Object.values(mapping).map($ref => ({ $ref })));
+      expect(unionSchema.discriminator).to.deep.equal({ propertyName: 'kind', mapping });
+    };
+
+    it('should generate oneOf + discriminator when classes implement interfaces that declare the tag', () => {
+      expectOneOfOnKind('ImplementedTagUnion', {
+        'implemented-first': '#/components/schemas/ImplementedTagFirst',
+        'implemented-second': '#/components/schemas/ImplementedTagSecond',
+      });
+    });
+
+    it('should generate oneOf + discriminator when a member declares an inherited tag again', () => {
+      expectOneOfOnKind('RedeclaredTagUnion', {
+        redeclared: '#/components/schemas/RedeclaredTagChild',
+        sibling: '#/components/schemas/RedeclaredTagSibling',
+      });
+    });
+
+    it('should generate oneOf + discriminator for a union of aliases of inline object types', () => {
+      expectOneOfOnKind('AliasedTagUnion', {
+        first: '#/components/schemas/AliasedTagFirst',
+        second: '#/components/schemas/AliasedTagSecond',
+      });
+    });
+
+    it('should keep the nullable $ref for a single tagged type that can be null', () => {
+      const path = spec.paths['/ComplexType/NullableSingleTagBody'];
+      expect(path).to.exist;
+      expect(path.post).to.exist;
+
+      expect(path.post!.requestBody!.content['application/json'].schema).to.deep.equal({
+        allOf: [{ $ref: '#/components/schemas/SingleTagBlock' }],
+        nullable: true,
+      });
+    });
+
     describe('unions whose tag cannot discriminate', () => {
       const expectAnyOfWithoutDiscriminator = (name: string, memberCount: number) => {
         const unionSchema = spec.components?.schemas?.[name] as Swagger.Schema3;
@@ -340,6 +380,21 @@ describe('Complex Type Resolution Integration Tests', () => {
 
       it('should keep anyOf when a member has no schema of its own', () => {
         expectAnyOfWithoutDiscriminator('MixedMemberUnion', 2);
+      });
+
+      it('should keep anyOf when a member overrides the inherited tag with an unconstrained type', () => {
+        const kind = spec.components?.schemas?.UnconstrainedTagChild.properties?.kind;
+        expect(kind).to.exist;
+        expect(kind!.enum).to.not.exist;
+        expectAnyOfWithoutDiscriminator('UnconstrainedTagUnion', 2);
+      });
+
+      it('should keep anyOf when two properties could both discriminate', () => {
+        expectAnyOfWithoutDiscriminator('AmbiguousTagUnion', 2);
+      });
+
+      it('should keep anyOf when the tag property is named "__proto__"', () => {
+        expectAnyOfWithoutDiscriminator('PrototypeNamedTagUnion', 2);
       });
     });
 

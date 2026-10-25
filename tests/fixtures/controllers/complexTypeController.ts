@@ -203,6 +203,86 @@ export interface PlainTagBlock {
 
 export type SpecialTagUnion = PrototypeTagBlock | ConstructorTagBlock | PlainTagBlock;
 
+export interface InheritedTagParent {
+  kind: 'inherited';
+}
+
+// The generated schema takes `kind` from the child, where `any` accepts every tag.
+export interface UnconstrainedTagChild extends InheritedTagParent {
+  kind: any;
+}
+
+export interface UnconstrainedTagOther {
+  kind: 'other';
+}
+
+export type UnconstrainedTagUnion = UnconstrainedTagChild | UnconstrainedTagOther;
+
+export interface ImplementedTagFirstContract {
+  kind: 'implemented-first';
+}
+
+export interface ImplementedTagSecondContract {
+  kind: 'implemented-second';
+}
+
+export class ImplementedTagFirst implements ImplementedTagFirstContract {
+  public kind!: 'implemented-first';
+}
+
+export class ImplementedTagSecond implements ImplementedTagSecondContract {
+  public kind!: 'implemented-second';
+}
+
+export type ImplementedTagUnion = ImplementedTagFirst | ImplementedTagSecond;
+
+export interface RedeclaredTagBase {
+  kind: 'redeclared';
+}
+
+export interface RedeclaredTagChild extends RedeclaredTagBase {
+  kind: 'redeclared';
+}
+
+export interface RedeclaredTagSibling {
+  kind: 'sibling';
+}
+
+export type RedeclaredTagUnion = RedeclaredTagChild | RedeclaredTagSibling;
+
+// The generated schemas drop a property named `__proto__`, so it cannot discriminate.
+export interface PrototypeNamedTagFirst {
+  __proto__: 'first';
+}
+
+export interface PrototypeNamedTagSecond {
+  __proto__: 'second';
+}
+
+export type PrototypeNamedTagUnion = PrototypeNamedTagFirst | PrototypeNamedTagSecond;
+
+export interface SingleTagBlock {
+  kind: 'single';
+}
+
+export interface AmbiguousTagFirst {
+  kind: 'first';
+  type: 'one';
+}
+
+export interface AmbiguousTagSecond {
+  kind: 'second';
+  type: 'two';
+}
+
+export type AmbiguousTagUnion = AmbiguousTagFirst | AmbiguousTagSecond;
+
+export type AliasedTagFirst = { kind: 'first'; firstValue: string };
+
+export type AliasedTagSecond = { kind: 'second'; secondValue: string };
+
+export type AliasedTagUnion = AliasedTagFirst | AliasedTagSecond;
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -365,6 +445,62 @@ export class ComplexTypeController {
    */
   @Post('SpecialTagUnionBody')
   public async postSpecialTagUnionBody(@Body() body: SpecialTagUnion): Promise<SpecialTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where one member overrides the inherited tag with `any`
+   */
+  @Post('UnconstrainedTagUnionBody')
+  public async postUnconstrainedTagUnionBody(@Body() body: UnconstrainedTagUnion): Promise<UnconstrainedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of classes that implement interfaces declaring the tag
+   */
+  @Post('ImplementedTagUnionBody')
+  public async postImplementedTagUnionBody(@Body() body: ImplementedTagUnion): Promise<ImplementedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union where one member declares an inherited tag again
+   */
+  @Post('RedeclaredTagUnionBody')
+  public async postRedeclaredTagUnionBody(@Body() body: RedeclaredTagUnion): Promise<RedeclaredTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union whose tag property is named '__proto__'
+   */
+  @Post('PrototypeNamedTagUnionBody')
+  public async postPrototypeNamedTagUnionBody(@Body() body: PrototypeNamedTagUnion): Promise<PrototypeNamedTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a single tagged type that can be null
+   */
+  @Post('NullableSingleTagBody')
+  public async postNullableSingleTagBody(@Body() body: SingleTagBlock | null): Promise<SingleTagBlock | null> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of members that share two qualifying tags
+   */
+  @Post('AmbiguousTagUnionBody')
+  public async postAmbiguousTagUnionBody(@Body() body: AmbiguousTagUnion): Promise<AmbiguousTagUnion> {
+    return body;
+  }
+
+  /**
+   * Test @Body with a union of aliases of inline object types
+   */
+  @Post('AliasedTagUnionBody')
+  public async postAliasedTagUnionBody(@Body() body: AliasedTagUnion): Promise<AliasedTagUnion> {
     return body;
   }
 
