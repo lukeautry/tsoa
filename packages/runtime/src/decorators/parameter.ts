@@ -1,6 +1,16 @@
 /**
  * Inject http Body
  *  @param {string} [name] properties name in body object
+ *
+ * A parameter typed as `Readable` (from `stream`) receives the raw request stream without parsing or validation.
+ * Its media type defaults to `application/octet-stream`; use `@Consumes` to override it.
+ * The type must be written as `Readable`; `stream.Readable`, aliases and unions are not recognised.
+ * On express and koa, a body that a body parser already read is rejected with a `body` field error; this includes
+ * an empty request whose content type matches an installed parser.
+ * express and koa apply no size limit. hapi applies `payload.maxBytes` only to a request that declares
+ * `Content-Length`; a chunked upload is not counted.
+ * An optional `Readable` body still receives a stream, empty when no bytes were sent.
+ * A client that aborts the upload makes the read fail with an `aborted` error.
  */
 export function Body(): ParameterDecorator {
   return () => {
@@ -127,6 +137,7 @@ export function FormField(name?: string): ParameterDecorator {
  * Overrides the default media type of request body.
  * Can be used on specific method.
  * Can't be used on controller level.
+ * For a `Readable` body the default is `application/octet-stream` instead of `application/json`.
  *
  * @link https://swagger.io/docs/specification/describing-request-body/
  */

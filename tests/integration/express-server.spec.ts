@@ -737,6 +737,74 @@ describe('Express Server', () => {
       );
     });
 
+    it('should hand a raw octet-stream request body to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/octet-stream')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand a raw request body with a custom media type to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary/Custom')
+            .set('Content-Type', 'image/png')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should reject a JSON body that a body parser consumed instead of passing the ended stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.status).to.eq(400);
+          expect(res.body.name).to.eq('ValidateError');
+          expect(Object.keys(res.body.fields)).to.deep.eq(['body']);
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').send({ name: 'foo' }),
+        400,
+      );
+    });
+
+    it('should report a consumed body and an invalid query parameter together', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body.name).to.eq('ValidateError');
+          expect(Object.keys(res.body.fields)).to.have.members(['body', 'tag']);
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary/Query?tag=abc').send({ name: 'foo' }),
+        400,
+      );
+    });
+
+    it('should hand an empty request body to the controller as an empty stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: 0 });
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').set('Content-Type', 'application/octet-stream'),
+        200,
+      );
+    });
+
     it('should return custom content-type based on "Accept" header', () => {
       return verifyRequest(
         app,

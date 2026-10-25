@@ -1,9 +1,11 @@
+import { Server } from '@hapi/hapi';
 import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
 import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
+import { RegisterRoutes } from '../fixtures/hapi/routes';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
 import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
@@ -475,6 +477,103 @@ describe('Hapi Server', () => {
           expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
         },
         202,
+      );
+    });
+
+    it('should hand a raw octet-stream request body to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/octet-stream')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand a raw request body with a custom media type to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary/Custom')
+            .set('Content-Type', 'image/png')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand a JSON body to the controller as raw bytes', () => {
+      const payload = JSON.stringify({ name: 'foo' });
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: Buffer.byteLength(payload) });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/json')
+            .send(payload),
+        200,
+      );
+    });
+
+    describe('with a server payload limit', () => {
+      const maxBytes = 1024;
+      const limited = new Server({ routes: { payload: { maxBytes } } });
+
+      before(async () => {
+        (RegisterRoutes as (app: Server) => void)(limited);
+        await limited.start();
+      });
+
+      after(() => limited.stop());
+
+      it('should enforce the limit on the declared Content-Length and not count a chunked upload of the same size', async () => {
+        const payload = Buffer.alloc(2 * maxBytes, 'a');
+        await verifyRequest(
+          limited.listener,
+          () => undefined,
+          request =>
+            request
+              .post(basePath + '/MediaTypeTest/Binary')
+              .set('Content-Type', 'application/octet-stream')
+              .send(payload),
+          413,
+        );
+        await verifyRequest(
+          limited.listener,
+          (_err, res) => {
+            expect(res.body).to.deep.eq({ length: payload.length });
+          },
+          request => {
+            const upload = request.post(basePath + '/MediaTypeTest/Binary').set('Content-Type', 'application/octet-stream');
+            upload.write(payload);
+            return upload;
+          },
+          200,
+        );
+      });
+    });
+
+    it('should hand an empty request body to the controller as an empty stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: 0 });
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').set('Content-Type', 'application/octet-stream'),
+        200,
       );
     });
   });

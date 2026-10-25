@@ -96,6 +96,12 @@ export function RegisterRoutes(server: any) {
                   allow: 'multipart/form-data'
                 },
                 {{/if}}
+                {{#if binaryBody}}
+                payload: {
+                  output: 'stream',
+                  parse: false
+                },
+                {{/if}}
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
 
                     let validatedArgs: any[] = [];

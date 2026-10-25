@@ -235,5 +235,38 @@ describe('RouteGenerator', () => {
 
       expect(models).to.equal('./controller.mts');
     });
+
+    describe('binaryBody', () => {
+      const buildActions = (bodyType?: Tsoa.Type) => {
+        const parameters: Tsoa.Parameter[] = bodyType ? [{ parameterName: 'body', name: 'body', in: 'body', required: true, type: bodyType, validators: {}, deprecated: false }] : [];
+        const generator = new DefaultRouteGenerator(
+          {
+            controllers: [
+              {
+                location: 'controller.ts',
+                methods: [{ extensions: [], isHidden: false, method: 'post', name: 'upload', parameters, path: '', responses: [], security: [], type: { dataType: 'void' } }],
+                name: '',
+                path: '',
+              },
+            ],
+            referenceTypeMap: {},
+          },
+          { bodyCoercion: true, entryFile: 'mockEntryFile', routesDir: '.', noImplicitAdditionalProperties: 'silently-remove-extras' },
+        );
+        return generator.buildContent('{{#each controllers}}{{#each actions}}{{binaryBody}}{{/each}}{{/each}}');
+      };
+
+      it('is set for a method with a binary body', () => {
+        expect(buildActions({ dataType: 'binary' })).to.equal('true');
+      });
+
+      it('is not set for a method with a buffer body', () => {
+        expect(buildActions({ dataType: 'buffer' })).to.equal('false');
+      });
+
+      it('is not set for a method without a body', () => {
+        expect(buildActions()).to.equal('false');
+      });
+    });
   });
 });
