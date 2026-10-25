@@ -424,6 +424,45 @@ describe('Express Server', () => {
     });
   });
 
+  describe('optional body parameter', () => {
+    const path = basePath + '/PostTest/OptionalBody';
+
+    it('treats a request without a body as absent', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => expect(res.body).to.deep.equal({ received: false }),
+        request => request.post(path),
+      );
+    });
+
+    it('validates a sent empty object', () => {
+      return verifyPostRequest(
+        app,
+        path,
+        {},
+        (_err, res) => {
+          expect(res.body.fields).to.have.property('body.foo');
+        },
+        400,
+      );
+    });
+
+    it('passes a sent object through', () => {
+      return verifyPostRequest(app, path, { foo: true }, (_err, res) => expect(res.body).to.deep.equal({ received: true }));
+    });
+  });
+
+  describe('required body parameter', () => {
+    it('passes a request without a body to a body of any type', () => {
+      return verifyRequest(
+        app,
+        () => undefined,
+        request => request.post(basePath + '/ParameterTest/ParamaterBodyAnyType'),
+        204,
+      );
+    });
+  });
+
   it('correctly handles OPTIONS requests', () => {
     const path = basePath + '/OptionsTest/Current';
     return verifyRequest(
