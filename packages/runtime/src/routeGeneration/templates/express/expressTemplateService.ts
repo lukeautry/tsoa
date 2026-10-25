@@ -76,8 +76,9 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body': {
           if (param.dataType === 'binary') {
-            if (request.readableEnded) return void (fieldErrors[name] = { message: 'request body was already consumed by a body parser' });
-            return request;
+            if (!request.readableEnded) return request;
+            fieldErrors[name] = { message: 'request body was already consumed by a body parser' };
+            return undefined;
           }
           const body = !param.required && isEmptyBodyPlaceholder(request) ? undefined : request.body;
           const bodyFieldErrors: FieldErrors = {};
