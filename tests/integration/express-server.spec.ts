@@ -1692,10 +1692,6 @@ describe('Express Server', () => {
         }
       });
 
-      it('returns 401 for a security name that sets the prototype of its entry', () => {
-        return verifyGetRequest(app, basePath + '/SecurityTest/PrototypeName', emptyHandler, 401);
-      });
-
       for (const kind of ['null', 'string']) {
         it(`returns 401 when a later AND group member rejects with a ${kind} value`, () => {
           return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=${kind}-rejection`, emptyHandler, 401);

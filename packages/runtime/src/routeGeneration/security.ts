@@ -23,7 +23,7 @@ export class MissingCredentialsError extends Error implements Exception {
 }
 
 function isMissingCredentials(error: unknown): boolean {
-  return error instanceof Error && missingCredentials in error;
+  return error instanceof Error && Reflect.get(error, missingCredentials) === true;
 }
 
 function ignoreMissingCredentials(error: unknown): void {
@@ -33,6 +33,7 @@ function ignoreMissingCredentials(error: unknown): void {
 }
 
 function allowsAnonymous(security: TsoaRoute.Security[]): boolean {
+  // The emitted literal {"__proto__":[]} has no own keys but is not the empty entry
   return security.some(secMethod => Object.getPrototypeOf(secMethod) === Object.prototype && Object.keys(secMethod).length === 0);
 }
 
@@ -57,7 +58,9 @@ export async function isAnonymousFallback(security: TsoaRoute.Security[], attemp
 }
 
 /** The failure to answer with: on an operation that allows anonymous access the first one that is not a missing credential, else the last. */
-export function failureToReport(security: TsoaRoute.Security[], failures: unknown[]): unknown {
+export function failureToReport(security: TsoaRoute.Security[], failures: unknown[]): Partial<Exception> {
   const blocking = allowsAnonymous(security) ? failures.filter(failure => !isMissingCredentials(failure)) : [];
-  return blocking.length ? blocking[0] : failures[failures.length - 1];
+  // Object() makes a null or string rejection readable. A frozen failure refuses the status that the response sets, so an object that inherits from it stands in.
+  const failure = Object(blocking.length ? blocking[0] : failures[failures.length - 1]);
+  return Object.isExtensible(failure) ? failure : Object.create(failure, { status: { value: failure.status, writable: true } });
 }

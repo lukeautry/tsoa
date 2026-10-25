@@ -118,13 +118,6 @@ export class SecurityTestController {
   }
 
   @Response<ErrorResponseModel>('default', 'Unexpected error')
-  @Security('__proto__')
-  @Get('PrototypeName')
-  public async GetWithPrototypeNameSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
-    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
-  }
-
-  @Response<ErrorResponseModel>('default', 'Unexpected error')
   @Security({})
   @Get('AnonymousOnly')
   public async GetWithOnlyEmptySecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {

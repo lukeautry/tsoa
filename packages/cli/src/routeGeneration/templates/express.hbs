@@ -212,7 +212,7 @@ export function RegisterRoutes(app: Router) {
                     return next();
                 }
 
-                const error = Object(failureToReport(security, failedAttempts)); // wraps a null or string rejection so its fields can be read
+                const error = failureToReport(security, failedAttempts);
                 error.status = error.status || 401;
                 next(error);
             }

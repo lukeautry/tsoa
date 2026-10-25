@@ -205,7 +205,7 @@ export function RegisterRoutes(server: any) {
                     return request.raw.res.writableEnded ? h.abandon : h.continue;
                 }
 
-                const error = Object(failureToReport(security, failedAttempts)); // wraps a null or string rejection so its fields can be read
+                const error = failureToReport(security, failedAttempts);
                 if (isBoom(error)) {
                     throw error;
                 }
