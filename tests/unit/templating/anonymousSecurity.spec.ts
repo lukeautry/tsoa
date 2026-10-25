@@ -64,6 +64,19 @@ describe('anonymous security helpers', () => {
       expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(unrelated)])).to.be.false;
     });
 
+    it('is false for an error that carries the missing-credentials symbol with the value false', async () => {
+      const falseBrand = Object.assign(new Error('no token'), { [Symbol.for('tsoa.missingCredentials')]: false });
+
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(falseBrand)])).to.be.false;
+    });
+
+    it('is false for an error that inherits the missing-credentials symbol with the value false', async () => {
+      const falseBrand = Object.assign(Object.create(Error.prototype), { [Symbol.for('tsoa.missingCredentials')]: false });
+      const inheritedFalseBrand = Object.setPrototypeOf(new Error('no token'), falseBrand);
+
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(inheritedFalseBrand)])).to.be.false;
+    });
+
     it('is false when anonymous access is not allowed', async () => {
       expect(await isAnonymousFallback([{ api_key: [] }], [failed(new MissingCredentialsError())])).to.be.false;
     });
@@ -150,8 +163,17 @@ describe('anonymous security helpers', () => {
       expect(failureToReport(optional, [invalid, expired])).to.equal(invalid);
     });
 
-    it('reports an invalid credential that is a falsy rejection', () => {
-      expect(failureToReport(optional, [null, missing])).to.equal(null);
+    it('reports an invalid credential that is a null rejection as an object without fields', () => {
+      expect(failureToReport(optional, [null, missing])).to.deep.equal({});
+    });
+
+    it('reports a stand-in that accepts a status when the failure is frozen', () => {
+      const frozen = Object.freeze(Object.assign(new Error('frozen'), { status: 403 }));
+      const reported = failureToReport(required, [frozen]);
+
+      expect(() => Object.assign(reported as object, { status: 401 })).to.not.throw();
+      expect(reported).to.be.instanceOf(Error).and.have.property('message', 'frozen');
+      expect(frozen.status).to.equal(403);
     });
 
     it('reports the last failure when every failure is a missing credential', () => {

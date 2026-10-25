@@ -1323,9 +1323,53 @@ describe('Koa Server', () => {
       for (const [description, kind] of [
         ['no body', 'status-only'],
         ['an empty body', 'empty-body'],
+        ['the body false', 'false-body'],
+        ['the body 0', 'zero-body'],
       ]) {
-        it(`returns 401 when an authentication function set a status with ${description} before rejecting with missing credentials`, () => {
-          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=${kind}-missing`, emptyHandler, 401);
+        it(`keeps the 403 an authentication function set with ${description} before rejecting with missing credentials`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=${kind}-missing`, emptyHandler, 403);
+        });
+      }
+
+      for (const [description, kind] of [
+        ['no body', 'status-only'],
+        ['an empty body', 'empty-body'],
+      ]) {
+        it(`answers 401 on a route without an empty entry when an authentication function set a status with ${description}`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/OauthOrApiKey?tsoa=${kind}-missing`, emptyHandler, 401);
+        });
+      }
+
+      it('keeps the status a slower AND group member set before rejecting with missing credentials', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-status-missing', emptyHandler, 403);
+      });
+
+      for (const earlierStatus of [200, 403]) {
+        it(`continues without a user when an earlier middleware set the status ${earlierStatus}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrAnonymous?earlierStatus=${earlierStatus}`,
+            (_err, res) => {
+              expect(res.body.name).to.equal('anonymous');
+            },
+            200,
+          );
+        });
+      }
+
+      for (const [description, token, status] of [
+        ['without a status', 'frozen', 401],
+        ['with a status', 'frozen-status', 403],
+      ] as const) {
+        it(`answers a frozen error ${description}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=${token}`,
+            err => {
+              expect(err.text).to.equal('api_key');
+            },
+            status,
+          );
         });
       }
 

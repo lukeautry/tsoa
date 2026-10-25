@@ -19,6 +19,10 @@ export function hapiAuthentication(request: any, name: string, scopes?: string[]
         id: 2,
         name: 'Thor',
       });
+    } else if (token === 'frozen') {
+      return Promise.reject(Object.freeze(new Error('api_key')));
+    } else if (token === 'frozen-status') {
+      return Promise.reject(Object.freeze(Object.assign(new Error('api_key'), { status: 403 })));
     } else {
       return Promise.reject({ message: 'api_key' });
     }

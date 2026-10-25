@@ -1401,6 +1401,22 @@ describe('Hapi Server', () => {
         });
       }
 
+      for (const [description, token, status] of [
+        ['without a status', 'frozen', 401],
+        ['with a status', 'frozen-status', 403],
+      ] as const) {
+        it(`answers a frozen error ${description}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=${token}`,
+            (_err, res) => {
+              expect(res.body.message).to.equal('api_key');
+            },
+            status,
+          );
+        });
+      }
+
       it('does not run the controller after an authentication function ended the response and rejected with missing credentials', async () => {
         const anonymousPath = basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous';
         const before = optionalOrSecurityState.calls;
