@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import {  fetchMiddlewares, ExpressTemplateService{{#if useSecurity}}, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
+import {  fetchMiddlewares, ExpressTemplateService{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -212,8 +212,7 @@ export function RegisterRoutes(app: Router) {
                     return next();
                 }
 
-                // Show most recent error as response
-                const error = Object(failedAttempts.pop()); // wraps a null or string rejection so its fields can be read
+                const error = Object(failureToReport(security, failedAttempts)); // wraps a null or string rejection so its fields can be read
                 error.status = error.status || 401;
                 next(error);
             }

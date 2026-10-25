@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MissingCredentialsError, isAnonymousFallback } from '@tsoa/runtime';
+import { MissingCredentialsError, failureToReport, isAnonymousFallback } from '@tsoa/runtime';
 import type { TsoaRoute } from '@tsoa/runtime';
 import { MissingCredentialsError as MissingCredentialsErrorCopy } from '@tsoa/runtime/routeGeneration/security';
 
@@ -128,6 +128,41 @@ describe('anonymous security helpers', () => {
       } finally {
         process.off('unhandledRejection', record);
       }
+    });
+  });
+
+  describe('failureToReport', () => {
+    const optional: TsoaRoute.Security[] = [{ api_key: [] }, { tsoa_auth: [] }, {}];
+    const required: TsoaRoute.Security[] = [{ api_key: [] }, { tsoa_auth: [] }];
+    const missing = new MissingCredentialsError('no token');
+    const invalid = new Error('invalid token');
+    const expired = new Error('expired token');
+
+    it('reports the invalid credential when a scheme without credentials failed after it', () => {
+      expect(failureToReport(optional, [invalid, missing])).to.equal(invalid);
+    });
+
+    it('skips a scheme without credentials that failed first', () => {
+      expect(failureToReport(optional, [missing, invalid])).to.equal(invalid);
+    });
+
+    it('reports the first of several invalid credentials', () => {
+      expect(failureToReport(optional, [invalid, expired])).to.equal(invalid);
+    });
+
+    it('reports an invalid credential that is a falsy rejection', () => {
+      expect(failureToReport(optional, [null, missing])).to.equal(null);
+    });
+
+    it('reports the last failure when every failure is a missing credential', () => {
+      const other = new MissingCredentialsError('other');
+
+      expect(failureToReport(optional, [missing, other])).to.equal(other);
+    });
+
+    it('reports the last failure when anonymous access is not allowed', () => {
+      expect(failureToReport(required, [invalid, missing])).to.equal(missing);
+      expect(failureToReport(required, [invalid, expired])).to.equal(expired);
     });
   });
 });

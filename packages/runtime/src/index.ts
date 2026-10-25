@@ -17,7 +17,7 @@ export * from './decorators/response';
 export * from './metadataGeneration/tsoa';
 export * from './routeGeneration/templates';
 export * from './routeGeneration/templateHelpers';
-export { MissingCredentialsError, isAnonymousFallback } from './routeGeneration/security';
+export { MissingCredentialsError, failureToReport, isAnonymousFallback } from './routeGeneration/security';
 export * from './routeGeneration/tsoa-route';
 export * from './utils/assertNever';
 export * from './swagger/swagger';
