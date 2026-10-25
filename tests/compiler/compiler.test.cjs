@@ -102,6 +102,21 @@ test('optionalPropertyController preserves optional interface and class properti
   );
 });
 
+test('complexTypeController preserves optional properties on compiler-built PaginationQuery nodes', async () => {
+  const complexFixture = path.resolve(__dirname, '../fixtures/controllers/complexTypeController.ts');
+  const metadata = await compiler.withCompiler(() => new MetadataGenerator(complexFixture, { experimentalDecorators: true, strictNullChecks: true, skipLibCheck: true }).Generate());
+  const method = metadata.controllers[0].methods.find(method => method.name === 'getPaginationQuery');
+  assert.deepEqual(
+    method.parameters[0].type.properties.map(({ name, required }) => ({ name, required })).sort((a, b) => a.name.localeCompare(b.name)),
+    [
+      { name: 'limit', required: true },
+      { name: 'page', required: true },
+      { name: 'sortBy', required: false },
+      { name: 'sortOrder', required: false },
+    ],
+  );
+});
+
 test('prettyLocationOfNode falls back for synthetic nodes without changing source locations', async () => {
   const { prettyLocationOfNode } = require('../../packages/cli/dist/metadataGeneration/exceptions');
   await compiler.withCompiler(() => {

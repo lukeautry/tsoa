@@ -67,7 +67,7 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
       const snapshot = (api.createSnapshot ?? api.updateSnapshot).call(api, { openProject: config });
       project = snapshot.getProjects()[0];
       if (!project) throw new Error(`${name}: could not open the metadata project.`);
-      const checker = classicChecker(project.checker, sync.TypeFlags, sync.SymbolFlags, name);
+      const checker = classicChecker(project.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken);
       return {
         getTypeChecker: () => checker,
         getSourceFiles: () => project.program.getSourceFileNames().map((file: string) => normalizeNode(project.program.getSourceFile(file), ast.SyntaxKind.QuestionToken)),
@@ -107,7 +107,7 @@ function normalizeNode(node: any, questionToken: number): any {
   return node;
 }
 
-function classicChecker(checker: any, flags: any, symbols: any, name: string) {
+function classicChecker(checker: any, flags: any, symbols: any, name: string, questionToken: number) {
   const locations = new WeakMap<object, any>();
   const referenceNames = new WeakSet<object>();
   const adapted = new WeakMap<object, any>();
@@ -186,6 +186,7 @@ function classicChecker(checker: any, flags: any, symbols: any, name: string) {
                 node.forEachChild(mark);
               };
               mark(raw);
+              normalizeNode(raw, questionToken);
             }
             return wrap(raw);
           }
