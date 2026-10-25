@@ -48,6 +48,12 @@ export function expressAuthentication(req: express.Request, name: string, scopes
           reject(new MissingCredentialsError('other'));
         }, 10),
       );
+    } else if (req.query && req.query.tsoa === 'null-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject(null);
+    } else if (req.query && req.query.tsoa === 'string-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject('denied');
     } else if (req.query && req.query.tsoa) {
       return Promise.reject({ message: 'other' });
     } else {

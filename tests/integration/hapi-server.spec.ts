@@ -4,7 +4,9 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
+import { setTimeout as delay } from 'timers/promises';
 import { stateOf } from '../fixtures/controllers/middlewaresHapiController';
+import { optionalOrSecurityState } from '../fixtures/controllers/securityController';
 import { RegisterRoutes } from '../fixtures/hapi/routes';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
@@ -1372,6 +1374,35 @@ describe('Hapi Server', () => {
           },
           200,
         );
+      });
+
+      it('returns 401 for a security name that sets the prototype of its entry', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/PrototypeName', emptyHandler, 401);
+      });
+
+      for (const kind of ['null', 'string']) {
+        it(`returns 401 when a later AND group member rejects with a ${kind} value`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=${kind}-rejection`, emptyHandler, 401);
+        });
+      }
+
+      it('does not run the controller after an authentication function ended the response and rejected with missing credentials', async () => {
+        const anonymousPath = basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous';
+        const before = optionalOrSecurityState.calls;
+        await verifyGetRequest(app, anonymousPath, emptyHandler, 200);
+        expect(optionalOrSecurityState.calls).to.equal(before + 1);
+
+        await verifyGetRequest(
+          app,
+          anonymousPath + '?tsoa=ended-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+        await delay(20);
+
+        expect(optionalOrSecurityState.calls).to.equal(before + 1);
       });
     });
 

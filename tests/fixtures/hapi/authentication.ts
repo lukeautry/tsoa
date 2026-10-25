@@ -1,3 +1,4 @@
+import type { Request } from '@hapi/hapi';
 import { MissingCredentialsError } from '@tsoa/runtime';
 export function hapiAuthentication(request: any, name: string, scopes?: string[]): Promise<any> {
   if (name === 'api_key') {
@@ -28,6 +29,17 @@ export function hapiAuthentication(request: any, name: string, scopes?: string[]
       return Promise.resolve({});
     } else if (request.query && request.query.tsoa === 'slow-invalid') {
       return new Promise((_, reject) => setTimeout(() => reject({ message: 'other' }), 10));
+    } else if (request.query && request.query.tsoa === 'ended-missing') {
+      const { res } = (request as Request).raw;
+      res.writeHead(403);
+      res.end('some custom response');
+      return Promise.reject(new MissingCredentialsError('other'));
+    } else if (request.query && request.query.tsoa === 'null-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject(null);
+    } else if (request.query && request.query.tsoa === 'string-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject('denied');
     } else if (request.query && request.query.tsoa) {
       return Promise.reject({ message: 'other' });
     } else {

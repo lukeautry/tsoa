@@ -5,6 +5,8 @@ interface RequestWithUser {
   user?: any;
 }
 
+export const optionalOrSecurityState = { calls: 0 };
+
 @Route('SecurityTest')
 export class SecurityTestController {
   @Response<ErrorResponseModel>('default', 'Unexpected error')
@@ -100,6 +102,7 @@ export class SecurityTestController {
   @Security({})
   @Get('ApiKeyOrOauthOrAnonymous')
   public async GetWithOptionalOrSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    optionalOrSecurityState.calls++;
     return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
   }
 
@@ -111,6 +114,13 @@ export class SecurityTestController {
   @Security({})
   @Get('ApiKeyAndOauthOrAnonymous')
   public async GetWithOptionalAndSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
+    return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
+  }
+
+  @Response<ErrorResponseModel>('default', 'Unexpected error')
+  @Security('__proto__')
+  @Get('PrototypeName')
+  public async GetWithPrototypeNameSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
     return Promise.resolve(request.user ?? { id: 0, name: 'anonymous' });
   }
 

@@ -79,6 +79,15 @@ describe('anonymous security helpers', () => {
       expect(await Promise.race([answer, timeout])).to.be.false;
     });
 
+    it('is false for an entry that a security name set as its prototype', async () => {
+      // the generated route for @Security('__proto__') contains the literal {"__proto__":[]}
+      const entry = { __proto__: [] };
+      expect(Object.keys(entry)).to.be.empty;
+
+      expect(await isAnonymousFallback([entry], [])).to.be.false;
+      expect(await isAnonymousFallback([{ api_key: [] }, entry], [failed(new MissingCredentialsError())])).to.be.false;
+    });
+
     it('does not wait for pending attempts when anonymous access is not allowed', async () => {
       const neverSettles = new Promise(() => undefined);
 

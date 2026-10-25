@@ -27,6 +27,8 @@ export function koaAuthentication(request: Request, name: string, scopes: string
       response.status = 401;
       response.body = 'some custom response';
       return Promise.resolve();
+    } else if (token === 'never-settles') {
+      return new Promise(() => undefined);
     } else {
       return Promise.reject({ message: 'api_key' });
     }
@@ -53,6 +55,19 @@ export function koaAuthentication(request: Request, name: string, scopes: string
           reject(new MissingCredentialsError('other'));
         }, 10),
       );
+    } else if (request.query && request.query.tsoa === 'status-only-missing') {
+      response.status = 403;
+      return Promise.reject(new MissingCredentialsError('other'));
+    } else if (request.query && request.query.tsoa === 'empty-body-missing') {
+      response.status = 403;
+      response.body = '';
+      return Promise.reject(new MissingCredentialsError('other'));
+    } else if (request.query && request.query.tsoa === 'null-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject(null);
+    } else if (request.query && request.query.tsoa === 'string-rejection') {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
+      return Promise.reject('denied');
     } else if (request.query && request.query.tsoa) {
       return Promise.reject({ message: 'other' });
     } else {

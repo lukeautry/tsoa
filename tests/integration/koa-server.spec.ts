@@ -1294,6 +1294,36 @@ describe('Koa Server', () => {
           200,
         );
       });
+
+      it('returns 401 for a security name that sets the prototype of its entry', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/PrototypeName', emptyHandler, 401);
+      });
+
+      for (const kind of ['null', 'string']) {
+        it(`returns 401 when a later AND group member rejects with a ${kind} value`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=${kind}-rejection`, emptyHandler, 401);
+        });
+      }
+
+      for (const [description, kind] of [
+        ['no body', 'status-only'],
+        ['an empty body', 'empty-body'],
+      ]) {
+        it(`returns 401 when an authentication function set a status with ${description} before rejecting with missing credentials`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=${kind}-missing`, emptyHandler, 401);
+        });
+      }
+
+      it('keeps a response set before rejecting with missing credentials while another AND group member is pending', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?access_token=never-settles&tsoa=slow-custom-response-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+      });
     });
 
     describe('API key or tsoa auth', () => {
