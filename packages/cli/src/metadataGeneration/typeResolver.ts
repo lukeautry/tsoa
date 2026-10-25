@@ -9,6 +9,7 @@ import { GenerateMetadataError, GenerateMetaDataWarning } from './exceptions';
 import { getExtensions, getExtensionsFromJSDocComments } from './extension';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
+import { isSynthetic, syntheticChildTypes, tupleElementNode } from './syntheticChildType';
 
 import { PrimitiveTransformer } from './transformer/primitiveTransformer';
 import { DateTransformer } from './transformer/dateTransformer';
@@ -30,12 +31,15 @@ interface Context {
 }
 
 export class TypeResolver {
+  private childTypes?: ReadonlyMap<ts.Node, ts.Type>;
+
   constructor(
     private readonly typeNode: ts.TypeNode,
     public readonly current: MetadataGenerator,
     private readonly parentNode?: ts.Node,
     public context: Context = {},
     public readonly referencer?: ts.Type,
+    private readonly enclosingDeclaration?: ts.Node,
   ) {}
 
   public static clearCache() {
@@ -58,38 +62,18 @@ export class TypeResolver {
     if (ts.isArrayTypeNode(this.typeNode)) {
       const arrayMetaType: Tsoa.ArrayType = {
         dataType: 'array',
-        elementType: new TypeResolver(this.typeNode.elementType, this.current, this.parentNode, this.context).resolve(),
+        elementType: this.child(this.typeNode.elementType).resolve(),
       };
       return arrayMetaType;
     }
 
     if (ts.isRestTypeNode(this.typeNode)) {
-      return new TypeResolver(this.typeNode.type, this.current, this.parentNode, this.context).resolve();
+      return this.child(this.typeNode.type).resolve();
     }
 
-    if (ts.isUnionTypeNode(this.typeNode)) {
-      const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
-      });
-
-      const unionMetaType: Tsoa.UnionType = {
-        dataType: 'union',
-        types,
-      };
-      return unionMetaType;
-    }
-
-    if (ts.isIntersectionTypeNode(this.typeNode)) {
-      const types = this.typeNode.types.map(type => {
-        return new TypeResolver(type, this.current, this.parentNode, this.context).resolve();
-      });
-
-      const intersectionMetaType: Tsoa.IntersectionType = {
-        dataType: 'intersection',
-        types,
-      };
-
-      return intersectionMetaType;
+    const isUnion = ts.isUnionTypeNode(this.typeNode);
+    if (isUnion || ts.isIntersectionTypeNode(this.typeNode)) {
+      return { dataType: isUnion ? 'union' : 'intersection', types: this.typeNode.types.map(type => this.child(type).resolve()) };
     }
 
     if (ts.isTupleTypeNode(this.typeNode)) {
@@ -97,17 +81,11 @@ export class TypeResolver {
       let restType: Tsoa.Type | undefined;
 
       for (const element of this.typeNode.elements) {
+        const node = tupleElementNode(element);
+        const type = this.child(node, element).resolve();
         if (ts.isRestTypeNode(element)) {
-          const resolvedRest = new TypeResolver(element.type, this.current, element, this.context).resolve();
-
-          if (resolvedRest.dataType === 'array') {
-            restType = resolvedRest.elementType;
-          } else {
-            restType = resolvedRest;
-          }
+          restType = node === element.type && type.dataType === 'array' ? type.elementType : type;
         } else {
-          const typeNode = ts.isNamedTupleMember(element) ? element.type : element;
-          const type = new TypeResolver(typeNode, this.current, element, this.context).resolve();
           elementTypes.push(type);
         }
       }
@@ -136,7 +114,7 @@ export class TypeResolver {
 
     if (ts.isTypeLiteralNode(this.typeNode)) {
       const properties = this.typeNode.members.filter(ts.isPropertySignature).reduce<Tsoa.Property[]>((res, propertySignature: ts.PropertySignature) => {
-        const type = new TypeResolver(propertySignature.type as ts.TypeNode, this.current, propertySignature, this.context).resolve();
+        const type = this.child(propertySignature.type as ts.TypeNode, propertySignature).resolve();
 
         const def = TypeResolver.getDefault(propertySignature);
         const property: Tsoa.Property = {
@@ -162,11 +140,11 @@ export class TypeResolver {
       if (indexMember) {
         /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
         const indexSignatureDeclaration = indexMember as ts.IndexSignatureDeclaration;
-        const indexType = new TypeResolver(indexSignatureDeclaration.parameters[0].type as ts.TypeNode, this.current, this.parentNode, this.context).resolve();
+        const indexType = this.child(indexSignatureDeclaration.parameters[0].type as ts.TypeNode).resolve();
 
         throwUnless(indexType.dataType === 'string', new GenerateMetadataError(`Only string indexers are supported.`, this.typeNode));
 
-        additionalType = new TypeResolver(indexSignatureDeclaration.type, this.current, this.parentNode, this.context).resolve();
+        additionalType = this.child(indexSignatureDeclaration.type).resolve();
       }
 
       const objLiteral: Tsoa.NestedObjectLiteralType = {
@@ -229,9 +207,8 @@ export class TypeResolver {
             .map(property => {
               const propertyType = this.current.typeChecker.getTypeOfSymbolAtLocation(property, this.typeNode);
 
-              const typeNode = this.current.typeChecker.typeToTypeNode(propertyType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
               const parent = getOneOrigDeclaration(property); //If there are more declarations, we need to get one of them, from where we want to recognize jsDoc
-              const type = new TypeResolver(typeNode, this.current, parent, this.context, propertyType).resolve();
+              const type = this.printedResolver(propertyType, parent).resolve();
 
               const required = !this.hasFlag(property, ts.SymbolFlags.Optional);
 
@@ -265,13 +242,12 @@ export class TypeResolver {
           };
           const indexInfos = this.current.typeChecker.getIndexInfosOfType(type);
           const indexTypes = indexInfos.flatMap(indexInfo => {
-            const typeNode = this.current.typeChecker.typeToTypeNode(indexInfo.type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-            if (typeNode.kind === ts.SyntaxKind.NeverKeyword) {
+            const resolver = this.printedResolver(indexInfo.type, mappedTypeNode);
+            if (resolver.typeNode.kind === ts.SyntaxKind.NeverKeyword) {
               // { [k: string]: never; }
               return [];
             }
-            const type = new TypeResolver(typeNode, this.current, mappedTypeNode, this.context, indexInfo.type).resolve();
-            return [type];
+            return [resolver.resolve()];
           });
           if (indexTypes.length) {
             if (indexTypes.length === 1) {
@@ -303,13 +279,16 @@ export class TypeResolver {
 
     if (ts.isConditionalTypeNode(this.typeNode)) {
       const referencer = this.getReferencer();
-      const resolvedNode = this.current.typeChecker.typeToTypeNode(referencer, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-      return new TypeResolver(resolvedNode, this.current, this.typeNode, this.context, referencer).resolve();
+      const resolver = this.printedResolver(referencer, this.typeNode);
+      if (ts.isConditionalTypeNode(resolver.typeNode)) {
+        throw new GenerateMetadataError(`The conditional type ${this.current.typeChecker.typeToString(referencer)} did not resolve.`, this.typeNode);
+      }
+      return resolver.resolve();
     }
 
     // keyof & readonly arrays
     if (ts.isTypeOperatorNode(this.typeNode)) {
-      return this.resolveTypeOperatorNode(this.typeNode, this.current.typeChecker, this.current, this.context, this.parentNode, this.referencer);
+      return this.resolveTypeOperatorNode(this.typeNode, this.current.typeChecker, this.current, this.context, this.parentNode);
     }
 
     // Indexed type
@@ -321,7 +300,7 @@ export class TypeResolver {
       const type = this.getReferencer();
       throwUnless(
         type.isUnion() && type.types.every((unionElementType): unionElementType is ts.StringLiteralType => unionElementType.isStringLiteral()),
-        new GenerateMetadataError(`Could not the type of ${this.current.typeChecker.typeToString(this.current.typeChecker.getTypeFromTypeNode(this.typeNode), this.typeNode)}`, this.typeNode),
+        new GenerateMetadataError(`Could not determine the type of ${this.current.typeChecker.typeToString(type, this.typeNode)}`, this.typeNode),
       );
 
       // `a${'c' | 'd'}b`
@@ -333,7 +312,7 @@ export class TypeResolver {
     }
 
     if (ts.isParenthesizedTypeNode(this.typeNode)) {
-      return new TypeResolver(this.typeNode.type, this.current, this.typeNode, this.context, this.referencer).resolve();
+      return new TypeResolver(this.typeNode.type, this.current, this.typeNode, this.context, this.referencer, this.enclosingDeclaration).resolve();
     }
 
     throwUnless(this.typeNode.kind === ts.SyntaxKind.TypeReference, new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[this.typeNode.kind]}`, this.typeNode));
@@ -341,7 +320,7 @@ export class TypeResolver {
     return this.resolveTypeReferenceNode(this.typeNode as ts.TypeReferenceNode, this.current, this.context, this.parentNode);
   }
 
-  private resolveTypeOperatorNode(typeNode: ts.TypeOperatorNode, typeChecker: ts.TypeChecker, current: MetadataGenerator, context: Context, parentNode?: ts.Node, referencer?: ts.Type): Tsoa.Type {
+  private resolveTypeOperatorNode(typeNode: ts.TypeOperatorNode, typeChecker: ts.TypeChecker, current: MetadataGenerator, context: Context, parentNode?: ts.Node): Tsoa.Type {
     switch (typeNode.operator) {
       case ts.SyntaxKind.KeyOfKeyword: {
         // keyof
@@ -446,7 +425,7 @@ export class TypeResolver {
       }
       case ts.SyntaxKind.ReadonlyKeyword:
         // Handle `readonly` arrays
-        return new TypeResolver(typeNode.type, current, typeNode, context, referencer).resolve();
+        return new TypeResolver(typeNode.type, this.current, typeNode, this.context, this.referencer, this.enclosingDeclaration).resolve();
       default:
         throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`, typeNode);
     }
@@ -461,7 +440,7 @@ export class TypeResolver {
       const typeOfObjectType = typeChecker.getTypeFromTypeNode(objectType);
       const type = isNumberIndexType ? typeOfObjectType.getNumberIndexType() : typeOfObjectType.getStringIndexType();
       throwUnless(type, new GenerateMetadataError(`Could not determine ${isNumberIndexType ? 'number' : 'string'} index on ${typeChecker.typeToString(typeOfObjectType)}`, typeNode));
-      return new TypeResolver(typeChecker.typeToTypeNode(type, objectType, ts.NodeBuilderFlags.NoTruncation)!, current, typeNode, context).resolve();
+      return this.printedResolver(type, typeNode, objectType).resolve();
     } else if (ts.isLiteralTypeNode(indexType) && (ts.isStringLiteral(indexType.literal) || ts.isNumericLiteral(indexType.literal))) {
       // Indexed by literal
       const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && Object.prototype.hasOwnProperty.call(node, 'type');
@@ -472,7 +451,7 @@ export class TypeResolver {
       }
       const declaration = typeChecker.getTypeOfSymbolAtLocation(symbol, objectType);
       try {
-        return new TypeResolver(typeChecker.typeToTypeNode(declaration, objectType, ts.NodeBuilderFlags.NoTruncation)!, current, typeNode, context).resolve();
+        return this.printedResolver(declaration, typeNode, objectType).resolve();
       } catch {
         throw new GenerateMetadataError(
           `Could not determine the keys on ${typeChecker.typeToString(typeChecker.getTypeFromTypeNode(typeChecker.typeToTypeNode(declaration, undefined, ts.NodeBuilderFlags.NoTruncation)!))}`,
@@ -486,9 +465,7 @@ export class TypeResolver {
       const isSameTypeQuery = ts.isTypeQueryNode(typeOfObjectType) && ts.isTypeQueryNode(typeOfIndexType) && typeOfObjectType.exprName.getText() === typeOfIndexType.exprName.getText();
       const isSameTypeReference = ts.isTypeReferenceNode(typeOfObjectType) && ts.isTypeReferenceNode(typeOfIndexType) && typeOfObjectType.typeName.getText() === typeOfIndexType.typeName.getText();
       if (isSameTypeQuery || isSameTypeReference) {
-        const type = this.getReferencer();
-        const node = typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.InTypeAlias | ts.NodeBuilderFlags.NoTruncation)!;
-        return new TypeResolver(node, current, typeNode, context, this.referencer).resolve();
+        return this.printedResolver(this.getReferencer(), typeNode, undefined, ts.NodeBuilderFlags.InTypeAlias | ts.NodeBuilderFlags.NoTruncation).resolve();
       }
     }
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}`, typeNode);
@@ -574,11 +551,21 @@ export class TypeResolver {
     return (type.flags & flag) === flag;
   }
 
+  private printedResolver(type: ts.Type, parentNode: ts.Node | undefined, enclosingDeclaration?: ts.Node, flags = ts.NodeBuilderFlags.NoTruncation): TypeResolver {
+    const node = this.current.typeChecker.typeToTypeNode(type, enclosingDeclaration, flags)!;
+    return new TypeResolver(node, this.current, parentNode, this.context, type, enclosingDeclaration);
+  }
+
+  private child(node: ts.TypeNode, parentNode = this.parentNode): TypeResolver {
+    this.childTypes ??= syntheticChildTypes(this.current.typeChecker, this.typeNode, this.referencer, this.enclosingDeclaration);
+    return new TypeResolver(node, this.current, parentNode, this.context, this.childTypes.get(node), this.enclosingDeclaration);
+  }
+
   private getReferencer(): ts.Type {
     if (this.referencer) {
       return this.referencer;
     }
-    if (this.typeNode.pos !== -1) {
+    if (!isSynthetic(this.typeNode)) {
       return this.current.typeChecker.getTypeFromTypeNode(this.typeNode);
     }
     throw new GenerateMetadataError(`Can not succeeded to calculate referencer type.`, this.typeNode);
@@ -868,7 +855,7 @@ export class TypeResolver {
 
         for (const declaration of declarations) {
           if (ts.isTypeAliasDeclaration(declaration)) {
-            const referencer = node.pos !== -1 ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
+            const referencer = !isSynthetic(node) ? this.current.typeChecker.getTypeFromTypeNode(node) : undefined;
             referenceTypes.push(new ReferenceTransformer().transform(declaration, refTypeName, this, referencer));
           } else if (EnumTransformer.transformable(declaration)) {
             referenceTypes.push(new EnumTransformer().transform(this, declaration, refTypeName));
