@@ -62,6 +62,8 @@ export function koaAuthentication(request: Request, name: string, scopes: string
       response.status = 403;
       response.body = '';
       return Promise.reject(new MissingCredentialsError('other'));
+    } else if (request.query && request.query.tsoa === 'named-error') {
+      return Promise.reject(Object.assign(new Error('other'), { name: 'MissingCredentialsError' }));
     } else if (request.query && request.query.tsoa === 'null-rejection') {
       // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- rejects with a non-Error value on purpose
       return Promise.reject(null);

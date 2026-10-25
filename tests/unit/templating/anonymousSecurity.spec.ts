@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MissingCredentialsError, isAnonymousFallback } from '@tsoa/runtime';
+import type { TsoaRoute } from '@tsoa/runtime';
+import { MissingCredentialsError as MissingCredentialsErrorCopy } from '@tsoa/runtime/routeGeneration/security';
 
 describe('anonymous security helpers', () => {
   describe('MissingCredentialsError', () => {
@@ -39,10 +41,27 @@ describe('anonymous security helpers', () => {
       expect(await isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [Promise.resolve({ id: 1 }), failed(new MissingCredentialsError())])).to.be.true;
     });
 
-    it('recognizes a missing credential error by name, e.g. from another copy of @tsoa/runtime', async () => {
-      const foreign = Object.assign(new Error('no token'), { name: 'MissingCredentialsError' });
+    it('is true when the empty entry is listed first', async () => {
+      expect(await isAnonymousFallback([{}, { api_key: [] }], [failed(new MissingCredentialsError())])).to.be.true;
+    });
 
-      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(foreign)])).to.be.true;
+    it('recognizes a subclass of MissingCredentialsError', async () => {
+      class ExpiredSessionError extends MissingCredentialsError {}
+
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(new ExpiredSessionError())])).to.be.true;
+    });
+
+    it('recognizes an error from another copy of the module', async () => {
+      const copy = new MissingCredentialsErrorCopy('no token');
+
+      expect(copy).to.not.be.instanceOf(MissingCredentialsError);
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(copy)])).to.be.true;
+    });
+
+    it('is false for an unrelated error that only shares the name', async () => {
+      const unrelated = Object.assign(new Error('no token'), { name: 'MissingCredentialsError' });
+
+      expect(await isAnonymousFallback([{ api_key: [] }, {}], [failed(unrelated)])).to.be.false;
     });
 
     it('is false when anonymous access is not allowed', async () => {
@@ -92,6 +111,23 @@ describe('anonymous security helpers', () => {
       const neverSettles = new Promise(() => undefined);
 
       expect(await isAnonymousFallback([{ api_key: [] }], [neverSettles])).to.be.false;
+    });
+
+    it('observes the attempts when anonymous access is not allowed, so a later rejection is not unhandled', async () => {
+      const rejections: unknown[] = [];
+      const record = (reason: unknown) => rejections.push(reason);
+      process.on('unhandledRejection', record);
+
+      try {
+        const slowInvalid = new Promise((_resolve, reject) => setTimeout(() => reject(new Error('invalid token')), 10));
+
+        expect(await isAnonymousFallback([{ api_key: [] }], [slowInvalid])).to.be.false;
+        await new Promise(resolve => setTimeout(resolve, 30));
+
+        expect(rejections).to.deep.equal([]);
+      } finally {
+        process.off('unhandledRejection', record);
+      }
     });
   });
 });
