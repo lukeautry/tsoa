@@ -1,5 +1,6 @@
 import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
+import express from 'express';
 import { readFileSync } from 'fs';
 import { get as httpGet } from 'http';
 import 'mocha';
@@ -10,6 +11,7 @@ import { endlessStreamState } from '../fixtures/controllers/getController';
 import { stateOf } from '../fixtures/controllers/middlewaresExpressController';
 import { state } from '../fixtures/controllers/middlewaresHierarchyController';
 import { app } from '../fixtures/express/server';
+import { RegisterRoutes } from '../fixtures/express/routes';
 import {
   Gender,
   GenericModel,
@@ -1645,6 +1647,34 @@ describe('Express Server', () => {
           },
           200,
         );
+      });
+
+      it('leaves a response that another middleware already ended alone', async () => {
+        const endedApp = express();
+        endedApp.use((_req, res, next) => {
+          res.end('ended early');
+          next();
+        });
+        (RegisterRoutes as (app: express.Express) => void)(endedApp);
+        const rejections: unknown[] = [];
+        const record = (reason: unknown) => rejections.push(reason);
+        process.on('unhandledRejection', record);
+
+        try {
+          await verifyGetRequest(
+            endedApp,
+            basePath + '/SecurityTest/AnonymousOnly',
+            (_err, res) => {
+              expect(res.text).to.equal('ended early');
+            },
+            200,
+          );
+          await delay(20);
+
+          expect(rejections).to.deep.equal([]);
+        } finally {
+          process.off('unhandledRejection', record);
+        }
       });
     });
 

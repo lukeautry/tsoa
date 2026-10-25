@@ -55,6 +55,7 @@ describe('anonymous security helpers', () => {
 
     for (const [description, reason] of [
       ['an object with a status', { status: 401 }],
+      ['an object that only carries the error name', { name: 'MissingCredentialsError', message: 'no token' }],
       ['the error name as a string', 'MissingCredentialsError'],
       ['undefined', undefined],
       ['null', null],
@@ -68,6 +69,14 @@ describe('anonymous security helpers', () => {
       const slowInvalid = new Promise((_resolve, reject) => setTimeout(() => reject(new Error('invalid token')), 10));
 
       expect(await isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [failed(new MissingCredentialsError()), slowInvalid])).to.be.false;
+    });
+
+    it('answers false without waiting for a pending attempt once another attempt failed with an invalid credential', async () => {
+      const neverSettles = new Promise(() => undefined);
+      const timeout = new Promise(resolve => setTimeout(() => resolve('still waiting'), 100));
+      const answer = isAnonymousFallback([{ api_key: [], tsoa_auth: [] }, {}], [failed(new Error('invalid token')), neverSettles]);
+
+      expect(await Promise.race([answer, timeout])).to.be.false;
     });
 
     it('does not wait for pending attempts when anonymous access is not allowed', async () => {
