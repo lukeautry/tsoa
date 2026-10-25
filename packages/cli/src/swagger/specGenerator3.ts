@@ -695,7 +695,7 @@ export class SpecGenerator3 extends SpecGenerator {
         return null;
       }
       for (const property of properties) {
-        if (property.required && isStringEnum(property.type)) {
+        if (this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
           const enums = enumsByPropertyName.get(property.name) ?? [];
           enums.push(property.type.enums as string[]);
           enumsByPropertyName.set(property.name, enums);
@@ -719,11 +719,11 @@ export class SpecGenerator3 extends SpecGenerator {
     }
 
     const [propertyName, enumsPerMember] = candidates[0];
-    const mapping: Record<string, string> = {};
-    enumsPerMember.forEach((values, index) => values.forEach(value => (mapping[value] = `#/components/schemas/${encodeURIComponent(refTypes[index].refName)}`)));
+    const oneOf = refTypes.map(t => this.getSwaggerType(t));
+    const mapping = Object.fromEntries(enumsPerMember.flatMap((values, index) => values.map((value): [string, string] => [value, oneOf[index].$ref!])));
 
     return {
-      oneOf: refTypes.map(t => this.getSwaggerType(t)),
+      oneOf,
       discriminator: { propertyName, mapping },
     };
   }
