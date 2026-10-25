@@ -43,6 +43,15 @@ describe('Validation Error Size - Express Server', () => {
       expect(response.body.fields['body.unionProperty.valueB'].message).to.equal('invalid float number');
     });
 
+    it('should report a missing tag at the tag property', async () => {
+      const response = await request(app)
+        .post(basePath + '/ValidationTest/UnionType')
+        .send({ unionProperty: { valueB: 1 } })
+        .expect(400);
+
+      expect(response.body.fields['body.unionProperty.type'].message).to.equal("'type' is required");
+    });
+
     it('should report an unknown tag at the tag property', async () => {
       const response = await request(app)
         .post(basePath + '/ValidationTest/UnionType')

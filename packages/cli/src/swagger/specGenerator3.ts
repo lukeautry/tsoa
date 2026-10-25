@@ -676,7 +676,7 @@ export class SpecGenerator3 extends SpecGenerator {
    * discriminator (see `getUnionDiscriminator`) fall back to `anyOf`.
    */
   protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
-    const detected = getUnionDiscriminator(types);
+    const detected = getUnionDiscriminator(types, property => !!this.isRequiredWithoutDefault(property) && !this.hasUndefined(property));
     if (!detected) {
       return null;
     }
@@ -694,7 +694,7 @@ export class SpecGenerator3 extends SpecGenerator {
     const nonNullTypes = type.types.filter(x => !this.isNull(x)).filter(x => x.dataType !== 'undefined');
     const nullable = type.types.some(x => this.isNull(x));
 
-    const discriminated = this.getUnionDiscriminator(type.types);
+    const discriminated = this.getUnionDiscriminator(nonNullTypes);
     if (discriminated) {
       return { ...(title && { title }), ...discriminated, ...(nullable && { nullable }) };
     }

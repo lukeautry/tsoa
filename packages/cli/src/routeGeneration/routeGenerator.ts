@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { isRefType } from '../utils/internalTypeGuards';
+import { isNullType, isRefType } from '../utils/internalTypeGuards';
 import { getUnionDiscriminator } from '../utils/unionDiscriminator';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
 import { fsExists, fsReadFile } from '../utils/fs';
@@ -233,7 +233,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     }
 
     if (type.dataType === 'union') {
-      const discriminator = getUnionDiscriminator(type.types);
+      const discriminator = getUnionDiscriminator(type.types.filter(x => !isNullType(x) && x.dataType !== 'undefined'));
       // Models are printed as object literals, where a `__proto__` key would set the prototype instead of a mapping entry.
       if (discriminator && !discriminator.members.some(member => member.values.includes('__proto__'))) {
         schema.discriminator = {

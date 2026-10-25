@@ -1,5 +1,4 @@
 import { Tsoa } from '@tsoa/runtime';
-import { isNullType } from './internalTypeGuards';
 import { hasUndefined, isRequiredWithoutDefault } from './propertyRequirement';
 
 export interface UnionDiscriminator {
@@ -20,10 +19,13 @@ const isStringEnum = (t: Tsoa.Type): t is Tsoa.EnumType => t.dataType === 'enum'
  * another member. Members that aren't ref types can't be targeted by a discriminator mapping, so
  * those unions have no discriminator.
  *
- * Null and undefined members are ignored.
+ * Callers pass the union members without null/undefined. `isTagRequired` decides whether a property is required on every
+ * object of its member, which a tag must be.
  */
-export function getUnionDiscriminator(unionTypes: Tsoa.Type[]): UnionDiscriminator | null {
-  const types = unionTypes.filter(t => !isNullType(t) && t.dataType !== 'undefined');
+export function getUnionDiscriminator(
+  types: Tsoa.Type[],
+  isTagRequired: (property: Tsoa.Property) => boolean = property => !!isRequiredWithoutDefault(property) && !hasUndefined(property),
+): UnionDiscriminator | null {
   if (types.length < 2 || !types.every(t => isRefObject(t) || isRefAlias(t))) {
     return null;
   }
@@ -39,7 +41,7 @@ export function getUnionDiscriminator(unionTypes: Tsoa.Type[]): UnionDiscriminat
     }
     // The emitted schema keeps the last property of each name and drops one named `__proto__`.
     for (const property of new Map(properties.map(p => [p.name, p])).values()) {
-      if (property.name !== '__proto__' && isRequiredWithoutDefault(property) && !hasUndefined(property) && isStringEnum(property.type)) {
+      if (property.name !== '__proto__' && isTagRequired(property) && isStringEnum(property.type)) {
         const enums = enumsByPropertyName.get(property.name) ?? [];
         enums.push(property.type.enums as string[]);
         enumsByPropertyName.set(property.name, enums);
