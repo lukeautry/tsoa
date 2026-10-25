@@ -108,6 +108,10 @@ describe('ExpressTemplateService body parameter', () => {
       expect(getValidatedArgs({ ...objectWithFoo, required: true }, undefined, { foo: true })).to.deep.equal([{ foo: true }]);
     });
 
+    it('keeps a non-empty body for an optional body parameter', () => {
+      expect(getValidatedArgs({ ...objectWithFoo, required: false }, undefined, { foo: true })).to.deep.equal([{ foo: true }]);
+    });
+
     it('keeps an empty array', () => {
       expect(getValidatedArgs({ ...arrayOfStrings, required: true }, undefined, [])).to.deep.equal([[]]);
     });
