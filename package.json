@@ -49,7 +49,7 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^4.3.0",
-    "lerna": "^9.0.7",
+    "lerna": "^10.1.1",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
@@ -57,13 +57,7 @@
   },
   "resolutions": {
     "typescript": "^6.0.3",
-    "**/nx/axios": "^1.20.0",
-    "**/nx/follow-redirects": "^1.16.1",
-    "**/nx/smol-toml": "^1.9.0",
-    "**/nx/brace-expansion": "^5.0.12",
-    "**/lerna/tar": "^7.5.21",
-    "**/lerna/js-yaml": "^4.3.2",
-    "**/lerna/pacote": "^21.5.1"
+    "**/nx/undici": "^7.30.1"
   },
   "repository": {
     "type": "git",
@@ -71,7 +65,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+    "node": "^22.22.2 || ^24.15.0 || ^26.0.0"
   },
   "engineStrict": true,
   "workspaces": [
