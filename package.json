@@ -56,7 +56,14 @@
     "typedoc": "^0.26.7"
   },
   "resolutions": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "**/nx/axios": "^1.20.0",
+    "**/nx/follow-redirects": "^1.16.1",
+    "**/nx/smol-toml": "^1.9.0",
+    "**/nx/brace-expansion": "^5.0.12",
+    "**/lerna/tar": "^7.5.21",
+    "**/lerna/js-yaml": "^4.3.2",
+    "**/lerna/pacote": "^21.5.1"
   },
   "repository": {
     "type": "git",
