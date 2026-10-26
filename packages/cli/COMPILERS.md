@@ -17,6 +17,17 @@ To opt into the optional `tsrs` peer, install it and run:
 TSOA_COMPILER=tsrs tsoa spec-and-routes
 ```
 
+To use a different generation compiler from the TypeScript used to build and
+run your tooling, install it in a separate directory:
+
+```sh
+npm install --prefix /tmp/tsoa-native typescript@7.1.0-beta
+TSOA_COMPILER_ROOT=/tmp/tsoa-native tsoa spec-and-routes
+# Or install tsrs there and set TSOA_COMPILER=tsrs as well.
+```
+
+`TSOA_COMPILER_ROOT` resolves the selected package from that directory using
+Node's `createRequire`; when unset, resolution starts at the CLI itself.
 `TSOA_COMPILER=typescript` selects the default peer explicitly. Other values
 are errors. No tsoa.json setting is added. The exported async generation
 functions support native backends; the synchronous `MetadataGenerator` does not.

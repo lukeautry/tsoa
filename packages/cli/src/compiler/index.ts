@@ -1,6 +1,7 @@
 import type * as ts from 'typescript';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { nativeCompiler, NativeSync, NativeAST } from './native';
 
@@ -69,7 +70,7 @@ export type {
 } from 'typescript';
 
 const activeCompiler = new AsyncLocalStorage<typeof ts>();
-const requireCompiler = createRequire(__filename);
+const requireCompiler = createRequire(process.env.TSOA_COMPILER_ROOT ? resolve(process.env.TSOA_COMPILER_ROOT, 'package.json') : __filename);
 let classic: typeof ts | undefined;
 function classicCompiler(): typeof ts {
   return (classic ??= requireCompiler('typescript') as typeof ts);

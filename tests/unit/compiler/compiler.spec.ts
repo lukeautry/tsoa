@@ -5,7 +5,7 @@ import { validateCompilerOptions } from '@tsoa/cli/cli';
 import { generateSpec, generateRoutes } from '@tsoa/cli/index';
 import { expect } from 'chai';
 import 'mocha';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
@@ -30,6 +30,24 @@ describe('Compiler backends', () => {
     } finally {
       if (before === undefined) delete process.env.TSOA_COMPILER;
       else process.env.TSOA_COMPILER = before;
+    }
+  });
+
+  it('TSOA_COMPILER_ROOT resolves the compiler from a separate installation', () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-compiler-root-'));
+    try {
+      const packageDir = path.join(directory, 'node_modules/typescript');
+      mkdirSync(packageDir, { recursive: true });
+      writeFileSync(path.join(packageDir, 'index.js'), "exports.createProgram = () => 'separate compiler';");
+      const result = spawnSync(process.execPath, ['-e', `console.log(require(${JSON.stringify(path.resolve(__dirname, '../../../packages/cli/dist/compiler'))}).createProgram())`], {
+        env: { ...process.env, TSOA_COMPILER: 'typescript', TSOA_COMPILER_ROOT: directory },
+        encoding: 'utf8',
+        timeout: 30000,
+      });
+      expect(result.status, result.stderr).to.equal(0);
+      expect(result.stdout.trim()).to.equal('separate compiler');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
     }
   });
 
