@@ -96,17 +96,12 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
   };
 }
 
+const normalizedNodes = new WeakSet<object>();
 function normalizeNode(node: any, questionToken: number): any {
+  if (normalizedNodes.has(node)) return node;
+  normalizedNodes.add(node);
   if (node.defaultType) Object.defineProperty(node, 'default', { get: () => node.defaultType });
   if (node.postfixToken?.kind === questionToken) Object.defineProperty(node, 'questionToken', { get: () => node.postfixToken });
-  for (const key of ['type', 'text', 'initializer']) {
-    if (node[key] === undefined || Object.prototype.hasOwnProperty.call(node, key)) continue;
-    let prototype = Object.getPrototypeOf(node);
-    while (prototype && !Object.prototype.hasOwnProperty.call(prototype, key)) prototype = Object.getPrototypeOf(prototype);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const getter = Object.getOwnPropertyDescriptor(prototype, key)!.get!;
-    Object.defineProperty(node, key, { get: () => getter.call(node) });
-  }
   node.forEachChild((child: any) => {
     normalizeNode(child, questionToken);
   });

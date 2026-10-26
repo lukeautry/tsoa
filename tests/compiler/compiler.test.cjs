@@ -173,3 +173,19 @@ test('prettyLocationOfNode falls back for synthetic nodes without changing sourc
   assert.equal(prettyLocationOfNode(lazySource), 'At unknown position...');
   assert.throws(() => prettyLocationOfNode({ ...lazySource, pos: 0 }), error);
 });
+
+test('normalizeNode preserves optional properties and defaulted type parameters on repeated getSourceFiles calls', async () => {
+  const optionalFixture = path.resolve(__dirname, '../fixtures/compiler/optionalPropertyController.ts');
+  await compiler.withCompiler(() => {
+    const program = compiler.createProgram([optionalFixture], { experimentalDecorators: true });
+    for (let visit = 0; visit < 2; visit++) {
+      const source = program.getSourceFiles().find(source => source.fileName === optionalFixture);
+      const model = source.statements.find(node => node.name?.text === 'OptionalModel');
+      assert.equal(model.typeParameters[0].default.kind, compiler.SyntaxKind.StringKeyword);
+      assert.equal(model.members[0].questionToken.kind, compiler.SyntaxKind.QuestionToken);
+      const classModel = source.statements.find(node => node.name?.text === 'OptionalClassModel');
+      assert.equal(classModel.members[0].questionToken.kind, compiler.SyntaxKind.QuestionToken);
+      assert.equal(classModel.members[1].questionToken, undefined);
+    }
+  });
+});

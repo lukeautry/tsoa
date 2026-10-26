@@ -1,7 +1,7 @@
 import { Controller, Get, Route } from '@tsoa/runtime';
 
-interface OptionalModel {
-  label?: string;
+interface OptionalModel<T = string> {
+  label?: T;
 }
 
 class OptionalClassModel {

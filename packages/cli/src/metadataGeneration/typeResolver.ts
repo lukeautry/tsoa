@@ -443,7 +443,7 @@ export class TypeResolver {
       return this.printedResolver(type, typeNode, objectType).resolve();
     } else if (ts.isLiteralTypeNode(indexType) && (ts.isStringLiteral(indexType.literal) || ts.isNumericLiteral(indexType.literal))) {
       // Indexed by literal
-      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && Object.prototype.hasOwnProperty.call(node, 'type');
+      const hasType = (node: ts.Node | undefined): node is ts.HasType => node !== undefined && (node as ts.HasType).type !== undefined;
       const symbol = typeChecker.getPropertyOfType(typeChecker.getTypeFromTypeNode(objectType), indexType.literal.text);
       throwUnless(symbol, new GenerateMetadataError(`Could not determine the keys on ${typeChecker.typeToString(typeChecker.getTypeFromTypeNode(objectType))}`, typeNode));
       if (hasType(symbol.valueDeclaration) && symbol.valueDeclaration.type) {
@@ -525,7 +525,7 @@ export class TypeResolver {
       case ts.SyntaxKind.NullKeyword:
         return null;
       default:
-        throwUnless(Object.prototype.hasOwnProperty.call(typeNode.literal, 'text'), new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`));
+        throwUnless((typeNode.literal as ts.LiteralExpression).text !== undefined, new GenerateMetadataError(`Couldn't resolve literal node: ${typeNode.literal.getText()}`));
         return (typeNode.literal as ts.LiteralExpression).text;
     }
   }
