@@ -13,6 +13,8 @@ interface NativeNode {
   defaultType?: NativeNode;
   postfixToken?: NativeNode;
   typeName?: NativeNode;
+  left?: NativeNode;
+  right?: NativeNode;
   modifiers?: NativeNode[];
   forEachChild(visitor: (node: NativeNode) => void): void;
 }
@@ -47,6 +49,8 @@ interface NativeChecker {
   getIndexInfosOfType(type: NativeType): NativeIndexInfo[];
   getSymbolAtLocation(node: NativeNode): NativeSymbol | undefined;
   resolveName(name: string, flags: number, location: NativeNode): NativeSymbol | undefined;
+  getAliasedSymbol(symbol: NativeSymbol): NativeSymbol;
+  getMemberInModuleExports(symbol: NativeSymbol, name: string): NativeSymbol | undefined;
 }
 interface NativeProject {
   checker: NativeChecker;
@@ -71,7 +75,7 @@ export interface NativeSync {
   API: new (options: { cwd: string }) => NativeAPI;
   ModuleKind: Record<number, string>;
   TypeFlags: { String: number; Number: number };
-  SymbolFlags: { Type: number };
+  SymbolFlags: { Type: number; Namespace: number; Alias: number };
 }
 export interface NativeAST {
   SyntaxKind: { Decorator: number; PropertySignature: number; PropertyDeclaration: number; MethodSignature: number; Parameter: number; QuestionToken: number };
@@ -113,8 +117,8 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
     getDecorators: (node: NativeNode) => node.modifiers?.filter((m: NativeNode) => m.kind === ast.SyntaxKind.Decorator),
     getModifiers: (node: NativeNode) => node.modifiers?.filter((m: NativeNode) => m.kind !== ast.SyntaxKind.Decorator),
     displayPartsToString: (parts: string) => parts,
-    isPropertySignature: (node: NativeNode) => propertyKind(node, ast.SyntaxKind.PropertySignature),
-    isPropertyDeclaration: (node: NativeNode) => propertyKind(node, ast.SyntaxKind.PropertyDeclaration),
+    isPropertySignature: (node: NativeNode) => node.kind === ast.SyntaxKind.PropertySignature,
+    isPropertyDeclaration: (node: NativeNode) => node.kind === ast.SyntaxKind.PropertyDeclaration,
     isMethodSignature: (node: NativeNode) => node.kind === ast.SyntaxKind.MethodSignature,
     isParameter: (node: NativeNode) => node.kind === ast.SyntaxKind.Parameter,
     printNode: (node: unknown) => (api.printer ?? project.emitter).printNode(node),
@@ -156,10 +160,6 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
       };
     },
   };
-  function propertyKind(node: NativeNode, kind: number) {
-    if (node.kind !== kind) return false;
-    return true;
-  }
   return {
     surface: surface as unknown as typeof ts,
     close() {
@@ -244,19 +244,25 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
         return (type: any) => target.getIndexInfosOfType(unwrap(type)).map((info: NativeIndexInfo) => ({ ...info, type: wrap(info.type ?? info.valueType), keyType: wrap(info.keyType) }));
       if (key === 'getSymbolAtLocation')
         return (node: NativeNode) => {
-          if (node.pos !== -1) return wrap(target.getSymbolAtLocation(node));
-          if (!referenceNames.has(node)) return undefined;
+          if (!referenceNames.has(node)) return node.pos !== -1 ? wrap(target.getSymbolAtLocation(node)) : undefined;
           const location = locations.get(node);
-          const symbol = location && node.text ? target.resolveName(node.text, symbols.Type, location) : undefined;
+          // Printed names may be qualified (`TsoaTest.TestModel73`); resolve them left to right, as classic `getSymbolAtLocation` does.
+          const entity = (name: NativeNode, meaning: number): NativeSymbol | undefined => {
+            if (name.text !== undefined) return target.resolveName(name.text, meaning, location);
+            const left = name.left && entity(name.left, symbols.Namespace | symbols.Alias);
+            return left && name.right?.text !== undefined ? target.getMemberInModuleExports(left.flags & symbols.Alias ? target.getAliasedSymbol(left) : left, name.right.text) : undefined;
+          };
+          const symbol = location ? entity(node, symbols.Type) : undefined;
           if (!symbol) throw new Error(`Synthetic type reference lookup is not supported with the ${name} compiler backend.`);
           return wrap(symbol);
         };
       const result: unknown = Reflect.get(target, key);
       return typeof result === 'function'
         ? (...args: any[]) => {
-            const raw = result.apply(target, args.map(unwrap));
             const location =
               key === 'getTypeOfSymbolAtLocation' ? (unwrap(args[0]) as NativeSymbol).declarations?.[0]?.resolve() : args[0]?.pos >= 0 ? args[0] : args[0] && locations.get(unwrap(args[0]));
+            if (key === 'typeToTypeNode' && !args[1]) args[1] = location;
+            const raw = result.apply(target, args.map(unwrap));
             if (raw && typeof raw === 'object' && location) locations.set(raw, location);
             if (key === 'typeToTypeNode' && raw) {
               const source = args[1] ?? location;

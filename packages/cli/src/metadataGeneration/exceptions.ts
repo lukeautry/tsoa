@@ -42,12 +42,15 @@ export function prettyLocationOfNode(node: Node | TypeNode) {
   }
 }
 
+// Native compilers can print nodes that keep a position but have no source text.
+const hasText = (node: Node) => typeof node.getSourceFile()?.text === 'string';
+
 export function prettyTroubleCause(node: Node | TypeNode, onlyCurrent = false) {
   let name: string;
   if (onlyCurrent || !node.parent) {
-    name = node.pos !== -1 && node.parent ? node.getText() : (node as any).name?.text || '<unknown name>';
+    name = node.pos !== -1 && node.parent && hasText(node) ? node.getText() : (node as any).name?.text || '<unknown name>';
   } else {
-    name = node.parent.pos !== -1 ? node.parent.getText() : (node as any).parent.name?.text || '<unknown name>';
+    name = node.parent.pos !== -1 && hasText(node.parent) ? node.parent.getText() : (node as any).parent.name?.text || '<unknown name>';
   }
   return `This was caused by '${name}'`;
 }

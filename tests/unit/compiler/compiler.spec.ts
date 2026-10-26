@@ -178,6 +178,22 @@ export class CompilerOptionsController {
     } as unknown as compiler.Node;
     expect(prettyLocationOfNode(lazySource)).to.equal('At unknown position...');
     expect(() => prettyLocationOfNode({ ...lazySource, pos: 0 })).to.throw(error.message);
+    const reused = {
+      pos: 0,
+      getSourceFile: () => ({ fileName: fixture }),
+      getStart: () => {
+        throw new Error('A printer-reused node has no source text');
+      },
+    } as unknown as compiler.Node;
+    expect(compiler.firstToken(reused)).to.equal(undefined);
+    expect(prettyLocationOfNode(reused)).to.equal(`At: ${fixture}.`);
+  });
+
+  it('getController resolves the namespaced type of an inferred return', async () => {
+    const entryFile = path.resolve(__dirname, '../../fixtures/controllers/getController.ts');
+    const metadata = await compiler.withCompiler(() => new MetadataGenerator(entryFile, { experimentalDecorators: true }).Generate());
+    const method = metadata.controllers[0].methods.find(method => method.name === 'getNamespaceWithTypeCastedObject')!;
+    expect(JSON.stringify(method.type)).to.include('TestModel73');
   });
 
   it('normalizeNode preserves optional properties and defaulted type parameters on repeated getSourceFiles calls', async () => {

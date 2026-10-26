@@ -191,8 +191,7 @@ export const isTypeReferenceNode = lazy('isTypeReferenceNode');
 export const isUnionTypeNode = lazy('isUnionTypeNode');
 
 export function firstToken(node: ts.Node): ts.Node | undefined {
-  if (!node) return undefined;
-  if (node.pos === -1) return undefined;
+  if (!node || node.pos === -1 || typeof node.getSourceFile()?.text !== 'string') return undefined;
   return node.getFirstToken
     ? node.getFirstToken()
     : (backend() as unknown as { getTokenAtPosition(file: ts.SourceFile, start: number): ts.Node }).getTokenAtPosition(node.getSourceFile(), node.getStart());
