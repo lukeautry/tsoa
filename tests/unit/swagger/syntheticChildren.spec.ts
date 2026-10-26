@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { unorderedSchema } from '../../utils/unorderedSchema';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -458,10 +459,12 @@ describe('Children of synthetic type nodes', () => {
   for (const row of rows) {
     for (const compilerOptions of row.modes ?? nullModes) {
       it(`${row.name} (${describeMode(compilerOptions)})`, () => {
-        row.check({
-          strictNullChecks: compilerOptions.strictNullChecks === true,
-          compilerOptions,
-          generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
+        return withCompiler(() => {
+          row.check({
+            strictNullChecks: compilerOptions.strictNullChecks === true,
+            compilerOptions,
+            generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
+          });
         });
       });
     }

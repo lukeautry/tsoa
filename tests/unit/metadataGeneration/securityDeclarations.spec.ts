@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { expect } from 'chai';
@@ -7,14 +8,16 @@ describe('Security declarations', () => {
   const generate = (name: string) => new MetadataGenerator(`./fixtures/securityDeclarations/${name}.ts`).Generate();
 
   it('keeps the entries of valid declarations', () => {
-    const [controller] = generate('valid').controllers;
+    return withCompiler(() => {
+      const [controller] = generate('valid').controllers;
 
-    expect(Object.fromEntries(controller.methods.map(method => [method.name, method.security]))).to.deep.equal({
-      empty: [{}],
-      named: [{ api_key: [] }],
-      scoped: [{ api_key: ['read'] }],
-      and: [{ api_key: ['read'], oauth: [] }],
-      templated: [{ api_key: [undefined] }],
+      expect(Object.fromEntries(controller.methods.map(method => [method.name, method.security]))).to.deep.equal({
+        empty: [{}],
+        named: [{ api_key: [] }],
+        scoped: [{ api_key: ['read'] }],
+        and: [{ api_key: ['read'], oauth: [] }],
+        templated: [{ api_key: [undefined] }],
+      });
     });
   });
 
@@ -24,7 +27,9 @@ describe('Security declarations', () => {
     ['a scheme named __proto__ beside an empty entry', 'protoName'],
   ]) {
     it(`refuses ${description}, which would be generated as an entry that allows anonymous access`, () => {
-      expect(() => generate(name)).to.throw(GenerateMetadataError, /@Security/);
+      return withCompiler(() => {
+        expect(() => generate(name)).to.throw(GenerateMetadataError, /@Security/);
+      });
     });
   }
 });

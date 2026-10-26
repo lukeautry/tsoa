@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { unorderedSchema } from '../../../utils/unorderedSchema';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -11,8 +12,20 @@ import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../../fixtures/testModel';
 
 describe('Definition generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
-  const dynamicMetadata = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, ['./fixtures/controllers/getController.ts']).Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+      dynamicMetadata = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, ['./fixtures/controllers/getController.ts']).Generate();
+      specDefaultSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+      specWithNoImplicitExtrasSpec = new SpecGenerator2(metadata, optionsWithNoAdditional).GetSpec();
+      dynamicSpecDefaultSpec = new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec();
+      dynamicSpecWithNoImplicitExtrasSpec = new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec();
+      specWithXEnumVarnamesSpec = new SpecGenerator2(metadata, optionsWithXEnumVarnames).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let dynamicMetadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
   const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -29,26 +42,41 @@ describe('Definition generation', () => {
     specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras' | 'specWithXEnumVarnames';
   }
 
+  let specDefaultSpec: SpecAndName['spec'];
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator2(metadata, defaultOptions).GetSpec(),
     specName: 'specDefault',
+    get spec() {
+      return specDefaultSpec;
+    },
   };
+  let specWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator2(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
+    get spec() {
+      return specWithNoImplicitExtrasSpec;
+    },
   };
 
+  let dynamicSpecDefaultSpec: SpecAndName['spec'];
   const dynamicSpecDefault: SpecAndName = {
-    spec: new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec(),
     specName: 'dynamicSpecDefault',
+    get spec() {
+      return dynamicSpecDefaultSpec;
+    },
   };
+  let dynamicSpecWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const dynamicSpecWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec(),
     specName: 'dynamicSpecWithNoImplicitExtras',
+    get spec() {
+      return dynamicSpecWithNoImplicitExtrasSpec;
+    },
   };
+  let specWithXEnumVarnamesSpec: SpecAndName['spec'];
   const specWithXEnumVarnames: SpecAndName = {
-    spec: new SpecGenerator2(metadata, optionsWithXEnumVarnames).GetSpec(),
     specName: 'specWithXEnumVarnames',
+    get spec() {
+      return specWithXEnumVarnamesSpec;
+    },
   };
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
@@ -214,7 +242,15 @@ describe('Definition generation', () => {
     describe('should generate a schema for every property on the TestModel interface', () => {
       const interfaceName = 'TestModel';
       allSpecs.forEach(currentSpec => {
-        const definition = getValidatedDefinition(interfaceName, currentSpec);
+        before(() => {
+          definition = getValidatedDefinition(interfaceName, currentSpec)!;
+          expect(Object.keys(assertionsPerProperty)).to.length(
+            Object.keys(definition.properties!).length,
+            `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
+          );
+        });
+
+        let definition: Swagger.Schema2;
 
         it('should produce schemas for the properties and should make a choice about additionalProperties', () => {
           if (!definition.properties) {
@@ -3291,19 +3327,19 @@ describe('Definition generation', () => {
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
-          const propertySchema = definition.properties![aPropertyName];
-          if (!propertySchema) {
-            throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
-          }
+          before(() => {
+            propertySchema = definition.properties![aPropertyName]!;
+            if (!propertySchema) {
+              throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
+            }
+          });
+
+          let propertySchema: Swagger.Schema2;
+
           it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceName} for the ${currentSpec.specName}`, () => {
             assertionsPerProperty[aPropertyName as keyof TestModel](aPropertyName, propertySchema);
           });
         });
-
-        expect(Object.keys(assertionsPerProperty)).to.length(
-          Object.keys(definition.properties!).length,
-          `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
-        );
       });
     });
 
@@ -3359,13 +3395,18 @@ describe('Definition generation', () => {
 
   describe('Class-based generation', () => {
     allSpecs.forEach(currentSpec => {
-      const modelName = 'TestClassModel';
-      const definition = getValidatedDefinition(modelName, currentSpec);
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      before(() => {
+        definition = getValidatedDefinition(modelName, currentSpec)!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
 
-      const properties = definition.properties;
+      const modelName = 'TestClassModel';
+      let definition: Swagger.Schema2;
+
+      let properties: { [propertyName: string]: Swagger.Schema2 };
 
       it('should generate a definition for referenced model', () => {
         getValidatedDefinition(modelName, currentSpec);
@@ -3528,13 +3569,18 @@ describe('Definition generation', () => {
 
   describe('Generic-based generation', () => {
     allSpecs.forEach(currentSpec => {
-      const modelName = 'TestClassModel';
-      const definition = getValidatedDefinition(modelName, currentSpec);
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      before(() => {
+        definition = getValidatedDefinition(modelName, currentSpec)!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
 
-      const properties = definition.properties;
+      const modelName = 'TestClassModel';
+      let definition: Swagger.Schema2;
+
+      let properties: { [propertyName: string]: Swagger.Schema2 };
 
       describe(`for ${currentSpec.specName}`, () => {
         it('should not generate a property for a non-public constructor var', () => {
@@ -3680,19 +3726,23 @@ describe('Definition generation', () => {
   describe('methods', () => {
     describe('deprecation', () => {
       it('marks deprecated methods as deprecated', () => {
-        const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
-        const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+        return withCompiler(() => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
-        expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
-        expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+        });
       });
 
       it('mark deprecated parameters as x-deprecated', () => {
-        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-        const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+        return withCompiler(() => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
-        const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-        expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+          const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
+          expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+        });
       });
     });
   });

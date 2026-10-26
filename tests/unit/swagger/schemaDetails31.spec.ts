@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { unorderedSchema } from '../../utils/unorderedSchema';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -11,8 +12,19 @@ import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../fixtures/testModel';
 
 describe('Definition generation for OpenAPI 3.1.0', () => {
-  const metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
-  const metadataPost = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadataGet = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+      metadataPost = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
+      specDefaultSpec = new SpecGenerator31(metadataGet, defaultOptions).GetSpec();
+      specWithServersSpec = new SpecGenerator31(metadataGet, optionsWithServers).GetSpec();
+      specWithNoImplicitExtrasSpec = new SpecGenerator31(metadataGet, optionsWithNoAdditional).GetSpec();
+      specWithXEnumVarnamesSpec = new SpecGenerator31(metadataGet, optionsWithXEnumVarnames).GetSpec();
+    }),
+  );
+
+  let metadataGet: ReturnType<MetadataGenerator['Generate']>;
+  let metadataPost: ReturnType<MetadataGenerator['Generate']>;
 
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
   const optionsWithServers = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -36,21 +48,33 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
     specName: 'specDefault' | 'specWithServers' | 'specWithNoImplicitExtras' | 'specWithXEnumVarnames' | 'specWithOperationIdTemplate';
   }
 
+  let specDefaultSpec: SpecAndName['spec'];
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator31(metadataGet, defaultOptions).GetSpec(),
     specName: 'specDefault',
+    get spec() {
+      return specDefaultSpec;
+    },
   };
+  let specWithServersSpec: SpecAndName['spec'];
   const specWithServers: SpecAndName = {
-    spec: new SpecGenerator31(metadataGet, optionsWithServers).GetSpec(),
     specName: 'specWithServers',
+    get spec() {
+      return specWithServersSpec;
+    },
   };
+  let specWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator31(metadataGet, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
+    get spec() {
+      return specWithNoImplicitExtrasSpec;
+    },
   };
+  let specWithXEnumVarnamesSpec: SpecAndName['spec'];
   const specWithXEnumVarnames: SpecAndName = {
-    spec: new SpecGenerator31(metadataGet, optionsWithXEnumVarnames).GetSpec(),
     specName: 'specWithXEnumVarnames',
+    get spec() {
+      return specWithXEnumVarnamesSpec;
+    },
   };
 
   const getComponentSchema = (name: string, chosenSpec: SpecAndName) => {
@@ -258,48 +282,59 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
     });
 
     it('should allow bearer scheme', () => {
-      const bearer: Swagger.BearerSecurity3 = {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      };
-      const optionsWithBearer = Object.assign({}, defaultOptions, {
-        securityDefinitions: {
+      return withCompiler(() => {
+        const bearer: Swagger.BearerSecurity3 = {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        };
+        const optionsWithBearer = Object.assign({}, defaultOptions, {
+          securityDefinitions: {
+            bearer,
+          },
+        });
+
+        const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        const exampleSpec = new SpecGenerator31(metadata, optionsWithBearer).GetSpec();
+
+        expect(exampleSpec.components.securitySchemes).to.eql({
           bearer,
-        },
-      });
-
-      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator31(metadata, optionsWithBearer).GetSpec();
-
-      expect(exampleSpec.components.securitySchemes).to.eql({
-        bearer,
+        });
       });
     });
 
     it('should allow openId scheme', () => {
-      const openId: Swagger.OpenIDSecurity = {
-        type: 'openIdConnect',
-        openIdConnectUrl: 'https://example.com/.well-known/openid-configuration',
-      };
-      const optionsWithOpenId = Object.assign({}, defaultOptions, {
-        securityDefinitions: {
+      return withCompiler(() => {
+        const openId: Swagger.OpenIDSecurity = {
+          type: 'openIdConnect',
+          openIdConnectUrl: 'https://example.com/.well-known/openid-configuration',
+        };
+        const optionsWithOpenId = Object.assign({}, defaultOptions, {
+          securityDefinitions: {
+            openId,
+          },
+        });
+
+        const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        const exampleSpec = new SpecGenerator31(metadata, optionsWithOpenId).GetSpec();
+
+        expect(exampleSpec.components.securitySchemes).to.eql({
           openId,
-        },
-      });
-
-      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator31(metadata, optionsWithOpenId).GetSpec();
-
-      expect(exampleSpec.components.securitySchemes).to.eql({
-        openId,
+        });
       });
     });
   });
 
   describe('example comment', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-    const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      }),
+    );
+
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let exampleSpec: ReturnType<SpecGenerator31['GetSpec']>;
 
     it('should generate single example for model', () => {
       if (exampleSpec.components === undefined) {
@@ -426,22 +461,24 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
     });
 
     it('Supports custom example labels', () => {
-      const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-      const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      return withCompiler(() => {
+        const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+        const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const examples = exampleSpec.paths['/ExampleTest/CustomBodyExampleLabels']?.post?.requestBody!.content!['application/json'].examples;
+        const examples = exampleSpec.paths['/ExampleTest/CustomBodyExampleLabels']?.post?.requestBody!.content!['application/json'].examples;
 
-      expect(examples).to.deep.eq({
-        '': {
-          value: 'No Custom Label',
-        },
-        CustomLabel: { value: 'CustomLabel' },
-        CustomLabel2: { value: 'CustomLabel2' },
-        'Example 1': { value: 'Unlabeled 1' },
-        'Example 2': { value: 'Another unlabeled one' },
-        'Example 3': {
-          value: 'Unlabeled 2',
-        },
+        expect(examples).to.deep.eq({
+          '': {
+            value: 'No Custom Label',
+          },
+          CustomLabel: { value: 'CustomLabel' },
+          CustomLabel2: { value: 'CustomLabel2' },
+          'Example 1': { value: 'Unlabeled 1' },
+          'Example 2': { value: 'Another unlabeled one' },
+          'Example 3': {
+            value: 'Unlabeled 2',
+          },
+        });
       });
     });
   });
@@ -655,41 +692,47 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
     describe('hidden paths', () => {
       it('should not contain hidden paths', () => {
-        const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHiddenMethod = new SpecGenerator31(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        return withCompiler(() => {
+          const metadataHiddenMethod = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
+          const specHiddenMethod = new SpecGenerator31(metadataHiddenMethod, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
-        expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
+          expect(specHiddenMethod.paths).to.have.keys(['/Controller/normalGetMethod', '/Controller/hiddenQueryMethod']);
+        });
       });
 
       it('should not contain hidden query params', () => {
-        const metadataHidden = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
-        const specHidden = new SpecGenerator31(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        return withCompiler(() => {
+          const metadataHidden = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
+          const specHidden = new SpecGenerator31(metadataHidden, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
-        if (!specHidden.paths) {
-          throw new Error('Paths are not defined.');
-        }
-        if (!specHidden.paths['/Controller/hiddenQueryMethod']) {
-          throw new Error('hiddenQueryMethod path not defined.');
-        }
-        if (!specHidden.paths['/Controller/hiddenQueryMethod'].get) {
-          throw new Error('hiddenQueryMethod get method not defined.');
-        }
+          if (!specHidden.paths) {
+            throw new Error('Paths are not defined.');
+          }
+          if (!specHidden.paths['/Controller/hiddenQueryMethod']) {
+            throw new Error('hiddenQueryMethod path not defined.');
+          }
+          if (!specHidden.paths['/Controller/hiddenQueryMethod'].get) {
+            throw new Error('hiddenQueryMethod get method not defined.');
+          }
 
-        const method = specHidden.paths['/Controller/hiddenQueryMethod'].get;
-        expect(method.parameters).to.have.lengthOf(1);
+          const method = specHidden.paths['/Controller/hiddenQueryMethod'].get;
+          expect(method.parameters).to.have.lengthOf(1);
 
-        const normalParam = method.parameters![0];
-        expect(normalParam.in).to.equal('query');
-        expect(normalParam.name).to.equal('normalParam');
-        expect(normalParam.required).to.be.true;
-        expect(normalParam.schema.type).to.equal('string');
+          const normalParam = method.parameters![0];
+          expect(normalParam.in).to.equal('query');
+          expect(normalParam.name).to.equal('normalParam');
+          expect(normalParam.required).to.be.true;
+          expect(normalParam.schema.type).to.equal('string');
+        });
       });
 
       it('should not contain paths for hidden controller', () => {
-        const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
-        const specHiddenController = new SpecGenerator31(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
+        return withCompiler(() => {
+          const metadataHiddenController = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
+          const specHiddenController = new SpecGenerator31(metadataHiddenController, JSON.parse(JSON.stringify(defaultOptions))).GetSpec();
 
-        expect(specHiddenController.paths).to.be.empty;
+          expect(specHiddenController.paths).to.be.empty;
+        });
       });
     });
 
@@ -697,23 +740,34 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
       describe('operationId', () => {
         // for backwards compatibility.
         it('should default to title-cased method name.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
-          expect(operationId).to.eq('Post');
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+            expect(operationId).to.eq('Post');
+          });
         });
         it('should utilize operationIdTemplate if set.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, optionsWithOperationIdTemplate).GetSpec();
-          const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
-          expect(operationId).to.eq('ExampleTest_Post');
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, optionsWithOperationIdTemplate).GetSpec();
+            const operationId = exampleSpec.paths['/ExampleTest/post_body']?.post?.operationId;
+            expect(operationId).to.eq('ExampleTest_Post');
+          });
         });
       });
 
       describe('responses', () => {
         describe('should generate headers from method reponse decorator.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
-          const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+          before(() =>
+            withCompiler(() => {
+              metadata = new MetadataGenerator('./fixtures/controllers/responseHeaderController.ts').Generate();
+              responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            }),
+          );
+
+          let metadata: ReturnType<MetadataGenerator['Generate']>;
+          let responseSpec: ReturnType<SpecGenerator31['GetSpec']>;
 
           it('proper schema ref for header class.', () => {
             const pathsWithHeaderClass = ['SuccessResponseWithHeaderClass', 'ResponseWithHeaderClass', 'TsoaResponseWithHeaderClass'];
@@ -783,51 +837,57 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
         });
         describe('should generate headers from class response decorator.', () => {
           it('with header class.', () => {
-            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
-            const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-            const paths = ['Response1', 'Response2'];
-            paths.forEach((path: string) => {
-              const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
-              expect(responses?.[200]?.headers?.CommonResponseHeader).to.deep.eq({
-                schema: {
-                  $ref: '#/components/schemas/CommonResponseHeader',
-                },
-                description: "Common response header's description",
+            return withCompiler(() => {
+              const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderClassController.ts').Generate();
+              const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+              const paths = ['Response1', 'Response2'];
+              paths.forEach((path: string) => {
+                const responses = responseSpec.paths[`/CommonResponseHeaderClass/${path}`].get?.responses;
+                expect(responses?.[200]?.headers?.CommonResponseHeader).to.deep.eq({
+                  schema: {
+                    $ref: '#/components/schemas/CommonResponseHeader',
+                  },
+                  description: "Common response header's description",
+                });
               });
             });
           });
 
           it('with header object.', () => {
-            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
-            const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-            const paths = ['Response1', 'Response2'];
-            paths.forEach((path: string) => {
-              const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
-              expect(responses?.[200]?.headers).to.deep.eq({
-                objectA: {
-                  required: true,
-                  schema: { type: 'string' },
-                  description: undefined,
-                },
-                objectB: {
-                  required: true,
-                  schema: { type: 'array', items: { type: 'string' } },
-                  description: undefined,
-                },
-                objectC: {
-                  required: false,
-                  schema: { type: 'string' },
-                  description: undefined,
-                },
+            return withCompiler(() => {
+              const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHeaderObjectController.ts').Generate();
+              const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+              const paths = ['Response1', 'Response2'];
+              paths.forEach((path: string) => {
+                const responses = responseSpec.paths[`/CommonResponseHeaderObject/${path}`].get?.responses;
+                expect(responses?.[200]?.headers).to.deep.eq({
+                  objectA: {
+                    required: true,
+                    schema: { type: 'string' },
+                    description: undefined,
+                  },
+                  objectB: {
+                    required: true,
+                    schema: { type: 'array', items: { type: 'string' } },
+                    description: undefined,
+                  },
+                  objectC: {
+                    required: false,
+                    schema: { type: 'string' },
+                    description: undefined,
+                  },
+                });
               });
             });
           });
         });
 
         it('Should not generate models with hidden controller referenced.', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHiddenModelController.ts').Generate();
-          const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          expect(responseSpec.components.schemas).to.be.deep.eq({});
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/commonResponseHiddenModelController.ts').Generate();
+            const responseSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            expect(responseSpec.components.schemas).to.be.deep.eq({});
+          });
         });
 
         describe('media types', () => {
@@ -835,12 +895,14 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
           let requestAcceptHeaderTest: Swagger.Spec31;
 
           before(function () {
-            this.timeout(10_000);
-            const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
-            mediaTypeTest = new SpecGenerator31(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
+            return withCompiler(() => {
+              this.timeout(10_000);
+              const mediaTypeMetadata = new MetadataGenerator('./fixtures/controllers/mediaTypeController.ts').Generate();
+              mediaTypeTest = new SpecGenerator31(mediaTypeMetadata, getDefaultExtendedOptions()).GetSpec();
 
-            const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
-            requestAcceptHeaderTest = new SpecGenerator31(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+              const requestAcceptHeaderMetadata = new MetadataGenerator('./fixtures/controllers/requestExpressController').Generate();
+              requestAcceptHeaderTest = new SpecGenerator31(requestAcceptHeaderMetadata, getDefaultExtendedOptions()).GetSpec();
+            });
           });
 
           it('Should use controller Produces decorator as a default media type', () => {
@@ -928,186 +990,208 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
         });
 
         it('Supports multiple examples', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-          const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
+            const examples = exampleSpec.paths['/ExampleTest/MultiResponseExamples']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            'Example 1': {
-              value: 'test 1',
-            },
-            'Example 2': {
-              value: 'test 2',
-            },
+            expect(examples).to.deep.eq({
+              'Example 1': {
+                value: 'test 1',
+              },
+              'Example 2': {
+                value: 'test 2',
+              },
+            });
           });
         });
 
         it('Supports custom example labels', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/CustomExampleLabels']?.get?.responses?.[400]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            NoSuchCountry: { value: { errorMessage: 'No such country', errorCode: 40000 } },
-            '': {
-              value: {
-                errorCode: 40000,
-                errorMessage: 'No custom label',
+            expect(examples).to.deep.eq({
+              NoSuchCountry: { value: { errorMessage: 'No such country', errorCode: 40000 } },
+              '': {
+                value: {
+                  errorCode: 40000,
+                  errorMessage: 'No custom label',
+                },
               },
-            },
-            'Example 1': { value: 'Unlabeled 1' },
-            'Example 2': { value: 'Another unlabeled one' },
-            NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
-            'Example 3': {
-              value: {
-                session: 'asd.f',
+              'Example 1': { value: 'Unlabeled 1' },
+              'Example 2': { value: 'Another unlabeled one' },
+              NoSuchCity: { value: { errorMessage: 'No such city', errorCode: 40000 } },
+              'Example 3': {
+                value: {
+                  session: 'asd.f',
+                },
               },
-            },
-            'Example 4': {
-              value: {
-                errorCode: 40000,
-                errorMessage: 'No custom label',
+              'Example 4': {
+                value: {
+                  errorCode: 40000,
+                  errorMessage: 'No custom label',
+                },
               },
-            },
+            });
           });
         });
 
         it('Supports example with produces', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithProduces']?.get?.responses?.[200]?.content?.['text/plain'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithProduces']?.get?.responses?.[200]?.content?.['text/plain'].examples;
 
-          expect(examples).to.deep.eq({
-            OneExample: {
-              value: 'test example response',
-            },
+            expect(examples).to.deep.eq({
+              OneExample: {
+                value: 'test example response',
+              },
+            });
           });
         });
 
         it('Supports mutli examples with produces', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const produces = exampleSpec.paths['/ExampleTest/ResponseMultiExamplesWithProduces']?.get?.responses?.[200]?.content;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const produces = exampleSpec.paths['/ExampleTest/ResponseMultiExamplesWithProduces']?.get?.responses?.[200]?.content;
 
-          expect(produces).to.deep.eq({
-            'application/json': {
-              examples: {
-                OneExample: {
-                  value: 'test example response',
+            expect(produces).to.deep.eq({
+              'application/json': {
+                examples: {
+                  OneExample: {
+                    value: 'test example response',
+                  },
+                  TwoExample: {
+                    value: 'test example response',
+                  },
                 },
-                TwoExample: {
-                  value: 'test example response',
-                },
-              },
-              schema: {
-                type: 'string',
-              },
-            },
-            'text/plain': {
-              examples: {
-                OneExample: {
-                  value: 'test example response',
-                },
-                TwoExample: {
-                  value: 'test example response',
+                schema: {
+                  type: 'string',
                 },
               },
-              schema: {
-                type: 'string',
+              'text/plain': {
+                examples: {
+                  OneExample: {
+                    value: 'test example response',
+                  },
+                  TwoExample: {
+                    value: 'test example response',
+                  },
+                },
+                schema: {
+                  type: 'string',
+                },
               },
-            },
+            });
           });
         });
 
         it('uses the correct imported value for the @Example<>', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithImportedValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            'Example 1': {
-              value: 'test example response',
-            },
+            expect(examples).to.deep.eq({
+              'Example 1': {
+                value: 'test example response',
+              },
+            });
           });
         });
 
         it('uses the correct imported value for the @Example<> with label', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            Custom_label: {
-              value: 'test example response',
-            },
+            expect(examples).to.deep.eq({
+              Custom_label: {
+                value: 'test example response',
+              },
+            });
           });
         });
 
         it('uses the correct imported value for multiple @Example<> with label', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseMultiExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseMultiExampleWithLabel']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            OneExample: {
-              value: 'test example response',
-            },
-            AnotherExample: {
-              value: 'another example',
-            },
-            'Example 1': {
-              value: 'no label example',
-            },
+            expect(examples).to.deep.eq({
+              OneExample: {
+                value: 'test example response',
+              },
+              AnotherExample: {
+                value: 'another example',
+              },
+              'Example 1': {
+                value: 'no label example',
+              },
+            });
           });
         });
 
         it('uses minus prefix token number value at @Example model', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithMinusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithMinusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            'Example 1': {
-              value: {
-                id: -1,
-                description: 'test doc des',
+            expect(examples).to.deep.eq({
+              'Example 1': {
+                value: {
+                  id: -1,
+                  description: 'test doc des',
+                },
               },
-            },
+            });
           });
         });
 
         it('uses plus prefix token number value at @Example model', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
-          const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
-          const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithPlusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/exampleController.ts').Generate();
+            const exampleSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+            const examples = exampleSpec.paths['/ExampleTest/ResponseExampleWithPlusOperatorPrefixValue']?.get?.responses?.[200]?.content?.['application/json'].examples;
 
-          expect(examples).to.deep.eq({
-            'Example 1': {
-              value: {
-                id: 1,
-                description: 'test doc des',
+            expect(examples).to.deep.eq({
+              'Example 1': {
+                value: {
+                  id: 1,
+                  description: 'test doc des',
+                },
               },
-            },
+            });
           });
         });
       });
 
       describe('deprecation', () => {
         it('marks deprecated methods as deprecated', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
-          const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
+            const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
-          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+            expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
+            expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+          });
         });
 
         it('marks deprecated parameters as deprecated', () => {
-          const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-          const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+            const deprecatedSpec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-          const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-          expect(parameters.map(param => param.deprecated)).to.eql([undefined, true, true]);
+            const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
+            expect(parameters.map(param => param.deprecated)).to.eql([undefined, true, true]);
+          });
         });
       });
     });
@@ -1198,12 +1282,16 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   allSpecs.forEach(currentSpec => {
     describe(`for ${currentSpec.specName}`, () => {
       describe('should set additionalProperties to false if noImplicitAdditionalProperties is set to "throw-on-extras" (when there are no dictionary or any types)', () => {
+        before(() => {
+          if (!currentSpec.spec.components.schemas) {
+            throw new Error('spec.components.schemas should have been truthy');
+          }
+          testModel = currentSpec.spec.components.schemas[interfaceModelName]!;
+        });
+
         // Arrange
 
         // Assert
-        if (!currentSpec.spec.components.schemas) {
-          throw new Error('spec.components.schemas should have been truthy');
-        }
 
         const interfaceModelName = 'TestModel';
 
@@ -4548,15 +4636,20 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
           },
         };
 
-        const testModel = currentSpec.spec.components.schemas[interfaceModelName];
+        let testModel: Swagger.Schema31;
         (Object.keys(assertionsPerProperty) as Array<keyof typeof assertionsPerProperty>).forEach(aPropertyName => {
-          if (!testModel) {
-            throw new Error(`There was no schema generated for the ${currentSpec.specName}`);
-          }
-          const propertySchema = testModel.properties![aPropertyName];
-          if (!propertySchema) {
-            throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
-          }
+          before(() => {
+            if (!testModel) {
+              throw new Error(`There was no schema generated for the ${currentSpec.specName}`);
+            }
+            propertySchema = testModel.properties![aPropertyName]!;
+            if (!propertySchema) {
+              throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
+            }
+          });
+
+          let propertySchema: Swagger.Schema31;
+
           it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceModelName} for the ${currentSpec.specName}`, () => {
             assertionsPerProperty[aPropertyName](aPropertyName, propertySchema);
           });
@@ -4582,18 +4675,23 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
   describe('Deprecated class properties', () => {
     allSpecs.forEach(currentSpec => {
+      before(() => {
+        if (!currentSpec.spec.components.schemas) {
+          throw new Error('spec.components.schemas should have been truthy');
+        }
+        definition = currentSpec.spec.components.schemas[modelName]!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
+
       const modelName = 'TestClassModel';
       // Assert
-      if (!currentSpec.spec.components.schemas) {
-        throw new Error('spec.components.schemas should have been truthy');
-      }
-      const definition = currentSpec.spec.components.schemas[modelName];
 
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      let definition: Swagger.Schema31;
 
-      const properties = definition.properties;
+      let properties: { [key: string]: Swagger.Schema31 };
 
       describe(`for ${currentSpec.specName}`, () => {
         it('should only mark deprecated properties as deprecated', () => {
@@ -4612,18 +4710,23 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
   describe('Extension class properties', () => {
     allSpecs.forEach(currentSpec => {
+      before(() => {
+        if (!currentSpec.spec.components.schemas) {
+          throw new Error('spec.components.schemas should have been truthy');
+        }
+        definition = currentSpec.spec.components.schemas[modelName]!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
+
       const modelName = 'TestClassModel';
       // Assert
-      if (!currentSpec.spec.components.schemas) {
-        throw new Error('spec.components.schemas should have been truthy');
-      }
-      const definition = currentSpec.spec.components.schemas[modelName];
 
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      let definition: Swagger.Schema31;
 
-      const properties = definition.properties;
+      let properties: { [key: string]: Swagger.Schema31 };
 
       describe(`for ${currentSpec.specName}`, () => {
         it('should put vendor extension on extension field with decorator', () => {
@@ -4693,40 +4796,48 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   });
 
   describe('Extensions schema generation', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/methodController').Generate();
-    const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+    before(() => {
+      expect(extensionPath).to.have.property('x-attKey');
+      expect(extensionPath).to.have.property('x-attKey1');
+      expect(extensionPath).to.have.property('x-attKey2');
+      expect(extensionPath).to.have.property('x-attKey3');
+      expect(extensionPath).to.have.property('x-attKey4');
+      expect(extensionPath).to.have.property('x-attKey5');
+      expect(extensionPath).to.have.property('x-attKey6');
+      expect(extensionPath).to.have.property('x-attKey7');
+      expect(extensionPath).to.have.property('x-attKey8');
+      expect(extensionPath['x-attKey']).to.deep.equal('attValue');
+      expect(extensionPath['x-attKey1']).to.deep.equal(123);
+      expect(extensionPath['x-attKey2']).to.deep.equal(true);
+      expect(extensionPath['x-attKey3']).to.deep.equal(null);
+      expect(extensionPath['x-attKey4']).to.deep.equal({ test: 'testVal' });
+      expect(extensionPath['x-attKey5']).to.deep.equal(['y0', 'y1', 123, true, null]);
+      expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
+      expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
+      expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
+    });
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/methodController').Generate();
+        spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+        if (!spec.paths) {
+          throw new Error('No spec info.');
+        }
+        extensionPath = spec.paths['/MethodTest/Extension'].get!;
+        if (!extensionPath) {
+          throw new Error('extension method was not rendered');
+        }
+      }),
+    );
 
-    if (!spec.paths) {
-      throw new Error('No spec info.');
-    }
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let spec: ReturnType<SpecGenerator31['GetSpec']>;
 
-    const extensionPath = spec.paths['/MethodTest/Extension'].get;
-
-    if (!extensionPath) {
-      throw new Error('extension method was not rendered');
-    }
+    let extensionPath: Swagger.Operation31;
 
     // Verify that extensions are appended to the path
-    expect(extensionPath).to.have.property('x-attKey');
-    expect(extensionPath).to.have.property('x-attKey1');
-    expect(extensionPath).to.have.property('x-attKey2');
-    expect(extensionPath).to.have.property('x-attKey3');
-    expect(extensionPath).to.have.property('x-attKey4');
-    expect(extensionPath).to.have.property('x-attKey5');
-    expect(extensionPath).to.have.property('x-attKey6');
-    expect(extensionPath).to.have.property('x-attKey7');
-    expect(extensionPath).to.have.property('x-attKey8');
 
     // Verify that extensions have correct values
-    expect(extensionPath['x-attKey']).to.deep.equal('attValue');
-    expect(extensionPath['x-attKey1']).to.deep.equal(123);
-    expect(extensionPath['x-attKey2']).to.deep.equal(true);
-    expect(extensionPath['x-attKey3']).to.deep.equal(null);
-    expect(extensionPath['x-attKey4']).to.deep.equal({ test: 'testVal' });
-    expect(extensionPath['x-attKey5']).to.deep.equal(['y0', 'y1', 123, true, null]);
-    expect(extensionPath['x-attKey6']).to.deep.equal([{ y0: 'yt0', y1: 'yt1', y2: 123, y3: true, y4: null }, { y2: 'yt2' }]);
-    expect(extensionPath['x-attKey7']).to.deep.equal({ test: ['testVal', 123, true, null] });
-    expect(extensionPath['x-attKey8']).to.deep.equal({ test: { testArray: ['testVal1', true, null, ['testVal2', 'testVal3', 123, true, null]] } });
   });
 
   describe('Inner interface', () => {
@@ -4848,7 +4959,13 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
   });
 
   describe('inline title tag generation', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      }),
+    );
+
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
 
     it('should generate title tag for request', () => {
       const currentSpec = new SpecGenerator31(metadata, { ...getDefaultExtendedOptions(), useTitleTagsForInlineObjects: true }).GetSpec();
@@ -4865,98 +4982,108 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
 
   describe('should include valid params', () => {
     it('should include query', () => {
-      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      return withCompiler(() => {
+        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+        const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
+        const method = spec.paths['/ParameterTest/ParamaterQueryAnyType'].get?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(1);
-      const queryParam = method[0];
-      expect(queryParam.in).to.equal('query');
+        expect(method).to.have.lengthOf(1);
+        const queryParam = method[0];
+        expect(queryParam.in).to.equal('query');
+      });
     });
 
     it('should include header', () => {
-      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      return withCompiler(() => {
+        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+        const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
+        const method = spec.paths['/ParameterTest/ParameterHeaderStringType'].get?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(1);
-      const queryParam = method[0];
-      expect(queryParam.in).to.equal('header');
+        expect(method).to.have.lengthOf(1);
+        const queryParam = method[0];
+        expect(queryParam.in).to.equal('header');
+      });
     });
 
     it('should include path', () => {
-      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      return withCompiler(() => {
+        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+        const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
+        const method = spec.paths['/ParameterTest/Path/{test}'].get?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(1);
-      const queryParam = method[0];
-      expect(queryParam.in).to.equal('path');
+        expect(method).to.have.lengthOf(1);
+        const queryParam = method[0];
+        expect(queryParam.in).to.equal('path');
+      });
     });
   });
 
   describe('should exclude @RequestProp', () => {
     it('should exclude request-prop from method parameters', () => {
-      const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-      const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
+      return withCompiler(() => {
+        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+        const spec = new SpecGenerator31(metadata, getDefaultExtendedOptions()).GetSpec();
 
-      const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
+        const method = spec.paths['/ParameterTest/RequestProps'].post?.parameters ?? [];
 
-      expect(method).to.have.lengthOf(0);
+        expect(method).to.have.lengthOf(0);
 
-      method.forEach(p => {
-        expect(p.in).to.not.equal('request-prop');
+        method.forEach(p => {
+          expect(p.in).to.not.equal('request-prop');
+        });
       });
     });
   });
 
   describe('Tuple support', () => {
     it('should generate prefixItems and items for fixed and variadic tuples', () => {
-      function resolveSchema(schema: Swagger.Schema31, components: Record<string, Swagger.Schema31>): Swagger.Schema31 {
-        const ref: string | undefined = schema.$ref;
-        if (ref) {
-          const refName = ref.replace('#/components/schemas/', '');
-          return components[refName];
+      return withCompiler(() => {
+        function resolveSchema(schema: Swagger.Schema31, components: Record<string, Swagger.Schema31>): Swagger.Schema31 {
+          const ref: string | undefined = schema.$ref;
+          if (ref) {
+            const refName = ref.replace('#/components/schemas/', '');
+            return components[refName];
+          }
+          return schema;
         }
-        return schema;
-      }
 
-      const metadata = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
-      const spec = new SpecGenerator31(metadata, defaultOptions).GetSpec();
-      const components: Record<string, Swagger.Schema31> = spec.components.schemas ?? {};
+        const metadata = new MetadataGenerator('./fixtures/controllers/postController31.ts').Generate();
+        const spec = new SpecGenerator31(metadata, defaultOptions).GetSpec();
+        const components: Record<string, Swagger.Schema31> = spec.components.schemas ?? {};
 
-      const fixedTupleSchema = components.StringAndNumberTuple;
-      const variadicTupleSchema = components.TupleWithRest;
+        const fixedTupleSchema = components.StringAndNumberTuple;
+        const variadicTupleSchema = components.TupleWithRest;
 
-      expect(fixedTupleSchema.type).to.equal('array');
-      expect(fixedTupleSchema.prefixItems).to.be.an('array').with.lengthOf(2);
+        expect(fixedTupleSchema.type).to.equal('array');
+        expect(fixedTupleSchema.prefixItems).to.be.an('array').with.lengthOf(2);
 
-      const fixedFirst = resolveSchema(fixedTupleSchema.prefixItems![0], components);
-      const fixedSecond = resolveSchema(fixedTupleSchema.prefixItems![1], components);
-      expect(fixedFirst).to.deep.include({ type: 'string' });
-      expect(fixedSecond).to.deep.include({ type: 'number' });
-      expect(fixedTupleSchema).to.have.property('items');
-      expect(fixedTupleSchema.items).to.be.false;
-      expect(fixedTupleSchema.minItems).to.equal(2);
-      expect(fixedTupleSchema.maxItems).to.equal(2);
+        const fixedFirst = resolveSchema(fixedTupleSchema.prefixItems![0], components);
+        const fixedSecond = resolveSchema(fixedTupleSchema.prefixItems![1], components);
+        expect(fixedFirst).to.deep.include({ type: 'string' });
+        expect(fixedSecond).to.deep.include({ type: 'number' });
+        expect(fixedTupleSchema).to.have.property('items');
+        expect(fixedTupleSchema.items).to.be.false;
+        expect(fixedTupleSchema.minItems).to.equal(2);
+        expect(fixedTupleSchema.maxItems).to.equal(2);
 
-      expect(variadicTupleSchema.type).to.equal('array');
-      expect(variadicTupleSchema.prefixItems).to.be.an('array').with.lengthOf(1);
-      expect(variadicTupleSchema.minItems).to.equal(1);
-      expect(variadicTupleSchema).to.not.have.property('maxItems');
+        expect(variadicTupleSchema.type).to.equal('array');
+        expect(variadicTupleSchema.prefixItems).to.be.an('array').with.lengthOf(1);
+        expect(variadicTupleSchema.minItems).to.equal(1);
+        expect(variadicTupleSchema).to.not.have.property('maxItems');
 
-      const variadicFirst = resolveSchema(variadicTupleSchema.prefixItems![0], components);
-      // variadicTupleSchema.items can be Schema31 or false; filter false out for the test
-      const variadicItemsRaw = variadicTupleSchema.items;
-      if (variadicItemsRaw === false || variadicItemsRaw === undefined) {
-        throw new Error('Expected items to be a schema, not false or undefined');
-      }
-      const variadicItems = resolveSchema(variadicItemsRaw, components);
-      expect(variadicFirst).to.deep.include({ type: 'string' });
-      expect(variadicItems).to.deep.include({ type: 'number' });
+        const variadicFirst = resolveSchema(variadicTupleSchema.prefixItems![0], components);
+        // variadicTupleSchema.items can be Schema31 or false; filter false out for the test
+        const variadicItemsRaw = variadicTupleSchema.items;
+        if (variadicItemsRaw === false || variadicItemsRaw === undefined) {
+          throw new Error('Expected items to be a schema, not false or undefined');
+        }
+        const variadicItems = resolveSchema(variadicItemsRaw, components);
+        expect(variadicFirst).to.deep.include({ type: 'string' });
+        expect(variadicItems).to.deep.include({ type: 'number' });
+      });
     });
   });
 });

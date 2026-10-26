@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -7,7 +8,15 @@ import { getDefaultOptions } from '../../fixtures/defaultOptions';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Parameter generation for OpenAPI 3.0.0', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+      specDefaultSpec = new SpecGenerator3(metadata, defaultOptions).GetSpec();
+      specWithNoImplicitExtrasSpec = new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
 
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, noImplicitAdditionalProperties: 'ignore', entryFile: defaultConfig.entryFile };
@@ -23,13 +32,19 @@ describe('Parameter generation for OpenAPI 3.0.0', () => {
     specName: 'specDefault' | 'specWithNoImplicitExtras';
   }
 
+  let specDefaultSpec: SpecAndName['spec'];
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator3(metadata, defaultOptions).GetSpec(),
     specName: 'specDefault',
+    get spec() {
+      return specDefaultSpec;
+    },
   };
+  let specWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator3(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
+    get spec() {
+      return specWithNoImplicitExtrasSpec;
+    },
   };
 
   /**
