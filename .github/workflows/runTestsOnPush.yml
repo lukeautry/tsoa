@@ -39,19 +39,6 @@ jobs:
           fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n');
           NODE
 
-      - name: Set tests express version
-        if: matrix.express-version
-        shell: bash
-        env:
-          EXPRESS_VERSION: ${{ matrix.express-version }}
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const packageJson = JSON.parse(fs.readFileSync('tests/package.json', 'utf8'));
-          packageJson.devDependencies.express = process.env.EXPRESS_VERSION;
-          fs.writeFileSync('tests/package.json', JSON.stringify(packageJson, null, 2) + '\n');
-          NODE
-
       # for yarn3
       # - name: Set Typescript version
       #  run: yarn set resolution typescript ${{ matrix.typescript-version }}
@@ -73,3 +60,22 @@ jobs:
 
       - name: Lint
         run: yarn run lint
+
+      - name: Install Express ${{ matrix.express-version }} for tests
+        if: matrix.express-version
+        shell: bash
+        env:
+          EXPRESS_VERSION: ${{ matrix.express-version }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const packageJson = JSON.parse(fs.readFileSync('tests/package.json', 'utf8'));
+          packageJson.devDependencies.express = process.env.EXPRESS_VERSION;
+          fs.writeFileSync('tests/package.json', JSON.stringify(packageJson, null, 2) + '\n');
+          NODE
+          yarn install --ignore-scripts --no-lockfile
+
+      - name: Test express suites on Express ${{ matrix.express-version }}
+        if: matrix.express-version
+        working-directory: tests
+        run: yarn cross-env NODE_ENV=tsoa_test mocha "integration/*express*.spec.ts"
