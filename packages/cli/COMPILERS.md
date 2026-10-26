@@ -17,6 +17,15 @@ are errors. No tsoa.json setting is added. The exported async generation
 functions support native backends; the synchronous `MetadataGenerator` does not.
 The repository still builds and runs its main tests with TypeScript 6.
 
+## Why the facade
+
+Consumers use `ts.X` as both types and values; only a module supplies both
+namespaces. `export type * from 'typescript'` does not work because TypeScript's declarations use `export =`.
+Each runtime name is listed once, with lazy dispatch through the
+active compiler session. A full collapse to one compiler object remains a
+follow-up: it requires changing consumer type imports beyond this change's
+production diff budget.
+
 ## Experimental native limits
 
 Native support is incomplete. These operations fail explicitly:

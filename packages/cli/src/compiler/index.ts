@@ -3,6 +3,9 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { pathToFileURL } from 'node:url';
 import { nativeCompiler } from './native';
 
+// Consumers use ts.X as both types and values; only a module supplies both namespaces.
+// Keep each runtime name listed once; collapsing the facade requires consumer type-import changes.
+// Type-only star exports cannot forward TypeScript's export = declarations.
 export type {
   ArrayLiteralExpression,
   CallExpression,
@@ -129,60 +132,64 @@ export type TypeFlags = ts.TypeFlags;
 export const TypeFlags = namespace(() => backend().TypeFlags);
 export const sys = namespace(() => backend().sys);
 
-export const canHaveDecorators = ((...args: any[]) => (backend().canHaveDecorators as (...args: any[]) => any)(...args)) as typeof ts.canHaveDecorators;
-export const createProgram = ((...args: any[]) => (backend().createProgram as (...args: any[]) => any)(...args)) as typeof ts.createProgram;
-export const displayPartsToString = ((...args: any[]) => (backend().displayPartsToString as (...args: any[]) => any)(...args)) as typeof ts.displayPartsToString;
-export const findConfigFile = ((...args: any[]) => (backend().findConfigFile as (...args: any[]) => any)(...args)) as typeof ts.findConfigFile;
-export const forEachChild = ((...args: any[]) => (backend().forEachChild as (...args: any[]) => any)(...args)) as typeof ts.forEachChild;
-export const formatDiagnostics = ((...args: any[]) => (backend().formatDiagnostics as (...args: any[]) => any)(...args)) as typeof ts.formatDiagnostics;
-export const getDecorators = ((...args: any[]) => (backend().getDecorators as (...args: any[]) => any)(...args)) as typeof ts.getDecorators;
-export const getModifiers = ((...args: any[]) => (backend().getModifiers as (...args: any[]) => any)(...args)) as typeof ts.getModifiers;
-export const getParsedCommandLineOfConfigFile = ((...args: any[]) => (backend().getParsedCommandLineOfConfigFile as (...args: any[]) => any)(...args)) as typeof ts.getParsedCommandLineOfConfigFile;
-export const isArrayTypeNode = ((...args: any[]) => (backend().isArrayTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isArrayTypeNode;
-export const isBlock = ((...args: any[]) => (backend().isBlock as (...args: any[]) => any)(...args)) as typeof ts.isBlock;
-export const isCallExpression = ((...args: any[]) => (backend().isCallExpression as (...args: any[]) => any)(...args)) as typeof ts.isCallExpression;
-export const isClassDeclaration = ((...args: any[]) => (backend().isClassDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isClassDeclaration;
-export const isComputedPropertyName = ((...args: any[]) => (backend().isComputedPropertyName as (...args: any[]) => any)(...args)) as typeof ts.isComputedPropertyName;
-export const isConditionalTypeNode = ((...args: any[]) => (backend().isConditionalTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isConditionalTypeNode;
-export const isConstructorDeclaration = ((...args: any[]) => (backend().isConstructorDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isConstructorDeclaration;
-export const isEnumDeclaration = ((...args: any[]) => (backend().isEnumDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isEnumDeclaration;
-export const isEnumMember = ((...args: any[]) => (backend().isEnumMember as (...args: any[]) => any)(...args)) as typeof ts.isEnumMember;
-export const isExpressionWithTypeArguments = ((...args: any[]) => (backend().isExpressionWithTypeArguments as (...args: any[]) => any)(...args)) as typeof ts.isExpressionWithTypeArguments;
-export const isIdentifier = ((...args: any[]) => (backend().isIdentifier as (...args: any[]) => any)(...args)) as typeof ts.isIdentifier;
-export const isImportSpecifier = ((...args: any[]) => (backend().isImportSpecifier as (...args: any[]) => any)(...args)) as typeof ts.isImportSpecifier;
-export const isIndexSignatureDeclaration = ((...args: any[]) => (backend().isIndexSignatureDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isIndexSignatureDeclaration;
-export const isIndexedAccessTypeNode = ((...args: any[]) => (backend().isIndexedAccessTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isIndexedAccessTypeNode;
-export const isInterfaceDeclaration = ((...args: any[]) => (backend().isInterfaceDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isInterfaceDeclaration;
-export const isIntersectionTypeNode = ((...args: any[]) => (backend().isIntersectionTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isIntersectionTypeNode;
-export const isJSDocParameterTag = ((...args: any[]) => (backend().isJSDocParameterTag as (...args: any[]) => any)(...args)) as typeof ts.isJSDocParameterTag;
-export const isJSDocReturnTag = ((...args: any[]) => (backend().isJSDocReturnTag as (...args: any[]) => any)(...args)) as typeof ts.isJSDocReturnTag;
-export const isLiteralTypeNode = ((...args: any[]) => (backend().isLiteralTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isLiteralTypeNode;
-export const isMappedTypeNode = ((...args: any[]) => (backend().isMappedTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isMappedTypeNode;
-export const isMethodDeclaration = ((...args: any[]) => (backend().isMethodDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isMethodDeclaration;
-export const isMethodSignature = ((...args: any[]) => (backend().isMethodSignature as (...args: any[]) => any)(...args)) as typeof ts.isMethodSignature;
-export const isModuleBlock = ((...args: any[]) => (backend().isModuleBlock as (...args: any[]) => any)(...args)) as typeof ts.isModuleBlock;
-export const isModuleDeclaration = ((...args: any[]) => (backend().isModuleDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isModuleDeclaration;
-export const isNamedTupleMember = ((...args: any[]) => (backend().isNamedTupleMember as (...args: any[]) => any)(...args)) as typeof ts.isNamedTupleMember;
-export const isNumericLiteral = ((...args: any[]) => (backend().isNumericLiteral as (...args: any[]) => any)(...args)) as typeof ts.isNumericLiteral;
-export const isObjectLiteralExpression = ((...args: any[]) => (backend().isObjectLiteralExpression as (...args: any[]) => any)(...args)) as typeof ts.isObjectLiteralExpression;
-export const isParameter = ((...args: any[]) => (backend().isParameter as (...args: any[]) => any)(...args)) as typeof ts.isParameter;
-export const isParenthesizedTypeNode = ((...args: any[]) => (backend().isParenthesizedTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isParenthesizedTypeNode;
-export const isPropertyAccessExpression = ((...args: any[]) => (backend().isPropertyAccessExpression as (...args: any[]) => any)(...args)) as typeof ts.isPropertyAccessExpression;
-export const isPropertyDeclaration = ((...args: any[]) => (backend().isPropertyDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isPropertyDeclaration;
-export const isPropertySignature = ((...args: any[]) => (backend().isPropertySignature as (...args: any[]) => any)(...args)) as typeof ts.isPropertySignature;
-export const isRestTypeNode = ((...args: any[]) => (backend().isRestTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isRestTypeNode;
-export const isSourceFile = ((...args: any[]) => (backend().isSourceFile as (...args: any[]) => any)(...args)) as typeof ts.isSourceFile;
-export const isSpreadAssignment = ((...args: any[]) => (backend().isSpreadAssignment as (...args: any[]) => any)(...args)) as typeof ts.isSpreadAssignment;
-export const isSpreadElement = ((...args: any[]) => (backend().isSpreadElement as (...args: any[]) => any)(...args)) as typeof ts.isSpreadElement;
-export const isStringLiteral = ((...args: any[]) => (backend().isStringLiteral as (...args: any[]) => any)(...args)) as typeof ts.isStringLiteral;
-export const isTemplateLiteralTypeNode = ((...args: any[]) => (backend().isTemplateLiteralTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isTemplateLiteralTypeNode;
-export const isTupleTypeNode = ((...args: any[]) => (backend().isTupleTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isTupleTypeNode;
-export const isTypeAliasDeclaration = ((...args: any[]) => (backend().isTypeAliasDeclaration as (...args: any[]) => any)(...args)) as typeof ts.isTypeAliasDeclaration;
-export const isTypeLiteralNode = ((...args: any[]) => (backend().isTypeLiteralNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeLiteralNode;
-export const isTypeOperatorNode = ((...args: any[]) => (backend().isTypeOperatorNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeOperatorNode;
-export const isTypeQueryNode = ((...args: any[]) => (backend().isTypeQueryNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeQueryNode;
-export const isTypeReferenceNode = ((...args: any[]) => (backend().isTypeReferenceNode as (...args: any[]) => any)(...args)) as typeof ts.isTypeReferenceNode;
-export const isUnionTypeNode = ((...args: any[]) => (backend().isUnionTypeNode as (...args: any[]) => any)(...args)) as typeof ts.isUnionTypeNode;
+function lazy<K extends keyof typeof ts>(key: K): (typeof ts)[K] {
+  return ((...args: unknown[]) => (backend()[key] as (...args: unknown[]) => unknown)(...args)) as (typeof ts)[K];
+}
+
+export const canHaveDecorators = lazy('canHaveDecorators');
+export const createProgram = lazy('createProgram');
+export const displayPartsToString = lazy('displayPartsToString');
+export const findConfigFile = lazy('findConfigFile');
+export const forEachChild = lazy('forEachChild');
+export const formatDiagnostics = lazy('formatDiagnostics');
+export const getDecorators = lazy('getDecorators');
+export const getModifiers = lazy('getModifiers');
+export const getParsedCommandLineOfConfigFile = lazy('getParsedCommandLineOfConfigFile');
+export const isArrayTypeNode = lazy('isArrayTypeNode');
+export const isBlock = lazy('isBlock');
+export const isCallExpression = lazy('isCallExpression');
+export const isClassDeclaration = lazy('isClassDeclaration');
+export const isComputedPropertyName = lazy('isComputedPropertyName');
+export const isConditionalTypeNode = lazy('isConditionalTypeNode');
+export const isConstructorDeclaration = lazy('isConstructorDeclaration');
+export const isEnumDeclaration = lazy('isEnumDeclaration');
+export const isEnumMember = lazy('isEnumMember');
+export const isExpressionWithTypeArguments = lazy('isExpressionWithTypeArguments');
+export const isIdentifier = lazy('isIdentifier');
+export const isImportSpecifier = lazy('isImportSpecifier');
+export const isIndexSignatureDeclaration = lazy('isIndexSignatureDeclaration');
+export const isIndexedAccessTypeNode = lazy('isIndexedAccessTypeNode');
+export const isInterfaceDeclaration = lazy('isInterfaceDeclaration');
+export const isIntersectionTypeNode = lazy('isIntersectionTypeNode');
+export const isJSDocParameterTag = lazy('isJSDocParameterTag');
+export const isJSDocReturnTag = lazy('isJSDocReturnTag');
+export const isLiteralTypeNode = lazy('isLiteralTypeNode');
+export const isMappedTypeNode = lazy('isMappedTypeNode');
+export const isMethodDeclaration = lazy('isMethodDeclaration');
+export const isMethodSignature = lazy('isMethodSignature');
+export const isModuleBlock = lazy('isModuleBlock');
+export const isModuleDeclaration = lazy('isModuleDeclaration');
+export const isNamedTupleMember = lazy('isNamedTupleMember');
+export const isNumericLiteral = lazy('isNumericLiteral');
+export const isObjectLiteralExpression = lazy('isObjectLiteralExpression');
+export const isParameter = lazy('isParameter');
+export const isParenthesizedTypeNode = lazy('isParenthesizedTypeNode');
+export const isPropertyAccessExpression = lazy('isPropertyAccessExpression');
+export const isPropertyDeclaration = lazy('isPropertyDeclaration');
+export const isPropertySignature = lazy('isPropertySignature');
+export const isRestTypeNode = lazy('isRestTypeNode');
+export const isSourceFile = lazy('isSourceFile');
+export const isSpreadAssignment = lazy('isSpreadAssignment');
+export const isSpreadElement = lazy('isSpreadElement');
+export const isStringLiteral = lazy('isStringLiteral');
+export const isTemplateLiteralTypeNode = lazy('isTemplateLiteralTypeNode');
+export const isTupleTypeNode = lazy('isTupleTypeNode');
+export const isTypeAliasDeclaration = lazy('isTypeAliasDeclaration');
+export const isTypeLiteralNode = lazy('isTypeLiteralNode');
+export const isTypeOperatorNode = lazy('isTypeOperatorNode');
+export const isTypeQueryNode = lazy('isTypeQueryNode');
+export const isTypeReferenceNode = lazy('isTypeReferenceNode');
+export const isUnionTypeNode = lazy('isUnionTypeNode');
 
 export function firstToken(node: ts.Node): ts.Node | undefined {
   if (!node) return undefined;
