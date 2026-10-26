@@ -72,7 +72,7 @@
   },
   "peerDependencies": {
     "typescript": "^5.7.2 || ^6.0.3 || ^7.0.0 || >=7.1.0-0 <8",
-    "tsrs": "^0.18.0-ts7.1.0-dev.20260929"
+    "tsrs": "^0.20.0-ts7.1.0-beta"
   },
   "peerDependenciesMeta": {
     "tsrs": {

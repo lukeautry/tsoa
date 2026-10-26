@@ -5,6 +5,11 @@ its in-process compiler API. TypeScript 7 uses its native synchronous API over
 IPC. The CLI closes the native process and removes its temporary project after
 generation, including failures.
 Supported TypeScript 7 versions: 7.0.2 and 7.1.0-beta.
+The optional tsrs peer is `^0.20.0-ts7.1.0-beta`; 0.18 is no longer supported.
+TypeScript 7.1 and tsrs use `sync` and `ast` exports and `createSnapshot` with
+`createPrograms`. Only TypeScript 7.0 uses `unstable/sync`, `unstable/ast` and
+`updateSnapshot` with `openProject`. tsrs 0.20 also supplies Windows x64 and
+Darwin x64 binaries in addition to its Linux and Darwin arm64 binaries.
 
 To opt into the optional `tsrs` peer, install it and run:
 
@@ -16,6 +21,13 @@ TSOA_COMPILER=tsrs tsoa spec-and-routes
 are errors. No tsoa.json setting is added. The exported async generation
 functions support native backends; the synchronous `MetadataGenerator` does not.
 The repository still builds and runs its main tests with TypeScript 6.
+Setting the existing CI resolution to either TypeScript 7 version currently
+fails: the CLI build requires classic API declarations absent from the native
+peer, ts-node cannot read `ts.sys.fileExists`, and typescript-eslint rejects the
+native API. Native backend specs can run with a separate classic ts-node
+compiler via `TS_NODE_COMPILER`; this does not make the full TS7 build job pass.
+The CI matrix direction is pending; the existing native job has not yet been
+updated to the migrated mocha specs or the new tsrs peer.
 
 ## Why the facade
 
@@ -37,7 +49,8 @@ Native support is incomplete. These operations fail explicitly:
   settings.
 
 The generation comparison isolates each fixture controller. The measured runs
-used TypeScript 6.0.3, TypeScript 7.0.2, TypeScript 7.1.0-beta and tsrs 0.18.0-ts7.1.0-dev.20260929:
+used TypeScript 6.0.3, TypeScript 7.0.2 and TypeScript 7.1.0-beta. The tsrs row
+was rechecked with 0.20.0-ts7.1.0-beta:
 
 | Backend               | Passed | Failed | Controllers compared with classic | Byte-different files | Semantic differences in Swagger | Native limits on baseline-valid controllers |
 | --------------------- | -----: | -----: | --------------------------------: | -------------------: | ------------------------------: | ------------------------------------------: |
@@ -50,34 +63,33 @@ All three native comparison commands pass. Each compares 86 files across 43
 controllers: 13 Swagger files and 13 route files differ byte-for-byte. All 43
 Swagger files match by meaning under the accepted differences below. The three
 native backends produce byte-identical output to each other in all 86 files.
-TypeScript 6 produces 88 files byte-identical to master across its 44 valid
-controllers when both runs use the same frozen clock for the existing
-`getController` default `new Date()` initializer.
+A fresh TypeScript 6 run of `tests/prepare.ts` produces 18 generated spec and
+route files byte-identical to rebased master when both runs freeze the existing
+`getController` default `new Date()` initializer to the same clock.
 Routes are reported as byte differences, not semantically gated. This is not a
-claim of full runtime equivalence. The full default fixture was not rechecked.
+claim of full runtime equivalence. The full default fixture was rechecked on
+TypeScript 6, not on native backends.
 Optional interface, class and compiler-built type properties are supported;
 `complexTypeController` GET `/ComplexType/PaginationQuery` now reports both
 `sortBy` and `sortOrder` as `required: false` on all three backends.
 
-`yarn build` and `yarn lint` pass with TypeScript 6. Lint reports three existing
-unused-variable warnings. Run lint after the main tests finish regenerating
-fixture routes; an overlapping run reported three transient unresolved-call
-errors, while the subsequent serial run passed. `yarn test` passes 2,441 tests
-(2,439 main and two ESM). Nx also printed its flaky-task advisory for the ESM
-target despite that successful run. The backend test suite passes 12 tests on
-TypeScript 6, TypeScript 7.1 and tsrs. TypeScript 7.0 passes 11 and skips the
-invalid-tsconfig regression because its config response has no `errors` field.
-The generation comparator's three focused tests pass on every backend.
+`yarn build`, `yarn test`, then `yarn lint` pass serially with TypeScript 6.
+Lint reports zero errors and the same three unused-variable warnings as fresh
+master. The migrated compiler specs live in `tests/unit/compiler/` and are part
+of `yarn test`: 15 pass on TypeScript 6, TypeScript 7.1 and tsrs 0.20;
+TypeScript 7.0 passes 14 and skips the invalid-tsconfig regression because its
+config response has no `errors` field. The full test run passes 2,456 tests
+(2,454 main and two ESM).
 
-Run the comparison after building, choosing separate output directories at the
-same depth so relative route imports do not add byte differences:
+Run the focused mocha specs from the tests workspace. The existing generation
+comparison still requires a build and separate output directories at the same
+depth so relative route imports do not add byte differences:
 
 ```sh
-node --test tests/compiler/generation.test.cjs
-node --test tests/compiler/compiler.test.cjs
+(cd tests && yarn mocha 'unit/compiler/*.spec.ts')
 node tests/compiler/generation.cjs "$CLASSIC_OUTPUT"
-# Install/select the native peer, then:
-node --test tests/compiler/compiler.test.cjs
+# Install/select the native peer, preserving a classic compiler for ts-node:
+(cd tests && TS_NODE_COMPILER="$CLASSIC_TYPESCRIPT" yarn mocha 'unit/compiler/*.spec.ts')
 node tests/compiler/generation.cjs "$NATIVE_OUTPUT" "$CLASSIC_OUTPUT"
 ```
 

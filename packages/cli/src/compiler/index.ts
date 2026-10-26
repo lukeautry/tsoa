@@ -1,7 +1,8 @@
 import type * as ts from 'typescript';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { nativeCompiler } from './native';
+import { nativeCompiler, NativeSync, NativeAST } from './native';
 
 // Consumers use ts.X as both types and values; only a module supplies both namespaces.
 // Keep each runtime name listed once; collapsing the facade requires consumer type-import changes.
@@ -68,7 +69,11 @@ export type {
 } from 'typescript';
 
 const activeCompiler = new AsyncLocalStorage<typeof ts>();
+const requireCompiler = createRequire(__filename);
 let classic: typeof ts | undefined;
+function classicCompiler(): typeof ts {
+  return (classic ??= requireCompiler('typescript') as typeof ts);
+}
 export function compilerPackage(): 'typescript' | 'tsrs' {
   const name = process.env.TSOA_COMPILER ?? 'typescript';
   if (name !== 'typescript' && name !== 'tsrs') throw new Error(`Unknown TSOA_COMPILER "${name}". Use "typescript" or "tsrs".`);
@@ -78,33 +83,27 @@ function backend(): typeof ts {
   const active = activeCompiler.getStore();
   if (active) return active;
   if (compilerPackage() === 'typescript') {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    classic ??= require('typescript') as typeof ts;
-    if (typeof classic.createProgram === 'function') return classic;
+    const installed = classicCompiler();
+    if (typeof installed.createProgram === 'function') return installed;
   }
   throw new Error(`${compilerPackage()}: native compilers require an async generation entry point (generateSpec, generateRoutes or generateSpecAndRoutes).`);
 }
 
-// Preserve import() when compiling the CLI to CommonJS.
-// eslint-disable-next-line @typescript-eslint/no-implied-eval
-const importModule = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
-function resolveCompilerPart(name: string, part: string): string {
-  try {
-    return require.resolve(`${name}/${part}`);
-  } catch {
-    return require.resolve(`${name}/unstable/${part}`);
-  }
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- Preserve native ESM import when TypeScript emits CommonJS.
+const importModule = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>;
+function resolveCompilerPart(name: string, part: string, typescript70: boolean): string {
+  return requireCompiler.resolve(`${name}/${typescript70 ? 'unstable/' : ''}${part}`);
 }
 export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T> {
   if (activeCompiler.getStore()) return generate();
   const name = compilerPackage();
   if (name === 'typescript') {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const installed = require('typescript') as typeof ts;
+    const installed = classicCompiler();
     if (typeof installed.createProgram === 'function') return generate();
   }
-  const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(resolveCompilerPart(name, part)).href)));
-  const compiler = nativeCompiler(sync, ast, name);
+  const typescript70 = name === 'typescript' && classicCompiler().version.startsWith('7.0.');
+  const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(resolveCompilerPart(name, part, typescript70)).href)));
+  const compiler = nativeCompiler(sync as NativeSync, ast as NativeAST, name, typescript70);
   try {
     return await activeCompiler.run(compiler.surface, generate);
   } finally {
