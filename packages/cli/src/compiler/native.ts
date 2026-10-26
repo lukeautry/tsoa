@@ -62,7 +62,7 @@ interface NativeProject {
 }
 interface NativeSnapshot {
   operation: { createdPrograms: Array<{ getProject(): NativeProject }> };
-  getProjects(): NativeProject[];
+  getProject(configFileName: string): NativeProject | undefined;
 }
 interface NativeAPI {
   parseConfigFile(file: string): NativeConfigResult;
@@ -94,6 +94,7 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
     throw error;
   }
   let project: NativeProject;
+  let programs = 0;
   const surface = {
     ...ast,
     ...sync,
@@ -142,7 +143,8 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
         compilerOptions.paths = Object.fromEntries(Object.entries(options.paths!).map(([key, paths]) => [key, paths.map(p => resolve(base ?? process.cwd(), p))]));
       }
       if (options.typeRoots) compilerOptions.typeRoots = options.typeRoots.map((root: string) => resolve(root));
-      const config = join(directory, 'tsconfig.json');
+      // Each program gets its own tsconfig: native APIs cache a project per config path.
+      const config = join(directory, `tsconfig.${programs++}.json`);
       writeFileSync(config, JSON.stringify({ extends: originalConfig, compilerOptions, files: roots.map(file => resolve(file)), include: [], exclude: [] }));
       if (!typescript70) {
         const parsed = api.parseConfigFile(config);
@@ -150,13 +152,14 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
         project = snapshot.operation.createdPrograms[0]?.getProject();
       } else {
         const snapshot = api.updateSnapshot!({ openProject: config });
-        project = snapshot.getProjects()[0];
+        project = snapshot.getProject(config)!;
       }
       if (!project) throw new Error(`${name}: could not open the metadata project.`);
-      const checker = classicChecker(project.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken);
+      const own = project;
+      const checker = classicChecker(own.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken);
       return {
         getTypeChecker: () => checker,
-        getSourceFiles: () => project.program.getSourceFileNames().map((file: string) => normalizeNode(project.program.getSourceFile(file), ast.SyntaxKind.QuestionToken)),
+        getSourceFiles: () => own.program.getSourceFileNames().map((file: string) => normalizeNode(own.program.getSourceFile(file), ast.SyntaxKind.QuestionToken)),
       };
     },
   };
