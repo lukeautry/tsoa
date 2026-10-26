@@ -57,11 +57,17 @@ jobs:
         run: yarn run lint
 
   native-compiler:
-    name: Generation (${{ matrix.compiler }})
+    name: Generation (${{ matrix.compiler }}, TypeScript ${{ matrix.typescript-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        compiler: [typescript, tsrs]
+        include:
+          - compiler: typescript
+            typescript-version: 7.0.2
+          - compiler: typescript
+            typescript-version: 7.1.0-beta
+          - compiler: tsrs
+            typescript-version: 7.0.2
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -76,7 +82,7 @@ jobs:
           node --test tests/compiler/compiler.test.cjs
           node tests/compiler/generation.cjs "$RUNNER_TEMP/classic"
       - name: Install native compilers without replacing the build compiler
-        run: npm install --prefix "$RUNNER_TEMP/native" --no-save typescript@7.0.2 tsrs@0.18.0-ts7.1.0-dev.20260929
+        run: npm install --prefix "$RUNNER_TEMP/native" --no-save typescript@${{ matrix.typescript-version }} tsrs@0.18.0-ts7.1.0-dev.20260929
       - name: Select native peer
         run: |
           mv node_modules/typescript node_modules/typescript-classic

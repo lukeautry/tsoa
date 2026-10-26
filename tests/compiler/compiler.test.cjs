@@ -62,16 +62,35 @@ test('the synchronous entry rejects native backends', () => {
   }
 });
 
-test('the built CommonJS CLI generates spec and routes with the selected peer', () => {
-  const { mkdtempSync, writeFileSync, existsSync, rmSync } = require('node:fs');
+test('the built CommonJS CLI passes tsoa.json compiler options to spec and route generation', () => {
+  const { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } = require('node:fs');
   const { spawnSync } = require('node:child_process');
   const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-cli-test-'));
   try {
     const config = path.join(directory, 'tsoa.json');
+    const entryFile = path.join(directory, 'controller.ts');
+    writeFileSync(
+      entryFile,
+      `import { Get, Route } from '@tsoa/runtime';
+import { BackendModel } from 'compiler-options-model';
+@Route('compiler-options')
+export class CompilerOptionsController {
+  @Get()
+  public get(): BackendModel { throw new Error(); }
+}
+`,
+    );
     writeFileSync(
       config,
       JSON.stringify({
-        entryFile: fixture,
+        entryFile,
+        compilerOptions: {
+          experimentalDecorators: true,
+          paths: {
+            '@tsoa/runtime': [path.resolve(__dirname, '../../packages/runtime/dist')],
+            'compiler-options-model': [fixture],
+          },
+        },
         spec: { outputDirectory: directory, specVersion: 3.1 },
         routes: { routesDir: directory },
       }),
@@ -84,6 +103,9 @@ test('the built CommonJS CLI generates spec and routes with the selected peer', 
     assert.equal(result.status, 0, result.stderr);
     assert.ok(existsSync(path.join(directory, 'swagger.json')));
     assert.ok(existsSync(path.join(directory, 'routes.ts')));
+    const swagger = JSON.parse(readFileSync(path.join(directory, 'swagger.json'), 'utf8'));
+    assert.equal(swagger.paths['/compiler-options'].get.responses['200'].content['application/json'].schema.$ref, '#/components/schemas/BackendModel');
+    assert.equal(swagger.components.schemas.BackendModel.properties.label.type, 'string');
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

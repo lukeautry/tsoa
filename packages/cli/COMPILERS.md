@@ -4,6 +4,7 @@ The CLI loads the installed `typescript` peer lazily. TypeScript 5.7+ and 6 use
 its in-process compiler API. TypeScript 7 uses its native synchronous API over
 IPC. The CLI closes the native process and removes its temporary project after
 generation, including failures.
+Supported TypeScript 7 versions: 7.0.2 and 7.1.0-beta.
 
 To opt into the optional `tsrs` peer, install it and run:
 

@@ -85,6 +85,13 @@ function backend(): typeof ts {
 // Preserve import() when compiling the CLI to CommonJS.
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const importModule = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<any>;
+function resolveCompilerPart(name: string, part: string): string {
+  try {
+    return require.resolve(`${name}/${part}`);
+  } catch {
+    return require.resolve(`${name}/unstable/${part}`);
+  }
+}
 export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T> {
   if (activeCompiler.getStore()) return generate();
   const name = compilerPackage();
@@ -93,7 +100,7 @@ export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T
     const installed = require('typescript') as typeof ts;
     if (typeof installed.createProgram === 'function') return generate();
   }
-  const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(require.resolve(`${name}/unstable/${part}`)).href)));
+  const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(resolveCompilerPart(name, part)).href)));
   const compiler = nativeCompiler(sync, ast, name);
   try {
     return await activeCompiler.run(compiler.surface, generate);

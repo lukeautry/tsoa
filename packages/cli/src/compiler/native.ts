@@ -64,8 +64,14 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
       }
       const config = join(directory, 'tsconfig.json');
       writeFileSync(config, JSON.stringify({ extends: originalConfig, compilerOptions, files: roots.map(file => resolve(file)), include: [], exclude: [] }));
-      const snapshot = (api.createSnapshot ?? api.updateSnapshot).call(api, { openProject: config });
-      project = snapshot.getProjects()[0];
+      if (typeof api.createProgram === 'function') {
+        const parsed = api.parseConfigFile(config);
+        const snapshot = api.createSnapshot({ createPrograms: [{ rootFiles: parsed.fileNames, compilerOptions: parsed.options }] });
+        project = snapshot.operation.createdPrograms[0]?.getProject();
+      } else {
+        const snapshot = (api.createSnapshot ?? api.updateSnapshot).call(api, { openProject: config });
+        project = snapshot.getProjects()[0];
+      }
       if (!project) throw new Error(`${name}: could not open the metadata project.`);
       const checker = classicChecker(project.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken);
       return {
