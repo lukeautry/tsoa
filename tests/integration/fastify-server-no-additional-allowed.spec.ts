@@ -9,6 +9,7 @@ const basePath = '/v1';
 
 describe('Fastify Server (with noImplicitAdditionalProperties turned on)', () => {
   before(() => fastify.listen({ port: 0 }));
+  after(() => fastify.close());
   // While the purpose of this file (fastify-server-no-additional-allowed.spec.ts) is to test the validation of POST bodies, we should have at least one GET test
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath, (_err, res) => {
@@ -468,10 +469,6 @@ describe('Fastify Server (with noImplicitAdditionalProperties turned on)', () =>
         expect(model.id).to.equal(1);
       });
     });
-  });
-
-  describe('shutdown', () => {
-    it('shutdown server', () => fastify.close());
   });
 
   function getFakeModel(): TestModel {

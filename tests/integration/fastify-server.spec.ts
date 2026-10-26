@@ -13,6 +13,7 @@ const basePath = '/v1';
 
 describe('Fastify Server', () => {
   before(() => fastify.listen({ port: 0 }));
+  after(() => fastify.close());
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath, (_err, res) => {
       const model = res.body as TestModel;
@@ -2010,10 +2011,6 @@ describe('Fastify Server', () => {
         }
       });
     });
-  });
-
-  describe('shutdown', () => {
-    it('shutdown server', () => fastify.close());
   });
 
   function getFakeModel(): TestModel {

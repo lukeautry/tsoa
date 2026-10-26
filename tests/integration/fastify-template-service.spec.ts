@@ -1,5 +1,5 @@
 import multipart from '@fastify/multipart';
-import { Controller, TsoaResponse, ValidateError } from '@tsoa/runtime';
+import { Controller, TsoaResponse, ValidateError } from '@tsoa/runtime/index';
 import { FastifyTemplateService } from '@tsoa/runtime/fastify';
 import { KoaTemplateService } from '@tsoa/runtime/koa';
 import { rejects } from 'assert';
