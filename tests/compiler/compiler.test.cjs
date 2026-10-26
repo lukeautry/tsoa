@@ -189,3 +189,28 @@ test('normalizeNode preserves optional properties and defaulted type parameters 
     }
   });
 });
+
+test('generateSpec and generateRoutes render supplied metadata without acquiring a native compiler', async () => {
+  const { mkdtempSync, existsSync, rmSync } = require('node:fs');
+  const { generateSpec, generateRoutes } = require('../../packages/cli/dist');
+  const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-cached-metadata-'));
+  const before = process.env.TSOA_COMPILER;
+  const withCompiler = compiler.withCompiler;
+  try {
+    process.env.TSOA_COMPILER = 'tsrs';
+    compiler.withCompiler = () => {
+      throw new Error('Rendering must not acquire a compiler');
+    };
+    const metadata = { controllers: [], referenceTypeMap: {} };
+    const config = { entryFile: fixture, outputDirectory: directory, routesDir: directory, specVersion: 3.1, middleware: 'express', noImplicitAdditionalProperties: 'ignore' };
+    assert.equal(await generateSpec(config, undefined, undefined, metadata), metadata);
+    assert.equal(await generateRoutes(config, undefined, undefined, metadata), metadata);
+    assert.ok(existsSync(path.join(directory, 'swagger.json')));
+    assert.ok(existsSync(path.join(directory, 'routes.ts')));
+  } finally {
+    compiler.withCompiler = withCompiler;
+    if (before === undefined) delete process.env.TSOA_COMPILER;
+    else process.env.TSOA_COMPILER = before;
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

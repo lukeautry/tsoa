@@ -26,35 +26,35 @@ export const generateSpec = async (
   metadata?: Tsoa.Metadata,
   defaultNumberType?: Config['defaultNumberType'],
 ) => {
-  return withCompiler(async () => {
-    if (!metadata) {
-      metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate();
-    }
+  if (!metadata) {
+    metadata = await withCompiler(() =>
+      new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate(),
+    );
+  }
 
-    let spec: Swagger.Spec;
+  let spec: Swagger.Spec;
 
-    switch (swaggerConfig.specVersion) {
-      case 2:
-        spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
-        break;
-      case 3:
-        spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
-        break;
-      case 3.1:
-      default:
-        spec = new SpecGenerator31(metadata, swaggerConfig).GetSpec();
-    }
+  switch (swaggerConfig.specVersion) {
+    case 2:
+      spec = new SpecGenerator2(metadata, swaggerConfig).GetSpec();
+      break;
+    case 3:
+      spec = new SpecGenerator3(metadata, swaggerConfig).GetSpec();
+      break;
+    case 3.1:
+    default:
+      spec = new SpecGenerator31(metadata, swaggerConfig).GetSpec();
+  }
 
-    await fsMkDir(swaggerConfig.outputDirectory, { recursive: true });
+  await fsMkDir(swaggerConfig.outputDirectory, { recursive: true });
 
-    let data = JSON.stringify(spec, null, '\t');
-    if (swaggerConfig.yaml) {
-      data = YAML.stringify(JSON.parse(data));
-    }
+  let data = JSON.stringify(spec, null, '\t');
+  if (swaggerConfig.yaml) {
+    data = YAML.stringify(JSON.parse(data));
+  }
 
-    const outputPath = getSwaggerOutputPath(swaggerConfig);
-    await fsWriteFile(outputPath, data, { encoding: 'utf8' });
+  const outputPath = getSwaggerOutputPath(swaggerConfig);
+  await fsWriteFile(outputPath, data, { encoding: 'utf8' });
 
-    return metadata;
-  });
+  return metadata;
 };
