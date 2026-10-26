@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type * as ts from 'typescript';
 
-type NativeDiagnostic = { code: number; text?: string; messageText?: string; message?: string };
+type NativeDiagnostic = { code: number; fileName?: string; text?: string; messageText?: string; message?: string };
 type NativeConfigResult = { options: ts.CompilerOptions; fileNames: string[]; errors?: NativeDiagnostic[] };
 
 interface NativeNode {
@@ -110,7 +110,7 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
       return { ...parsed, errors: parsed.errors ?? [] };
     },
     formatDiagnostics(diagnostics: NativeDiagnostic[]) {
-      return diagnostics.map(d => `${name}: ${d.text ?? d.messageText ?? d.message}`).join('\n');
+      return diagnostics.map(d => `${d.fileName ?? name}: error TS${d.code}: ${d.text ?? d.messageText ?? d.message}`).join('\n');
     },
     forEachChild: (node: NativeNode, visitor: (node: NativeNode) => void) => node.forEachChild(visitor),
     canHaveDecorators: () => true,
