@@ -232,3 +232,17 @@ test('validateCompilerOptions rejects an invalid tsconfig with a useful diagnost
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('typeRootsController resolves relative typeRoots overrides from the original working directory', async () => {
+  const entryFile = path.resolve(__dirname, '../fixtures/compiler/typeRootsController.ts');
+  const metadata = await compiler.withCompiler(() =>
+    new MetadataGenerator(entryFile, {
+      experimentalDecorators: true,
+      typeRoots: [path.relative(process.cwd(), path.resolve(__dirname, '../fixtures/compiler/typings'))],
+      types: ['type-roots-model'],
+    }).Generate(),
+  );
+  assert.equal(metadata.controllers[0].methods[0].type.refName, 'TypeRootsModel');
+  assert.equal(metadata.referenceTypeMap.TypeRootsModel.properties[0].name, 'label');
+  assert.equal(metadata.referenceTypeMap.TypeRootsModel.properties[0].type.dataType, 'string');
+});

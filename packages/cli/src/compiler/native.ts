@@ -66,6 +66,7 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
         const base = options.pathsBasePath as string | undefined;
         compilerOptions.paths = Object.fromEntries(Object.entries(options.paths!).map(([key, paths]) => [key, paths.map(p => resolve(base ?? process.cwd(), p))]));
       }
+      if (compilerOptions.typeRoots) compilerOptions.typeRoots = compilerOptions.typeRoots.map((root: string) => resolve(root));
       const config = join(directory, 'tsconfig.json');
       writeFileSync(config, JSON.stringify({ extends: originalConfig, compilerOptions, files: roots.map(file => resolve(file)), include: [], exclude: [] }));
       if (typeof api.createProgram === 'function') {
