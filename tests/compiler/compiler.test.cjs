@@ -214,3 +214,21 @@ test('generateSpec and generateRoutes render supplied metadata without acquiring
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('validateCompilerOptions rejects an invalid tsconfig with a useful diagnostic', async t => {
+  if (compiler.compilerPackage() === 'typescript' && require('typescript/package.json').version.startsWith('7.0.')) {
+    t.skip('TypeScript 7.0 does not expose configuration diagnostics');
+    return;
+  }
+  const { mkdtempSync, writeFileSync, rmSync } = require('node:fs');
+  const { validateCompilerOptions } = require('../../packages/cli/dist/cli');
+  const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-invalid-tsconfig-'));
+  try {
+    writeFileSync(path.join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'invalid-target' }, files: [fixture] }));
+    await compiler.withCompiler(() => {
+      assert.throws(() => validateCompilerOptions(undefined, directory), /Argument for '--target' option must be/);
+    });
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

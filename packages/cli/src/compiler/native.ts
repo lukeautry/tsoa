@@ -4,6 +4,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type * as ts from 'typescript';
 
+type NativeDiagnostic = { code: number; text?: string; messageText?: string; message?: string };
+type NativeConfigResult = { options: ts.CompilerOptions; fileNames: string[]; errors?: NativeDiagnostic[] };
+
 // The unstable native API has different types across TypeScript 7 and tsrs.
 // Keep its structural adaptation here; the resolver only sees the classic surface.
 export function nativeCompiler(sync: any, ast: any, name: string) {
@@ -28,10 +31,11 @@ export function nativeCompiler(sync: any, ast: any, name: string) {
       }
     },
     getParsedCommandLineOfConfigFile(file: string) {
-      return { ...api.parseConfigFile(file), errors: [] };
+      const parsed: NativeConfigResult = api.parseConfigFile(file);
+      return { ...parsed, errors: parsed.errors ?? [] };
     },
-    formatDiagnostics(diagnostics: any[]) {
-      return diagnostics.map(d => `${name}: ${d.messageText ?? d.message}`).join('\n');
+    formatDiagnostics(diagnostics: NativeDiagnostic[]) {
+      return diagnostics.map(d => `${name}: ${d.text ?? d.messageText ?? d.message}`).join('\n');
     },
     forEachChild: (node: any, visitor: any) => node.forEachChild(visitor),
     canHaveDecorators: () => true,
