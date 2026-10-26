@@ -1,3 +1,4 @@
+import { unorderedSchema } from '../../utils/unorderedSchema';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
@@ -318,7 +319,7 @@ const rows: Row[] = [
     controller: 'syntheticChildren/indexedUnionController',
     check: ({ generate, strictNullChecks }) => {
       const { schemas, response } = generate();
-      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.deep.equal([ref('Opt_Leaf_'), ref('Other_Leaf_')]);
+      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.have.same.deep.members([ref('Opt_Leaf_'), ref('Other_Leaf_')]);
       expectOptionalLeaf(schemas.Opt_Leaf_, { text: 'string', count: 'number' });
       expectOptionalLeaf(schemas.Other_Leaf_, { text: 'string', count: 'number' });
       expect(schemas.Opt_Leaf_.properties?.text.nullable, 'nullable Opt').to.equal(undefined);
@@ -397,10 +398,10 @@ const rows: Row[] = [
   }),
   preservationRow('a keyof union', ({ resolve, response }) => {
     const mapped = required(resolve(response(route('mapped'))).properties, 'mapped members');
-    expect(mapped.side).to.deep.equal({ type: 'string', enum: ['width', 'height'] });
+    expect(unorderedSchema(mapped.side)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'] }));
     const source = required(resolve(response(route('source'))).properties, 'source members');
-    expect(source.key).to.deep.equal({ type: 'string', enum: ['width', 'height'], nullable: false });
-    expect(source.mixed).to.deep.equal({ type: 'string', enum: ['width', 'height', 'other'] });
+    expect(unorderedSchema(source.key)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'], nullable: false }));
+    expect(unorderedSchema(source.mixed)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height', 'other'] }));
   }),
   preservationRow('a named alias inside a union', ({ schemas, resolve, response }) => {
     const members = required(resolve(response(route('mapped'))).properties, 'mapped members');

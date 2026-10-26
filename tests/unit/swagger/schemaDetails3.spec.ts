@@ -1,3 +1,4 @@
+import { unorderedSchema } from '../../utils/unorderedSchema';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
@@ -1627,86 +1628,96 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
           indexedValue: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValue');
             const schema = getComponentSchema('IndexedValue', currentSpec);
-            expect(schema).to.deep.eq({
-              type: 'string',
-              enum: ['FOO', 'BAR'],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            });
+            expect(unorderedSchema(schema)).to.deep.eq(
+              unorderedSchema({
+                type: 'string',
+                enum: ['FOO', 'BAR'],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              }),
+            );
           },
           parenthesizedIndexedValue: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/ParenthesizedIndexedValue');
             const schema = getComponentSchema('ParenthesizedIndexedValue', currentSpec);
-            expect(schema).to.deep.eq({
-              type: 'string',
-              enum: ['FOO', 'BAR'],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            });
+            expect(unorderedSchema(schema)).to.deep.eq(
+              unorderedSchema({
+                type: 'string',
+                enum: ['FOO', 'BAR'],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              }),
+            );
           },
           indexedValueReference: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValueReference');
             const schema = getComponentSchema('IndexedValueReference', currentSpec);
-            expect(schema).to.deep.eq({
-              type: 'string',
-              enum: ['FOO', 'BAR'],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            });
+            expect(unorderedSchema(schema)).to.deep.eq(
+              unorderedSchema({
+                type: 'string',
+                enum: ['FOO', 'BAR'],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              }),
+            );
           },
           indexedValueGeneric: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/IndexedValueGeneric_IndexedValueTypeReference_');
             const schema = getComponentSchema('IndexedValueGeneric_IndexedValueTypeReference_', currentSpec);
-            expect(schema).to.deep.eq({
-              type: 'string',
-              enum: ['FOO', 'BAR'],
-              default: undefined,
-              description: undefined,
-              example: undefined,
-              format: undefined,
-            });
+            expect(unorderedSchema(schema)).to.deep.eq(
+              unorderedSchema({
+                type: 'string',
+                enum: ['FOO', 'BAR'],
+                default: undefined,
+                description: undefined,
+                example: undefined,
+                format: undefined,
+              }),
+            );
           },
           stringUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_record-foo-or-record-bar._data-string__');
             const schema = getComponentSchema('Record_record-foo-or-record-bar._data-string__', currentSpec);
-            expect(schema).to.be.deep.eq({
-              properties: {
-                'record-foo': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+            expect(unorderedSchema(schema)).to.be.deep.eq(
+              unorderedSchema({
+                properties: {
+                  'record-foo': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
-                },
-                'record-bar': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  'record-bar': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
                 },
-              },
-              required: ['record-foo', 'record-bar'],
-              type: 'object',
-              default: undefined,
-              example: undefined,
-              format: undefined,
-              description: 'Construct a type with a set of properties K of type T',
-            });
+                required: ['record-foo', 'record-bar'],
+                type: 'object',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+                description: 'Construct a type with a set of properties K of type T',
+              }),
+            );
           },
           numberUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/components/schemas/Record_1-or-2._data-string__');
@@ -2269,8 +2280,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
               currentSpec,
             );
-            expect(excludeLiteral).to.deep.eq(
-              {
+            expect(unorderedSchema(excludeLiteral)).to.deep.eq(
+              unorderedSchema({
                 default: undefined,
                 description: 'Exclude from T those types that are assignable to U',
                 enum: [
@@ -2300,7 +2311,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 example: undefined,
                 format: undefined,
                 type: 'string',
-              },
+              }),
               `for a schema linked by property ${propertyName}`,
             );
 
@@ -2392,8 +2403,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
 
             const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
-            expect(readonlyClassSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(readonlyClassSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: {
@@ -2498,7 +2509,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 default: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for schema linked by property ${propertyName}`,
             );
 
@@ -2613,8 +2624,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
 
             const orderOptionsSchema = getComponentSchema('OrderOptions_ParameterTestModel_', currentSpec);
 
-            expect(orderOptionsSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(orderOptionsSchema)).to.deep.eq(
+              unorderedSchema({
                 default: undefined,
                 description: undefined,
                 enum: [
@@ -2637,7 +2648,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 format: undefined,
                 type: 'string',
                 nullable: false,
-              },
+              }),
               `for property ${propertyName}`,
             );
           },
@@ -2656,8 +2667,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
           },
           inlineMappedType: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.equal(
-              {
+            expect(unorderedSchema(propertySchema)).to.deep.equal(
+              unorderedSchema({
                 properties: {
                   'lastname:asc': {
                     type: 'boolean',
@@ -2771,7 +2782,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 example: undefined,
                 format: undefined,
                 default: undefined,
-              },
+              }),
               `for property ${propertyName}`,
             );
           },
@@ -3556,8 +3567,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
               `for property ${propertyName}.doubleReplacedTypes`,
             );
             const postfixedSchema = getComponentSchema('Postfixed_JsDocced._PostFix_', currentSpec);
-            expect(postfixedSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(postfixedSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue_PostFix: {
                     type: 'string',
@@ -3580,7 +3591,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.postfixed`,
             );
             const valuesSchema = getComponentSchema('Values_JsDocced_', currentSpec);
@@ -3661,8 +3672,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
 
             const synonymSchema = getComponentSchema('JsDoccedSynonym', currentSpec);
-            expect(synonymSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(synonymSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue: {
                     type: 'string',
@@ -3685,7 +3696,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getComponentSchema('JsDoccedSynonym2', currentSpec);

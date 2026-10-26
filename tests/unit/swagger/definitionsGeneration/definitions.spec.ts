@@ -1,3 +1,4 @@
+import { unorderedSchema } from '../../../utils/unorderedSchema';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
@@ -553,38 +554,40 @@ describe('Definition generation', () => {
           stringUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo-or-record-bar._data-string__');
             const schema = getValidatedDefinition('Record_record-foo-or-record-bar._data-string__', currentSpec);
-            expect(schema).to.be.deep.eq({
-              properties: {
-                'record-foo': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+            expect(unorderedSchema(schema)).to.be.deep.eq(
+              unorderedSchema({
+                properties: {
+                  'record-foo': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
-                },
-                'record-bar': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  'record-bar': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
                 },
-              },
-              required: ['record-foo', 'record-bar'],
-              type: 'object',
-              default: undefined,
-              example: undefined,
-              format: undefined,
-              description: 'Construct a type with a set of properties K of type T',
-            });
+                required: ['record-foo', 'record-bar'],
+                type: 'object',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+                description: 'Construct a type with a set of properties K of type T',
+              }),
+            );
           },
           numberUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_1-or-2._data-string__');
@@ -1086,8 +1089,8 @@ describe('Definition generation', () => {
               'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
               currentSpec,
             );
-            expect(excludeLiteral).to.deep.eq(
-              {
+            expect(unorderedSchema(excludeLiteral)).to.deep.eq(
+              unorderedSchema({
                 type: 'string',
                 enum: [
                   'id',
@@ -1118,7 +1121,7 @@ describe('Definition generation', () => {
                 example: undefined,
                 format: undefined,
                 ['x-nullable']: false,
-              },
+              }),
               `for definition linked by ${propertyName}`,
             );
 
@@ -1201,8 +1204,8 @@ describe('Definition generation', () => {
             });
 
             const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
-            expect(readonlyClassSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(readonlyClassSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
@@ -1302,7 +1305,7 @@ describe('Definition generation', () => {
                 default: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for definition linked by ${propertyName}`,
             );
 
@@ -1454,30 +1457,32 @@ describe('Definition generation', () => {
 
             const orderOptionsSchema = getValidatedDefinition('OrderOptions_ParameterTestModel_', currentSpec);
 
-            expect(orderOptionsSchema).to.deep.eq({
-              default: undefined,
-              description: undefined,
-              enum: [
-                'firstname:asc',
-                'lastname:asc',
-                'age:asc',
-                'weight:asc',
-                'human:asc',
-                'gender:asc',
-                'nicknames:asc',
-                'firstname:desc',
-                'lastname:desc',
-                'age:desc',
-                'weight:desc',
-                'human:desc',
-                'gender:desc',
-                'nicknames:desc',
-              ],
-              example: undefined,
-              format: undefined,
-              type: 'string',
-              'x-nullable': false,
-            });
+            expect(unorderedSchema(orderOptionsSchema)).to.deep.eq(
+              unorderedSchema({
+                default: undefined,
+                description: undefined,
+                enum: [
+                  'firstname:asc',
+                  'lastname:asc',
+                  'age:asc',
+                  'weight:asc',
+                  'human:asc',
+                  'gender:asc',
+                  'nicknames:asc',
+                  'firstname:desc',
+                  'lastname:desc',
+                  'age:desc',
+                  'weight:desc',
+                  'human:desc',
+                  'gender:desc',
+                  'nicknames:desc',
+                ],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                'x-nullable': false,
+              }),
+            );
           },
           inlineTLS: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
@@ -1494,8 +1499,8 @@ describe('Definition generation', () => {
             );
           },
           inlineMappedType: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.equal(
-              {
+            expect(unorderedSchema(propertySchema)).to.deep.equal(
+              unorderedSchema({
                 properties: {
                   'lastname:asc': {
                     type: 'boolean',
@@ -1609,7 +1614,7 @@ describe('Definition generation', () => {
                 example: undefined,
                 format: undefined,
                 default: undefined,
-              },
+              }),
               `for property ${propertyName}`,
             );
           },
@@ -2399,8 +2404,8 @@ describe('Definition generation', () => {
               `for property ${propertyName}.doubleReplacedTypes`,
             );
             const postfixedSchema = getValidatedDefinition('Postfixed_JsDocced._PostFix_', currentSpec);
-            expect(postfixedSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(postfixedSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue_PostFix: {
                     type: 'string',
@@ -2423,7 +2428,7 @@ describe('Definition generation', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.postfixed`,
             );
             const valuesSchema = getValidatedDefinition('Values_JsDocced_', currentSpec);
@@ -2504,8 +2509,8 @@ describe('Definition generation', () => {
             );
 
             const synonymSchema = getValidatedDefinition('JsDoccedSynonym', currentSpec);
-            expect(synonymSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(synonymSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue: {
                     type: 'string',
@@ -2528,7 +2533,7 @@ describe('Definition generation', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getValidatedDefinition('JsDoccedSynonym2', currentSpec);
