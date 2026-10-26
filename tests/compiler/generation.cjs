@@ -9,6 +9,33 @@ const { MetadataGenerator } = require('../../packages/cli/dist/metadataGeneratio
 const { generateSpec, generateRoutes } = require('../../packages/cli/dist');
 const unorderedArrays = new Set(['enum', 'required', 'anyOf', 'oneOf', 'allOf']);
 
+// Keep this set aligned with COMPILERS.md's baseline-invalid controllers.
+const baselineInvalidControllers = [
+  'duplicateMethodsController',
+  'incorrectResponseHeaderController',
+  'invalidExampleController',
+  'invalidExtensionController',
+  'invalidExtensionModelController',
+  'invalidGetController',
+  'invalidHeaderController',
+  'invalidNestedQueriesController',
+  'invalidPostController',
+  'invalidQueriesController',
+  'invalidQueryController',
+  'invalidTagController',
+  'unsupportedIndexedTypeController',
+];
+
+function assertClassicFailures(results) {
+  assert.deepEqual(
+    Object.keys(results)
+      .filter(name => results[name].status !== 'passed')
+      .sort(),
+    baselineInvalidControllers,
+    'Classic failures must match the documented baseline-invalid controllers',
+  );
+}
+
 function normalizeSwagger(value, keys = []) {
   if (Array.isArray(value)) {
     const items = value.map(item => normalizeSwagger(item, [...keys, '[]']));
@@ -61,9 +88,12 @@ async function main() {
       results[name] = { status: 'failed', error: error.message.split('\n')[0] };
     }
   }
+  if (!baseline) assertClassicFailures(results);
   fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify(results, null, 2));
   if (baseline) {
     const reference = JSON.parse(fs.readFileSync(path.join(baseline, 'results.json')));
+    assertClassicFailures(reference);
+    assert.deepEqual(Object.keys(results).sort(), Object.keys(reference).sort(), 'Compare the same controller set');
     const differences = [];
     const semanticDifferences = [];
     const limits = [];
@@ -88,7 +118,6 @@ async function main() {
     fs.writeFileSync(path.join(output, 'comparison.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report, null, 2));
     assert.equal(semanticDifferences.length, 0, 'Generated Swagger must match the classic compiler by meaning');
-    assert.ok(compared >= 23, 'Keep representative generation coverage');
     for (const limit of limits) {
       assert.equal(limit.name, 'getController', 'Unexpected native exclusion');
       assert.match(limit.error, /Synthetic type reference lookup is not supported with the (typescript|tsrs) compiler backend/, `${limit.name}: unexpected native failure`);
@@ -97,7 +126,7 @@ async function main() {
   console.log(`${Object.values(results).filter(r => r.status === 'passed').length} passed, ${Object.values(results).filter(r => r.status === 'failed').length} failed`);
 }
 
-module.exports = { normalizeSwagger };
+module.exports = { normalizeSwagger, assertClassicFailures, baselineInvalidControllers };
 if (require.main === module) {
   main().catch(error => {
     console.error(error);

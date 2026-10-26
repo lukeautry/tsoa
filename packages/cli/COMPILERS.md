@@ -37,18 +37,22 @@ Native support is incomplete. These operations fail explicitly:
   settings.
 
 The generation comparison isolates each fixture controller. The measured runs
-used TypeScript 6.0.3, TypeScript 7.0.2 and tsrs 0.18.0-ts7.1.0-dev.20260929:
+used TypeScript 6.0.3, TypeScript 7.0.2, TypeScript 7.1.0-beta and tsrs 0.18.0-ts7.1.0-dev.20260929:
 
-| Backend          | Passed | Failed | Controllers compared with classic | Byte-different files | Semantic differences in Swagger | Native limits on baseline-valid controllers |
-| ---------------- | -----: | -----: | --------------------------------: | -------------------: | ------------------------------: | ------------------------------------------: |
-| TypeScript 6.0.3 |     44 |     13 |                                 — |                    — |                               — |                                           — |
-| TypeScript 7.0.2 |     43 |     14 |                                43 |                   26 |                               0 |                                           1 |
-| tsrs             |     43 |     14 |                                43 |                   26 |                               0 |                                           1 |
+| Backend               | Passed | Failed | Controllers compared with classic | Byte-different files | Semantic differences in Swagger | Native limits on baseline-valid controllers |
+| --------------------- | -----: | -----: | --------------------------------: | -------------------: | ------------------------------: | ------------------------------------------: |
+| TypeScript 6.0.3      |     44 |     13 |                                 — |                    — |                               — |                                           — |
+| TypeScript 7.0.2      |     43 |     14 |                                43 |                   26 |                               0 |                                           1 |
+| TypeScript 7.1.0-beta |     43 |     14 |                                43 |                   26 |                               0 |                                           1 |
+| tsrs                  |     43 |     14 |                                43 |                   26 |                               0 |                                           1 |
 
-Both native comparison commands pass. Each compares 86 files across 43
+All three native comparison commands pass. Each compares 86 files across 43
 controllers: 13 Swagger files and 13 route files differ byte-for-byte. All 43
-Swagger files match by meaning under the accepted differences below. The two
+Swagger files match by meaning under the accepted differences below. The three
 native backends produce byte-identical output to each other in all 86 files.
+TypeScript 6 produces 88 files byte-identical to master across its 44 valid
+controllers when both runs use the same frozen clock for the existing
+`getController` default `new Date()` initializer.
 Routes are reported as byte differences, not semantically gated. This is not a
 claim of full runtime equivalence. The full default fixture was not rechecked.
 Optional interface, class and compiler-built type properties are supported;
@@ -60,9 +64,10 @@ unused-variable warnings. Run lint after the main tests finish regenerating
 fixture routes; an overlapping run reported three transient unresolved-call
 errors, while the subsequent serial run passed. `yarn test` passes 2,441 tests
 (2,439 main and two ESM). Nx also printed its flaky-task advisory for the ESM
-target despite that successful run. The backend test suite passes eight tests on
-each compiler, including the compiler-built optional-property regression. The
-generation comparator's two focused tests also pass.
+target despite that successful run. The backend test suite passes 12 tests on
+TypeScript 6, TypeScript 7.1 and tsrs. TypeScript 7.0 passes 11 and skips the
+invalid-tsconfig regression because its config response has no `errors` field.
+The generation comparator's three focused tests pass on every backend.
 
 Run the comparison after building, choosing separate output directories at the
 same depth so relative route imports do not add byte differences:

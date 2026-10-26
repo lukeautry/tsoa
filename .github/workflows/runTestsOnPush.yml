@@ -79,7 +79,7 @@ jobs:
       - run: yarn build
       - name: Generate classic reference
         run: |
-          node --test tests/compiler/compiler.test.cjs
+          node --test tests/compiler/compiler.test.cjs tests/compiler/generation.test.cjs
           node tests/compiler/generation.cjs "$RUNNER_TEMP/classic"
       - name: Install native compilers without replacing the build compiler
         run: npm install --prefix "$RUNNER_TEMP/native" --no-save typescript@${{ matrix.typescript-version }} tsrs@0.18.0-ts7.1.0-dev.20260929
@@ -92,5 +92,5 @@ jobs:
         env:
           TSOA_COMPILER: ${{ matrix.compiler }}
         run: |
-          node --test tests/compiler/compiler.test.cjs
+          node --test tests/compiler/compiler.test.cjs tests/compiler/generation.test.cjs
           node tests/compiler/generation.cjs "$RUNNER_TEMP/native-output" "$RUNNER_TEMP/classic"
