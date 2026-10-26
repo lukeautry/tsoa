@@ -84,6 +84,22 @@ describe('Compiler backends', () => {
     expect(projects()).to.deep.equal(before);
   });
 
+  it('generates each program in one compiler session from its own entry file', async () => {
+    const controller = (name: string) => path.resolve(__dirname, '../../fixtures/controllers', name);
+    const options = { experimentalDecorators: true, strictNullChecks: true };
+    await compiler.withCompiler(() => {
+      const getGenerator = new MetadataGenerator(controller('getController.ts'), options);
+      const postGenerator = new MetadataGenerator(controller('postController.ts'), options);
+      const first = getGenerator.Generate();
+      const second = postGenerator.Generate();
+      const third = new MetadataGenerator(controller('getController.ts'), options).Generate();
+      const routes = (metadata: typeof first) => metadata.controllers.flatMap(c => c.methods.map(m => `${c.name} ${m.method} ${m.path}`)).sort();
+      expect(first.controllers.map(c => c.name)).to.deep.equal(['GetTestController']);
+      expect(second.controllers.map(c => c.name)).to.deep.equal(['PostTestController']);
+      expect(routes(third)).to.deep.equal(routes(first));
+    });
+  });
+
   it('the synchronous entry rejects native backends', () => {
     const before = process.env.TSOA_COMPILER;
     try {
