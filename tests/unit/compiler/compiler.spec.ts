@@ -1,3 +1,4 @@
+import { knownLimit } from '../../utils/knownLimit';
 import * as compiler from '@tsoa/cli/compiler';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { prettyLocationOfNode } from '@tsoa/cli/metadataGeneration/exceptions';
@@ -10,7 +11,6 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import * as sinon from 'sinon';
-import { version as typescriptVersion } from 'typescript';
 import type { Tsoa } from '@tsoa/runtime';
 
 const fixture = path.resolve(__dirname, '../../fixtures/compiler/backendController.ts');
@@ -258,21 +258,22 @@ export class CompilerOptionsController {
     }
   });
 
-  it('validateCompilerOptions rejects an invalid tsconfig with a useful diagnostic', async function () {
-    if (compiler.compilerPackage() === 'typescript' && typescriptVersion.startsWith('7.0.')) {
-      this.skip();
-      return;
-    }
-    const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-invalid-tsconfig-'));
-    try {
-      writeFileSync(path.join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'invalid-target' }, files: [fixture] }));
-      await compiler.withCompiler(() => {
-        expect(() => validateCompilerOptions(undefined, directory)).to.throw(/Argument for '--target' option must be/);
-      });
-    } finally {
-      rmSync(directory, { recursive: true, force: true });
-    }
-  });
+  // COMPILERS.md limit: invalid tsconfig diagnostics.
+  it('validateCompilerOptions rejects an invalid tsconfig with a useful diagnostic', () =>
+    knownLimit(
+      ['typescript@7.0.2'],
+      'expected [Function] to throw an error',
+    )(async function () {
+      const directory = mkdtempSync(path.join(tmpdir(), 'tsoa-invalid-tsconfig-'));
+      try {
+        writeFileSync(path.join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'invalid-target' }, files: [fixture] }));
+        await compiler.withCompiler(() => {
+          expect(() => validateCompilerOptions(undefined, directory)).to.throw(/Argument for '--target' option must be/);
+        });
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    }));
 
   it('typeRootsController resolves relative typeRoots overrides from the original working directory', async () => {
     const entryFile = path.resolve(__dirname, '../../fixtures/compiler/typeRootsController.ts');

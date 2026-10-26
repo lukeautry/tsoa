@@ -1,3 +1,4 @@
+import { knownLimit } from '../../../utils/knownLimit';
 import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
@@ -220,14 +221,19 @@ describe('GET route generation', () => {
     });
   });
 
-  it('should reject nested Query object inside Queries decorator', () => {
-    return withCompiler(() => {
-      expect(() => {
-        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
-        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-      }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
-    });
-  });
+  // COMPILERS.md limit: inferred import return types.
+  it('should reject nested Query object inside Queries decorator', () =>
+    knownLimit(
+      ['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'],
+      /but got 'Unknown type: LastTypeNode\\nAt: /,
+    )(() => {
+      return withCompiler(() => {
+        expect(() => {
+          const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
+          new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+        }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
+      });
+    }));
 
   it('should support TypeScript type aliases for @Queries', () => {
     const operation = getValidatedGetOperation(`${baseRoute}/AllQueriesInOneObjectWithTypeAlias`);

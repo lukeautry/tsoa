@@ -1,3 +1,4 @@
+import { knownLimit } from '../../utils/knownLimit';
 import { withCompiler } from '@tsoa/cli/compiler';
 import { unorderedSchema } from '../../utils/unorderedSchema';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
@@ -42,6 +43,7 @@ interface Row {
   openapi?: '3.1';
   modes?: CompilerOptions[];
   check: (run: Run) => void;
+  knownLimit?: { expected: string | RegExp; nonStrictOnly?: boolean };
 }
 
 const nullModes: CompilerOptions[] = [{ strictNullChecks: false }, { strictNullChecks: true }];
@@ -230,6 +232,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: project Array and ReadonlyArray alias names.
+    knownLimit: { expected: /FrozenChain_Leaf_.*to equal.*ReadonlyArray_Le/ },
     name: 'keeps a project Array and ReadonlyArray interface as objects',
     controller: 'syntheticChildren/ownArraysController',
     check: ({ generate }) => {
@@ -275,6 +279,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: non-strict optional members allowing null.
+    knownLimit: { expected: "leaf properties: expected [] to have the same members as [ 'text', 'count' ]", nonStrictOnly: true },
     name: 'gives identical schemas for an optional member that also allows null, whatever the order',
     controller: 'syntheticChildren/exactNullInnerFirstController',
     modes: [...nullModes, exactMode],
@@ -353,6 +359,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: package and namespaced union printer crash.
+    knownLimit: { expected: 'Offset is outside the bounds of the DataView' },
     name: 'keeps a package union member next to namespaced members',
     controller: 'syntheticChildren/namespacedPackageMemberController',
     modes: [...nullModes, exactMode],
@@ -459,13 +467,18 @@ describe('Children of synthetic type nodes', () => {
   for (const row of rows) {
     for (const compilerOptions of row.modes ?? nullModes) {
       it(`${row.name} (${describeMode(compilerOptions)})`, () => {
-        return withCompiler(() => {
-          row.check({
-            strictNullChecks: compilerOptions.strictNullChecks === true,
-            compilerOptions,
-            generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
+        const run = () =>
+          withCompiler(() => {
+            row.check({
+              strictNullChecks: compilerOptions.strictNullChecks === true,
+              compilerOptions,
+              generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
+            });
           });
-        });
+        if (row.knownLimit && !(row.knownLimit.nonStrictOnly && compilerOptions.strictNullChecks)) {
+          return knownLimit(['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'], row.knownLimit.expected)(run);
+        }
+        return run();
       });
     }
   }

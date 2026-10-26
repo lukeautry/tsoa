@@ -1,16 +1,22 @@
+import { knownLimit } from '../../../utils/knownLimit';
 import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { spy } from 'sinon';
 
 describe('Overlapping routes', () => {
-  it('should reject methods with same routes', () => {
-    return withCompiler(() => {
-      expect(() => {
-        new MetadataGenerator('./fixtures/controllers/duplicateMethodsController.ts').Generate();
-      }).to.throw(`Duplicate method signature @get(GetTest/Complex) found in controllers: DuplicateMethodsTestController#getModel, DuplicateMethodsTestController#duplicateGetModel\n`);
-    });
-  });
+  // COMPILERS.md limit: inferred import return types.
+  it('should reject methods with same routes', () =>
+    knownLimit(
+      ['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'],
+      /but got 'Unknown type: LastTypeNode\\nAt: /,
+    )(() => {
+      return withCompiler(() => {
+        expect(() => {
+          new MetadataGenerator('./fixtures/controllers/duplicateMethodsController.ts').Generate();
+        }).to.throw(`Duplicate method signature @get(GetTest/Complex) found in controllers: DuplicateMethodsTestController#getModel, DuplicateMethodsTestController#duplicateGetModel\n`);
+      });
+    }));
 
   it('should warn about duplicate path parameters', () => {
     return withCompiler(() => {

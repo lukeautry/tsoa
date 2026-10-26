@@ -1,3 +1,4 @@
+import { knownLimit } from '../../utils/knownLimit';
 import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
@@ -36,26 +37,41 @@ describe('validateCompilerOptions', () => {
   });
 
   describe('configuration errors', () => {
-    it('reports malformed project configuration', () => {
-      return withCompiler(() => {
-        writeFileSync(join(projectDir, 'tsconfig.json'), '{"compilerOptions":');
-        expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/tsconfig\.json.*error TS/);
-      });
-    });
+    // COMPILERS.md limit: invalid tsconfig diagnostics.
+    it('reports malformed project configuration', () =>
+      knownLimit(
+        ['typescript@7.0.2'],
+        'expected [Function] to throw an error',
+      )(() => {
+        return withCompiler(() => {
+          writeFileSync(join(projectDir, 'tsconfig.json'), '{"compilerOptions":');
+          expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/tsconfig\.json.*error TS/);
+        });
+      }));
 
-    it('reports invalid project compiler options', () => {
-      return withCompiler(() => {
-        writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { moduleResolution: 'typo' } }));
-        expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/moduleResolution/);
-      });
-    });
+    // COMPILERS.md limit: invalid tsconfig diagnostics.
+    it('reports invalid project compiler options', () =>
+      knownLimit(
+        ['typescript@7.0.2'],
+        'expected [Function] to throw an error',
+      )(() => {
+        return withCompiler(() => {
+          writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { moduleResolution: 'typo' } }));
+          expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/moduleResolution/);
+        });
+      }));
 
-    it('reports missing inherited configuration', () => {
-      return withCompiler(() => {
-        writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ extends: './missing.json' }));
-        expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/missing.json/);
-      });
-    });
+    // COMPILERS.md limit: invalid tsconfig diagnostics.
+    it('reports missing inherited configuration', () =>
+      knownLimit(
+        ['typescript@7.0.2'],
+        'expected [Function] to throw an error',
+      )(() => {
+        return withCompiler(() => {
+          writeFileSync(join(projectDir, 'tsconfig.json'), JSON.stringify({ extends: './missing.json' }));
+          expect(() => validateCompilerOptions(undefined, projectDir)).to.throw(/missing.json/);
+        });
+      }));
   });
 
   describe('project boundaries', () => {
@@ -178,42 +194,47 @@ describe('validateCompilerOptions', () => {
       });
     });
 
-    it('preserves parser metadata that controls package self-name resolution', () => {
-      return withCompiler(() => {
-        const packageDir = join(projectDir, 'package');
-        mkdirSync(join(packageDir, 'src'), { recursive: true });
-        mkdirSync(join(packageDir, 'dist'));
-        writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'self-pkg', exports: { '.': './dist/model.d.ts' } }));
-        writeFileSync(join(packageDir, 'src/model.ts'), 'export interface Model { source: string }');
-        writeFileSync(join(packageDir, 'dist/model.d.ts'), 'export interface Model { declaration: string }');
-        const configPath = join(projectDir, 'tsconfig.json');
-        writeFileSync(configPath, JSON.stringify({ compilerOptions: { module: 'nodenext', moduleResolution: 'nodenext', rootDir: './package/src', outDir: './package/dist' } }));
-        const parsed = ts.getParsedCommandLineOfConfigFile(
-          configPath,
-          {},
-          {
-            ...ts.sys,
-            onUnRecoverableConfigFileDiagnostic: diagnostic => {
-              throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+    // COMPILERS.md limit: package self-name resolution.
+    it('preserves parser metadata that controls package self-name resolution', () =>
+      knownLimit(
+        ['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'],
+        /^expected '.*tsoa-compiler-options-.*' to equal '.*tsoa-compiler-options-.*'$/,
+      )(() => {
+        return withCompiler(() => {
+          const packageDir = join(projectDir, 'package');
+          mkdirSync(join(packageDir, 'src'), { recursive: true });
+          mkdirSync(join(packageDir, 'dist'));
+          writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'self-pkg', exports: { '.': './dist/model.d.ts' } }));
+          writeFileSync(join(packageDir, 'src/model.ts'), 'export interface Model { source: string }');
+          writeFileSync(join(packageDir, 'dist/model.d.ts'), 'export interface Model { declaration: string }');
+          const configPath = join(projectDir, 'tsconfig.json');
+          writeFileSync(configPath, JSON.stringify({ compilerOptions: { module: 'nodenext', moduleResolution: 'nodenext', rootDir: './package/src', outDir: './package/dist' } }));
+          const parsed = ts.getParsedCommandLineOfConfigFile(
+            configPath,
+            {},
+            {
+              ...ts.sys,
+              onUnRecoverableConfigFileDiagnostic: diagnostic => {
+                throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+              },
             },
-          },
-        );
-        if (!parsed) {
-          throw new Error('Expected the valid project configuration to parse');
-        }
-        const overrides = Object.freeze(parsed.options);
-        const containingFile = join(packageDir, 'src/controller.ts');
-        const control = ts.resolveModuleName('self-pkg', containingFile, overrides, ts.sys);
-        const options = validateCompilerOptions(overrides, projectDir);
-        const resolved = ts.resolveModuleName('self-pkg', containingFile, options, ts.sys);
-        const discovered = validateCompilerOptions(undefined, projectDir);
-        const discoveredResolution = ts.resolveModuleName('self-pkg', containingFile, discovered, ts.sys);
-        expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'dist/model.d.ts'));
-        expect(resolved.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
-        expect(discoveredResolution.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
-        expect(options.configFile).to.equal(overrides.configFile);
-      });
-    });
+          );
+          if (!parsed) {
+            throw new Error('Expected the valid project configuration to parse');
+          }
+          const overrides = Object.freeze(parsed.options);
+          const containingFile = join(packageDir, 'src/controller.ts');
+          const control = ts.resolveModuleName('self-pkg', containingFile, overrides, ts.sys);
+          const options = validateCompilerOptions(overrides, projectDir);
+          const resolved = ts.resolveModuleName('self-pkg', containingFile, options, ts.sys);
+          const discovered = validateCompilerOptions(undefined, projectDir);
+          const discoveredResolution = ts.resolveModuleName('self-pkg', containingFile, discovered, ts.sys);
+          expect(control.resolvedModule && normalize(control.resolvedModule.resolvedFileName)).to.equal(join(packageDir, 'dist/model.d.ts'));
+          expect(resolved.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
+          expect(discoveredResolution.resolvedModule?.resolvedFileName).to.equal(control.resolvedModule?.resolvedFileName);
+          expect(options.configFile).to.equal(overrides.configFile);
+        });
+      }));
 
     it('should apply compilerOptions on top of tsconfig.json settings', () => {
       return withCompiler(() => {
