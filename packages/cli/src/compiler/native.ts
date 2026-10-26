@@ -267,6 +267,8 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
             if (key === 'typeToTypeNode' && raw) {
               const source = args[1] ?? location;
               const mark = (node: NativeNode) => {
+                // Printed nodes have no server-side handles, even when they retain source positions.
+                Object.defineProperty(node, 'pos', { value: -1 });
                 if (node.typeName) referenceNames.add(node.typeName);
                 if (source) locations.set(node, source);
                 node.forEachChild(mark);
