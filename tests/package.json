@@ -14,7 +14,8 @@
     "generation",
     "express",
     "hapi.js",
-    "koa"
+    "koa",
+    "fastify"
   ],
   "scripts": {
     "clean": "rimraf --glob dist fixtures/*/routes.ts fixtures/*/customRoutes.ts fixtures/*/custom-route-generator/routes/*",
@@ -26,6 +27,7 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "devDependencies": {
+    "@fastify/multipart": "^9.0.0",
     "@hapi/hapi": "^21.3.12",
     "@koa/multer": "^3.0.2",
     "@koa/router": "^13.1.0",
@@ -49,6 +51,7 @@
     "constructs": "^10.4.2",
     "cross-env": "^7.0.3",
     "express": "^4.21.2",
+    "fastify": "^5.0.0",
     "husky": "^8.0.3",
     "inversify": "^6.1.6",
     "inversify-binding-decorators": "^4.0.0",

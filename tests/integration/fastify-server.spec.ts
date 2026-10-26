@@ -1,0 +1,2058 @@
+import { File } from '@tsoa/runtime';
+import { expect } from 'chai';
+import { readFileSync } from 'fs';
+import 'mocha';
+import { resolve } from 'path';
+import { stateOf } from '../fixtures/controllers/middlewaresFastifyController';
+import { server, app as fastify } from '../fixtures/fastify/server';
+import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
+import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
+
+const app = server;
+const basePath = '/v1';
+
+describe('Fastify Server', () => {
+  before(() => fastify.listen({ port: 0 }));
+  it('can handle get request to root controller`s path', () => {
+    return verifyGetRequest(app, basePath, (_err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('can handle get request to root controller`s method path', () => {
+    return verifyGetRequest(app, basePath + '/rootControllerMethodWithPath', (err, res) => {
+      expect(err).to.equal(false);
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('can handle get request with no path argument', () => {
+    return verifyGetRequest(app, basePath + '/GetTest', (_err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('can handle get request with path argument', () => {
+    return verifyGetRequest(app, basePath + '/GetTest/Current', (_err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('respects toJSON for class serialization', () => {
+    return verifyGetRequest(app, basePath + '/GetTest/SimpleClassWithToJSON', (_err, res) => {
+      const getterClass = res.body;
+      expect(getterClass).to.haveOwnProperty('a');
+      expect(getterClass.a).to.equal('hello, world');
+      expect(getterClass).to.not.haveOwnProperty('b');
+    });
+  });
+
+  it('can handle get request with collection return value', () => {
+    return verifyGetRequest(app, basePath + '/GetTest/Multi', (_err, res) => {
+      const models = res.body as TestModel[];
+      expect(models.length).to.equal(3);
+      models.forEach(m => {
+        expect(m.id).to.equal(1);
+      });
+    });
+  });
+
+  it('can handle get request with path and query parameters', () => {
+    return verifyGetRequest(app, basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234&numberParam=1234`, (_err, res) => {
+      const model = res.body as TestModel;
+      expect(model.id).to.equal(1);
+    });
+  });
+
+  it('returns error if missing required query parameter', () => {
+    return verifyGetRequest(
+      app,
+      basePath + `/GetTest/${1}/true/test?booleanParam=true&stringParam=test1234`,
+      (err: any, _res: any) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.numberParam.message).to.equal(`'numberParam' is required`);
+      },
+      400,
+    );
+  });
+
+  it('returns error and custom error message', () => {
+    return verifyGetRequest(
+      app,
+      basePath + `/GetTest/${1}/true/test?booleanParam=true&numberParam=1234`,
+      (err: any, _res: any) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields.stringParam.message).to.equal(`Custom error message`);
+      },
+      400,
+    );
+  });
+
+  it('parsed body parameters', () => {
+    const data = getFakeModel();
+
+    return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, res: any) => {
+      const model = res.body as TestModel;
+      expect(model).to.deep.equal(data);
+    });
+  });
+
+  it('correctly returns status code', () => {
+    const data = getFakeModel();
+    const path = basePath + '/PostTest/WithDifferentReturnCode';
+    return verifyPostRequest(
+      app,
+      path,
+      data,
+      (_err, _res) => {
+        return;
+      },
+      201,
+    );
+  });
+
+  it('parses class model as body parameter', () => {
+    const data = getFakeClassModel();
+
+    return verifyPostRequest(app, basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
+      const model = res.body as TestClassModel;
+      expect(model.id).to.equal(700); // this gets changed on the server
+    });
+  });
+
+  it('correctly handles OPTIONS requests', () => {
+    const path = basePath + '/OptionsTest/Current';
+    return verifyRequest(
+      app,
+      (_err, res) => {
+        expect(res.text).to.equal('');
+      },
+      request => request.options(path),
+      204,
+    );
+  });
+
+  it('should reject invalid strings', () => {
+    const invalidValues = [null, 1, undefined, {}];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        const data = getFakeModel();
+        data.stringValue = value;
+
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+      }),
+    );
+  });
+
+  it('should parse valid date', () => {
+    const data = getFakeModel();
+    data.dateValue = '2016-01-01T00:00:00Z' as any;
+
+    return verifyPostRequest(
+      app,
+      basePath + '/PostTest',
+      data,
+      (_err: any, res: any) => {
+        expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+      },
+      200,
+    );
+  });
+
+  it('should parse valid date as query param', () => {
+    return verifyGetRequest(
+      app,
+      basePath + '/GetTest/DateParam?date=2016-01-01T00:00:00Z',
+      (_err: any, res: any) => {
+        expect(res.body.dateValue).to.equal('2016-01-01T00:00:00.000Z');
+      },
+      200,
+    );
+  });
+
+  it('should reject invalid dates', () => {
+    const invalidValues = [1, {}];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        const data = getFakeModel();
+        data.dateValue = value;
+
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+      }),
+    );
+  });
+
+  it('should reject invalid numbers', () => {
+    const invalidValues = ['test', null, undefined, {}];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        const data = getFakeModel();
+        data.numberValue = value;
+
+        return verifyPostRequest(app, basePath + '/PostTest', data, (_err: any, _res: any) => null, 400);
+      }),
+    );
+  });
+
+  it('returns error if missing required path parameter', () => {
+    return verifyGetRequest(
+      app,
+      basePath + `/GetTest/${1}/true?booleanParam=true&stringParam=test1234`,
+      (err: any, _res: any) => {
+        expect(err.text).to.equal('Not Found');
+      },
+      404,
+    );
+  });
+
+  it('should reject invalid additionalProperties', () => {
+    const invalidValues = ['invalid', null, [], 1, { foo: null }, { foo: 1 }, { foo: [] }, { foo: {} }, { foo: { foo: 'bar' } }];
+
+    return Promise.all(
+      invalidValues.map((value: any) => {
+        return verifyPostRequest(app, basePath + '/PostTest/Object', { obj: value }, (_err: any, _res: any) => null, 400);
+      }),
+    );
+  });
+
+  it('returns error if invalid request', () => {
+    const data = getFakeModel();
+    data.dateValue = 1 as any;
+
+    return verifyPostRequest(
+      app,
+      basePath + '/PostTest',
+      data,
+      (err: any, _res: any) => {
+        const body = JSON.parse(err.text);
+        expect(body.fields['model.dateValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+        expect(body.fields['model.dateValue'].value).to.be.undefined;
+      },
+      400,
+    );
+  });
+
+  it('returns error if thrown in controller', () => {
+    return verifyGetRequest(
+      app,
+      basePath + '/GetTest/ThrowsError',
+      (err: any, _res: any) => {
+        expect(err.text).to.equal('error thrown');
+      },
+      400,
+    );
+  });
+
+  it('can invoke middlewares installed in routes and paths', () => {
+    expect(stateOf('route')).to.be.undefined;
+    return verifyGetRequest(
+      app,
+      basePath + '/MiddlewareTestFastify/test1',
+      (_err, _res) => {
+        expect(stateOf('route')).to.be.true;
+        expect(stateOf('test1')).to.be.true;
+        expect(stateOf('test2')).to.be.true;
+      },
+      204,
+    );
+  });
+
+  describe('Controller', () => {
+    it('should normal status code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/normalStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(200);
+        },
+        200,
+      );
+    });
+
+    it('should normal status code with false boolean result', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/falseStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(200);
+        },
+        200,
+      );
+    });
+
+    it('should normal status code with 0 result', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/zeroStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(200);
+        },
+        200,
+      );
+    });
+
+    it('should no content status code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/noContentStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+
+    it('should custom status code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/customStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(205);
+        },
+        205,
+      );
+    });
+
+    it('should custom header', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/customHeader`,
+        (_err, res) => {
+          expect(res.status).to.equal(204);
+          expect(res.header.hero).to.equal('IronMan');
+          expect(res.header.name).to.equal('Tony Stark');
+          expect(res.header['set-cookie']).to.eql(['token=MY_AUTH_TOKEN;', 'refreshToken=MY_REFRESH_TOKEN;']);
+        },
+        204,
+      );
+    });
+
+    it('should unavailable for legal reasons status code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Controller/unavailableForLegalReasonsStatusCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(451);
+        },
+        451,
+      );
+    });
+  });
+
+  describe('Custom Content-Type', () => {
+    it('should return custom content-type if given', () => {
+      return verifyPostRequest(
+        app,
+        basePath + '/MediaTypeTest/Custom',
+        { name: 'foo' },
+        (_err, res) => {
+          expect(res.type).to.eq('application/vnd.mycompany.myapp.v2+json');
+        },
+        202,
+      );
+    });
+
+    it('should hand a raw octet-stream request body to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary')
+            .set('Content-Type', 'application/octet-stream')
+            .send(payload),
+        200,
+      );
+    });
+
+    it('should hand a raw request body with a custom media type to the controller as a stream', () => {
+      const payload = Buffer.alloc(64 * 1024, 'a');
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: payload.length });
+        },
+        request =>
+          request
+            .post(basePath + '/MediaTypeTest/Binary/Custom')
+            .set('Content-Type', 'image/png')
+            .send(payload),
+        200,
+      );
+    });
+
+    // Binary routes remove JSON parsers and receive the unread stream in Fastify.
+    it.skip('should reject a JSON body that a body parser consumed instead of passing the ended stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.status).to.eq(400);
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').send({ name: 'foo' }),
+        400,
+      );
+    });
+
+    // Binary routes remove JSON parsers, so only the invalid query is rejected.
+    it.skip('should report a consumed body and an invalid query parameter together', () => {
+      return verifyRequest(
+        app,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(Object.keys(body.fields)).to.have.members(['body', 'tag']);
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary/Query?tag=abc').send({ name: 'foo' }),
+        400,
+      );
+    });
+
+    it('should hand an empty request body to the controller as an empty stream', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          expect(res.body).to.deep.eq({ length: 0 });
+        },
+        request => request.post(basePath + '/MediaTypeTest/Binary').set('Content-Type', 'application/octet-stream'),
+        200,
+      );
+    });
+  });
+
+  describe('NoExtends', () => {
+    it('should ignore SuccessResponse code and use default code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/NoExtends/customSuccessResponseCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(202);
+        },
+        202,
+      );
+    });
+
+    it('should ignore SuccessResponse enum code and use default code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/NoExtends/enumSuccessResponseCode`,
+        (_err, res) => {
+          expect(res.status).to.equal(202);
+        },
+        202,
+      );
+    });
+
+    it('should ignore SuccessResponse 2XX code and use default code', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/NoExtends/rangedSuccessResponse`,
+        (_err, res) => {
+          expect(res.status).to.equal(204);
+        },
+        204,
+      );
+    });
+  });
+
+  describe('Validate', () => {
+    it('should valid minDate and maxDate validation of date type', () => {
+      const minDate = '2019-01-01';
+      const maxDate = '2015-01-01';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/date?minDateValue=${minDate}&maxDateValue=${maxDate}`,
+        (_err, res) => {
+          const { body } = res;
+          expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
+          expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
+        },
+        200,
+      );
+    });
+
+    it('should invalid minDate and maxDate validation of date type', () => {
+      const date = '2017-01-01';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/date?minDateValue=${date}&maxDateValue=${date}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01'`);
+          expect(body.fields.minDateValue.value).to.equal(date);
+          expect(body.fields.maxDateValue.message).to.equal(`maxDate '2016-01-01'`);
+          expect(body.fields.maxDateValue.value).to.equal(date);
+        },
+        400,
+      );
+    });
+
+    it('should valid minDate and maxDate validation of datetime type', () => {
+      const minDate = '2019-01-01T00:00:00';
+      const maxDate = '2015-01-01T00:00:00';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/datetime?minDateValue=${minDate}&maxDateValue=${maxDate}`,
+        (_err, res) => {
+          const { body } = res;
+          expect(new Date(body.minDateValue)).to.deep.equal(new Date(minDate));
+          expect(new Date(body.maxDateValue)).to.deep.equal(new Date(maxDate));
+        },
+        200,
+      );
+    });
+
+    it('should invalid minDate and maxDate validation of datetime type', () => {
+      const date = '2017-01-01T00:00:00';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/datetime?minDateValue=${date}&maxDateValue=${date}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.minDateValue.message).to.equal(`minDate '2018-01-01T00:00:00'`);
+          expect(body.fields.minDateValue.value).to.equal(date);
+          expect(body.fields.maxDateValue.message).to.equal(`maxDate '2016-01-01T00:00:00'`);
+          expect(body.fields.maxDateValue.value).to.equal(date);
+        },
+        400,
+      );
+    });
+
+    it('should valid max and min validation of integer type', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/integer?value=6&value_max=2`,
+        (_err, res) => {
+          const { body } = res;
+          expect(body.minValue).to.equal(6);
+          expect(body.maxValue).to.equal(2);
+        },
+        200,
+      );
+    });
+
+    it('should invalid max and min validation of integer type', () => {
+      const value = 4;
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/integer?value=${value}&value_max=${value}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.value.message).to.equal('min 5');
+          expect(body.fields.value.value).to.equal(String(value));
+          expect(body.fields.value_max.message).to.equal('max 3');
+          expect(body.fields.value_max.value).to.equal(String(value));
+        },
+        400,
+      );
+    });
+
+    it('should valid max and min validation of float type', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/float?minValue=5.6&maxValue=3.4`,
+        (_err, res) => {
+          const { body } = res;
+          expect(body.minValue).to.equal(5.6);
+          expect(body.maxValue).to.equal(3.4);
+        },
+        200,
+      );
+    });
+
+    it('should invalid max and min validation of float type', () => {
+      const value = 4.5;
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/float?minValue=${value}&maxValue=${value}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.minValue.message).to.equal('min 5.5');
+          expect(body.fields.minValue.value).to.equal(String(value));
+          expect(body.fields.maxValue.message).to.equal('max 3.5');
+          expect(body.fields.maxValue.value).to.equal(String(value));
+        },
+        400,
+      );
+    });
+
+    it('should valid validation of boolean type', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/boolean?boolValue=true`,
+        (_err, res) => {
+          const { body } = res;
+          expect(body.boolValue).to.equal(true);
+        },
+        200,
+      );
+    });
+
+    it('should invalid validation of boolean type', () => {
+      const value = 'true0001';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/boolean?boolValue=${value}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.boolValue.message).to.equal('boolValue');
+          expect(body.fields.boolValue.value).to.equal(value);
+        },
+        400,
+      );
+    });
+
+    it('should valid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/string?minLength=abcdef&maxLength=ab&patternValue=aBcDf&quotedPatternValue=A`,
+        (_err, res) => {
+          const { body } = res;
+
+          expect(body.minLength).to.equal('abcdef');
+          expect(body.maxLength).to.equal('ab');
+          expect(body.patternValue).to.equal('aBcDf');
+          expect(body.quotedPatternValue).to.equal('A');
+        },
+        200,
+      );
+    });
+
+    it('should invalid minLength, maxLength and pattern (quoted/unquoted) validation of string type', () => {
+      const value = '1234';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/string?minLength=${value}&maxLength=${value}&patternValue=${value}&quotedPatternValue=A@`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+
+          expect(body.fields.minLength.message).to.equal('minLength 5');
+          expect(body.fields.minLength.value).to.equal(value);
+          expect(body.fields.maxLength.message).to.equal('maxLength 3');
+          expect(body.fields.maxLength.value).to.equal(value);
+          expect(body.fields.patternValue.message).to.equal("Not match in '^[a-zA-Z]+$'");
+          expect(body.fields.patternValue.value).to.equal(value);
+          expect(body.fields.quotedPatternValue.message).to.equal("Not match in '^([A-Z])(?!@)$'");
+          expect(body.fields.quotedPatternValue.value).to.equal('A@');
+        },
+        400,
+      );
+    });
+
+    it('should valid model validate', () => {
+      const bodyModel = new ValidateModel();
+      bodyModel.floatValue = 1.2;
+      bodyModel.doubleValue = 1.2;
+      bodyModel.intValue = 120;
+      bodyModel.longValue = 120;
+      bodyModel.booleanValue = true;
+      bodyModel.arrayValue = [0, 2];
+      bodyModel.dateValue = new Date('2017-01-01');
+      bodyModel.datetimeValue = new Date('2017-01-01T00:00:00');
+
+      bodyModel.numberMax10 = 10;
+      bodyModel.numberMin5 = 5;
+      bodyModel.stringMax10Lenght = 'abcdef';
+      bodyModel.stringMin5Lenght = 'abcdef';
+      bodyModel.stringPatternAZaz = 'aBcD';
+      bodyModel.quotedStringPatternA = 'A';
+
+      bodyModel.arrayMax5Item = [0, 1, 2, 3];
+      bodyModel.arrayMin2Item = [0, 1];
+      bodyModel.arrayUniqueItem = [0, 1, 2, 3];
+      bodyModel.model = { value1: 'abcdef' };
+      bodyModel.mixedUnion = { value1: '' };
+      bodyModel.intersection = { value1: 'one', value2: 'two' };
+      bodyModel.singleBooleanEnum = true;
+
+      bodyModel.nestedObject = {
+        floatValue: 1.2,
+        doubleValue: 1.2,
+        intValue: 120,
+        longValue: 120,
+        booleanValue: true,
+        arrayValue: [0, 2],
+        dateValue: new Date('2017-01-01'),
+        datetimeValue: new Date('2017-01-01T00:00:00'),
+
+        numberMax10: 10,
+        numberMin5: 5,
+        stringMax10Lenght: 'abcdef',
+        stringMin5Lenght: 'abcdef',
+        stringPatternAZaz: 'aBcD',
+        quotedStringPatternA: 'A',
+
+        arrayMax5Item: [0, 1, 2, 3],
+        arrayMin2Item: [0, 1],
+        arrayUniqueItem: [0, 1, 2, 3],
+        model: { value1: 'abcdef' },
+        mixedUnion: { value1: '' },
+        intersection: { value1: 'one', value2: 'two' },
+      };
+
+      bodyModel.typeAliases = {
+        word: 'word',
+        fourtyTwo: 42,
+        intersectionAlias: { value1: 'value1', value2: 'value2' },
+        unionAlias: { value2: 'value2' },
+        nOLAlias: { value1: 'value1', value2: 'value2' },
+        genericAlias: 'genericString',
+        genericAlias2: {
+          id: 1,
+        },
+        forwardGenericAlias: { value1: 'value1' },
+      };
+
+      bodyModel.nullableTypes = {
+        numberOrNull: 'null' as unknown as null,
+        wordOrNull: null,
+        maybeString: null,
+        justNull: null,
+        nestedNullable: { property: null },
+      };
+
+      return verifyPostRequest(
+        app,
+        basePath + `/Validate/body`,
+        bodyModel,
+        (_err, res) => {
+          const { body } = res;
+
+          expect(body.floatValue).to.equal(bodyModel.floatValue);
+          expect(body.doubleValue).to.equal(bodyModel.doubleValue);
+          expect(body.intValue).to.equal(bodyModel.intValue);
+          expect(body.longValue).to.equal(bodyModel.longValue);
+          expect(body.booleanValue).to.equal(bodyModel.booleanValue);
+          expect(body.arrayValue).to.deep.equal(bodyModel.arrayValue);
+
+          expect(new Date(body.dateValue)).to.deep.equal(new Date(bodyModel.dateValue));
+          expect(new Date(body.datetimeValue)).to.deep.equal(new Date(bodyModel.datetimeValue));
+
+          expect(body.numberMax10).to.equal(bodyModel.numberMax10);
+          expect(body.numberMin5).to.equal(bodyModel.numberMin5);
+          expect(body.stringMax10Lenght).to.equal(bodyModel.stringMax10Lenght);
+          expect(body.stringMin5Lenght).to.equal(bodyModel.stringMin5Lenght);
+          expect(body.stringPatternAZaz).to.equal(bodyModel.stringPatternAZaz);
+          expect(body.quotedStringPatternA).to.equal(bodyModel.quotedStringPatternA);
+
+          expect(body.arrayMax5Item).to.deep.equal(bodyModel.arrayMax5Item);
+          expect(body.arrayMin2Item).to.deep.equal(bodyModel.arrayMin2Item);
+          expect(body.arrayUniqueItem).to.deep.equal(bodyModel.arrayUniqueItem);
+          expect(body.model).to.deep.equal(bodyModel.model);
+          expect(body.mixedUnion).to.deep.equal(bodyModel.mixedUnion);
+          expect(body.intersection).to.deep.equal(bodyModel.intersection);
+          expect(body.singleBooleanEnum).to.deep.equal(bodyModel.singleBooleanEnum);
+
+          expect(body.nestedObject.floatValue).to.equal(bodyModel.nestedObject.floatValue);
+          expect(body.nestedObject.doubleValue).to.equal(bodyModel.nestedObject.doubleValue);
+          expect(body.nestedObject.intValue).to.equal(bodyModel.nestedObject.intValue);
+          expect(body.nestedObject.longValue).to.equal(bodyModel.nestedObject.longValue);
+          expect(body.nestedObject.booleanValue).to.equal(bodyModel.nestedObject.booleanValue);
+          expect(body.nestedObject.arrayValue).to.deep.equal(bodyModel.nestedObject.arrayValue);
+
+          expect(new Date(body.nestedObject.dateValue)).to.deep.equal(new Date(bodyModel.nestedObject.dateValue));
+          expect(new Date(body.nestedObject.datetimeValue)).to.deep.equal(new Date(bodyModel.nestedObject.datetimeValue));
+
+          expect(body.nestedObject.numberMax10).to.equal(bodyModel.nestedObject.numberMax10);
+          expect(body.nestedObject.numberMin5).to.equal(bodyModel.nestedObject.numberMin5);
+          expect(body.nestedObject.stringMax10Lenght).to.equal(bodyModel.nestedObject.stringMax10Lenght);
+          expect(body.nestedObject.stringMin5Lenght).to.equal(bodyModel.nestedObject.stringMin5Lenght);
+          expect(body.nestedObject.stringPatternAZaz).to.equal(bodyModel.nestedObject.stringPatternAZaz);
+          expect(body.nestedObject.quotedStringPatternA).to.equal(bodyModel.nestedObject.quotedStringPatternA);
+
+          expect(body.nestedObject.arrayMax5Item).to.deep.equal(bodyModel.nestedObject.arrayMax5Item);
+          expect(body.nestedObject.arrayMin2Item).to.deep.equal(bodyModel.nestedObject.arrayMin2Item);
+          expect(body.nestedObject.arrayUniqueItem).to.deep.equal(bodyModel.nestedObject.arrayUniqueItem);
+          expect(body.nestedObject.model).to.deep.equal(bodyModel.nestedObject.model);
+          expect(body.nestedObject.mixedUnion).to.deep.equal(bodyModel.nestedObject.mixedUnion);
+          expect(body.nestedObject.intersection).to.deep.equal(bodyModel.nestedObject.intersection);
+          expect(body.typeAliases).to.deep.equal(bodyModel.typeAliases);
+
+          expect(body.nullableTypes.numberOrNull).to.equal(null);
+          expect(body.nullableTypes.wordOrNull).to.equal(bodyModel.nullableTypes.wordOrNull);
+          expect(body.nullableTypes.maybeString).to.equal(bodyModel.nullableTypes.maybeString);
+          expect(body.nullableTypes.justNull).to.equal(bodyModel.nullableTypes.justNull);
+          expect(body.nullableTypes.nestedNullable.property).to.equal(bodyModel.nullableTypes.nestedNullable.property);
+        },
+        200,
+      );
+    });
+
+    it('should invalid model validate', () => {
+      const bodyModel = new ValidateModel();
+      bodyModel.floatValue = '120a' as any;
+      bodyModel.doubleValue = '120a' as any;
+      bodyModel.intValue = 1.2;
+      bodyModel.longValue = 1.2;
+      bodyModel.booleanValue = 'abc' as any;
+      bodyModel.dateValue = 'abc' as any;
+      bodyModel.datetimeValue = 'abc' as any;
+
+      bodyModel.numberMax10 = 20;
+      bodyModel.numberMin5 = 0;
+      bodyModel.stringMax10Lenght = 'abcdefghijk';
+      bodyModel.stringMin5Lenght = 'abcd';
+      bodyModel.stringPatternAZaz = 'ab01234';
+      bodyModel.quotedStringPatternA = 'A';
+
+      bodyModel.arrayMax5Item = [0, 1, 2, 3, 4, 6, 7, 8, 9];
+      bodyModel.arrayMin2Item = [0];
+      bodyModel.arrayUniqueItem = [0, 0, 1, 1];
+      bodyModel.model = 1 as any;
+      bodyModel.mixedUnion = 123 as any;
+      bodyModel.intersection = { value1: 'one' } as any;
+      bodyModel.singleBooleanEnum = false as true;
+
+      bodyModel.nestedObject = {
+        floatValue: '120a' as any,
+        doubleValue: '120a' as any,
+        intValue: 1.2,
+        longValue: 1.2,
+        booleanValue: 'abc' as any,
+        dateValue: 'abc' as any,
+        datetimeValue: 'abc' as any,
+
+        numberMax10: 20,
+        numberMin5: 0,
+        stringMax10Lenght: 'abcdefghijk',
+        stringMin5Lenght: 'abcd',
+        stringPatternAZaz: 'ab01234',
+        quotedStringPatternA: 'A@',
+
+        arrayMax5Item: [0, 1, 2, 3, 4, 6, 7, 8, 9],
+        arrayMin2Item: [0],
+        arrayUniqueItem: [0, 0, 1, 1],
+        model: 1 as any,
+        mixedUnion: 123 as any,
+        intersection: { value1: 'one' } as any,
+      } as any;
+
+      bodyModel.typeAliases = {
+        word: '',
+        fourtyTwo: 41,
+        intersectionAlias: { value2: 'value2' },
+        unionAlias: {},
+        nOLAlias: true,
+        genericAlias: new ValidateModel(),
+        genericAlias2: {
+          id2: 2,
+        },
+        forwardGenericAlias: 123,
+      } as any;
+
+      bodyModel.nullableTypes = {
+        // numberOrNull
+        wordOrNull: '',
+        maybeString: 1,
+        justNull: undefined,
+      } as any;
+
+      return verifyPostRequest(
+        app,
+        basePath + `/Validate/body`,
+        bodyModel,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+
+          expect(body.fields['body.floatValue'].message).to.equal('Invalid float error message.');
+          expect(body.fields['body.floatValue'].value).to.be.undefined;
+          expect(body.fields['body.doubleValue'].message).to.equal('Invalid double error message.');
+          expect(body.fields['body.doubleValue'].value).to.be.undefined;
+          expect(body.fields['body.intValue'].message).to.equal('invalid integer number');
+          expect(body.fields['body.intValue'].value).to.be.undefined;
+          expect(body.fields['body.longValue'].message).to.equal('Custom Required long number.');
+          expect(body.fields['body.longValue'].value).to.be.undefined;
+          expect(body.fields['body.booleanValue'].message).to.equal('invalid boolean value');
+          expect(body.fields['body.booleanValue'].value).to.be.undefined;
+
+          expect(body.fields['body.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
+          expect(body.fields['body.dateValue'].value).to.be.undefined;
+          expect(body.fields['body.datetimeValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+          expect(body.fields['body.datetimeValue'].value).to.be.undefined;
+
+          expect(body.fields['body.numberMax10'].message).to.equal('max 10');
+          expect(body.fields['body.numberMax10'].value).to.be.undefined;
+          expect(body.fields['body.numberMin5'].message).to.equal('min 5');
+          expect(body.fields['body.numberMin5'].value).to.be.undefined;
+          expect(body.fields['body.stringMax10Lenght'].message).to.equal('maxLength 10');
+          expect(body.fields['body.stringMax10Lenght'].value).to.be.undefined;
+          expect(body.fields['body.stringMin5Lenght'].message).to.equal('minLength 5');
+          expect(body.fields['body.stringMin5Lenght'].value).to.be.undefined;
+          expect(body.fields['body.stringPatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
+          expect(body.fields['body.stringPatternAZaz'].value).to.be.undefined;
+
+          expect(body.fields['body.arrayMax5Item'].message).to.equal('maxItems 5');
+          expect(body.fields['body.arrayMax5Item'].value).to.be.undefined;
+          expect(body.fields['body.arrayMin2Item'].message).to.equal('minItems 2');
+          expect(body.fields['body.arrayMin2Item'].value).to.be.undefined;
+          expect(body.fields['body.arrayUniqueItem'].message).to.equal('required unique array');
+          expect(body.fields['body.arrayUniqueItem'].value).to.be.undefined;
+          expect(body.fields['body.model'].message).to.equal('invalid object');
+          expect(body.fields['body.model'].value).to.be.undefined;
+          expect(body.fields['body.mixedUnion'].message).to.equal(
+            'Could not match the union against any of the items. ' +
+              'Issues: [{"body.mixedUnion":{"message":"invalid string value","value":123}},' +
+              '{"body.mixedUnion":{"message":"invalid object","value":123}}]',
+          );
+          expect(body.fields['body.intersection'].message).to.equal('Could not match the intersection against every type. Issues: [{"body.intersection.value2":{"message":"\'value2\' is required"}}]');
+          expect(body.fields['body.singleBooleanEnum'].message).to.equal('should be one of the following; [true]');
+
+          expect(body.fields['body.nestedObject.floatValue'].message).to.equal('Invalid float error message.');
+          expect(body.fields['body.nestedObject.floatValue'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.doubleValue'].message).to.equal('Invalid double error message.');
+          expect(body.fields['body.nestedObject.doubleValue'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.intValue'].message).to.equal('invalid integer number');
+          expect(body.fields['body.nestedObject.intValue'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.longValue'].message).to.equal('Custom Required long number.');
+          expect(body.fields['body.nestedObject.longValue'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.booleanValue'].message).to.equal('invalid boolean value');
+          expect(body.fields['body.nestedObject.booleanValue'].value).to.be.undefined;
+
+          expect(body.fields['body.nestedObject.dateValue'].message).to.equal('invalid ISO 8601 date format, i.e. YYYY-MM-DD');
+          expect(body.fields['body.nestedObject.dateValue'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.datetimeValue'].message).to.equal('invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss');
+          expect(body.fields['body.nestedObject.datetimeValue'].value).to.be.undefined;
+
+          expect(body.fields['body.nestedObject.numberMax10'].message).to.equal('max 10');
+          expect(body.fields['body.nestedObject.numberMax10'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.numberMin5'].message).to.equal('min 5');
+          expect(body.fields['body.nestedObject.numberMin5'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.stringMax10Lenght'].message).to.equal('maxLength 10');
+          expect(body.fields['body.nestedObject.stringMax10Lenght'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.stringMin5Lenght'].message).to.equal('minLength 5');
+          expect(body.fields['body.nestedObject.stringMin5Lenght'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.stringPatternAZaz'].message).to.equal("Not match in '^[a-zA-Z]+$'");
+          expect(body.fields['body.nestedObject.stringPatternAZaz'].value).to.be.undefined;
+
+          expect(body.fields['body.nestedObject.arrayMax5Item'].message).to.equal('maxItems 5');
+          expect(body.fields['body.nestedObject.arrayMax5Item'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.arrayMin2Item'].message).to.equal('minItems 2');
+          expect(body.fields['body.nestedObject.arrayMin2Item'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.arrayUniqueItem'].message).to.equal('required unique array');
+          expect(body.fields['body.nestedObject.arrayUniqueItem'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.model'].message).to.equal('invalid object');
+          expect(body.fields['body.nestedObject.model'].value).to.be.undefined;
+          expect(body.fields['body.nestedObject.mixedUnion'].message).to.equal(
+            'Could not match the union against any of the items. ' +
+              'Issues: [{"body.nestedObject.mixedUnion":{"message":"invalid string value","value":123}},' +
+              '{"body.nestedObject.mixedUnion":{"message":"invalid object","value":123}}]',
+          );
+          expect(body.fields['body.nestedObject.intersection'].message).to.equal(
+            'Could not match the intersection against every type. Issues: [{"body.nestedObject.intersection.value2":{"message":"\'value2\' is required"}}]',
+          );
+          expect(body.fields['body.typeAliases.word'].message).to.equal('minLength 1');
+          expect(body.fields['body.typeAliases.fourtyTwo'].message).to.equal('min 42');
+          expect(body.fields['body.typeAliases.unionAlias'].message).to.contain('Could not match the union against any of the items');
+          expect(body.fields['body.typeAliases.intersectionAlias'].message).to.equal(
+            `Could not match the intersection against every type. Issues: [{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}},{"body.typeAliases.intersectionAlias.value1":{"message":"'value1' is required"}}]`,
+          );
+          expect(body.fields['body.typeAliases.nOLAlias'].message).to.equal('invalid object');
+          expect(body.fields['body.typeAliases.genericAlias'].message).to.equal('invalid string value');
+          expect(body.fields['body.typeAliases.genericAlias2.id'].message).to.equal("'id' is required");
+          expect(body.fields['body.typeAliases.forwardGenericAlias'].message).to.contain('Could not match the union against any of the items.');
+          expect(body.fields['body.nullableTypes.numberOrNull'].message).to.equal("'numberOrNull' is required");
+          expect(body.fields['body.nullableTypes.maybeString'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.maybeString":{"message":"invalid string value","value":1}},{"body.nullableTypes.maybeString":{"message":"should be one of the following; [null]","value":1}}]`,
+          );
+          expect(body.fields['body.nullableTypes.wordOrNull'].message).to.equal(
+            `Could not match the union against any of the items. Issues: [{"body.nullableTypes.wordOrNull":{"message":"minLength 1","value":""}},{"body.nullableTypes.wordOrNull":{"message":"should be one of the following; [null]","value":""}}]`,
+          );
+          expect(body.fields['body.nullableTypes.justNull'].message).to.equal("'justNull' is required");
+        },
+        400,
+      );
+    });
+
+    describe('BodyProp', () => {
+      it('should valid body props validate', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { name: 'Nick Yang' },
+          (_err, res) => {
+            const { body } = res;
+
+            expect(body.name).to.equal('Nick Yang-validated');
+          },
+          200,
+        );
+      });
+
+      it('should invalid body props missing required field', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { 'incorrect-field': 'incorrect' },
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+
+            expect(body.fields['body.name'].message).to.equal("'name' is required");
+            expect(body.fields['body.name'].value).to.be.undefined;
+          },
+          400,
+        );
+      });
+
+      it('should invalid body props incorrect type', () => {
+        return verifyPostRequest(
+          app,
+          basePath + `/Validate/body-prop`,
+          { name: 1234 },
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+
+            expect(body.fields['body.name'].message).to.equal('invalid string value');
+            expect(body.fields['body.name'].value).to.be.undefined;
+          },
+          400,
+        );
+      });
+    });
+
+    it('should custom required error message', () => {
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/customRequiredErrorMsg`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.longValue.message).to.equal('Required long number.');
+        },
+        400,
+      );
+    });
+
+    // Fastify paths are case-sensitive and this Koa input spells customInvalidErrorMsg differently.
+    it.skip('should custom invalid datatype error message', () => {
+      const value = '112ab';
+      return verifyGetRequest(
+        app,
+        basePath + `/Validate/parameter/custominvalidErrorMsg?longValue=${value}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields.longValue.message).to.equal('Invalid long number.');
+        },
+        400,
+      );
+    });
+
+    it('should validate string-to-number dictionary body', () => {
+      const data: ValidateMapStringToNumber = {
+        key1: 0,
+        key2: 1,
+        key3: -1,
+      };
+      return verifyPostRequest(app, basePath + '/Validate/map', data, (_err, res) => {
+        const response = res.body as number[];
+        expect(response.sort()).to.eql([-1, 0, 1]);
+      });
+    });
+
+    it('should reject string-to-string dictionary body', () => {
+      const data: object = {
+        key1: 'val0',
+        key2: 'val1',
+        key3: '-val1',
+      };
+      return verifyPostRequest(
+        app,
+        basePath + '/Validate/map',
+        data,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields['map.key1'].message).to.eql('No matching model found in additionalProperties to validate key1');
+        },
+        400,
+      );
+    });
+
+    it('should validate string-to-any dictionary body', () => {
+      const data: ValidateMapStringToAny = {
+        key1: '0',
+        key2: 1,
+        key3: -1,
+      };
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
+        const response = res.body as any[];
+        expect(response.sort()).to.eql([-1, '0', 1]);
+      });
+    });
+
+    it('should validate string-to-any dictionary body with falsy values', () => {
+      const data: ValidateMapStringToAny = {
+        array: [],
+        false: false,
+        null: null,
+        string: '',
+        zero: 0,
+      };
+      return verifyPostRequest(app, basePath + '/Validate/mapAny', data, (_err, res) => {
+        const response = res.body as any[];
+        expect(response.sort()).to.eql([[], '', 0, false, null]);
+      });
+    });
+  });
+
+  describe('Security', () => {
+    const emptyHandler = (_err, _res) => {
+      // This is an empty handler
+    };
+
+    it('can handle get request with access_token user id == 1', () => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=abc123456', (_err, res) => {
+        const model = res.body as Model;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    it('can handle get request with access_token user id == 2', () => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=xyz123456', (_err, res) => {
+        const model = res.body as Model;
+        expect(model.id).to.equal(2);
+      });
+    });
+
+    it('returns response with header set in authentication middleware', () => {
+      return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=def123456', (_err, res) => {
+        expect(res.headers['some-header']).to.equal('someValueFromAuthenticationMiddleware');
+      });
+    });
+
+    it('returns custom response set in authentication middleware', () => {
+      return verifyGetRequest(
+        app,
+        basePath + '/SecurityTest/Koa?access_token=ghi123456',
+        (_err, res) => {
+          expect(res.text).to.equal('some custom response');
+        },
+        401,
+      );
+    });
+
+    it('resolves right away after first success', () => {
+      const path = '/SecurityTest/ApiKeyOrTimesOut?access_token=abc123456';
+      return verifyGetRequest(
+        app,
+        basePath + path,
+        (_err, res) => {
+          const model = res.body as Model;
+          expect(model.id).to.equal(1);
+        },
+        200,
+      );
+    });
+
+    describe('Optional security (empty entry)', () => {
+      const anonymous = '/SecurityTest/ApiKeyOrAnonymous';
+
+      it('passes the user when the API key is valid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=abc123456', (_err, res) => {
+          expect(res.body.id).to.equal(1);
+        });
+      });
+
+      it('continues without a user when no credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + anonymous,
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 when the API key is invalid', () => {
+        return verifyGetRequest(app, basePath + anonymous + '?access_token=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when one scheme has no credentials and another has invalid ones', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('reports the invalid credential, not the scheme without credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=invalid',
+          err => {
+            expect(err.text).to.equal('api_key');
+          },
+          401,
+        );
+      });
+
+      it('returns 401 when a scheme rejects with an unrelated error named MissingCredentialsError', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=named-error', emptyHandler, 401);
+      });
+
+      it('continues without a user when all schemes have no credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 when an AND group has one missing and one invalid credential', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=invalid', emptyHandler, 401);
+      });
+
+      it('returns 401 when an AND group has a missing credential and a slower invalid one', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-invalid', emptyHandler, 401);
+      });
+
+      it('keeps the response a slower AND group member sent before rejecting', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-custom-response',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+      });
+
+      it('passes the user of the second scheme when only its credentials are sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body).to.deep.equal({});
+          },
+          200,
+        );
+      });
+
+      it('continues without a user when an AND group has one valid and one missing credential', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user when every member of an AND group is valid', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?access_token=abc123456&tsoa=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('continues without a user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('passes the user for controller-level optional security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OptionalSecurityTest?access_token=abc123456',
+          (_err, res) => {
+            expect(res.body.name).to.equal('Ironman');
+          },
+          200,
+        );
+      });
+
+      it('returns 401 for controller-level security without credentials', () => {
+        return verifyGetRequest(app, basePath + '/OverriddenSecurityTest', emptyHandler, 401);
+      });
+
+      it('continues without a user when a method-level empty entry overrides controller security', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/OverriddenSecurityTest/Anonymous',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      it('keeps the response an authentication function sent before rejecting with missing credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-custom-response-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+      });
+
+      it('returns 200 for a route with only an empty security entry', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/AnonymousOnly',
+          (_err, res) => {
+            expect(res.body.name).to.equal('anonymous');
+          },
+          200,
+        );
+      });
+
+      for (const kind of ['null', 'string']) {
+        it(`returns 401 when a later AND group member rejects with a ${kind} value`, () => {
+          return verifyGetRequest(app, basePath + `/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=${kind}-rejection`, emptyHandler, 401);
+        });
+      }
+
+      for (const [description, kind] of [
+        ['no body', 'status-only'],
+        ['an empty body', 'empty-body'],
+        ['the body false', 'false-body'],
+        ['the body 0', 'zero-body'],
+      ]) {
+        it(`keeps the 403 an authentication function set with ${description} before rejecting with missing credentials`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?tsoa=${kind}-missing`,
+            (_err, res) => {
+              if (kind === 'status-only') expect(res.text).to.equal('Forbidden');
+            },
+            403,
+          );
+        });
+      }
+
+      it('answers 401 on a route without an empty entry when an authentication function set a status with no body', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/OauthOrApiKey?tsoa=status-only-missing', emptyHandler, 401);
+      });
+
+      // Fastify sends an empty body immediately, so authentication cannot replace its 403 afterward.
+      it.skip('answers 401 on a route without an empty entry when an authentication function set a status with an empty body', () => {
+        return verifyGetRequest(app, basePath + '/SecurityTest/OauthOrApiKey?tsoa=empty-body-missing', emptyHandler, 401);
+      });
+
+      it('keeps the status a slower AND group member set before rejecting with missing credentials', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=slow-status-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('Forbidden');
+          },
+          403,
+        );
+      });
+
+      for (const earlierStatus of [200, 403]) {
+        it(`continues without a user when an earlier middleware set the status ${earlierStatus}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrAnonymous?earlierStatus=${earlierStatus}`,
+            (_err, res) => {
+              expect(res.body.name).to.equal('anonymous');
+            },
+            200,
+          );
+        });
+      }
+
+      for (const [description, token, status] of [
+        ['without a status', 'frozen', 401],
+        ['with a status', 'frozen-status', 403],
+      ] as const) {
+        it(`answers a frozen error ${description}`, () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/SecurityTest/ApiKeyOrOauthOrAnonymous?access_token=${token}`,
+            err => {
+              expect(err.text).to.equal('api_key');
+            },
+            status,
+          );
+        });
+      }
+
+      it('keeps a response set before rejecting with missing credentials while another AND group member is pending', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/SecurityTest/ApiKeyAndOauthOrAnonymous?access_token=never-settles&tsoa=slow-custom-response-missing',
+          (_err, res) => {
+            expect(res.text).to.equal('some custom response');
+          },
+          403,
+        );
+      });
+    });
+
+    describe('API key or tsoa auth', () => {
+      it('returns 200 if the API key is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(
+          app,
+          basePath + path,
+          (_err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 200 if tsoa auth is correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 200 if multiple auth handlers are correct', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(app, basePath + path, emptyHandler, 200);
+      });
+
+      it('returns 401 if neither API key nor tsoa auth are correct, last error to resolve is returned', () => {
+        const path = '/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=invalid';
+        return verifyGetRequest(
+          app,
+          basePath + path,
+          err => {
+            expect(err.text).to.equal('api_key');
+          },
+          401,
+        );
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          app,
+          basePath + `/SecurityTest/ServerErrorOauthOrApiKey?access_token=abc123456`,
+          (_err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
+      });
+    });
+
+    describe('API key and tsoa auth', () => {
+      it('returns 200 if API and tsoa auth pass validation, resolved with user from first key in object', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=abc123456';
+        return verifyGetRequest(
+          app,
+          basePath + path,
+          (_err, res) => {
+            const model = res.body as Model;
+            expect(model.id).to.equal(1);
+          },
+          200,
+        );
+      });
+
+      it('returns 401 if API key is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=abc123456&tsoa=invalid';
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
+      });
+
+      it('returns 401 if tsoa auth is incorrect', () => {
+        const path = '/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=abc123456';
+        return verifyGetRequest(app, basePath + path, emptyHandler, 401);
+      });
+
+      it('should pass through error if controller method crashes', () => {
+        return verifyGetRequest(
+          app,
+          basePath + `/SecurityTest/ServerErrorOauthAndApiKey?access_token=abc123456&tsoa=abc123456`,
+          (_err, res) => {
+            expect(res.status).to.equal(500);
+          },
+          500,
+        );
+      });
+    });
+  });
+
+  describe('Parameter data', () => {
+    it('parses query parameters', () => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Query?firstname=Tony&last_name=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
+      });
+    });
+
+    it('parses queries parameters', () => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Queries?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE&nicknames=Ironman&nicknames=Iron Man', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+        expect(model.nicknames).to.deep.equal(['Ironman', 'Iron Man']);
+      });
+    });
+
+    it('accepts any parameter using a wildcard', () => {
+      const object = {
+        foo: 'foo',
+        bar: 10,
+        baz: true,
+      };
+
+      return verifyGetRequest(app, basePath + `/GetTest/WildcardQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.anyType.foo).to.equal(object.foo);
+        expect(queryParams.anyType.bar).to.equal(String(object.bar));
+        expect(queryParams.anyType.baz).to.equal(String(object.baz));
+      });
+    });
+
+    it('should reject incompatible entries for typed wildcard', () => {
+      const object = {
+        foo: '2',
+        bar: 10,
+        baz: true,
+      };
+
+      return verifyGetRequest(
+        app,
+        basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}&baz=${String(object.baz)}`,
+        (err, _res) => {
+          const body = JSON.parse(err.text);
+          expect(body.fields['queryParams.baz'].message).to.equal('invalid float number');
+        },
+        400,
+      );
+    });
+
+    it('accepts numbered parameters using a wildcard', () => {
+      const object = {
+        foo: '3',
+        bar: 10,
+      };
+
+      return verifyGetRequest(app, basePath + `/GetTest/TypedRecordQueries?foo=${object.foo}&bar=${object.bar}`, (_err, res) => {
+        const queryParams = res.body as TestModel;
+
+        expect(queryParams.anyType.foo).to.equal(Number(object.foo));
+        expect(queryParams.anyType.bar).to.equal(object.bar);
+      });
+    });
+
+    it('parses path parameters', () => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Path/Tony/Stark/45/82.1/true/MALE', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+      });
+    });
+
+    it('parses header parameters', () => {
+      return verifyRequest(
+        app,
+        (_err, res) => {
+          const model = res.body as ParameterTestModel;
+          expect(model.firstname).to.equal('Tony');
+          expect(model.lastname).to.equal('Stark');
+          expect(model.age).to.equal(45);
+          expect(model.weight).to.equal(82.1);
+          expect(model.human).to.equal(true);
+          expect(model.gender).to.equal('MALE');
+        },
+        request => {
+          return request.get(basePath + '/ParameterTest/Header').set({
+            age: '45',
+            firstname: 'Tony',
+            gender: 'MALE',
+            human: 'true',
+            last_name: 'Stark',
+            weight: '82.1',
+          });
+        },
+        200,
+      );
+    });
+
+    it('parses request parameters', () => {
+      return verifyGetRequest(app, basePath + '/ParameterTest/Request?firstname=Tony&lastname=Stark&age=45&weight=82.1&human=true&gender=MALE', (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal('MALE');
+      });
+    });
+
+    it('parse request filed parameters', () => {
+      const data: ParameterTestModel = {
+        age: 26,
+        firstname: 'Nick',
+        lastname: 'Yang',
+        gender: Gender.MALE,
+        human: true,
+        weight: 50,
+      };
+      return verifyPostRequest(app, `${basePath}/ParameterTest/RequestProps`, data, (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.age).to.equal(26);
+        expect(model.firstname).to.equal('Nick');
+        expect(model.lastname).to.equal('Yang');
+        expect(model.gender).to.equal(Gender.MALE);
+        expect(model.weight).to.equal(50);
+        expect(model.human).to.equal(true);
+      });
+    });
+
+    it('parses body parameters', () => {
+      const data: ParameterTestModel = {
+        age: 45,
+        firstname: 'Tony',
+        gender: Gender.MALE,
+        human: true,
+        lastname: 'Stark',
+        weight: 82.1,
+      };
+      return verifyPostRequest(app, basePath + '/ParameterTest/Body', data, (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
+      });
+    });
+
+    it('parses body props parameters', () => {
+      const data: ParameterTestModel = {
+        age: 45,
+        firstname: 'Tony',
+        gender: Gender.MALE,
+        human: true,
+        lastname: 'Stark',
+        weight: 82.1,
+      };
+      return verifyPostRequest(app, basePath + '/ParameterTest/BodyProps', data, (_err, res) => {
+        const model = res.body as ParameterTestModel;
+        expect(model.firstname).to.equal('Tony');
+        expect(model.lastname).to.equal('Stark');
+        expect(model.age).to.equal(45);
+        expect(model.weight).to.equal(82.1);
+        expect(model.human).to.equal(true);
+        expect(model.gender).to.equal(Gender.MALE);
+      });
+    });
+
+    it('can get request with generic type', () => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModel', (_err, res) => {
+        const model = res.body as GenericModel<TestModel>;
+        expect(model.result.id).to.equal(1);
+      });
+    });
+
+    it('can get request with generic array', () => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericModelArray', (_err, res) => {
+        const model = res.body as GenericModel<TestModel[]>;
+        expect(model.result[0].id).to.equal(1);
+      });
+    });
+
+    it('can get request with generic primative type', () => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitive', (_err, res) => {
+        const model = res.body as GenericModel<string>;
+        expect(model.result).to.equal('a string');
+      });
+    });
+
+    it('can get request with generic primative array', () => {
+      return verifyGetRequest(app, basePath + '/GetTest/GenericPrimitiveArray', (_err, res) => {
+        const model = res.body as GenericModel<string[]>;
+        expect(model.result[0]).to.equal('string one');
+      });
+    });
+
+    it('can post request with a generic body', () => {
+      const data: GenericRequest<TestModel> = {
+        name: 'something',
+        value: getFakeModel(),
+      };
+      return verifyPostRequest(app, basePath + '/PostTest/GenericBody', data, (_err, res) => {
+        const model = res.body as TestModel;
+        expect(model.id).to.equal(1);
+      });
+    });
+
+    describe('@Res', () => {
+      it('Should return on @Res', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/GetTest/Res',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          400,
+        );
+      });
+
+      it('Should return on @Res with alias', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/GetTest/Res_Alias',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('name')).to.equal('some_thing');
+          },
+          400,
+        );
+      });
+
+      [400, 500].forEach(statusCode => {
+        it('Should support multiple status codes with the same @Res structure', () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/GetTest/MultipleStatusCodeRes?statusCode=${statusCode}`,
+            (_err, res) => {
+              const model = res.body as TestModel;
+              expect(model.id).to.equal(1);
+              expect(res.get('custom-header')).to.eq('hello');
+            },
+            statusCode,
+          );
+        });
+
+        it('Should support multiple status codes with the same @Res structure with alias', () => {
+          return verifyGetRequest(
+            app,
+            basePath + `/GetTest/MultipleStatusCodeRes_Alias?statusCode=${statusCode}`,
+            (_err, res) => {
+              const model = res.body as TestModel;
+              expect(model.id).to.equal(1);
+              expect(res.get('name')).to.eq('combine');
+            },
+            statusCode,
+          );
+        });
+      });
+
+      it('Should not modify the response after headers sent', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/GetTest/MultipleRes',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('custom-header')).to.eq('hello');
+          },
+          400,
+        );
+      });
+
+      it('Should not modify the response after headers sent with alias', () => {
+        return verifyGetRequest(
+          app,
+          basePath + '/GetTest/MultipleRes_Alias',
+          (_err, res) => {
+            const model = res.body as TestModel;
+            expect(model.id).to.equal(1);
+            expect(res.get('name')).to.eq('some_thing');
+          },
+          400,
+        );
+      });
+    });
+  });
+
+  describe('Sub resource', () => {
+    it('parses path parameters from the controller description', () => {
+      const mainResourceId = 'main-123';
+
+      return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
+        expect(res.text).to.equal(mainResourceId);
+      });
+    });
+
+    it('parses path parameters from the controller description and method description', () => {
+      const mainResourceId = 'main-123';
+      const subResourceId = 'sub-456';
+
+      return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
+        expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
+      });
+    });
+  });
+
+  describe('file upload', function () {
+    this.timeout(20_000);
+
+    it('can post a file', () => {
+      const formData = { someFile: '@../package.json' };
+      return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (_err, res) => {
+        const packageJsonBuffer = readFileSync(resolve(__dirname, '../package.json'));
+        const returnedBuffer = Buffer.from(res.body.buffer);
+        expect(res.body).to.not.be.undefined;
+        expect(res.body.fieldname).to.equal('someFile');
+        expect(res.body.originalname).to.equal('package.json');
+        expect(res.body.encoding).to.be.not.undefined;
+        expect(res.body.mimetype).to.equal('application/json');
+        expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+      });
+    });
+
+    it('can post a file without name', () => {
+      const formData = { aFile: '@../package.json' };
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileWithoutName', formData, (_err, res) => {
+        expect(res.body).to.not.be.undefined;
+        expect(res.body.fieldname).to.equal('aFile');
+      });
+    });
+
+    it('cannot post a file with wrong attribute name', () => {
+      const formData = { wrongAttributeName: '@../package.json' };
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(500);
+          expect(res.text).to.be.oneOf(['Unexpected field', 'Unexpected file field']);
+        },
+        500,
+      );
+    });
+
+    it('cannot post a file with no file', () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      return verifyFileUploadRequest(
+        app,
+        basePath + '/PostTest/File',
+        formData,
+        (_err, res) => {
+          expect(res.status).to.equal(400);
+          expect(res.text).to.equal('{"fields":{"someFile":{"message":"\'someFile\' is required"}}}');
+        },
+        400,
+      );
+    });
+
+    it('can post a file with no file', () => {
+      const formData = { notAFileAttribute: 'not a file' };
+      return verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.text).to.equal('no file');
+      });
+    });
+
+    it('can post multiple files with other form fields', () => {
+      const formData = {
+        a: 'b',
+        c: 'd',
+        someFiles: ['@../package.json', '@../tsconfig.json'],
+      };
+
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+        for (const file of res.body as File[]) {
+          const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+          const returnedBuffer = Buffer.from(file.buffer);
+          expect(file).to.not.be.undefined;
+          expect(file.fieldname).to.be.not.undefined;
+          expect(file.originalname).to.be.not.undefined;
+          expect(file.encoding).to.be.not.undefined;
+          expect(file.mimetype).to.equal('application/json');
+          expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
+      });
+    });
+
+    it('can post single file to multi file field', () => {
+      const formData = {
+        a: 'b',
+        c: 'd',
+        someFiles: ['@../package.json'],
+      };
+
+      return verifyFileUploadRequest(app, basePath + '/PostTest/ManyFilesAndFormFields', formData, (_err, res) => {
+        expect(res.body).to.be.length(1);
+      });
+    });
+
+    it('can post multiple files with different field', () => {
+      const formData = {
+        file_a: '@../package.json',
+        file_b: '@../tsconfig.json',
+      };
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentFields`, formData, (_err, res) => {
+        for (const file of res.body as File[]) {
+          const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+          const returnedBuffer = Buffer.from(file.buffer);
+          expect(file).to.not.be.undefined;
+          expect(file.fieldname).to.be.not.undefined;
+          expect(file.originalname).to.be.not.undefined;
+          expect(file.encoding).to.be.not.undefined;
+          expect(file.mimetype).to.equal('application/json');
+          expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
+      });
+    });
+
+    it('can post multiple files with different array fields', () => {
+      const formData = {
+        files_a: ['@../package.json', '@../tsconfig.json'],
+        file_b: '@../tsoa.json',
+        files_c: ['@../tsconfig.json', '@../package.json'],
+      };
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/ManyFilesInDifferentArrayFields`, formData, (_err, res) => {
+        for (const fileList of res.body as File[][]) {
+          for (const file of fileList) {
+            const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+            const returnedBuffer = Buffer.from(file.buffer);
+            expect(file).to.not.be.undefined;
+            expect(file.fieldname).to.be.not.undefined;
+            expect(file.originalname).to.be.not.undefined;
+            expect(file.encoding).to.be.not.undefined;
+            expect(file.mimetype).to.equal('application/json');
+            expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+          }
+        }
+      });
+    });
+
+    it('validates repeated multipart text fields as an array in encounter order', () => {
+      return verifyFileUploadRequest(
+        app,
+        `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`,
+        { username: ['first', 'last'], avatar: '@../tsconfig.json' },
+        (_err, res) => {
+          expect(JSON.parse(res.text).fields.username).to.deep.equal({ message: 'invalid string value', value: ['first', 'last'] });
+        },
+        400,
+      );
+    });
+
+    it('rejects truncated multipart text fields', () => {
+      return verifyFileUploadRequest(
+        app,
+        `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`,
+        { username: 'x'.repeat(1048577), avatar: '@../tsconfig.json' },
+        (_err, res) => {
+          expect(res.text).to.equal('Field value too long');
+        },
+        500,
+      );
+    });
+
+    it('can post mixed form data content with file and not providing optional file', () => {
+      const formData = {
+        username: 'test',
+        avatar: '@../tsconfig.json',
+      };
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+        const file = res.body.avatar;
+        const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+        const returnedBuffer = Buffer.from(file.buffer);
+        expect(res.body.username).to.equal(formData.username);
+        expect(res.body.optionalAvatar).to.undefined;
+        expect(file).to.not.be.undefined;
+        expect(file.fieldname).to.be.not.undefined;
+        expect(file.originalname).to.be.not.undefined;
+        expect(file.encoding).to.be.not.undefined;
+        expect(file.mimetype).to.equal('application/json');
+        expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+      });
+    });
+
+    it('can post mixed form data content with file and provides optional file', () => {
+      const formData = {
+        username: 'test',
+        avatar: '@../tsconfig.json',
+        optionalAvatar: '@../package.json',
+      };
+      return verifyFileUploadRequest(app, `${basePath}/PostTest/MixedFormDataWithFilesContainsOptionalFile`, formData, (_err, res) => {
+        expect(res.body.username).to.equal(formData.username);
+        for (const fieldName of ['avatar', 'optionalAvatar']) {
+          const file = res.body[fieldName];
+          const packageJsonBuffer = readFileSync(resolve(__dirname, `../${file.originalname}`));
+          const returnedBuffer = Buffer.from(file.buffer);
+          expect(file).to.not.be.undefined;
+          expect(file.fieldname).to.be.not.undefined;
+          expect(file.originalname).to.be.not.undefined;
+          expect(file.encoding).to.be.not.undefined;
+          expect(file.mimetype).to.equal('application/json');
+          expect(Buffer.compare(returnedBuffer, packageJsonBuffer)).to.equal(0);
+        }
+      });
+    });
+  });
+
+  describe('shutdown', () => {
+    it('shutdown server', () => fastify.close());
+  });
+
+  function getFakeModel(): TestModel {
+    // Defining as Partial to help writing and allowing to leave out values that should be dropped or made optional in generation
+    // (typed either as undefined or union with undefined typed member)
+    const testModel: Partial<TestModel> = {
+      and: { value1: 'foo', value2: 'bar' },
+      boolArray: [true, false],
+      boolValue: false,
+      id: 1,
+      modelValue: { email: 'test@test.com', id: 2 },
+      modelsArray: [{ email: 'test@test.com', id: 1 }],
+      numberArray: [1, 2],
+      numberArrayReadonly: [1, 2],
+      numberValue: 5,
+      objLiteral: {
+        name: 'hello',
+      },
+      object: { foo: 'bar' },
+      objectArray: [{ foo1: 'bar1' }, { foo2: 'bar2' }],
+      optionalString: 'test1234',
+      or: { value1: 'Foo' },
+      referenceAnd: { value1: 'foo', value2: 'bar' },
+      strLiteralArr: ['Foo', 'Bar'],
+      strLiteralVal: 'Foo',
+      stringArray: ['test', 'testtwo'],
+      stringValue: 'test1234',
+    };
+    return testModel as TestModel;
+  }
+
+  function getFakeClassModel() {
+    const model = new TestClassModel('test', 'test', 'test', 'test', 'test');
+    model.id = 100;
+    model.publicStringProperty = 'test';
+    model.stringProperty = 'test';
+    model.account = { id: 1234 };
+    model.enumKeys = 'KO';
+
+    return model;
+  }
+});

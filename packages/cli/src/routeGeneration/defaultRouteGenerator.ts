@@ -19,6 +19,9 @@ export class DefaultRouteGenerator extends AbstractRouteGenerator<ExtendedRoutes
         this.template = path.join(__dirname, '..', 'routeGeneration/templates/hapi.hbs');
         this.pathTransformerFn = (path: string) => path;
         break;
+      case 'fastify':
+        this.template = path.join(__dirname, '..', 'routeGeneration/templates/fastify.hbs');
+        break;
       case 'koa':
         this.template = path.join(__dirname, '..', 'routeGeneration/templates/koa.hbs');
         break;
