@@ -1,4 +1,4 @@
-import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import type { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
 
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';

@@ -1,4 +1,4 @@
-import { ExpressTemplateService } from '@tsoa/runtime/routeGeneration/templates/express/expressTemplateService';
+import { ExpressTemplateService } from '@tsoa/runtime/express';
 import { ValidateError } from '@tsoa/runtime/routeGeneration/templateHelpers';
 import type { TsoaRoute } from '@tsoa/runtime/routeGeneration/tsoa-route';
 import { expect } from 'chai';
