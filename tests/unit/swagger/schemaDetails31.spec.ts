@@ -895,6 +895,35 @@ describe('Definition generation for OpenAPI 3.1.0', () => {
             expect(bodyMediaTypeDefault).to.eql('application/json');
             expect(bodyMediaTypeCustom).to.eql('application/vnd.mycompany.myapp.v2+json');
           });
+
+          it('Should default a Readable request body to application/octet-stream with a binary schema', () => {
+            const requestBody = mediaTypeTest.paths['/MediaTypeTest/Binary']?.post?.requestBody as Swagger.RequestBody;
+
+            expect(Object.keys(requestBody.content)).to.deep.eq(['application/octet-stream']);
+            expect(requestBody.required).to.eq(true);
+            expect(requestBody.content['application/octet-stream'].schema).to.deep.eq({ type: 'string', format: 'binary' });
+          });
+
+          it('Should let the Consumes decorator override the media type of a Readable request body', () => {
+            const requestBody = mediaTypeTest.paths['/MediaTypeTest/Binary/Custom']?.post?.requestBody as Swagger.RequestBody;
+
+            expect(Object.keys(requestBody.content)).to.deep.eq(['image/png']);
+            expect(requestBody.content['image/png'].schema).to.deep.eq({ type: 'string', format: 'binary' });
+          });
+
+          it('Should keep a Buffer request body as a JSON byte string', () => {
+            const requestBody = mediaTypeTest.paths['/MediaTypeTest/Buffer']?.post?.requestBody as Swagger.RequestBody;
+
+            expect(Object.keys(requestBody.content)).to.deep.eq(['application/json']);
+            expect(requestBody.content['application/json'].schema).to.deep.eq({ type: 'string', format: 'byte' });
+          });
+
+          it('Should keep a Readable response as a byte string', () => {
+            const getSpec = new SpecGenerator31(metadataGet, getDefaultExtendedOptions()).GetSpec();
+            const schema = getSpec.paths['/GetTest/HandleStreamType']?.get?.responses?.[200]?.content?.['application/json']?.schema;
+
+            expect(schema).to.deep.eq({ type: 'string', format: 'byte' });
+          });
         });
 
         it('Supports multiple examples', () => {

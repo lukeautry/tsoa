@@ -58,15 +58,15 @@
     "joi": "^17.13.3",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.0",
-    "lerna": "^8.1.9",
+    "lerna": "^10.1.1",
     "lint-staged": "^15.2.10",
     "method-override": "^3.0.0",
-    "mocha": "^10.7.3",
+    "mocha": "^12.0.3",
     "multer": "^2.0.2",
     "prettier": "^3.4.2",
     "reflect-metadata": "^0.2.2",
     "rimraf": "^5.0.5",
-    "sinon": "^19.0.2",
+    "sinon": "^21.1.2",
     "supertest": "^7.0.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
@@ -79,7 +79,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": ">=18.0.0"
+    "node": "^22.22.2 || ^24.15.0 || ^26.0.0"
   },
   "engineStrict": true
 }

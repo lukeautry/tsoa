@@ -49,14 +49,15 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^4.3.0",
-    "lerna": "^8.1.8",
+    "lerna": "^10.1.1",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typedoc": "^0.26.7"
   },
   "resolutions": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "**/nx/undici": "^7.30.1"
   },
   "repository": {
     "type": "git",
@@ -64,7 +65,7 @@
   },
   "engines": {
     "yarn": ">=1.9.4",
-    "node": ">=18.0.0"
+    "node": "^22.22.2 || ^24.15.0 || ^26.0.0"
   },
   "engineStrict": true,
   "workspaces": [

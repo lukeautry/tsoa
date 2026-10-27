@@ -29,6 +29,10 @@ type ExpressReturnHandlerParameters = {
   data?: any;
 };
 
+// body-parser leaves `{}` when a request has neither `Content-Length` nor `Transfer-Encoding`, or has `Content-Length: 0`
+const isEmptyBodyPlaceholder = ({ headers, body }: ExRequest) =>
+  !headers?.['transfer-encoding'] && Number(headers?.['content-length'] ?? 0) === 0 && body?.constructor === Object && Object.keys(body).length === 0;
+
 export class ExpressTemplateService extends TemplateService<ExpressApiHandlerParameters, ExpressValidationArgsParameters, ExpressReturnHandlerParameters> {
   async apiHandler(params: ExpressApiHandlerParameters) {
     const { methodName, controller, response, validatedArgs, successStatus, next } = params;
@@ -71,8 +75,14 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'header':
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            if (!request.readableEnded) return request;
+            fieldErrors[name] = { message: 'request body was already consumed by a body parser' };
+            return undefined;
+          }
+          const body = !param.required && isEmptyBodyPlaceholder(request) ? undefined : request.body;
           const bodyFieldErrors: FieldErrors = {};
-          const bodyArgs = this.validationService.ValidateParam(param, request.body, name, bodyFieldErrors, true, undefined);
+          const bodyArgs = this.validationService.ValidateParam(param, body, name, bodyFieldErrors, true, undefined);
           Object.keys(bodyFieldErrors).forEach(key => {
             fieldErrors[key] = { message: bodyFieldErrors[key].message };
           });

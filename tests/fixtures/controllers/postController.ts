@@ -128,4 +128,9 @@ export class PostTestController {
   public async getGenericRequest(@Body() genericReq: GenericRequest<TestModel>): Promise<TestModel> {
     return genericReq.value;
   }
+
+  @Post('OptionalBody')
+  public async postOptionalBody(@Body() body?: { foo: boolean }): Promise<{ received: boolean }> {
+    return { received: body !== undefined };
+  }
 }

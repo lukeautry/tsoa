@@ -2,7 +2,7 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import { fetchMiddlewares, HapiTemplateService } from '@tsoa/runtime';
+import { fetchMiddlewares, HapiTemplateService{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
@@ -96,6 +96,12 @@ export function RegisterRoutes(server: any) {
                   allow: 'multipart/form-data'
                 },
                 {{/if}}
+                {{#if binaryBody}}
+                payload: {
+                  output: 'stream',
+                  parse: false
+                },
+                {{/if}}
                 handler: {{#if ../../iocModule}}async {{/if}}function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
 
                     let validatedArgs: any[] = [];
@@ -161,6 +167,7 @@ export function RegisterRoutes(server: any) {
             };
 
             const secMethodOrPromises: Promise<any>[] = [];
+            const attempts: Promise<any>[] = [];
             for (const secMethod of security) {
                 if (Object.keys(secMethod).length > 1) {
                     const secMethodAndPromises: Promise<any>[] = [];
@@ -174,14 +181,14 @@ export function RegisterRoutes(server: any) {
 
                     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
+                    attempts.push(...secMethodAndPromises);
                     secMethodOrPromises.push(Promise.all(secMethodAndPromises)
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        secMethodOrPromises.push(
-                            hapiAuthentication(request, name, secMethod[name])
-                                .catch(pushAndRethrow)
-                        );
+                        const attempt = hapiAuthentication(request, name, secMethod[name]).catch(pushAndRethrow);
+                        attempts.push(attempt);
+                        secMethodOrPromises.push(attempt);
                     }
                 }
             }
@@ -193,8 +200,13 @@ export function RegisterRoutes(server: any) {
                 return request['user'];
             }
             catch(err) {
-                // Show most recent error as response
-                const error = failedAttempts.pop();
+                // An empty security entry (`@Security({})`) allows requests without credentials
+                const fallback = isAnonymousFallback(security, attempts);
+                if (fallback !== false && (await fallback)) {
+                    return request.raw.res.writableEnded ? h.abandon : h.continue;
+                }
+
+                const error = failureToReport(security, failedAttempts);
                 if (isBoom(error)) {
                     throw error;
                 }

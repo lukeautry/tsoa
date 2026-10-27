@@ -67,7 +67,7 @@ export class MethodGenerator {
       parameters,
       path: this.path,
       produces: this.produces,
-      consumes: this.consumes,
+      consumes: this.consumes ?? (parameters.some(p => p.in === 'body' && p.type.dataType === 'binary') ? 'application/octet-stream' : undefined),
       responses,
       successStatus,
       security: this.getSecurity(),
