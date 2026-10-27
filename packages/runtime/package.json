@@ -4,6 +4,40 @@
   "version": "7.0.0-alpha.0",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "default": "./dist/express.js"
+    },
+    "./hapi": {
+      "types": "./dist/hapi.d.ts",
+      "default": "./dist/hapi.js"
+    },
+    "./koa": {
+      "types": "./dist/koa.d.ts",
+      "default": "./dist/koa.js"
+    },
+    "./package.json": "./package.json",
+    "./dist/*.js": "./dist/*.js",
+    "./dist/*": "./dist/*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "express": [
+        "./dist/express.d.ts"
+      ],
+      "hapi": [
+        "./dist/hapi.d.ts"
+      ],
+      "koa": [
+        "./dist/koa.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
@@ -28,18 +62,38 @@
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
   "dependencies": {
-    "@hapi/boom": "^10.0.1",
-    "@hapi/hapi": "^21.3.12",
-    "@types/koa": "^2.15.0",
     "@types/multer": "^1.4.12",
-    "express": "^4.21.2",
     "reflect-metadata": "^0.2.2",
     "validator": "^13.12.0"
   },
   "devDependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.3.12",
+    "@types/express": "5.0.3",
+    "@types/koa": "^2.15.0",
     "@types/node": "^18.0.0",
     "@types/validator": "^13.12.2",
     "typescript": "^5.7.2 || ^6.0.3"
+  },
+  "peerDependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.3.12",
+    "@types/express": "^4.17.21 || ^5.0.0",
+    "@types/koa": "^2.15.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@hapi/boom": {
+      "optional": true
+    },
+    "@hapi/hapi": {
+      "optional": true
+    },
+    "@types/express": {
+      "optional": true
+    },
+    "@types/koa": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",

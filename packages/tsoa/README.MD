@@ -33,6 +33,26 @@ OpenAPI-compliant REST APIs using TypeScript and Node
 - Runtime validation of tsoa should behave as closely as possible to the specifications that the generated OpenAPI 2/3 schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the OpenAPI Specification (OAS) and/or the routes.
   - Please note that by enabling OpenAPI 3 you minimize the chances of divergent validation logic since OpenAPI 3 has a more expressive schema syntax.
 
+## Framework packages
+
+`@tsoa/runtime` does not install a web framework. Its framework packages are optional peer dependencies, so install the ones for the framework you use:
+
+| Framework | Packages                             |
+| --------- | ------------------------------------ |
+| Express   | `express`, `@types/express` (4 or 5) |
+| Koa       | `koa`, `@types/koa` (2 or 3)         |
+| Hapi      | `@hapi/hapi`, `@hapi/boom`           |
+
+The generated Hapi routes import `boomify` and `isBoom` from `@hapi/boom`. `@hapi/hapi` depends on it, but list it in your own `package.json` as well: with pnpm or another strict layout, the routes cannot resolve it otherwise.
+
+Each framework's template service has its own entry point. The `@tsoa/runtime` and `tsoa` roots do not export them, so custom route templates (`routes.middlewareTemplate`) and classes that extend a template service import them from the subpath:
+
+```ts
+import { ExpressTemplateService } from '@tsoa/runtime/express';
+import { HapiTemplateService } from '@tsoa/runtime/hapi';
+import { KoaTemplateService } from '@tsoa/runtime/koa';
+```
+
 ## Getting Started
 
 - [Documentation](https://tsoa-community.github.io/docs/)
