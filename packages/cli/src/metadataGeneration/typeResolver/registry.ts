@@ -16,7 +16,7 @@ export class ReferenceRegistry {
 
   constructor(private readonly generator: MetadataGenerator) {}
 
-  /** `register: false` builds (and caches) the model without adding it to the metadata, as legacy does for heritage bases. */
+  /** `register: false` builds (and caches) the model without adding it to the metadata, as for heritage bases. */
   public reference(refName: string, type: ts.Type, build: () => Tsoa.ReferenceType, register = true): Tsoa.ReferenceType {
     // One refName, one type: a model must never be built from a type it does not describe.
     const known = this.types.get(refName);

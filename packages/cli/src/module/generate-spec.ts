@@ -24,19 +24,9 @@ export const generateSpec = async (
    */
   metadata?: Tsoa.Metadata,
   defaultNumberType?: Config['defaultNumberType'],
-  typeResolver?: Config['typeResolver'],
 ) => {
   if (!metadata) {
-    metadata = new MetadataGenerator(
-      swaggerConfig.entryFile,
-      compilerOptions,
-      ignorePaths,
-      swaggerConfig.controllerPathGlobs,
-      swaggerConfig.rootSecurity,
-      defaultNumberType,
-      undefined,
-      typeResolver,
-    ).Generate();
+    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate();
   }
 
   let spec: Swagger.Spec;

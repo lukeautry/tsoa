@@ -479,6 +479,73 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
         });
       });
 
+      describe('Types the type checker evaluates', () => {
+        const schemas = () => currentSpec.spec.components.schemas!;
+        // Drops undefined-valued keys so schemas can be compared deeply.
+        const resolve = (schema: unknown): Swagger.Schema3 => {
+          const { $ref } = (schema ?? {}) as Swagger.Schema3;
+          return $ref ? resolve(schemas()[$ref.replace('#/components/schemas/', '')]) : (JSON.parse(JSON.stringify(schema)) as Swagger.Schema3);
+        };
+        const response = (path: string) => currentSpec.spec.paths[`/ComplexType/Checked/${path}`].get!.responses['200'].content!['application/json'].schema as Swagger.Schema3;
+
+        it('should resolve typeof a const object', () => {
+          const config = resolve(response('TypeofConst'));
+          expect(config.properties?.mode).to.deep.include({ type: 'string', enum: ['a'] });
+          expect(config.properties?.retries).to.deep.include({ type: 'number', enum: [3] });
+        });
+
+        it('should resolve indexed access by an enum member', () => {
+          expect(resolve(response('IndexedByEnum'))).to.deep.include({ type: 'object', properties: { foo: { type: 'string' } }, required: ['foo'] });
+        });
+
+        it('should evaluate intrinsic string types', () => {
+          const shout = resolve(resolve(response('Intrinsic')).properties?.value);
+          expect(shout.type).to.equal('string');
+          expect(shout.enum).to.have.members(['ABC', 'DEF']);
+        });
+
+        it('should resolve template literal types with an open part to string', () => {
+          expect(resolve(resolve(response('TemplateLiteral')).properties?.id)).to.deep.equal({ type: 'string' });
+        });
+
+        it('should evaluate Exclude over a discriminated union', () => {
+          const members = resolve(response('Exclude')).anyOf!.map(resolve);
+          expect(members.map(member => member.properties?.type)).to.deep.equal([
+            { type: 'string', enum: ['a'], nullable: false },
+            { type: 'string', enum: ['b'], nullable: false },
+          ]);
+        });
+
+        it('should resolve the keys and values of a const object', () => {
+          const { role, value } = resolve(response('KeysAndValues')).properties!;
+          expect(resolve(role)).to.deep.include({ type: 'string', enum: ['admin', 'user'] });
+          expect(resolve(value)).to.deep.include({ type: 'number', enum: [1, 2] });
+        });
+
+        it('should keep validators of aliased property types through Omit', () => {
+          expect(resolve(response('Omit')).properties?.id).to.deep.equal({ $ref: '#/components/schemas/UUID' });
+          expect(resolve(schemas().UUID)).to.deep.equal({ type: 'string', pattern: '^[0-9a-f-]{36}$' });
+        });
+
+        it('should instantiate utility types inside generic aliases', () => {
+          const [partial, required] = resolve(response('OnlyRequire')).allOf!.map(resolve);
+          expect(partial.properties).to.have.all.keys('id', 'name', 'age');
+          expect(partial.required).to.equal(undefined);
+          expect(required.properties).to.have.all.keys('id');
+          expect(required.required).to.deep.equal(['id']);
+        });
+
+        it('should remap keys with `as`', () => {
+          expect(resolve(response('Getters'))).to.deep.include({ required: ['getId', 'getAge'] });
+        });
+
+        it('should include inherited properties of models that reference each other', () => {
+          const item = resolve(response('Tree'));
+          expect(item.properties).to.have.all.keys('items', 'name');
+          expect(item.properties?.items).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeItem' } });
+        });
+      });
+
       describe('Schema validation', () => {
         it('should generate valid JSON schemas for complex types', () => {
           expect(currentSpec.spec).to.exist;

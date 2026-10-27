@@ -283,6 +283,50 @@ export type AliasedTagSecond = { kind: 'second'; secondValue: string };
 
 export type AliasedTagUnion = AliasedTagFirst | AliasedTagSecond;
 
+// Types that need the type checker to evaluate them
+const appConfig = { mode: 'a', retries: 3 } as const;
+export type AppConfig = typeof appConfig;
+
+export enum ParamKind {
+  A = 'a',
+  B = 'b',
+}
+export interface ParamsByKind {
+  [ParamKind.A]: { foo: string };
+  [ParamKind.B]: { bar: number };
+}
+
+export type Shout = Uppercase<'abc' | 'def'>;
+export type PrefixedId = `user_${string}`;
+
+export type CheckedEvent = { type: 'a'; a: string } | { type: 'b'; b: number } | { type: 'c' };
+
+const ROLES = { admin: 1, user: 2 } as const;
+export type Role = keyof typeof ROLES;
+export type RoleValue = (typeof ROLES)[Role];
+
+/** @pattern ^[0-9a-f-]{36}$ */
+export type UUID = string;
+export interface WithUuid {
+  id: UUID;
+  label: string;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  age: number;
+}
+export type OnlyRequire<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
+export type Getters<T> = { [K in keyof T as `get${Capitalize<string & K>}`]: T[K] };
+
+export interface TreeBase {
+  items: TreeItem[];
+}
+export interface TreeItem extends TreeBase {
+  name: string;
+}
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -535,5 +579,55 @@ export class ComplexTypeController {
       event: body,
       message: `User ${body.userId} deleted successfully`,
     };
+  }
+
+  @Get('Checked/TypeofConst')
+  public async getTypeofConst(): Promise<AppConfig> {
+    return null as any;
+  }
+
+  @Get('Checked/IndexedByEnum')
+  public async getIndexedByEnum(): Promise<ParamsByKind[ParamKind.A]> {
+    return null as any;
+  }
+
+  @Get('Checked/Intrinsic')
+  public async getIntrinsic(): Promise<{ value: Shout }> {
+    return null as any;
+  }
+
+  @Get('Checked/TemplateLiteral')
+  public async getTemplateLiteral(): Promise<{ id: PrefixedId }> {
+    return null as any;
+  }
+
+  @Get('Checked/Exclude')
+  public async getExclude(): Promise<Exclude<CheckedEvent, { type: 'c' }>> {
+    return null as any;
+  }
+
+  @Get('Checked/KeysAndValues')
+  public async getKeysAndValues(): Promise<{ role: Role; value: RoleValue }> {
+    return null as any;
+  }
+
+  @Get('Checked/Omit')
+  public async getOmit(): Promise<Omit<WithUuid, 'label'>> {
+    return null as any;
+  }
+
+  @Get('Checked/OnlyRequire')
+  public async getOnlyRequire(): Promise<OnlyRequire<Profile, 'id'>> {
+    return null as any;
+  }
+
+  @Get('Checked/Getters')
+  public async getGetters(): Promise<Getters<Pick<Profile, 'id' | 'age'>>> {
+    return null as any;
+  }
+
+  @Get('Checked/Tree')
+  public async getTree(): Promise<TreeItem> {
+    return null as any;
   }
 }

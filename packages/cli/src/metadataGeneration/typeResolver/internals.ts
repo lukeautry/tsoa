@@ -1,5 +1,5 @@
 /**
- * The only place the checker resolver touches TypeScript compiler internals. Each helper says why.
+ * The only place the type resolver touches TypeScript compiler internals. Each helper says why.
  */
 import * as ts from 'typescript';
 
@@ -14,8 +14,7 @@ export function syntheticOrigin(symbol: ts.Symbol): ts.Symbol | undefined {
 
 /**
  * TypeScript does not read JSDoc for a parameter symbol flagged as a property (constructor
- * parameter properties). Legacy clears the flags before asking; we clear them only for the
- * duration of the call — leaving them cleared makes the checker type the property as an error.
+ * parameter properties). We clear the flags only for the duration of the call — leaving them cleared makes the checker type the property as an error.
  */
 export function parameterDocumentation(symbol: ts.Symbol, checker: ts.TypeChecker): ts.SymbolDisplayPart[] {
   const flags = symbol.flags;

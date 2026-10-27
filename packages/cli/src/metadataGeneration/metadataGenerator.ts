@@ -5,9 +5,7 @@ import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { CheckerTypeResolver } from './checker/checkerTypeResolver';
-import { TypeResolver } from './typeResolver';
-import { resolveTypeResolverMode, type TypeResolverMode } from './typeResolverMode';
+import { TypeResolver } from './typeResolver/typeResolver';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
@@ -17,8 +15,7 @@ export class MetadataGenerator {
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
   public readonly compilerOptions: CompilerOptions;
-  private checkerResolver?: CheckerTypeResolver;
-  public readonly typeResolverMode: TypeResolverMode;
+  private typeResolver?: TypeResolver;
 
   constructor(
     entryFile: string,
@@ -28,10 +25,7 @@ export class MetadataGenerator {
     private readonly rootSecurity: Tsoa.Security[] = [],
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
     esm = false,
-    typeResolver?: TypeResolverMode,
   ) {
-    this.typeResolverMode = resolveTypeResolverMode(typeResolver);
-    TypeResolver.clearCache();
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
@@ -217,16 +211,12 @@ export class MetadataGenerator {
   };
 
   /**
-   * Resolves a type annotation to tsoa metadata with the configured resolver.
+   * Resolves a type annotation to tsoa metadata.
    * `type` may be passed when the checker type is already known (e.g. for synthesized nodes).
    */
   public resolveType(typeNode: TypeNode, parentNode?: Node, type?: Type): Tsoa.Type {
-    if (this.typeResolverMode === 'checker') {
-      this.checkerResolver ??= new CheckerTypeResolver(this);
-      return this.checkerResolver.resolveNode(typeNode, parentNode, type);
-    }
-    // The legacy resolver ignores `type` so its behavior stays exactly as before.
-    return new TypeResolver(typeNode, this, parentNode).resolve();
+    this.typeResolver ??= new TypeResolver(this);
+    return this.typeResolver.resolveNode(typeNode, parentNode, type);
   }
 
   public TypeChecker() {

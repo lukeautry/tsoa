@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { GenerateMetadataError } from '../exceptions';
-import type { LegacyNamer } from './naming';
+import type { TypeNamer } from './naming';
 
 /**
  * Syntax that travels alongside a checker type. It never decides what a schema is; it only supplies
@@ -11,14 +11,14 @@ export interface Site {
   node?: ts.TypeNode;
   /** The declaration owning this position (property, parameter, alias), for JSDoc and decorator hints. */
   declaration?: ts.Node;
-  /** Written type arguments for the type parameters in scope, keyed by type-parameter name (as legacy does). */
+  /** Written type arguments for the type parameters in scope, keyed by type-parameter name. */
   substitutions: Substitutions;
 }
 
 export interface Substitution {
   /** The written type argument (or default). */
   node: ts.TypeNode;
-  /** The argument's legacy type name, used when naming references to the type parameter. */
+  /** The argument's type name, used when naming references to the type parameter. */
   name: string;
   /** The substitutions in scope where `node` was written. */
   scope: Substitutions;
@@ -60,14 +60,14 @@ export function followSite(site: Site): Site {
 }
 
 /**
- * Maps a generic declaration's type parameters to the arguments written at `reference`
- * (port of legacy `typeArgumentsToContext`): a forwarded type parameter, the argument, or the default.
+ * Maps a generic declaration's type parameters to the arguments written at `reference`:
+ * a forwarded type parameter, the argument, or the default.
  */
 export function substitutionsFor(
   reference: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments,
   typeParameters: readonly ts.TypeParameterDeclaration[] | undefined,
   outer: Site,
-  namer: LegacyNamer,
+  namer: TypeNamer,
 ): Substitutions {
   const substitutions = new Map<string, Substitution>();
   (typeParameters ?? []).forEach((typeParameter, index) => {

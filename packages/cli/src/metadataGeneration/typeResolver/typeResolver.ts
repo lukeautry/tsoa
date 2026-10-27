@@ -7,7 +7,7 @@ import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
 import { isArrayType, isErrorType, isTupleType, tupleElementFlags, unionOf } from './internals';
 import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
-import { LegacyNamer } from './naming';
+import { TypeNamer } from './naming';
 import { ReferenceRegistry } from './registry';
 import { childSite, followSite, rootSite, type Site } from './site';
 import { resolveSpecialType } from './specialTypes';
@@ -17,15 +17,14 @@ type LiteralValue = string | number | boolean | null;
 
 /**
  * Turns checker types into tsoa metadata. The checker's (instantiated) type decides the schema;
- * the Site only contributes names, annotations and written member order. See the design doc
- * "Core rule: semantics from types, hints from syntax".
+ * the Site only contributes names, annotations and written member order.
  */
-export class CheckerTypeResolver {
-  public readonly namer: LegacyNamer;
+export class TypeResolver {
+  public readonly namer: TypeNamer;
   public readonly registry: ReferenceRegistry;
 
   constructor(public readonly generator: MetadataGenerator) {
-    this.namer = new LegacyNamer(generator);
+    this.namer = new TypeNamer(generator);
     this.registry = new ReferenceRegistry(generator);
   }
 
@@ -38,7 +37,7 @@ export class CheckerTypeResolver {
     return this.resolve(type ?? this.typeOfNode(typeNode, parentNode), rootSite(typeNode, parentNode));
   }
 
-  /** The single classification dispatch. Order matters; see the design doc "Type classification". */
+  /** The single classification dispatch. Order matters. */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
     const followed = descriptiveSite(this.checker, followSite(site));
     if (isErrorType(type)) {
@@ -196,7 +195,7 @@ export class CheckerTypeResolver {
 
   /**
    * An intersection written in source, member by member, when every member's type is known.
-   * The checker flattens (`(A & B) & C`) and distributes (`(A | B) & C`) intersections; legacy kept
+   * The checker flattens (`(A & B) & C`) and distributes (`(A | B) & C`) intersections; we keep
    * the written members, and their intersection is the same type.
    */
   private resolveWrittenIntersection(site: Site, node: ts.IntersectionTypeNode): Tsoa.IntersectionType | undefined {
@@ -212,12 +211,12 @@ export class CheckerTypeResolver {
    * A union with no written form, in checker order, with true|false collapsed to boolean and every
    * member of an enum collapsed to the enum (the checker flattens `Color | undefined` into the
    * enum's members). Members of a mapped type over a union stay on the mapped site, so they remain
-   * inline objects (legacy).
+   * inline objects.
    */
   private resolveCheckerUnion(types: readonly ts.Type[], site: Site): Tsoa.Type {
     const memberSite = site.node && ts.isMappedTypeNode(site.node) ? site : childSite(site, undefined);
     const nullish = (t: ts.Type) => (t.flags & ts.TypeFlags.Null ? 1 : t.flags & ts.TypeFlags.Undefined ? 2 : 0);
-    // Printed unions (what legacy walked) list null, then undefined, last.
+    // Like printed unions, list null, then undefined, last.
     types = [...types].sort((a, b) => nullish(a) - nullish(b));
     const members: Array<ts.Type | 'boolean'> = [];
     const hasTrue = types.some(t => t.flags & ts.TypeFlags.BooleanLiteral && literalValue(t) === true);
@@ -266,7 +265,7 @@ export class CheckerTypeResolver {
     return this.resolveCheckerUnion(members, followed);
   }
 
-  /** Property keys (`keyof X`): literal keys as enums; `string | number` for indexable keys (legacy). */
+  /** Property keys (`keyof X`): literal keys as enums; `string | number` for indexable keys. */
   private resolveKeys(type: ts.Type, site: Site): Tsoa.Type {
     const members = type.isUnion() ? type.types : [type];
     const literals = members.map(literalValue).filter((value): value is string | number => typeof value === 'string' || typeof value === 'number');
@@ -335,7 +334,7 @@ function literalValue(type: ts.Type): LiteralValue | undefined {
   return undefined;
 }
 
-/** Literal values as one enum, or one enum per primitive kind when mixed (as legacy `keyof` does). */
+/** Literal values as one enum, or one enum per primitive kind when mixed (as for `keyof`). */
 function literalEnums(values: LiteralValue[]): Tsoa.Type {
   const strings = values.filter(v => typeof v === 'string');
   const numbers = values.filter(v => typeof v === 'number');

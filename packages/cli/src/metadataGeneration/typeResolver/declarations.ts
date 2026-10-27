@@ -13,7 +13,7 @@ export function symbolAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | un
 }
 
 /**
- * The model declarations a written reference points at (port of legacy `getModelTypeDeclarations`).
+ * The model declarations a written reference points at.
  * Returns [] when the reference has no usable declarations (type parameters, built-ins, unresolved).
  */
 export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName): ModelDeclaration[] {

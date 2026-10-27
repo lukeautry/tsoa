@@ -1,5 +1,5 @@
-import { type TypeNode, SyntaxKind } from 'typescript';
-import { Tsoa, assertNever } from '@tsoa/runtime';
+import { SyntaxKind } from 'typescript';
+import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
 
@@ -21,34 +21,6 @@ export class PrimitiveTransformer extends Transformer {
       default:
         return undefined;
     }
-  }
-
-  public transform(defaultNumberType: DefaultNumberType, typeNode: TypeNode, partentJsDocTagNames?: string[]): Tsoa.Type | undefined {
-    const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(typeNode.kind);
-    if (!resolvedType) {
-      return;
-    }
-
-    switch (resolvedType) {
-      case 'number':
-        return this.transformNumber(defaultNumberType, partentJsDocTagNames);
-      case 'string':
-      case 'boolean':
-      case 'void':
-      case 'undefined':
-        return { dataType: resolvedType };
-      case 'null':
-        return {
-          dataType: 'enum',
-          enums: [null],
-        };
-      default:
-        return assertNever(resolvedType);
-    }
-  }
-
-  private transformNumber(defaultNumberType: DefaultNumberType, partentJsDocTagNames?: string[]): Tsoa.PrimitiveType {
-    return PrimitiveTransformer.numberType(defaultNumberType, partentJsDocTagNames);
   }
 
   /** The number format selected by `@isInt`/`@isLong`/`@isFloat`/`@isDouble`, else the default. */

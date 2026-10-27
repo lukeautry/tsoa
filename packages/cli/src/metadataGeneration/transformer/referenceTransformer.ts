@@ -1,12 +1,8 @@
-import type { TypeAliasDeclaration, Type } from 'typescript';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
 import { EnumTransformer } from './enumTransformer';
-import { TypeResolver } from '../typeResolver';
 import { GenerateMetadataError } from '../exceptions';
-import { getPropertyValidators } from '../../utils/validatorUtils';
-import { isExistJSDocTag } from '../../utils/jsDocUtils';
 
 export class ReferenceTransformer extends Transformer {
   public static merge(referenceTypes: Tsoa.ReferenceType[]): Tsoa.ReferenceType {
@@ -73,24 +69,5 @@ export class ReferenceTransformer extends Transformer {
     };
 
     return result;
-  }
-
-  public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Tsoa.ReferenceType {
-    const example = resolver.getNodeExample(declaration);
-
-    const title = resolver.getNodeTitle(declaration);
-    const referenceType: Tsoa.ReferenceType = {
-      dataType: 'refAlias',
-      default: TypeResolver.getDefault(declaration),
-      description: resolver.getNodeDescription(declaration),
-      refName: refTypeName,
-      format: resolver.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
-      validators: getPropertyValidators(declaration) || {},
-      deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
-      ...(example !== undefined && { example }),
-      ...(title && { title }),
-    };
-    return referenceType;
   }
 }

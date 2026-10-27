@@ -6,7 +6,7 @@ import { getPropertyValidators } from '../../utils/validatorUtils';
 import { safeFromJson } from '../../utils/jsonUtils';
 import { getExtensions, getExtensionsFromJSDocComments } from '../extension';
 import type { MetadataGenerator } from '../metadataGenerator';
-import { TypeResolver } from '../typeResolver';
+import { GenerateMetadataError } from '../exceptions';
 import { symbolAt } from './declarations';
 import { parameterDocumentation } from './internals';
 
@@ -79,4 +79,57 @@ export const nodeFormat = (node: ts.Node) => getJSDocComment(node, 'format');
 export const nodeTitle = (node: ts.Node) => getJSDocComment(node, 'title');
 
 /** The parsed `@default` JSDoc value. */
-export const nodeDefault = (node: ts.Node): unknown => TypeResolver.getDefault(node);
+export function nodeDefault(node: ts.Node): unknown {
+  const defaultStr = getJSDocComment(node, 'default');
+  if (typeof defaultStr == 'string' && defaultStr !== 'undefined') {
+    let textStartCharacter: `"` | "'" | '`' | undefined = undefined;
+    const inString = () => textStartCharacter !== undefined;
+
+    let formattedStr = '';
+    for (let i = 0; i < defaultStr.length; ++i) {
+      const actCharacter = defaultStr[i];
+      if (inString()) {
+        if (actCharacter === textStartCharacter) {
+          formattedStr += '"';
+          textStartCharacter = undefined;
+        } else if (actCharacter === '"') {
+          formattedStr += '\\"';
+        } else if (actCharacter === '\\') {
+          ++i;
+          if (i < defaultStr.length) {
+            const nextCharacter = defaultStr[i];
+            if (['n', 't', 'r', 'b', 'f', '\\', '"'].includes(nextCharacter)) {
+              formattedStr += '\\' + nextCharacter;
+            } else if (!['v', '0'].includes(nextCharacter)) {
+              //\v, \0 characters are not compatible with JSON
+              formattedStr += nextCharacter;
+            }
+          } else {
+            formattedStr += actCharacter; // this is a bug, but let the JSON parser decide how to handle it
+          }
+        } else {
+          formattedStr += actCharacter;
+        }
+      } else {
+        if ([`"`, "'", '`'].includes(actCharacter)) {
+          textStartCharacter = actCharacter as `"` | "'" | '`';
+          formattedStr += '"';
+        } else if (actCharacter === '/' && i + 1 < defaultStr.length && defaultStr[i + 1] === '/') {
+          i += 2;
+          while (i < defaultStr.length && defaultStr[i] !== '\n') {
+            ++i;
+          }
+        } else {
+          formattedStr += actCharacter;
+        }
+      }
+    }
+    try {
+      const parsed = JSON.parse(formattedStr);
+      return parsed;
+    } catch (err) {
+      throw new GenerateMetadataError(`JSON could not parse default str: "${defaultStr}", preformatted: "${formattedStr}"\nmessage: "${((err as any)?.message as string) || '-'}"`);
+    }
+  }
+  return undefined;
+}

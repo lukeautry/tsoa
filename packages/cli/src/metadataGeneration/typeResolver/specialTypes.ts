@@ -5,7 +5,7 @@ import { DateTransformer } from '../transformer/dateTransformer';
 import { followSite, type Site } from './site';
 
 /**
- * Types tsoa maps specially. Like legacy, they are recognized by name: the written reference when
+ * Types tsoa maps specially. They are recognized by name: the written reference when
  * there is one (so an alias of Date is first resolved as an alias), else the type's symbol.
  * Returns 'promise' when the caller should unwrap the single type argument.
  */

@@ -1,6 +1,6 @@
 /**
  * What written syntax says about a type: the type a written node denotes, and which written
- * nodes describe their type's shape. Used by the checker resolver; never decides a schema alone.
+ * nodes describe their type's shape. Used by the type resolver; never decides a schema alone.
  */
 import * as ts from 'typescript';
 import { symbolAt } from './declarations';
@@ -33,7 +33,7 @@ export function writtenType(checker: ts.TypeChecker, site: Site): ts.Type | unde
 /**
  * Nodes that do not describe their type's shape (conditional, indexed access, type queries…) are
  * replaced: indexed access by the indexed property's declaration, the others by nothing, so the
- * type is named as the checker prints it (what legacy did with `typeToTypeNode`).
+ * type is named as the checker prints it.
  */
 export function descriptiveSite(checker: ts.TypeChecker, site: Site): Site {
   const node = site.node;
@@ -41,7 +41,7 @@ export function descriptiveSite(checker: ts.TypeChecker, site: Site): Site {
     return site;
   }
   if (ts.isIndexedAccessTypeNode(node)) {
-    // Legacy read the indexed property's (or element's) type node, but kept the outer declaration's JSDoc.
+    // Read the indexed property's (or element's) type node, but keep the outer declaration's JSDoc.
     const element = node.indexType.kind === ts.SyntaxKind.NumberKeyword ? writtenArrayElement(node.objectType) : undefined;
     if (element) {
       return descriptiveSite(checker, followSite({ ...site, node: element }));

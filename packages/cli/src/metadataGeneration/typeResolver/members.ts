@@ -4,7 +4,7 @@ import { getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import { getInitializerValue } from '../initializer-value';
 import { readAnnotations } from './annotations';
-import type { CheckerTypeResolver } from './checkerTypeResolver';
+import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
 import { resolveNamedReference } from './models';
 import { syntheticOrigin, unionOf } from './internals';
@@ -22,10 +22,10 @@ interface WrittenMember {
 }
 
 /**
- * The model for one interface or class declaration (legacy `getModelReference`): `toJSON` wins;
+ * The model for one interface or class declaration: `toJSON` wins;
  * otherwise inherited properties (heritage clause order), then own properties.
  */
-export function resolveModel(resolver: CheckerTypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site): Tsoa.ReferenceType {
+export function resolveModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site): Tsoa.ReferenceType {
   const annotations = readAnnotations(declaration, resolver.generator);
   const header = {
     refName,
@@ -50,10 +50,10 @@ export function resolveModel(resolver: CheckerTypeResolver, declaration: Owner, 
 }
 
 /**
- * An object type that is not a named model. Written type literals keep legacy's (reverse) member
+ * An object type that is not a named model. Written type literals keep their (reverse) member
  * order; types with no written form (or written as mapped types) take the checker's properties.
  */
-export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.Type, site: Site): Tsoa.NestedObjectLiteralType {
+export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, site: Site): Tsoa.NestedObjectLiteralType {
   const node = followSite(site).node;
   if (node && ts.isTypeLiteralNode(node)) {
     const members = node.members.filter(ts.isPropertySignature).map(member => ({ name: propertyName(resolver, member), member, substitutions: site.substitutions }));
@@ -67,8 +67,8 @@ export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.T
 
   const checker = resolver.generator.typeChecker;
   const mapped = node !== undefined && ts.isMappedTypeNode(node);
-  // Written mapped types drop non-property members and @ignore (legacy mapped branch); unwritten
-  // object types drop methods and accessors, as legacy's printed type literal did.
+  // Written mapped types drop non-property members and @ignore; unwritten
+  // object types drop methods and accessors.
   const properties = checker
     .getPropertiesOfType(type)
     .filter(property => (mapped ? !isIgnoredMapped(property) : !(property.flags & (ts.SymbolFlags.Method | ts.SymbolFlags.Accessor))))
@@ -91,9 +91,9 @@ export function resolveAnonymousObject(resolver: CheckerTypeResolver, type: ts.T
  * Inherited properties first (heritage clause order), then the declaration's own. Interface and
  * class bases are read member by member against the derived type, so a base that is still being
  * built (a cycle) cannot leave properties out. Other bases (aliases such as `Partial<X>`) are
- * resolved as models without being registered, and their properties are taken (legacy).
+ * resolved as models without being registered, and their properties are taken.
  */
-function modelProperties(resolver: CheckerTypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
+function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
   const checker = resolver.generator.typeChecker;
   const own = ownMembers(declaration).map(member => declaredProperty(resolver, ownerType, { name: propertyName(resolver, member), member, substitutions }));
   const seen = new Set(own.map(property => property.name));
@@ -135,7 +135,7 @@ function propertiesOf(type: Tsoa.Type): Tsoa.Property[] {
   return type.dataType === 'refObject' || type.dataType === 'nestedObjectLiteral' ? (type.properties ?? []) : [];
 }
 
-/** Legacy PropertyTransformer member selection. */
+/** The declared members that become properties. */
 function ownMembers(declaration: Owner): Member[] {
   const ignored = (member: ts.Node) => isExistJSDocTag(member, tag => tag.tagName.text === 'ignore') || (member.flags & ts.NodeFlags.ThisNodeHasError) > 0;
   if (ts.isInterfaceDeclaration(declaration)) {
@@ -150,7 +150,7 @@ function ownMembers(declaration: Owner): Member[] {
 }
 
 /** A property declared in an interface, class or type literal. */
-function declaredProperty(resolver: CheckerTypeResolver, ownerType: ts.Type, { name, member, substitutions }: WrittenMember): Tsoa.Property {
+function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, member, substitutions }: WrittenMember): Tsoa.Property {
   const checker = resolver.generator.typeChecker;
   const annotations = readAnnotations(member, resolver.generator);
   const isClassMember = ts.isPropertyDeclaration(member) || ts.isParameter(member);
@@ -190,8 +190,8 @@ function declaredProperty(resolver: CheckerTypeResolver, ownerType: ts.Type, { n
   };
 }
 
-/** A property of a mapped or otherwise unwritten object type (legacy mapped-type branch). */
-function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site: Site): Tsoa.Property {
+/** A property of a mapped or otherwise unwritten object type. */
+function mappedProperty(resolver: TypeResolver, property: ts.Symbol, site: Site): Tsoa.Property {
   const checker = resolver.generator.typeChecker;
   const origin = originDeclaration(property);
   const annotations = origin ? readAnnotations(origin, resolver.generator) : undefined;
@@ -215,7 +215,7 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
 
 /**
  * Under exactOptionalPropertyTypes an optional property's type holds the checker's `missing` type,
- * an `undefined` that the optional marker already says and the printer (legacy) leaves out. It is
+ * an `undefined` that the optional marker already says and the printer leaves out. It is
  * a different type from the `undefined` a source writes, which stays.
  */
 function withoutMissing(checker: ts.TypeChecker, type: ts.Type): ts.Type {
@@ -234,7 +234,7 @@ function withoutMissing(checker: ts.TypeChecker, type: ts.Type): ts.Type {
  * The original declaration's written type is a hint for a mapped property only when it names
  * exactly the property's type (e.g. `id: UUID` through `Omit`); mapped types may transform types.
  */
-function mappedHint(resolver: CheckerTypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site): Site {
+function mappedHint(resolver: TypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site): Site {
   const written = origin && (origin as { type?: ts.TypeNode }).type;
   const hint: Site = { node: written, declaration: origin, substitutions: site.substitutions };
   const usable = written && ts.isTypeReferenceNode(written) && substitutionsCover(origin, site.substitutions) && writtenType(resolver.generator.typeChecker, hint) === propertyType;
@@ -254,7 +254,7 @@ function isIgnoredMapped(property: ts.Symbol): boolean {
   );
 }
 
-function toJSONReturn(resolver: CheckerTypeResolver, type: ts.Type, declaration: Owner, site: Site): Tsoa.Type | undefined {
+function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner, site: Site): Tsoa.Type | undefined {
   const checker = resolver.generator.typeChecker;
   const toJSON = checker.getPropertyOfType(type, 'toJSON');
   const method = toJSON?.valueDeclaration;
@@ -266,12 +266,12 @@ function toJSONReturn(resolver: CheckerTypeResolver, type: ts.Type, declaration:
   return resolver.resolve(checker.getReturnTypeOfSignature(signature), { node: method.type, declaration: undefined, substitutions });
 }
 
-function ownIndexSignature(resolver: CheckerTypeResolver, declaration: ts.InterfaceDeclaration, type: ts.Type, site: Site): Tsoa.Type | undefined {
+function ownIndexSignature(resolver: TypeResolver, declaration: ts.InterfaceDeclaration, type: ts.Type, site: Site): Tsoa.Type | undefined {
   const index = declaration.members.find(ts.isIndexSignatureDeclaration);
   return index ? indexSignatureType(resolver, index, type, site) : undefined;
 }
 
-function indexSignatureType(resolver: CheckerTypeResolver, index: ts.IndexSignatureDeclaration, type: ts.Type, site: Site): Tsoa.Type {
+function indexSignatureType(resolver: TypeResolver, index: ts.IndexSignatureDeclaration, type: ts.Type, site: Site): Tsoa.Type {
   const checker = resolver.generator.typeChecker;
   const keyNode = index.parameters[0].type;
   const keyType = keyNode ? checker.getTypeFromTypeNode(keyNode) : undefined;
@@ -288,8 +288,8 @@ function writesUndefined(written: ts.TypeNode | undefined): boolean {
   return written !== undefined && ts.isUnionTypeNode(written) && written.types.some(t => t.kind === ts.SyntaxKind.UndefinedKeyword);
 }
 
-/** Legacy `getPropertyName`: computed names that are property accesses use their value. */
-function propertyName(resolver: CheckerTypeResolver, member: Member): string {
+/** Computed names that are property accesses use their value. */
+function propertyName(resolver: TypeResolver, member: Member): string {
   if (ts.isComputedPropertyName(member.name) && ts.isPropertyAccessExpression(member.name.expression)) {
     const value = getInitializerValue(member.name.expression, resolver.generator.typeChecker);
     if (value) {
@@ -307,7 +307,7 @@ function isPublic(node: ts.HasModifiers): boolean {
   return !hasModifier(node, ts.SyntaxKind.ProtectedKeyword) && !hasModifier(node, ts.SyntaxKind.PrivateKeyword);
 }
 
-/** Legacy `isAccessibleParameter`: `public`, or `readonly` without `private`/`protected`. */
+/** Parameter properties: `public`, or `readonly` without `private`/`protected`. */
 function isParameterProperty(parameter: ts.ParameterDeclaration): boolean {
   if (hasModifier(parameter, ts.SyntaxKind.PublicKeyword)) {
     return true;

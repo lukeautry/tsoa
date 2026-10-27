@@ -12,39 +12,38 @@ import type { Substitutions } from './site';
 
 export interface ReferenceName {
   entity: ts.EntityName;
-  /** The name as legacy spells the type expression, e.g. `Omit<User, 'id'>`. */
+  /** The name spelled from the written type expression, e.g. `Omit<User, 'id'>`. */
   typeName: string;
   /** The component name derived from `typeName`, e.g. `Omit_User.id_`. */
   refName: string;
   declarations: ModelDeclaration[];
-  /** True when the reference has no declarations and legacy would have named it `Inline_…`. */
+  /** True when the reference has no declarations and is named `Inline_…`. */
   inline: boolean;
 }
 
 /**
- * Model naming, ported from the legacy TypeResolver (calcTypeName, calcRefTypeName,
- * calcTypeReferenceTypeName, calcMemberJsDocProperties, getRefTypeName). Names are part of the
- * public contract (component names in generated specs), so this port keeps legacy's behavior,
- * including its quirks. Names depend on how a type is written, not on what it resolves to.
+ * Model naming. Names are part of the public contract (component names in generated specs), so
+ * they stay as tsoa has always spelled them, including the quirks. Names depend on how a type is
+ * written, not on what it resolves to.
  */
-export class LegacyNamer {
+export class TypeNamer {
   constructor(private readonly generator: MetadataGenerator) {}
 
   private get checker() {
     return this.generator.typeChecker;
   }
 
-  /** Names a written reference and finds its declarations (legacy `getReferenceType` prologue). */
+  /** Names a written reference and finds its declarations. */
   public referenceName(node: ts.TypeReferenceType, subs: Substitutions): ReferenceName {
     const entity = entityOf(node);
     const { name, inline } = this.refTypeName(entity, subs);
     const typeName = this.withTypeArguments(node, name, subs);
-    const refName = LegacyNamer.refName(typeName);
+    const refName = TypeNamer.refName(typeName);
     this.generator.CheckExpressionUnicity(refName, typeName);
     return { entity, typeName, refName, declarations: modelDeclarations(this.checker, entity), inline };
   }
 
-  /** Legacy `calcTypeName`: the written type expression, normalized. */
+  /** The written type expression, normalized. */
   public typeName(arg: ts.TypeNode, subs: Substitutions): string {
     if (ts.isLiteralTypeNode(arg)) {
       const literalValue = literalValueOf(arg);
@@ -108,14 +107,14 @@ export class LegacyNamer {
       return `${parts[0]} extends ${parts[1]} ? ${parts[2]} : ${parts[3]}`;
     }
     if (ts.isParenthesizedTypeNode(arg)) {
-      // Parentheses are kept for clarity; legacy names depend on them.
+      // Parentheses are kept; existing component names depend on them.
       return `(${this.typeName(arg.type, subs)})`;
     }
     console.warn(new GenerateMetaDataWarning(`This kind (${arg.kind}) is unhandled, so the type will be any, and no type conflict checks will made`, arg).toString());
     return 'any';
   }
 
-  /** Legacy `getRefTypeName`: turns a type name into a component name accepted by Swagger UI. */
+  /** Turns a type name into a component name accepted by Swagger UI. */
   public static refName(name: string): string {
     const preformattedName = name
       .replace(/<|>/g, '_')
@@ -136,7 +135,7 @@ export class LegacyNamer {
     return formattedName.replace(/92_r_92_n/g, '92_n');
   }
 
-  /** Legacy `calcTypeReferenceTypeName`: appends written type arguments. */
+  /** Appends written type arguments. */
   private withTypeArguments(node: ts.TypeReferenceType, name: string, subs: Substitutions): string {
     if (Array.isArray(node.typeArguments)) {
       return `${name}<${node.typeArguments.map(type => this.typeName(type, subs)).join(', ')}>`;
@@ -144,7 +143,7 @@ export class LegacyNamer {
     return name;
   }
 
-  /** Legacy `calcRefTypeName`: the declared name, prefixed with its namespaces. */
+  /** The declared name, prefixed with its namespaces. */
   private refTypeName(entity: ts.EntityName, subs: Substitutions): { name: string; inline: boolean } {
     let name = entityText(entity);
     const substitution = subs.get(name);
@@ -157,7 +156,7 @@ export class LegacyNamer {
       if (ts.isIdentifier(entity)) {
         return { name: entity.text, inline: false };
       }
-      // Legacy names a qualified reference without declarations after its (unhandled) node kind.
+      // A qualified reference without declarations is named after its (unhandled) node kind.
       const sanitized = 'any'.replace(/[^A-Za-z0-9]/g, '_');
       return { name: `Inline_${sanitized}`, inline: true };
     }
@@ -191,7 +190,7 @@ export class LegacyNamer {
     return { name, inline: false };
   }
 
-  /** One member of a type literal, including its JSDoc annotations (legacy `calcMemberJsDocProperties`). */
+  /** One member of a type literal, including its JSDoc annotations. */
   private memberName(member: ts.TypeElement, subs: Substitutions): string {
     if (ts.isPropertySignature(member)) {
       const name = (member.name as ts.Identifier).text;
@@ -245,7 +244,7 @@ function entityText(entity: ts.EntityName): string {
   return ts.isIdentifier(entity) ? entity.text : `${entityText(entity.left)}.${entity.right.text}`;
 }
 
-/** Legacy `getLiteralValue`. */
+/** The value of a literal type node. */
 export function literalValueOf(typeNode: ts.LiteralTypeNode): string | number | boolean | null {
   switch (typeNode.literal.kind) {
     case ts.SyntaxKind.TrueKeyword:

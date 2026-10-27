@@ -5,18 +5,18 @@ import { getPropertyValidators } from '../../utils/validatorUtils';
 import { GenerateMetadataError } from '../exceptions';
 import { ReferenceTransformer } from '../transformer/referenceTransformer';
 import { nodeDefault, nodeDescription, nodeExample, nodeFormat, nodeTitle } from './annotations';
-import type { CheckerTypeResolver } from './checkerTypeResolver';
+import type { TypeResolver } from './typeResolver';
 import { emptySubstitutions, substitutionsFor, type Site } from './site';
 
 /** Builds the refObject (or toJSON refAlias) for an interface or class; provided by the member resolver. */
-export type ModelBuilder = (resolver: CheckerTypeResolver, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration, type: ts.Type, refName: string, site: Site) => Tsoa.ReferenceType;
+export type ModelBuilder = (resolver: TypeResolver, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration, type: ts.Type, refName: string, site: Site) => Tsoa.ReferenceType;
 
 /**
  * A reference to a named model: a written reference with model declarations, or — when the type
- * has no written form — the reference the checker would print for it (as legacy did).
+ * has no written form — the reference the checker would print for it.
  * Returns undefined for anything that is not a named model.
  */
-export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Type, site: Site, buildModel: ModelBuilder, register = true): Tsoa.ReferenceType | undefined {
+export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, site: Site, buildModel: ModelBuilder, register = true): Tsoa.ReferenceType | undefined {
   const written = site.node;
   const node = written ?? resolver.generator.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation);
   if (!node || !(ts.isTypeReferenceNode(node) || ts.isExpressionWithTypeArguments(node)) || isStructuralArray(node)) {
@@ -55,12 +55,12 @@ export function resolveNamedReference(resolver: CheckerTypeResolver, type: ts.Ty
   );
 }
 
-/** `Array<T>` and `ReadonlyArray<T>` are arrays, not models (legacy). */
+/** `Array<T>` and `ReadonlyArray<T>` are arrays, not models. */
 function isStructuralArray(node: ts.TypeReferenceType): boolean {
   return ts.isTypeReferenceNode(node) && ts.isIdentifier(node.typeName) && (node.typeName.text === 'Array' || node.typeName.text === 'ReadonlyArray') && node.typeArguments?.length === 1;
 }
 
-function aliasModel(resolver: CheckerTypeResolver, declaration: ts.TypeAliasDeclaration, type: ts.Type, refName: string, site: Site): Tsoa.RefAliasType {
+function aliasModel(resolver: TypeResolver, declaration: ts.TypeAliasDeclaration, type: ts.Type, refName: string, site: Site): Tsoa.RefAliasType {
   const checker = resolver.generator.typeChecker;
   const example = nodeExample(checker, declaration);
   const title = nodeTitle(declaration);
@@ -78,7 +78,7 @@ function aliasModel(resolver: CheckerTypeResolver, declaration: ts.TypeAliasDecl
   };
 }
 
-function enumModel(resolver: CheckerTypeResolver, declaration: ts.EnumDeclaration | ts.EnumMember, refName: string): Tsoa.RefEnumType {
+function enumModel(resolver: TypeResolver, declaration: ts.EnumDeclaration | ts.EnumMember, refName: string): Tsoa.RefEnumType {
   const checker = resolver.generator.typeChecker;
   const deprecated = isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated');
   if (ts.isEnumMember(declaration)) {
