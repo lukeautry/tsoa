@@ -49,9 +49,11 @@ describe('@tsoa/runtime entry points', () => {
   });
 
   it('should import each framework only from its own subpath entry', () => {
-    expect([...externalImportsReachableFrom('express.ts')].filter(name => frameworkModules.includes(name))).to.deep.equal(['express']);
-    expect([...externalImportsReachableFrom('hapi.ts')].filter(name => frameworkModules.includes(name)).sort()).to.deep.equal(['@hapi/boom', '@hapi/hapi']);
-    expect([...externalImportsReachableFrom('koa.ts')].filter(name => frameworkModules.includes(name))).to.deep.equal(['koa']);
+    const expected: Record<string, string[]> = { express: ['express'], hapi: ['@hapi/boom', '@hapi/hapi'], koa: ['koa'] };
+    for (const [entry, frameworks] of Object.entries(expected)) {
+      const imports = [...externalImportsReachableFrom(`${entry}.ts`)].filter(name => frameworkModules.includes(name)).sort();
+      expect(imports, entry).to.deep.equal(frameworks);
+    }
   });
 
   it('should expose each subpath entry through exports and typesVersions', () => {
