@@ -209,8 +209,10 @@ export class CheckerTypeResolver {
   }
 
   /**
-   * A union with no written form, in checker order, with true|false collapsed to boolean. Members of
-   * a mapped type over a union stay on the mapped site, so they remain inline objects (legacy).
+   * A union with no written form, in checker order, with true|false collapsed to boolean and every
+   * member of an enum collapsed to the enum (the checker flattens `Color | undefined` into the
+   * enum's members). Members of a mapped type over a union stay on the mapped site, so they remain
+   * inline objects (legacy).
    */
   private resolveCheckerUnion(types: readonly ts.Type[], site: Site): Tsoa.Type {
     const memberSite = site.node && ts.isMappedTypeNode(site.node) ? site : childSite(site, undefined);
@@ -224,6 +226,13 @@ export class CheckerTypeResolver {
       if (hasTrue && hasFalse && member.flags & ts.TypeFlags.BooleanLiteral) {
         if (!members.includes('boolean')) {
           members.push('boolean');
+        }
+        continue;
+      }
+      const enumType = member.flags & ts.TypeFlags.EnumLiteral ? this.checker.getBaseTypeOfLiteralType(member) : undefined;
+      if (enumType && enumType !== member && enumType.isUnion() && enumType.types.every(enumMember => types.includes(enumMember))) {
+        if (!members.includes(enumType)) {
+          members.push(enumType);
         }
         continue;
       }

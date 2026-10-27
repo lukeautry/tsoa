@@ -7,7 +7,7 @@ import { readAnnotations } from './annotations';
 import type { CheckerTypeResolver } from './checkerTypeResolver';
 import { modelDeclarations } from './declarations';
 import { resolveNamedReference } from './models';
-import { syntheticOrigin } from './internals';
+import { syntheticOrigin, unionOf } from './internals';
 import { writtenType } from './written';
 import { childSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
@@ -31,7 +31,7 @@ export function resolveModel(resolver: CheckerTypeResolver, declaration: Owner, 
     refName,
     description: annotations.description,
     deprecated: annotations.deprecated,
-    ...(annotations.example ? { example: annotations.example } : {}),
+    ...(annotations.example !== undefined ? { example: annotations.example } : {}),
     ...(annotations.title ? { title: annotations.title } : {}),
   };
 
@@ -195,7 +195,7 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
   const checker = resolver.generator.typeChecker;
   const origin = originDeclaration(property);
   const annotations = origin ? readAnnotations(origin, resolver.generator) : undefined;
-  const propertyType = checker.getTypeOfSymbol(property);
+  const propertyType = withoutMissing(checker, checker.getTypeOfSymbol(property));
   const hintSite = mappedHint(resolver, origin, propertyType, site);
   const initializer = origin && (origin as { initializer?: ts.Expression }).initializer;
   const comments = property.getDocumentationComment(checker);
@@ -211,6 +211,23 @@ function mappedProperty(resolver: CheckerTypeResolver, property: ts.Symbol, site
     example: annotations?.example,
     extensions: annotations?.extensions,
   };
+}
+
+/**
+ * Under exactOptionalPropertyTypes an optional property's type holds the checker's `missing` type,
+ * an `undefined` that the optional marker already says and the printer (legacy) leaves out. It is
+ * a different type from the `undefined` a source writes, which stays.
+ */
+function withoutMissing(checker: ts.TypeChecker, type: ts.Type): ts.Type {
+  if (!type.isUnion()) {
+    return type;
+  }
+  const undefinedType = checker.getUndefinedType();
+  const members = type.types.filter(member => !(member.flags & ts.TypeFlags.Undefined) || member === undefinedType);
+  if (members.length === type.types.length) {
+    return type;
+  }
+  return members.length === 1 ? members[0] : (unionOf(checker, members) ?? type);
 }
 
 /**

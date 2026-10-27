@@ -1,5 +1,6 @@
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { resolveTypeResolverMode } from '@tsoa/cli/metadataGeneration/typeResolverMode';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
 import { Swagger, Tsoa } from '@tsoa/runtime';
@@ -40,6 +41,8 @@ interface Row {
   openapi?: '3.1';
   modes?: CompilerOptions[];
   check: (run: Run) => void;
+  // What the checker resolver gives where it differs from legacy on purpose (see tests/differential/knownDifferences.ts).
+  checker?: (run: Run) => void;
 }
 
 const nullModes: CompilerOptions[] = [{ strictNullChecks: false }, { strictNullChecks: true }];
@@ -246,6 +249,13 @@ const rows: Row[] = [
       expect(frozen).to.deep.include({ type: 'object' });
       expect(frozen.properties).to.have.all.keys('front', 'rest');
     },
+    checker: ({ generate }) => {
+      const { schemas, response, resolve } = generate();
+      const mapped = resolve(response(route('mapped')));
+      expect(mapped.properties?.frozen.$ref).to.equal(ref('FrozenChain_Leaf_'));
+      expect(schemas).to.not.have.property('ReadonlyArray_Leaf_');
+      expect(schemas.FrozenChain_Leaf_.properties).to.have.all.keys('front', 'rest');
+    },
   },
   {
     name: 'generates a member next to a computed property name',
@@ -308,6 +318,16 @@ const rows: Row[] = [
         expect(JSON.parse(JSON.stringify(refAlias(metadata, name).type)), `${controller} alias`).to.deep.equal(output.type);
         expect(schemas[name], `${controller} schema`).to.deep.equal(output.schema);
         expect(strictNullChecks && schemas[name].properties?.text !== undefined && schemas[name].nullable !== true, `${controller} object without null`).to.equal(false);
+      }
+    },
+    checker: ({ generate, strictNullChecks, compilerOptions }) => {
+      const leaf = leafObject(strictNullChecks && !compilerOptions.exactOptionalPropertyTypes);
+      const type: Tsoa.Type = strictNullChecks ? { dataType: 'union', types: [leaf, { dataType: 'enum', enums: [null] }] } : leaf;
+      const schema = strictNullChecks ? { ...leafSchema, nullable: true } : leafSchema;
+      for (const controller of ['exactNullAliasLitFirst', 'exactNullAliasDirectFirst']) {
+        const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
+        expect(JSON.parse(JSON.stringify(refAlias(metadata, 'P_Leaf-or-null_').type)), `${controller} alias`).to.deep.equal(type);
+        expect(schemas['P_Leaf-or-null_'], `${controller} schema`).to.deep.equal(schema);
       }
     },
   },
@@ -373,6 +393,13 @@ const rows: Row[] = [
       expect(members.map(member => member.$ref)).to.deep.equal([ref('Optional_First.Nested_'), ref('Optional_Second.Nested_')]);
       expect(schemas['Optional_First.Nested_']).to.deep.equal({ type: 'object', properties: {} });
       expect(schemas['Optional_Second.Nested_']).to.deep.equal({ type: 'object', properties: {} });
+    },
+    checker: ({ generate }) => {
+      const { schemas, response, resolve } = generate();
+      const members = required(resolve(response('/synthetic-children')).properties?.value.anyOf, 'union members');
+      expect(members.map(member => member.$ref)).to.deep.equal([ref('Optional_First.Nested_'), ref('Optional_Second.Nested_')]);
+      expectOptionalLeaf(schemas['Optional_First.Nested_'], { a: 'string' });
+      expectOptionalLeaf(schemas['Optional_Second.Nested_'], { b: 'number' });
     },
   },
   {
@@ -454,10 +481,12 @@ const describeMode = (compilerOptions: CompilerOptions) =>
     .join(', ');
 
 describe('Children of synthetic type nodes', () => {
+  const checkerMode = resolveTypeResolverMode() === 'checker';
   for (const row of rows) {
+    const check = (checkerMode && row.checker) || row.check;
     for (const compilerOptions of row.modes ?? nullModes) {
       it(`${row.name} (${describeMode(compilerOptions)})`, () => {
-        row.check({
+        check({
           strictNullChecks: compilerOptions.strictNullChecks === true,
           compilerOptions,
           generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),

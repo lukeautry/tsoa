@@ -72,9 +72,10 @@ function aliasModel(resolver: CheckerTypeResolver, declaration: ts.TypeAliasDecl
     format: nodeFormat(declaration),
     type: resolver.resolve(type, site),
     validators: getPropertyValidators(declaration) || {},
-    ...(example ? { example } : {}),
+    deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
+    ...(example !== undefined ? { example } : {}),
     ...(title && { title }),
-  } as Tsoa.RefAliasType;
+  };
 }
 
 function enumModel(resolver: CheckerTypeResolver, declaration: ts.EnumDeclaration | ts.EnumMember, refName: string): Tsoa.RefEnumType {

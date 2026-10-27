@@ -13,6 +13,7 @@ export interface KnownDifference {
 
 const testModel = (path: string, reason: string, issue?: number): KnownDifference => ({ entry: '*', path: `metadata.referenceTypeMap.${path}`, reason, issue });
 const checkerFixture = (fixture: string, path: string, reason: string, issue?: number): KnownDifference => ({ entry: `fixtures/checker/${fixture}`, path, reason, issue });
+const syntheticFixture = (fixture: string, path: string, reason: string): KnownDifference => ({ entry: `fixtures/controllers/syntheticChildren/${fixture}`, path, reason });
 
 export const knownDifferences: KnownDifference[] = [
   // tests/fixtures/testModel.ts, reached from most entries
@@ -49,4 +50,17 @@ export const knownDifferences: KnownDifference[] = [
   checkerFixture('review.ts', 'metadata.referenceTypeMap.Pair', 'legacy registers the spread tuple alias as the rest type'),
   checkerFixture('review.ts', 'metadata.referenceTypeMap.Patch_User_.type.properties', 'legacy resolves a generic mapped alias against the unbound T and emits {}', 1764),
   checkerFixture('referenceModels.ts', 'metadata.referenceTypeMap.Item.properties', 'legacy copies inherited properties from a base that is still being built (cycle) and drops them', 1124),
+  // tests/fixtures/controllers/syntheticChildren (checked by tests/unit/swagger/syntheticChildren.spec.ts)
+  syntheticFixture(
+    'ownArraysController.ts',
+    'metadata.referenceTypeMap.ReadonlyArray_Leaf_',
+    'legacy names a renamed import by its declared name inside a mapped type; checker keeps the written FrozenChain_Leaf_',
+  ),
+  syntheticFixture(
+    'exactNullAliasLitFirstController.ts',
+    'metadata.referenceTypeMap',
+    'legacy emits {} for P<Leaf | null> when the optional member comes first, and names it P_Leaf_ when null is erased',
+  ),
+  syntheticFixture('exactNullAliasDirectFirstController.ts', 'metadata.referenceTypeMap', 'legacy names P<Leaf | null> P_Leaf_ when null is erased and lists null first'),
+  syntheticFixture('sharedPrintController.ts', 'metadata.referenceTypeMap', 'legacy emits {} for union members that print the same name; checker resolves them'),
 ];

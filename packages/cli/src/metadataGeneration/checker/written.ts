@@ -59,16 +59,27 @@ export function descriptiveSite(checker: ts.TypeChecker, site: Site): Site {
   return opaque ? { ...site, node: undefined } : site;
 }
 
-/** The declaration of `Obj['prop']`'s property, when it is written outside any generic scope. */
+/**
+ * The declaration of `Obj['prop']`'s property, or of the index signature `Obj[string]` or
+ * `Obj[number]` reads, when it is written outside any generic scope.
+ */
 function indexedDeclaration(checker: ts.TypeChecker, site: Site, node: ts.IndexedAccessTypeNode): (ts.Declaration & { type: ts.TypeNode }) | undefined {
   const index = node.indexType;
-  if (!ts.isLiteralTypeNode(index) || !(ts.isStringLiteral(index.literal) || ts.isNumericLiteral(index.literal))) {
+  const literal = ts.isLiteralTypeNode(index) && (ts.isStringLiteral(index.literal) || ts.isNumericLiteral(index.literal)) ? index.literal : undefined;
+  const keyword = index.kind === ts.SyntaxKind.StringKeyword || index.kind === ts.SyntaxKind.NumberKeyword;
+  const objectType = literal || keyword ? writtenType(checker, childSite(site, node.objectType)) : undefined;
+  if (!objectType) {
     return undefined;
   }
-  const objectType = writtenType(checker, childSite(site, node.objectType));
-  const declaration = objectType && checker.getPropertyOfType(objectType, index.literal.text)?.valueDeclaration;
+  const declaration = literal ? checker.getPropertyOfType(objectType, literal.text)?.valueDeclaration : indexSignature(checker, objectType, index.kind === ts.SyntaxKind.NumberKeyword);
   const typed = declaration && (declaration as { type?: ts.TypeNode }).type;
   return typed && substitutionsCover(declaration, emptySubstitutions) ? (declaration as ts.Declaration & { type: ts.TypeNode }) : undefined;
+}
+
+/** The index signature a `string` (or `number`, which falls back to `string`) key reads. */
+function indexSignature(checker: ts.TypeChecker, objectType: ts.Type, numberKey: boolean): ts.IndexSignatureDeclaration | undefined {
+  const info = (numberKey ? checker.getIndexInfoOfType(objectType, ts.IndexKind.Number) : undefined) ?? checker.getIndexInfoOfType(objectType, ts.IndexKind.String);
+  return info?.declaration;
 }
 
 /**
