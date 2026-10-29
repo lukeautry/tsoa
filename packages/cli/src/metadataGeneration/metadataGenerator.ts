@@ -6,13 +6,14 @@ import { importClassesFromDirectories } from '../utils/importClassesFromDirector
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
 import { TypeResolver } from './typeResolver';
-
+import { generateNativeMetadata, useNativeMetadata, type NativeMetadataRequest } from './nativeMetadata';
 const controllersPerBatch = Number(process.env.TSOA_CONTROLLERS_PER_BATCH) || 10;
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
-  public readonly typeChecker: Checker;
-  private readonly program: Program;
+  public readonly typeChecker!: Checker;
+  private readonly program?: Program;
+  private readonly nativeRequest?: NativeMetadataRequest;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
@@ -29,11 +30,31 @@ export class MetadataGenerator {
   ) {
     TypeResolver.clearCache();
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
-    this.program = getApi().createProgram(controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile], this.compilerOptions);
+    const rootFiles = controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile];
+    if (useNativeMetadata()) {
+      // The native generator works inside the compiler: it needs no program here.
+      this.nativeRequest = {
+        currentDirectory: process.cwd(),
+        rootFiles,
+        compilerOptions: this.compilerOptions,
+        ignorePaths,
+        rootSecurity,
+        defaultNumberType,
+      };
+      return;
+    }
+    this.program = getApi().createProgram(rootFiles, this.compilerOptions);
     this.typeChecker = this.program.getProject().checker;
   }
 
   public Generate(): Tsoa.Metadata {
+    if (this.nativeRequest) {
+      const metadata = generateNativeMetadata(this.nativeRequest);
+      this.checkForMethodSignatureDuplicates(metadata.controllers);
+      this.checkForPathParamSignatureDuplicates(metadata.controllers);
+      return metadata;
+    }
+    const program = this.program!;
     try {
       run(this.extractNodeFromProgramSourceFiles());
 
@@ -46,7 +67,7 @@ export class MetadataGenerator {
         referenceTypeMap: this.referenceTypeMap,
       };
     } finally {
-      this.program.dispose();
+      program.dispose();
     }
   }
 
@@ -61,8 +82,8 @@ export class MetadataGenerator {
 
   private *extractNodeFromProgramSourceFiles(): Op<void> {
     // Declaration files cannot hold decorated classes, so they are not fetched from the compiler.
-    const fileNames = (yield* this.program.getSourceFileNames.gen()).filter(fileName => !/\.d\.[cm]?ts$/.test(fileName) && !this.ignorePaths?.some(path => minimatch(fileName, path)));
-    const sourceFiles = yield* map(fileNames, fileName => this.program.getSourceFile.gen(fileName));
+    const fileNames = (yield* this.program!.getSourceFileNames.gen()).filter(fileName => !/\.d\.[cm]?ts$/.test(fileName) && !this.ignorePaths?.some(path => minimatch(fileName, path)));
+    const sourceFiles = yield* map(fileNames, fileName => this.program!.getSourceFile.gen(fileName));
     sourceFiles.forEach(sourceFile => {
       sourceFile?.forEachChild(node => {
         if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
@@ -212,7 +233,7 @@ export class MetadataGenerator {
 
   /** Whether a file is one of TypeScript's own library declaration files (`lib.*.d.ts`). */
   public *isDefaultLibraryFile(sourceFile: SourceFile): Op<boolean> {
-    return yield* this.program.isSourceFileDefaultLibrary.gen(sourceFile);
+    return yield* this.program!.isSourceFileDefaultLibrary.gen(sourceFile);
   }
 
   public TypeChecker() {
