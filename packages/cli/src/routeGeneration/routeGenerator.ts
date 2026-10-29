@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { isRefType } from '../utils/internalTypeGuards';
+import { hasBinaryBody, isRefType } from '../utils/internalTypeGuards';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
 import { fsExists, fsReadFile } from '../utils/fs';
 
@@ -104,7 +104,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
-              binaryBody: method.parameters.some(parameter => parameter.in === 'body' && parameter.type.dataType === 'binary'),
+              binaryBody: hasBinaryBody(method.parameters),
               parameters: parameterObjs,
               path: normalisedMethodPath,
               uploadFile: uploadFilesWithDifferentFieldParameter.length > 0,
