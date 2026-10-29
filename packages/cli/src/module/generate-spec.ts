@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
 import * as YAML from 'yaml';
 import { ExtendedSpecConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';

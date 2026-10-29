@@ -1,20 +1,15 @@
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { expect } from 'chai';
 import 'mocha';
-import { createProgram, flattenDiagnosticMessageText, ScriptTarget } from 'typescript';
+import { ScriptTarget } from '@tsoa/cli/ts';
+import { compilerDiagnostics } from '../../utils/diagnostics';
 
 describe('MetadataGenerator Error library declarations', () => {
   const entryFile = './fixtures/errorDeclarations/errorDeclarationsController.ts';
   const compilerOptions = { target: ScriptTarget.ES2022 };
 
   it('uses a fixture without source diagnostics', () => {
-    const program = createProgram([entryFile], compilerOptions);
-    const sourceFile = program.getSourceFile(entryFile);
-    if (!sourceFile) {
-      throw new Error('Missing Error declarations fixture');
-    }
-    const diagnostics = [...program.getSyntacticDiagnostics(sourceFile), ...program.getSemanticDiagnostics(sourceFile)];
-    expect(diagnostics.map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
+    expect(compilerDiagnostics([entryFile], compilerOptions, entryFile)).to.deep.equal([]);
   });
 
   for (const { methodName, refName } of [

@@ -875,7 +875,7 @@ describe('Schema details generation', () => {
           enumKeys: {
             default: undefined,
             description: undefined,
-            enum: ['OK', 'KO'],
+            enum: ['KO', 'OK'],
             example: undefined,
             format: undefined,
             type: 'string',
@@ -901,7 +901,7 @@ describe('Schema details generation', () => {
           arrayUnion: {
             default: undefined,
             description: undefined,
-            enum: ['foo', 'bar'],
+            enum: ['bar', 'foo'],
             example: undefined,
             format: undefined,
             type: 'string',
@@ -910,7 +910,7 @@ describe('Schema details generation', () => {
           objectUnion: {
             default: undefined,
             description: undefined,
-            enum: ['foo', 'bar'],
+            enum: ['bar', 'foo'],
             example: undefined,
             format: undefined,
             type: 'string',
@@ -977,7 +977,7 @@ describe('Schema details generation', () => {
           id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
           defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
         },
-        required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+        required: ['id', 'account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument'],
         type: 'object',
         default: undefined,
         example: undefined,

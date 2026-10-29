@@ -1,28 +1,22 @@
-import { SyntaxKind, getModifiers, type HasModifiers } from 'typescript';
+import { SyntaxKind, getModifiers, type Node } from '../../ts';
 
 /**
  * Transformer responsible to transforming native ts node into tsoa type.
  */
 export abstract class Transformer {
-  protected hasPublicModifier(node: HasModifiers): boolean {
-    return (
-      !node.modifiers ||
-      node.modifiers.every(modifier => {
-        return modifier.kind !== SyntaxKind.ProtectedKeyword && modifier.kind !== SyntaxKind.PrivateKeyword;
-      })
-    );
+  protected hasPublicModifier(node: Node): boolean {
+    return getModifiers(node).every(modifier => {
+      return modifier.kind !== SyntaxKind.ProtectedKeyword && modifier.kind !== SyntaxKind.PrivateKeyword;
+    });
   }
 
-  protected hasStaticModifier(node: HasModifiers): boolean | undefined {
-    return (
-      node.modifiers &&
-      node.modifiers.some(modifier => {
-        return modifier.kind === SyntaxKind.StaticKeyword;
-      })
-    );
+  protected hasStaticModifier(node: Node): boolean | undefined {
+    return getModifiers(node).some(modifier => {
+      return modifier.kind === SyntaxKind.StaticKeyword;
+    });
   }
 
-  protected isAccessibleParameter(node: HasModifiers): boolean {
+  protected isAccessibleParameter(node: Node): boolean {
     const modifiers = getModifiers(node);
 
     if (modifiers == null || modifiers.length === 0) {

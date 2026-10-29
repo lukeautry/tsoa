@@ -1,19 +1,11 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { getInitializerValue } from '../metadataGeneration/initializer-value';
 
-function tsHasDecorators(tsNamespace: typeof ts): tsNamespace is typeof ts & {
-  canHaveDecorators(node: ts.Node): node is any;
-  getDecorators(node: ts.Node): readonly ts.Decorator[] | undefined;
-} {
-  return typeof tsNamespace.canHaveDecorators === 'function';
-}
-
 export function getDecorators(node: ts.Node, isMatching: (identifier: ts.Identifier) => boolean) {
-  // beginning in ts4.8 node.decorator is undefined, use getDecorators instead.
-  const decorators = tsHasDecorators(ts) && ts.canHaveDecorators(node) ? ts.getDecorators(node) : [];
+  const decorators = ts.getDecorators(node);
 
-  if (!decorators || !decorators.length) {
+  if (!decorators.length) {
     return [];
   }
 
@@ -37,7 +29,7 @@ export function getNodeFirstDecoratorName(node: ts.Node, isMatching: (identifier
   return decorators[0].text;
 }
 
-export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.TypeChecker, isMatching: (identifier: ts.Identifier) => boolean) {
+export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.Checker, isMatching: (identifier: ts.Identifier) => boolean) {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
@@ -46,7 +38,7 @@ export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.TypeCh
   return values && values[0];
 }
 
-export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.TypeChecker): any[] {
+export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Checker): any[] {
   const expression = decorator.parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) {
@@ -55,7 +47,7 @@ export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Typ
   return expArguments.map(a => getInitializerValue(a, typeChecker));
 }
 
-export function getSecurites(decorator: ts.Identifier, typeChecker: ts.TypeChecker) {
+export function getSecurites(decorator: ts.Identifier, typeChecker: ts.Checker) {
   const [first, second] = getDecoratorValues(decorator, typeChecker);
   const security = isObject(first) ? first : { [first]: second || [] };
   const [argument] = (decorator.parent as ts.CallExpression).arguments;
@@ -79,7 +71,7 @@ function isObject(v: any) {
   return typeof v === 'object' && v !== null;
 }
 
-export function getPath(decorator: ts.Identifier, typeChecker: ts.TypeChecker): string {
+export function getPath(decorator: ts.Identifier, typeChecker: ts.Checker): string {
   const [path] = getDecoratorValues(decorator, typeChecker);
 
   if (path === undefined) {
@@ -89,7 +81,7 @@ export function getPath(decorator: ts.Identifier, typeChecker: ts.TypeChecker): 
   return path;
 }
 
-export function getProduces(node: ts.Node, typeChecker: ts.TypeChecker): string[] {
+export function getProduces(node: ts.Node, typeChecker: ts.Checker): string[] {
   const producesDecorators = getDecorators(node, identifier => identifier.text === 'Produces');
 
   if (!producesDecorators || !producesDecorators.length) {

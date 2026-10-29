@@ -1,5 +1,5 @@
-import type { Node, EnumDeclaration, EnumMember } from 'typescript';
-import { isEnumDeclaration, isEnumMember } from 'typescript';
+import type { Node, EnumDeclaration, EnumMember } from '../../ts';
+import { isEnumDeclaration, isEnumMember } from '../../ts';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';

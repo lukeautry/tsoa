@@ -1,4 +1,5 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
+import { printType } from './syntheticChildType';
 import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getPath, getProduces, getSecurites } from './../utils/decoratorUtils';
@@ -45,8 +46,8 @@ export class MethodGenerator {
     if (!nodeType) {
       const typeChecker = this.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-      nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
+      const implicitType = typeChecker.getReturnTypeOfSignature(signature);
+      nodeType = printType(typeChecker, implicitType)!;
     }
     const type = new TypeResolver(nodeType, this.current).resolve();
     const responses = this.commonResponses.concat(this.getMethodResponses());

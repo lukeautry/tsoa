@@ -1,6 +1,7 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
+import { printType, typeOfTypeNode } from './syntheticChildType';
 import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
-import { commentToString, getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
+import { commentToString, getJSDocTags, getSymbolDocumentation, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';
 import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
@@ -94,12 +95,9 @@ export class ParameterGenerator {
       return typeNode;
     }
 
-    const symbol = this.current.typeChecker.getTypeAtLocation(typeNode).aliasSymbol;
-    if (!symbol || !symbol.declarations) {
-      return undefined;
-    }
-    const declaration = symbol.declarations[0];
-    if (!ts.isTypeAliasDeclaration(declaration) || !ts.isTypeReferenceNode(declaration.type)) {
+    const symbol = this.current.typeChecker.getTypeAtLocation(typeNode).getAliasSymbol();
+    const declaration = symbol && ts.getDeclarations(symbol)[0];
+    if (!declaration || !ts.isTypeAliasDeclaration(declaration) || !ts.isTypeReferenceNode(declaration.type)) {
       return undefined;
     }
 
@@ -132,7 +130,7 @@ export class ParameterGenerator {
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
       // eslint-disable-next-line no-bitwise
-      return (tsType.getFlags() & ts.TypeFlags.NumberLiteral) !== 0;
+      return (tsType.flags & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
     const headers = getHeaderType(typeNode.typeArguments, 2, this.current);
@@ -349,13 +347,16 @@ export class ParameterGenerator {
     let typeNode = parameter.type;
     if (!typeNode) {
       const typeFromChecker = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(typeFromChecker, undefined, ts.NodeBuilderFlags.NoTruncation);
+      typeNode = printType(this.current.typeChecker, typeFromChecker);
     }
 
     if (typeNode && ts.isTypeReferenceNode(typeNode)) {
       try {
-        const actualType = this.current.typeChecker.getTypeAtLocation(typeNode);
-        const typeNodeFromType = this.current.typeChecker.typeToTypeNode(actualType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
+        const actualType = typeOfTypeNode(this.current.typeChecker, typeNode);
+        const typeNodeFromType = actualType && printType(this.current.typeChecker, actualType);
+        if (!typeNodeFromType) {
+          throw new GenerateMetadataError(`Could not determine the type of ${ts.nodeText(typeNode)}`, typeNode);
+        }
         const resolvedType = new TypeResolver(typeNodeFromType, this.current, parameter).resolve();
 
         if (resolvedType.dataType === 'refObject' || resolvedType.dataType === 'nestedObjectLiteral') {
@@ -482,12 +483,7 @@ export class ParameterGenerator {
       return undefined;
     }
 
-    const comments = symbol.getDocumentationComment(this.current.typeChecker);
-    if (comments.length) {
-      return ts.displayPartsToString(comments);
-    }
-
-    return undefined;
+    return getSymbolDocumentation(symbol, this.current.typeChecker);
   }
 
   private getParameterDeprecation(node: ts.ParameterDeclaration) {
@@ -498,7 +494,7 @@ export class ParameterGenerator {
     const exampleLabels: Array<string | undefined> = [];
     const examples = getJSDocTags(node.parent, tag => {
       const comment = commentToString(tag.comment);
-      const isExample = (tag.tagName.text === 'example' || (tag.tagName.escapedText as string) === 'example') && !!tag.comment && comment?.startsWith(parameterName);
+      const isExample = (tag.tagName.text === 'example' || tag.tagName.text === 'example') && !!tag.comment && comment?.startsWith(parameterName);
 
       if (isExample) {
         const hasExampleLabel = (comment?.split(' ')[0].indexOf('.') || -1) > 0;
@@ -563,7 +559,7 @@ export class ParameterGenerator {
     let typeNode = parameter.type;
     if (!typeNode) {
       const type = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
+      typeNode = printType(this.current.typeChecker, type)!;
     }
     return new TypeResolver(typeNode, this.current, parameter).resolve();
   }

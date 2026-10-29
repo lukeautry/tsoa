@@ -1,6 +1,6 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type TypeChecker } from 'typescript';
+import { getApi, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type Checker, type SourceFile } from '../ts';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
@@ -9,7 +9,7 @@ import { TypeResolver } from './typeResolver';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
-  public readonly typeChecker: TypeChecker;
+  public readonly typeChecker: Checker;
   private readonly program: Program;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
@@ -27,44 +27,52 @@ export class MetadataGenerator {
   ) {
     TypeResolver.clearCache();
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
-    this.typeChecker = this.program.getTypeChecker();
+    this.program = getApi().createProgram(controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile], this.compilerOptions);
+    this.typeChecker = this.program.getProject().checker;
   }
 
   public Generate(): Tsoa.Metadata {
-    this.extractNodeFromProgramSourceFiles();
+    try {
+      this.extractNodeFromProgramSourceFiles();
 
-    const controllers = this.buildControllers();
+      const controllers = this.buildControllers();
 
-    this.checkForMethodSignatureDuplicates(controllers);
-    this.checkForPathParamSignatureDuplicates(controllers);
+      this.checkForMethodSignatureDuplicates(controllers);
+      this.checkForPathParamSignatureDuplicates(controllers);
 
-    return {
-      controllers,
-      referenceTypeMap: this.referenceTypeMap,
-    };
+      return {
+        controllers,
+        referenceTypeMap: this.referenceTypeMap,
+      };
+    } finally {
+      this.program.dispose();
+    }
   }
 
-  private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
+  private getDynamicControllersFiles(controllers: string[], esm: boolean) {
     const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts'] : ['.ts']);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    return createProgram(allGlobFiles, this.compilerOptions);
+    return allGlobFiles;
   }
 
   private extractNodeFromProgramSourceFiles() {
-    this.program.getSourceFiles().forEach(sf => {
+    this.program.getSourceFileNames().forEach(fileName => {
+      // Declaration files cannot hold decorated classes, and fetching each one from the compiler costs a round trip.
+      if (/\.d\.[cm]?ts$/.test(fileName)) {
+        return;
+      }
       if (this.ignorePaths && this.ignorePaths.length) {
         for (const path of this.ignorePaths) {
-          if (minimatch(sf.fileName, path)) {
+          if (minimatch(fileName, path)) {
             return;
           }
         }
       }
 
-      forEachChild(sf, node => {
+      this.program.getSourceFile(fileName)?.forEachChild(node => {
         if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
           this.controllerNodes.push(node);
         }
@@ -209,6 +217,11 @@ export class MetadataGenerator {
       console.warn(message);
     });
   };
+
+  /** Whether a file is one of TypeScript's own library declaration files (`lib.*.d.ts`). */
+  public isDefaultLibraryFile(sourceFile: SourceFile) {
+    return this.program.isSourceFileDefaultLibrary(sourceFile);
+  }
 
   public TypeChecker() {
     return this.typeChecker;

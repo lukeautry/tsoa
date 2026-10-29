@@ -1,6 +1,17 @@
-import type { Token, InterfaceDeclaration, ClassDeclaration, PropertyDeclaration, ParameterDeclaration, ConstructorDeclaration, TypeElement, ClassElement, PropertySignature } from 'typescript';
-import { NodeFlags, NodeBuilderFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from 'typescript';
+import type {
+  Token,
+  InterfaceDeclaration,
+  ClassDeclaration,
+  PropertyDeclaration,
+  ParameterDeclaration,
+  ConstructorDeclaration,
+  TypeElement,
+  ClassElement,
+  PropertySignatureDeclaration,
+} from '../../ts';
+import { hasQuestionToken, NodeFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignatureDeclaration } from '../../ts';
 import { Tsoa } from '@tsoa/runtime';
+import { printType } from '../syntheticChildType';
 
 import { Transformer } from './transformer';
 import { GenerateMetadataError } from '../exceptions';
@@ -24,8 +35,8 @@ export class PropertyTransformer extends Transformer {
     // Interface model
     if (isInterfaceDeclaration(node)) {
       return node.members
-        .filter((member): member is PropertySignature => !isIgnored(member) && isPropertySignature(member))
-        .map((member: PropertySignature) => this.propertyFromSignature(resolver, member, overrideToken));
+        .filter((member): member is PropertySignatureDeclaration => !isIgnored(member) && isPropertySignatureDeclaration(member))
+        .map((member: PropertySignatureDeclaration) => this.propertyFromSignature(resolver, member, overrideToken));
     }
 
     const properties: Array<PropertyDeclaration | ParameterDeclaration> = [];
@@ -46,10 +57,10 @@ export class PropertyTransformer extends Transformer {
     return properties.map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
   }
 
-  private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignature, overrideToken?: OverrideToken): Tsoa.Property {
+  private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignatureDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
     throwUnless(propertySignature.type, new GenerateMetadataError(`No valid type found for property declaration.`));
 
-    let required = !propertySignature.questionToken;
+    let required = !hasQuestionToken(propertySignature);
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
       required = true;
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
@@ -81,12 +92,12 @@ export class PropertyTransformer extends Transformer {
 
     if (!typeNode) {
       // Type is from initializer
-      typeNode = resolver.current.typeChecker.typeToTypeNode(tsType, undefined, NodeBuilderFlags.NoTruncation)!;
+      typeNode = printType(resolver.current.typeChecker, tsType)!;
     }
 
     const type = new TypeResolver(typeNode, resolver.current, propertyDeclaration, resolver.context, tsType).resolve();
 
-    let required = !propertyDeclaration.questionToken && !propertyDeclaration.initializer;
+    let required = !hasQuestionToken(propertyDeclaration) && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
       required = true;
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {

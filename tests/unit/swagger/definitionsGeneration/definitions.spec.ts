@@ -5,7 +5,6 @@ import { Swagger } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import * as os from 'os';
-import { versionMajorMinor } from 'typescript';
 import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../../fixtures/testModel';
 
@@ -578,7 +577,7 @@ describe('Definition generation', () => {
                   default: undefined,
                 },
               },
-              required: ['record-foo', 'record-bar'],
+              required: ['record-bar', 'record-foo'],
               type: 'object',
               default: undefined,
               example: undefined,
@@ -1090,28 +1089,28 @@ describe('Definition generation', () => {
               {
                 type: 'string',
                 enum: [
-                  'id',
-                  'enumKeys',
-                  'keyInterface',
-                  'indexedType',
-                  'indexedResponse',
-                  'publicStringProperty',
-                  'optionalPublicStringProperty',
-                  'emailPattern',
-                  'stringProperty',
+                  'defaultValue1',
                   'deprecated1',
                   'deprecated2',
-                  'extensionTest',
-                  'extensionComment',
-                  'stringExample',
-                  'objectExample',
-                  'publicConstructorVar',
-                  'readonlyConstructorArgument',
-                  'optionalPublicConstructorVar',
                   'deprecatedPublicConstructorVar',
                   'deprecatedPublicConstructorVar2',
+                  'emailPattern',
+                  'enumKeys',
+                  'extensionComment',
+                  'extensionTest',
+                  'id',
+                  'indexedResponse',
+                  'indexedType',
+                  'keyInterface',
                   'myIgnoredMethod',
-                  'defaultValue1',
+                  'objectExample',
+                  'optionalPublicConstructorVar',
+                  'optionalPublicStringProperty',
+                  'publicConstructorVar',
+                  'publicStringProperty',
+                  'readonlyConstructorArgument',
+                  'stringExample',
+                  'stringProperty',
                 ],
                 description: 'Exclude from T those types that are assignable to U',
                 default: undefined,
@@ -1136,27 +1135,14 @@ describe('Definition generation', () => {
 
             const excludeTypeToPrimitive = getValidatedDefinition('NonNullable_number-or-null_', currentSpec);
 
-            if (['4.7', '4.6'].includes(versionMajorMinor)) {
-              expect(excludeTypeToPrimitive).to.deep.eq(
-                {
-                  type: 'number',
-                  format: 'double',
-                  default: undefined,
-                  example: undefined,
-                  description: 'Exclude null and undefined from T',
-                },
-                `for definition linked by ${propertyName}`,
-              );
-            } else {
-              expect(excludeTypeToPrimitive).to.deep.eq({
-                properties: {},
-                type: 'object',
-                description: 'Exclude null and undefined from T',
-                default: undefined,
-                example: undefined,
-                format: undefined,
-              });
-            }
+            expect(excludeTypeToPrimitive).to.deep.eq({
+              properties: {},
+              type: 'object',
+              description: 'Exclude null and undefined from T',
+              default: undefined,
+              example: undefined,
+              format: undefined,
+            });
 
             const pick = getValidatedDefinition('Pick_ThingContainerWithTitle_string_.list_', currentSpec);
             expect(pick).to.deep.eq(
@@ -1205,7 +1191,7 @@ describe('Definition generation', () => {
               {
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
-                  enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
+                  enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['KO', 'OK'], 'x-nullable': false },
                   id: { type: 'number', format: 'double', default: undefined, description: undefined, example: undefined },
                   indexedResponse: {
                     $ref: '#/definitions/Record_id.string_',
@@ -1227,7 +1213,7 @@ describe('Definition generation', () => {
                   arrayUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -1236,7 +1222,7 @@ describe('Definition generation', () => {
                   objectUnion: {
                     default: undefined,
                     description: undefined,
-                    enum: ['foo', 'bar'],
+                    enum: ['bar', 'foo'],
                     example: undefined,
                     format: undefined,
                     type: 'string',
@@ -1296,7 +1282,7 @@ describe('Definition generation', () => {
                   deprecatedPublicConstructorVar: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                   deprecatedPublicConstructorVar2: { type: 'boolean', default: undefined, description: undefined, format: undefined, example: undefined, 'x-deprecated': true },
                 },
-                required: ['account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument', 'id'],
+                required: ['id', 'account', 'enumKeys', 'publicStringProperty', 'stringProperty', 'publicConstructorVar', 'readonlyConstructorArgument'],
                 type: 'object',
                 description: 'Make all properties in T readonly',
                 default: undefined,
@@ -1458,20 +1444,20 @@ describe('Definition generation', () => {
               default: undefined,
               description: undefined,
               enum: [
-                'firstname:asc',
-                'lastname:asc',
                 'age:asc',
-                'weight:asc',
-                'human:asc',
-                'gender:asc',
-                'nicknames:asc',
-                'firstname:desc',
-                'lastname:desc',
                 'age:desc',
-                'weight:desc',
-                'human:desc',
+                'firstname:asc',
+                'firstname:desc',
+                'gender:asc',
                 'gender:desc',
+                'human:asc',
+                'human:desc',
+                'lastname:asc',
+                'lastname:desc',
+                'nicknames:asc',
                 'nicknames:desc',
+                'weight:asc',
+                'weight:desc',
               ],
               example: undefined,
               format: undefined,
@@ -1590,19 +1576,19 @@ describe('Definition generation', () => {
                   },
                 },
                 required: [
-                  'lastname:asc',
                   'age:asc',
-                  'weight:asc',
-                  'human:asc',
-                  'gender:asc',
-                  'nicknames:asc',
-                  'firstname:desc',
-                  'lastname:desc',
                   'age:desc',
-                  'weight:desc',
-                  'human:desc',
+                  'firstname:desc',
+                  'gender:asc',
                   'gender:desc',
+                  'human:asc',
+                  'human:desc',
+                  'lastname:asc',
+                  'lastname:desc',
+                  'nicknames:asc',
                   'nicknames:desc',
+                  'weight:asc',
+                  'weight:desc',
                 ],
                 type: 'object',
                 description: undefined,
@@ -2417,7 +2403,7 @@ describe('Definition generation', () => {
                     example: undefined,
                   },
                 },
-                required: ['stringValue_PostFix', 'numberValue_PostFix'],
+                required: ['numberValue_PostFix', 'stringValue_PostFix'],
                 type: 'object',
                 default: undefined,
                 description: undefined,
@@ -2522,7 +2508,7 @@ describe('Definition generation', () => {
                     example: undefined,
                   },
                 },
-                required: ['stringValue', 'numberValue'],
+                required: ['numberValue', 'stringValue'],
                 type: 'object',
                 default: undefined,
                 description: undefined,

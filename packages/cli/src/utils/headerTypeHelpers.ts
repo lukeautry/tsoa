@@ -1,5 +1,5 @@
 import { Tsoa } from '@tsoa/runtime';
-import { NodeArray, TypeNode } from 'typescript';
+import { nodeText, type NodeArray, type TypeNode } from '../ts';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { TypeResolver } from '../metadataGeneration/typeResolver';
@@ -14,7 +14,7 @@ export function getHeaderType(typeArgumentNodes: NodeArray<TypeNode> | undefined
   if (candidate && isSupportedHeaderDataType(candidate)) {
     return candidate;
   } else if (candidate) {
-    throw new GenerateMetadataError(`Unable to parse Header Type ${typeArgumentNodes[index].getText()}`, typeArgumentNodes[index]);
+    throw new GenerateMetadataError(`Unable to parse Header Type ${nodeText(typeArgumentNodes[index])}`, typeArgumentNodes[index]);
   }
 
   return undefined;

@@ -1,17 +1,14 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as ts from 'typescript';
+import * as ts from '@tsoa/cli/ts';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { getParameterValidators, getPropertyValidators } from '@tsoa/cli/utils/validatorUtils';
 import { FieldErrors, ValidationService } from '@tsoa/runtime';
 
 function readValidators(annotation: string, parameter: boolean) {
-  const sourceFile = ts.createSourceFile(
-    'validators.ts',
-    parameter ? `/** @pattern value ${annotation} */\nfunction validate(value: string) {}` : `interface Model {\n/** @pattern ${annotation} */\nvalue: string;\n}`,
-    ts.ScriptTarget.Latest,
-    true,
-  );
+  const { sourceFile } = ts
+    .getApi()
+    .createSourceFile('validators.ts', parameter ? `/** @pattern value ${annotation} */\nfunction validate(value: string) {}` : `interface Model {\n/** @pattern ${annotation} */\nvalue: string;\n}`);
   const declaration = sourceFile.statements[0];
   if (declaration && ts.isInterfaceDeclaration(declaration)) {
     return getPropertyValidators(declaration.members[0]);

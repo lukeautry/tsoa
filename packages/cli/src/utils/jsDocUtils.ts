@@ -1,8 +1,8 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 
 export function getJSDocDescription(node: ts.Node) {
-  const jsDocs = (node as any).jsDoc as ts.JSDoc[];
+  const jsDocs = node.jsDoc as readonly ts.JSDoc[] | undefined;
   if (!jsDocs || !jsDocs.length) {
     return undefined;
   }
@@ -20,7 +20,7 @@ export function getJSDocComment(node: ts.Node, tagName: string) {
 }
 
 export function getJSDocComments(node: ts.Node, tagName: string) {
-  const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || (tag.tagName.escapedText as string) === tagName);
+  const tags = getJSDocTags(node, tag => tag.tagName.text === tagName || tag.tagName.text === tagName);
   if (tags.length === 0) {
     return;
   }
@@ -40,7 +40,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
       if (ts.isJSDocParameterTag(tag)) {
         return false;
       } else if (tag.comment === undefined && !ts.isJSDocReturnTag(tag)) {
-        throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.escapedText)} should have a parameter name follows with.`);
+        throw new GenerateMetadataError(`Orphan tag: @${String(tag.tagName.text || tag.tagName.text)} should have a parameter name follows with.`);
       }
 
       return commentToString(tag.comment)?.startsWith(parameterName) || false;
@@ -56,7 +56,7 @@ export function getJSDocTagNames(node: ts.Node, requireTagName = false) {
 }
 
 export function getJSDocTags(node: ts.Node, isMatching: (tag: ts.JSDocTag) => boolean) {
-  const jsDocs = (node as any).jsDoc as ts.JSDoc[];
+  const jsDocs = node.jsDoc as readonly ts.JSDoc[] | undefined;
   if (!jsDocs || jsDocs.length === 0) {
     return [];
   }
@@ -85,4 +85,40 @@ export function commentToString(comment?: string | ts.NodeArray<ts.JSDocText | t
   }
 
   return undefined;
+}
+
+function renderJSDocComment(comment: string | ts.NodeArray<ts.JSDocComment> | undefined): string {
+  if (comment === undefined || typeof comment === 'string') {
+    return comment ?? '';
+  }
+  return comment
+    .map(part => {
+      if (ts.isJSDocText(part)) {
+        return part.text;
+      }
+      const tag = ts.isJSDocLinkCode(part) ? 'linkcode' : ts.isJSDocLinkPlain(part) ? 'linkplain' : 'link';
+      const text = part.text.replace(/^[\s|]+/, '');
+      const target = part.name ? ts.nodeText(part.name) : '';
+      return `{@${tag} ${[target, text].filter(Boolean).join(' ')}}`;
+    })
+    .join('');
+}
+
+/**
+ * The documentation of a symbol: the comments of its declarations, or the `@param` tags naming a parameter, one per line.
+ * Links keep their `{@link …}` form. Declarations without JSDoc fall back to the documentation the compiler finds, such as inherited documentation.
+ */
+export function getSymbolDocumentation(symbol: ts.Symbol, checker: ts.Checker): string | undefined {
+  const comments: string[] = [];
+  for (const declaration of ts.getDeclarations(symbol)) {
+    for (const commentHolder of ts.getJSDocCommentsAndTags(declaration)) {
+      if (ts.isJSDoc(commentHolder) || ts.isJSDocParameterTag(commentHolder)) {
+        const comment = renderJSDocComment(commentHolder.comment);
+        if (comment && !comments.includes(comment)) {
+          comments.push(comment);
+        }
+      }
+    }
+  }
+  return comments.length ? comments.join('\n') : symbol.getDocumentationComment(checker) || undefined;
 }

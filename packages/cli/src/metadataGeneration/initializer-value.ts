@@ -1,9 +1,12 @@
-import * as ts from 'typescript';
+import * as ts from '../ts';
 import { Tsoa } from '@tsoa/runtime';
 
-const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prototype.hasOwnProperty.call(node, 'initializer');
+const hasInitializer = (node: ts.Node): node is ts.HasInitializer => 'initializer' in node;
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
-const extractImportSpecifier = (symbol?: ts.Symbol) => (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && symbol.declarations[0]) || undefined;
+const extractImportSpecifier = (symbol?: ts.Symbol) => {
+  const declaration = symbol && ts.getDeclarations(symbol)[0];
+  return (declaration && ts.isImportSpecifier(declaration) && declaration) || undefined;
+};
 const isIterable = (obj: any): obj is Iterable<any> => obj != null && typeof obj[Symbol.iterator] === 'function';
 
 export type InitializerValue = string | number | boolean | undefined | null | InitializerValue[];
@@ -16,7 +19,7 @@ export function isNonUndefinedInitializerValue(value: InitializerValue): value i
   }
 }
 
-export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.TypeChecker, type?: Tsoa.Type): InitializerValue | DefinedInitializerValue {
+export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpecifier, typeChecker?: ts.Checker, type?: Tsoa.Type): InitializerValue | DefinedInitializerValue {
   if (!initializer || !typeChecker) {
     return;
   }
@@ -106,13 +109,13 @@ export function getInitializerValue(initializer?: ts.Expression | ts.ImportSpeci
       const importSymbol = typeChecker.getSymbolAtLocation(importSpecifier.name);
       if (!importSymbol) return;
       const aliasedSymbol = typeChecker.getAliasedSymbol(importSymbol);
-      const declarations = aliasedSymbol.getDeclarations();
-      const declaration = declarations && declarations.length > 0 ? declarations[0] : undefined;
+      const declaration = ts.getDeclarations(aliasedSymbol)[0];
       return getInitializerValue(extractInitializer(declaration), typeChecker);
     }
     default: {
-      const symbol = typeChecker.getSymbolAtLocation(initializer);
-      return getInitializerValue(extractInitializer(symbol?.valueDeclaration) || extractImportSpecifier(symbol), typeChecker);
+      // A node printed by the checker cannot be looked up; such a value stays unknown.
+      const symbol = ts.isSynthetic(initializer) ? undefined : typeChecker.getSymbolAtLocation(initializer);
+      return getInitializerValue(extractInitializer(symbol && ts.getValueDeclaration(symbol)) || extractImportSpecifier(symbol), typeChecker);
     }
   }
 }
