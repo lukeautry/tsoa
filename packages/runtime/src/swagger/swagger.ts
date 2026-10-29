@@ -329,6 +329,11 @@ export namespace Swagger {
     links?: { [name: string]: unknown }; // If needed per spec
   }
 
+  export interface Discriminator {
+    propertyName: string;
+    mapping?: Record<string, string>;
+  }
+
   export interface BaseSchema<P = unknown> {
     type?: string;
     format?: DataFormat;
@@ -358,7 +363,7 @@ export namespace Swagger {
     // moved from Schema
     additionalProperties?: boolean | BaseSchema;
     properties?: { [propertyName: string]: P };
-    discriminator?: string | { propertyName: string; mapping?: Record<string, string> };
+    discriminator?: string | Discriminator;
     readOnly?: boolean;
     xml?: XML;
     externalDocs?: ExternalDocs;
@@ -384,10 +389,7 @@ export namespace Swagger {
     not?: Schema31;
     propertyNames?: Schema31;
 
-    discriminator?: {
-      propertyName: string;
-      mapping?: Record<string, string>;
-    };
+    discriminator?: Discriminator;
   }
 
   export interface Schema3 extends Omit<BaseSchema, 'type'> {
@@ -398,10 +400,7 @@ export namespace Swagger {
     allOf?: BaseSchema[];
     deprecated?: boolean;
     properties?: { [propertyName: string]: Schema3 };
-    discriminator?: {
-      propertyName: string;
-      mapping?: Record<string, string>;
-    };
+    discriminator?: Discriminator;
   }
 
   export interface Schema2 extends BaseSchema {

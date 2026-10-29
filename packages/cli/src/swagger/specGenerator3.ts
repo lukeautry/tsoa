@@ -155,7 +155,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => this.isRequiredWithoutDefault(p) && !this.hasUndefined(p)).map(p => p.name);
+        const required = referenceType.properties.filter(p => this.isRequiredInSchema(p)).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -676,7 +676,7 @@ export class SpecGenerator3 extends SpecGenerator {
    * another member. Members that aren't $ref-able can't be targeted by a discriminator mapping, so
    * those unions fall back to `anyOf`.
    */
-  protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
+  protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: Swagger.Discriminator } | null {
     const isRefObject = (t: Tsoa.Type): t is Tsoa.RefObjectType => t.dataType === 'refObject';
     const isRefAlias = (t: Tsoa.Type): t is Tsoa.RefAliasType => t.dataType === 'refAlias';
     const isNestedObjectLiteral = (t: Tsoa.Type): t is Tsoa.NestedObjectLiteralType => t.dataType === 'nestedObjectLiteral';
@@ -697,7 +697,7 @@ export class SpecGenerator3 extends SpecGenerator {
       }
       // The emitted schema keeps the last property of each name and drops one named `__proto__`.
       for (const property of new Map(properties.map(p => [p.name, p])).values()) {
-        if (property.name !== '__proto__' && this.isRequiredWithoutDefault(property) && !this.hasUndefined(property) && isStringEnum(property.type)) {
+        if (property.name !== '__proto__' && this.isRequiredInSchema(property) && isStringEnum(property.type)) {
           const enums = enumsByPropertyName.get(property.name) ?? [];
           enums.push(property.type.enums as string[]);
           enumsByPropertyName.set(property.name, enums);
