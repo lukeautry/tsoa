@@ -1,4 +1,4 @@
-import * as ts from '../ts';
+import type { CompilerOptions } from '../compilerOptions';
 import { ExtendedRoutesConfig, RouteGeneratorModule } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
@@ -9,7 +9,7 @@ import { Config as BaseConfig } from '@tsoa/runtime';
 
 export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   routesConfig: Config,
-  compilerOptions?: ts.CompilerOptions,
+  compilerOptions?: CompilerOptions,
   ignorePaths?: string[],
   /**
    * pass in cached metadata returned in a previous step to speed things up

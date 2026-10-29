@@ -6,7 +6,7 @@ import { Swagger, Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import 'mocha';
-import { ModuleKind, ScriptTarget, type CompilerOptions } from '@tsoa/cli/ts';
+import { ModuleKind, ScriptTarget, type CompilerOptions } from '../../utils/typescript7';
 import { compilerDiagnostics } from '../../utils/diagnostics';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 

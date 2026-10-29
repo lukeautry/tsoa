@@ -1,7 +1,7 @@
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { expect } from 'chai';
 import 'mocha';
-import type { CompilerOptions } from '@tsoa/cli/ts';
+import type { CompilerOptions } from '../../utils/typescript7';
 import { compilerDiagnostics } from '../../utils/diagnostics';
 
 describe('MetadataGenerator strict null checking defaults', () => {

@@ -1,22 +1,33 @@
 import { expect } from 'chai';
 import 'mocha';
-import * as ts from '@tsoa/cli/ts';
+import { mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
-import { getParameterValidators, getPropertyValidators } from '@tsoa/cli/utils/validatorUtils';
-import { FieldErrors, ValidationService } from '@tsoa/runtime';
+import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { FieldErrors, Tsoa, ValidationService } from '@tsoa/runtime';
 
-function readValidators(annotation: string, parameter: boolean) {
-  const { sourceFile } = ts
-    .getApi()
-    .createSourceFile('validators.ts', parameter ? `/** @pattern value ${annotation} */\nfunction validate(value: string) {}` : `interface Model {\n/** @pattern ${annotation} */\nvalue: string;\n}`);
-  const declaration = sourceFile.statements[0];
-  if (declaration && ts.isInterfaceDeclaration(declaration)) {
-    return getPropertyValidators(declaration.members[0]);
+const directory = mkdtempSync(join(tmpdir(), 'tsoa-validators-'));
+const file = join(directory, 'validators.ts');
+after(() => rmSync(directory, { recursive: true, force: true }));
+
+// The line of the JSDoc annotation, which errors point at.
+const annotationLine = (parameter: boolean) => (parameter ? 8 : 2);
+
+// The validators the generator reads from an `@pattern` annotation of a property, or of a method parameter.
+function readValidators(annotation: string, parameter: boolean): Tsoa.Validators | undefined {
+  const decorators =
+    'declare function Route(path?: string): ClassDecorator;\ndeclare function Get(): MethodDecorator;\ndeclare function Post(): MethodDecorator;\ndeclare function Query(): ParameterDecorator;\ndeclare function Body(): ParameterDecorator;\n';
+  const source = parameter
+    ? `${decorators}@Route('v')\nexport class ValidatorsController {\n/** @pattern value ${annotation} */\n@Get()\npublic validate(@Query() value: string): void {}\n}\n`
+    : `interface Model {\n/** @pattern ${annotation} */\nvalue: string;\n}\n${decorators}@Route('v')\nexport class ValidatorsController {\n@Post()\npublic validate(@Body() body: Model): void {}\n}\n`;
+  writeFileSync(file, source);
+  const metadata = new MetadataGenerator(file, { experimentalDecorators: true }).Generate();
+  if (parameter) {
+    return metadata.controllers[0].methods[0].parameters[0].validators;
   }
-  if (declaration && ts.isFunctionDeclaration(declaration)) {
-    return getParameterValidators(declaration.parameters[0], 'value');
-  }
-  throw new Error('Expected a model or function declaration');
+  const model = metadata.referenceTypeMap['Model'];
+  return model.dataType === 'refObject' ? model.properties[0].validators : undefined;
 }
 
 describe('Validator JSDoc utilities', () => {
@@ -56,7 +67,8 @@ describe('Validator JSDoc utilities', () => {
         { name: 'backslash before CRLF', annotation: '`a\\\r\n b c` message', value: '`a\\\r\nb', errorMsg: 'c` message' },
       ]) {
         it(`preserves ${name}`, () => {
-          expect(readValidators(annotation, parameter)?.pattern).to.deep.equal({ value, errorMsg });
+          // The generator's JSON output leaves out a message the annotation has not.
+          expect(readValidators(annotation, parameter)?.pattern).to.deep.equal(errorMsg === undefined ? { value } : { value, errorMsg });
         });
       }
 
@@ -77,7 +89,7 @@ describe('Validator JSDoc utilities', () => {
             .with.property('message')
             .that.includes(`Invalid @pattern ${JSON.stringify(source)}`)
             .and.includes('Invalid regular expression:')
-            .and.includes(`At: validators.ts:${parameter ? '1:1' : '2:2'}.`);
+            .and.includes(`At: ${file}:${annotationLine(parameter)}:${annotationLine(parameter)}.`);
         });
       }
 

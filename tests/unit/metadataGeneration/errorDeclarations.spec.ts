@@ -1,7 +1,7 @@
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { expect } from 'chai';
 import 'mocha';
-import { ScriptTarget } from '@tsoa/cli/ts';
+import { ScriptTarget } from '../../utils/typescript7';
 import { compilerDiagnostics } from '../../utils/diagnostics';
 
 describe('MetadataGenerator Error library declarations', () => {

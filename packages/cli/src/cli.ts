@@ -10,8 +10,8 @@ import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 import { existsSync } from 'node:fs';
 import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
-import * as ts from './ts';
-import type { CompilerOptions } from './ts';
+import type { CompilerOptions } from './compilerOptions';
+import { parseConfigFile } from './metadataGeneration/nativeMetadata';
 
 const workingDir: string = process.cwd();
 
@@ -107,14 +107,7 @@ export const validateCompilerOptions = (config?: Record<string, unknown> | Compi
   const tsconfigPath = findConfigFile(cwd);
   let baseOptions: CompilerOptions = {};
   if (tsconfigPath) {
-    const api = ts.getApi();
-    const parsed = api.parseConfigFile(tsconfigPath);
-    // 18002/18003: the project lists no input files, which only matters to a build of the project itself.
-    const diagnostics = parsed.errors.filter(error => error.code !== 18002 && error.code !== 18003);
-    if (diagnostics.length) {
-      throw new Error(ts.formatDiagnostics(diagnostics, { getCanonicalFileName: fileName => fileName, getCurrentDirectory: () => cwd, getNewLine: () => '\n' }));
-    }
-    baseOptions = parsed.options;
+    baseOptions = parseConfigFile(tsconfigPath, cwd);
   }
 
   const nativeOverrides = (config || {}) as CompilerOptions;

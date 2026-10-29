@@ -25,6 +25,9 @@ import (
 )
 
 type request struct {
+	// Command is "metadata" (the default) or "parseConfig".
+	Command           string                        `json:"command"`
+	ConfigFile        string                        `json:"configFile"`
 	CurrentDirectory  string                        `json:"currentDirectory"`
 	RootFiles         []string                      `json:"rootFiles"`
 	CompilerOptions   *tsoptions.RawCompilerOptions `json:"compilerOptions"`
@@ -57,6 +60,14 @@ func main() {
 	var req request
 	if err := json.Unmarshal(input, &req); err != nil {
 		fail("invalid request: " + err.Error())
+	}
+	if req.Command == "parseConfig" {
+		out, err := json.Marshal(parseConfig(req.ConfigFile, req.CurrentDirectory))
+		if err != nil {
+			fail(err.Error())
+		}
+		_, _ = os.Stdout.Write(out)
+		return
 	}
 	metadata, warnings, checks, err := generate(&req)
 	if err != nil {

@@ -3,7 +3,7 @@ import 'mocha';
 import { join, normalize } from 'path';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import * as ts from '@tsoa/cli/ts';
+import * as ts from '../../utils/typescript7';
 import { validateCompilerOptions } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
@@ -24,7 +24,7 @@ function resolveProperties(type: Tsoa.Type): Tsoa.Property[] {
 const fixtureDir = normalize(join(__dirname, '../../fixtures/tsconfig-bundler'));
 
 function resolveModule(options: ts.CompilerOptions, moduleName: string, containingDirectory: string): string | undefined {
-  const resolver = ts.getApi().createModuleResolver(options);
+  const resolver = ts.getApi().createModuleResolver(ts.toApiOptions(options));
   try {
     const resolved = resolver.resolveModuleName(moduleName, containingDirectory).resolvedModule;
     return resolved && normalize(resolved.resolvedFileName);
@@ -146,12 +146,12 @@ describe('validateCompilerOptions', () => {
       const overrides = ts.getApi().parseJsonConfigFileContent({ compilerOptions: { module: 'commonjs', target: 'es2022', lib: ['es2022'] }, files: [] }, { configDirectory: projectDir });
       // 18002: the options-only configuration lists no files.
       expect(overrides.errors.filter(error => error.code !== 18002)).to.deep.equal([]);
-      expect(validateCompilerOptions(overrides.options, projectDir)).to.deep.equal(overrides.options);
+      expect(validateCompilerOptions(ts.fromApiOptions(overrides.options), projectDir)).to.deep.equal(overrides.options);
     });
 
     it('preserves config paths and resolution state produced by the TypeScript config parser', () => {
       const parsed = ts.getApi().parseJsonConfigFileContent({ compilerOptions: { paths: { external: ['./external.ts'] } } }, { configFileName: join(projectDir, 'other.json') });
-      const options = validateCompilerOptions(parsed.options, fixtureDir);
+      const options = validateCompilerOptions(ts.fromApiOptions(parsed.options), fixtureDir);
       expect(options).to.deep.include(parsed.options);
       expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Bundler);
     });
@@ -167,7 +167,7 @@ describe('validateCompilerOptions', () => {
       writeFileSync(configPath, JSON.stringify({ compilerOptions: { module: 'nodenext', moduleResolution: 'nodenext', rootDir: './package/src', outDir: './package/dist' } }));
       const parsed = ts.getApi().parseConfigFile(configPath);
       expect(parsed.errors).to.deep.equal([]);
-      const overrides = Object.freeze(parsed.options);
+      const overrides = Object.freeze(ts.fromApiOptions(parsed.options));
       const containingDirectory = join(packageDir, 'src');
       const control = resolveModule(overrides, 'self-pkg', containingDirectory);
       const options = validateCompilerOptions(overrides, projectDir);

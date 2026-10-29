@@ -1,74 +1,37 @@
 import { Config, Tsoa } from '@tsoa/runtime';
-import { minimatch } from 'minimatch';
-import { getApi, isClassDeclaration, map, run, type ClassDeclaration, type CompilerOptions, type Program, type Checker, type Op, type SourceFile } from '../ts';
-import { getDecorators } from '../utils/decoratorUtils';
+import type { CompilerOptions } from '../compilerOptions';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
-import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { TypeResolver } from './typeResolver';
-import { generateNativeMetadata, useNativeMetadata, type NativeMetadataRequest } from './nativeMetadata';
-const controllersPerBatch = Number(process.env.TSOA_CONTROLLERS_PER_BATCH) || 10;
+import { generateNativeMetadata, type NativeMetadataRequest } from './nativeMetadata';
 
+/** Generates the metadata of the controllers of a program, with the native generator built into the TypeScript 7 compiler. */
 export class MetadataGenerator {
-  public readonly controllerNodes = new Array<ClassDeclaration>();
-  public readonly typeChecker!: Checker;
-  private readonly program?: Program;
-  private readonly nativeRequest?: NativeMetadataRequest;
-  private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
-  private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
-  private expressionOrigNameMap: Record<string, string> = {};
-  private readonly compilerOptions: CompilerOptions;
+  private readonly request: NativeMetadataRequest;
 
   constructor(
     entryFile: string,
     compilerOptions?: CompilerOptions,
-    private readonly ignorePaths?: string[],
+    ignorePaths?: string[],
     controllers?: string[],
-    private readonly rootSecurity: Tsoa.Security[] = [],
+    rootSecurity: Tsoa.Security[] = [],
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
     esm = false,
   ) {
-    TypeResolver.clearCache();
-    this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
-    const rootFiles = controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile];
-    if (useNativeMetadata()) {
-      // The native generator works inside the compiler: it needs no program here.
-      this.nativeRequest = {
-        currentDirectory: process.cwd(),
-        rootFiles,
-        compilerOptions: this.compilerOptions,
-        ignorePaths,
-        rootSecurity,
-        defaultNumberType,
-      };
-      return;
-    }
-    this.program = getApi().createProgram(rootFiles, this.compilerOptions);
-    this.typeChecker = this.program.getProject().checker;
+    this.request = {
+      currentDirectory: process.cwd(),
+      rootFiles: controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile],
+      compilerOptions: { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false },
+      ignorePaths,
+      rootSecurity,
+      defaultNumberType,
+    };
   }
 
   public Generate(): Tsoa.Metadata {
-    if (this.nativeRequest) {
-      const metadata = generateNativeMetadata(this.nativeRequest);
-      this.checkForMethodSignatureDuplicates(metadata.controllers);
-      this.checkForPathParamSignatureDuplicates(metadata.controllers);
-      return metadata;
-    }
-    const program = this.program!;
-    try {
-      run(this.extractNodeFromProgramSourceFiles());
-
-      const controllers = this.buildControllers();
-      this.checkForMethodSignatureDuplicates(controllers);
-      this.checkForPathParamSignatureDuplicates(controllers);
-
-      return {
-        controllers,
-        referenceTypeMap: this.referenceTypeMap,
-      };
-    } finally {
-      program.dispose();
-    }
+    const metadata = generateNativeMetadata(this.request);
+    this.checkForMethodSignatureDuplicates(metadata.controllers);
+    this.checkForPathParamSignatureDuplicates(metadata.controllers);
+    return metadata;
   }
 
   private getDynamicControllersFiles(controllers: string[], esm: boolean) {
@@ -78,19 +41,6 @@ export class MetadataGenerator {
     }
 
     return allGlobFiles;
-  }
-
-  private *extractNodeFromProgramSourceFiles(): Op<void> {
-    // Declaration files cannot hold decorated classes, so they are not fetched from the compiler.
-    const fileNames = (yield* this.program!.getSourceFileNames.gen()).filter(fileName => !/\.d\.[cm]?ts$/.test(fileName) && !this.ignorePaths?.some(path => minimatch(fileName, path)));
-    const sourceFiles = yield* map(fileNames, fileName => this.program!.getSourceFile.gen(fileName));
-    sourceFiles.forEach(sourceFile => {
-      sourceFile?.forEachChild(node => {
-        if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
-          this.controllerNodes.push(node);
-        }
-      });
-    });
   }
 
   private checkForMethodSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
@@ -230,67 +180,4 @@ export class MetadataGenerator {
       console.warn(message);
     });
   };
-
-  /** Whether a file is one of TypeScript's own library declaration files (`lib.*.d.ts`). */
-  public *isDefaultLibraryFile(sourceFile: SourceFile): Op<boolean> {
-    return yield* this.program!.isSourceFileDefaultLibrary.gen(sourceFile);
-  }
-
-  public TypeChecker() {
-    return this.typeChecker;
-  }
-
-  public AddReferenceType(referenceType: Tsoa.ReferenceType) {
-    if (!referenceType.refName) {
-      throw new Error('no reference type name found');
-    }
-    this.referenceTypeMap[referenceType.refName] = referenceType;
-  }
-
-  public GetReferenceType(refName: string) {
-    return this.referenceTypeMap[refName];
-  }
-
-  public CheckModelUnicity(refName: string, positions: Array<{ fileName: string; pos: number }>) {
-    if (!this.modelDefinitionPosMap[refName]) {
-      this.modelDefinitionPosMap[refName] = positions;
-    } else {
-      const origPositions = this.modelDefinitionPosMap[refName];
-      if (!(origPositions.length === positions.length && positions.every(pos => origPositions.find(origPos => pos.pos === origPos.pos && pos.fileName === origPos.fileName)))) {
-        throw new Error(`Found 2 different model definitions for model ${refName}: orig: ${JSON.stringify(origPositions)}, act: ${JSON.stringify(positions)}`);
-      }
-    }
-  }
-
-  public CheckExpressionUnicity(formattedRefName: string, refName: string) {
-    if (!this.expressionOrigNameMap[formattedRefName]) {
-      this.expressionOrigNameMap[formattedRefName] = refName;
-    } else {
-      if (this.expressionOrigNameMap[formattedRefName] !== refName) {
-        throw new Error(`Found 2 different type expressions for formatted name "${formattedRefName}": orig: "${this.expressionOrigNameMap[formattedRefName]}", act: "${refName}"`);
-      }
-    }
-  }
-
-  private buildControllers(): Tsoa.Controller[] {
-    if (this.controllerNodes.length === 0) {
-      throw new Error('no controllers found, check tsoa configuration');
-    }
-    // Controllers run in batches: independent compiler calls of a batch share round trips, and the compiler
-    // releases what a batch used before the next one starts.
-    const controllers: Tsoa.Controller[] = [];
-    for (let start = 0; start < this.controllerNodes.length; start += controllersPerBatch) {
-      const batch = run(
-        map(
-          this.controllerNodes.slice(start, start + controllersPerBatch),
-          function* (this: MetadataGenerator, classDeclaration: ClassDeclaration): Op<Tsoa.Controller | undefined> {
-            const generator = yield* ControllerGenerator.create(classDeclaration, this, this.rootSecurity);
-            return generator.IsValid() ? yield* generator.Generate() : undefined;
-          }.bind(this),
-        ),
-      );
-      controllers.push(...batch.filter((controller): controller is Tsoa.Controller => controller !== undefined));
-    }
-    return controllers;
-  }
 }
