@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -53,8 +55,8 @@ func (g *generator) warn(message string) {
 	g.warnings = append(g.warnings, message)
 }
 
-func (g *generator) Generate(sourceFiles []*ast.SourceFile) Obj {
-	g.init()
+// findControllers finds the classes decorated with @Route, in the order of the program's files.
+func (g *generator) findControllers(sourceFiles []*ast.SourceFile) []*ast.Node {
 	var controllerNodes []*ast.Node
 	for _, sf := range sourceFiles {
 		if g.isIgnored(string(sf.FileName())) {
@@ -69,6 +71,10 @@ func (g *generator) Generate(sourceFiles []*ast.SourceFile) Obj {
 	if len(controllerNodes) == 0 {
 		panic(&MetadataError{Message: "no controllers found, check tsoa configuration"})
 	}
+	return controllerNodes
+}
+
+func (g *generator) generateControllers(controllerNodes []*ast.Node) []any {
 	controllers := []any{}
 	for _, node := range controllerNodes {
 		controller := g.newControllerGenerator(node)
@@ -76,7 +82,43 @@ func (g *generator) Generate(sourceFiles []*ast.SourceFile) Obj {
 			controllers = append(controllers, controller.generate())
 		}
 	}
-	return Obj{"controllers": controllers}
+	return controllers
+}
+
+// merge takes in what a generator of the controllers that follow this generator's found. Reference types keep the
+// order of their first use, as one generator for all controllers would have added them; warnings and checks
+// repeated by generators that resolved the same types are left out.
+func (g *generator) merge(other *generator) {
+	for _, name := range other.referenceTypeMap.names {
+		if g.referenceTypeMap.get(name) == nil {
+			g.referenceTypeMap.set(name, other.referenceTypeMap.get(name))
+		}
+	}
+	for _, name := range sortedKeys(other.modelDefinitionPosMap) {
+		g.CheckModelUnicity(name, other.modelDefinitionPosMap[name])
+	}
+	for _, name := range sortedKeys(other.expressionOrigNameMap) {
+		g.CheckExpressionUnicity(name, other.expressionOrigNameMap[name])
+	}
+	for _, warning := range other.warnings {
+		if !containsString(g.warnings, warning) {
+			g.warnings = append(g.warnings, warning)
+		}
+	}
+	for _, check := range other.checks {
+		if !slices.Contains(g.checks, check) {
+			g.checks = append(g.checks, check)
+		}
+	}
+}
+
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func (g *generator) isIgnored(fileName string) bool {

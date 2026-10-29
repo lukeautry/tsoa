@@ -30,7 +30,7 @@ func printKey(node *ast.Node) string {
 	if ast.IsParenthesizedTypeNode(node) {
 		node = node.Type()
 	}
-	return textPrinter.Emit(node, nil)
+	return printText(node)
 }
 
 func withoutUndefined(t *checker.Type) *checker.Type {

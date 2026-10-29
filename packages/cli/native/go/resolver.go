@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode/utf16"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -1097,14 +1098,14 @@ var unsafeRefNameCharacter = regexp.MustCompile(`[^A-Za-z0-9\-._]`)
 
 // Generates a name from the original type expression.
 // This function is not invertable, so it's possible, that 2 type expressions have the same refTypeName.
-var refTypeNames = map[string]string{}
+var refTypeNames sync.Map
 
 func getRefTypeName(name string) string {
-	if formatted, ok := refTypeNames[name]; ok {
-		return formatted
+	if formatted, ok := refTypeNames.Load(name); ok {
+		return formatted.(string)
 	}
 	formatted := formatRefTypeName(name)
-	refTypeNames[name] = formatted
+	refTypeNames.Store(name, formatted)
 	return formatted
 }
 

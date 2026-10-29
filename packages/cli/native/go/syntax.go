@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
@@ -30,12 +31,22 @@ func isSynthetic(node *ast.Node) bool {
 	return !ast.IsJSDocKind(node.Kind) && scanner.SkipTrivia(text, node.Pos()) > node.End()
 }
 
-var textPrinter = printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, nil)
+// Printers keep state while they print, so each goroutine takes one of its own.
+var textPrinters = sync.Pool{New: func() any {
+	return printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, nil)
+}}
+
+// printText prints a node.
+func printText(node *ast.Node) string {
+	p := textPrinters.Get().(*printer.Printer)
+	defer textPrinters.Put(p)
+	return p.Emit(node, nil)
+}
 
 // nodeText is the source text of a node, or its printed form for a node printed by the checker.
 func nodeText(node *ast.Node) string {
 	if isSynthetic(node) {
-		return textPrinter.Emit(node, nil)
+		return printText(node)
 	}
 	if ast.IsJSDocKind(node.Kind) {
 		return ast.GetSourceFileOfNode(node).Text()[node.Pos():node.End()]

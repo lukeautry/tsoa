@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"sort"
 	"strconv"
+	"sync"
 )
 
 // Obj is a metadata object, such as a Tsoa.Type or Tsoa.Property. Like the JavaScript object literals it stands
@@ -54,32 +56,70 @@ func isUndefined(value any) bool {
 }
 
 // encodeMetadata writes the metadata with every reference type of the map written once, in the map.
-func encodeMetadata(metadata Obj, refs *referenceTypeMap) (json.RawMessage, error) {
-	e := &encoder{refs: refs, inline: map[any]bool{}}
-	var buf bytes.Buffer
-	buf.WriteString(`{"controllers":`)
-	if err := e.value(&buf, metadata["controllers"], false); err != nil {
-		return nil, err
+// encodeMetadata writes the metadata as JSON. Its parts are encoded in parallel, then joined in order.
+func encodeMetadata(controllers []any, refs *referenceTypeMap) (json.RawMessage, error) {
+	e := &encoder{refs: refs}
+	chunks := runtime.GOMAXPROCS(0) * 2
+	type part struct {
+		buf bytes.Buffer
+		err error
 	}
-	buf.WriteString(`,"referenceTypeMap":{`)
-	for i, name := range refs.names {
-		if i > 0 {
-			buf.WriteByte(',')
-		}
-		key, _ := json.Marshal(name)
-		buf.Write(key)
-		buf.WriteByte(':')
-		if err := e.value(&buf, refs.types[name], true); err != nil {
-			return nil, err
+	controllerParts := make([]part, min(chunks, len(controllers)))
+	refParts := make([]part, min(chunks, len(refs.names)))
+	var wg sync.WaitGroup
+	for i := range controllerParts {
+		wg.Go(func() {
+			p := &controllerParts[i]
+			for j, controller := range controllers[i*len(controllers)/len(controllerParts) : (i+1)*len(controllers)/len(controllerParts)] {
+				if j > 0 || i > 0 {
+					p.buf.WriteByte(',')
+				}
+				if p.err = e.value(&p.buf, controller, false); p.err != nil {
+					return
+				}
+			}
+		})
+	}
+	for i := range refParts {
+		wg.Go(func() {
+			p := &refParts[i]
+			for j, name := range refs.names[i*len(refs.names)/len(refParts) : (i+1)*len(refs.names)/len(refParts)] {
+				if j > 0 || i > 0 {
+					p.buf.WriteByte(',')
+				}
+				writeJSONString(&p.buf, name)
+				p.buf.WriteByte(':')
+				if p.err = e.value(&p.buf, refs.types[name], true); p.err != nil {
+					return
+				}
+			}
+		})
+	}
+	wg.Wait()
+
+	size := 64
+	for _, parts := range [][]part{controllerParts, refParts} {
+		for i := range parts {
+			if parts[i].err != nil {
+				return nil, parts[i].err
+			}
+			size += parts[i].buf.Len()
 		}
 	}
-	buf.WriteString(`}}`)
-	return buf.Bytes(), nil
+	out := make([]byte, 0, size)
+	out = append(out, `{"controllers":[`...)
+	for i := range controllerParts {
+		out = append(out, controllerParts[i].buf.Bytes()...)
+	}
+	out = append(out, `],"referenceTypeMap":{`...)
+	for i := range refParts {
+		out = append(out, refParts[i].buf.Bytes()...)
+	}
+	return append(out, `}}`...), nil
 }
 
 type encoder struct {
-	refs   *referenceTypeMap
-	inline map[any]bool
+	refs *referenceTypeMap
 }
 
 func (e *encoder) value(buf *bytes.Buffer, v any, definition bool) error {
