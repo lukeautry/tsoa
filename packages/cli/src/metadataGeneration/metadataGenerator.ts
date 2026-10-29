@@ -1,11 +1,13 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { getApi, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type Checker, type SourceFile } from '../ts';
+import { getApi, isClassDeclaration, map, run, type ClassDeclaration, type CompilerOptions, type Program, type Checker, type Op, type SourceFile } from '../ts';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
 import { TypeResolver } from './typeResolver';
+
+const controllersPerBatch = Number(process.env.TSOA_CONTROLLERS_PER_BATCH) || 10;
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
@@ -33,10 +35,9 @@ export class MetadataGenerator {
 
   public Generate(): Tsoa.Metadata {
     try {
-      this.extractNodeFromProgramSourceFiles();
+      run(this.extractNodeFromProgramSourceFiles());
 
       const controllers = this.buildControllers();
-
       this.checkForMethodSignatureDuplicates(controllers);
       this.checkForPathParamSignatureDuplicates(controllers);
 
@@ -58,21 +59,12 @@ export class MetadataGenerator {
     return allGlobFiles;
   }
 
-  private extractNodeFromProgramSourceFiles() {
-    this.program.getSourceFileNames().forEach(fileName => {
-      // Declaration files cannot hold decorated classes, and fetching each one from the compiler costs a round trip.
-      if (/\.d\.[cm]?ts$/.test(fileName)) {
-        return;
-      }
-      if (this.ignorePaths && this.ignorePaths.length) {
-        for (const path of this.ignorePaths) {
-          if (minimatch(fileName, path)) {
-            return;
-          }
-        }
-      }
-
-      this.program.getSourceFile(fileName)?.forEachChild(node => {
+  private *extractNodeFromProgramSourceFiles(): Op<void> {
+    // Declaration files cannot hold decorated classes, so they are not fetched from the compiler.
+    const fileNames = (yield* this.program.getSourceFileNames.gen()).filter(fileName => !/\.d\.[cm]?ts$/.test(fileName) && !this.ignorePaths?.some(path => minimatch(fileName, path)));
+    const sourceFiles = yield* map(fileNames, fileName => this.program.getSourceFile.gen(fileName));
+    sourceFiles.forEach(sourceFile => {
+      sourceFile?.forEachChild(node => {
         if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
           this.controllerNodes.push(node);
         }
@@ -219,8 +211,8 @@ export class MetadataGenerator {
   };
 
   /** Whether a file is one of TypeScript's own library declaration files (`lib.*.d.ts`). */
-  public isDefaultLibraryFile(sourceFile: SourceFile) {
-    return this.program.isSourceFileDefaultLibrary(sourceFile);
+  public *isDefaultLibraryFile(sourceFile: SourceFile): Op<boolean> {
+    return yield* this.program.isSourceFileDefaultLibrary.gen(sourceFile);
   }
 
   public TypeChecker() {
@@ -259,13 +251,25 @@ export class MetadataGenerator {
     }
   }
 
-  private buildControllers() {
+  private buildControllers(): Tsoa.Controller[] {
     if (this.controllerNodes.length === 0) {
       throw new Error('no controllers found, check tsoa configuration');
     }
-    return this.controllerNodes
-      .map(classDeclaration => new ControllerGenerator(classDeclaration, this, this.rootSecurity))
-      .filter(generator => generator.IsValid())
-      .map(generator => generator.Generate());
+    // Controllers run in batches: independent compiler calls of a batch share round trips, and the compiler
+    // releases what a batch used before the next one starts.
+    const controllers: Tsoa.Controller[] = [];
+    for (let start = 0; start < this.controllerNodes.length; start += controllersPerBatch) {
+      const batch = run(
+        map(
+          this.controllerNodes.slice(start, start + controllersPerBatch),
+          function* (this: MetadataGenerator, classDeclaration: ClassDeclaration): Op<Tsoa.Controller | undefined> {
+            const generator = yield* ControllerGenerator.create(classDeclaration, this, this.rootSecurity);
+            return generator.IsValid() ? yield* generator.Generate() : undefined;
+          }.bind(this),
+        ),
+      );
+      controllers.push(...batch.filter((controller): controller is Tsoa.Controller => controller !== undefined));
+    }
+    return controllers;
   }
 }

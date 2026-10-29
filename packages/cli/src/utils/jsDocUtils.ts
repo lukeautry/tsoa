@@ -98,7 +98,8 @@ function renderJSDocComment(comment: string | ts.NodeArray<ts.JSDocComment> | un
       }
       const tag = ts.isJSDocLinkCode(part) ? 'linkcode' : ts.isJSDocLinkPlain(part) ? 'linkplain' : 'link';
       const text = part.text.replace(/^[\s|]+/, '');
-      const target = part.name ? ts.nodeText(part.name) : '';
+      // JSDoc is only read from source files, so its nodes have source text.
+      const target = part.name ? part.name.getText() : '';
       return `{@${tag} ${[target, text].filter(Boolean).join(' ')}}`;
     })
     .join('');
@@ -108,9 +109,22 @@ function renderJSDocComment(comment: string | ts.NodeArray<ts.JSDocComment> | un
  * The documentation of a symbol: the comments of its declarations, or the `@param` tags naming a parameter, one per line.
  * Links keep their `{@link …}` form. Declarations without JSDoc fall back to the documentation the compiler finds, such as inherited documentation.
  */
-export function getSymbolDocumentation(symbol: ts.Symbol, checker: ts.Checker): string | undefined {
+const documentation: ts.MemoCache<ts.Symbol, string | undefined> = new WeakMap();
+
+// A member without its own comment can inherit one from the classes and interfaces its container extends or implements.
+const mayInheritDocumentation = (declaration: ts.Node) => {
+  const container = declaration.parent;
+  return !!container && (ts.isClassDeclaration(container) || ts.isClassExpression(container) || ts.isInterfaceDeclaration(container)) && !!container.heritageClauses?.length;
+};
+
+export function getSymbolDocumentation(symbol: ts.Symbol, checker: ts.Checker): ts.Op<string | undefined> {
+  return ts.memo(documentation, symbol, () => symbolDocumentation(symbol, checker));
+}
+
+function* symbolDocumentation(symbol: ts.Symbol, checker: ts.Checker): ts.Op<string | undefined> {
   const comments: string[] = [];
-  for (const declaration of ts.getDeclarations(symbol)) {
+  const declarations = yield* ts.getDeclarations(symbol);
+  for (const declaration of declarations) {
     for (const commentHolder of ts.getJSDocCommentsAndTags(declaration)) {
       if (ts.isJSDoc(commentHolder) || ts.isJSDocParameterTag(commentHolder)) {
         const comment = renderJSDocComment(commentHolder.comment);
@@ -120,5 +134,8 @@ export function getSymbolDocumentation(symbol: ts.Symbol, checker: ts.Checker): 
       }
     }
   }
-  return comments.length ? comments.join('\n') : symbol.getDocumentationComment(checker) || undefined;
+  if (comments.length) {
+    return comments.join('\n');
+  }
+  return declarations.some(mayInheritDocumentation) ? (yield* symbol.getDocumentationComment.gen(checker)) || undefined : undefined;
 }

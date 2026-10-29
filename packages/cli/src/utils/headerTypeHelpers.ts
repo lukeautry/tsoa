@@ -1,20 +1,20 @@
 import { Tsoa } from '@tsoa/runtime';
-import { nodeText, type NodeArray, type TypeNode } from '../ts';
+import { nodeText, type NodeArray, type Op, type TypeNode } from '../ts';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { TypeResolver } from '../metadataGeneration/typeResolver';
 
-export function getHeaderType(typeArgumentNodes: NodeArray<TypeNode> | undefined, index: number, metadataGenerator: MetadataGenerator): Tsoa.HeaderType | undefined {
+export function* getHeaderType(typeArgumentNodes: NodeArray<TypeNode> | undefined, index: number, metadataGenerator: MetadataGenerator): Op<Tsoa.HeaderType | undefined> {
   if (!typeArgumentNodes || !typeArgumentNodes[index]) {
     return undefined;
   }
 
-  const candidate = new TypeResolver(typeArgumentNodes[index], metadataGenerator).resolve();
+  const candidate = yield* new TypeResolver(typeArgumentNodes[index], metadataGenerator).resolve();
 
   if (candidate && isSupportedHeaderDataType(candidate)) {
     return candidate;
   } else if (candidate) {
-    throw new GenerateMetadataError(`Unable to parse Header Type ${nodeText(typeArgumentNodes[index])}`, typeArgumentNodes[index]);
+    throw new GenerateMetadataError(`Unable to parse Header Type ${yield* nodeText(typeArgumentNodes[index])}`, typeArgumentNodes[index]);
   }
 
   return undefined;

@@ -298,12 +298,9 @@ const rows: Row[] = [
       const name = strictNullChecks ? 'P_Leaf-or-null_' : 'P_Leaf_';
       const leaf = leafObject(strictNullChecks && !compilerOptions.exactOptionalPropertyTypes);
       const nullable: Tsoa.UnionType = { dataType: 'union', types: [{ dataType: 'enum', enums: [null] }, leaf] };
-      const empty: Tsoa.NestedObjectLiteralType = { dataType: 'nestedObjectLiteral', properties: [] };
-      // The first order gives the empty object on master too.
-      const outputs = {
-        exactNullAliasLitFirst: strictNullChecks ? { type: empty, schema: { type: 'object', properties: {} } } : { type: leaf, schema: leafSchema },
-        exactNullAliasDirectFirst: strictNullChecks ? { type: nullable, schema: { ...leafSchema, nullable: true } } : { type: leaf, schema: leafSchema },
-      };
+      // Both references resolve together and the direct one, which knows its type, completes the alias first.
+      const output = strictNullChecks ? { type: nullable, schema: { ...leafSchema, nullable: true } } : { type: leaf, schema: leafSchema };
+      const outputs = { exactNullAliasLitFirst: output, exactNullAliasDirectFirst: output };
       for (const [controller, output] of Object.entries(outputs)) {
         const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
         expect(JSON.parse(JSON.stringify(refAlias(metadata, name).type)), `${controller} alias`).to.deep.equal(output.type);

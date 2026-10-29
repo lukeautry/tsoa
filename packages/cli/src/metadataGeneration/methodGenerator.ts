@@ -21,7 +21,7 @@ export class MethodGenerator {
   private produces?: string[];
   private consumes?: string;
 
-  constructor(
+  private constructor(
     private readonly node: ts.MethodDeclaration,
     private readonly current: MetadataGenerator,
     private readonly commonResponses: Tsoa.Response[],
@@ -29,15 +29,27 @@ export class MethodGenerator {
     private readonly parentTags?: string[],
     private readonly parentSecurity?: Tsoa.Security[],
     private readonly isParentHidden?: boolean,
-  ) {
-    this.processMethodDecorators();
+  ) {}
+
+  public static *create(
+    node: ts.MethodDeclaration,
+    current: MetadataGenerator,
+    commonResponses: Tsoa.Response[],
+    parentPath?: string,
+    parentTags?: string[],
+    parentSecurity?: Tsoa.Security[],
+    isParentHidden?: boolean,
+  ): ts.Op<MethodGenerator> {
+    const generator = new MethodGenerator(node, current, commonResponses, parentPath, parentTags, parentSecurity, isParentHidden);
+    yield* generator.processMethodDecorators();
+    return generator;
   }
 
   public IsValid(): this is { method: HttpMethod; path: string } {
     return this.method !== undefined && this.path !== undefined;
   }
 
-  public Generate(): Tsoa.Method {
+  public *Generate(): ts.Op<Tsoa.Method> {
     if (!this.IsValid()) {
       throw new GenerateMetadataError("This isn't a valid a controller method.");
     }
@@ -45,58 +57,60 @@ export class MethodGenerator {
     let nodeType = this.node.type;
     if (!nodeType) {
       const typeChecker = this.current.typeChecker;
-      const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      const implicitType = typeChecker.getReturnTypeOfSignature(signature);
-      nodeType = printType(typeChecker, implicitType)!;
+      const signature = yield* typeChecker.getSignatureFromDeclaration.gen(this.node);
+      const implicitType = yield* typeChecker.getReturnTypeOfSignature.gen(signature);
+      nodeType = (yield* printType(typeChecker, implicitType))!;
     }
-    const type = new TypeResolver(nodeType, this.current).resolve();
-    const responses = this.commonResponses.concat(this.getMethodResponses());
-    const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
+    const type = yield* new TypeResolver(nodeType, this.current).resolve();
+    const responses = this.commonResponses.concat(yield* this.getMethodResponses());
+    const { response: successResponse, status: successStatus } = yield* this.getMethodSuccessResponse(type);
     responses.push(successResponse);
-    const parameters = this.buildParameters();
+    const parameters = yield* this.buildParameters();
     const additionalResponses = parameters.filter((p): p is Tsoa.ResParameter => p.in === 'res');
     responses.push(...additionalResponses);
 
     return {
-      extensions: this.getExtensions(),
+      extensions: yield* this.getExtensions(),
       deprecated: this.getIsDeprecated(),
       description: getJSDocDescription(this.node),
       isHidden: this.getIsHidden(),
       method: this.method,
       name: (this.node.name as ts.Identifier).text,
-      operationId: this.getOperationId(),
+      operationId: yield* this.getOperationId(),
       parameters,
       path: this.path,
       produces: this.produces,
       consumes: this.consumes ?? (parameters.some(p => p.in === 'body' && p.type.dataType === 'binary') ? 'application/octet-stream' : undefined),
       responses,
       successStatus,
-      security: this.getSecurity(),
+      security: yield* this.getSecurity(),
       summary: getJSDocComment(this.node, 'summary'),
-      tags: this.getTags(),
+      tags: yield* this.getTags(),
       type,
     };
   }
 
-  private buildParameters() {
+  private *buildParameters(): ts.Op<Tsoa.Parameter[]> {
     if (!this.IsValid()) {
       throw new GenerateMetadataError("This isn't a valid a controller method.");
     }
 
     const fullPath = path.join(this.parentPath || '', this.path);
     const method = this.method;
-    const parameters = this.node.parameters
-      .map(p => {
+    const parameterLists = yield* ts.map(
+      this.node.parameters,
+      function* (this: MethodGenerator, p: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter[]> {
         try {
-          return new ParameterGenerator(p, method, fullPath, this.current).Generate();
+          return yield* new ParameterGenerator(p, method, fullPath, this.current).Generate();
         } catch (e) {
           const methodId = this.node.name as ts.Identifier;
           const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
           const message = e instanceof Error ? e.message : String(e);
           throw new GenerateMetadataError(`${message} \n in '${controllerId.text}.${methodId.text}'`);
         }
-      })
-      .reduce((flattened, params) => [...flattened, ...params], []);
+      }.bind(this),
+    );
+    const parameters = parameterLists.reduce((flattened, params) => [...flattened, ...params], []);
 
     this.validateBodyParameters(parameters);
     this.validateQueryParameters(parameters);
@@ -134,12 +148,12 @@ export class MethodGenerator {
     }
   }
 
-  private getExtensions() {
+  private *getExtensions(): ts.Op<Tsoa.Extension[]> {
     const extensionDecorators = this.getDecoratorsByIdentifier(this.node, 'Extension');
     if (!extensionDecorators || !extensionDecorators.length) {
       return [];
     }
-    return getExtensions(extensionDecorators, this.current);
+    return yield* getExtensions(extensionDecorators, this.current);
   }
 
   private getCurrentLocation() {
@@ -148,7 +162,7 @@ export class MethodGenerator {
     return `${controllerId.text}.${methodId.text}`;
   }
 
-  private processMethodDecorators() {
+  private *processMethodDecorators(): ts.Op<void> {
     const pathDecorators = getDecorators(this.node, identifier => this.supportsPathMethod(identifier.text));
 
     if (!pathDecorators || !pathDecorators.length) {
@@ -164,17 +178,17 @@ export class MethodGenerator {
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
-    this.path = getPath(decorator, this.current.typeChecker);
-    this.produces = this.getProduces();
-    this.consumes = this.getConsumes();
+    this.path = yield* getPath(decorator, this.current.typeChecker);
+    this.produces = yield* this.getProduces();
+    this.consumes = yield* this.getConsumes();
   }
 
-  private getProduces(): string[] | undefined {
-    const produces = getProduces(this.node, this.current.typeChecker);
+  private *getProduces(): ts.Op<string[] | undefined> {
+    const produces = yield* getProduces(this.node, this.current.typeChecker);
     return produces.length ? produces : undefined;
   }
 
-  private getConsumes(): string | undefined {
+  private *getConsumes(): ts.Op<string | undefined> {
     const consumesDecorators = this.getDecoratorsByIdentifier(this.node, 'Consumes');
 
     if (!consumesDecorators || !consumesDecorators.length) {
@@ -185,19 +199,29 @@ export class MethodGenerator {
     }
 
     const [decorator] = consumesDecorators;
-    const [consumes] = getDecoratorValues(decorator, this.current.typeChecker);
+    const [consumes] = yield* getDecoratorValues(decorator, this.current.typeChecker);
     return consumes;
   }
 
-  private getMethodResponses(): Tsoa.Response[] {
+  private *getMethodResponses(): ts.Op<Tsoa.Response[]> {
     const responseExamplesByName: Record<string, any> = {};
     const decorators = this.getDecoratorsByIdentifier(this.node, 'Response');
     if (!decorators || !decorators.length) {
       return [];
     }
 
-    return decorators.map(decorator => {
-      const [name, description, example, produces] = getDecoratorValues(decorator, this.current.typeChecker);
+    const resolved = yield* ts.map(
+      decorators,
+      function* (this: MethodGenerator, decorator: ts.Identifier) {
+        const values = yield* getDecoratorValues(decorator, this.current.typeChecker);
+        const schema = yield* this.getSchemaFromDecorator(decorator, 0);
+        const headers = yield* this.getHeadersFromDecorator(decorator, 1);
+        return { values, schema, headers };
+      }.bind(this),
+    );
+
+    return resolved.map(({ values, schema, headers }) => {
+      const [name, description, example, produces] = values;
 
       if (example !== undefined) {
         responseExamplesByName[name] = responseExamplesByName[name] ? [...responseExamplesByName[name], example] : [example];
@@ -208,15 +232,15 @@ export class MethodGenerator {
         examples: responseExamplesByName[name] || undefined,
         name: name || '200',
         produces: this.getProducesAdapter(produces),
-        schema: this.getSchemaFromDecorator(decorator, 0),
-        headers: this.getHeadersFromDecorator(decorator, 1),
+        schema,
+        headers,
       };
     });
   }
 
-  private getMethodSuccessResponse(type: Tsoa.Type): { response: Tsoa.Response; status?: number } {
+  private *getMethodSuccessResponse(type: Tsoa.Type): ts.Op<{ response: Tsoa.Response; status?: number }> {
     const decorators = this.getDecoratorsByIdentifier(this.node, 'SuccessResponse');
-    const examplesWithLabels = this.getMethodSuccessExamples();
+    const examplesWithLabels = yield* this.getMethodSuccessExamples();
 
     if (!decorators || !decorators.length) {
       const returnsDescription = getJSDocComment(this.node, 'returns') || 'Ok';
@@ -236,8 +260,8 @@ export class MethodGenerator {
     }
 
     const [firstDecorator] = decorators;
-    const [name, description, produces] = getDecoratorValues(firstDecorator, this.current.typeChecker);
-    const headers = this.getHeadersFromDecorator(firstDecorator, 0);
+    const [name, description, produces] = yield* getDecoratorValues(firstDecorator, this.current.typeChecker);
+    const headers = yield* this.getHeadersFromDecorator(firstDecorator, 0);
 
     return {
       response: {
@@ -253,30 +277,33 @@ export class MethodGenerator {
     };
   }
 
-  private getHeadersFromDecorator({ parent: expression }: ts.Identifier, headersIndex: number) {
+  private *getHeadersFromDecorator({ parent: expression }: ts.Identifier, headersIndex: number): ts.Op<Tsoa.HeaderType | undefined> {
     if (!ts.isCallExpression(expression)) {
       return undefined;
     }
-    return getHeaderType(expression.typeArguments, headersIndex, this.current);
+    return yield* getHeaderType(expression.typeArguments, headersIndex, this.current);
   }
 
-  private getSchemaFromDecorator({ parent: expression }: ts.Identifier, schemaIndex: number): Tsoa.Type | undefined {
+  private *getSchemaFromDecorator({ parent: expression }: ts.Identifier, schemaIndex: number): ts.Op<Tsoa.Type | undefined> {
     if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
       return undefined;
     }
-    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
+    return yield* new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
   }
 
-  private getMethodSuccessExamples() {
+  private *getMethodSuccessExamples(): ts.Op<Array<{ example: any; label: any }> | undefined> {
     const exampleDecorators = this.getDecoratorsByIdentifier(this.node, 'Example');
     if (!exampleDecorators || !exampleDecorators.length) {
       return undefined;
     }
 
-    const examples = exampleDecorators.map(exampleDecorator => {
-      const [example, label] = getDecoratorValues(exampleDecorator, this.current.typeChecker);
-      return { example, label };
-    });
+    const examples = yield* ts.map(
+      exampleDecorators,
+      function* (this: MethodGenerator, exampleDecorator: ts.Identifier) {
+        const [example, label] = yield* getDecoratorValues(exampleDecorator, this.current.typeChecker);
+        return { example, label };
+      }.bind(this),
+    );
 
     return examples || undefined;
   }
@@ -300,7 +327,7 @@ export class MethodGenerator {
     return true;
   }
 
-  private getOperationId() {
+  private *getOperationId(): ts.Op<string | undefined> {
     const opDecorators = this.getDecoratorsByIdentifier(this.node, 'OperationId');
     if (!opDecorators || !opDecorators.length) {
       return undefined;
@@ -309,11 +336,11 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one OperationId decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
-    const values = getDecoratorValues(opDecorators[0], this.current.typeChecker);
+    const values = yield* getDecoratorValues(opDecorators[0], this.current.typeChecker);
     return values && values[0];
   }
 
-  private getTags() {
+  private *getTags(): ts.Op<string[] | undefined> {
     const tagsDecorators = this.getDecoratorsByIdentifier(this.node, 'Tags');
     if (!tagsDecorators || !tagsDecorators.length) {
       return this.parentTags;
@@ -322,14 +349,14 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one Tags decorator allowed in '${this.getCurrentLocation()}' method.`);
     }
 
-    const tags = getDecoratorValues(tagsDecorators[0], this.current.typeChecker);
+    const tags = yield* getDecoratorValues(tagsDecorators[0], this.current.typeChecker);
     if (tags && this.parentTags) {
       tags.push(...this.parentTags);
     }
     return tags;
   }
 
-  private getSecurity(): Tsoa.Security[] {
+  private *getSecurity(): ts.Op<Tsoa.Security[]> {
     const noSecurityDecorators = this.getDecoratorsByIdentifier(this.node, 'NoSecurity');
     const securityDecorators = this.getDecoratorsByIdentifier(this.node, 'Security');
 
@@ -349,7 +376,7 @@ export class MethodGenerator {
       return this.parentSecurity || [];
     }
 
-    return securityDecorators.map(d => getSecurites(d, this.current.typeChecker));
+    return yield* ts.map(securityDecorators, d => getSecurites(d, this.current.typeChecker));
   }
 
   private getIsHidden() {

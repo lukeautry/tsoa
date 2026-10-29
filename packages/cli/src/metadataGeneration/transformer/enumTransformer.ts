@@ -1,5 +1,5 @@
 import type { Node, EnumDeclaration, EnumMember } from '../../ts';
-import { isEnumDeclaration, isEnumMember } from '../../ts';
+import { isEnumDeclaration, isEnumMember, map, type Op } from '../../ts';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -46,25 +46,25 @@ export class EnumTransformer extends Transformer {
     return isEnumDeclaration(declaration) || isEnumMember(declaration);
   }
 
-  public transform(resolver: TypeResolver, declaration: EnumDeclaration | EnumMember, enumName: string): Tsoa.RefEnumType {
+  public *transform(resolver: TypeResolver, declaration: EnumDeclaration | EnumMember, enumName: string): Op<Tsoa.RefEnumType> {
     if (isEnumDeclaration(declaration)) {
-      return this.transformDeclaration(resolver, declaration, enumName);
+      return yield* this.transformDeclaration(resolver, declaration, enumName);
     }
-    return this.transformMember(resolver, declaration, enumName);
+    return yield* this.transformMember(resolver, declaration, enumName);
   }
 
-  private transformDeclaration(resolver: TypeResolver, declaration: EnumDeclaration, enumName: string): Tsoa.RefEnumType {
+  private *transformDeclaration(resolver: TypeResolver, declaration: EnumDeclaration, enumName: string): Op<Tsoa.RefEnumType> {
     const isNotUndefined = <T>(item: T): item is Exclude<T, undefined> => {
       return item === undefined ? false : true;
     };
-    const enums = declaration.members.map(e => resolver.current.typeChecker.getConstantValue(e)).filter(isNotUndefined);
+    const enums = (yield* map(declaration.members, e => resolver.current.typeChecker.getConstantValue.gen(e))).filter(isNotUndefined);
     const enumVarnames = declaration.members.map(e => e.name.getText()).filter(isNotUndefined);
     const title = resolver.getNodeTitle(declaration);
 
     return {
       dataType: 'refEnum',
-      description: resolver.getNodeDescription(declaration),
-      example: resolver.getNodeExample(declaration),
+      description: yield* resolver.getNodeDescription(declaration),
+      example: yield* resolver.getNodeExample(declaration),
       enums,
       enumVarnames,
       refName: enumName,
@@ -73,11 +73,11 @@ export class EnumTransformer extends Transformer {
     };
   }
 
-  private transformMember(resolver: TypeResolver, declaration: EnumMember, enumName: string): Tsoa.RefEnumType {
+  private *transformMember(resolver: TypeResolver, declaration: EnumMember, enumName: string): Op<Tsoa.RefEnumType> {
     return {
       dataType: 'refEnum',
       refName: enumName,
-      enums: [resolver.current.typeChecker.getConstantValue(declaration)!],
+      enums: [(yield* resolver.current.typeChecker.getConstantValue.gen(declaration))!],
       enumVarnames: [declaration.name.getText()],
       deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
     };

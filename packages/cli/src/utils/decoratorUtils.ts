@@ -29,26 +29,26 @@ export function getNodeFirstDecoratorName(node: ts.Node, isMatching: (identifier
   return decorators[0].text;
 }
 
-export function getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.Checker, isMatching: (identifier: ts.Identifier) => boolean) {
+export function* getNodeFirstDecoratorValue(node: ts.Node, typeChecker: ts.Checker, isMatching: (identifier: ts.Identifier) => boolean): ts.Op<any> {
   const decorators = getDecorators(node, isMatching);
   if (!decorators || !decorators.length) {
     return;
   }
-  const values = getDecoratorValues(decorators[0], typeChecker);
+  const values = yield* getDecoratorValues(decorators[0], typeChecker);
   return values && values[0];
 }
 
-export function getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Checker): any[] {
+export function* getDecoratorValues(decorator: ts.Identifier, typeChecker: ts.Checker): ts.Op<any[]> {
   const expression = decorator.parent as ts.CallExpression;
   const expArguments = expression.arguments;
   if (!expArguments || !expArguments.length) {
     return [];
   }
-  return expArguments.map(a => getInitializerValue(a, typeChecker));
+  return yield* ts.map(expArguments, a => getInitializerValue(a, typeChecker));
 }
 
-export function getSecurites(decorator: ts.Identifier, typeChecker: ts.Checker) {
-  const [first, second] = getDecoratorValues(decorator, typeChecker);
+export function* getSecurites(decorator: ts.Identifier, typeChecker: ts.Checker): ts.Op<Record<string, string[]>> {
+  const [first, second] = yield* getDecoratorValues(decorator, typeChecker);
   const security = isObject(first) ? first : { [first]: second || [] };
   const [argument] = (decorator.parent as ts.CallExpression).arguments;
   const names = Object.keys(security);
@@ -71,8 +71,8 @@ function isObject(v: any) {
   return typeof v === 'object' && v !== null;
 }
 
-export function getPath(decorator: ts.Identifier, typeChecker: ts.Checker): string {
-  const [path] = getDecoratorValues(decorator, typeChecker);
+export function* getPath(decorator: ts.Identifier, typeChecker: ts.Checker): ts.Op<string> {
+  const [path] = yield* getDecoratorValues(decorator, typeChecker);
 
   if (path === undefined) {
     return '';
@@ -81,12 +81,13 @@ export function getPath(decorator: ts.Identifier, typeChecker: ts.Checker): stri
   return path;
 }
 
-export function getProduces(node: ts.Node, typeChecker: ts.Checker): string[] {
+export function* getProduces(node: ts.Node, typeChecker: ts.Checker): ts.Op<string[]> {
   const producesDecorators = getDecorators(node, identifier => identifier.text === 'Produces');
 
   if (!producesDecorators || !producesDecorators.length) {
     return [];
   }
 
-  return producesDecorators.map(decorator => getDecoratorValues(decorator, typeChecker)[0]);
+  const values = yield* ts.map(producesDecorators, decorator => getDecoratorValues(decorator, typeChecker));
+  return values.map(([produces]) => produces);
 }

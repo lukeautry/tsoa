@@ -18,45 +18,45 @@ export class ParameterGenerator {
     private readonly current: MetadataGenerator,
   ) {}
 
-  public Generate(): Tsoa.Parameter[] {
+  public *Generate(): ts.Op<Tsoa.Parameter[]> {
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
       case 'Request':
-        return [this.getRequestParameter(this.parameter)];
+        return [yield* this.getRequestParameter(this.parameter)];
       case 'RequestProp':
-        return [this.getRequestPropParameter(this.parameter)];
+        return [yield* this.getRequestPropParameter(this.parameter)];
       case 'Body':
-        return [this.getBodyParameter(this.parameter)];
+        return [yield* this.getBodyParameter(this.parameter)];
       case 'BodyProp':
-        return [this.getBodyPropParameter(this.parameter)];
+        return [yield* this.getBodyPropParameter(this.parameter)];
       case 'FormField':
-        return [this.getFormFieldParameter(this.parameter)];
+        return [yield* this.getFormFieldParameter(this.parameter)];
       case 'Header':
-        return [this.getHeaderParameter(this.parameter)];
+        return [yield* this.getHeaderParameter(this.parameter)];
       case 'Query':
-        return this.getQueryParameters(this.parameter);
+        return yield* this.getQueryParameters(this.parameter);
       case 'Queries':
-        return [this.getQueriesParameters(this.parameter)];
+        return [yield* this.getQueriesParameters(this.parameter)];
       case 'Path':
-        return [this.getPathParameter(this.parameter)];
+        return [yield* this.getPathParameter(this.parameter)];
       case 'Res':
-        return this.getResParameters(this.parameter);
+        return yield* this.getResParameters(this.parameter);
       case 'Inject':
         return [];
       case 'UploadedFile':
-        return [this.getUploadedFileParameter(this.parameter)];
+        return [yield* this.getUploadedFileParameter(this.parameter)];
       case 'UploadedFiles':
-        return [this.getUploadedFileParameter(this.parameter, true)];
+        return [yield* this.getUploadedFileParameter(this.parameter, true)];
       default:
-        return [this.getPathParameter(this.parameter)];
+        return [yield* this.getPathParameter(this.parameter)];
     }
   }
 
-  private getRequestParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getRequestParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
     return {
-      description: this.getParameterDescription(parameter),
+      description: yield* this.getParameterDescription(parameter),
       in: 'request',
       name: parameterName,
       parameterName,
@@ -67,18 +67,18 @@ export class ParameterGenerator {
     };
   }
 
-  private getRequestPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getRequestPropParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
     return {
-      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
-      description: this.getParameterDescription(parameter),
+      default: yield* getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: yield* this.getParameterDescription(parameter),
       example,
       exampleLabels,
       in: 'request-prop',
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'ParameterProp') || parameterName,
+      name: (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'ParameterProp')) || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -87,7 +87,7 @@ export class ParameterGenerator {
     };
   }
 
-  private extractTsoaResponse(typeNode: ts.TypeNode | undefined): ts.TypeReferenceNode | undefined {
+  private *extractTsoaResponse(typeNode: ts.TypeNode | undefined): ts.Op<ts.TypeReferenceNode | undefined> {
     if (!typeNode || !ts.isTypeReferenceNode(typeNode)) {
       return undefined;
     }
@@ -95,8 +95,8 @@ export class ParameterGenerator {
       return typeNode;
     }
 
-    const symbol = this.current.typeChecker.getTypeAtLocation(typeNode).getAliasSymbol();
-    const declaration = symbol && ts.getDeclarations(symbol)[0];
+    const symbol = yield* (yield* this.current.typeChecker.getTypeAtLocation.gen(typeNode)).getAliasSymbol.gen();
+    const declaration = symbol && (yield* ts.getDeclarations(symbol))[0];
     if (!declaration || !ts.isTypeAliasDeclaration(declaration) || !ts.isTypeReferenceNode(declaration.type)) {
       return undefined;
     }
@@ -104,14 +104,14 @@ export class ParameterGenerator {
     return declaration.type.typeName.getText() === 'TsoaResponse' ? declaration.type : undefined;
   }
 
-  private getResParameters(parameter: ts.ParameterDeclaration): Tsoa.ResParameter[] {
+  private *getResParameters(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.ResParameter[]> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const decorator = getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res') || parameterName;
+    const decorator = (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Res')) || parameterName;
     if (!decorator) {
       throw new GenerateMetadataError('Could not find Decorator', parameter);
     }
 
-    const typeNode = this.extractTsoaResponse(parameter.type);
+    const typeNode = yield* this.extractTsoaResponse(parameter.type);
 
     if (!typeNode) {
       throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
@@ -126,40 +126,43 @@ export class ParameterGenerator {
 
     // support a union of status codes, all with the same response body
     const statusArguments = ts.isUnionTypeNode(statusArgument) ? [...statusArgument.types] : [statusArgument];
-    const statusArgumentTypes = statusArguments.map(a => this.current.typeChecker.getTypeAtLocation(a));
+    const statusArgumentTypes = yield* ts.map(statusArguments, a => this.current.typeChecker.getTypeAtLocation.gen(a));
 
     const isNumberLiteralType = (tsType: ts.Type): tsType is ts.NumberLiteralType => {
       // eslint-disable-next-line no-bitwise
       return (tsType.flags & ts.TypeFlags.NumberLiteral) !== 0;
     };
 
-    const headers = getHeaderType(typeNode.typeArguments, 2, this.current);
+    const headers = yield* getHeaderType(typeNode.typeArguments, 2, this.current);
 
-    return statusArgumentTypes.map(statusArgumentType => {
-      if (!isNumberLiteralType(statusArgumentType)) {
-        throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
-      }
+    return yield* ts.map(
+      statusArgumentTypes,
+      function* (this: ParameterGenerator, statusArgumentType: ts.Type): ts.Op<Tsoa.ResParameter> {
+        if (!isNumberLiteralType(statusArgumentType)) {
+          throw new GenerateMetadataError('@Res() requires the type to be TsoaResponse<HTTPStatusCode, ResBody>', parameter);
+        }
 
-      const status = String(statusArgumentType.value);
+        const status = String(statusArgumentType.value);
 
-      const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
-      const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
-      return {
-        description: this.getParameterDescription(parameter) || '',
-        in: 'res',
-        name: status,
-        produces: headers ? this.getProducesFromResHeaders(headers) : undefined,
-        parameterName,
-        examples,
-        required: true,
-        type,
-        exampleLabels,
-        schema: type,
-        validators: {},
-        headers,
-        deprecated: this.getParameterDeprecation(parameter),
-      };
-    });
+        const type = yield* new TypeResolver(bodyArgument, this.current, typeNode).resolve();
+        const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
+        return {
+          description: (yield* this.getParameterDescription(parameter)) || '',
+          in: 'res',
+          name: status,
+          produces: headers ? this.getProducesFromResHeaders(headers) : undefined,
+          parameterName,
+          examples,
+          required: true,
+          type,
+          exampleLabels,
+          schema: type,
+          validators: {},
+          headers,
+          deprecated: this.getParameterDeprecation(parameter),
+        };
+      }.bind(this),
+    );
   }
 
   private getProducesFromResHeaders(headers: Tsoa.HeaderType): string[] | undefined {
@@ -172,21 +175,21 @@ export class ParameterGenerator {
     return;
   }
 
-  private getBodyPropParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getBodyPropParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@BodyProp('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
     }
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
     return {
-      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
-      description: this.getParameterDescription(parameter),
+      default: yield* getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: yield* this.getParameterDescription(parameter),
       example,
       exampleLabels,
       in: 'body-prop',
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp') || parameterName,
+      name: (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'BodyProp')) || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -195,9 +198,9 @@ export class ParameterGenerator {
     };
   }
 
-  private getBodyParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getBodyParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type: Tsoa.Type = this.isReadableType(parameter) ? { dataType: 'binary' } : this.getValidatedType(parameter);
+    const type: Tsoa.Type = this.isReadableType(parameter) ? { dataType: 'binary' } : yield* this.getValidatedType(parameter);
 
     if (!this.supportBodyMethod(this.method)) {
       throw new GenerateMetadataError(`@Body('${parameterName}') Can't support in ${this.method.toUpperCase()} method.`);
@@ -206,7 +209,7 @@ export class ParameterGenerator {
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
 
     return {
-      description: this.getParameterDescription(parameter),
+      description: yield* this.getParameterDescription(parameter),
       in: 'body',
       name: parameterName,
       example,
@@ -219,9 +222,9 @@ export class ParameterGenerator {
     };
   }
 
-  private getHeaderParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getHeaderParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Header('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -230,12 +233,12 @@ export class ParameterGenerator {
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
 
     return {
-      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
-      description: this.getParameterDescription(parameter),
+      default: yield* getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: yield* this.getParameterDescription(parameter),
       example,
       exampleLabels,
       in: 'header',
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header') || parameterName,
+      name: (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Header')) || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
@@ -244,7 +247,7 @@ export class ParameterGenerator {
     };
   }
 
-  private getUploadedFileParameter(parameter: ts.ParameterDeclaration, isArray?: boolean): Tsoa.Parameter {
+  private *getUploadedFileParameter(parameter: ts.ParameterDeclaration, isArray?: boolean): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
     const elementType: Tsoa.Type = { dataType: 'file' };
     let type: Tsoa.Type;
@@ -259,15 +262,15 @@ export class ParameterGenerator {
     }
 
     return {
-      description: this.getParameterDescription(parameter),
+      description: yield* this.getParameterDescription(parameter),
       in: 'formData',
       name:
-        getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => {
+        (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => {
           if (isArray) {
             return ident.text === 'UploadedFiles';
           }
           return ident.text === 'UploadedFile';
-        }) ?? parameterName,
+        })) ?? parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
@@ -276,18 +279,18 @@ export class ParameterGenerator {
     };
   }
 
-  private getFormFieldParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getFormFieldParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`Parameter '${parameterName}:${type.dataType}' can't be passed as form field parameter in '${this.method.toUpperCase()}'.`, parameter);
     }
 
     return {
-      description: this.getParameterDescription(parameter),
+      description: yield* this.getParameterDescription(parameter),
       in: 'formData',
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'FormField') ?? parameterName,
+      name: (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'FormField')) ?? parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       type,
       parameterName,
@@ -296,11 +299,11 @@ export class ParameterGenerator {
     };
   }
 
-  private getQueriesParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getQueriesParameters(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
-    const queriesType = this.resolveQueriesType(type, parameterName, parameter);
+    const queriesType = yield* this.resolveQueriesType(type, parameterName, parameter);
 
     for (const property of queriesType.properties) {
       this.validateQueriesProperties(property, parameterName);
@@ -309,7 +312,7 @@ export class ParameterGenerator {
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
 
     return {
-      description: this.getParameterDescription(parameter),
+      description: yield* this.getParameterDescription(parameter),
       in: 'queries',
       name: parameterName,
       example,
@@ -326,7 +329,7 @@ export class ParameterGenerator {
    * Resolves the type for @Queries, unwrapping refAlias types (TypeScript type aliases)
    * to their underlying object type when possible.
    */
-  private resolveQueriesType(type: Tsoa.Type, parameterName: string, parameter: ts.ParameterDeclaration): Tsoa.RefObjectType | Tsoa.NestedObjectLiteralType {
+  private *resolveQueriesType(type: Tsoa.Type, parameterName: string, parameter: ts.ParameterDeclaration): ts.Op<Tsoa.RefObjectType | Tsoa.NestedObjectLiteralType> {
     if (type.dataType === 'refObject' || type.dataType === 'nestedObjectLiteral') {
       return type;
     }
@@ -346,18 +349,18 @@ export class ParameterGenerator {
     // like Zod's z.infer types to refObject or nestedObjectLiteral
     let typeNode = parameter.type;
     if (!typeNode) {
-      const typeFromChecker = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = printType(this.current.typeChecker, typeFromChecker);
+      const typeFromChecker = yield* this.current.typeChecker.getTypeAtLocation.gen(parameter);
+      typeNode = yield* printType(this.current.typeChecker, typeFromChecker);
     }
 
     if (typeNode && ts.isTypeReferenceNode(typeNode)) {
       try {
-        const actualType = typeOfTypeNode(this.current.typeChecker, typeNode);
-        const typeNodeFromType = actualType && printType(this.current.typeChecker, actualType);
+        const actualType = yield* typeOfTypeNode(this.current.typeChecker, typeNode);
+        const typeNodeFromType = actualType && (yield* printType(this.current.typeChecker, actualType));
         if (!typeNodeFromType) {
-          throw new GenerateMetadataError(`Could not determine the type of ${ts.nodeText(typeNode)}`, typeNode);
+          throw new GenerateMetadataError(`Could not determine the type of ${yield* ts.nodeText(typeNode)}`, typeNode);
         }
-        const resolvedType = new TypeResolver(typeNodeFromType, this.current, parameter).resolve();
+        const resolvedType = yield* new TypeResolver(typeNodeFromType, this.current, parameter).resolve();
 
         if (resolvedType.dataType === 'refObject' || resolvedType.dataType === 'nestedObjectLiteral') {
           return resolvedType;
@@ -397,19 +400,19 @@ export class ParameterGenerator {
     }
   }
 
-  private getQueryParameters(parameter: ts.ParameterDeclaration): Tsoa.Parameter[] {
+  private *getQueryParameters(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter[]> {
     const parameterName = (parameter.name as ts.Identifier).text;
-    const type = this.getValidatedType(parameter);
+    const type = yield* this.getValidatedType(parameter);
 
     const { examples: example, exampleLabels } = this.getParameterExample(parameter, parameterName);
 
     const commonProperties = {
-      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
-      description: this.getParameterDescription(parameter),
+      default: yield* getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: yield* this.getParameterDescription(parameter),
       example,
       exampleLabels,
       in: 'query' as const,
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
+      name: (yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query')) || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -449,11 +452,11 @@ export class ParameterGenerator {
     ];
   }
 
-  private getPathParameter(parameter: ts.ParameterDeclaration): Tsoa.Parameter {
+  private *getPathParameter(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Parameter> {
     const parameterName = (parameter.name as ts.Identifier).text;
 
-    const type = this.getValidatedType(parameter);
-    const pathName = String(getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Path') || parameterName);
+    const type = yield* this.getValidatedType(parameter);
+    const pathName = String((yield* getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Path')) || parameterName);
 
     if (!this.supportPathDataType(type)) {
       throw new GenerateMetadataError(`@Path('${parameterName}') Can't support '${type.dataType}' type.`);
@@ -463,8 +466,8 @@ export class ParameterGenerator {
     }
     const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
     return {
-      default: getInitializerValue(parameter.initializer, this.current.typeChecker, type),
-      description: this.getParameterDescription(parameter),
+      default: yield* getInitializerValue(parameter.initializer, this.current.typeChecker, type),
+      description: yield* this.getParameterDescription(parameter),
       example: examples,
       exampleLabels,
       in: 'path',
@@ -477,13 +480,13 @@ export class ParameterGenerator {
     };
   }
 
-  private getParameterDescription(node: ts.ParameterDeclaration) {
-    const symbol = this.current.typeChecker.getSymbolAtLocation(node.name);
+  private *getParameterDescription(node: ts.ParameterDeclaration): ts.Op<string | undefined> {
+    const symbol = yield* this.current.typeChecker.getSymbolAtLocation.gen(node.name);
     if (!symbol) {
       return undefined;
     }
 
-    return getSymbolDocumentation(symbol, this.current.typeChecker);
+    return yield* getSymbolDocumentation(symbol, this.current.typeChecker);
   }
 
   private getParameterDeprecation(node: ts.ParameterDeclaration) {
@@ -555,13 +558,13 @@ export class ParameterGenerator {
     return !!typeNode && ts.isTypeReferenceNode(typeNode) && ts.isIdentifier(typeNode.typeName) && typeNode.typeName.text === 'Readable';
   }
 
-  private getValidatedType(parameter: ts.ParameterDeclaration) {
+  private *getValidatedType(parameter: ts.ParameterDeclaration): ts.Op<Tsoa.Type> {
     let typeNode = parameter.type;
     if (!typeNode) {
-      const type = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = printType(this.current.typeChecker, type)!;
+      const type = yield* this.current.typeChecker.getTypeAtLocation.gen(parameter);
+      typeNode = (yield* printType(this.current.typeChecker, type))!;
     }
-    return new TypeResolver(typeNode, this.current, parameter).resolve();
+    return yield* new TypeResolver(typeNode, this.current, parameter).resolve();
   }
 
   private getQueryParameterIsHidden(parameter: ts.ParameterDeclaration) {

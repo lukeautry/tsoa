@@ -9,7 +9,7 @@ import type {
   ClassElement,
   PropertySignatureDeclaration,
 } from '../../ts';
-import { hasQuestionToken, NodeFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignatureDeclaration } from '../../ts';
+import { hasQuestionToken, map, NodeFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignatureDeclaration, type Op } from '../../ts';
 import { Tsoa } from '@tsoa/runtime';
 import { printType } from '../syntheticChildType';
 
@@ -25,7 +25,7 @@ import { throwUnless } from '../../utils/flowUtils';
 type OverrideToken = Token<SyntaxKind.QuestionToken> | Token<SyntaxKind.PlusToken> | Token<SyntaxKind.MinusToken> | undefined;
 
 export class PropertyTransformer extends Transformer {
-  public transform(resolver: TypeResolver, node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {
+  public *transform(resolver: TypeResolver, node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Op<Tsoa.Property[]> {
     const isIgnored = (e: TypeElement | ClassElement) => {
       let ignore = isExistJSDocTag(e, tag => tag.tagName.text === 'ignore');
       ignore = ignore || (e.flags & NodeFlags.ThisNodeHasError) > 0;
@@ -34,9 +34,8 @@ export class PropertyTransformer extends Transformer {
 
     // Interface model
     if (isInterfaceDeclaration(node)) {
-      return node.members
-        .filter((member): member is PropertySignatureDeclaration => !isIgnored(member) && isPropertySignatureDeclaration(member))
-        .map((member: PropertySignatureDeclaration) => this.propertyFromSignature(resolver, member, overrideToken));
+      const members = node.members.filter((member): member is PropertySignatureDeclaration => !isIgnored(member) && isPropertySignatureDeclaration(member));
+      return yield* map(members, member => this.propertyFromSignature(resolver, member, overrideToken));
     }
 
     const properties: Array<PropertyDeclaration | ParameterDeclaration> = [];
@@ -54,10 +53,10 @@ export class PropertyTransformer extends Transformer {
       properties.push(...constructorProperties);
     }
 
-    return properties.map(property => this.propertyFromDeclaration(resolver, property, overrideToken));
+    return yield* map(properties, property => this.propertyFromDeclaration(resolver, property, overrideToken));
   }
 
-  private propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignatureDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
+  private *propertyFromSignature(resolver: TypeResolver, propertySignature: PropertySignatureDeclaration, overrideToken?: OverrideToken): Op<Tsoa.Property> {
     throwUnless(propertySignature.type, new GenerateMetadataError(`No valid type found for property declaration.`));
 
     let required = !hasQuestionToken(propertySignature);
@@ -71,31 +70,31 @@ export class PropertyTransformer extends Transformer {
 
     const property: Tsoa.Property = {
       default: def,
-      description: resolver.getNodeDescription(propertySignature),
-      example: resolver.getNodeExample(propertySignature),
+      description: yield* resolver.getNodeDescription(propertySignature),
+      example: yield* resolver.getNodeExample(propertySignature),
       format: resolver.getNodeFormat(propertySignature),
-      name: resolver.getPropertyName(propertySignature),
+      name: yield* resolver.getPropertyName(propertySignature),
       required,
-      type: new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context).resolve(),
+      type: yield* new TypeResolver(propertySignature.type, resolver.current, propertySignature.type.parent, resolver.context, undefined, undefined, resolver.ancestors).resolve(),
       validators: getPropertyValidators(propertySignature) || {},
       deprecated: isExistJSDocTag(propertySignature, tag => tag.tagName.text === 'deprecated'),
       title: resolver.getNodeTitle(propertySignature),
-      extensions: resolver.getNodeExtension(propertySignature),
+      extensions: yield* resolver.getNodeExtension(propertySignature),
     };
     return property;
   }
 
-  private propertyFromDeclaration(resolver: TypeResolver, propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Tsoa.Property {
+  private *propertyFromDeclaration(resolver: TypeResolver, propertyDeclaration: PropertyDeclaration | ParameterDeclaration, overrideToken?: OverrideToken): Op<Tsoa.Property> {
     let typeNode = propertyDeclaration.type;
 
-    const tsType = resolver.current.typeChecker.getTypeAtLocation(propertyDeclaration);
+    const tsType = yield* resolver.current.typeChecker.getTypeAtLocation.gen(propertyDeclaration);
 
     if (!typeNode) {
       // Type is from initializer
-      typeNode = printType(resolver.current.typeChecker, tsType)!;
+      typeNode = (yield* printType(resolver.current.typeChecker, tsType))!;
     }
 
-    const type = new TypeResolver(typeNode, resolver.current, propertyDeclaration, resolver.context, tsType).resolve();
+    const type = yield* new TypeResolver(typeNode, resolver.current, propertyDeclaration, resolver.context, tsType, undefined, resolver.ancestors).resolve();
 
     let required = !hasQuestionToken(propertyDeclaration) && !propertyDeclaration.initializer;
     if (overrideToken && overrideToken.kind === SyntaxKind.MinusToken) {
@@ -103,24 +102,24 @@ export class PropertyTransformer extends Transformer {
     } else if (overrideToken && overrideToken.kind === SyntaxKind.QuestionToken) {
       required = false;
     }
-    let def = getInitializerValue(propertyDeclaration.initializer, resolver.current.typeChecker);
+    let def = yield* getInitializerValue(propertyDeclaration.initializer, resolver.current.typeChecker);
     if (def === undefined) {
       def = TypeResolver.getDefault(propertyDeclaration);
     }
 
     const property: Tsoa.Property = {
       default: def,
-      description: resolver.getNodeDescription(propertyDeclaration),
-      example: resolver.getNodeExample(propertyDeclaration),
+      description: yield* resolver.getNodeDescription(propertyDeclaration),
+      example: yield* resolver.getNodeExample(propertyDeclaration),
       format: resolver.getNodeFormat(propertyDeclaration),
-      name: resolver.getPropertyName(propertyDeclaration),
+      name: yield* resolver.getPropertyName(propertyDeclaration),
       required,
       type,
       validators: getPropertyValidators(propertyDeclaration) || {},
       // class properties and constructor parameters may be deprecated either via jsdoc annotation or decorator
       deprecated: isExistJSDocTag(propertyDeclaration, tag => tag.tagName.text === 'deprecated') || isDecorator(propertyDeclaration, identifier => identifier.text === 'Deprecated'),
       title: resolver.getNodeTitle(propertyDeclaration),
-      extensions: resolver.getNodeExtension(propertyDeclaration),
+      extensions: yield* resolver.getNodeExtension(propertyDeclaration),
     };
     return property;
   }

@@ -1,4 +1,4 @@
-import type { TypeAliasDeclaration, Type } from '../../ts';
+import type { Op, TypeAliasDeclaration, Type } from '../../ts';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -75,17 +75,17 @@ export class ReferenceTransformer extends Transformer {
     return result;
   }
 
-  public transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Tsoa.ReferenceType {
-    const example = resolver.getNodeExample(declaration);
+  public *transform(declaration: TypeAliasDeclaration, refTypeName: string, resolver: TypeResolver, referencer?: Type): Op<Tsoa.ReferenceType> {
+    const example = yield* resolver.getNodeExample(declaration);
 
     const title = resolver.getNodeTitle(declaration);
     const referenceType: Tsoa.ReferenceType = {
       dataType: 'refAlias',
       default: TypeResolver.getDefault(declaration),
-      description: resolver.getNodeDescription(declaration),
+      description: yield* resolver.getNodeDescription(declaration),
       refName: refTypeName,
       format: resolver.getNodeFormat(declaration),
-      type: new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer).resolve(),
+      type: yield* new TypeResolver(declaration.type, resolver.current, declaration, resolver.context, resolver.referencer || referencer, undefined, resolver.ancestors).resolve(),
       validators: getPropertyValidators(declaration) || {},
       deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated'),
       ...(example !== undefined && { example }),
