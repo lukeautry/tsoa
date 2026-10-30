@@ -1,6 +1,6 @@
 {
   "name": "@tsoa/cli-win32-x64",
-  "version": "7.0.0-alpha.0",
+  "version": "7.0.0-ts7-alpha.0",
   "description": "The native metadata generator of @tsoa/cli for win32-x64: tsoa's metadata generation built into the TypeScript 7 compiler.",
   "license": "MIT",
   "repository": {
