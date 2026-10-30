@@ -3,7 +3,8 @@ import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerato
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
-import { Swagger, Tsoa } from '@tsoa/runtime';
+import { DefaultRouteGenerator } from '@tsoa/cli/routeGeneration/defaultRouteGenerator';
+import { FieldErrors, Swagger, Tsoa, TsoaRoute, ValidationService } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
@@ -610,6 +611,50 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
               { dataType: 'enum', enums: [null] },
             ],
           });
+        });
+
+        describe('unions and recursion validated through the generated route models', () => {
+          const models = new DefaultRouteGenerator(metadata, {
+            entryFile: defaultConfig.entryFile,
+            routesDir: './fixtures',
+            noImplicitAdditionalProperties: 'ignore',
+            bodyCoercion: false,
+          }).buildModels();
+          const validate = (schema: TsoaRoute.PropertySchema, value: unknown) => {
+            const errors: FieldErrors = {};
+            // Without coercion, which would wrap a non-array value in an array and retry.
+            new ValidationService(models, { bodyCoercion: false, noImplicitAdditionalProperties: 'ignore' }).ValidateParam({ ...schema, required: true }, value, 'body', errors, true);
+            return Object.keys(errors).length === 0;
+          };
+
+          it('should keep annotated alternatives whose types the checker collapses', () => {
+            const body = currentSpec.spec.paths['/ComplexType/Checked/AnnotatedAlternatives'].post!.requestBody!.content['application/json'].schema;
+            expect(body).to.deep.equal({ anyOf: [{ $ref: '#/components/schemas/Identifier' }, { $ref: '#/components/schemas/OtherIdentifier' }] });
+            const either: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ ref: 'Identifier' }, { ref: 'OtherIdentifier' }] };
+            expect(validate(either, 'xenon')).to.equal(true);
+            expect(validate(either, 'yellow')).to.equal(true);
+            expect(validate(either, 'zinc')).to.equal(false);
+          });
+
+          it('should keep the written element of a generic array union', () => {
+            expect(resolve(schemas().ArrayUnionBox_Identifier_).properties?.value.anyOf?.[0]).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/Identifier' } });
+            expect(validate({ ref: 'ArrayUnionBox_Identifier_' }, { value: ['xenon'] })).to.equal(true);
+            expect(validate({ ref: 'ArrayUnionBox_Identifier_' }, { value: ['yellow'] })).to.equal(false);
+            expect(validate({ ref: 'NullableArrayBox_string_' }, { value: [null, 'a'] })).to.equal(true);
+          });
+
+          it('should resolve a generic alias that refers to itself', () => {
+            expect(resolve(schemas().RecursiveTree_string_)).to.deep.equal({ anyOf: [{ type: 'string' }, { type: 'array', items: { $ref: '#/components/schemas/RecursiveTree_string_' } }] });
+            expect(resolve(schemas().RecursiveGenericTree_number_).anyOf?.[1]).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/RecursiveGenericTree_number_' } });
+            expect(validate({ ref: 'RecursiveTree_string_' }, ['a', ['b', ['c']]])).to.equal(true);
+            expect(validate({ ref: 'RecursiveTree_string_' }, ['a', [{ b: 'c' }]])).to.equal(false);
+          });
+        });
+
+        it('should use an optional toJSON, also under strictNullChecks', () => {
+          expect(resolve(schemas().OptionalToJson)).to.deep.equal({ type: 'object', properties: { b: { type: 'number', format: 'double' } }, required: ['b'] });
+          const strict = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts', { strict: true }).Generate();
+          expect(strict.referenceTypeMap.OptionalToJson).to.deep.include({ dataType: 'refAlias', refName: 'OptionalToJson' });
         });
 
         it('should resolve type parameter defaults that refer to earlier parameters', () => {

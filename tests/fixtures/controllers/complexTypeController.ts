@@ -375,6 +375,23 @@ export interface NullableBox<T> {
   value: Nullable<T> | number;
 }
 
+/** @pattern ^y */
+export type OtherIdentifier = string;
+export interface ArrayUnionBox<T> {
+  value: T[] | number;
+}
+export interface NullableArrayBox<T> {
+  // eslint-disable-next-line @typescript-eslint/array-type -- the `X[]` spelling is what this fixture tests
+  value: Nullable<T>[] | number;
+}
+// eslint-disable-next-line @typescript-eslint/array-type -- the `X[]` spelling is what this fixture tests
+export type RecursiveTree<T> = T | RecursiveTree<T>[];
+export type RecursiveGenericTree<T> = T | Array<RecursiveGenericTree<T>>;
+export interface OptionalToJson {
+  a: string;
+  toJSON?(): { b: number };
+}
+
 export interface Pair<T = string, U = T> {
   first: T;
   second: U;
@@ -724,6 +741,27 @@ export class ComplexTypeController {
 
   @Post('Checked/AliasInGenericUnion')
   public async postAliasInGenericUnion(@Body() body: NullableBox<Identifier>): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/AnnotatedAlternatives')
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents -- two annotated aliases of string are what this fixture tests
+  public async postAnnotatedAlternatives(@Body() body: Identifier | OtherIdentifier): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/GenericArrayUnion')
+  public async postGenericArrayUnion(@Body() body: { ids: ArrayUnionBox<Identifier>; nullable: NullableArrayBox<string> }): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/RecursiveAlias')
+  public async postRecursiveAlias(@Body() body: { tree: RecursiveTree<string>; generic: RecursiveGenericTree<number> }): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/OptionalToJson')
+  public async postOptionalToJson(@Body() body: OptionalToJson): Promise<void> {
     return;
   }
 

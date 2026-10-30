@@ -199,11 +199,14 @@ export class TypeResolver {
   private resolveWrittenUnion(members: readonly ts.Type[], site: Site, node: ts.UnionTypeNode): Tsoa.Type {
     const remaining = [...members];
     const resolved: Tsoa.Type[] = [];
+    // A written alternative is kept when its types are in the union, even if an earlier
+    // alternative already covered them: `Id | Other` with two annotated aliases of `string`
+    // collapses to one checker type but keeps both alternatives and their validators.
     const take = (parts: readonly ts.Type[]) => {
-      if (!parts.every(part => remaining.includes(part))) {
+      if (!parts.every(part => members.includes(part))) {
         return false;
       }
-      parts.forEach(part => remaining.splice(remaining.indexOf(part), 1));
+      parts.forEach(part => remaining.includes(part) && remaining.splice(remaining.indexOf(part), 1));
       return true;
     };
 
@@ -227,7 +230,7 @@ export class TypeResolver {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
       }
-      const instance = sameModel(this.checker, remaining, memberSite);
+      const instance = sameModel(this.checker, remaining, memberSite) ?? this.sameArray(remaining, memberSite);
       if (instance && take([instance])) {
         resolved.push(this.resolve(instance, memberSite));
       }
@@ -238,6 +241,25 @@ export class TypeResolver {
       resolved.push(...(rest.dataType === 'union' ? rest.types : [rest]));
     }
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
+  }
+
+  /**
+   * The checker array a written array alternative (`T[] | number`) stands for, when its element
+   * mentions type parameters and so has no written type of its own: the only array left, or the
+   * one whose element is the written element's type.
+   */
+  private sameArray(remaining: readonly ts.Type[], site: Site): ts.Type | undefined {
+    const element = arrayElementNode(site.node);
+    if (!element || (site.node && !ts.isArrayTypeNode(site.node) && !ts.isTypeOperatorNode(site.node))) {
+      return undefined;
+    }
+    const arrays = remaining.filter(member => isArrayType(this.checker, member));
+    if (arrays.length <= 1) {
+      return arrays[0];
+    }
+    const elementType = writtenType(this.checker, childSite(site, element));
+    const matching = elementType ? arrays.filter(array => this.checker.getTypeArguments(array)[0] === elementType) : [];
+    return matching.length === 1 ? matching[0] : undefined;
   }
 
   /**
@@ -313,7 +335,8 @@ export class TypeResolver {
 
   private resolveTuple(type: ts.TypeReference, site: Site): Tsoa.TupleType {
     const flags = tupleElementFlags(type);
-    const written = site.node && ts.isTupleTypeNode(site.node) ? site.node.elements : undefined;
+    const node = site.node && ts.isTypeOperatorNode(site.node) && site.node.operator === ts.SyntaxKind.ReadonlyKeyword ? site.node.type : site.node;
+    const written = node && ts.isTupleTypeNode(node) ? node.elements : undefined;
     // Spreads of tuple aliases (`[...Pair, X]`) expand in the checker; written elements only line up without them.
     const spreadsTuple = written?.some(element => ts.isRestTypeNode(element) && !ts.isArrayTypeNode(element.type));
     const elements = written && !spreadsTuple && written.length === flags.length ? written : undefined;

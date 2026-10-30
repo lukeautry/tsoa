@@ -3,6 +3,7 @@ import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { Tsoa } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
@@ -282,7 +283,15 @@ describe('GET route generation', () => {
 
   it('should give each tuple type argument its own readable name', () => {
     const metadata = new MetadataGenerator('./fixtures/controllers/tupleNamesController.ts').Generate();
-    expect(Object.keys(metadata.referenceTypeMap)).to.have.members(['TupleBox__string.number__', 'TupleBox__number.string__']);
+    expect(Object.keys(metadata.referenceTypeMap)).to.include.members(['TupleBox__string.number__', 'TupleBox__number.string__']);
+  });
+
+  it('should keep the written elements of a readonly tuple', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/tupleNamesController.ts').Generate();
+    const method = metadata.controllers[0].methods.find(m => m.name === 'getReadonly')!;
+    const ids = (method.type as Tsoa.NestedObjectLiteralType).properties[0].type as Tsoa.TupleType;
+    expect(ids.types[0]).to.deep.include({ dataType: 'refAlias', refName: 'TupleId' });
+    expect((ids.types[0] as Tsoa.RefAliasType).validators.pattern?.value).to.equal('^x');
   });
 
   it('should generate a path description from jsdoc comment', () => {

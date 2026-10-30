@@ -265,7 +265,11 @@ function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner,
   if (!toJSON || !method || !(ts.isMethodDeclaration(method) || ts.isMethodSignature(method))) {
     return undefined;
   }
-  const signature = checker.getSignaturesOfType(checker.getTypeOfSymbol(toJSON), ts.SignatureKind.Call)[0];
+  // An optional `toJSON?()` is `(() => R) | undefined` under strictNullChecks.
+  const signature = checker.getSignaturesOfType(checker.getNonNullableType(checker.getTypeOfSymbol(toJSON)), ts.SignatureKind.Call)[0];
+  if (!signature) {
+    return undefined;
+  }
   const substitutions = method.parent === declaration ? site.substitutions : new Map();
   return resolver.resolve(checker.getReturnTypeOfSignature(signature), { node: method.type, declaration: undefined, substitutions });
 }

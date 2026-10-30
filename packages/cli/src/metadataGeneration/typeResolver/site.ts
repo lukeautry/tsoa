@@ -13,6 +13,8 @@ export interface Site {
   declaration?: ts.Node;
   /** Written type arguments for the type parameters in scope, keyed by type-parameter name. */
   substitutions: Substitutions;
+  /** Set only on the site of an alias's own body; child sites never carry it. */
+  aliasBody?: ts.TypeAliasDeclaration;
 }
 
 export interface Substitution {

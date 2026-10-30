@@ -29,8 +29,9 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
   if (reference.declarations.length === 0) {
     return undefined;
   }
-  // An alias whose body evaluates to the alias itself must not name its own body.
-  if (!written && site.declaration && (reference.declarations as ts.Node[]).includes(site.declaration)) {
+  // Expanding an alias's own body must not name that body after the alias again; a nested
+  // reference to the alias (`type Tree<T> = T | Tree<T>[]`) is a model reference like any other.
+  if (!written && site.aliasBody && (reference.declarations as ts.Node[]).includes(site.aliasBody)) {
     return undefined;
   }
 
@@ -44,7 +45,7 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
         const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
         if (ts.isTypeAliasDeclaration(declaration)) {
           const { alias, site: aliasSite } = followReexports(resolver, declaration, inner);
-          return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type });
+          return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type, aliasBody: alias });
         }
         if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
           return enumModel(resolver, declaration, reference.refName);
