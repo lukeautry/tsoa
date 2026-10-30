@@ -239,6 +239,14 @@ describe('GET route generation', () => {
     expect(metadata.referenceTypeMap.ForeignIndexedValue).to.deep.include({ dataType: 'refAlias', type: { dataType: 'enum', enums: ['FOO'] } });
   });
 
+  it('should map Buffer even when its declarations are not in the program', () => {
+    // Without @types/node (TypeScript 6 no longer includes @types by default) Buffer has no declarations.
+    const metadata = new MetadataGenerator('./fixtures/controllers/bufferWithoutNodeTypesController.ts', { types: [], noResolve: true }).Generate();
+    const [method] = metadata.controllers[0].methods;
+    expect(method.type).to.deep.equal({ dataType: 'buffer' });
+    expect(method.parameters[0].type).to.deep.equal({ dataType: 'buffer' });
+  });
+
   it('should generate a path description from jsdoc comment', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) {

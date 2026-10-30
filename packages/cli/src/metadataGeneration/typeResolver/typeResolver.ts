@@ -40,17 +40,18 @@ export class TypeResolver {
   /** The single classification dispatch. Order matters. */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
     const followed = descriptiveSite(this.checker, followSite(site));
+    // Special types are recognized by their written name, so they map even when their
+    // declarations are not in the program (e.g. `Buffer` without @types/node).
+    const special = resolveSpecialType(type, followed, this.generator);
+    if (special && special !== 'promise') {
+      return special;
+    }
     if (isErrorType(type)) {
       const name = followed.node && followed.node.pos !== -1 ? followed.node.getText() : this.checker.typeToString(type);
       throw new GenerateMetadataError(`Could not find declarations for type '${name}'.`, followed.node);
     }
-
-    const special = resolveSpecialType(type, followed, this.generator);
     if (special === 'promise') {
       return this.resolve(this.checker.getTypeArguments(type as ts.TypeReference)[0], childSite(followed, typeArgumentNode(followed.node, 0)));
-    }
-    if (special) {
-      return special;
     }
 
     const named = this.resolveNamed(type, followed);
