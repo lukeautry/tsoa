@@ -53,6 +53,10 @@ type describeResponse struct {
 	Symbols     []*describedSymbol `json:"symbols"`
 	NodeSymbols map[NodeHandle]int `json:"nodeSymbols"`
 	NodeTypes   map[NodeHandle]int `json:"nodeTypes"`
+	// LocationTypes are getTypeAtLocation's answers for parameters, heritage clauses and type nodes;
+	// ReturnTypes the return types of the signatures of method and function declarations.
+	LocationTypes map[NodeHandle]int `json:"locationTypes"`
+	ReturnTypes   map[NodeHandle]int `json:"returnTypes"`
 	Constants   map[NodeHandle]any `json:"constants"`
 }
 
@@ -75,7 +79,7 @@ func (s *Session) handleDescribe(ctx context.Context, raw json.Value) (any, erro
 		program:  setup.program,
 		types:    map[*checker.Type]int{},
 		symbols:  map[*ast.Symbol]int{},
-		response: &describeResponse{NodeSymbols: map[NodeHandle]int{}, NodeTypes: map[NodeHandle]int{}, Constants: map[NodeHandle]any{}},
+		response: &describeResponse{NodeSymbols: map[NodeHandle]int{}, NodeTypes: map[NodeHandle]int{}, LocationTypes: map[NodeHandle]int{}, ReturnTypes: map[NodeHandle]int{}, Constants: map[NodeHandle]any{}},
 	}
 	for _, file := range d.program.GetSourceFiles() {
 		if file.IsDeclarationFile {
@@ -124,6 +128,16 @@ func (d *describer) visit(node *ast.Node) {
 			d.response.NodeTypes[d.setup.sd.nodeHandleFrom(node)] = d.typ(t)
 		}
 	}
+	if ast.IsTypeNode(node) || ast.IsParameterDeclaration(node) || ast.IsExpressionWithTypeArguments(node) {
+		if t := d.typeAtLocation(node); t != nil {
+			d.response.LocationTypes[d.setup.sd.nodeHandleFrom(node)] = d.typ(t)
+		}
+	}
+	if ast.IsMethodDeclaration(node) || ast.IsFunctionDeclaration(node) {
+		if t := d.returnType(node); t != nil {
+			d.response.ReturnTypes[d.setup.sd.nodeHandleFrom(node)] = d.typ(t)
+		}
+	}
 	node.ForEachChild(func(child *ast.Node) bool {
 		d.visit(child)
 		return false
@@ -139,6 +153,19 @@ func (d *describer) symbolAtLocation(node *ast.Node) (symbol *ast.Symbol) {
 func (d *describer) typeFromTypeNode(node *ast.Node) (t *checker.Type) {
 	defer func() { _ = recover() }()
 	return d.c.GetTypeFromTypeNode(node)
+}
+
+func (d *describer) typeAtLocation(node *ast.Node) (t *checker.Type) {
+	defer func() { _ = recover() }()
+	return d.c.GetTypeAtLocation(node)
+}
+
+func (d *describer) returnType(node *ast.Node) (t *checker.Type) {
+	defer func() { _ = recover() }()
+	if signature := d.c.GetSignatureFromDeclaration(node); signature != nil {
+		return d.c.GetReturnTypeOfSignature(signature)
+	}
+	return nil
 }
 
 // typ is the reference to a type in the response, queueing it to be described.

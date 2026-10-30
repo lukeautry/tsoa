@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type * as ts from 'typescript';
+import { graphChecker, type Description } from './graph';
 
 type NativeDiagnostic = { code: number; fileName?: string; text?: string; messageText?: string; message?: string };
 type NativeConfigResult = { options: ts.CompilerOptions; fileNames: string[]; errors?: NativeDiagnostic[] };
@@ -58,7 +59,7 @@ interface NativeProject {
   emitter: { printNode(node: unknown): string };
   program: {
     getSourceFileNames(): string[];
-    getSourceFile(file: string): NativeNode;
+    getSourceFile: ((file: string) => NativeNode) & { gen(file: string): Generator };
   };
 }
 interface NativeSnapshot {
@@ -76,7 +77,7 @@ interface NativeAPI {
 export interface NativeSync {
   API: new (options: { cwd: string; tsserverPath?: string }) => NativeAPI;
   ModuleKind: Record<number, string>;
-  TypeFlags: { String: number; Number: number };
+  TypeFlags: { String: number; Number: number; BooleanLiteral: number; Union: number; Intersection: number; StringLiteral: number; NumberLiteral: number; BigIntLiteral: number };
   SymbolFlags: { Type: number; Namespace: number; Alias: number };
 }
 export interface NativeAST {
@@ -169,7 +170,17 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
       return {
         getTypeChecker: () => checker,
         // A program's files do not change; the resolver asks for them repeatedly.
-        getSourceFiles: () => (sourceFiles ??= own.program.getSourceFileNames().map((file: string) => normalizeNode(own.program.getSourceFile(file), ast.SyntaxKind.QuestionToken))),
+        // The program's own files in one round trip. The generator looks for decorated classes, which declaration
+        // files (lib.*.d.ts, @types, packages) cannot hold, so their syntax trees are not transferred.
+        getSourceFiles: () =>
+          (sourceFiles ??= (
+            api.batch(
+              ...own.program
+                .getSourceFileNames()
+                .filter((file: string) => !/\.d\.[cm]?ts$/.test(file))
+                .map((file: string) => own.program.getSourceFile.gen(file)),
+            ) as NativeNode[]
+          ).map(file => normalizeNode(file, ast.SyntaxKind.QuestionToken))),
       };
     },
   };
@@ -222,7 +233,7 @@ interface NativeCheckerInternals {
   snapshotId: number;
   project: { id: string };
   client: { apiRequest(method: string, params: unknown): unknown };
-  objectRegistry: { getOrCreateSymbol(response: unknown): NativeSymbol };
+  objectRegistry: { getOrCreateSymbol(response: unknown): NativeSymbol; getOrCreateType(response: unknown): NativeType };
 }
 
 function classicChecker(
@@ -240,6 +251,7 @@ function classicChecker(
   const printedSymbols = new WeakMap<object, NativeSymbol>();
   const extensions = extensionCompiler() !== undefined;
   let undefinedType: NativeType | undefined;
+  const printed = new Map<string, unknown>();
   // Records where a result came from, as the generic path does.
   const located = <T>(result: T, location: unknown): T => {
     if (result && typeof result === 'object' && location && !locations.has(result)) locations.set(result, location);
@@ -343,6 +355,12 @@ function classicChecker(
             if (key === 'typeToTypeNode' && !args[1]) args[1] = location;
             let printedSymbolResponses: unknown[] | undefined;
             let raw: any;
+            // The resolver prints the same type at the same place many times; the printed node does not change.
+            const printKey =
+              key === 'typeToTypeNode' && extensions
+                ? `${(unwrap(args[0]) as { id: string }).id}|${(unwrap(args[1]) as { id?: string } | undefined)?.id ?? ''}|${(args[2] as number | undefined) ?? ''}`
+                : undefined;
+            if (printKey && printed.has(printKey)) return wrap(printed.get(printKey));
             if (key === 'typeToTypeNode' && extensions) {
               // The extension prints the same node and names the symbol of each identifier, in walk order; both go in one round trip.
               const [type, enclosing, nodeFlags] = args.map(unwrap) as [{ id: string }, { id?: string } | undefined, number | undefined];
@@ -383,12 +401,25 @@ function classicChecker(
                 visit(raw);
               }
             }
+            if (printKey) printed.set(printKey, raw);
             return wrap(raw);
           }
         : result;
     },
   });
   originals.set(proxy, checker);
+  if (extensions && process.env.TSOA_DESCRIBE !== '0') {
+    // The extension describes the program's own types and symbols in one response; the graph answers from it.
+    const internals = checker as unknown as NativeCheckerInternals;
+    const description = internals.client.apiRequest('tsoa/describe', { snapshot: internals.snapshotId, project: internals.project.id }) as Description;
+    return graphChecker(description, {
+      checker: proxy,
+      classicType: raw => wrap(internals.objectRegistry.getOrCreateType(raw)),
+      classicSymbol: raw => wrap(internals.objectRegistry.getOrCreateSymbol(raw)),
+      native: value => (value && typeof value === 'object' ? originals.get(value) : undefined),
+      typeFlags: flags,
+    });
+  }
   return proxy;
 }
 
