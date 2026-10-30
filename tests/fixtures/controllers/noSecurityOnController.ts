@@ -17,7 +17,7 @@ export class NoSecurityOnController {
 
   @Get('UndefinedSecurity')
   public async GetWithImplicitSecurity(@Request() request: RequestWithUser): Promise<UserResponseModel> {
-    return Promise.resolve({ id: 1, name: 'static' });
+    return Promise.resolve({ id: 1, name: "static" });
   }
 
   @NoSecurity()
