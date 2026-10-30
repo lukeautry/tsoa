@@ -1,5 +1,5 @@
-import { type TypeNode, SyntaxKind } from 'typescript';
-import { Tsoa, assertNever } from '@tsoa/runtime';
+import { SyntaxKind } from 'typescript';
+import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
 
@@ -23,36 +23,13 @@ export class PrimitiveTransformer extends Transformer {
     }
   }
 
-  public transform(defaultNumberType: DefaultNumberType, typeNode: TypeNode, partentJsDocTagNames?: string[]): Tsoa.Type | undefined {
-    const resolvedType = PrimitiveTransformer.resolveKindToPrimitive(typeNode.kind);
-    if (!resolvedType) {
-      return;
-    }
-
-    switch (resolvedType) {
-      case 'number':
-        return this.transformNumber(defaultNumberType, partentJsDocTagNames);
-      case 'string':
-      case 'boolean':
-      case 'void':
-      case 'undefined':
-        return { dataType: resolvedType };
-      case 'null':
-        return {
-          dataType: 'enum',
-          enums: [null],
-        };
-      default:
-        return assertNever(resolvedType);
-    }
-  }
-
-  private transformNumber(defaultNumberType: DefaultNumberType, partentJsDocTagNames?: string[]): Tsoa.PrimitiveType {
-    if (!partentJsDocTagNames || partentJsDocTagNames.length === 0) {
+  /** The number format selected by `@isInt`/`@isLong`/`@isFloat`/`@isDouble`, else the default. */
+  public static numberType(defaultNumberType: DefaultNumberType, jsDocTagNames?: string[]): Tsoa.PrimitiveType {
+    if (!jsDocTagNames || jsDocTagNames.length === 0) {
       return { dataType: defaultNumberType };
     }
 
-    const tags = partentJsDocTagNames.filter(name => {
+    const tags = jsDocTagNames.filter(name => {
       return ['isInt', 'isLong', 'isFloat', 'isDouble'].some(m => m === name);
     });
 

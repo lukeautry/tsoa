@@ -1,11 +1,11 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type TypeChecker } from 'typescript';
+import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Node, type Program, type Type, type TypeChecker, type TypeNode } from 'typescript';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { TypeResolver } from './typeResolver';
+import { TypeResolver } from './typeResolver/typeResolver';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
@@ -14,7 +14,8 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
-  private readonly compilerOptions: CompilerOptions;
+  public readonly compilerOptions: CompilerOptions;
+  private typeResolver?: TypeResolver;
 
   constructor(
     entryFile: string,
@@ -25,7 +26,6 @@ export class MetadataGenerator {
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
     esm = false,
   ) {
-    TypeResolver.clearCache();
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
@@ -209,6 +209,15 @@ export class MetadataGenerator {
       console.warn(message);
     });
   };
+
+  /**
+   * Resolves a type annotation to tsoa metadata.
+   * `type` may be passed when the checker type is already known (e.g. for synthesized nodes).
+   */
+  public resolveType(typeNode: TypeNode, parentNode?: Node, type?: Type): Tsoa.Type {
+    this.typeResolver ??= new TypeResolver(this);
+    return this.typeResolver.resolveNode(typeNode, parentNode, type);
+  }
 
   public TypeChecker() {
     return this.typeChecker;

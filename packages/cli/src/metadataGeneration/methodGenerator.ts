@@ -9,7 +9,6 @@ import { MetadataGenerator } from './metadataGenerator';
 import { ParameterGenerator } from './parameterGenerator';
 
 import { Tsoa } from '@tsoa/runtime';
-import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 type HttpMethod = 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
@@ -42,13 +41,14 @@ export class MethodGenerator {
     }
 
     let nodeType = this.node.type;
+    let implicitType: ts.Type | undefined;
     if (!nodeType) {
       const typeChecker = this.current.typeChecker;
       const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+      implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
-    const type = new TypeResolver(nodeType, this.current).resolve();
+    const type = this.resolveReturnType(nodeType, implicitType);
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -75,6 +75,15 @@ export class MethodGenerator {
       tags: this.getTags(),
       type,
     };
+  }
+
+  private resolveReturnType(nodeType: ts.TypeNode, implicitType: ts.Type | undefined): Tsoa.Type {
+    try {
+      return this.current.resolveType(nodeType, undefined, implicitType);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new GenerateMetadataError(`${message} \n in '${this.getCurrentLocation()}' return type`);
+    }
   }
 
   private buildParameters() {
@@ -263,7 +272,7 @@ export class MethodGenerator {
     if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
       return undefined;
     }
-    return new TypeResolver(expression.typeArguments[schemaIndex], this.current).resolve();
+    return this.current.resolveType(expression.typeArguments[schemaIndex]);
   }
 
   private getMethodSuccessExamples() {

@@ -283,6 +283,129 @@ export type AliasedTagSecond = { kind: 'second'; secondValue: string };
 
 export type AliasedTagUnion = AliasedTagFirst | AliasedTagSecond;
 
+// Types that need the type checker to evaluate them
+const appConfig = { mode: 'a', retries: 3 } as const;
+export type AppConfig = typeof appConfig;
+
+export enum ParamKind {
+  A = 'a',
+  B = 'b',
+}
+export interface ParamsByKind {
+  [ParamKind.A]: { foo: string };
+  [ParamKind.B]: { bar: number };
+}
+
+export type Shout = Uppercase<'abc' | 'def'>;
+export type PrefixedId = `user_${string}`;
+
+export type CheckedEvent = { type: 'a'; a: string } | { type: 'b'; b: number } | { type: 'c' };
+
+const ROLES = { admin: 1, user: 2 } as const;
+export type Role = keyof typeof ROLES;
+export type RoleValue = (typeof ROLES)[Role];
+
+/** @pattern ^[0-9a-f-]{36}$ */
+export type UUID = string;
+export interface WithUuid {
+  id: UUID;
+  label: string;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  age: number;
+}
+export type OnlyRequire<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
+export type Getters<T> = { [K in keyof T as `get${Capitalize<string & K>}`]: T[K] };
+
+export interface TreeBase {
+  items: TreeItem[];
+}
+export interface TreeItem extends TreeBase {
+  name: string;
+}
+
+const SignupSchema = z.object({ email: z.string(), plan: z.string().default('free') });
+export type SignupInput = z.input<typeof SignupSchema>;
+export type SignupOutput = z.output<typeof SignupSchema>;
+
+export type PatchOf<T> = {
+  /** The patched value */
+  patch?: T;
+};
+export interface HeritageBase {
+  /** Declared by the base */
+  base: string;
+}
+export interface Holder<T> {
+  held: T;
+}
+export interface PatchFirst<T> extends PatchOf<T>, HeritageBase {
+  own: number;
+}
+export interface PatchLast<T> extends HeritageBase, PatchOf<T> {
+  own: number;
+}
+export interface MappedFirst<T> extends Partial<Holder<T>>, HeritageBase {
+  own: number;
+}
+export interface MappedLast<T> extends HeritageBase, Partial<Holder<T>> {
+  own: number;
+}
+
+export interface Labeled<T> {
+  value: T;
+}
+
+export type TreeNodeBase = { children: TreeNodeBase[] };
+export interface NamedTreeNode extends TreeNodeBase {
+  name: string;
+}
+export type PlainBase = { plain: string };
+export interface UsesPlainBase extends PlainBase {
+  extra: number;
+}
+
+/** @pattern ^x */
+export type Identifier = string;
+export type Nullable<T> = T | null;
+export interface NullableBox<T> {
+  value: Nullable<T> | number;
+}
+
+/** @pattern ^y */
+export type OtherIdentifier = string;
+export interface ArrayUnionBox<T> {
+  value: T[] | number;
+}
+export interface NullableArrayBox<T> {
+  // eslint-disable-next-line @typescript-eslint/array-type -- the `X[]` spelling is what this fixture tests
+  value: Nullable<T>[] | number;
+}
+// eslint-disable-next-line @typescript-eslint/array-type -- the `X[]` spelling is what this fixture tests
+export type RecursiveTree<T> = T | RecursiveTree<T>[];
+export type RecursiveGenericTree<T> = T | Array<RecursiveGenericTree<T>>;
+export interface OptionalToJson {
+  a: string;
+  toJSON?(): { b: number };
+}
+
+export interface Pair<T = string, U = T> {
+  first: T;
+  second: U;
+}
+
+export const internalKey: unique symbol = Symbol('internal');
+const constKey = 'fromConst';
+export interface WithComputedKeys {
+  [internalKey]: string;
+  [constKey]: boolean;
+  ['literal-key']: number;
+  id: string;
+}
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -535,5 +658,120 @@ export class ComplexTypeController {
       event: body,
       message: `User ${body.userId} deleted successfully`,
     };
+  }
+
+  @Get('Checked/TypeofConst')
+  public async getTypeofConst(): Promise<AppConfig> {
+    return null as any;
+  }
+
+  @Get('Checked/IndexedByEnum')
+  public async getIndexedByEnum(): Promise<ParamsByKind[ParamKind.A]> {
+    return null as any;
+  }
+
+  @Get('Checked/Intrinsic')
+  public async getIntrinsic(): Promise<{ value: Shout }> {
+    return null as any;
+  }
+
+  @Get('Checked/TemplateLiteral')
+  public async getTemplateLiteral(): Promise<{ id: PrefixedId }> {
+    return null as any;
+  }
+
+  @Get('Checked/Exclude')
+  public async getExclude(): Promise<Exclude<CheckedEvent, { type: 'c' }>> {
+    return null as any;
+  }
+
+  @Get('Checked/KeysAndValues')
+  public async getKeysAndValues(): Promise<{ role: Role; value: RoleValue }> {
+    return null as any;
+  }
+
+  @Get('Checked/Omit')
+  public async getOmit(): Promise<Omit<WithUuid, 'label'>> {
+    return null as any;
+  }
+
+  @Get('Checked/OnlyRequire')
+  public async getOnlyRequire(): Promise<OnlyRequire<Profile, 'id'>> {
+    return null as any;
+  }
+
+  @Get('Checked/Getters')
+  public async getGetters(): Promise<Getters<Pick<Profile, 'id' | 'age'>>> {
+    return null as any;
+  }
+
+  @Get('Checked/Tree')
+  public async getTree(): Promise<TreeItem> {
+    return null as any;
+  }
+
+  @Post('Checked/ZodInputOutput')
+  public async postZodInputOutput(@Body() body: SignupInput): Promise<SignupOutput> {
+    return null as any;
+  }
+
+  @Post('Checked/ZodInputInline')
+  public async postZodInputInline(@Body() body: z.input<typeof SignupSchema>): Promise<void> {
+    return;
+  }
+
+  @Get('Checked/GenericBases')
+  public async getGenericBases(): Promise<{ patchFirst: PatchFirst<Profile>; patchLast: PatchLast<Profile>; mappedFirst: MappedFirst<Profile>; mappedLast: MappedLast<Profile> }> {
+    return null as any;
+  }
+
+  @Get('Checked/GenericNames')
+  public async getGenericNames(): Promise<{
+    user: Labeled<`user_${string}`>;
+    org: Labeled<`org_${string}`>;
+    numbered: Labeled<`user_${number}`>;
+  }> {
+    return null as any;
+  }
+
+  @Post('Checked/RecursiveBase')
+  public async postRecursiveBase(@Body() body: NamedTreeNode): Promise<UsesPlainBase> {
+    return null as any;
+  }
+
+  @Post('Checked/AliasInGenericUnion')
+  public async postAliasInGenericUnion(@Body() body: NullableBox<Identifier>): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/AnnotatedAlternatives')
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents -- two annotated aliases of string are what this fixture tests
+  public async postAnnotatedAlternatives(@Body() body: Identifier | OtherIdentifier): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/GenericArrayUnion')
+  public async postGenericArrayUnion(@Body() body: { ids: ArrayUnionBox<Identifier>; nullable: NullableArrayBox<string> }): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/RecursiveAlias')
+  public async postRecursiveAlias(@Body() body: { tree: RecursiveTree<string>; generic: RecursiveGenericTree<number> }): Promise<void> {
+    return;
+  }
+
+  @Post('Checked/OptionalToJson')
+  public async postOptionalToJson(@Body() body: OptionalToJson): Promise<void> {
+    return;
+  }
+
+  @Get('Checked/DefaultTypeArguments')
+  public async getDefaultTypeArguments(): Promise<Pair> {
+    return null as any;
+  }
+
+  @Get('Checked/ComputedKeys')
+  public async getComputedKeys(): Promise<WithComputedKeys> {
+    return null as any;
   }
 }
