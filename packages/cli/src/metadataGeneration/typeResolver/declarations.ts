@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import { GenerateMetadataError } from '../exceptions';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { throwUnless } from '../../utils/flowUtils';

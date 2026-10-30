@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import * as chai from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -8,8 +9,15 @@ import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 import { Swagger } from '@tsoa/runtime';
 
 describe('POST route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/postController.ts').Generate();
+      spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let spec: ReturnType<SpecGenerator2['GetSpec']>;
   const baseRoute = '/PostTest';
 
   const getValidatedParameters = (actionRoute: string): Swagger.Parameter2[] => {
@@ -50,12 +58,14 @@ describe('POST route generation', () => {
   });
 
   it('should reject multiple body parameters', () => {
-    chai
-      .expect(() => {
-        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidPostController.ts').Generate();
-        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-      })
-      .to.throw("Only one body parameter allowed in 'InvalidPostTestController.postWithMultipleBodyParams' method.");
+    return withCompiler(() => {
+      chai
+        .expect(() => {
+          const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidPostController.ts').Generate();
+          new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+        })
+        .to.throw("Only one body parameter allowed in 'InvalidPostTestController.postWithMultipleBodyParams' method.");
+    });
   });
 
   it('should be able to parse body and query parameters together', () => {

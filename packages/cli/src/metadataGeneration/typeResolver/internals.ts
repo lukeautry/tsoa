@@ -1,7 +1,7 @@
 /**
  * The only place the type resolver touches TypeScript compiler internals. Each helper says why.
  */
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 
 /**
  * Mapped-type properties without declarations keep their origin in `links.syntheticOrigin`;

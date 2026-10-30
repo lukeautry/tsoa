@@ -1,4 +1,5 @@
-import * as ts from 'typescript';
+import { withCompiler } from '../compiler';
+import * as ts from '../compiler/index';
 import * as YAML from 'yaml';
 import { ExtendedSpecConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
@@ -26,7 +27,9 @@ export const generateSpec = async (
   defaultNumberType?: Config['defaultNumberType'],
 ) => {
   if (!metadata) {
-    metadata = new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate();
+    metadata = await withCompiler(() =>
+      new MetadataGenerator(swaggerConfig.entryFile, compilerOptions, ignorePaths, swaggerConfig.controllerPathGlobs, swaggerConfig.rootSecurity, defaultNumberType).Generate(),
+    );
   }
 
   let spec: Swagger.Spec;

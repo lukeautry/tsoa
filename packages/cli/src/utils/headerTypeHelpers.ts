@@ -1,5 +1,5 @@
 import { Tsoa } from '@tsoa/runtime';
-import { NodeArray, TypeNode } from 'typescript';
+import { NodeArray, TypeNode } from '../compiler/index';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 

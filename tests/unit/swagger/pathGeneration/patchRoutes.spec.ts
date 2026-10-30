@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
@@ -7,8 +8,15 @@ import { defaultModelName, VerifyPath } from '../../utilities/verifyPath';
 import { Swagger } from '@tsoa/runtime';
 
 describe('PATCH route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/patchController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/patchController.ts').Generate();
+      spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let spec: ReturnType<SpecGenerator2['GetSpec']>;
   const baseRoute = '/PatchTest';
 
   it('should generate a path for a PATCH route with no path argument', () => {

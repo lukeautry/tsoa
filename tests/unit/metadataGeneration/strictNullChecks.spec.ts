@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { expect } from 'chai';
 import 'mocha';
@@ -37,19 +38,21 @@ describe('MetadataGenerator strict null checking defaults', () => {
     describe(name, () => {
       for (const { name, compilerOptions, nullable } of cases) {
         it(name, () => {
-          const metadata = new MetadataGenerator(entryFile, compilerOptions, undefined, controllers).Generate();
-          expect(metadata.controllers).to.have.length(1);
-          expect(metadata.controllers[0].methods).to.have.length(1);
-          const returnType = metadata.controllers[0].methods[0].type;
-          if (nullable) {
-            expect(returnType.dataType).to.equal('union');
-            if (returnType.dataType !== 'union') {
-              throw new Error('Expected a nullable return type');
+          return withCompiler(() => {
+            const metadata = new MetadataGenerator(entryFile, compilerOptions, undefined, controllers).Generate();
+            expect(metadata.controllers).to.have.length(1);
+            expect(metadata.controllers[0].methods).to.have.length(1);
+            const returnType = metadata.controllers[0].methods[0].type;
+            if (nullable) {
+              expect(returnType.dataType).to.equal('union');
+              if (returnType.dataType !== 'union') {
+                throw new Error('Expected a nullable return type');
+              }
+              expect(returnType.types).to.have.deep.members([{ dataType: 'string' }, { dataType: 'enum', enums: [null] }]);
+            } else {
+              expect(returnType).to.deep.equal({ dataType: 'string' });
             }
-            expect(returnType.types).to.have.deep.members([{ dataType: 'string' }, { dataType: 'enum', enums: [null] }]);
-          } else {
-            expect(returnType).to.deep.equal({ dataType: 'string' });
-          }
+          });
         });
       }
     });

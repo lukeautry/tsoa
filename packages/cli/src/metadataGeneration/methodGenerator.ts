@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 import * as path from 'path';
 import { isVoidType } from '../utils/isVoidType';
 import { getDecorators, getDecoratorValues, getPath, getProduces, getSecurites } from './../utils/decoratorUtils';

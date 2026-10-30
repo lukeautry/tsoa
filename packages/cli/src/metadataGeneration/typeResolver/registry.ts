@@ -1,5 +1,5 @@
 import type { Tsoa } from '@tsoa/runtime';
-import type * as ts from 'typescript';
+import type * as ts from '../../compiler/index';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { sameType } from './internals';

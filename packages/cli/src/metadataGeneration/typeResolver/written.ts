@@ -2,7 +2,7 @@
  * What written syntax says about a type: the type a written node denotes, and which written
  * nodes describe their type's shape. Used by the type resolver; never decides a schema alone.
  */
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import { symbolAt } from './declarations';
 import { unionOf } from './internals';
 import { childSite, emptySubstitutions, followSite, substitutionsCover, type Site, type Substitution, type Substitutions } from './site';

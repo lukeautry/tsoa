@@ -1,4 +1,4 @@
-import { SyntaxKind } from 'typescript';
+import { SyntaxKind } from '../../compiler/index';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';

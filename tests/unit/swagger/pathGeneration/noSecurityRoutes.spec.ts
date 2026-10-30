@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -6,8 +7,15 @@ import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('NoSecurity route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/noSecurityController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/noSecurityController.ts').Generate();
+      spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let spec: ReturnType<SpecGenerator2['GetSpec']>;
 
   it('should generate a route with a named security', () => {
     const path = verifyPath('/NoSecurityTest');

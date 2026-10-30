@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import { isDecorator } from '../../utils/decoratorUtils';
 import { getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
 import { throwUnless } from '../../utils/flowUtils';
@@ -262,12 +262,9 @@ function entityText(entity: ts.EntityName): string {
   return ts.isIdentifier(entity) ? entity.text : `${entityText(entity.left)}.${entity.right.text}`;
 }
 
-const printer = ts.createPrinter({ removeComments: true });
-const emptySource = ts.createSourceFile('printed.ts', '', ts.ScriptTarget.Latest);
-
 /** The written text of a type node (printed, so synthesized nodes have one too). */
 function printed(node: ts.TypeNode): string {
-  return printer.printNode(ts.EmitHint.Unspecified, node, node.pos !== -1 ? node.getSourceFile() : emptySource);
+  return ts.printNode(node);
 }
 
 /** The value of a literal type node. */

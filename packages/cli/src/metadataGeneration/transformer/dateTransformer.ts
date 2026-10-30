@@ -1,4 +1,4 @@
-import type { Node } from 'typescript';
+import type { Node } from '../../compiler/index';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';

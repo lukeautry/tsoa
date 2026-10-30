@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
@@ -9,7 +10,14 @@ import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
 
 describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+      specDefaultSpec = new SpecGenerator3(metadata, defaultOptions).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = {
     ...defaultConfig.spec,
@@ -22,9 +30,12 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
     specName: 'specDefault';
   }
 
+  let specDefaultSpec: SpecAndName['spec'];
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator3(metadata, defaultOptions).GetSpec(),
     specName: 'specDefault',
+    get spec() {
+      return specDefaultSpec;
+    },
   };
 
   const allSpecs: SpecAndName[] = [specDefault];
@@ -638,7 +649,13 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
 });
 
 describe('Discriminated unions in other OpenAPI versions', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultConfig = getDefaultOptions();
   const options: ExtendedSpecConfig = {
     ...defaultConfig.spec,

@@ -1,5 +1,5 @@
 import type { Tsoa } from '@tsoa/runtime';
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import { getJSDocTagNames } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';

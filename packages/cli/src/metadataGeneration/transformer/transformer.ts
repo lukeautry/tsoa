@@ -1,4 +1,4 @@
-import { SyntaxKind, getModifiers, type HasModifiers } from 'typescript';
+import { SyntaxKind, getModifiers, type HasModifiers } from '../../compiler/index';
 
 /**
  * Transformer responsible to transforming native ts node into tsoa type.

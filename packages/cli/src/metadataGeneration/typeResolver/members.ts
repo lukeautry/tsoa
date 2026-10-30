@@ -1,5 +1,5 @@
 import type { Tsoa } from '@tsoa/runtime';
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import { getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import { getInitializerValue } from '../initializer-value';

@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { DefaultRouteGenerator } from '@tsoa/cli/routeGeneration/defaultRouteGenerator';
 import { FieldErrors, TsoaRoute, ValidationService } from '@tsoa/runtime';
@@ -91,19 +92,21 @@ describe('Explicit null alternatives in unions', () => {
   });
 
   it('preserves null in generated alias schemas, nested unions, and arrays', () => {
-    const entryFile = './fixtures/controllers/nullUnionController.ts';
-    const metadata = new MetadataGenerator(entryFile, { strictNullChecks: true, experimentalDecorators: true }).Generate();
-    const models = new DefaultRouteGenerator(metadata, { entryFile, routesDir: './fixtures', noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).buildModels();
-    const parameter = metadata.controllers[0].methods[0].parameters[0];
-    if (parameter.type.dataType !== 'refObject') {
-      throw new Error('Expected a generated object body');
-    }
-    const input = { direct: null, alias: null, indirect: null, nested: null, values: [null, true, false] };
-    const expected = { direct: null, alias: null, indirect: null, nested: null, values: [null, true, false] };
-    const errors: FieldErrors = {};
-    const service = new ValidationService(models, { bodyCoercion: true, noImplicitAdditionalProperties: 'ignore' });
+    return withCompiler(() => {
+      const entryFile = './fixtures/controllers/nullUnionController.ts';
+      const metadata = new MetadataGenerator(entryFile, { strictNullChecks: true, experimentalDecorators: true }).Generate();
+      const models = new DefaultRouteGenerator(metadata, { entryFile, routesDir: './fixtures', noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).buildModels();
+      const parameter = metadata.controllers[0].methods[0].parameters[0];
+      if (parameter.type.dataType !== 'refObject') {
+        throw new Error('Expected a generated object body');
+      }
+      const input = { direct: null, alias: null, indirect: null, nested: null, values: [null, true, false] };
+      const expected = { direct: null, alias: null, indirect: null, nested: null, values: [null, true, false] };
+      const errors: FieldErrors = {};
+      const service = new ValidationService(models, { bodyCoercion: true, noImplicitAdditionalProperties: 'ignore' });
 
-    expect(service.ValidateParam({ ref: parameter.type.refName, required: parameter.required }, input, 'body', errors, true)).to.deep.equal(expected);
-    expect(errors).to.deep.equal({});
+      expect(service.ValidateParam({ ref: parameter.type.refName, required: parameter.required }, input, 'body', errors, true)).to.deep.equal(expected);
+      expect(errors).to.deep.equal({});
+    });
   });
 });

@@ -1,7 +1,7 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 import { Tsoa } from '@tsoa/runtime';
 
-const hasInitializer = (node: ts.Node): node is ts.HasInitializer => Object.prototype.hasOwnProperty.call(node, 'initializer');
+const hasInitializer = (node: ts.Node): node is ts.HasInitializer => (node as ts.HasInitializer).initializer !== undefined;
 const extractInitializer = (decl?: ts.Declaration) => (decl && hasInitializer(decl) && (decl.initializer as ts.Expression)) || undefined;
 const extractImportSpecifier = (symbol?: ts.Symbol) => (symbol?.declarations && symbol.declarations.length > 0 && ts.isImportSpecifier(symbol.declarations[0]) && symbol.declarations[0]) || undefined;
 const isIterable = (obj: any): obj is Iterable<any> => obj != null && typeof obj[Symbol.iterator] === 'function';

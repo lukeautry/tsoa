@@ -38,7 +38,6 @@
     "merge-anything": "^5.1.7",
     "minimatch": "^9.0.1",
     "ts-deepmerge": "^7.0.2",
-    "typescript": "^5.7.2 || ^6.0.3",
     "validator": "^13.12.0",
     "yaml": "^2.8.3",
     "yargs": "^17.7.1"
@@ -50,7 +49,8 @@
     "@types/validator": "^13.12.2",
     "@types/yargs": "^17.0.33",
     "copyfiles": "^2.4.1",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "typescript": "^6.0.3"
   },
   "repository": {
     "type": "git",
@@ -69,5 +69,14 @@
   "engineStrict": true,
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.2 || ^6.0.3 || ^7.0.0 || >=7.1.0-0 <8",
+    "tsrs": "^0.20.0-ts7.1.0-beta"
+  },
+  "peerDependenciesMeta": {
+    "tsrs": {
+      "optional": true
+    }
   }
 }

@@ -1,3 +1,6 @@
+import { knownLimit } from '../../utils/knownLimit';
+import { withCompiler } from '@tsoa/cli/compiler';
+import { unorderedSchema } from '../../utils/unorderedSchema';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
@@ -40,6 +43,7 @@ interface Row {
   openapi?: '3.1';
   modes?: CompilerOptions[];
   check: (run: Run) => void;
+  knownLimit?: { expected: string | RegExp; nonStrictOnly?: boolean };
 }
 
 const nullModes: CompilerOptions[] = [{ strictNullChecks: false }, { strictNullChecks: true }];
@@ -228,6 +232,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: project Array and ReadonlyArray alias names.
+    knownLimit: { expected: /FrozenChain_Leaf_.*to equal.*ReadonlyArray_Le/ },
     name: 'keeps a project Array and ReadonlyArray interface as objects',
     controller: 'syntheticChildren/ownArraysController',
     check: ({ generate }) => {
@@ -271,6 +277,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: non-strict optional members allowing null.
+    knownLimit: { expected: "leaf properties: expected [] to have the same members as [ 'text', 'count' ]", nonStrictOnly: true },
     name: 'gives identical schemas for an optional member that also allows null, whatever the order',
     controller: 'syntheticChildren/exactNullInnerFirstController',
     modes: [...nullModes, exactMode],
@@ -323,7 +331,7 @@ const rows: Row[] = [
     controller: 'syntheticChildren/indexedUnionController',
     check: ({ generate, strictNullChecks }) => {
       const { schemas, response } = generate();
-      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.deep.equal([ref('Opt_Leaf_'), ref('Other_Leaf_')]);
+      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.have.same.deep.members([ref('Opt_Leaf_'), ref('Other_Leaf_')]);
       expectOptionalLeaf(schemas.Opt_Leaf_, { text: 'string', count: 'number' });
       expectOptionalLeaf(schemas.Other_Leaf_, { text: 'string', count: 'number' });
       expect(schemas.Opt_Leaf_.properties?.text.nullable, 'nullable Opt').to.equal(undefined);
@@ -356,6 +364,8 @@ const rows: Row[] = [
     },
   },
   {
+    // COMPILERS.md limit: package and namespaced union printer crash.
+    knownLimit: { expected: 'Offset is outside the bounds of the DataView' },
     name: 'keeps a package union member next to namespaced members',
     controller: 'syntheticChildren/namespacedPackageMemberController',
     modes: [...nullModes, exactMode],
@@ -402,10 +412,10 @@ const rows: Row[] = [
   }),
   preservationRow('a keyof union', ({ resolve, response }) => {
     const mapped = required(resolve(response(route('mapped'))).properties, 'mapped members');
-    expect(mapped.side).to.deep.equal({ type: 'string', enum: ['width', 'height'] });
+    expect(unorderedSchema(mapped.side)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'] }));
     const source = required(resolve(response(route('source'))).properties, 'source members');
-    expect(source.key).to.deep.equal({ type: 'string', enum: ['width', 'height'], nullable: false });
-    expect(source.mixed).to.deep.equal({ type: 'string', enum: ['width', 'height', 'other'] });
+    expect(unorderedSchema(source.key)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'], nullable: false }));
+    expect(unorderedSchema(source.mixed)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height', 'other'] }));
   }),
   preservationRow('a named alias inside a union', ({ schemas, resolve, response }) => {
     const members = required(resolve(response(route('mapped'))).properties, 'mapped members');
@@ -462,11 +472,18 @@ describe('Children of synthetic type nodes', () => {
   for (const row of rows) {
     for (const compilerOptions of row.modes ?? nullModes) {
       it(`${row.name} (${describeMode(compilerOptions)})`, () => {
-        row.check({
-          strictNullChecks: compilerOptions.strictNullChecks === true,
-          compilerOptions,
-          generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
-        });
+        const run = () =>
+          withCompiler(() => {
+            row.check({
+              strictNullChecks: compilerOptions.strictNullChecks === true,
+              compilerOptions,
+              generate: (controller = row.controller) => generate(controller, compilerOptions, row.openapi),
+            });
+          });
+        if (row.knownLimit && !(row.knownLimit.nonStrictOnly && compilerOptions.strictNullChecks)) {
+          return knownLimit(['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'], row.knownLimit.expected)(run);
+        }
+        return run();
       });
     }
   }

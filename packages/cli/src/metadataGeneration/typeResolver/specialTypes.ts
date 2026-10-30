@@ -1,5 +1,5 @@
 import type { Tsoa } from '@tsoa/runtime';
-import * as ts from 'typescript';
+import * as ts from '../../compiler/index';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { DateTransformer } from '../transformer/dateTransformer';
 import { followSite, type Site } from './site';

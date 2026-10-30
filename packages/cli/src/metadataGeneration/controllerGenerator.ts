@@ -4,7 +4,7 @@ import { MetadataGenerator } from './metadataGenerator';
 import { MethodGenerator } from './methodGenerator';
 import { Tsoa } from '@tsoa/runtime';
 import { getHeaderType } from '../utils/headerTypeHelpers';
-import { isMethodDeclaration, type ClassDeclaration, type CallExpression, type StringLiteral } from 'typescript';
+import { isMethodDeclaration, type ClassDeclaration, type CallExpression, type StringLiteral } from '../compiler/index';
 
 export class ControllerGenerator {
   private readonly path?: string;

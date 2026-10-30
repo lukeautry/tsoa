@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 import { getDecorators, getNodeFirstDecoratorName, getNodeFirstDecoratorValue, isDecorator } from './../utils/decoratorUtils';
 import { commentToString, getJSDocTags, isExistJSDocTag } from './../utils/jsDocUtils';
 import { getParameterValidators } from './../utils/validatorUtils';

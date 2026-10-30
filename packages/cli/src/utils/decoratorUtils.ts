@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as ts from '../compiler/index';
 import { GenerateMetadataError } from '../metadataGeneration/exceptions';
 import { getInitializerValue } from '../metadataGeneration/initializer-value';
 

@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -6,7 +7,13 @@ import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 
 describe('Metadata generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
 
   describe('ControllerGenerator', () => {
     it('should generate one controller', () => {
@@ -16,39 +23,54 @@ describe('Metadata generation', () => {
     });
 
     it('should fail if there are no controllers', () => {
-      expect(() => {
-        new MetadataGenerator('./fixtures/controllers/noController.ts').Generate();
-      }).to.throw('no controllers found, check tsoa configuration');
+      return withCompiler(() => {
+        expect(() => {
+          new MetadataGenerator('./fixtures/controllers/noController.ts').Generate();
+        }).to.throw('no controllers found, check tsoa configuration');
+      });
     });
   });
 
   describe('InvalidExtensionControllerGenerator', () => {
     it('should throw an Error when an attribute is not prefixed with "x-"', () => {
-      expect(() => {
-        new MetadataGenerator('./fixtures/controllers/invalidExtensionController.ts').Generate();
-      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+      return withCompiler(() => {
+        expect(() => {
+          new MetadataGenerator('./fixtures/controllers/invalidExtensionController.ts').Generate();
+        }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+      });
     });
 
     it('should throw an Error when an model attribute is not prefixed with "x-"', () => {
-      expect(() => {
-        new MetadataGenerator('./fixtures/controllers/invalidExtensionModelController.ts').Generate();
-      }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+      return withCompiler(() => {
+        expect(() => {
+          new MetadataGenerator('./fixtures/controllers/invalidExtensionModelController.ts').Generate();
+        }).to.throw('Extensions must begin with "x-" to be valid. Please see the following link for more information: https://swagger.io/docs/specification/openapi-extensions/');
+      });
     });
   });
 
   describe('DynamicControllerGenerator', () => {
     it("should should throw 'globs found 0 controllers.'", () => {
-      expect(() => {
-        // Non existing controllers folder to get 0 controllers found error
-        const NON_CONTROLLER_EXISTS_GLOB = './unit/swagger';
-        new MetadataGenerator('./fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB]).Generate();
-      }).to.throw(/globs found 0 controllers./);
+      return withCompiler(() => {
+        expect(() => {
+          // Non existing controllers folder to get 0 controllers found error
+          const NON_CONTROLLER_EXISTS_GLOB = './unit/swagger';
+          new MetadataGenerator('./fixtures/express-dynamic-controllers/server.ts', undefined, [], [NON_CONTROLLER_EXISTS_GLOB]).Generate();
+        }).to.throw(/globs found 0 controllers./);
+      });
     });
   });
 
   describe('MethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/methodController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/methodController.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
     const definedMethods = [
       'optionsMethod',
       'getMethod',
@@ -360,8 +382,15 @@ describe('Metadata generation', () => {
   });
 
   describe('ParameterGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should generate single and multiple examples', () => {
       const method = controller.methods.find(m => m.name === 'example');
@@ -833,8 +862,15 @@ describe('Metadata generation', () => {
   });
 
   describe('HiddenMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenMethodController.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should mark methods as visible by default', () => {
       const method = controller.methods.find(m => m.name === 'normalGetMethod');
@@ -882,8 +918,15 @@ describe('Metadata generation', () => {
   });
 
   describe('HiddenControllerGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/hiddenController.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should mark all methods as hidden', () => {
       expect(controller.methods).to.have.lengthOf(2);
@@ -894,8 +937,15 @@ describe('Metadata generation', () => {
   });
 
   describe('ControllerWithCommonResponsesGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/controllerWithCommonResponses.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should add common responses to every method', () => {
       expect(controller.methods).to.have.lengthOf(2);
@@ -914,8 +964,15 @@ describe('Metadata generation', () => {
   });
 
   describe('DeprecatedMethodGenerator', () => {
-    const parameterMetadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
-    const controller = parameterMetadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        parameterMetadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
+        controller = parameterMetadata.controllers[0];
+      }),
+    );
+
+    let parameterMetadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should generate normal method', () => {
       const method = controller.methods.find(m => m.name === 'normalGetMethod');
@@ -941,12 +998,18 @@ describe('Metadata generation', () => {
   });
 
   describe('TypeInferenceController', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/typeInferenceController.ts').Generate();
-    const controller = metadata.controllers.find(controller => controller.name === 'TypeInferenceController');
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/typeInferenceController.ts').Generate();
+        controller = metadata.controllers.find(controller => controller.name === 'TypeInferenceController')!;
+        if (!controller) {
+          throw new Error('TypeInferenceController not defined!');
+        }
+      }),
+    );
 
-    if (!controller) {
-      throw new Error('TypeInferenceController not defined!');
-    }
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('should generate multiKeysInterfaceInference method', () => {
       const method = controller.methods.find(method => method.name === 'multiKeysInterfaceInference');
@@ -1020,8 +1083,15 @@ describe('Metadata generation', () => {
   });
 
   describe('controllerWithJsDocResponseDescriptionGeneration', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithJsDocResponseDescription.ts').Generate();
-    const controller = metadata.controllers[0];
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/controllerWithJsDocResponseDescription.ts').Generate();
+        controller = metadata.controllers[0];
+      }),
+    );
+
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let controller: Tsoa.Controller;
 
     it('has success response description', () => {
       const description = 'SuccessResponse description';
@@ -1065,13 +1135,21 @@ describe('Metadata generation', () => {
   });
 
   describe('AnnotatedTypesControllerGenerator', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts').Generate();
-    const metadataIntDefault = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts', undefined, undefined, undefined, undefined, 'integer').Generate();
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts').Generate();
+        metadataIntDefault = new MetadataGenerator('./fixtures/controllers/annotatedTypesController.ts', undefined, undefined, undefined, undefined, 'integer').Generate();
+        controller = metadata.controllers.find(controller => controller.name === 'AnnotatedTypesController')!;
+        controllerIntDefault = metadataIntDefault.controllers.find(controller => controller.name === 'AnnotatedTypesController')!;
+        if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
+      }),
+    );
 
-    const controller = metadata.controllers.find(controller => controller.name === 'AnnotatedTypesController');
-    const controllerIntDefault = metadataIntDefault.controllers.find(controller => controller.name === 'AnnotatedTypesController');
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let metadataIntDefault: ReturnType<MetadataGenerator['Generate']>;
 
-    if (!controller || !controllerIntDefault) throw new Error('AnnotatedTypesController not defined!');
+    let controller: Tsoa.Controller;
+    let controllerIntDefault: Tsoa.Controller;
 
     const getControllerNumberMethods = (controller: Tsoa.Controller) => {
       const getDefault = controller.methods.find(method => method.name === 'getDefault');
