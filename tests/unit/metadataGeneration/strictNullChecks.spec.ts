@@ -1,7 +1,8 @@
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { expect } from 'chai';
 import 'mocha';
-import { createProgram, flattenDiagnosticMessageText, type CompilerOptions } from 'typescript';
+import type { CompilerOptions } from '../../utils/typescript7';
+import { compilerDiagnostics } from '../../utils/diagnostics';
 
 describe('MetadataGenerator strict null checking defaults', () => {
   const entryFile = './fixtures/strictNullChecks/strictNullChecksController.ts';
@@ -20,13 +21,7 @@ describe('MetadataGenerator strict null checking defaults', () => {
 
   it('uses a fixture without source diagnostics with default or strict options', () => {
     for (const compilerOptions of [{}, { strict: true }, { strictNullChecks: true }]) {
-      const program = createProgram([entryFile], compilerOptions);
-      const sourceFile = program.getSourceFile(entryFile);
-      if (!sourceFile) {
-        throw new Error('Missing strict null checking fixture');
-      }
-      const diagnostics = [...program.getSyntacticDiagnostics(sourceFile), ...program.getSemanticDiagnostics(sourceFile)];
-      expect(diagnostics.map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
+      expect(compilerDiagnostics([entryFile], compilerOptions, entryFile)).to.deep.equal([]);
     }
   });
 

@@ -1739,7 +1739,7 @@
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.5.tgz#1ef302e01cf7d2b5a0fa526790c9123bf1d06690"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
-"@types/minimatch@^5.1.0", "@types/minimatch@^5.1.2":
+"@types/minimatch@^5.1.2":
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-5.1.2.tgz#07508b45797cb81ec3f273011b054cd0755eddca"
   integrity sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==
@@ -1966,6 +1966,111 @@
   dependencies:
     "@typescript-eslint/types" "8.69.0"
     eslint-visitor-keys "^5.0.0"
+
+"@typescript/typescript-aix-ppc64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-aix-ppc64/-/typescript-aix-ppc64-7.1.0-beta.tgz#b93ac9838474487c4a4b39888f60977d9966f59b"
+  integrity sha512-DXDG+jIWxBHGdoO70tcHON33rCnSzsEZj9P13oyf/r/KEGIo6awsdSNVNjAw0uMwEpqRu75IrgCcW58YcVkZHg==
+
+"@typescript/typescript-android-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-android-arm64/-/typescript-android-arm64-7.1.0-beta.tgz#73029945f5dc0df81fe26048d4c21078fd61ad03"
+  integrity sha512-UZx6PxoQavuvaVTrSf3aw0Oy/J/uJpRylipA0kzc038jMvZXh0UtE8vnQp20FqtdgD5bhXZ0aJrRJyoTSUO58Q==
+
+"@typescript/typescript-darwin-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-beta.tgz#1975e558730f6bd5e242f1fb539aa9cc53db5dd9"
+  integrity sha512-q7mxblcyX0E7hXsY4k+Q6KWKK5mGmfVq+BDesdTgRVgjodk27aIxER77Zyj9+TgSTlCje8F7+JM6f6hl2BuNdw==
+
+"@typescript/typescript-darwin-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.1.0-beta.tgz#14ab4196e8ad0816b8ecf0f3aff13c124d5d1187"
+  integrity sha512-D5EYqG5Wm/guw9+0j8+Mn1Jbr/gfS/VtFTuoH8PJtFbcqeDaQGMulc7SW8q51QG6Y3wGOGX3nbsTOw6fIKWWAA==
+
+"@typescript/typescript-freebsd-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-freebsd-arm64/-/typescript-freebsd-arm64-7.1.0-beta.tgz#bc9a17fe8b87664976a86115f0e7adfb5a8dd980"
+  integrity sha512-9A0XX0tcnH9qPdolSKKzSjTb93dlB0UEcAJbHYEsrFX2fkFNSum9+dvkQQJ9vLc+7vxHetDPujq9Qe6wx+Xhow==
+
+"@typescript/typescript-freebsd-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-freebsd-x64/-/typescript-freebsd-x64-7.1.0-beta.tgz#c83dd40e5af41d98a8a65629f88a0d43109ef88d"
+  integrity sha512-EDf/dBHfY0TxX3NmUTek0hbffeyZlh3+ls6WQW3ICB8vYxwYLFnzg7wkgEUvl9eRlpiJ/nmc2S8arPMzINJ7rg==
+
+"@typescript/typescript-linux-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.1.0-beta.tgz#e1f5141e77f6aba38e72c39270521caad71aae30"
+  integrity sha512-hNqQBgQ5b5oGqN76QqbAU6CwYhJZ6iOcWc2kPTUs2OentgpxZktETziH6KIyRFJPaiBncognwn2ZLu3DNhHiWw==
+
+"@typescript/typescript-linux-arm@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm/-/typescript-linux-arm-7.1.0-beta.tgz#43e654f2cc42ddbec946b283402c05699e1ec5c3"
+  integrity sha512-AvN9HmzOQh46G4312ooSgMHhbB7DtnLwg8D9mo324X49B7weMwtJrBG1MxT9IyI8kzDd7YRtW+1hWGun7WG7Qw==
+
+"@typescript/typescript-linux-loong64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-loong64/-/typescript-linux-loong64-7.1.0-beta.tgz#8ce10e7e4e6276cc552d142fec9a7e2b5afa101f"
+  integrity sha512-xbUustlBrFflt2pNEyG5ye+d4WGPc/rfr2xK29MXeobPSw297JqwuKRrvbKM5o3fE/eUM/c+urVm6jQ3IaMVTw==
+
+"@typescript/typescript-linux-mips64el@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-mips64el/-/typescript-linux-mips64el-7.1.0-beta.tgz#90a5a3084cc3b4b53f8bd9e509b7cd555a71ea8d"
+  integrity sha512-fS4/G7/0bXZ3NSq3nBMAXyg65I3tO4S7j08VNQ2g1aNC/qq79gE7Qne1BNjVsjMFfHBVBFjQYoTQCjmVU2iFlg==
+
+"@typescript/typescript-linux-ppc64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-ppc64/-/typescript-linux-ppc64-7.1.0-beta.tgz#07e60535a5ecb7fdd1d54d47b70b2c4fc4c0cf82"
+  integrity sha512-0upCCxYPX8X6gOwkvfv+Ee7/ufyy7k97mTrGE0e5BxLlnUEa+w+rtgnv2dsKcxFdwdeZYVlZKCqgN/xCBV08+A==
+
+"@typescript/typescript-linux-riscv64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-riscv64/-/typescript-linux-riscv64-7.1.0-beta.tgz#2ba7873b3a5a597c4408d883b5103c813f96ea81"
+  integrity sha512-0jKU9YRgOPRgiy5V/UWv37kB53PaTpIbwGCbbOMUPPAkrjVRNOIAJaz7Wa7s3H7mdDebX1LopUEPEJR+7Xa7zg==
+
+"@typescript/typescript-linux-s390x@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-s390x/-/typescript-linux-s390x-7.1.0-beta.tgz#2f3746115c227f3bffa275e744336e5ca4b13fb6"
+  integrity sha512-j+d04s2kxaPQh6DLPb01sknAQfzsrdSZy15jBRHyLEZoaaQ19dVjbFRlkNVvYwUG7ZdP8+y5b/7RmPxdtHUKdQ==
+
+"@typescript/typescript-linux-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.1.0-beta.tgz#5a8fbfcace1010b8c8a3b38df93c0444d3fef05b"
+  integrity sha512-kcD51ihf+pnI5KT4uQQYG04OpwznaZYBlIQhDhl8fflFd27NktxXsUeguxZyvUMyWfum7IF2bBS6Jv7ox0AgFQ==
+
+"@typescript/typescript-netbsd-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-netbsd-arm64/-/typescript-netbsd-arm64-7.1.0-beta.tgz#866b251f6717d05710fb99be1576dbc5b0b3bf07"
+  integrity sha512-8W85YyoGK+rgGoSU9jJQUpELbrKcZcbdJk2jPNQ6UKDKI7ryPlPFTrV2jCE5RQuv4Tt96hMDTc33s4YfRrLFBA==
+
+"@typescript/typescript-netbsd-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-netbsd-x64/-/typescript-netbsd-x64-7.1.0-beta.tgz#db95606d828654aefb376c56ed79d3208dcf726c"
+  integrity sha512-iGsTE0ve2PG0AcyZinwAR0LnGEZhu/y4dceS0hZsYCaKdYETvQtvtlNWlmYKempsBr6C7Il7dMXHVk+VFm9u0g==
+
+"@typescript/typescript-openbsd-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-openbsd-arm64/-/typescript-openbsd-arm64-7.1.0-beta.tgz#38be03c0362cdbd51ec1bde5a270036875557a69"
+  integrity sha512-Z2FERdHB9fAKI+KGqdWn04O7uNlnB+VYiEm6INE1aZuzzLNd3KBqQ6IpKUJF2ny4GigGU6nVu75XD9tAUODPng==
+
+"@typescript/typescript-openbsd-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-openbsd-x64/-/typescript-openbsd-x64-7.1.0-beta.tgz#9d2145b66aab98aca275a7432bbed474b12c87d4"
+  integrity sha512-NVG3qeyCq/rJEOhaRjR3LsWgjrjo5vJW25omVLeHAVnpKIG4pE4cenwwKGR06DiJ1s0QTOymcJeKXMEpsiNBVg==
+
+"@typescript/typescript-sunos-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-sunos-x64/-/typescript-sunos-x64-7.1.0-beta.tgz#67e647d693fa7979af61c542ac6238c69c16ec5c"
+  integrity sha512-ovAdoWXEn2B5/fyWG69pLU3FWmQwPWOjQV5TFbcxtpnOv+R3g8ySGHl1NYRq7Lb/GYdFDvaGcZ+SiU7iKuiMsA==
+
+"@typescript/typescript-win32-arm64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.1.0-beta.tgz#b968df8081ac5022f5b606164b7809f2c7f2a51d"
+  integrity sha512-lJbo71IEOfL7ZZIZnArRaOLqjn9BAfoSzyUQn0aSjfSpDZL4ru0afUsdBfo6PQEjD6ssdmi0n/RwaPADX6bsvQ==
+
+"@typescript/typescript-win32-x64@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.1.0-beta.tgz#99c321d3877e44e95e414165292eb95769c048c9"
+  integrity sha512-UKcHvbybY2tDTvFW2b1vwiAvDlIRooo69lh8CXWVhOQejcvpM5+IgbiFW9EIwR5Wi5X/v+BdN7gdWbigBuJ3rw==
 
 "@ungap/structured-clone@^1.0.0", "@ungap/structured-clone@^1.2.0":
   version "1.2.1"
@@ -4686,7 +4791,7 @@ minimatch@^3.0.3, minimatch@^3.0.5, minimatch@^3.1.1, minimatch@^3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^9.0.1, minimatch@^9.0.4, minimatch@^9.0.5:
+minimatch@^9.0.4, minimatch@^9.0.5:
   version "9.0.9"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.9.tgz#9b0cb9fcb78087f6fd7eababe2511c4d3d60574e"
   integrity sha512-OBwBN9AL4dqmETlpS2zasx+vTeWclWzkblfZk7KTA5j3jeOONz/tRCnZomUyvNg83wL5Zv9Ss6HMJXAgL8R2Yg==
@@ -6315,6 +6420,33 @@ typedoc@^0.26.7:
     minimatch "^9.0.5"
     shiki "^1.16.2"
     yaml "^2.5.1"
+
+"typescript7@npm:typescript@7.1.0-beta":
+  version "7.1.0-beta"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.1.0-beta.tgz#cf6764070ade103e553bfafd9baa2e8958eee554"
+  integrity sha512-cjWjZAJDsmZzsNC5GwHNlW0YPM65jZa5oR0KyQcYX3KSVIfTvtBq//vewISyatKk4OLi5grZjHhIVE9fdrw1UQ==
+  optionalDependencies:
+    "@typescript/typescript-aix-ppc64" "7.1.0-beta"
+    "@typescript/typescript-android-arm64" "7.1.0-beta"
+    "@typescript/typescript-darwin-arm64" "7.1.0-beta"
+    "@typescript/typescript-darwin-x64" "7.1.0-beta"
+    "@typescript/typescript-freebsd-arm64" "7.1.0-beta"
+    "@typescript/typescript-freebsd-x64" "7.1.0-beta"
+    "@typescript/typescript-linux-arm" "7.1.0-beta"
+    "@typescript/typescript-linux-arm64" "7.1.0-beta"
+    "@typescript/typescript-linux-loong64" "7.1.0-beta"
+    "@typescript/typescript-linux-mips64el" "7.1.0-beta"
+    "@typescript/typescript-linux-ppc64" "7.1.0-beta"
+    "@typescript/typescript-linux-riscv64" "7.1.0-beta"
+    "@typescript/typescript-linux-s390x" "7.1.0-beta"
+    "@typescript/typescript-linux-x64" "7.1.0-beta"
+    "@typescript/typescript-netbsd-arm64" "7.1.0-beta"
+    "@typescript/typescript-netbsd-x64" "7.1.0-beta"
+    "@typescript/typescript-openbsd-arm64" "7.1.0-beta"
+    "@typescript/typescript-openbsd-x64" "7.1.0-beta"
+    "@typescript/typescript-sunos-x64" "7.1.0-beta"
+    "@typescript/typescript-win32-arm64" "7.1.0-beta"
+    "@typescript/typescript-win32-x64" "7.1.0-beta"
 
 "typescript@^5.7.2 || ^6.0.3", typescript@^6.0.3:
   version "6.0.3"

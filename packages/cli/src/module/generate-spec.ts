@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type { CompilerOptions } from '../compilerOptions';
 import * as YAML from 'yaml';
 import { ExtendedSpecConfig } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
@@ -17,7 +17,7 @@ export const getSwaggerOutputPath = (swaggerConfig: ExtendedSpecConfig) => {
 
 export const generateSpec = async (
   swaggerConfig: ExtendedSpecConfig,
-  compilerOptions?: ts.CompilerOptions,
+  compilerOptions?: CompilerOptions,
   ignorePaths?: string[],
   /**
    * pass in cached metadata returned in a previous step to speed things up

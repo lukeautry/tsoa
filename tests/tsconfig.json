@@ -17,7 +17,9 @@
       "@tsoa/cli/*": ["../packages/cli/src/*"],
       "@tsoa/runtime/*": ["../packages/runtime/src/*"],
       "fixtures/*": ["./fixtures/*"],
-      "unit/*": ["./unit/*"]
+      "unit/*": ["./unit/*"],
+      "typescript7/sync": ["../node_modules/typescript7/dist/api/sync/api"],
+      "typescript7/ast": ["../node_modules/typescript7/dist/ast/index"]
     }
   },
   "references": [{ "path": "../packages/runtime" }, { "path": "../packages/cli" }],

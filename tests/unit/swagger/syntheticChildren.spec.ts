@@ -6,7 +6,8 @@ import { Swagger, Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import 'mocha';
-import { CompilerOptions, createProgram, flattenDiagnosticMessageText, getPreEmitDiagnostics, ModuleKind, ScriptTarget } from 'typescript';
+import { ModuleKind, ScriptTarget, type CompilerOptions } from '../../utils/typescript7';
+import { compilerDiagnostics } from '../../utils/diagnostics';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 
 const fixtureRoot = './fixtures/controllers/';
@@ -297,12 +298,9 @@ const rows: Row[] = [
       const name = strictNullChecks ? 'P_Leaf-or-null_' : 'P_Leaf_';
       const leaf = leafObject(strictNullChecks && !compilerOptions.exactOptionalPropertyTypes);
       const nullable: Tsoa.UnionType = { dataType: 'union', types: [{ dataType: 'enum', enums: [null] }, leaf] };
-      const empty: Tsoa.NestedObjectLiteralType = { dataType: 'nestedObjectLiteral', properties: [] };
-      // The first order gives the empty object on master too.
-      const outputs = {
-        exactNullAliasLitFirst: strictNullChecks ? { type: empty, schema: { type: 'object', properties: {} } } : { type: leaf, schema: leafSchema },
-        exactNullAliasDirectFirst: strictNullChecks ? { type: nullable, schema: { ...leafSchema, nullable: true } } : { type: leaf, schema: leafSchema },
-      };
+      // Both references resolve together and the direct one, which knows its type, completes the alias first.
+      const output = strictNullChecks ? { type: nullable, schema: { ...leafSchema, nullable: true } } : { type: leaf, schema: leafSchema };
+      const outputs = { exactNullAliasLitFirst: output, exactNullAliasDirectFirst: output };
       for (const [controller, output] of Object.entries(outputs)) {
         const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
         expect(JSON.parse(JSON.stringify(refAlias(metadata, name).type)), `${controller} alias`).to.deep.equal(output.type);
@@ -318,7 +316,7 @@ const rows: Row[] = [
     controller: 'syntheticChildren/indexedUnionController',
     check: ({ generate, strictNullChecks }) => {
       const { schemas, response } = generate();
-      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.deep.equal([ref('Opt_Leaf_'), ref('Other_Leaf_')]);
+      expect(required(response('/synthetic-children').anyOf, 'union members').map(member => member.$ref)).to.deep.equal([ref('Other_Leaf_'), ref('Opt_Leaf_')]);
       expectOptionalLeaf(schemas.Opt_Leaf_, { text: 'string', count: 'number' });
       expectOptionalLeaf(schemas.Other_Leaf_, { text: 'string', count: 'number' });
       expect(schemas.Opt_Leaf_.properties?.text.nullable, 'nullable Opt').to.equal(undefined);
@@ -357,22 +355,23 @@ const rows: Row[] = [
     check: ({ generate }) => {
       const { schemas, response, resolve } = generate();
       const members = required(resolve(response('/synthetic-children')).properties?.value.anyOf, 'union members');
-      expect(members.map(member => member.$ref)).to.deep.equal([ref('First.Optional_First.Nested_'), ref('Second.Optional_Second.Nested_'), ref('multer.Field')]);
+      expect(members.map(member => member.$ref)).to.deep.equal([ref('multer.Field'), ref('First.Optional_First.Nested_'), ref('Second.Optional_Second.Nested_')]);
       expectOptionalLeaf(schemas['First.Optional_First.Nested_'], { a: 'string' });
       expectOptionalLeaf(schemas['Second.Optional_Second.Nested_'], { b: 'number' });
       expect(Object.keys(schemas['multer.Field'].properties ?? {})).to.deep.equal(['name', 'maxCount']);
     },
   },
   {
-    name: 'gives no type to union members that print the same name',
+    name: 'tells apart union members that print the same name',
     controller: 'syntheticChildren/sharedPrintController',
     modes: [...nullModes, exactMode],
     check: ({ generate }) => {
       const { schemas, response, resolve } = generate();
       const members = required(resolve(response('/synthetic-children')).properties?.value.anyOf, 'union members');
       expect(members.map(member => member.$ref)).to.deep.equal([ref('Optional_First.Nested_'), ref('Optional_Second.Nested_')]);
-      expect(schemas['Optional_First.Nested_']).to.deep.equal({ type: 'object', properties: {} });
-      expect(schemas['Optional_Second.Nested_']).to.deep.equal({ type: 'object', properties: {} });
+      // Members that print the same are printed in the order of the union, so each keeps its own type.
+      expectOptionalLeaf(schemas['Optional_First.Nested_'], { a: 'string' });
+      expectOptionalLeaf(schemas['Optional_Second.Nested_'], { b: 'number' });
     },
   },
   {
@@ -397,10 +396,10 @@ const rows: Row[] = [
   }),
   preservationRow('a keyof union', ({ resolve, response }) => {
     const mapped = required(resolve(response(route('mapped'))).properties, 'mapped members');
-    expect(mapped.side).to.deep.equal({ type: 'string', enum: ['width', 'height'] });
+    expect(mapped.side).to.deep.equal({ type: 'string', enum: ['height', 'width'] });
     const source = required(resolve(response(route('source'))).properties, 'source members');
-    expect(source.key).to.deep.equal({ type: 'string', enum: ['width', 'height'], nullable: false });
-    expect(source.mixed).to.deep.equal({ type: 'string', enum: ['width', 'height', 'other'] });
+    expect(source.key).to.deep.equal({ type: 'string', enum: ['height', 'width'], nullable: false });
+    expect(source.mixed).to.deep.equal({ type: 'string', enum: ['height', 'width', 'other'] });
   }),
   preservationRow('a named alias inside a union', ({ schemas, resolve, response }) => {
     const members = required(resolve(response(route('mapped'))).properties, 'mapped members');
@@ -442,8 +441,9 @@ const rows: Row[] = [
         .readdirSync(syntheticRoot)
         .filter(file => file.endsWith('Controller.ts'))
         .map(file => `${syntheticRoot}${file}`);
-      const program = createProgram(entryFiles, { ...compilerOptions, experimentalDecorators: true, target: ScriptTarget.ES2021, module: ModuleKind.CommonJS, skipLibCheck: true, noEmit: true });
-      expect(getPreEmitDiagnostics(program).map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
+      expect(
+        compilerDiagnostics(entryFiles, { ...compilerOptions, experimentalDecorators: true, target: ScriptTarget.ES2021, module: ModuleKind.CommonJS, skipLibCheck: true, noEmit: true }),
+      ).to.deep.equal([]);
     },
   },
 ];

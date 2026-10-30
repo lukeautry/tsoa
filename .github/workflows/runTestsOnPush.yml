@@ -8,7 +8,6 @@ jobs:
       matrix:
         node-version: [22, 24, 26]
         os: [macos-latest, ubuntu-latest, windows-latest]
-        typescript-version: ['^5.0.0', '^6.0.3']
 
     steps:
       - uses: actions/checkout@v7
@@ -22,30 +21,21 @@ jobs:
       - name: Install Yarn
         run: npm install -g yarn@1.22.22
 
-      - name: Set resolutions to correct typescript version
-        shell: bash
-        env:
-          TYPESCRIPT_VERSION: ${{ matrix.typescript-version }}
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          packageJson.resolutions.typescript = process.env.TYPESCRIPT_VERSION;
-          fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n');
-          NODE
-
-      # for yarn3
-      # - name: Set Typescript version
-      #  run: yarn set resolution typescript ${{ matrix.typescript-version }}
-
       - name: Install
         run: yarn install --ignore-scripts --no-lockfile
 
-      - name: Output ts version
-        run: yarn tsc --version
-
       - name: Output packages version
         run: yarn list
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+          cache: false
+
+      # tsoa's metadata generator, built into the TypeScript 7 compiler (see packages/cli/native/build.mjs).
+      - name: Build native generator
+        run: node packages/cli/native/build.mjs
 
       - name: Build
         run: yarn run build

@@ -1,0 +1,22 @@
+{
+  "name": "@tsoa/cli-darwin-arm64",
+  "version": "7.0.0-ts7-alpha.0",
+  "description": "The native metadata generator of @tsoa/cli for darwin-arm64: tsoa's metadata generation built into the TypeScript 7 compiler.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/tsoa.git"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "bin"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

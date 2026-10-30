@@ -68,6 +68,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.2 || ^6.0.3",
+    "typescript7": "npm:typescript@7.1.0-beta",
     "zod": "^4.1.11"
   },
   "repository": {

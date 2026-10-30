@@ -8,9 +8,10 @@ import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
 import { fsExists, fsReadFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
-import { extname, isAbsolute } from 'node:path';
-import * as ts from 'typescript';
-import type { CompilerOptions } from 'typescript';
+import { existsSync } from 'node:fs';
+import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
+import type { CompilerOptions } from './compilerOptions';
+import { parseConfigFile } from './metadataGeneration/nativeMetadata';
 
 const workingDir: string = process.cwd();
 
@@ -61,7 +62,8 @@ const getConfig = async (configPath = 'tsoa.json'): Promise<Config> => {
       const configRaw = await fsReadFile(configFullPath);
       config = YAML.parse(configRaw.toString('utf8'));
     } else if (isJsExtension(ext)) {
-      config = await import(configFullPath);
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      config = require(configFullPath);
     } else {
       const configRaw = await fsReadFile(configFullPath);
       config = JSON.parse(configRaw.toString('utf8'));
@@ -89,37 +91,29 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
-export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = workingDir): CompilerOptions => {
-  const diagnostics: ts.Diagnostic[] = [];
-  const tsconfigPath = ts.findConfigFile(cwd, path => ts.sys.fileExists(path));
-  let baseOptions: CompilerOptions = {};
-  if (tsconfigPath) {
-    const parsed = ts.getParsedCommandLineOfConfigFile(
-      tsconfigPath,
-      {},
-      {
-        ...ts.sys,
-        onUnRecoverableConfigFileDiagnostic: diagnostic => diagnostics.push(diagnostic),
-      },
-    );
-    if (parsed) {
-      baseOptions = parsed.options;
-      diagnostics.push(...parsed.errors.filter(error => error.code !== 18002 && error.code !== 18003));
+const findConfigFile = (cwd: string): string | undefined => {
+  for (let dir = resolve(cwd); ; dir = dirname(dir)) {
+    const candidate = join(dir, 'tsconfig.json');
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    if (dirname(dir) === dir) {
+      return undefined;
     }
   }
+};
 
-  if (diagnostics.length) {
-    throw new Error(
-      ts.formatDiagnostics(diagnostics, {
-        getCanonicalFileName: fileName => fileName,
-        getCurrentDirectory: () => cwd,
-        getNewLine: () => ts.sys.newLine,
-      }),
-    );
+export const validateCompilerOptions = (config?: Record<string, unknown> | CompilerOptions, cwd = workingDir): CompilerOptions => {
+  const tsconfigPath = findConfigFile(cwd);
+  let baseOptions: CompilerOptions = {};
+  if (tsconfigPath) {
+    baseOptions = parseConfigFile(tsconfigPath, cwd);
   }
+
   const nativeOverrides = (config || {}) as CompilerOptions;
   if (nativeOverrides.paths) {
-    baseOptions.pathsBasePath = cwd;
+    // Aliases given to tsoa resolve from tsoa's working directory. The config parser sets `pathsBasePath` (absent from the published type) the same way.
+    (baseOptions as CompilerOptions & { pathsBasePath?: string }).pathsBasePath = cwd;
   }
   return Object.defineProperties({}, { ...Object.getOwnPropertyDescriptors(baseOptions), ...Object.getOwnPropertyDescriptors(nativeOverrides) });
 };

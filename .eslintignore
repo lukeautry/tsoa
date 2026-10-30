@@ -4,3 +4,4 @@ dist
 tests/fixtures/**/routes.ts
 tests/fixtures/**/customRoutes.ts
 tests/fixtures/**/custom-route-generator/routes/
+packages/cli/native/upstream

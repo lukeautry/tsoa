@@ -1,75 +1,46 @@
 import { Config, Tsoa } from '@tsoa/runtime';
-import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type TypeChecker } from 'typescript';
-import { getDecorators } from '../utils/decoratorUtils';
+import type { CompilerOptions } from '../compilerOptions';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
-import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { TypeResolver } from './typeResolver';
+import { generateNativeMetadata, type NativeMetadataRequest } from './nativeMetadata';
 
+/** Generates the metadata of the controllers of a program, with the native generator built into the TypeScript 7 compiler. */
 export class MetadataGenerator {
-  public readonly controllerNodes = new Array<ClassDeclaration>();
-  public readonly typeChecker: TypeChecker;
-  private readonly program: Program;
-  private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
-  private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
-  private expressionOrigNameMap: Record<string, string> = {};
-  private readonly compilerOptions: CompilerOptions;
+  private readonly request: NativeMetadataRequest;
 
   constructor(
     entryFile: string,
     compilerOptions?: CompilerOptions,
-    private readonly ignorePaths?: string[],
+    ignorePaths?: string[],
     controllers?: string[],
-    private readonly rootSecurity: Tsoa.Security[] = [],
+    rootSecurity: Tsoa.Security[] = [],
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
     esm = false,
   ) {
-    TypeResolver.clearCache();
-    this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
-    this.typeChecker = this.program.getTypeChecker();
-  }
-
-  public Generate(): Tsoa.Metadata {
-    this.extractNodeFromProgramSourceFiles();
-
-    const controllers = this.buildControllers();
-
-    this.checkForMethodSignatureDuplicates(controllers);
-    this.checkForPathParamSignatureDuplicates(controllers);
-
-    return {
-      controllers,
-      referenceTypeMap: this.referenceTypeMap,
+    this.request = {
+      currentDirectory: process.cwd(),
+      rootFiles: controllers ? this.getDynamicControllersFiles(controllers, esm) : [entryFile],
+      compilerOptions: { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false },
+      ignorePaths,
+      rootSecurity,
+      defaultNumberType,
     };
   }
 
-  private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
+  public Generate(): Tsoa.Metadata {
+    const metadata = generateNativeMetadata(this.request);
+    this.checkForMethodSignatureDuplicates(metadata.controllers);
+    this.checkForPathParamSignatureDuplicates(metadata.controllers);
+    return metadata;
+  }
+
+  private getDynamicControllersFiles(controllers: string[], esm: boolean) {
     const allGlobFiles = importClassesFromDirectories(controllers, esm ? ['.mts', '.ts', '.cts'] : ['.ts']);
     if (allGlobFiles.length === 0) {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    return createProgram(allGlobFiles, this.compilerOptions);
-  }
-
-  private extractNodeFromProgramSourceFiles() {
-    this.program.getSourceFiles().forEach(sf => {
-      if (this.ignorePaths && this.ignorePaths.length) {
-        for (const path of this.ignorePaths) {
-          if (minimatch(sf.fileName, path)) {
-            return;
-          }
-        }
-      }
-
-      forEachChild(sf, node => {
-        if (isClassDeclaration(node) && getDecorators(node, identifier => identifier.text === 'Route').length) {
-          this.controllerNodes.push(node);
-        }
-      });
-    });
+    return allGlobFiles;
   }
 
   private checkForMethodSignatureDuplicates = (controllers: Tsoa.Controller[]) => {
@@ -209,50 +180,4 @@ export class MetadataGenerator {
       console.warn(message);
     });
   };
-
-  public TypeChecker() {
-    return this.typeChecker;
-  }
-
-  public AddReferenceType(referenceType: Tsoa.ReferenceType) {
-    if (!referenceType.refName) {
-      throw new Error('no reference type name found');
-    }
-    this.referenceTypeMap[referenceType.refName] = referenceType;
-  }
-
-  public GetReferenceType(refName: string) {
-    return this.referenceTypeMap[refName];
-  }
-
-  public CheckModelUnicity(refName: string, positions: Array<{ fileName: string; pos: number }>) {
-    if (!this.modelDefinitionPosMap[refName]) {
-      this.modelDefinitionPosMap[refName] = positions;
-    } else {
-      const origPositions = this.modelDefinitionPosMap[refName];
-      if (!(origPositions.length === positions.length && positions.every(pos => origPositions.find(origPos => pos.pos === origPos.pos && pos.fileName === origPos.fileName)))) {
-        throw new Error(`Found 2 different model definitions for model ${refName}: orig: ${JSON.stringify(origPositions)}, act: ${JSON.stringify(positions)}`);
-      }
-    }
-  }
-
-  public CheckExpressionUnicity(formattedRefName: string, refName: string) {
-    if (!this.expressionOrigNameMap[formattedRefName]) {
-      this.expressionOrigNameMap[formattedRefName] = refName;
-    } else {
-      if (this.expressionOrigNameMap[formattedRefName] !== refName) {
-        throw new Error(`Found 2 different type expressions for formatted name "${formattedRefName}": orig: "${this.expressionOrigNameMap[formattedRefName]}", act: "${refName}"`);
-      }
-    }
-  }
-
-  private buildControllers() {
-    if (this.controllerNodes.length === 0) {
-      throw new Error('no controllers found, check tsoa configuration');
-    }
-    return this.controllerNodes
-      .map(classDeclaration => new ControllerGenerator(classDeclaration, this, this.rootSecurity))
-      .filter(generator => generator.IsValid())
-      .map(generator => generator.Generate());
-  }
 }
