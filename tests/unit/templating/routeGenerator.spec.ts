@@ -166,10 +166,15 @@ describe('RouteGenerator', () => {
 
     it('renders a __proto__ tag value into the generated models as an ordinary entry', () => {
       const template = readFileSync(join(__dirname, '../../../packages/cli/src/routeGeneration/templates/express.hbs'), 'utf8');
-      const rendered = generator.buildContent(template);
+      // The template is checked out with CRLF line endings on Windows
+      const rendered = generator.buildContent(template).replace(/\r\n/g, '\n');
       const prefix = 'const models: TsoaRoute.Models = ';
-      const start = rendered.indexOf(prefix) + prefix.length;
-      const end = rendered.indexOf('\n};\n', start) + 2;
+      const prefixIndex = rendered.indexOf(prefix);
+      expect(prefixIndex, 'models declaration in the rendered routes').to.not.equal(-1);
+      const start = prefixIndex + prefix.length;
+      const endIndex = rendered.indexOf('\n};\n', start);
+      expect(endIndex, 'end of the models literal in the rendered routes').to.not.equal(-1);
+      const end = endIndex + 2;
       const renderedModels = runInThisContext(`(${rendered.slice(start, end)})`);
       const discriminator = renderedModels.SpecialTagUnion.type.discriminator;
 
