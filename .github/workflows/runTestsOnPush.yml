@@ -9,6 +9,11 @@ jobs:
         node-version: [22, 24, 26]
         os: [macos-latest, ubuntu-latest, windows-latest]
         typescript-version: ['^5.0.0', '^6.0.3']
+        include:
+          - os: ubuntu-latest
+            node-version: 24
+            typescript-version: '^6.0.3'
+            express-version: '^5.0.0'
 
     steps:
       - uses: actions/checkout@v7
@@ -55,3 +60,22 @@ jobs:
 
       - name: Lint
         run: yarn run lint
+
+      - name: Install Express ${{ matrix.express-version }} for tests
+        if: matrix.express-version
+        shell: bash
+        env:
+          EXPRESS_VERSION: ${{ matrix.express-version }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const packageJson = JSON.parse(fs.readFileSync('tests/package.json', 'utf8'));
+          packageJson.devDependencies.express = process.env.EXPRESS_VERSION;
+          fs.writeFileSync('tests/package.json', JSON.stringify(packageJson, null, 2) + '\n');
+          NODE
+          yarn install --ignore-scripts --no-lockfile
+
+      - name: Test express suites on Express ${{ matrix.express-version }}
+        if: matrix.express-version
+        working-directory: tests
+        run: yarn cross-env NODE_ENV=tsoa_test mocha "integration/*express*.spec.ts"

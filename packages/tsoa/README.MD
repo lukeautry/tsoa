@@ -20,8 +20,21 @@ OpenAPI-compliant REST APIs using TypeScript and Node
   - Parameters/model properties marked as required or optional based on TypeScript (e.g. myProperty?: string is optional in the OpenAPI spec)
   - jsDoc supported for object descriptions (most other metadata can be inferred from TypeScript types)
 - Routes are generated for middleware of choice
-  - Express, Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
+  - Express (4 and 5), Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
   - Validate request payloads
+
+## Express 5
+
+tsoa does not change its runtime for Express 5 defaults. Set these two options to keep query and form parsing the same as on Express 4:
+
+```ts
+app.set('query parser', 'extended'); // bracket syntax such as ?filter[a]=x and ?ids[]=1
+app.use(express.urlencoded({ extended: true })); // nested form fields such as a[b]=1
+```
+
+- With `express.json()`, a request without a body leaves `req.body` `undefined` on Express 5, so a required `@Body()` fails validation. Express 4 and body-parser 1 leave `{}`, which passes if the body schema accepts an empty object.
+- Express 5 reserves `()[]?+!` in route paths and requires a name for each `*` wildcard. A decorator path that breaks these rules fails at route registration. tsoa emits path parameters as `:name`. See the [Express 5 migration guide](https://expressjs.com/en/guide/migrating-5.html#path-route-matching-syntax).
+- Express 5 forwards a rejected promise from an async custom `@Middlewares` function to the error handler. On Express 4, catch the error and call `next(err)`, or the unhandled rejection can stop the Node process.
 
 ## Philosophy
 
