@@ -173,7 +173,7 @@ class Graph {
 
 // Properties a described object does not answer are those of the API's object, through a proxy on the
 // prototype: a described property is a plain property, so only what the response lacks pays for the proxy.
-const ownKeys = new Set(['graph', 'described', 'classic', 'classicObject', 'declarationList', 'declaration', 'returnType']);
+const ownKeys = new Set(['graph', 'described', 'classic', 'classicObject', 'declarationList', 'declaration', 'returnType', 'flagsOverride']);
 function delegatingPrototype(): object {
   return new Proxy(Object.create(null) as object, {
     get(_target, key, receiver: { graph: Graph; classic(): any }) {
@@ -297,8 +297,13 @@ class GraphSymbol {
     const name = this.described.name;
     return name.startsWith('___') ? name.slice(1) : name;
   }
+  // #1923 resets a symbol's flags for a moment to read the documentation of a constructor parameter.
+  private flagsOverride: number | undefined = undefined;
   get flags() {
-    return this.described.flags;
+    return this.flagsOverride ?? this.described.flags;
+  }
+  set flags(flags: number) {
+    this.flagsOverride = flags;
   }
   get declarations() {
     return (this.declarationList ??= this.described.decls?.map(declaration => this.graph.node(declaration)));

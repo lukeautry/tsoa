@@ -85,7 +85,17 @@ export interface NativeAST {
   isQualifiedName(node: NativeNode): boolean;
   isPropertyAccessExpression(node: NativeNode): boolean;
   isTypeNode(node: NativeNode): boolean;
-  SyntaxKind: { Decorator: number; PropertySignature: number; PropertyDeclaration: number; MethodSignature: number; Parameter: number; QuestionToken: number; Identifier: number };
+  SyntaxKind: {
+    Decorator: number;
+    PropertySignature: number;
+    PropertyDeclaration: number;
+    MethodSignature: number;
+    Parameter: number;
+    QuestionToken: number;
+    Identifier: number;
+    TypeReference: number;
+    HeritageClause: number;
+  };
   ScriptTarget: Record<number, string>;
 }
 
@@ -189,7 +199,7 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
                 .filter((file: string) => !/\.d\.[cm]?ts$/.test(file))
                 .map((file: string) => own.program.getSourceFile.gen(file)),
             ) as NativeNode[]
-          ).map(file => normalizeNode(file, ast.SyntaxKind.QuestionToken))),
+          ).map(file => normalizeNode(file, ast.SyntaxKind.QuestionToken, ast.SyntaxKind))),
       };
     },
   };
@@ -209,7 +219,11 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
 // `questionToken` is its `postfixToken`. All native nodes share one class, so its prototype answers the classic
 // names once for every node, instead of each tree being walked to add them.
 const normalizedPrototypes = new WeakSet<object>();
-function normalizeNode(node: NativeNode, questionToken: number): NativeNode {
+interface NodeKinds {
+  TypeReference: number;
+  HeritageClause: number;
+}
+function normalizeNode(node: NativeNode, questionToken: number, kinds: NodeKinds): NativeNode {
   let prototype = Object.getPrototypeOf(node) as object | null;
   while (prototype && !Object.getOwnPropertyDescriptor(prototype, 'postfixToken')) prototype = Object.getPrototypeOf(prototype) as object | null;
   if (!prototype || normalizedPrototypes.has(prototype)) return node;
@@ -220,6 +234,15 @@ function normalizeNode(node: NativeNode, questionToken: number): NativeNode {
     configurable: true,
     get(this: NativeNode) {
       return written(this) ?? (this.postfixToken?.kind === questionToken ? this.postfixToken : undefined);
+    },
+  });
+  // A heritage clause of an interface holds type references (`typeName`) where classic TypeScript has expressions
+  // with type arguments (`expression`).
+  const expression = Object.getOwnPropertyDescriptor(prototype, 'expression');
+  Object.defineProperty(prototype, 'expression', {
+    configurable: true,
+    get(this: NativeNode & { parent?: NativeNode }) {
+      return (expression?.get?.call(this) as NativeNode | undefined) ?? (this.kind === kinds.TypeReference && this.parent?.kind === kinds.HeritageClause ? this.typeName : undefined);
     },
   });
   if (!Object.getOwnPropertyDescriptor(prototype, 'default')) {
@@ -255,6 +278,7 @@ function classicChecker(
   api: NativeAPI,
   ast: NativeAST,
 ) {
+  const nodeKinds: NodeKinds = ast.SyntaxKind;
   const locations = new WeakMap<object, any>();
   // The symbols the identifiers of printed nodes name, from the `tsoa/printedSymbols` extension.
   const printedSymbols = new WeakMap<object, NativeSymbol>();
@@ -395,7 +419,7 @@ function classicChecker(
                 node.forEachChild(mark);
               };
               mark(raw);
-              normalizeNode(raw, questionToken);
+              normalizeNode(raw, questionToken, nodeKinds);
               if (printedSymbolResponses) {
                 const internals = target as unknown as NativeCheckerInternals;
                 const responses = printedSymbolResponses;
