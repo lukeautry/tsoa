@@ -1,4 +1,7 @@
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { runInThisContext } from 'vm';
 import 'mocha';
 import { Swagger, Tsoa, TsoaRoute } from '@tsoa/runtime';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
@@ -96,7 +99,11 @@ describe('RouteGenerator', () => {
     it('maps the tag values of a discriminated union to its model names', () => {
       expect(aliasType('ContentBlock').discriminator).to.deep.equal({
         propertyName: 'type',
-        mapping: { TEXT: 'TextContentBlock', IMAGE: 'ImageContentBlock', CAROUSEL: 'CarouselContentBlock' },
+        mapping: [
+          ['TEXT', 'TextContentBlock'],
+          ['IMAGE', 'ImageContentBlock'],
+          ['CAROUSEL', 'CarouselContentBlock'],
+        ],
       });
     });
 
@@ -104,7 +111,11 @@ describe('RouteGenerator', () => {
       const action = context.controllers.flatMap(controller => controller.actions).find(a => a.name === 'postNullableContentBlockBody');
       expect(action?.parameters.body.discriminator).to.deep.equal({
         propertyName: 'type',
-        mapping: { TEXT: 'TextContentBlock', IMAGE: 'ImageContentBlock', CAROUSEL: 'CarouselContentBlock' },
+        mapping: [
+          ['TEXT', 'TextContentBlock'],
+          ['IMAGE', 'ImageContentBlock'],
+          ['CAROUSEL', 'CarouselContentBlock'],
+        ],
       });
     });
 
@@ -129,20 +140,42 @@ describe('RouteGenerator', () => {
       for (const name of unionAliases) {
         const specDiscriminator = (schemas[name] as Swagger.Schema3).discriminator;
         const routeDiscriminator = aliasType(name).discriminator;
-        if (!specDiscriminator || name === 'SpecialTagUnion') {
-          // SpecialTagUnion is the one union whose route models cannot carry its discriminator
+        if (!specDiscriminator) {
           expect(routeDiscriminator, name).to.equal(undefined);
           continue;
         }
-        const mapping = Object.fromEntries(Object.entries(specDiscriminator.mapping ?? {}).map(([value, ref]) => [value, ref.replace('#/components/schemas/', '')]));
-        expect(routeDiscriminator, name).to.deep.equal({ propertyName: specDiscriminator.propertyName, mapping });
+        const byTag = (a: string[], b: string[]) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+        const mapping = Object.entries(specDiscriminator.mapping ?? {})
+          .map(([value, ref]) => [value, ref.replace('#/components/schemas/', '')])
+          .sort(byTag);
+        expect(routeDiscriminator?.propertyName, name).to.equal(specDiscriminator.propertyName);
+        expect([...(routeDiscriminator?.mapping ?? [])].sort(byTag), name).to.deep.equal(mapping);
       }
     });
 
-    it('does not add a discriminator when a tag value is __proto__', () => {
-      const type = aliasType('SpecialTagUnion');
-      expect(type.dataType).to.equal('union');
-      expect(type).to.not.have.property('discriminator');
+    it('keeps a __proto__ tag value in the mapping', () => {
+      expect(aliasType('SpecialTagUnion').discriminator).to.deep.equal({
+        propertyName: 'kind',
+        mapping: [
+          ['__proto__', 'PrototypeTagBlock'],
+          ['constructor', 'ConstructorTagBlock'],
+          ['plain', 'PlainTagBlock'],
+        ],
+      });
+    });
+
+    it('renders a __proto__ tag value into the generated models as an ordinary entry', () => {
+      const template = readFileSync(join(__dirname, '../../../packages/cli/src/routeGeneration/templates/express.hbs'), 'utf8');
+      const rendered = generator.buildContent(template);
+      const prefix = 'const models: TsoaRoute.Models = ';
+      const start = rendered.indexOf(prefix) + prefix.length;
+      const end = rendered.indexOf('\n};\n', start) + 2;
+      const renderedModels = runInThisContext(`(${rendered.slice(start, end)})`);
+      const discriminator = renderedModels.SpecialTagUnion.type.discriminator;
+
+      expect(discriminator.mapping).to.deep.include(['__proto__', 'PrototypeTagBlock']);
+      expect(Object.getPrototypeOf(renderedModels)).to.equal(Object.prototype);
+      expect(Object.getPrototypeOf(discriminator)).to.equal(Object.prototype);
     });
   });
 

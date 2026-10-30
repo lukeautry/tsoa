@@ -234,11 +234,10 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
 
     if (type.dataType === 'union') {
       const discriminator = getUnionDiscriminator(type.types.filter(x => !isNullType(x) && x.dataType !== 'undefined'));
-      // Models are printed as object literals, where a `__proto__` key would set the prototype instead of a mapping entry.
-      if (discriminator && !discriminator.members.some(member => member.values.includes('__proto__'))) {
+      if (discriminator) {
         schema.discriminator = {
           propertyName: discriminator.propertyName,
-          mapping: Object.fromEntries(discriminator.members.flatMap(member => member.values.map((value): [string, string] => [value, member.type.refName]))),
+          mapping: discriminator.members.flatMap(member => member.values.map((value): [string, string] => [value, member.type.refName])),
         };
       }
     }

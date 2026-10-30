@@ -49,8 +49,8 @@ export namespace TsoaRoute {
     enums?: Array<string | number | boolean | null>;
     type?: PropertySchema;
     subSchemas?: PropertySchema[];
-    /** Selects the `subSchemas` member by the value of its tag property; the mapping values are model names. */
-    discriminator?: { propertyName: string; mapping: { [value: string]: string } };
+    /** Selects the `subSchemas` member by the value of its tag property; the mapping pairs a tag value with a model name. */
+    discriminator?: { propertyName: string; mapping: Array<[string, string]> };
     validators?: ValidatorSchema;
     default?: unknown;
     additionalProperties?: boolean | PropertySchema;

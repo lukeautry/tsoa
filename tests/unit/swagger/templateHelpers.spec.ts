@@ -1445,7 +1445,15 @@ describe('ValidationService', () => {
     const schema: TsoaRoute.PropertySchema = {
       dataType: 'union',
       subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeB' }, { ref: 'TypeC' }, { ref: 'TypeD' }],
-      discriminator: { propertyName: 'type', mapping: { A: 'TypeA', B: 'TypeB', constructor: 'TypeC', D: 'TypeD' } },
+      discriminator: {
+        propertyName: 'type',
+        mapping: [
+          ['A', 'TypeA'],
+          ['B', 'TypeB'],
+          ['constructor', 'TypeC'],
+          ['D', 'TypeD'],
+        ],
+      },
     };
     const createService = (noImplicitAdditionalProperties: 'ignore' | 'throw-on-extras' | 'silently-remove-extras' = 'throw-on-extras') =>
       new ValidationService(models, { noImplicitAdditionalProperties, bodyCoercion: false });
@@ -1490,7 +1498,16 @@ describe('ValidationService', () => {
     it('treats unmapped Object.prototype member names as unknown tags', () => {
       for (const tag of ['toString', '__proto__', 'hasOwnProperty']) {
         const errors: FieldErrors = {};
-        createService().validateUnion('field', { type: tag }, errors, true, { ...schema, discriminator: { propertyName: 'type', mapping: { A: 'TypeA', B: 'TypeB' } } });
+        createService().validateUnion('field', { type: tag }, errors, true, {
+          ...schema,
+          discriminator: {
+            propertyName: 'type',
+            mapping: [
+              ['A', 'TypeA'],
+              ['B', 'TypeB'],
+            ],
+          },
+        });
 
         expect(errors['field.type'], tag).to.deep.equal({ message: "should be one of the following; ['A','B']", value: tag });
       }
@@ -1500,7 +1517,14 @@ describe('ValidationService', () => {
       const stringFormSchema: TsoaRoute.PropertySchema = {
         dataType: 'union',
         subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeOne' }, { ref: 'TypeTrue' }],
-        discriminator: { propertyName: 'type', mapping: { A: 'TypeA', '1': 'TypeOne', true: 'TypeTrue' } },
+        discriminator: {
+          propertyName: 'type',
+          mapping: [
+            ['A', 'TypeA'],
+            ['1', 'TypeOne'],
+            ['true', 'TypeTrue'],
+          ],
+        },
       };
       const cases: Array<[unknown, unknown]> = [
         [['A'], 'A'],
@@ -1534,12 +1558,49 @@ describe('ValidationService', () => {
       expect(Object.keys(errors)).to.deep.equal(['field.d']);
     });
 
-    it('falls back to trying every member when the mapped ref is not among the sub schemas', () => {
-      const errors: FieldErrors = {};
-      const dangling: TsoaRoute.PropertySchema = { ...schema, discriminator: { propertyName: 'type', mapping: { A: 'Missing', B: 'TypeB' } } };
+    it('throws an internal error when the mapped model is not among the sub schemas', () => {
+      const dangling: TsoaRoute.PropertySchema = {
+        ...schema,
+        discriminator: {
+          propertyName: 'type',
+          mapping: [
+            ['A', 'Missing'],
+            ['B', 'TypeB'],
+          ],
+        },
+      };
 
-      expect(createService().validateUnion('field', { type: 'A', a: 1 }, errors, true, dangling)).to.deep.equal({ type: 'A', a: 1 });
-      expect(errors).to.deep.equal({});
+      expect(() => createService().validateUnion('field', { type: 'A', a: 1 }, {}, true, dangling)).to.throw(
+        "internal tsoa error: the discriminator maps the tag 'A' to the model 'Missing', however that model is not one of the sub schemas of the union. Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues",
+      );
+    });
+
+    it('selects a member by a __proto__ tag value', () => {
+      const errors: FieldErrors = {};
+      const protoModels: TsoaRoute.Models = {
+        ...models,
+        TypeProto: {
+          dataType: 'refObject',
+          properties: { type: { dataType: 'enum', enums: ['__proto__'], required: true }, p: { dataType: 'string', required: true } },
+          additionalProperties: false,
+        },
+      };
+      const protoSchema: TsoaRoute.PropertySchema = {
+        dataType: 'union',
+        subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeProto' }],
+        discriminator: {
+          propertyName: 'type',
+          mapping: [
+            ['A', 'TypeA'],
+            ['__proto__', 'TypeProto'],
+          ],
+        },
+      };
+      const service = new ValidationService(protoModels, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: false });
+
+      expect(service.validateUnion('field', { type: '__proto__', p: 'x' }, errors, true, protoSchema)).to.deep.equal({ type: '__proto__', p: 'x' });
+      service.validateUnion('field', { type: '__proto__', p: 1 }, errors, true, protoSchema);
+      expect(Object.keys(errors)).to.deep.equal(['field.p']);
     });
 
     it('keeps the summarized error for values that are not plain objects', () => {

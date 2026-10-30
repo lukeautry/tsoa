@@ -536,24 +536,30 @@ export class ValidationService {
       const { propertyName, mapping } = property.discriminator;
       const tag = value[propertyName];
 
-      // The tag is matched like an enum member (by its string form); a key that is not an own key of the mapping (e.g. 'toString') selects no member
-      if (tag !== undefined && Object.prototype.hasOwnProperty.call(mapping, String(tag))) {
-        const subSchema = property.subSchemas.find(candidate => candidate.ref === mapping[String(tag)]);
+      // The tag is matched like an enum member, by its string form
+      const mapped = tag === undefined ? undefined : mapping.find(([mappedTag]) => mappedTag === String(tag));
+      if (mapped) {
+        const subSchema = property.subSchemas.find(candidate => candidate.ref === mapped[1]);
+        if (!subSchema) {
+          throw new Error(
+            'internal tsoa error: ' +
+              `the discriminator maps the tag '${String(tag)}' to the model '${mapped[1]}', however that model is not one of the sub schemas of the union. ` +
+              'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          );
+        }
         // Only the member the tag selects is validated, so its errors are reported as they are
-        if (subSchema) {
-          return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.deepClone(value), name, fieldErrors, isBodyParam, parent);
-        }
-      } else {
-        const tagPath = parent + name + '.' + propertyName;
-        if (tag === undefined) {
-          // Unlike ValidateParam, this does not look up a custom `is*` error message of the tag property
-          fieldErrors[tagPath] = { message: `'${propertyName}' is required`, value: tag };
-        } else {
-          const tagsInQuotes = Object.keys(mapping).map(key => `'${key}'`);
-          fieldErrors[tagPath] = { message: `should be one of the following; [${tagsInQuotes.join(',')}]`, value: tag };
-        }
-        return;
+        return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.deepClone(value), name, fieldErrors, isBodyParam, parent);
       }
+
+      const tagPath = parent + name + '.' + propertyName;
+      if (tag === undefined) {
+        // Unlike ValidateParam, this does not look up a custom `is*` error message of the tag property
+        fieldErrors[tagPath] = { message: `'${propertyName}' is required`, value: tag };
+      } else {
+        const tagsInQuotes = mapping.map(([mappedTag]) => `'${mappedTag}'`);
+        fieldErrors[tagPath] = { message: `should be one of the following; [${tagsInQuotes.join(',')}]`, value: tag };
+      }
+      return;
     }
 
     const subFieldErrors: FieldErrors[] = [];
