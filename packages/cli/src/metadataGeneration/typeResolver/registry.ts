@@ -21,7 +21,7 @@ export class ReferenceRegistry {
     // One refName, one type: a model must never be built from a type it does not describe.
     const known = this.types.get(refName);
     if (known && !sameType(this.generator.typeChecker, known, type)) {
-      throw new GenerateMetadataError(`Found 2 different types for model ${refName}. This is a bug in the checker type resolver; please report it.`);
+      throw new GenerateMetadataError(`Found 2 different types for model ${refName}. Give one of them its own name, e.g. with a type alias.`);
     }
     this.types.set(refName, type);
     const existing = this.built.get(refName);

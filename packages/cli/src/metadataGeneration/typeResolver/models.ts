@@ -6,6 +6,7 @@ import { GenerateMetadataError } from '../exceptions';
 import { ReferenceTransformer } from '../transformer/referenceTransformer';
 import { nodeDefault, nodeDescription, nodeExample, nodeFormat, nodeTitle } from './annotations';
 import type { TypeResolver } from './typeResolver';
+import { modelDeclarations } from './declarations';
 import { emptySubstitutions, substitutionsFor, type Site } from './site';
 
 /** Builds the refObject (or toJSON refAlias) for an interface or class; provided by the member resolver. */
@@ -42,7 +43,8 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
         const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
         const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
         if (ts.isTypeAliasDeclaration(declaration)) {
-          return aliasModel(resolver, declaration, type, reference.refName, { ...inner, node: declaration.type });
+          const { alias, site: aliasSite } = followReexports(resolver, declaration, inner);
+          return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type });
         }
         if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
           return enumModel(resolver, declaration, reference.refName);
@@ -53,6 +55,37 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
     },
     register,
   );
+}
+
+/**
+ * Follows aliases that only re-export another alias of the same name with the same type parameters
+ * (zod's `type input<T> = core.input<T>`), so the written name is the only model and the two
+ * declarations sharing one name are not reported as a conflict.
+ */
+function followReexports(resolver: TypeResolver, alias: ts.TypeAliasDeclaration, site: Site): { alias: ts.TypeAliasDeclaration; site: Site } {
+  for (;;) {
+    const target = reexportedAlias(resolver.generator.typeChecker, alias);
+    if (!target) {
+      return { alias, site };
+    }
+    site = { node: undefined, declaration: target, substitutions: substitutionsFor(alias.type as ts.TypeReferenceNode, target.typeParameters, site, resolver.namer) };
+    alias = target;
+  }
+}
+
+function reexportedAlias(checker: ts.TypeChecker, alias: ts.TypeAliasDeclaration): ts.TypeAliasDeclaration | undefined {
+  const body = alias.type;
+  const parameters = alias.typeParameters;
+  if (!parameters?.length || !ts.isTypeReferenceNode(body) || body.typeArguments?.length !== parameters.length) {
+    return undefined;
+  }
+  const forwardsParameters = body.typeArguments.every((arg, i) => ts.isTypeReferenceNode(arg) && !arg.typeArguments && ts.isIdentifier(arg.typeName) && arg.typeName.text === parameters[i].name.text);
+  const targetName = ts.isIdentifier(body.typeName) ? body.typeName.text : body.typeName.right.text;
+  if (!forwardsParameters || targetName !== alias.name.text) {
+    return undefined;
+  }
+  const targets = modelDeclarations(checker, body.typeName);
+  return targets.length === 1 && ts.isTypeAliasDeclaration(targets[0]) && targets[0] !== alias ? targets[0] : undefined;
 }
 
 /** `Array<T>` and `ReadonlyArray<T>` are arrays, not models. */

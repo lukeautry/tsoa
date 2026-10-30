@@ -327,6 +327,19 @@ export interface TreeItem extends TreeBase {
   name: string;
 }
 
+const SignupSchema = z.object({ email: z.string(), plan: z.string().default('free') });
+export type SignupInput = z.input<typeof SignupSchema>;
+export type SignupOutput = z.output<typeof SignupSchema>;
+
+export const internalKey: unique symbol = Symbol('internal');
+const constKey = 'fromConst';
+export interface WithComputedKeys {
+  [internalKey]: string;
+  [constKey]: boolean;
+  ['literal-key']: number;
+  id: string;
+}
+
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
@@ -628,6 +641,21 @@ export class ComplexTypeController {
 
   @Get('Checked/Tree')
   public async getTree(): Promise<TreeItem> {
+    return null as any;
+  }
+
+  @Post('Checked/ZodInputOutput')
+  public async postZodInputOutput(@Body() body: SignupInput): Promise<SignupOutput> {
+    return null as any;
+  }
+
+  @Post('Checked/ZodInputInline')
+  public async postZodInputInline(@Body() body: z.input<typeof SignupSchema>): Promise<void> {
+    return;
+  }
+
+  @Get('Checked/ComputedKeys')
+  public async getComputedKeys(): Promise<WithComputedKeys> {
     return null as any;
   }
 }

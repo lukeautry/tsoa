@@ -56,7 +56,7 @@ export function resolveModel(resolver: TypeResolver, declaration: Owner, type: t
 export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, site: Site): Tsoa.NestedObjectLiteralType {
   const node = followSite(site).node;
   if (node && ts.isTypeLiteralNode(node)) {
-    const members = node.members.filter(ts.isPropertySignature).map(member => ({ name: propertyName(resolver, member), member, substitutions: site.substitutions }));
+    const members = namedMembers(resolver, node.members.filter(ts.isPropertySignature), site.substitutions);
     const index = node.members.find(ts.isIndexSignatureDeclaration);
     return {
       additionalProperties: index ? indexSignatureType(resolver, index, type, site) : undefined,
@@ -71,7 +71,7 @@ export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, si
   // object types drop methods and accessors.
   const properties = checker
     .getPropertiesOfType(type)
-    .filter(property => (mapped ? !isIgnoredMapped(property) : !(property.flags & (ts.SymbolFlags.Method | ts.SymbolFlags.Accessor))))
+    .filter(property => !isSymbolKeyed(property) && (mapped ? !isIgnoredMapped(property) : !(property.flags & (ts.SymbolFlags.Method | ts.SymbolFlags.Accessor))))
     .map(property => mappedProperty(resolver, property, site));
   const result: Tsoa.NestedObjectLiteralType = {
     dataType: 'nestedObjectLiteral',
@@ -95,7 +95,7 @@ export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, si
  */
 function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
   const checker = resolver.generator.typeChecker;
-  const own = ownMembers(declaration).map(member => declaredProperty(resolver, ownerType, { name: propertyName(resolver, member), member, substitutions }));
+  const own = namedMembers(resolver, ownMembers(declaration), substitutions).map(written => declaredProperty(resolver, ownerType, written));
   const seen = new Set(own.map(property => property.name));
   const clauses: readonly ts.HeritageClause[] = declaration.heritageClauses ?? [];
   const inherited = clauses.flatMap(clause =>
@@ -119,7 +119,7 @@ function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: 
       // its instantiated properties are the owner's properties not declared anywhere else.
       const properties = checker
         .getPropertiesOfType(ownerType)
-        .filter(property => !seen.has(property.getName()) && !isIgnoredMapped(property))
+        .filter(property => !seen.has(property.getName()) && !isSymbolKeyed(property) && !isIgnoredMapped(property))
         .map(property => mappedProperty(resolver, property, { node: undefined, declaration: undefined, substitutions: emptySubstitutions }));
       properties.forEach(property => seen.add(property.name));
       return properties;
@@ -288,15 +288,33 @@ function writesUndefined(written: ts.TypeNode | undefined): boolean {
   return written !== undefined && ts.isUnionTypeNode(written) && written.types.some(t => t.kind === ts.SyntaxKind.UndefinedKeyword);
 }
 
-/** Computed names that are property accesses use their value. */
-function propertyName(resolver: TypeResolver, member: Member): string {
-  if (ts.isComputedPropertyName(member.name) && ts.isPropertyAccessExpression(member.name.expression)) {
-    const value = getInitializerValue(member.name.expression, resolver.generator.typeChecker);
+/** Members with a JSON property name; symbol-keyed members have none and are left out. */
+function namedMembers(resolver: TypeResolver, members: Member[], substitutions: Substitutions): WrittenMember[] {
+  return members.flatMap(member => {
+    const name = propertyName(resolver, member);
+    return name === undefined ? [] : [{ name, member, substitutions }];
+  });
+}
+
+/** Computed names use their value: property accesses (enum members) or string and number literal types. */
+function propertyName(resolver: TypeResolver, member: Member): string | undefined {
+  if (!ts.isComputedPropertyName(member.name)) {
+    return (member.name as ts.Identifier).text;
+  }
+  const checker = resolver.generator.typeChecker;
+  if (ts.isPropertyAccessExpression(member.name.expression)) {
+    const value = getInitializerValue(member.name.expression, checker);
     if (value) {
       return value.toString();
     }
   }
-  return (member.name as ts.Identifier).text;
+  const type = checker.getTypeAtLocation(member.name.expression);
+  return type.isStringLiteral() || type.isNumberLiteral() ? String(type.value) : undefined;
+}
+
+/** Properties keyed by a symbol (`[Symbol.iterator]`, `unique symbol` constants) have no JSON name. */
+function isSymbolKeyed(property: ts.Symbol): boolean {
+  return (property.escapedName as string).startsWith('__@');
 }
 
 function hasModifier(node: ts.HasModifiers, kind: ts.SyntaxKind): boolean {

@@ -544,6 +544,25 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
           expect(item.properties).to.have.all.keys('items', 'name');
           expect(item.properties?.items).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeItem' } });
         });
+
+        it('should resolve z.input and z.output, aliased or written inline', () => {
+          const operation = currentSpec.spec.paths['/ComplexType/Checked/ZodInputOutput'].post!;
+          const input = resolve(operation.requestBody!.content['application/json'].schema);
+          const output = resolve(operation.responses['200'].content!['application/json'].schema);
+          expect(input.properties).to.have.all.keys('email', 'plan');
+          expect(input.required).to.deep.equal(['email']);
+          expect(output.properties).to.have.all.keys('email', 'plan');
+          expect(output.required).to.have.members(['email', 'plan']);
+
+          const inline = currentSpec.spec.paths['/ComplexType/Checked/ZodInputInline'].post!.requestBody!.content['application/json'].schema;
+          expect(resolve(inline)).to.deep.equal(input);
+        });
+
+        it('should name computed keys by their value and leave out symbol keys', () => {
+          const model = resolve(response('ComputedKeys'));
+          expect(model.properties).to.have.all.keys('fromConst', 'literal-key', 'id');
+          expect(model.required).to.have.members(['fromConst', 'literal-key', 'id']);
+        });
       });
 
       describe('Schema validation', () => {
