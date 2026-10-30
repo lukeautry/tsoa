@@ -4,6 +4,7 @@
     "rootDir": "src",
     "sourceMap": true,
     "module": "commonjs",
+    "types": ["node"],
     "composite": true,
     "target": "es2021",
     "lib": ["es2021"],

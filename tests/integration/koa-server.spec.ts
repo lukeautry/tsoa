@@ -1,6 +1,6 @@
 import { File } from '@tsoa/runtime';
 import { expect } from 'chai';
-import { readFileSync } from 'fs';
+import { readFileSync, unlinkSync, writeFileSync } from 'fs';
 import 'mocha';
 import { resolve } from 'path';
 import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
@@ -1851,6 +1851,24 @@ describe('Koa Server', () => {
         expect(res.status).to.equal(200);
         expect(res.text).to.equal('no file');
       });
+    });
+
+    it('cannot post a file more than the default 8mb limit', async () => {
+      writeFileSync('./moreThanDefault8mb', Buffer.alloc(8 * 1024 * 1024 + 1));
+      try {
+        await verifyFileUploadRequest(
+          app,
+          basePath + '/PostTest/File',
+          { someFile: '@../moreThanDefault8mb' },
+          (_err, res) => {
+            expect(res.status).to.equal(500);
+            expect(res.text).to.equal('File too large');
+          },
+          500,
+        );
+      } finally {
+        unlinkSync('./moreThanDefault8mb');
+      }
     });
 
     it('can post multiple files with other form fields', () => {

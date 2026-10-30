@@ -9,7 +9,7 @@ import * as hapiEntry from '@tsoa/runtime/hapi';
 import * as koaEntry from '@tsoa/runtime/koa';
 
 const runtimeSrc = normalize(join(__dirname, '../../../packages/runtime/src'));
-const frameworkModules = ['express', '@hapi/hapi', '@hapi/boom', 'koa'];
+const frameworkModules = ['express', '@hapi/hapi', '@hapi/boom', 'koa', 'multer'];
 
 function externalImportsReachableFrom(entry: string): Set<string> {
   const visited = new Set<string>();

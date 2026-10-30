@@ -26,15 +26,6 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   await fsMkDir(routesConfig.routesDir, { recursive: true });
   await routeGenerator.GenerateCustomRoutes();
 
-  if (routesConfig.multerOpts) {
-    console.warn(
-      'Config MulterOptions is deprecated since v6.4.0 instroduces RegisterRoutes can pass multerOptions,' +
-        'we will quickly remove this options soon at future version.' +
-        '(https://github.com/lukeautry/tsoa/issues/1587#issuecomment-2391291433)' +
-        '(https://github.com/lukeautry/tsoa/pull/1638)',
-    );
-  }
-
   return metadata;
 }
 
