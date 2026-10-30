@@ -13,6 +13,7 @@ import (
 // ships. Each answers in one request what the public API needs many requests for, or cannot answer at all.
 var extensionHandlers = map[string]func(s *Session, ctx context.Context, params json.Value) (any, error){
 	"tsoa/printedSymbols": (*Session).handlePrintedSymbols,
+	"tsoa/describe":       (*Session).handleDescribe,
 }
 
 // handlePrintedSymbols prints a type as typeToTypeNode does, and returns the symbol each identifier of the printed
