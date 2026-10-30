@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import 'mocha';
 import { expect } from 'chai';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
@@ -7,10 +8,22 @@ import { Swagger } from '@tsoa/runtime';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 
 describe('specMergins', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultOptions: ExtendedSpecConfig = getDefaultExtendedOptions();
 
   describe('recursive', () => {
+    before(() =>
+      withCompiler(() => {
+        mergedSpec = new SpecGenerator3(metadata, options).GetSpec();
+      }),
+    );
+
     const addedParameter: Swagger.Parameter3 = {
       name: 'deepQueryParamObject',
       in: 'query',
@@ -43,7 +56,7 @@ describe('specMergins', () => {
         },
       },
     };
-    const mergedSpec = new SpecGenerator3(metadata, options).GetSpec();
+    let mergedSpec: ReturnType<SpecGenerator3['GetSpec']>;
 
     it('does not merge arrays, but overwrites instead', () => {
       expect(mergedSpec.paths['/GetTest/DateParam'].get?.parameters).to.deep.eq([addedParameter]);
@@ -64,6 +77,12 @@ describe('specMergins', () => {
   });
 
   describe('deepMerging', () => {
+    before(() =>
+      withCompiler(() => {
+        mergedSpec = new SpecGenerator3(metadata, options).GetSpec();
+      }),
+    );
+
     const addedParameter: Swagger.Parameter3 = {
       name: 'appearance',
       in: 'query',
@@ -96,7 +115,7 @@ describe('specMergins', () => {
         },
       },
     };
-    const mergedSpec = new SpecGenerator3(metadata, options).GetSpec();
+    let mergedSpec: ReturnType<SpecGenerator3['GetSpec']>;
 
     it('merges arrays', () => {
       expect(mergedSpec.paths['/GetTest/DateParam'].get?.parameters).to.deep.eq([

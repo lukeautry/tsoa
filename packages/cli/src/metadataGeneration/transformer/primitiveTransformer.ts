@@ -1,4 +1,4 @@
-import { type TypeNode, SyntaxKind } from 'typescript';
+import { type TypeNode, SyntaxKind } from '../../compiler/index';
 import { Tsoa, assertNever } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';

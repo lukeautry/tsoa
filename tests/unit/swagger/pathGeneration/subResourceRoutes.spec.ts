@@ -1,10 +1,17 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import 'mocha';
 import { expect } from 'chai';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
 
 describe('Sub resource route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/subresourceController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/subresourceController.ts').Generate();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
 
   const variants = [
     {
@@ -20,7 +27,7 @@ describe('Sub resource route generation', () => {
   variants.forEach(({ name, baseRoute }) => {
     describe(name, () => {
       const getParameters = (methodPath: string) => {
-        const controller = metadata.controllers.find(c => c.path === baseRoute);
+        const controller = metadata.controllers.find(c => c.path === baseRoute)!;
         if (!controller) {
           throw new Error(`Missing controller for ${baseRoute}`);
         }

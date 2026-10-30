@@ -1,5 +1,5 @@
 import { normalize } from 'path';
-import { Node, TypeNode } from 'typescript';
+import { Node, TypeNode, firstToken } from '../compiler/index';
 
 export class GenerateMetadataError extends Error {
   constructor(message?: string, node?: Node | TypeNode, onlyCurrent = false) {
@@ -23,9 +23,16 @@ export class GenerateMetaDataWarning {
 }
 
 export function prettyLocationOfNode(node: Node | TypeNode) {
-  const sourceFile = node.getSourceFile();
+  let sourceFile: ReturnType<Node['getSourceFile']> | undefined;
+  try {
+    sourceFile = node.getSourceFile();
+    void sourceFile?.fileName;
+  } catch (error) {
+    if (node.pos !== -1) throw error;
+    sourceFile = undefined;
+  }
   if (sourceFile) {
-    const token = node.getFirstToken() || node.parent.getFirstToken();
+    const token = firstToken(node) || firstToken(node.parent);
     const start = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getStart()).line + 1}` : '';
     const end = token ? `:${sourceFile.getLineAndCharacterOfPosition(token.getEnd()).line + 1}` : '';
     const normalizedPath = normalize(`${sourceFile.fileName}${start}${end}`);
@@ -35,12 +42,15 @@ export function prettyLocationOfNode(node: Node | TypeNode) {
   }
 }
 
+// Native compilers can print nodes that keep a position but have no source text.
+const hasText = (node: Node) => typeof node.getSourceFile()?.text === 'string';
+
 export function prettyTroubleCause(node: Node | TypeNode, onlyCurrent = false) {
   let name: string;
   if (onlyCurrent || !node.parent) {
-    name = node.pos !== -1 && node.parent ? node.getText() : (node as any).name?.text || '<unknown name>';
+    name = node.pos !== -1 && node.parent && hasText(node) ? node.getText() : (node as any).name?.text || '<unknown name>';
   } else {
-    name = node.parent.pos !== -1 ? node.parent.getText() : (node as any).parent.name?.text || '<unknown name>';
+    name = node.parent.pos !== -1 && hasText(node.parent) ? node.parent.getText() : (node as any).parent.name?.text || '<unknown name>';
   }
   return `This was caused by '${name}'`;
 }

@@ -1,4 +1,5 @@
-import * as ts from 'typescript';
+import { withCompiler } from '../compiler';
+import * as ts from '../compiler/index';
 import { ExtendedRoutesConfig, RouteGeneratorModule } from '../cli';
 import { MetadataGenerator } from '../metadataGeneration/metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
@@ -18,7 +19,9 @@ export async function generateRoutes<Config extends ExtendedRoutesConfig>(
   defaultNumberType?: BaseConfig['defaultNumberType'],
 ) {
   if (!metadata) {
-    metadata = new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate();
+    metadata = await withCompiler(() =>
+      new MetadataGenerator(routesConfig.entryFile, compilerOptions, ignorePaths, routesConfig.controllerPathGlobs, routesConfig.rootSecurity, defaultNumberType).Generate(),
+    );
   }
 
   const routeGenerator = await getRouteGenerator(metadata, routesConfig);

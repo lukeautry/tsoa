@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -7,8 +8,15 @@ import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('Security route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/securityController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/securityController.ts').Generate();
+      spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let spec: ReturnType<SpecGenerator2['GetSpec']>;
 
   it('should generate a route with a named security', () => {
     const path = verifyPath('/SecurityTest');
@@ -88,7 +96,13 @@ describe('Security route generation', () => {
   });
 
   describe('OpenAPI 3', () => {
-    const spec3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+    before(() =>
+      withCompiler(() => {
+        spec3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      }),
+    );
+
+    let spec3: ReturnType<SpecGenerator3['GetSpec']>;
 
     it('should generate a route with optional security (empty entry)', () => {
       expect(spec3.paths['/SecurityTest/ApiKeyOrAnonymous'].get?.security).to.deep.equal([{ api_key: [] }, {}]);

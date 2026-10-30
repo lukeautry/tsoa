@@ -1,0 +1,3 @@
+interface TypeRootsModel {
+  label: string;
+}

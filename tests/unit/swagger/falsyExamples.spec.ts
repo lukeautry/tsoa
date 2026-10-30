@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -8,7 +9,13 @@ import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
 
 // `@example 0`, `@example false` and `@example ""` used to be dropped as falsy (#1071).
 describe('falsy @example values', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/falsyExampleController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/falsyExampleController.ts').Generate();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
 
   it('keeps them in OpenAPI 2 definitions', () => {
     const definitions = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec().definitions!;

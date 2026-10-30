@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
@@ -8,9 +9,17 @@ import { expect } from 'chai';
 
 describe('Renamed imports', () => {
   describe('model', () => {
-    const metadata = new MetadataGenerator('./fixtures/controllers/controllerWithRenamedModelImport.ts').Generate();
-    const spec2 = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
-    const spec3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+    before(() =>
+      withCompiler(() => {
+        metadata = new MetadataGenerator('./fixtures/controllers/controllerWithRenamedModelImport.ts').Generate();
+        spec2 = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+        spec3 = new SpecGenerator3(metadata, getDefaultExtendedOptions()).GetSpec();
+      }),
+    );
+
+    let metadata: ReturnType<MetadataGenerator['Generate']>;
+    let spec2: ReturnType<SpecGenerator2['GetSpec']>;
+    let spec3: ReturnType<SpecGenerator3['GetSpec']>;
     const baseRoute = '/RenamedModelImport';
 
     it('should generate a path for a function with a renamed model', () => {

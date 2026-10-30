@@ -1,3 +1,5 @@
+import { withCompiler } from '@tsoa/cli/compiler';
+import { unorderedSchema } from '../../../utils/unorderedSchema';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
@@ -10,8 +12,20 @@ import { getDefaultOptions } from '../../../fixtures/defaultOptions';
 import { EnumDynamicPropertyKey, TestModel } from '../../../fixtures/testModel';
 
 describe('Definition generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
-  const dynamicMetadata = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, ['./fixtures/controllers/getController.ts']).Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+      dynamicMetadata = new MetadataGenerator('./fixtures/controllers/getController.ts', undefined, undefined, ['./fixtures/controllers/getController.ts']).Generate();
+      specDefaultSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+      specWithNoImplicitExtrasSpec = new SpecGenerator2(metadata, optionsWithNoAdditional).GetSpec();
+      dynamicSpecDefaultSpec = new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec();
+      dynamicSpecWithNoImplicitExtrasSpec = new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec();
+      specWithXEnumVarnamesSpec = new SpecGenerator2(metadata, optionsWithXEnumVarnames).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let dynamicMetadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = { ...defaultConfig.spec, entryFile: defaultConfig.entryFile, noImplicitAdditionalProperties: 'ignore' };
   const optionsWithNoAdditional = Object.assign<object, ExtendedSpecConfig, Partial<ExtendedSpecConfig>>({}, defaultOptions, {
@@ -28,26 +42,41 @@ describe('Definition generation', () => {
     specName: 'specDefault' | 'specWithNoImplicitExtras' | 'dynamicSpecDefault' | 'dynamicSpecWithNoImplicitExtras' | 'specWithXEnumVarnames';
   }
 
+  let specDefaultSpec: SpecAndName['spec'];
   const specDefault: SpecAndName = {
-    spec: new SpecGenerator2(metadata, defaultOptions).GetSpec(),
     specName: 'specDefault',
+    get spec() {
+      return specDefaultSpec;
+    },
   };
+  let specWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const specWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator2(metadata, optionsWithNoAdditional).GetSpec(),
     specName: 'specWithNoImplicitExtras',
+    get spec() {
+      return specWithNoImplicitExtrasSpec;
+    },
   };
 
+  let dynamicSpecDefaultSpec: SpecAndName['spec'];
   const dynamicSpecDefault: SpecAndName = {
-    spec: new SpecGenerator2(dynamicMetadata, defaultOptions).GetSpec(),
     specName: 'dynamicSpecDefault',
+    get spec() {
+      return dynamicSpecDefaultSpec;
+    },
   };
+  let dynamicSpecWithNoImplicitExtrasSpec: SpecAndName['spec'];
   const dynamicSpecWithNoImplicitExtras: SpecAndName = {
-    spec: new SpecGenerator2(dynamicMetadata, optionsWithNoAdditional).GetSpec(),
     specName: 'dynamicSpecWithNoImplicitExtras',
+    get spec() {
+      return dynamicSpecWithNoImplicitExtrasSpec;
+    },
   };
+  let specWithXEnumVarnamesSpec: SpecAndName['spec'];
   const specWithXEnumVarnames: SpecAndName = {
-    spec: new SpecGenerator2(metadata, optionsWithXEnumVarnames).GetSpec(),
     specName: 'specWithXEnumVarnames',
+    get spec() {
+      return specWithXEnumVarnamesSpec;
+    },
   };
   /**
    * This allows us to iterate over specs that have different options to ensure that certain behavior is consistent
@@ -213,7 +242,15 @@ describe('Definition generation', () => {
     describe('should generate a schema for every property on the TestModel interface', () => {
       const interfaceName = 'TestModel';
       allSpecs.forEach(currentSpec => {
-        const definition = getValidatedDefinition(interfaceName, currentSpec);
+        before(() => {
+          definition = getValidatedDefinition(interfaceName, currentSpec)!;
+          expect(Object.keys(assertionsPerProperty)).to.length(
+            Object.keys(definition.properties!).length,
+            `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
+          );
+        });
+
+        let definition: Swagger.Schema2;
 
         it('should produce schemas for the properties and should make a choice about additionalProperties', () => {
           if (!definition.properties) {
@@ -553,38 +590,40 @@ describe('Definition generation', () => {
           stringUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_record-foo-or-record-bar._data-string__');
             const schema = getValidatedDefinition('Record_record-foo-or-record-bar._data-string__', currentSpec);
-            expect(schema).to.be.deep.eq({
-              properties: {
-                'record-foo': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+            expect(unorderedSchema(schema)).to.be.deep.eq(
+              unorderedSchema({
+                properties: {
+                  'record-foo': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
-                },
-                'record-bar': {
-                  properties: {
-                    data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                  'record-bar': {
+                    properties: {
+                      data: { type: 'string', description: undefined, example: undefined, format: undefined, default: undefined },
+                    },
+                    required: ['data'],
+                    type: 'object',
+                    description: undefined,
+                    example: undefined,
+                    format: undefined,
+                    default: undefined,
                   },
-                  required: ['data'],
-                  type: 'object',
-                  description: undefined,
-                  example: undefined,
-                  format: undefined,
-                  default: undefined,
                 },
-              },
-              required: ['record-foo', 'record-bar'],
-              type: 'object',
-              default: undefined,
-              example: undefined,
-              format: undefined,
-              description: 'Construct a type with a set of properties K of type T',
-            });
+                required: ['record-foo', 'record-bar'],
+                type: 'object',
+                default: undefined,
+                example: undefined,
+                format: undefined,
+                description: 'Construct a type with a set of properties K of type T',
+              }),
+            );
           },
           numberUnionRecord: (propertyName, propertySchema) => {
             expect(propertySchema.$ref).to.eq('#/definitions/Record_1-or-2._data-string__');
@@ -1086,8 +1125,8 @@ describe('Definition generation', () => {
               'Exclude_keyofTestClassModel.account-or-defaultValue2-or-indexedTypeToInterface-or-indexedTypeToClass-or-indexedTypeToAlias-or-indexedResponseObject-or-arrayUnion-or-objectUnion_',
               currentSpec,
             );
-            expect(excludeLiteral).to.deep.eq(
-              {
+            expect(unorderedSchema(excludeLiteral)).to.deep.eq(
+              unorderedSchema({
                 type: 'string',
                 enum: [
                   'id',
@@ -1118,7 +1157,7 @@ describe('Definition generation', () => {
                 example: undefined,
                 format: undefined,
                 ['x-nullable']: false,
-              },
+              }),
               `for definition linked by ${propertyName}`,
             );
 
@@ -1201,8 +1240,8 @@ describe('Definition generation', () => {
             });
 
             const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
-            expect(readonlyClassSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(readonlyClassSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
@@ -1302,7 +1341,7 @@ describe('Definition generation', () => {
                 default: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for definition linked by ${propertyName}`,
             );
 
@@ -1454,30 +1493,32 @@ describe('Definition generation', () => {
 
             const orderOptionsSchema = getValidatedDefinition('OrderOptions_ParameterTestModel_', currentSpec);
 
-            expect(orderOptionsSchema).to.deep.eq({
-              default: undefined,
-              description: undefined,
-              enum: [
-                'firstname:asc',
-                'lastname:asc',
-                'age:asc',
-                'weight:asc',
-                'human:asc',
-                'gender:asc',
-                'nicknames:asc',
-                'firstname:desc',
-                'lastname:desc',
-                'age:desc',
-                'weight:desc',
-                'human:desc',
-                'gender:desc',
-                'nicknames:desc',
-              ],
-              example: undefined,
-              format: undefined,
-              type: 'string',
-              'x-nullable': false,
-            });
+            expect(unorderedSchema(orderOptionsSchema)).to.deep.eq(
+              unorderedSchema({
+                default: undefined,
+                description: undefined,
+                enum: [
+                  'firstname:asc',
+                  'lastname:asc',
+                  'age:asc',
+                  'weight:asc',
+                  'human:asc',
+                  'gender:asc',
+                  'nicknames:asc',
+                  'firstname:desc',
+                  'lastname:desc',
+                  'age:desc',
+                  'weight:desc',
+                  'human:desc',
+                  'gender:desc',
+                  'nicknames:desc',
+                ],
+                example: undefined,
+                format: undefined,
+                type: 'string',
+                'x-nullable': false,
+              }),
+            );
           },
           inlineTLS: (propertyName, propertySchema) => {
             expect(propertySchema).to.deep.eq(
@@ -1494,8 +1535,8 @@ describe('Definition generation', () => {
             );
           },
           inlineMappedType: (propertyName, propertySchema) => {
-            expect(propertySchema).to.deep.equal(
-              {
+            expect(unorderedSchema(propertySchema)).to.deep.equal(
+              unorderedSchema({
                 properties: {
                   'lastname:asc': {
                     type: 'boolean',
@@ -1609,7 +1650,7 @@ describe('Definition generation', () => {
                 example: undefined,
                 format: undefined,
                 default: undefined,
-              },
+              }),
               `for property ${propertyName}`,
             );
           },
@@ -2399,8 +2440,8 @@ describe('Definition generation', () => {
               `for property ${propertyName}.doubleReplacedTypes`,
             );
             const postfixedSchema = getValidatedDefinition('Postfixed_JsDocced._PostFix_', currentSpec);
-            expect(postfixedSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(postfixedSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue_PostFix: {
                     type: 'string',
@@ -2423,7 +2464,7 @@ describe('Definition generation', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.postfixed`,
             );
             const valuesSchema = getValidatedDefinition('Values_JsDocced_', currentSpec);
@@ -2504,8 +2545,8 @@ describe('Definition generation', () => {
             );
 
             const synonymSchema = getValidatedDefinition('JsDoccedSynonym', currentSpec);
-            expect(synonymSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(synonymSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue: {
                     type: 'string',
@@ -2528,7 +2569,7 @@ describe('Definition generation', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getValidatedDefinition('JsDoccedSynonym2', currentSpec);
@@ -3286,19 +3327,19 @@ describe('Definition generation', () => {
         };
 
         Object.keys(assertionsPerProperty).forEach(aPropertyName => {
-          const propertySchema = definition.properties![aPropertyName];
-          if (!propertySchema) {
-            throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
-          }
+          before(() => {
+            propertySchema = definition.properties![aPropertyName]!;
+            if (!propertySchema) {
+              throw new Error(`There was no ${aPropertyName} schema generated for the ${currentSpec.specName}`);
+            }
+          });
+
+          let propertySchema: Swagger.Schema2;
+
           it(`should produce a valid schema for the ${aPropertyName} property on ${interfaceName} for the ${currentSpec.specName}`, () => {
             assertionsPerProperty[aPropertyName as keyof TestModel](aPropertyName, propertySchema);
           });
         });
-
-        expect(Object.keys(assertionsPerProperty)).to.length(
-          Object.keys(definition.properties!).length,
-          `because the swagger spec (${currentSpec.specName}) should only produce property schemas for properties that live on the TypeScript interface.`,
-        );
       });
     });
 
@@ -3354,13 +3395,18 @@ describe('Definition generation', () => {
 
   describe('Class-based generation', () => {
     allSpecs.forEach(currentSpec => {
-      const modelName = 'TestClassModel';
-      const definition = getValidatedDefinition(modelName, currentSpec);
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      before(() => {
+        definition = getValidatedDefinition(modelName, currentSpec)!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
 
-      const properties = definition.properties;
+      const modelName = 'TestClassModel';
+      let definition: Swagger.Schema2;
+
+      let properties: { [propertyName: string]: Swagger.Schema2 };
 
       it('should generate a definition for referenced model', () => {
         getValidatedDefinition(modelName, currentSpec);
@@ -3523,13 +3569,18 @@ describe('Definition generation', () => {
 
   describe('Generic-based generation', () => {
     allSpecs.forEach(currentSpec => {
-      const modelName = 'TestClassModel';
-      const definition = getValidatedDefinition(modelName, currentSpec);
-      if (!definition.properties) {
-        throw new Error('Definition has no properties.');
-      }
+      before(() => {
+        definition = getValidatedDefinition(modelName, currentSpec)!;
+        if (!definition.properties) {
+          throw new Error('Definition has no properties.');
+        }
+        properties = definition.properties!;
+      });
 
-      const properties = definition.properties;
+      const modelName = 'TestClassModel';
+      let definition: Swagger.Schema2;
+
+      let properties: { [propertyName: string]: Swagger.Schema2 };
 
       describe(`for ${currentSpec.specName}`, () => {
         it('should not generate a property for a non-public constructor var', () => {
@@ -3675,19 +3726,23 @@ describe('Definition generation', () => {
   describe('methods', () => {
     describe('deprecation', () => {
       it('marks deprecated methods as deprecated', () => {
-        const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
-        const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+        return withCompiler(() => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/deprecatedController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
-        expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
-        expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod']?.get?.deprecated).to.eql(true);
+          expect(deprecatedSpec.paths['/Controller/deprecatedGetMethod2']?.get?.deprecated).to.eql(true);
+        });
       });
 
       it('mark deprecated parameters as x-deprecated', () => {
-        const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
-        const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
+        return withCompiler(() => {
+          const metadata = new MetadataGenerator('./fixtures/controllers/parameterController.ts').Generate();
+          const deprecatedSpec = new SpecGenerator2(metadata, defaultOptions).GetSpec();
 
-        const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
-        expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+          const parameters = deprecatedSpec.paths['/ParameterTest/ParameterDeprecated']?.post?.parameters ?? [];
+          expect(parameters.map(param => (param as unknown as Record<string, unknown>)['x-deprecated'])).to.eql([undefined, true, true]);
+        });
       });
     });
   });

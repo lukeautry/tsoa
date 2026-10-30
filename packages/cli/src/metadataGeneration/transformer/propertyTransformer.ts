@@ -1,5 +1,15 @@
-import type { Token, InterfaceDeclaration, ClassDeclaration, PropertyDeclaration, ParameterDeclaration, ConstructorDeclaration, TypeElement, ClassElement, PropertySignature } from 'typescript';
-import { NodeFlags, NodeBuilderFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from 'typescript';
+import type {
+  Token,
+  InterfaceDeclaration,
+  ClassDeclaration,
+  PropertyDeclaration,
+  ParameterDeclaration,
+  ConstructorDeclaration,
+  TypeElement,
+  ClassElement,
+  PropertySignature,
+} from '../../compiler/index';
+import { NodeFlags, NodeBuilderFlags, SyntaxKind, isInterfaceDeclaration, isPropertyDeclaration, isConstructorDeclaration, isPropertySignature } from '../../compiler/index';
 import { Tsoa } from '@tsoa/runtime';
 
 import { Transformer } from './transformer';
@@ -11,7 +21,7 @@ import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { isDecorator } from '../../utils/decoratorUtils';
 import { throwUnless } from '../../utils/flowUtils';
 
-type OverrideToken = Token<SyntaxKind.QuestionToken> | Token<SyntaxKind.PlusToken> | Token<SyntaxKind.MinusToken> | undefined;
+type OverrideToken = Token<import('typescript').SyntaxKind.QuestionToken> | Token<import('typescript').SyntaxKind.PlusToken> | Token<import('typescript').SyntaxKind.MinusToken> | undefined;
 
 export class PropertyTransformer extends Transformer {
   public transform(resolver: TypeResolver, node: InterfaceDeclaration | ClassDeclaration, overrideToken?: OverrideToken): Tsoa.Property[] {

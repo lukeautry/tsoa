@@ -1,3 +1,4 @@
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -9,7 +10,14 @@ import { getDefaultOptions } from '../fixtures/defaultOptions';
 import { ExtendedSpecConfig } from '@tsoa/cli/cli';
 
 describe('Complex Type Resolution Integration Tests', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
+      spec = new SpecGenerator3(metadata, defaultOptions).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
   const defaultConfig = getDefaultOptions();
   const defaultOptions: ExtendedSpecConfig = {
     ...defaultConfig.spec,
@@ -17,7 +25,7 @@ describe('Complex Type Resolution Integration Tests', () => {
     entryFile: defaultConfig.entryFile,
   };
 
-  const spec = new SpecGenerator3(metadata, defaultOptions).GetSpec();
+  let spec: ReturnType<SpecGenerator3['GetSpec']>;
 
   describe('Zod z.infer types', () => {
     it('should generate correct OpenAPI spec for @Body with z.infer<UserSchema>', () => {

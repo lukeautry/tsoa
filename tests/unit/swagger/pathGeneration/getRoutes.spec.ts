@@ -1,3 +1,5 @@
+import { knownLimit } from '../../../utils/knownLimit';
+import { withCompiler } from '@tsoa/cli/compiler';
 import { expect } from 'chai';
 import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
@@ -8,8 +10,15 @@ import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableS
 import { VerifyPath } from '../../utilities/verifyPath';
 
 describe('GET route generation', () => {
-  const metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
-  const spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+  before(() =>
+    withCompiler(() => {
+      metadata = new MetadataGenerator('./fixtures/controllers/getController.ts').Generate();
+      spec = new SpecGenerator2(metadata, getDefaultExtendedOptions()).GetSpec();
+    }),
+  );
+
+  let metadata: ReturnType<MetadataGenerator['Generate']>;
+  let spec: ReturnType<SpecGenerator2['GetSpec']>;
   const baseRoute = '/GetTest';
 
   const getValidatedGetOperation = (actionRoute: string) => {
@@ -73,9 +82,11 @@ describe('GET route generation', () => {
   });
 
   it('should generate a path for a GET route with no controller path argument', () => {
-    const pathlessMetadata = new MetadataGenerator('./fixtures/controllers/pathlessGetController.ts').Generate();
-    const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultExtendedOptions()).GetSpec();
-    VerifyPath(pathlessSpec, '/Current', path => path.get, false);
+    return withCompiler(() => {
+      const pathlessMetadata = new MetadataGenerator('./fixtures/controllers/pathlessGetController.ts').Generate();
+      const pathlessSpec = new SpecGenerator2(pathlessMetadata, getDefaultExtendedOptions()).GetSpec();
+      VerifyPath(pathlessSpec, '/Current', path => path.get, false);
+    });
   });
 
   it('should generate a path for a GET route with a path argument', () => {
@@ -184,32 +195,45 @@ describe('GET route generation', () => {
   });
 
   it('should reject complex types as arguments', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
+    return withCompiler(() => {
+      expect(() => {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
+    });
   });
 
   it('should reject Query and Queries decorators at the same time', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueryController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("Choose either during @Query or @Queries in 'InvalidQueryTestController.getQueryAndQueries' method.");
+    return withCompiler(() => {
+      expect(() => {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueryController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      }).to.throw("Choose either during @Query or @Queries in 'InvalidQueryTestController.getQueryAndQueries' method.");
+    });
   });
 
   it('should reject multiple Queries decorators', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueriesController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("Only one queries parameter allowed in 'InvalidQueriesTestController.getWithMultipleQueriesParams' method.");
+    return withCompiler(() => {
+      expect(() => {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueriesController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      }).to.throw("Only one queries parameter allowed in 'InvalidQueriesTestController.getWithMultipleQueriesParams' method.");
+    });
   });
 
-  it('should reject nested Query object inside Queries decorator', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
-  });
+  // COMPILERS.md limit: inferred import return types.
+  it('should reject nested Query object inside Queries decorator', () =>
+    knownLimit(
+      ['typescript@7.0.2', 'typescript@7.1.0-beta', 'tsrs@0.20.0-ts7.1.0-beta'],
+      /but got 'Unknown type: LastTypeNode\\nAt: /,
+    )(() => {
+      return withCompiler(() => {
+        expect(() => {
+          const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
+          new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+        }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
+      });
+    }));
 
   it('should support TypeScript type aliases for @Queries', () => {
     const operation = getValidatedGetOperation(`${baseRoute}/AllQueriesInOneObjectWithTypeAlias`);
@@ -224,21 +248,25 @@ describe('GET route generation', () => {
   });
 
   it('should reject invalid header types', function () {
-    this.timeout(10_000);
-    expect(() => {
-      new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
-    }).to.throw(/^Unable to parse Header Type 'Header names must be of type string.*/);
+    return withCompiler(() => {
+      this.timeout(10_000);
+      expect(() => {
+        new MetadataGenerator('./fixtures/controllers/invalidHeaderController.ts').Generate();
+      }).to.throw(/^Unable to parse Header Type 'Header names must be of type string.*/);
 
-    expect(() => {
-      new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
-    }).to.throw(/^Unable to parse Header Type any.*/);
+      expect(() => {
+        new MetadataGenerator('./fixtures/controllers/incorrectResponseHeaderController.ts').Generate();
+      }).to.throw(/^Unable to parse Header Type any.*/);
+    });
   });
 
   it('should reject unsupported indexed types', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw(/^Unknown type: IndexedAccessType.*/);
+    return withCompiler(() => {
+      expect(() => {
+        const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
+        new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
+      }).to.throw(/^Unknown type: IndexedAccessType.*/);
+    });
   });
 
   it('should generate a path description from jsdoc comment', () => {
