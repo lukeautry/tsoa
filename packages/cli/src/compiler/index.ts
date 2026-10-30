@@ -89,7 +89,11 @@ export function compilerPackage(): 'typescript' | 'tsrs' {
   if (name !== 'typescript' && name !== 'tsrs') throw new Error(`Unknown TSOA_COMPILER "${name}". Use "typescript" or "tsrs".`);
   return name;
 }
+// While one compiler session is active, which is the usual case, it is the backend without asking the async context.
+let activeSessions = 0;
+let lastSession: typeof ts | undefined;
 function backend(): typeof ts {
+  if (activeSessions === 1 && lastSession) return lastSession;
   const active = activeCompiler.getStore();
   if (active) return active;
   if (compilerPackage() === 'typescript') {
@@ -114,9 +118,12 @@ export async function withCompiler<T>(generate: () => T | Promise<T>): Promise<T
   const typescript70 = name === 'typescript' && classicCompiler().version.startsWith('7.0.');
   const [sync, ast] = await Promise.all(['sync', 'ast'].map(part => importModule(pathToFileURL(resolveCompilerPart(name, part, typescript70)).href)));
   const compiler = nativeCompiler(sync as NativeSync, ast as NativeAST, name, typescript70);
+  activeSessions++;
+  lastSession = compiler.surface;
   try {
     return await activeCompiler.run(compiler.surface, generate);
   } finally {
+    activeSessions--;
     compiler.close();
   }
 }

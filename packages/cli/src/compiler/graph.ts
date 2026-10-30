@@ -20,40 +20,75 @@ interface DescribedType {
   index?: Array<{ key: number; value: number; readonly?: boolean }>;
   intrinsic?: string;
 }
+/** A node as [file, index, kind]; files are indexes into the file table, plus one. */
+type NodeReference = [number, number, number];
 interface DescribedSymbol {
-  r: { name: string; flags: number; reference: { file?: string; id: number } };
-  doc: string;
+  id: number;
+  owner?: number;
+  project?: string;
+  name: string;
+  flags: number;
+  checkFlags?: number;
+  parent?: unknown;
+  export?: unknown;
+  decls?: NodeReference[];
+  value?: NodeReference;
+  doc?: string;
   type?: number;
   aliased?: number;
 }
+interface DescribedNodes {
+  file: number;
+  symbols?: number[];
+  types?: number[];
+  locations?: number[];
+  returns?: number[];
+  constants?: Array<number | string>;
+}
 export interface Description {
+  snapshot: unknown;
+  files: Array<{ path: string; descriptor?: unknown }>;
   types: DescribedType[];
   symbols: DescribedSymbol[];
-  nodeSymbols: Record<string, number>;
-  nodeTypes: Record<string, number>;
-  locationTypes: Record<string, number>;
-  returnTypes: Record<string, number>;
-  constants: Record<string, string | number>;
+  nodes: DescribedNodes[];
 }
+
+/** The answers for the nodes of one file, by node index. */
+interface NodeAnswers {
+  symbols: Map<number, number>;
+  types: Map<number, number>;
+  locations: Map<number, number>;
+  returns: Map<number, number>;
+  constants: Map<number, number | string>;
+}
+const pairs = <T>(list: T[] | undefined): Map<number, T> => {
+  const map = new Map<number, T>();
+  if (list) for (let index = 0; index < list.length; index += 2) map.set(list[index] as number, list[index + 1]);
+  return map;
+};
 
 /** What the graph needs of the classic checker adapter (native.ts). */
 export interface ClassicSide {
   checker: any;
   /** The API's own object for a type or symbol of the response, as the adapter presents it. */
   classicType(raw: DescribedType['r']): any;
-  classicSymbol(raw: DescribedSymbol['r']): any;
+  classicSymbol(response: unknown): any;
+  /** A file of the program, fetched once. */
+  sourceFile(path: string): any;
   /** The API's object behind an object the adapter presents, if it is a type or symbol. */
   native(value: any): any;
   typeFlags: { BooleanLiteral: number; Union: number; Intersection: number; StringLiteral: number; NumberLiteral: number; BigIntLiteral: number; String: number; Number: number };
 }
 
-const symbolKey = (reference: { file?: string; id: number }) => `${reference.file ?? ''}#${reference.id}`;
-
 class Graph {
   readonly types: GraphType[];
   readonly symbols: GraphSymbol[];
   private readonly typesById = new Map<number, GraphType>();
-  private readonly symbolsByKey = new Map<string, GraphSymbol>();
+  private readonly symbolsById = new Map<number, GraphSymbol>();
+  private readonly answers = new Map<string, NodeAnswers>();
+  private readonly sourceFiles = new Map<string, any>();
+  // A node's file answers and index, parsed from its handle once: the client returns one object per node.
+  private readonly located = new WeakMap<object, { answers: NodeAnswers | undefined; index: number }>();
   undefinedType: unknown;
 
   constructor(
@@ -63,7 +98,43 @@ class Graph {
     this.types = description.types.map(described => new GraphType(this, described));
     this.symbols = description.symbols.map(described => new GraphSymbol(this, described));
     for (const type of this.types) this.typesById.set(type.described.r.id, type);
-    for (const symbol of this.symbols) this.symbolsByKey.set(symbolKey(symbol.described.r.reference), symbol);
+    for (const symbol of this.symbols) this.symbolsById.set(symbol.described.id, symbol);
+    for (const nodes of description.nodes) {
+      this.answers.set(description.files[nodes.file - 1].path, {
+        symbols: pairs(nodes.symbols),
+        types: pairs(nodes.types),
+        locations: pairs(nodes.locations),
+        returns: pairs(nodes.returns),
+        constants: pairs(nodes.constants),
+      });
+    }
+  }
+
+  /** The described answer for a node, by its handle `index.kind.path`. */
+  answer(node: any, kind: keyof NodeAnswers): number | string | undefined {
+    if (!node || typeof node !== 'object' || node.pos === -1) return undefined;
+    let location = this.located.get(node);
+    if (!location) {
+      const id = node.id;
+      if (typeof id !== 'string') return undefined;
+      const first = id.indexOf('.');
+      const second = id.indexOf('.', first + 1);
+      location = { answers: this.answers.get(id.slice(second + 1)), index: Number(id.slice(0, first)) };
+      this.located.set(node, location);
+    }
+    return location.answers?.[kind].get(location.index);
+  }
+
+  /** A node of the program by file and index, as the API's node handles resolve. */
+  node([file, index]: NodeReference): unknown {
+    const path = this.description.files[file - 1].path;
+    let sourceFile = this.sourceFiles.get(path);
+    if (!sourceFile) this.sourceFiles.set(path, (sourceFile = this.classic.sourceFile(path)));
+    return sourceFile?.getOrCreateNodeAtIndex(index);
+  }
+
+  handle([file, index, kind]: NodeReference): string {
+    return `${index}.${kind}.${this.description.files[file - 1].path}`;
   }
 
   type(reference: number | undefined): GraphType | undefined {
@@ -89,7 +160,7 @@ class Graph {
     if (Array.isArray(value)) return value.map(this.fromClassic);
     const native = this.classic.native(value);
     if (native && typeof native === 'object') {
-      if (native.reference && typeof native.flags === 'number') return this.symbolsByKey.get(symbolKey(native.reference)) ?? value;
+      if (native.reference && typeof native.flags === 'number') return this.symbolsById.get(native.reference.id) ?? value;
       if (typeof native.id === 'number' && typeof native.flags === 'number') return this.typesById.get(native.id) ?? value;
     }
     // Index infos carry types.
@@ -200,22 +271,40 @@ class GraphSymbol {
     readonly graph: Graph,
     readonly described: DescribedSymbol,
   ) {}
+  /** The API's own symbol, from the response the described fields make up again. */
   classic(): any {
-    return (this.classicObject ??= this.graph.classic.classicSymbol(this.described.r));
+    if (this.classicObject) return this.classicObject;
+    const { graph, described } = this;
+    const reference = described.owner
+      ? { kind: 0, id: described.id, file: graph.description.files[described.owner - 1].descriptor }
+      : { kind: 1, id: described.id, snapshot: graph.description.snapshot, project: described.project };
+    return (this.classicObject = graph.classic.classicSymbol({
+      reference,
+      name: described.name,
+      flags: described.flags,
+      checkFlags: described.checkFlags ?? 0,
+      declarations: described.decls?.map(declaration => graph.handle(declaration)),
+      valueDeclaration: described.value && graph.handle(described.value),
+      parent: described.parent,
+      exportSymbol: described.export,
+    }));
   }
   get escapedName() {
-    return this.described.r.name;
+    return this.described.name;
   }
   get name() {
     // As the API's own symbols unescape it.
-    const name = this.described.r.name;
+    const name = this.described.name;
     return name.startsWith('___') ? name.slice(1) : name;
   }
   get flags() {
-    return this.described.r.flags;
+    return this.described.flags;
   }
   get declarations() {
-    return (this.declarationList ??= this.classic().declarations);
+    return (this.declarationList ??= this.described.decls?.map(declaration => this.graph.node(declaration)));
+  }
+  get valueDeclaration() {
+    return this.described.value && this.graph.node(this.described.value);
   }
   getName() {
     return this.name;
@@ -230,7 +319,7 @@ class GraphSymbol {
     return this.declarations;
   }
   getDocumentationComment() {
-    return this.described.doc;
+    return this.described.doc ?? '';
   }
 }
 Object.setPrototypeOf(GraphSymbol.prototype, delegatingPrototype());
@@ -278,23 +367,23 @@ export function graphChecker(description: Description, classic: ClassicSide): un
   const asked = <T>(fallback: () => T): T => graph.fromClassic(fallback());
   const handlers: Record<string, (...args: any[]) => unknown> = {
     getSymbolAtLocation: (node: any) => {
-      const reference = node && node.pos !== -1 ? description.nodeSymbols[node.id] : undefined;
+      const reference = graph.answer(node, 'symbols') as number | undefined;
       return reference ? graph.symbols[reference - 1] : asked(() => classic.checker.getSymbolAtLocation(node));
     },
     getTypeFromTypeNode: (node: any) => {
-      const reference = node && node.pos !== -1 ? description.nodeTypes[node.id] : undefined;
+      const reference = graph.answer(node, 'types') as number | undefined;
       return reference ? graph.types[reference - 1] : asked(() => classic.checker.getTypeFromTypeNode(node));
     },
     getTypeAtLocation: (node: any) => {
-      const reference = node && node.pos !== -1 ? description.locationTypes[node.id] : undefined;
+      const reference = graph.answer(node, 'locations') as number | undefined;
       return reference ? graph.types[reference - 1] : asked(() => classic.checker.getTypeAtLocation(node));
     },
     getSignatureFromDeclaration: (node: any) => {
-      const reference = node && node.pos !== -1 ? description.returnTypes[node.id] : undefined;
+      const reference = graph.answer(node, 'returns') as number | undefined;
       return reference ? new GraphSignature(graph, node, graph.types[reference - 1]) : asked(() => classic.checker.getSignatureFromDeclaration(node));
     },
     getReturnTypeOfSignature: (signature: any) => (signature instanceof GraphSignature ? signature.returnType : asked(() => classic.checker.getReturnTypeOfSignature(graph.toClassic(signature)))),
-    getConstantValue: (node: any) => (node && node.id in description.constants ? description.constants[node.id] : asked(() => classic.checker.getConstantValue(node))),
+    getConstantValue: (node: any) => graph.answer(node, 'constants') ?? asked(() => classic.checker.getConstantValue(node)),
     getTypeOfSymbol: (symbol: any) =>
       symbol instanceof GraphSymbol && symbol.described.type ? graph.type(symbol.described.type) : asked(() => classic.checker.getTypeOfSymbol(graph.toClassic(symbol))),
     getAliasedSymbol: (symbol: any) =>

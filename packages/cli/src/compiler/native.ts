@@ -103,6 +103,7 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
     throw error;
   }
   let project: NativeProject;
+  const decorators = new WeakMap<object, NativeNode[] | undefined>();
   let programs = 0;
   const surface = {
     ...ast,
@@ -124,7 +125,15 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
     },
     forEachChild: (node: NativeNode, visitor: (node: NativeNode) => void) => node.forEachChild(visitor),
     canHaveDecorators: () => true,
-    getDecorators: (node: NativeNode) => node.modifiers?.filter((m: NativeNode) => m.kind === ast.SyntaxKind.Decorator),
+    getDecorators: (node: NativeNode) => {
+      // Asked for each decorator a resolver looks for; a node's modifiers do not change.
+      if (!decorators.has(node))
+        decorators.set(
+          node,
+          node.modifiers?.filter((m: NativeNode) => m.kind === ast.SyntaxKind.Decorator),
+        );
+      return decorators.get(node);
+    },
     getModifiers: (node: NativeNode) => node.modifiers?.filter((m: NativeNode) => m.kind !== ast.SyntaxKind.Decorator),
     displayPartsToString: (parts: string) => parts,
     isPropertySignature: (node: NativeNode) => node.kind === ast.SyntaxKind.PropertySignature,
@@ -415,7 +424,8 @@ function classicChecker(
     return graphChecker(description, {
       checker: proxy,
       classicType: raw => wrap(internals.objectRegistry.getOrCreateType(raw)),
-      classicSymbol: raw => wrap(internals.objectRegistry.getOrCreateSymbol(raw)),
+      classicSymbol: response => wrap(internals.objectRegistry.getOrCreateSymbol(response)),
+      sourceFile: path => (internals as unknown as { project: { program: { getSourceFileByPath(path: string): unknown } } }).project.program.getSourceFileByPath(path),
       native: value => (value && typeof value === 'object' ? originals.get(value) : undefined),
       typeFlags: flags,
     });
