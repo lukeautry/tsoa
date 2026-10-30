@@ -33,9 +33,47 @@ export class TypeResolver {
     return this.generator.typeChecker;
   }
 
+  /**
+   * Where resolution currently is, from the parameter name through properties and elements
+   * (`body.items[].tags`), each step with the source declaration it came from, when there is one.
+   */
+  private path: Array<{ segment: string; declaration?: ts.Node }> = [];
+
   /** Entry point used by MetadataGenerator.resolveType. */
   public resolveNode(typeNode: ts.TypeNode, parentNode?: ts.Node, type?: ts.Type): Tsoa.Type {
-    return this.resolve(type ?? this.typeOfNode(typeNode, parentNode), rootSite(typeNode, parentNode));
+    const outer = this.path;
+    this.path = parentNode && ts.isParameter(parentNode) && ts.isIdentifier(parentNode.name) ? [{ segment: parentNode.name.text, declaration: parentNode }] : [];
+    try {
+      return this.resolve(type ?? this.typeOfNode(typeNode, parentNode), rootSite(typeNode, parentNode));
+    } finally {
+      this.path = outer;
+    }
+  }
+
+  /** Runs `resolve` one step further down the path: a property name, `[]` for array elements or `[i]` for tuple elements. */
+  public at<T>(segment: string, resolve: () => T, declaration?: ts.Node): T {
+    this.path.push({ segment, declaration });
+    try {
+      return resolve();
+    } finally {
+      this.path.pop();
+    }
+  }
+
+  private pathText(): string {
+    return this.path.map(({ segment }, i) => (segment.startsWith('[') || i === 0 ? segment : `.${segment}`)).join('');
+  }
+
+  /** The written node at `site`, else the nearest source declaration on the path, for error locations. */
+  private sourceNode(site: Site): ts.Node | undefined {
+    const inSource = (node: ts.Node | undefined) => node !== undefined && node.pos !== -1;
+    if (inSource(site.node)) {
+      return site.node;
+    }
+    if (inSource(site.declaration)) {
+      return site.declaration;
+    }
+    return [...this.path].reverse().find(step => inSource(step.declaration))?.declaration;
   }
 
   /** The single classification dispatch. Order matters. */
@@ -138,13 +176,14 @@ export class TypeResolver {
       return this.resolveTuple(type, site);
     }
     if (isArrayType(this.checker, type)) {
-      return { dataType: 'array', elementType: this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node))) };
+      return { dataType: 'array', elementType: this.at('[]', () => this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node)))) };
     }
     if (flags & ts.TypeFlags.Object) {
       if (isBuiltInClass(type)) {
+        const path = this.pathText();
         throw new GenerateMetadataError(
-          `Unsupported type: ${this.checker.typeToString(type)}. Built-in classes such as Set and Map have no JSON form; use an array, an object type or an interface instead.`,
-          site.node,
+          `Unsupported type: ${this.checker.typeToString(type)}${path ? ` at '${path}'` : ''}. Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.`,
+          this.sourceNode(site),
         );
       }
       return this.resolveObject(type, site);
@@ -285,9 +324,9 @@ export class TypeResolver {
       const elementNode = element && ts.isNamedTupleMember(element) ? element.type : element;
       if (flags[i] & ts.ElementFlags.Variable) {
         const restNode = elementNode && ts.isRestTypeNode(elementNode) ? arrayElementNode(elementNode.type) : undefined;
-        restType = this.resolve(elementType, childSite(site, restNode, element));
+        restType = this.at(`[${i}]`, () => this.resolve(elementType, childSite(site, restNode, element)));
       } else {
-        types.push(this.resolve(elementType, childSite(site, elementNode, element)));
+        types.push(this.at(`[${i}]`, () => this.resolve(elementType, childSite(site, elementNode, element))));
       }
     });
     return { dataType: 'tuple', types, ...(restType ? { restType } : {}) };

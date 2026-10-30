@@ -48,7 +48,7 @@ export class MethodGenerator {
       implicitType = typeChecker.getReturnTypeOfSignature(signature!);
       nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
     }
-    const type = this.current.resolveType(nodeType, undefined, implicitType);
+    const type = this.resolveReturnType(nodeType, implicitType);
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -75,6 +75,15 @@ export class MethodGenerator {
       tags: this.getTags(),
       type,
     };
+  }
+
+  private resolveReturnType(nodeType: ts.TypeNode, implicitType: ts.Type | undefined): Tsoa.Type {
+    try {
+      return this.current.resolveType(nodeType, undefined, implicitType);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new GenerateMetadataError(`${message} \n in '${this.getCurrentLocation()}' return type`);
+    }
   }
 
   private buildParameters() {

@@ -176,7 +176,7 @@ function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, me
   // the `undefined` an optional marker adds. `required` already says the property is optional.
   const symbol = checker.getPropertyOfType(ownerType, name);
   const type = writtenType(checker, site) ?? withoutOptionality(resolver, member, symbol ? checker.getTypeOfSymbol(symbol) : checker.getTypeAtLocation(member));
-  const resolved = resolver.resolve(type, site);
+  const resolved = resolver.at(name, () => resolver.resolve(type, site), symbol?.valueDeclaration ?? member);
 
   const initialValue = initializer ? getInitializerValue(initializer, checker) : undefined;
   return {
@@ -207,7 +207,7 @@ function mappedProperty(resolver: TypeResolver, property: ts.Symbol, site: Site)
     name: property.getName(),
     required: !(property.flags & ts.SymbolFlags.Optional),
     deprecated: annotations?.deprecated ?? false,
-    type: resolver.resolve(propertyType, hintSite),
+    type: resolver.at(property.getName(), () => resolver.resolve(propertyType, hintSite), origin),
     default: initializer ? getInitializerValue(initializer, checker) : annotations?.default,
     validators: annotations?.validators ?? {},
     description: comments.length ? ts.displayPartsToString(comments) : undefined,

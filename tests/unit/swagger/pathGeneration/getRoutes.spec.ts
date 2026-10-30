@@ -247,10 +247,37 @@ describe('GET route generation', () => {
     expect(method.parameters[0].type).to.deep.equal({ dataType: 'buffer' });
   });
 
-  it('should reject built-in classes that have no JSON form', () => {
-    expect(() => new MetadataGenerator('./fixtures/controllers/unsupportedBuiltInController.ts').Generate()).to.throw(
-      /^Unsupported type: Set<string>\. Built-in classes such as Set and Map have no JSON form/,
-    );
+  describe('built-in classes that have no JSON form', () => {
+    const errorOf = (controller: string) => {
+      try {
+        new MetadataGenerator(`./fixtures/controllers/${controller}.ts`).Generate();
+      } catch (e) {
+        return (e as Error).message;
+      }
+      throw new Error(`${controller} generated without an error`);
+    };
+    const mustMap = 'Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.';
+
+    it('should name the path, location and method of a written parameter property', () => {
+      const message = errorOf('unsupportedBuiltInController');
+      expect(message).to.include(`Unsupported type: Set<string> at 'body.tags'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInController\.ts:6:6\./);
+      expect(message).to.include("in 'UnsupportedBuiltInController.post'");
+    });
+
+    it('should name the path and declaration of a nested array element reached through a mapped type', () => {
+      const message = errorOf('unsupportedBuiltInNestedController');
+      expect(message).to.include(`Unsupported type: Map<string, number> at 'groups[].members'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInNestedController\.ts:5:5\./);
+      expect(message).to.include("in 'UnsupportedBuiltInNestedController.get' return type");
+    });
+
+    it('should name the path and source of an inferred return type', () => {
+      const message = errorOf('unsupportedBuiltInInferredController');
+      expect(message).to.include(`Unsupported type: Set<string> at 'tags'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInInferredController\.ts:7:7\./);
+      expect(message).to.include("in 'UnsupportedBuiltInInferredController.get' return type");
+    });
   });
 
   it('should give each tuple type argument its own readable name', () => {
