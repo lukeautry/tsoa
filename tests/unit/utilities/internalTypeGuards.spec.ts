@@ -7,7 +7,7 @@ describe('internalTypeGuards', () => {
   describe('isRefType', () => {
     it('should return true for refEnum, refObject, refAlias', () => {
       expect(isRefType({ dataType: 'refEnum', refName: 'Status' } as Tsoa.ReferenceType)).to.be.true;
-      expect(isRefType({ dataType: 'refObject', refName: 'User', properties: [] } as Tsoa.ReferenceType)).to.be.true;
+      expect(isRefType({ dataType: 'refObject', refName: 'User', properties: [], deprecated: false } as Tsoa.ReferenceType)).to.be.true;
       expect(isRefType({ dataType: 'refAlias', refName: 'Id', type: { dataType: 'string' } } as Tsoa.ReferenceType)).to.be.true;
     });
 
