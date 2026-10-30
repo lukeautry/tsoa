@@ -82,5 +82,9 @@ for (const { target, goos, goarch, output } of builds) {
     // The compiler's go.work lists modules outside the sparse checkout.
     env: { ...process.env, GOWORK: 'off', GOTOOLCHAIN: goToolchain, GOOS: goos, GOARCH: goarch, CGO_ENABLED: '0' },
   });
+  // The binary is TypeScript's compiler with tsoa's generator in it: TypeScript's license and notices ship with it.
+  for (const file of ['LICENSE.txt', 'NOTICE.txt']) {
+    cpSync(join(upstreamDir, file), join(dirname(output), `TypeScript-${file}`));
+  }
   console.log(`Built ${target}: ${output}`);
 }
