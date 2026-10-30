@@ -3,19 +3,7 @@
   "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
   "version": "7.0.0-alpha.0",
-  "keywords": [
-    "typescript",
-    "openapi",
-    "swagger",
-    "server",
-    "node",
-    "node.js",
-    "codegen",
-    "generation",
-    "express",
-    "hapi.js",
-    "koa"
-  ],
+  "keywords": ["typescript", "openapi", "swagger", "server", "node", "node.js", "codegen", "generation", "express", "hapi.js", "koa"],
   "scripts": {
     "clean": "rimraf --glob dist fixtures/*/routes.ts fixtures/*/customRoutes.ts fixtures/*/custom-route-generator/routes/*",
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
@@ -48,6 +36,7 @@
     "chalk": "^4.1.2",
     "constructs": "^10.4.2",
     "cross-env": "^7.0.3",
+    "esbuild": "^0.25.0",
     "express": "^4.21.2",
     "husky": "^8.0.3",
     "inversify": "^6.1.6",
