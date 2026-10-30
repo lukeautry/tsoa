@@ -210,7 +210,6 @@ export interface ExtendedRoutesConfig extends RoutesConfig {
   noImplicitAdditionalProperties: Exclude<Config['noImplicitAdditionalProperties'], undefined>;
   bodyCoercion: Exclude<RoutesConfig['bodyCoercion'], undefined>;
   controllerPathGlobs?: Config['controllerPathGlobs'];
-  multerOpts?: Config['multerOpts'];
   rootSecurity?: Config['spec']['rootSecurity'];
   routeGenerator?: string | RouteGeneratorImpl;
 }
@@ -246,7 +245,6 @@ const validateRoutesConfig = async (config: Config): Promise<ExtendedRoutesConfi
     noImplicitAdditionalProperties,
     bodyCoercion,
     controllerPathGlobs: config.controllerPathGlobs,
-    multerOpts: config.multerOpts,
     rootSecurity: config.spec.rootSecurity,
   };
 };

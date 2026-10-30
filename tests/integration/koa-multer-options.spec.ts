@@ -8,7 +8,7 @@ import { verifyFileUploadRequest } from './utils';
 const app = server;
 const basePath = '/v1';
 
-describe('Koa Server (with multerOpts)', () => {
+describe('Koa Server With custom multer instance', () => {
   describe('file upload', function () {
     this.timeout(20_000);
 
@@ -24,7 +24,7 @@ describe('Koa Server (with multerOpts)', () => {
       });
     });
 
-    it('can post file less than default 8mb', () => {
+    it('can post file less than the 8mb limit', () => {
       writeFileSync('./lessThan8mb', Buffer.alloc(8 * 1024 * 1024 - 1));
       const formData = { someFile: '@../lessThan8mb' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/File', formData, (req, res) => {
@@ -37,7 +37,7 @@ describe('Koa Server (with multerOpts)', () => {
       });
     });
 
-    it('cannot post file more than default 8mb', async () => {
+    it('cannot post file more than the 8mb limit', async () => {
       writeFileSync('./moreThan8mb', Buffer.alloc(8 * 1024 * 1024 + 1));
       const formData = { someFile: '@../moreThan8mb' };
       let hasError = false;

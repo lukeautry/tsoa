@@ -31,7 +31,6 @@
   "license": "MIT",
   "dependencies": {
     "@tsoa/runtime": "7.0.0-ts7-alpha.0",
-    "@types/multer": "^1.4.12",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",

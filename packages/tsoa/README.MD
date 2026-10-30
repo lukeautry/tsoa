@@ -43,6 +43,8 @@ OpenAPI-compliant REST APIs using TypeScript and Node
 | Koa       | `koa`, `@types/koa` (2 or 3)         |
 | Hapi      | `@hapi/hapi`, `@hapi/boom`           |
 
+Routes that accept file uploads also import `multer` (Express) or `@koa/multer` (Koa), so install that package as well. To change its options, pass your own instance: `RegisterRoutes(app, { multer: multer({ dest: '/tmp' }) })`. The generated routes otherwise use a default instance limited to 8 MB per file.
+
 The generated Hapi routes import `boomify` and `isBoom` from `@hapi/boom`. `@hapi/hapi` depends on it, but list it in your own `package.json` as well: with pnpm or another strict layout, the routes cannot resolve it otherwise.
 
 Each framework's template service has its own entry point. The `@tsoa/runtime` and `tsoa` roots do not export them, so custom route templates (`routes.middlewareTemplate`) and classes that extend a template service import them from the subpath:
