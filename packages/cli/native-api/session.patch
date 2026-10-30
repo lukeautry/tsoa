@@ -1,0 +1,11 @@
+--- a/tsc/internal/api/session.go
++++ b/tsc/internal/api/session.go
+@@ -880,4 +880,7 @@
+ 	case "ping":
+ 		return "pong", nil
+ 	}
++	if handler, ok := extensionHandlers[method]; ok {
++		return handler(s, ctx, params)
++	}
+ 
+ 	parsed, err := unmarshalPayload(method, params)

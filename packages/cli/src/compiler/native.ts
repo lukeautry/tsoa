@@ -44,6 +44,7 @@ interface NativeIndexInfo {
   type?: NativeType;
 }
 interface NativeChecker {
+  getUndefinedType(): NativeType;
   getPropertiesOfType(type: NativeType): NativeSymbol[];
   getPropertyOfType(type: NativeType, name: string): NativeSymbol | undefined;
   getIndexInfosOfType(type: NativeType): NativeIndexInfo[];
@@ -67,18 +68,23 @@ interface NativeSnapshot {
 interface NativeAPI {
   parseConfigFile(file: string): NativeConfigResult;
   printer?: { printNode(node: unknown): string };
+  batch(...requests: Generator[]): unknown[];
   createSnapshot?(options: { createPrograms: Array<{ rootFiles: string[]; compilerOptions: ts.CompilerOptions }> }): NativeSnapshot;
   updateSnapshot?(options: { openProject: string }): NativeSnapshot;
   close(): void;
 }
 export interface NativeSync {
-  API: new (options: { cwd: string }) => NativeAPI;
+  API: new (options: { cwd: string; tsserverPath?: string }) => NativeAPI;
   ModuleKind: Record<number, string>;
   TypeFlags: { String: number; Number: number };
   SymbolFlags: { Type: number; Namespace: number; Alias: number };
 }
 export interface NativeAST {
-  SyntaxKind: { Decorator: number; PropertySignature: number; PropertyDeclaration: number; MethodSignature: number; Parameter: number; QuestionToken: number };
+  isIdentifier(node: NativeNode): boolean;
+  isQualifiedName(node: NativeNode): boolean;
+  isPropertyAccessExpression(node: NativeNode): boolean;
+  isTypeNode(node: NativeNode): boolean;
+  SyntaxKind: { Decorator: number; PropertySignature: number; PropertyDeclaration: number; MethodSignature: number; Parameter: number; QuestionToken: number; Identifier: number };
   ScriptTarget: Record<number, string>;
 }
 
@@ -88,7 +94,9 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
   const directory = mkdtempSync(join(tmpdir(), 'tsoa-compiler-'));
   let api: NativeAPI;
   try {
-    api = new sync.API({ cwd: process.cwd() });
+    // TSOA_COMPILER_TSC: a TypeScript 7 compiler built with tsoa's API extensions (packages/cli/native-api), which
+    // answers what the public API cannot.
+    api = new sync.API({ cwd: process.cwd(), ...(extensionCompiler() ? { tsserverPath: extensionCompiler() } : {}) });
   } catch (error) {
     rmSync(directory, { recursive: true, force: true });
     throw error;
@@ -156,10 +164,12 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
       }
       if (!project) throw new Error(`${name}: could not open the metadata project.`);
       const own = project;
-      const checker = classicChecker(own.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken);
+      let sourceFiles: NativeNode[] | undefined;
+      const checker = classicChecker(own.checker, sync.TypeFlags, sync.SymbolFlags, name, ast.SyntaxKind.QuestionToken, ast.SyntaxKind.Identifier, api, ast);
       return {
         getTypeChecker: () => checker,
-        getSourceFiles: () => own.program.getSourceFileNames().map((file: string) => normalizeNode(own.program.getSourceFile(file), ast.SyntaxKind.QuestionToken)),
+        // A program's files do not change; the resolver asks for them repeatedly.
+        getSourceFiles: () => (sourceFiles ??= own.program.getSourceFileNames().map((file: string) => normalizeNode(own.program.getSourceFile(file), ast.SyntaxKind.QuestionToken))),
       };
     },
   };
@@ -175,20 +185,62 @@ export function nativeCompiler(sync: NativeSync, ast: NativeAST, name: string, t
   };
 }
 
-const normalizedNodes = new WeakSet<object>();
+// Native nodes name two classic properties differently: `default` is `defaultType`, and an optional member's
+// `questionToken` is its `postfixToken`. All native nodes share one class, so its prototype answers the classic
+// names once for every node, instead of each tree being walked to add them.
+const normalizedPrototypes = new WeakSet<object>();
 function normalizeNode(node: NativeNode, questionToken: number): NativeNode {
-  if (normalizedNodes.has(node)) return node;
-  normalizedNodes.add(node);
-  if (node.defaultType) Object.defineProperty(node, 'default', { get: () => node.defaultType });
-  if (node.postfixToken?.kind === questionToken) Object.defineProperty(node, 'questionToken', { get: () => node.postfixToken });
-  node.forEachChild((child: NativeNode) => {
-    normalizeNode(child, questionToken);
+  let prototype = Object.getPrototypeOf(node) as object | null;
+  while (prototype && !Object.getOwnPropertyDescriptor(prototype, 'postfixToken')) prototype = Object.getPrototypeOf(prototype) as object | null;
+  if (!prototype || normalizedPrototypes.has(prototype)) return node;
+  normalizedPrototypes.add(prototype);
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, 'questionToken');
+  const written = (node: NativeNode): NativeNode | undefined => descriptor?.get?.call(node) as NativeNode | undefined;
+  Object.defineProperty(prototype, 'questionToken', {
+    configurable: true,
+    get(this: NativeNode) {
+      return written(this) ?? (this.postfixToken?.kind === questionToken ? this.postfixToken : undefined);
+    },
   });
+  if (!Object.getOwnPropertyDescriptor(prototype, 'default')) {
+    Object.defineProperty(prototype, 'default', {
+      configurable: true,
+      get(this: NativeNode) {
+        return this.defaultType;
+      },
+    });
+  }
   return node;
 }
 
-function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], symbols: NativeSync['SymbolFlags'], name: string, questionToken: number) {
+function extensionCompiler(): string | undefined {
+  return process.env.TSOA_COMPILER_TSC || undefined;
+}
+
+// The parts of the native checker that requests to API extensions need.
+interface NativeCheckerInternals {
+  snapshotId: number;
+  project: { id: string };
+  client: { apiRequest(method: string, params: unknown): unknown };
+  objectRegistry: { getOrCreateSymbol(response: unknown): NativeSymbol };
+}
+
+function classicChecker(
+  checker: NativeChecker,
+  flags: NativeSync['TypeFlags'],
+  symbols: NativeSync['SymbolFlags'],
+  name: string,
+  questionToken: number,
+  identifier: number,
+  api: NativeAPI,
+  ast: NativeAST,
+) {
   const locations = new WeakMap<object, any>();
+  // The symbols the identifiers of printed nodes name, from the `tsoa/printedSymbols` extension.
+  const printedSymbols = new WeakMap<object, NativeSymbol>();
+  const extensions = extensionCompiler() !== undefined;
+  let undefinedType: NativeType | undefined;
+  const prefetch = new Prefetch(checker as unknown as PrefetchChecker, api, ast, symbols.Alias);
   const referenceNames = new WeakSet<object>();
   const adapted = new WeakMap<object, any>();
   const originals = new WeakMap<object, any>();
@@ -207,14 +259,21 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
         type: () => type.getTarget(),
         target: () => type.getTarget(),
         aliasTypeArguments: () => type.getAliasTypeArguments(),
+        // Classic intrinsic types name themselves; native ones carry the boolean value, or say they are the error type.
+        intrinsicName: () => {
+          const native = type as NativeType & { value?: unknown; intrinsicName?: string; isBooleanLiteralType?(): boolean; isErrorType?(): boolean };
+          if (native.isBooleanLiteralType?.()) return String(native.value);
+          if (native.isErrorType?.()) return 'error';
+          return native.intrinsicName;
+        },
         getFlags: () => () => type.flags,
         isUnion: () => () => type.isUnionType(),
         isIntersection: () => () => type.isIntersectionType(),
         isUnionOrIntersection: () => () => type.isUnionType() || type.isIntersectionType(),
         isLiteral: () => () => type.isLiteralType(),
         isStringLiteral: () => () => type.isStringLiteralType(),
-        getProperties: () => () => checker.getPropertiesOfType(type),
-        getProperty: () => (name: string) => checker.getPropertyOfType(type, name),
+        getProperties: () => () => prefetch.propertiesOfType(type),
+        getProperty: () => (name: string) => prefetch.propertyOfType(type, name),
         getStringIndexType: () => () => checker.getIndexInfosOfType(type).find((info: NativeIndexInfo) => info.keyType.flags & flags.String)?.valueType,
         getNumberIndexType: () => () => checker.getIndexInfosOfType(type).find((info: NativeIndexInfo) => info.keyType.flags & flags.Number)?.valueType,
       };
@@ -227,13 +286,16 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
         getName: () => () => symbol.name,
         getEscapedName: () => () => symbol.escapedName,
         getFlags: () => () => symbol.flags,
+        getDocumentationComment: () => () => prefetch.documentation(symbol),
       };
     } else {
       return value;
     }
     const proxy = new Proxy(value, {
       get(target, key: string) {
-        const result: unknown = getters[key] ? getters[key]() : Reflect.get(target, key);
+        let result: unknown = getters[key] ? getters[key]() : Reflect.get(target, key);
+        // Classic type predicates (`isNumberLiteral`) are `isNumberLiteralType` on native types.
+        if (result === undefined && key.startsWith('is')) result = Reflect.get(target, `${key}Type`);
         return typeof result === 'function' ? (...args: any[]) => wrap(result.apply(target, args.map(unwrap))) : wrap(result);
       },
     });
@@ -247,7 +309,9 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
         return (type: any) => target.getIndexInfosOfType(unwrap(type)).map((info: NativeIndexInfo) => ({ ...info, type: wrap(info.type ?? info.valueType), keyType: wrap(info.keyType) }));
       if (key === 'getSymbolAtLocation')
         return (node: NativeNode) => {
-          if (!referenceNames.has(node)) return node.pos !== -1 ? wrap(target.getSymbolAtLocation(node)) : undefined;
+          if (!referenceNames.has(node)) return node.pos !== -1 ? wrap(prefetch.symbolAtLocation(node)) : undefined;
+          const printed = printedSymbols.get(node) ?? (node.right && printedSymbols.get(node.right));
+          if (printed) return wrap(printed);
           const location = locations.get(node);
           // Printed names may be qualified (`TsoaTest.TestModel73`); resolve them left to right, as classic `getSymbolAtLocation` does.
           const entity = (name: NativeNode, meaning: number): NativeSymbol | undefined => {
@@ -259,13 +323,34 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
           if (!symbol) throw new Error(`Synthetic type reference lookup is not supported with the ${name} compiler backend.`);
           return wrap(symbol);
         };
+      if (key === 'getTypeFromTypeNode') return (node: NativeNode) => wrap(prefetch.typeFromTypeNode(unwrap(node)));
+      if (key === 'getAliasedSymbol') return (symbol: NativeSymbol) => wrap(prefetch.aliasedSymbol(unwrap(symbol)));
+      if (key === 'getTypeOfSymbol') return (symbol: NativeSymbol) => wrap(prefetch.typeOfSymbol(unwrap(symbol)));
+      if (key === 'getPropertiesOfType') return (type: NativeType) => wrap(prefetch.propertiesOfType(unwrap(type)));
+      if (key === 'getPropertyOfType') return (type: NativeType, propertyName: string) => wrap(prefetch.propertyOfType(unwrap(type), propertyName));
+      if (key === 'getUndefinedType') return () => wrap((undefinedType ??= target.getUndefinedType()));
       const result: unknown = Reflect.get(target, key);
       return typeof result === 'function'
         ? (...args: any[]) => {
             const location =
               key === 'getTypeOfSymbolAtLocation' ? (unwrap(args[0]) as NativeSymbol).declarations?.[0]?.resolve() : args[0]?.pos >= 0 ? args[0] : args[0] && locations.get(unwrap(args[0]));
             if (key === 'typeToTypeNode' && !args[1]) args[1] = location;
-            const raw = result.apply(target, args.map(unwrap));
+            let printedSymbolResponses: unknown[] | undefined;
+            let raw: any;
+            if (key === 'typeToTypeNode' && extensions) {
+              // The extension prints the same node and names the symbol of each identifier, in walk order; both go in one round trip.
+              const [type, enclosing, nodeFlags] = args.map(unwrap) as [{ id: string }, { id?: string } | undefined, number | undefined];
+              const internals = target as unknown as NativeCheckerInternals;
+              const printedSymbols = (function* (): Generator<unknown, unknown, unknown> {
+                return yield { method: 'tsoa/printedSymbols', params: { snapshot: internals.snapshotId, project: internals.project.id, type: type.id, location: enclosing?.id, flags: nodeFlags } };
+              })();
+              [raw, printedSymbolResponses] = api.batch(
+                (target as unknown as PrefetchChecker & { typeToTypeNode: GenMethod<unknown[], unknown> }).typeToTypeNode.gen(...args.map(unwrap)),
+                printedSymbols,
+              ) as [any, unknown[]];
+            } else {
+              raw = result.apply(target, args.map(unwrap));
+            }
             if (raw && typeof raw === 'object' && location) locations.set(raw, location);
             if (key === 'typeToTypeNode' && raw) {
               const source = args[1] ?? location;
@@ -278,6 +363,19 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
               };
               mark(raw);
               normalizeNode(raw, questionToken);
+              if (printedSymbolResponses) {
+                const internals = target as unknown as NativeCheckerInternals;
+                const responses = printedSymbolResponses;
+                let index = 0;
+                const visit = (node: NativeNode) => {
+                  if (node.kind === identifier) {
+                    const response = responses[index++];
+                    if (response) printedSymbols.set(node, internals.objectRegistry.getOrCreateSymbol(response));
+                  }
+                  node.forEachChild(visit);
+                };
+                visit(raw);
+              }
             }
             return wrap(raw);
           }
@@ -286,4 +384,131 @@ function classicChecker(checker: NativeChecker, flags: NativeSync['TypeFlags'], 
   });
   originals.set(proxy, checker);
   return proxy;
+}
+
+type GenMethod<A extends unknown[], R> = ((...args: A) => R) & { gen(...args: A): Generator };
+interface PrefetchChecker {
+  getSymbolAtLocation: GenMethod<[NativeNode | NativeNode[]], any>;
+  getTypeFromTypeNode: GenMethod<[NativeNode], NativeType>;
+  getAliasedSymbol: GenMethod<[NativeSymbol], NativeSymbol>;
+  getTypeOfSymbol: GenMethod<[NativeSymbol], NativeType>;
+  getPropertiesOfType: GenMethod<[NativeType], NativeSymbol[]>;
+  getPropertyOfType(type: NativeType, name: string): NativeSymbol | undefined;
+}
+type DocumentedSymbol = NativeSymbol & { getDocumentationComment: GenMethod<[unknown], string> };
+
+/**
+ * Answers checker queries from results fetched in bulk. Each query of the native API is a round trip; the type
+ * resolver asks thousands of small questions, mostly about the names and type nodes of a few source files and the
+ * properties of the types it meets. So the first question about a source file fetches the symbols of all its
+ * names, their aliased symbols and the types of all its type nodes in one round trip, and the properties of a type
+ * come with their types and documentation.
+ */
+class Prefetch {
+  private readonly files = new WeakSet<object>();
+  private readonly symbolAt = new Map<string, NativeSymbol | undefined>();
+  private readonly typeOfNode = new Map<string, NativeType>();
+  private readonly aliased = new WeakMap<object, NativeSymbol>();
+  private readonly typeOf = new WeakMap<object, NativeType>();
+  private readonly docs = new WeakMap<object, string>();
+  private readonly properties = new WeakMap<object, NativeSymbol[]>();
+
+  constructor(
+    private readonly checker: PrefetchChecker,
+    private readonly api: NativeAPI,
+    private readonly ast: NativeAST,
+    private readonly aliasFlag: number,
+  ) {}
+
+  symbolAtLocation(node: NativeNode): NativeSymbol | undefined {
+    const id = nodeId(node);
+    if (!this.symbolAt.has(id)) this.prefetchFile(node);
+    if (!this.symbolAt.has(id)) this.symbolAt.set(id, this.checker.getSymbolAtLocation(node));
+    return this.symbolAt.get(id);
+  }
+
+  typeFromTypeNode(node: NativeNode): NativeType {
+    if (node.pos === -1) return this.checker.getTypeFromTypeNode(node);
+    const id = nodeId(node);
+    if (!this.typeOfNode.has(id)) this.prefetchFile(node);
+    if (!this.typeOfNode.has(id)) this.typeOfNode.set(id, this.checker.getTypeFromTypeNode(node));
+    return this.typeOfNode.get(id)!;
+  }
+
+  aliasedSymbol(symbol: NativeSymbol): NativeSymbol {
+    if (!this.aliased.has(symbol)) this.aliased.set(symbol, this.checker.getAliasedSymbol(symbol));
+    return this.aliased.get(symbol)!;
+  }
+
+  typeOfSymbol(symbol: NativeSymbol): NativeType {
+    if (!this.typeOf.has(symbol)) this.typeOf.set(symbol, this.checker.getTypeOfSymbol(symbol));
+    return this.typeOf.get(symbol)!;
+  }
+
+  documentation(symbol: NativeSymbol): string {
+    if (!this.docs.has(symbol)) this.docs.set(symbol, (symbol as DocumentedSymbol).getDocumentationComment(this.checker));
+    return this.docs.get(symbol)!;
+  }
+
+  /** A property of a type, from its fetched properties; a name they lack is asked for, as the checker may synthesize it. */
+  propertyOfType(type: NativeType, name: string): NativeSymbol | undefined {
+    return this.propertiesOfType(type).find(property => property.name === name) ?? this.checker.getPropertyOfType(type, name);
+  }
+
+  propertiesOfType(type: NativeType): NativeSymbol[] {
+    let properties = this.properties.get(type);
+    if (!properties) {
+      properties = this.checker.getPropertiesOfType(type);
+      this.properties.set(type, properties);
+      const unknown = properties.filter(property => !this.typeOf.has(property) || !this.docs.has(property));
+      if (unknown.length) {
+        const results = this.batch([
+          ...unknown.map(property => this.checker.getTypeOfSymbol.gen(property)),
+          ...unknown.map(property => (property as DocumentedSymbol).getDocumentationComment.gen(this.checker)),
+        ]);
+        if (results)
+          unknown.forEach((property, index) => {
+            this.typeOf.set(property, results[index] as NativeType);
+            this.docs.set(property, results[unknown.length + index] as string);
+          });
+      }
+    }
+    return properties;
+  }
+
+  private prefetchFile(node: NativeNode) {
+    const file = (node as NativeNode & { getSourceFile?(): NativeNode & { isDeclarationFile?: boolean } }).getSourceFile?.();
+    // Declaration files such as lib.*.d.ts are large and asked little about.
+    if (!file || this.files.has(file) || file.isDeclarationFile) return;
+    this.files.add(file);
+    const names: NativeNode[] = [];
+    const typeNodes: NativeNode[] = [];
+    const visit = (child: NativeNode) => {
+      if (this.ast.isIdentifier(child) || this.ast.isQualifiedName(child) || this.ast.isPropertyAccessExpression(child)) names.push(child);
+      if (this.ast.isTypeNode(child)) typeNodes.push(child);
+      child.forEachChild(visit);
+    };
+    file.forEachChild(visit);
+    const found = (names.length ? this.checker.getSymbolAtLocation(names) : []) as Array<NativeSymbol | undefined>;
+    names.forEach((name, index) => this.symbolAt.set(nodeId(name), found[index]));
+    const aliases = [...new Set(found.filter((symbol): symbol is NativeSymbol => !!symbol && (symbol.flags & this.aliasFlag) !== 0 && !this.aliased.has(symbol)))];
+    const results = this.batch([...aliases.map(symbol => this.checker.getAliasedSymbol.gen(symbol)), ...typeNodes.map(typeNode => this.checker.getTypeFromTypeNode.gen(typeNode))]);
+    if (!results) return;
+    aliases.forEach((symbol, index) => this.aliased.set(symbol, results[index] as NativeSymbol));
+    typeNodes.forEach((typeNode, index) => this.typeOfNode.set(nodeId(typeNode), results[aliases.length + index] as NativeType));
+  }
+
+  // One round trip for many queries; a failed batch leaves its questions to be asked one at a time.
+  private batch(requests: Generator[]): unknown[] | undefined {
+    if (!requests.length) return [];
+    try {
+      return this.api.batch(...requests);
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+function nodeId(node: NativeNode): string {
+  return (node as NativeNode & { id: string }).id;
 }
