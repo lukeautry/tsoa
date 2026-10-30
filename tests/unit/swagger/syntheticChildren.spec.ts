@@ -305,6 +305,20 @@ const rows: Row[] = [
   aliasWithoutUndefinedRow('keeps undefined out of the alias of an optional member, whatever the order', ['exactInnerFirst', 'exactNullPlainFirst']),
   aliasWithoutUndefinedRow('keeps undefined out of the alias of an optional tuple element, whatever the order', ['exactTupleFirst', 'exactDirectFirst']),
   {
+    name: 'keeps an alias that includes undefined whole when an optional property uses it, whatever the order',
+    controller: 'syntheticChildren/optionalAliasBoxFirstController',
+    modes: [...nullModes, exactMode],
+    check: ({ generate }) => {
+      const maybe: Tsoa.Type = { dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'undefined' }] };
+      for (const controller of ['optionalAliasBoxFirst', 'optionalAliasMaybeFirst']) {
+        const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
+        expect(JSON.parse(JSON.stringify(refAlias(metadata, 'Maybe_string_').type)), `${controller} alias`).to.deep.equal(maybe);
+        expect(schemas.MaybeBox_string_.properties?.value.$ref, `${controller} property`).to.equal(ref('Maybe_string_'));
+        expect(schemas.MaybeBox_string_.required, `${controller} required`).to.equal(undefined);
+      }
+    },
+  },
+  {
     name: 'resolves union members by the names the source file imports',
     controller: 'syntheticChildren/indexedUnionController',
     check: ({ generate, strictNullChecks }) => {

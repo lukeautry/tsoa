@@ -331,6 +331,34 @@ const SignupSchema = z.object({ email: z.string(), plan: z.string().default('fre
 export type SignupInput = z.input<typeof SignupSchema>;
 export type SignupOutput = z.output<typeof SignupSchema>;
 
+export type PatchOf<T> = {
+  /** The patched value */
+  patch?: T;
+};
+export interface HeritageBase {
+  /** Declared by the base */
+  base: string;
+}
+export interface Holder<T> {
+  held: T;
+}
+export interface PatchFirst<T> extends PatchOf<T>, HeritageBase {
+  own: number;
+}
+export interface PatchLast<T> extends HeritageBase, PatchOf<T> {
+  own: number;
+}
+export interface MappedFirst<T> extends Partial<Holder<T>>, HeritageBase {
+  own: number;
+}
+export interface MappedLast<T> extends HeritageBase, Partial<Holder<T>> {
+  own: number;
+}
+
+export interface Labeled<T> {
+  value: T;
+}
+
 export const internalKey: unique symbol = Symbol('internal');
 const constKey = 'fromConst';
 export interface WithComputedKeys {
@@ -652,6 +680,20 @@ export class ComplexTypeController {
   @Post('Checked/ZodInputInline')
   public async postZodInputInline(@Body() body: z.input<typeof SignupSchema>): Promise<void> {
     return;
+  }
+
+  @Get('Checked/GenericBases')
+  public async getGenericBases(): Promise<{ patchFirst: PatchFirst<Profile>; patchLast: PatchLast<Profile>; mappedFirst: MappedFirst<Profile>; mappedLast: MappedLast<Profile> }> {
+    return null as any;
+  }
+
+  @Get('Checked/GenericNames')
+  public async getGenericNames(): Promise<{
+    user: Labeled<`user_${string}`>;
+    org: Labeled<`org_${string}`>;
+    numbered: Labeled<`user_${number}`>;
+  }> {
+    return null as any;
   }
 
   @Get('Checked/ComputedKeys')

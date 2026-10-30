@@ -115,11 +115,25 @@ function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: 
         properties.forEach(property => seen.add(property.name));
         return properties;
       }
-      // A base that mentions the owner's type parameters (`interface Envelope<T> extends Patch<T>`):
-      // its instantiated properties are the owner's properties not declared anywhere else.
+      // A base that mentions the owner's type parameters (`interface Both<T> extends Patch<T>`).
+      // An alias of a written object type contributes its written members, read with the base's
+      // own type arguments, as the same alias does when it is not generic.
+      const alias = bases.find(ts.isTypeAliasDeclaration);
+      if (alias && ts.isTypeLiteralNode(alias.type)) {
+        const baseSubstitutions = substitutionsFor(heritage, alias.typeParameters, { substitutions }, resolver.namer);
+        const properties = namedMembers(resolver, alias.type.members.filter(ts.isPropertySignature), baseSubstitutions)
+          .filter(written => !seen.has(written.name))
+          .map(written => declaredProperty(resolver, ownerType, written))
+          .reverse();
+        properties.forEach(property => seen.add(property.name));
+        return properties;
+      }
+      // Otherwise the base's own declared type says which properties it contributes, and the
+      // owner's instantiated type gives their types.
+      const contributed = new Set(checker.getPropertiesOfType(checker.getTypeAtLocation(heritage)).map(property => property.getName()));
       const properties = checker
         .getPropertiesOfType(ownerType)
-        .filter(property => !seen.has(property.getName()) && !isSymbolKeyed(property) && !isIgnoredMapped(property))
+        .filter(property => contributed.has(property.getName()) && !seen.has(property.getName()) && !isSymbolKeyed(property) && !isIgnoredMapped(property))
         .map(property => mappedProperty(resolver, property, { node: undefined, declaration: undefined, substitutions: emptySubstitutions }));
       properties.forEach(property => seen.add(property.name));
       return properties;
@@ -158,21 +172,11 @@ function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, me
   const required = !member.questionToken && !initializer;
   const site: Site = { node: member.type, declaration: member, substitutions };
 
+  // The declared type: what the written type denotes, else the checker's property type without
+  // the `undefined` an optional marker adds. `required` already says the property is optional.
   const symbol = checker.getPropertyOfType(ownerType, name);
-  let type: ts.Type;
-  if (member.type && member.type.pos !== -1 && substitutions.size === 0) {
-    // The declared type, without the `undefined` strict mode adds to optional properties.
-    type = checker.getTypeFromTypeNode(member.type);
-  } else {
-    type = symbol ? checker.getTypeOfSymbol(symbol) : checker.getTypeAtLocation(member);
-  }
-  const resolved =
-    !required && member.type && type.isUnion() && !writesUndefined(member.type)
-      ? resolver.resolveMembers(
-          type.types.filter(t => !(t.flags & ts.TypeFlags.Undefined)),
-          site,
-        )
-      : resolver.resolve(type, site);
+  const type = writtenType(checker, site) ?? withoutOptionality(resolver, member, symbol ? checker.getTypeOfSymbol(symbol) : checker.getTypeAtLocation(member));
+  const resolved = resolver.resolve(type, site);
 
   const initialValue = initializer ? getInitializerValue(initializer, checker) : undefined;
   return {
@@ -283,9 +287,26 @@ function indexSignatureType(resolver: TypeResolver, index: ts.IndexSignatureDecl
   return resolver.resolve(valueType, { node: index.type, declaration: site.declaration, substitutions: site.substitutions });
 }
 
-/** Optional properties carry an `undefined` in strict mode that the source did not write. */
-function writesUndefined(written: ts.TypeNode | undefined): boolean {
-  return written !== undefined && ts.isUnionTypeNode(written) && written.types.some(t => t.kind === ts.SyntaxKind.UndefinedKeyword);
+/**
+ * Removes the `undefined` the checker adds to an optional property's type. Under
+ * exactOptionalPropertyTypes that is the checker's `missing` type; otherwise it is plain
+ * `undefined`, added only when the declared type does not already include it.
+ */
+function withoutOptionality(resolver: TypeResolver, member: Member, type: ts.Type): ts.Type {
+  const checker = resolver.generator.typeChecker;
+  if (!member.questionToken || !type.isUnion()) {
+    return type;
+  }
+  if (resolver.generator.compilerOptions.exactOptionalPropertyTypes) {
+    return withoutMissing(checker, type);
+  }
+  const declared = member.type ? checker.getTypeFromTypeNode(member.type) : undefined;
+  const declaresUndefined = declared !== undefined && (declared.isUnion() ? declared.types : [declared]).some(t => t.flags & ts.TypeFlags.Undefined);
+  if (declaresUndefined) {
+    return type;
+  }
+  const members = type.types.filter(t => !(t.flags & ts.TypeFlags.Undefined));
+  return members.length === 1 ? members[0] : (unionOf(checker, members) ?? type);
 }
 
 /** Members with a JSON property name; symbol-keyed members have none and are left out. */

@@ -15,3 +15,8 @@ export interface Left {
 export interface Right {
   right: number;
 }
+
+export type Maybe<T> = T | undefined;
+export interface MaybeBox<T> {
+  value?: Maybe<T>;
+}

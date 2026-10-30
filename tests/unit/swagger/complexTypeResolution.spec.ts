@@ -558,6 +558,33 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
           expect(resolve(inline)).to.deep.equal(input);
         });
 
+        it('should take the own properties of each generic base once, in heritage order', () => {
+          const bases = resolve(response('GenericBases')).properties!;
+          const expected = {
+            patchFirst: ['patch', 'base', 'own'],
+            patchLast: ['base', 'patch', 'own'],
+            mappedFirst: ['held', 'base', 'own'],
+            mappedLast: ['base', 'held', 'own'],
+          };
+          for (const [name, order] of Object.entries(expected)) {
+            const model = resolve(bases[name]);
+            expect(Object.keys(model.properties!), name).to.deep.equal(order);
+            expect(model.properties?.base.description, name).to.equal('Declared by the base');
+          }
+          expect(resolve(bases.patchFirst).properties?.patch).to.deep.equal({ $ref: '#/components/schemas/Profile', description: 'The patched value' });
+          expect(resolve(bases.patchLast).properties?.patch).to.deep.equal(resolve(bases.patchFirst).properties?.patch);
+        });
+
+        it('should give each template literal type argument its own name', () => {
+          const { user, org, numbered } = resolve(response('GenericNames')).properties!;
+          expect([user.$ref, org.$ref, numbered.$ref]).to.deep.equal([
+            '#/components/schemas/Labeled_user__string__',
+            '#/components/schemas/Labeled_org__string__',
+            '#/components/schemas/Labeled_user__number__',
+          ]);
+          expect(resolve(user).properties?.value).to.deep.equal({ type: 'string' });
+        });
+
         it('should name computed keys by their value and leave out symbol keys', () => {
           const model = resolve(response('ComputedKeys'));
           expect(model.properties).to.have.all.keys('fromConst', 'literal-key', 'id');

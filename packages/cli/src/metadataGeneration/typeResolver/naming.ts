@@ -3,7 +3,7 @@ import { isDecorator } from '../../utils/decoratorUtils';
 import { getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
 import { throwUnless } from '../../utils/flowUtils';
 import { getPropertyValidators } from '../../utils/validatorUtils';
-import { GenerateMetadataError, GenerateMetaDataWarning } from '../exceptions';
+import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
 import { nodeDefault, nodeDescription, nodeExample, nodeExtensions, nodeFormat } from './annotations';
@@ -110,8 +110,23 @@ export class TypeNamer {
       // Parentheses are kept; existing component names depend on them.
       return `(${this.typeName(arg.type, subs)})`;
     }
-    console.warn(new GenerateMetaDataWarning(`This kind (${arg.kind}) is unhandled, so the type will be any, and no type conflict checks will made`, arg).toString());
-    return 'any';
+    if (ts.isTemplateLiteralTypeNode(arg)) {
+      return `\`${arg.head.text}${arg.templateSpans.map(span => `\${${this.typeName(span.type, subs)}}${span.literal.text}`).join('')}\``;
+    }
+    if (ts.isTupleTypeNode(arg)) {
+      return `[${arg.elements.map(element => this.typeName(element, subs)).join(', ')}]`;
+    }
+    if (ts.isNamedTupleMember(arg)) {
+      return `${arg.dotDotDotToken ? '...' : ''}${this.typeName(arg.type, subs)}${arg.questionToken ? '?' : ''}`;
+    }
+    if (ts.isRestTypeNode(arg)) {
+      return `...${this.typeName(arg.type, subs)}`;
+    }
+    if (ts.isOptionalTypeNode(arg)) {
+      return `${this.typeName(arg.type, subs)}?`;
+    }
+    // Any other syntax is named by its written text, so different types never share a name.
+    return printed(arg);
   }
 
   /** Turns a type name into a component name accepted by Swagger UI. */
@@ -122,6 +137,8 @@ export class TypeNamer {
       .replace(/,/g, '.')
       .replace(/'([^']*)'/g, '$1')
       .replace(/"([^"]*)"/g, '$1')
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/\$\{/g, '{')
       .replace(/&/g, '-and-')
       .replace(/\|/g, '-or-')
       .replace(/\[\]/g, '-Array')
@@ -242,6 +259,14 @@ export function entityOf(node: ts.TypeReferenceType): ts.EntityName {
 
 function entityText(entity: ts.EntityName): string {
   return ts.isIdentifier(entity) ? entity.text : `${entityText(entity.left)}.${entity.right.text}`;
+}
+
+const printer = ts.createPrinter({ removeComments: true });
+const emptySource = ts.createSourceFile('printed.ts', '', ts.ScriptTarget.Latest);
+
+/** The written text of a type node (printed, so synthesized nodes have one too). */
+function printed(node: ts.TypeNode): string {
+  return printer.printNode(ts.EmitHint.Unspecified, node, node.pos !== -1 ? node.getSourceFile() : emptySource);
 }
 
 /** The value of a literal type node. */
