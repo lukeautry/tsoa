@@ -240,6 +240,11 @@ function classicChecker(
   const printedSymbols = new WeakMap<object, NativeSymbol>();
   const extensions = extensionCompiler() !== undefined;
   let undefinedType: NativeType | undefined;
+  // Records where a result came from, as the generic path does.
+  const located = <T>(result: T, location: unknown): T => {
+    if (result && typeof result === 'object' && location && !locations.has(result)) locations.set(result, location);
+    return result;
+  };
   const prefetch = new Prefetch(checker as unknown as PrefetchChecker, api, ast, symbols.Alias);
   const referenceNames = new WeakSet<object>();
   const adapted = new WeakMap<object, any>();
@@ -323,11 +328,12 @@ function classicChecker(
           if (!symbol) throw new Error(`Synthetic type reference lookup is not supported with the ${name} compiler backend.`);
           return wrap(symbol);
         };
-      if (key === 'getTypeFromTypeNode') return (node: NativeNode) => wrap(prefetch.typeFromTypeNode(unwrap(node)));
-      if (key === 'getAliasedSymbol') return (symbol: NativeSymbol) => wrap(prefetch.aliasedSymbol(unwrap(symbol)));
-      if (key === 'getTypeOfSymbol') return (symbol: NativeSymbol) => wrap(prefetch.typeOfSymbol(unwrap(symbol)));
+      // Prefetched answers keep the locations the generic path below records: printed names resolve from them.
+      if (key === 'getTypeFromTypeNode') return (node: NativeNode) => wrap(located(prefetch.typeFromTypeNode(unwrap(node)), node.pos >= 0 ? node : locations.get(unwrap(node))));
+      if (key === 'getAliasedSymbol') return (symbol: NativeSymbol) => wrap(located(prefetch.aliasedSymbol(unwrap(symbol)), locations.get(unwrap(symbol))));
+      if (key === 'getTypeOfSymbol') return (symbol: NativeSymbol) => wrap(located(prefetch.typeOfSymbol(unwrap(symbol)), locations.get(unwrap(symbol))));
       if (key === 'getPropertiesOfType') return (type: NativeType) => wrap(prefetch.propertiesOfType(unwrap(type)));
-      if (key === 'getPropertyOfType') return (type: NativeType, propertyName: string) => wrap(prefetch.propertyOfType(unwrap(type), propertyName));
+      if (key === 'getPropertyOfType') return (type: NativeType, propertyName: string) => wrap(located(prefetch.propertyOfType(unwrap(type), propertyName), locations.get(unwrap(type))));
       if (key === 'getUndefinedType') return () => wrap((undefinedType ??= target.getUndefinedType()));
       const result: unknown = Reflect.get(target, key);
       return typeof result === 'function'
