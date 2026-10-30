@@ -3,7 +3,7 @@ import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerato
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
-import { Swagger } from '@tsoa/runtime';
+import { Swagger, Tsoa } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
@@ -583,6 +583,38 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
             '#/components/schemas/Labeled_user__number__',
           ]);
           expect(resolve(user).properties?.value).to.deep.equal({ type: 'string' });
+        });
+
+        it('should publish a heritage base that the model refers to, and only then', () => {
+          const operation = currentSpec.spec.paths['/ComplexType/Checked/RecursiveBase'].post!;
+          const node = resolve(operation.requestBody!.content['application/json'].schema);
+          expect(node.properties?.children).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeNodeBase' } });
+          expect(resolve(schemas().TreeNodeBase).properties?.children).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeNodeBase' } });
+
+          expect(resolve(operation.responses['200'].content!['application/json'].schema).properties).to.have.all.keys('plain', 'extra');
+          expect(schemas()).to.not.have.property('PlainBase');
+        });
+
+        it('should keep the alias and validators of a generic union member', () => {
+          const body = currentSpec.spec.paths['/ComplexType/Checked/AliasInGenericUnion'].post!.requestBody!.content['application/json'].schema;
+          expect(resolve(body).properties?.value.anyOf).to.deep.equal([{ $ref: '#/components/schemas/Nullable_Identifier_' }, { type: 'number', format: 'double' }]);
+          expect(resolve(schemas().Nullable_Identifier_)).to.deep.equal({ allOf: [{ $ref: '#/components/schemas/Identifier' }], nullable: true });
+          expect(resolve(schemas().Identifier)).to.deep.equal({ type: 'string', pattern: '^x' });
+
+          const strict = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts', { strict: true }).Generate();
+          const nullable = strict.referenceTypeMap.Nullable_Identifier_ as Tsoa.RefAliasType;
+          expect(JSON.parse(JSON.stringify(nullable.type))).to.deep.equal({
+            dataType: 'union',
+            types: [
+              { dataType: 'refAlias', refName: 'Identifier', type: { dataType: 'string' }, validators: { pattern: { value: '^x' } }, deprecated: false },
+              { dataType: 'enum', enums: [null] },
+            ],
+          });
+        });
+
+        it('should resolve type parameter defaults that refer to earlier parameters', () => {
+          const pair = resolve(response('DefaultTypeArguments'));
+          expect(pair.properties).to.deep.equal({ first: { type: 'string' }, second: { type: 'string' } });
         });
 
         it('should name computed keys by their value and leave out symbol keys', () => {

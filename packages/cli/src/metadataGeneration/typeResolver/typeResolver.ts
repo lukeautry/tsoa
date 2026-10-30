@@ -4,7 +4,8 @@ import { getJSDocTagNames } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
-import { isArrayType, isErrorType, isTupleType, tupleElementFlags, unionOf } from './internals';
+import { isTypeScriptLib } from './declarations';
+import { isArrayType, isErrorType, isTupleType, tupleElementFlags } from './internals';
 import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { TypeNamer } from './naming';
@@ -140,6 +141,12 @@ export class TypeResolver {
       return { dataType: 'array', elementType: this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node))) };
     }
     if (flags & ts.TypeFlags.Object) {
+      if (isBuiltInClass(type)) {
+        throw new GenerateMetadataError(
+          `Unsupported type: ${this.checker.typeToString(type)}. Built-in classes such as Set and Map have no JSON form; use an array, an object type or an interface instead.`,
+          site.node,
+        );
+      }
       return this.resolveObject(type, site);
     }
     throw new GenerateMetadataError(`Unknown type: ${this.checker.typeToString(type)}`, site.node);
@@ -242,30 +249,6 @@ export class TypeResolver {
     return resolved.length === 1 ? resolved[0] : { dataType: 'union', types: resolved };
   }
 
-  /**
-   * A union of some of a type's members (e.g. an optional property without the `undefined` strict
-   * mode adds), keeping what the written node at `site` says about them.
-   */
-  public resolveMembers(members: readonly ts.Type[], site: Site): Tsoa.Type {
-    if (members.length === 1) {
-      return this.resolve(members[0], site);
-    }
-    const union = unionOf(this.checker, members);
-    if (union) {
-      return this.resolve(union, site);
-    }
-    const written = writtenType(this.checker, site);
-    const writtenMembers = written ? (written.isUnion() ? written.types : [written]) : [];
-    if (written && writtenMembers.length === members.length && writtenMembers.every(member => members.includes(member))) {
-      return this.resolve(written, site);
-    }
-    const followed = descriptiveSite(this.checker, followSite(site));
-    if (followed.node && ts.isUnionTypeNode(followed.node)) {
-      return this.resolveWrittenUnion(members, followed, followed.node);
-    }
-    return this.resolveCheckerUnion(members, followed);
-  }
-
   /** Property keys (`keyof X`): literal keys as enums; `string | number` for indexable keys. */
   private resolveKeys(type: ts.Type, site: Site): Tsoa.Type {
     const members = type.isUnion() ? type.types : [type];
@@ -333,6 +316,18 @@ function literalValue(type: ts.Type): LiteralValue | undefined {
     return (type as { intrinsicName?: string }).intrinsicName === 'true';
   }
   return undefined;
+}
+
+/**
+ * A class or interface declared only in TypeScript's own lib files (Set, Map, RegExp, typed arrays…).
+ * Types tsoa maps specially (Date, Promise, arrays) never get here; lib aliases such as `Partial`
+ * and `Record` produce anonymous types, and declarations from packages are models.
+ */
+function isBuiltInClass(type: ts.Type): boolean {
+  const symbol = type.getSymbol();
+  const declarations = symbol?.getDeclarations();
+  const isClassOrInterface = symbol !== undefined && (symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Interface)) !== 0;
+  return isClassOrInterface && !!declarations?.length && declarations.every(declaration => isTypeScriptLib(declaration.getSourceFile()));
 }
 
 /** Literal values as one enum, or one enum per primitive kind when mixed (as for `keyof`). */

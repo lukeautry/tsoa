@@ -17,14 +17,15 @@ export interface ReferenceName {
   /** The component name derived from `typeName`, e.g. `Omit_User.id_`. */
   refName: string;
   declarations: ModelDeclaration[];
-  /** True when the reference has no declarations and is named `Inline_…`. */
-  inline: boolean;
 }
 
 /**
  * Model naming. Names are part of the public contract (component names in generated specs), so
- * they stay as tsoa has always spelled them, including the quirks. Names depend on how a type is
- * written, not on what it resolves to.
+ * every type the previous resolver could name keeps its spelling, including the quirks. Type
+ * arguments it named `any` (template literal types, tuples and other syntax it did not handle)
+ * now get their own names, e.g. `Box<[string, number]>` becomes `Box__string.number__` rather
+ * than `Box_any_`, so distinct instantiations no longer collapse into one model. Names depend on
+ * how a type is written, not on what it resolves to.
  */
 export class TypeNamer {
   constructor(private readonly generator: MetadataGenerator) {}
@@ -36,11 +37,11 @@ export class TypeNamer {
   /** Names a written reference and finds its declarations. */
   public referenceName(node: ts.TypeReferenceType, subs: Substitutions): ReferenceName {
     const entity = entityOf(node);
-    const { name, inline } = this.refTypeName(entity, subs);
+    const name = this.refTypeName(entity, subs);
     const typeName = this.withTypeArguments(node, name, subs);
     const refName = TypeNamer.refName(typeName);
     this.generator.CheckExpressionUnicity(refName, typeName);
-    return { entity, typeName, refName, declarations: modelDeclarations(this.checker, entity), inline };
+    return { entity, typeName, refName, declarations: modelDeclarations(this.checker, entity) };
   }
 
   /** The written type expression, normalized. */
@@ -63,7 +64,7 @@ export class TypeNamer {
       return primitive;
     }
     if (ts.isTypeReferenceNode(arg) || ts.isExpressionWithTypeArguments(arg)) {
-      return this.withTypeArguments(arg, this.refTypeName(entityOf(arg), subs).name, subs);
+      return this.withTypeArguments(arg, this.refTypeName(entityOf(arg), subs), subs);
     }
     if (ts.isTypeLiteralNode(arg)) {
       return `{${arg.members.map(member => this.memberName(member, subs)).join('; ')}}`;
@@ -88,7 +89,7 @@ export class TypeNamer {
       throw new GenerateMetadataError(`Unknown keyword has found: ${arg.operator}`, arg);
     }
     if (ts.isTypeQueryNode(arg)) {
-      return `typeof ${this.refTypeName(arg.exprName, subs).name}`;
+      return `typeof ${this.refTypeName(arg.exprName, subs)}`;
     }
     if (ts.isIndexedAccessTypeNode(arg)) {
       return `${this.typeName(arg.objectType, subs)}[${this.typeName(arg.indexType, subs)}]`;
@@ -114,7 +115,8 @@ export class TypeNamer {
       return `\`${arg.head.text}${arg.templateSpans.map(span => `\${${this.typeName(span.type, subs)}}${span.literal.text}`).join('')}\``;
     }
     if (ts.isTupleTypeNode(arg)) {
-      return `[${arg.elements.map(element => this.typeName(element, subs)).join(', ')}]`;
+      // Brackets are written as `_`, like the other delimiters in component names.
+      return `_${arg.elements.map(element => this.typeName(element, subs)).join(', ')}_`;
     }
     if (ts.isNamedTupleMember(arg)) {
       return `${arg.dotDotDotToken ? '...' : ''}${this.typeName(arg.type, subs)}${arg.questionToken ? '?' : ''}`;
@@ -161,21 +163,20 @@ export class TypeNamer {
   }
 
   /** The declared name, prefixed with its namespaces. */
-  private refTypeName(entity: ts.EntityName, subs: Substitutions): { name: string; inline: boolean } {
+  private refTypeName(entity: ts.EntityName, subs: Substitutions): string {
     let name = entityText(entity);
     const substitution = subs.get(name);
     if (substitution) {
-      return { name: substitution.name, inline: false };
+      return substitution.name;
     }
 
     const declarations = modelDeclarations(this.checker, entity);
     if (declarations.length === 0) {
       if (ts.isIdentifier(entity)) {
-        return { name: entity.text, inline: false };
+        return entity.text;
       }
-      // A qualified reference without declarations is named after its (unhandled) node kind.
-      const sanitized = 'any'.replace(/[^A-Za-z0-9]/g, '_');
-      return { name: `Inline_${sanitized}`, inline: true };
+      // A qualified reference without declarations (an unresolved namespace member).
+      return 'Inline_any';
     }
 
     // Every declaration is in the same namespace hierarchy.
@@ -204,7 +205,7 @@ export class TypeNamer {
       name,
       declarations.map(declaration => ({ fileName: declaration.getSourceFile().fileName, pos: declaration.pos })),
     );
-    return { name, inline: false };
+    return name;
   }
 
   /** One member of a type literal, including its JSDoc annotations. */

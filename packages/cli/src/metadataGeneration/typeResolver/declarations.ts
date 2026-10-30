@@ -33,7 +33,7 @@ export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName
 
   let models = declarations.filter((node): node is ModelDeclaration => isModelDeclaration(node) && node.name?.getText() === typeName);
   if (models.length > 1) {
-    const nonLib = models.filter(model => model.getSourceFile().fileName.replace(/\\/g, '/').toLowerCase().indexOf('node_modules/typescript') <= -1);
+    const nonLib = models.filter(model => !isTypeScriptLib(model.getSourceFile()));
     // ES2022 adds `cause` to Error in a second library declaration.
     if (!(nonLib.length === 0 && typeName === 'Error')) {
       models = nonLib;
@@ -41,6 +41,11 @@ export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName
     models = designatedModels(models, typeName);
   }
   return models;
+}
+
+/** A declaration file shipped with TypeScript itself (`lib.es2015.collection.d.ts`, …). */
+export function isTypeScriptLib(sourceFile: ts.SourceFile): boolean {
+  return sourceFile.fileName.replace(/\\/g, '/').toLowerCase().includes('node_modules/typescript');
 }
 
 function isModelDeclaration(node: ts.Node): node is ModelDeclaration {

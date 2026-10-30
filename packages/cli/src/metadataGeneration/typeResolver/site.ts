@@ -61,7 +61,9 @@ export function followSite(site: Site): Site {
 
 /**
  * Maps a generic declaration's type parameters to the arguments written at `reference`:
- * a forwarded type parameter, the argument, or the default.
+ * a forwarded type parameter, the argument, or the default. Written arguments are read in the
+ * caller's scope; a default is read in the declaration's own scope, so it can refer to the
+ * parameters bound before it (`interface Pair<T = string, U = T>`).
  */
 export function substitutionsFor(
   reference: ts.TypeReferenceNode | ts.ExpressionWithTypeArguments,
@@ -81,7 +83,8 @@ export function substitutionsFor(
     if (!node) {
       throw new GenerateMetadataError(`Could not find a value for type parameter ${typeParameter.name.text}`, reference);
     }
-    substitutions.set(typeParameter.name.text, { node, name: namer.typeName(node, outer.substitutions), scope: outer.substitutions, owner: typeParameter.parent });
+    const scope = typeArg ? outer.substitutions : new Map(substitutions);
+    substitutions.set(typeParameter.name.text, { node, name: namer.typeName(node, scope), scope, owner: typeParameter.parent });
   });
   return substitutions;
 }

@@ -4,11 +4,13 @@
  */
 import * as ts from 'typescript';
 import { symbolAt } from './declarations';
-import { childSite, emptySubstitutions, followSite, substitutionsCover, type Site, type Substitutions } from './site';
+import { unionOf } from './internals';
+import { childSite, emptySubstitutions, followSite, substitutionsCover, type Site, type Substitution, type Substitutions } from './site';
 
 /**
  * The type the written node at `site` denotes, when the checker can tell: the node mentions no
- * type parameter in scope, or it is an identity alias (`type Id<T> = T`) of such a node.
+ * type parameter in scope, or it references a generic alias whose body can be read with the
+ * alias's parameters bound to the written arguments (`Nullable<T>` with `type Nullable<T> = T | null`).
  */
 export function writtenType(checker: ts.TypeChecker, site: Site): ts.Type | undefined {
   const followed = followSite(site);
@@ -21,13 +23,37 @@ export function writtenType(checker: ts.TypeChecker, site: Site): ts.Type | unde
   }
   if (ts.isTypeReferenceNode(node)) {
     const declaration = symbolAt(checker, node.typeName)?.declarations?.find(ts.isTypeAliasDeclaration);
-    const body = declaration?.type;
-    const index =
-      body && ts.isTypeReferenceNode(body) && ts.isIdentifier(body.typeName) ? (declaration.typeParameters ?? []).findIndex(p => p.name.text === (body.typeName as ts.Identifier).text) : -1;
-    const argument = index >= 0 ? (node.typeArguments?.[index] ?? declaration?.typeParameters?.[index].default) : undefined;
-    return argument ? writtenType(checker, childSite(followed, argument)) : undefined;
+    if (!declaration?.typeParameters?.length) {
+      return undefined;
+    }
+    // Arguments are read in the caller's scope; defaults in the alias's own scope.
+    const bound = new Map<string, Substitution>();
+    declaration.typeParameters.forEach((parameter, index) => {
+      const argument = node.typeArguments?.[index];
+      const value = argument ?? parameter.default;
+      if (value) {
+        bound.set(parameter.name.text, { node: value, name: '', scope: argument ? followed.substitutions : new Map(bound), owner: declaration });
+      }
+    });
+    return aliasBodyType(checker, { node: declaration.type, declaration, substitutions: bound });
   }
   return undefined;
+}
+
+/** An alias body's type: the body itself, or a union whose members are each known. */
+function aliasBodyType(checker: ts.TypeChecker, site: Site): ts.Type | undefined {
+  const body = site.node;
+  if (!body || !ts.isUnionTypeNode(body)) {
+    return writtenType(checker, site);
+  }
+  const members = body.types.map(member => writtenType(checker, childSite(site, member)));
+  if (members.some(member => member === undefined)) {
+    return undefined;
+  }
+  return unionOf(
+    checker,
+    (members as ts.Type[]).flatMap(member => (member.isUnion() ? member.types : [member])),
+  );
 }
 
 /**

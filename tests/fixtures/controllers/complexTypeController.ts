@@ -359,6 +359,27 @@ export interface Labeled<T> {
   value: T;
 }
 
+export type TreeNodeBase = { children: TreeNodeBase[] };
+export interface NamedTreeNode extends TreeNodeBase {
+  name: string;
+}
+export type PlainBase = { plain: string };
+export interface UsesPlainBase extends PlainBase {
+  extra: number;
+}
+
+/** @pattern ^x */
+export type Identifier = string;
+export type Nullable<T> = T | null;
+export interface NullableBox<T> {
+  value: Nullable<T> | number;
+}
+
+export interface Pair<T = string, U = T> {
+  first: T;
+  second: U;
+}
+
 export const internalKey: unique symbol = Symbol('internal');
 const constKey = 'fromConst';
 export interface WithComputedKeys {
@@ -693,6 +714,21 @@ export class ComplexTypeController {
     org: Labeled<`org_${string}`>;
     numbered: Labeled<`user_${number}`>;
   }> {
+    return null as any;
+  }
+
+  @Post('Checked/RecursiveBase')
+  public async postRecursiveBase(@Body() body: NamedTreeNode): Promise<UsesPlainBase> {
+    return null as any;
+  }
+
+  @Post('Checked/AliasInGenericUnion')
+  public async postAliasInGenericUnion(@Body() body: NullableBox<Identifier>): Promise<void> {
+    return;
+  }
+
+  @Get('Checked/DefaultTypeArguments')
+  public async getDefaultTypeArguments(): Promise<Pair> {
     return null as any;
   }
 

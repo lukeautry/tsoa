@@ -247,6 +247,17 @@ describe('GET route generation', () => {
     expect(method.parameters[0].type).to.deep.equal({ dataType: 'buffer' });
   });
 
+  it('should reject built-in classes that have no JSON form', () => {
+    expect(() => new MetadataGenerator('./fixtures/controllers/unsupportedBuiltInController.ts').Generate()).to.throw(
+      /^Unsupported type: Set<string>\. Built-in classes such as Set and Map have no JSON form/,
+    );
+  });
+
+  it('should give each tuple type argument its own readable name', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/tupleNamesController.ts').Generate();
+    expect(Object.keys(metadata.referenceTypeMap)).to.have.members(['TupleBox__string.number__', 'TupleBox__number.string__']);
+  });
+
   it('should generate a path description from jsdoc comment', () => {
     const get = getValidatedGetOperation(baseRoute);
     if (!get.description) {

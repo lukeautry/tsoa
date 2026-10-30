@@ -13,6 +13,8 @@ export class ReferenceRegistry {
   private readonly built = new Map<string, Tsoa.ReferenceType>();
   private readonly types = new Map<string, ts.Type>();
   private readonly shells = new Map<string, Tsoa.ReferenceType[]>();
+  /** Models under construction that a reference asked to register (e.g. a heritage base that refers to itself). */
+  private readonly requested = new Set<string>();
 
   constructor(private readonly generator: MetadataGenerator) {}
 
@@ -34,6 +36,9 @@ export class ReferenceRegistry {
 
     const waiting = this.shells.get(refName);
     if (waiting) {
+      if (register) {
+        this.requested.add(refName);
+      }
       const shell = { dataType: 'refObject', refName } as Tsoa.ReferenceType;
       waiting.push(shell);
       return shell;
@@ -46,12 +51,13 @@ export class ReferenceRegistry {
         Object.assign(shell, result);
       }
       this.built.set(refName, result);
-      if (register) {
+      if (register || this.requested.has(refName)) {
         this.generator.AddReferenceType(result);
       }
       return result;
     } finally {
       this.shells.delete(refName);
+      this.requested.delete(refName);
     }
   }
 }
