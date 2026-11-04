@@ -743,6 +743,13 @@ describe('Express Server', () => {
       });
     });
 
+    it('should send a string as JSON when @Produces declares text/plain but no content-type is set', () => {
+      return verifyGetRequest(app, basePath + '/ExampleTest/ResponseExampleWithProduces', (_err, res) => {
+        expect(res.type).to.eq('application/json');
+        expect(res.text).to.eq('"test 1"');
+      });
+    });
+
     it('should hand a raw octet-stream request body to the controller as a stream', () => {
       const payload = Buffer.alloc(64 * 1024, 'a');
       return verifyRequest(
