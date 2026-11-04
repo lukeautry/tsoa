@@ -745,8 +745,9 @@ export class ValidationService {
   }
 
   /**
-   * An own "__proto__" key is never accepted as an additional property: any later assignment or Object.assign
-   * of the validated value would turn it into the target's prototype.
+   * An own "__proto__" key counts as an excess property even where additional properties are allowed, because a
+   * later assignment or Object.assign of the validated value would turn it into the target's prototype. Like any
+   * excess property it is kept under noImplicitAdditionalProperties: 'ignore', and values typed any are not inspected.
    */
   private static isPrototypeKey(key: string): boolean {
     return key === '__proto__';
