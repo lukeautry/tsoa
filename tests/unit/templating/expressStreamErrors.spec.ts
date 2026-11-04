@@ -70,4 +70,30 @@ describe('ExpressTemplateService stream errors before any data', () => {
     expect(res.headers['x-request-id']).to.eq('abc');
     expect(res.headers['content-disposition']).to.eq('inline');
   });
+
+  it('should hand an early stream error of an injected responder to the error handler', async () => {
+    const app = express();
+    app.get('/', (req, res, next) => {
+      const [respond] = templateService.getValidatedArgs({ args: { res: { in: 'res', name: '200', dataType: 'any' } }, request: req, response: res, next }) as [
+        (status: number, data: unknown, headers: Record<string, string>) => void,
+      ];
+      respond(
+        200,
+        new Readable({
+          read() {
+            this.destroy(new Error('stream_test_error'));
+          },
+        }),
+        { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment' },
+      );
+    });
+    app.use(answerWith500);
+
+    const res = await request(app as Parameters<typeof request>[0]).get('/');
+
+    expect(res.status).to.eq(500);
+    expect(res.type).to.eq('application/json');
+    expect(res.headers).to.not.have.property('content-disposition');
+    expect(res.body).to.deep.equal({ message: 'stream_test_error' });
+  });
 });

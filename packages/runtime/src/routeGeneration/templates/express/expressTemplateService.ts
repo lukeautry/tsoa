@@ -20,6 +20,7 @@ type ExpressValidationArgsParameters = {
   args: Record<string, TsoaRoute.ParameterSchema>;
   request: ExRequest;
   response: ExResponse;
+  next?: ExNext;
 };
 
 type ExpressReturnHandlerParameters = {
@@ -54,7 +55,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
   }
 
   getValidatedArgs(params: ExpressValidationArgsParameters): any[] {
-    const { args, request, response } = params;
+    const { args, request, response, next } = params;
 
     const fieldErrors: FieldErrors = {};
     const values = this.getParameters(args).map(param => {
@@ -113,7 +114,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
-            this.returnHandler({ response, headers, statusCode: status, data });
+            this.returnHandler({ response, headers, statusCode: status, data, next });
           };
       }
     });
