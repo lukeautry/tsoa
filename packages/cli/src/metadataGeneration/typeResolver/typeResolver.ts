@@ -9,7 +9,7 @@ import { resolveNamedReference } from './models';
 import { TypeNamer } from './naming';
 import { ReferenceRegistry } from './registry';
 import { childSite, followSite, rootSite, type Site } from './site';
-import { resolveSpecialType } from './specialTypes';
+import { isPromise, resolveSpecialType } from './specialTypes';
 import { arrayElementNode, descriptiveSite, nullishKeyword, sameModel, typeArgumentNode, writtenType } from './written';
 
 type LiteralValue = string | number | boolean | null;
@@ -31,45 +31,18 @@ export class TypeResolver {
     return this.generator.typeChecker;
   }
 
-  /**
-   * Where resolution currently is, from the parameter name through properties and elements
-   * (`body.items[].tags`), each step with the source declaration it came from, when there is one.
-   */
-  private path: Array<{ segment: string; declaration?: ts.Node }> = [];
-
   /** A checker type with no written form (an inferred return or parameter type). */
   public resolveType(type: ts.Type, declaration?: ts.Node): Tsoa.Type {
-    return this.resolveRoot(type, rootSite(undefined, declaration));
+    return this.resolve(type, rootSite(undefined, declaration));
   }
 
   /** A type written in source. */
   public resolveTypeNode(node: ts.TypeNode, declaration?: ts.Node): Tsoa.Type {
-    return this.resolveRoot(this.checker.getTypeFromTypeNode(node), rootSite(node, declaration));
+    return this.resolve(this.checker.getTypeFromTypeNode(node), rootSite(node, declaration));
   }
 
-  private resolveRoot(type: ts.Type, site: Site): Tsoa.Type {
-    const outer = this.path;
-    const declaration = site.declaration;
-    this.path = declaration && ts.isParameter(declaration) && ts.isIdentifier(declaration.name) ? [{ segment: declaration.name.text, declaration }] : [];
-    try {
-      return this.resolve(type, site);
-    } finally {
-      this.path = outer;
-    }
-  }
-
-  /** Runs `resolve` one step further down the path: a property name, `[]` for array elements or `[i]` for tuple elements. */
-  public at<T>(segment: string, resolve: () => T, declaration?: ts.Node): T {
-    this.path.push({ segment, declaration });
-    try {
-      return resolve();
-    } finally {
-      this.path.pop();
-    }
-  }
-
-  private pathText(): string {
-    return this.path.map(({ segment }, i) => (segment.startsWith('[') || i === 0 ? segment : `.${segment}`)).join('');
+  private pathText(site: Site): string {
+    return site.path.map(({ segment }, i) => (segment.startsWith('[') || i === 0 ? segment : `.${segment}`)).join('');
   }
 
   /** The written node at `site`, else the nearest source declaration on the path, for error locations. */
@@ -81,24 +54,24 @@ export class TypeResolver {
     if (inSource(site.declaration)) {
       return site.declaration;
     }
-    return [...this.path].reverse().find(step => inSource(step.declaration))?.declaration;
+    return [...site.path].reverse().find(step => inSource(step.declaration))?.declaration;
   }
 
   /** The single classification dispatch. Order matters. */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
     const followed = descriptiveSite(this.checker, followSite(site));
+    if (!isErrorType(type) && isPromise(type, followed)) {
+      return this.resolve(this.checker.getTypeArguments(type as ts.TypeReference)[0], childSite(followed, typeArgumentNode(followed.node, 0)));
+    }
     // Special types are recognized by their written name, so they map even when their
     // declarations are not in the program (e.g. `Buffer` without @types/node).
-    const special = resolveSpecialType(type, followed, this.generator);
-    if (special && special !== 'promise') {
+    const special = resolveSpecialType(type, followed);
+    if (special) {
       return special;
     }
     if (isErrorType(type)) {
       const name = followed.node && followed.node.pos !== -1 ? followed.node.getText() : this.checker.typeToString(type);
       throw new GenerateMetadataError(`Could not find declarations for type '${name}'.`, followed.node);
-    }
-    if (special === 'promise') {
-      return this.resolve(this.checker.getTypeArguments(type as ts.TypeReference)[0], childSite(followed, typeArgumentNode(followed.node, 0)));
     }
 
     const named = resolveNamedReference(this, type, followed);
@@ -118,10 +91,7 @@ export class TypeResolver {
     if (followed.node && ts.isTypeOperatorNode(followed.node) && followed.node.operator === ts.SyntaxKind.KeyOfKeyword) {
       return this.resolveKeys(type, followed);
     }
-    if (followed.node && ts.isTemplateLiteralTypeNode(followed.node) && type.isUnion() && type.types.every(t => t.isStringLiteral())) {
-      return { dataType: 'enum', enums: type.types.map(t => t.value) };
-    }
-    return this.resolveStructure(type, followed);
+    return templateLiteralEnum(type, followed) ?? this.resolveStructure(type, followed);
   }
 
   private resolveStructure(type: ts.Type, site: Site): Tsoa.Type {
@@ -174,11 +144,11 @@ export class TypeResolver {
       return this.resolveTuple(type, site);
     }
     if (isArrayType(this.checker, type)) {
-      return { dataType: 'array', elementType: this.at('[]', () => this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node)))) };
+      return { dataType: 'array', elementType: this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node), undefined, { segment: '[]' })) };
     }
     if (flags & ts.TypeFlags.Object) {
       if (isBuiltInClass(this.generator, type)) {
-        const path = this.pathText();
+        const path = this.pathText(site);
         throw new GenerateMetadataError(
           `Unsupported type: ${this.checker.typeToString(type)}${path ? ` at '${path}'` : ''}. Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.`,
           this.sourceNode(site),
@@ -345,9 +315,9 @@ export class TypeResolver {
       const elementNode = element && ts.isNamedTupleMember(element) ? element.type : element;
       if (flags[i] & ts.ElementFlags.Variable) {
         const restNode = elementNode && ts.isRestTypeNode(elementNode) ? arrayElementNode(elementNode.type) : undefined;
-        restType = this.at(`[${i}]`, () => this.resolve(elementType, childSite(site, restNode, element)));
+        restType = this.resolve(elementType, childSite(site, restNode, element, { segment: `[${i}]` }));
       } else {
-        types.push(this.at(`[${i}]`, () => this.resolve(elementType, childSite(site, elementNode, element))));
+        types.push(this.resolve(elementType, childSite(site, elementNode, element, { segment: `[${i}]` })));
       }
     });
     return { dataType: 'tuple', types, ...(restType ? { restType } : {}) };
@@ -394,4 +364,14 @@ function literalEnums(values: LiteralValue[]): Tsoa.Type {
     };
   }
   return { dataType: 'enum', enums: values };
+}
+
+// Output kept as tsoa has always written it. A later cleanup can drop these in one place.
+
+/** A written template literal type with finitely many values is one enum, not a union of single-value enums. */
+function templateLiteralEnum(type: ts.Type, site: Site): Tsoa.EnumType | undefined {
+  if (!site.node || !ts.isTemplateLiteralTypeNode(site.node) || !type.isUnion() || !type.types.every(t => t.isStringLiteral())) {
+    return undefined;
+  }
+  return { dataType: 'enum', enums: type.types.map(t => t.value) };
 }

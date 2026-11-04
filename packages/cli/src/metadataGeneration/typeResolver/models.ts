@@ -8,7 +8,7 @@ import { modelProperties, ownIndexSignature, toJSONReturn, type Owner } from './
 import type { MetadataGenerator } from '../metadataGenerator';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
-import { emptySubstitutions, substitutionsFor, type Site } from './site';
+import { aliasBodySite, declarationSite, emptySubstitutions, substitutionsFor, type Site } from './site';
 
 /**
  * A reference to a named model, added to the metadata: a written reference with model
@@ -45,13 +45,12 @@ function namedModel(resolver: TypeResolver, type: ts.Type, site: Site): { refNam
   }
 
   const build = () => {
-    const outer: Site = { ...site, node, substitutions };
     const models = reference.declarations.map(declaration => {
       const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
-      const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
+      const inner = declarationSite(site, undefined, declaration, substitutionsFor(node, typeParameters, substitutions));
       if (ts.isTypeAliasDeclaration(declaration)) {
         const { alias, site: aliasSite } = followReexports(resolver, declaration, inner);
-        return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type, aliasBody: alias });
+        return aliasModel(resolver, alias, type, reference.refName, aliasBodySite(aliasSite, alias));
       }
       if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
         return enumModel(resolver, declaration, reference.refName);
@@ -82,7 +81,7 @@ function objectModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, 
     return { dataType: 'refAlias', ...header, type: toJSON, validators: {} };
   }
 
-  const properties = modelProperties(resolver, declaration, type, site.substitutions);
+  const properties = modelProperties(resolver, declaration, type, site);
   return {
     additionalProperties: ts.isInterfaceDeclaration(declaration) ? ownIndexSignature(resolver, declaration, type, site) : undefined,
     dataType: 'refObject',
@@ -102,7 +101,7 @@ function followReexports(resolver: TypeResolver, alias: ts.TypeAliasDeclaration,
     if (!target) {
       return { alias, site };
     }
-    site = { node: undefined, declaration: target, substitutions: substitutionsFor(alias.type as ts.TypeReferenceNode, target.typeParameters, site, resolver.namer) };
+    site = declarationSite(site, undefined, target, substitutionsFor(alias.type as ts.TypeReferenceNode, target.typeParameters, site.substitutions));
     alias = target;
   }
 }

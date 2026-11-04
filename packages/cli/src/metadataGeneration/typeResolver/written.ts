@@ -5,7 +5,7 @@
 import * as ts from 'typescript';
 import { symbolAt } from './declarations';
 import { unionOf } from './internals';
-import { childSite, emptySubstitutions, followSite, substitutionsCover, type Site, type Substitution, type Substitutions } from './site';
+import { childSite, declarationSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, withNode, type Site, type Substitutions } from './site';
 
 /**
  * The type the written node at `site` denotes, when the checker can tell: the node mentions no
@@ -26,16 +26,10 @@ export function writtenType(checker: ts.TypeChecker, site: Site): ts.Type | unde
     if (!declaration?.typeParameters?.length) {
       return undefined;
     }
-    // Arguments are read in the caller's scope; defaults in the alias's own scope.
-    const bound = new Map<string, Substitution>();
-    declaration.typeParameters.forEach((parameter, index) => {
-      const argument = node.typeArguments?.[index];
-      const value = argument ?? parameter.default;
-      if (value) {
-        bound.set(parameter.name.text, { node: value, name: '', scope: argument ? followed.substitutions : new Map(bound), owner: declaration });
-      }
-    });
-    return aliasBodyType(checker, { node: declaration.type, declaration, substitutions: bound });
+    if (declaration.typeParameters.some((parameter, index) => !node.typeArguments?.[index] && !parameter.default)) {
+      return undefined;
+    }
+    return aliasBodyType(checker, declarationSite(followed, declaration.type, declaration, substitutionsFor(node, declaration.typeParameters, followed.substitutions)));
   }
   return undefined;
 }
@@ -70,10 +64,10 @@ export function descriptiveSite(checker: ts.TypeChecker, site: Site): Site {
     // Read the indexed property's (or element's) type node, but keep the outer declaration's JSDoc.
     const element = node.indexType.kind === ts.SyntaxKind.NumberKeyword ? writtenArrayElement(node.objectType) : undefined;
     if (element) {
-      return descriptiveSite(checker, followSite({ ...site, node: element }));
+      return descriptiveSite(checker, followSite(withNode(site, element)));
     }
     const declaration = indexedDeclaration(checker, site, node);
-    return declaration ? descriptiveSite(checker, followSite({ node: declaration.type, declaration: site.declaration, substitutions: emptySubstitutions })) : { ...site, node: undefined };
+    return declaration ? descriptiveSite(checker, followSite(declarationSite(site, declaration.type, site.declaration, emptySubstitutions))) : withNode(site, undefined);
   }
   const opaque =
     ts.isConditionalTypeNode(node) ||
@@ -82,7 +76,7 @@ export function descriptiveSite(checker: ts.TypeChecker, site: Site): Site {
     ts.isThisTypeNode(node) ||
     node.kind === ts.SyntaxKind.IntrinsicKeyword ||
     (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.UniqueKeyword);
-  return opaque ? { ...site, node: undefined } : site;
+  return opaque ? withNode(site, undefined) : site;
 }
 
 /**

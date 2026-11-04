@@ -166,7 +166,7 @@ export class TypeNamer {
     let name = entityText(entity);
     const substitution = subs.get(name);
     if (substitution) {
-      return substitution.name;
+      return this.typeName(substitution.node, substitution.scope);
     }
 
     const declarations = modelDeclarations(this.generator, entity);

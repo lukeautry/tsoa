@@ -1,18 +1,15 @@
 import type { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
-import type { MetadataGenerator } from '../metadataGenerator';
 import { dateFormat } from './annotations';
-import { followSite, type Site } from './site';
+import type { Site } from './site';
 
 /**
- * Types tsoa maps specially. They are recognized by name: the written reference when
- * there is one (so an alias of Date is first resolved as an alias), else the type's symbol.
- * Returns 'promise' when the caller should unwrap the single type argument.
+ * Types tsoa maps specially. They are recognized by name: the written reference when there is
+ * one (so an alias of Date is first resolved as an alias), else the type's symbol. `site` must
+ * already be followed.
  */
-export function resolveSpecialType(type: ts.Type, site: Site, _generator: MetadataGenerator): Tsoa.Type | 'promise' | undefined {
-  const followed = followSite(site);
-  const name = specialName(type, followed);
-  switch (name) {
+export function resolveSpecialType(type: ts.Type, site: Site): Tsoa.Type | undefined {
+  switch (specialName(type, site)) {
     case 'Date':
       return dateFormat(site.declaration);
     case 'Buffer':
@@ -20,11 +17,14 @@ export function resolveSpecialType(type: ts.Type, site: Site, _generator: Metada
       return { dataType: 'buffer' };
     case 'String':
       return { dataType: 'string' };
-    case 'Promise':
-      return promiseArity(type, followed) === 1 ? 'promise' : undefined;
     default:
       return undefined;
   }
+}
+
+/** A `Promise<T>`, whose value `T` is what an API returns. `site` must already be followed. */
+export function isPromise(type: ts.Type, site: Site): boolean {
+  return specialName(type, site) === 'Promise' && promiseArity(type, site) === 1;
 }
 
 function specialName(type: ts.Type, site: Site): string | undefined {

@@ -3,22 +3,22 @@ import * as ts from 'typescript';
 import { getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import { getInitializerValue } from '../initializer-value';
-import { readAnnotations } from './annotations';
+import { readAnnotations, type Annotations } from './annotations';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
 import { resolveNamedModel } from './models';
 import { isSymbolKeyed, syntheticOrigin, unionOf } from './internals';
 import { writtenType } from './written';
-import { childSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
+import { childSite, declarationSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, withNode, type PathStep, type Site } from './site';
 
 export type Owner = ts.InterfaceDeclaration | ts.ClassDeclaration;
 type Member = ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration;
 
-/** A property as written in some declaration, with the substitutions its type nodes are read under. */
+/** A property as written in some declaration, with the site of its owner (whose substitutions its type nodes are read under). */
 interface WrittenMember {
   name: string;
   member: Member;
-  substitutions: Substitutions;
+  owner: Site;
 }
 
 /**
@@ -28,12 +28,12 @@ interface WrittenMember {
 export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, site: Site): Tsoa.NestedObjectLiteralType {
   const node = followSite(site).node;
   if (node && ts.isTypeLiteralNode(node)) {
-    const members = namedMembers(resolver, node.members.filter(ts.isPropertySignature), site.substitutions);
+    const members = namedMembers(resolver, node.members.filter(ts.isPropertySignature), site);
     const index = node.members.find(ts.isIndexSignatureDeclaration);
     return {
       additionalProperties: index ? indexSignatureType(resolver, index, type, site) : undefined,
       dataType: 'nestedObjectLiteral',
-      properties: members.map(written => declaredProperty(resolver, type, written)).reverse(),
+      properties: writtenLiteralOrder(members.map(written => declaredProperty(resolver, type, written))),
     };
   }
 
@@ -47,7 +47,7 @@ export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, si
     .map(property => mappedProperty(resolver, property, site));
   const result: Tsoa.NestedObjectLiteralType = {
     dataType: 'nestedObjectLiteral',
-    properties: mapped ? properties : properties.reverse(),
+    properties: mapped ? properties : printedLiteralOrder(properties),
   };
   const indexTypes = checker
     .getIndexInfosOfType(type)
@@ -65,40 +65,38 @@ export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, si
  * built (a cycle) cannot leave properties out. Other bases (aliases such as `Partial<X>`) are
  * resolved as models without being registered, and their properties are taken.
  */
-export function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
+export function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, site: Site): Tsoa.Property[] {
   const checker = resolver.generator.typeChecker;
-  const own = namedMembers(resolver, ownMembers(declaration), substitutions).map(written => declaredProperty(resolver, ownerType, written));
+  const own = namedMembers(resolver, ownMembers(declaration), site).map(written => declaredProperty(resolver, ownerType, written));
+  // A property declared again further down (by the owner, or an earlier base) is listed once.
   const seen = new Set(own.map(property => property.name));
+  const unseen = (properties: Tsoa.Property[]) => {
+    const added = properties.filter(property => !seen.has(property.name));
+    added.forEach(property => seen.add(property.name));
+    return added;
+  };
   const clauses: readonly ts.HeritageClause[] = declaration.heritageClauses ?? [];
   const inherited = clauses.flatMap(clause =>
     clause.types.flatMap((heritage): Tsoa.Property[] => {
       const bases = modelDeclarations(resolver.generator, heritage.expression as ts.EntityName);
       const owners = bases.filter((base): base is Owner => ts.isInterfaceDeclaration(base) || ts.isClassDeclaration(base));
       if (owners.length) {
-        const properties = owners.flatMap(base => modelProperties(resolver, base, ownerType, substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer)));
-        properties.forEach(property => seen.add(property.name));
-        return properties;
+        return unseen(owners.flatMap(base => modelProperties(resolver, base, ownerType, declarationSite(site, undefined, base, substitutionsFor(heritage, base.typeParameters, site.substitutions)))));
       }
-      const site: Site = { node: heritage, declaration: undefined, substitutions };
-      const baseType = writtenType(checker, site);
+      const heritageSite = declarationSite(site, heritage, undefined, site.substitutions);
+      const baseType = writtenType(checker, heritageSite);
       if (baseType) {
-        const base = resolveNamedModel(resolver, baseType, site);
-        const properties = base ? propertiesOf(base) : [];
-        properties.forEach(property => seen.add(property.name));
-        return properties;
+        const base = resolveNamedModel(resolver, baseType, heritageSite);
+        return unseen(base ? propertiesOf(base) : []);
       }
       // A base that mentions the owner's type parameters (`interface Both<T> extends Patch<T>`).
       // An alias of a written object type contributes its written members, read with the base's
       // own type arguments, as the same alias does when it is not generic.
       const alias = bases.find(ts.isTypeAliasDeclaration);
       if (alias && ts.isTypeLiteralNode(alias.type)) {
-        const baseSubstitutions = substitutionsFor(heritage, alias.typeParameters, { substitutions }, resolver.namer);
-        const properties = namedMembers(resolver, alias.type.members.filter(ts.isPropertySignature), baseSubstitutions)
-          .filter(written => !seen.has(written.name))
-          .map(written => declaredProperty(resolver, ownerType, written))
-          .reverse();
-        properties.forEach(property => seen.add(property.name));
-        return properties;
+        const aliasSite = declarationSite(site, undefined, alias, substitutionsFor(heritage, alias.typeParameters, site.substitutions));
+        const members = namedMembers(resolver, alias.type.members.filter(ts.isPropertySignature), aliasSite).filter(written => !seen.has(written.name));
+        return unseen(writtenLiteralOrder(members.map(written => declaredProperty(resolver, ownerType, written))));
       }
       // Otherwise the base's own declared type says which properties it contributes, and the
       // owner's instantiated type gives their types.
@@ -106,9 +104,8 @@ export function modelProperties(resolver: TypeResolver, declaration: Owner, owne
       const properties = checker
         .getPropertiesOfType(ownerType)
         .filter(property => contributed.has(property.getName()) && !seen.has(property.getName()) && !isSymbolKeyed(property) && !isIgnoredMapped(property))
-        .map(property => mappedProperty(resolver, property, { node: undefined, declaration: undefined, substitutions: emptySubstitutions }));
-      properties.forEach(property => seen.add(property.name));
-      return properties;
+        .map(property => mappedProperty(resolver, property, declarationSite(site, undefined, undefined, emptySubstitutions)));
+      return unseen(properties);
     }),
   );
   return [...inherited, ...own];
@@ -136,55 +133,61 @@ function ownMembers(declaration: Owner): Member[] {
 }
 
 /** A property declared in an interface, class or type literal. */
-function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, member, substitutions }: WrittenMember): Tsoa.Property {
+function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, member, owner }: WrittenMember): Tsoa.Property {
   const checker = resolver.generator.typeChecker;
-  const annotations = readAnnotations(member, resolver.generator);
-  const isClassMember = ts.isPropertyDeclaration(member) || ts.isParameter(member);
-  const initializer = isClassMember ? member.initializer : undefined;
+  const initializer = ts.isPropertyDeclaration(member) || ts.isParameter(member) ? member.initializer : undefined;
   const required = !member.questionToken && !initializer;
-  const site: Site = { node: member.type, declaration: member, substitutions };
+  const symbol = checker.getPropertyOfType(ownerType, name);
+  const site = declarationSite(owner, member.type, member, owner.substitutions, { segment: name, declaration: symbol?.valueDeclaration ?? member });
 
   // The declared type: what the written type denotes, else the checker's property type without
   // the `undefined` an optional marker adds. `required` already says the property is optional.
-  const symbol = checker.getPropertyOfType(ownerType, name);
   const type = writtenType(checker, site) ?? withoutOptionality(resolver, member, symbol ? checker.getTypeOfSymbol(symbol) : checker.getTypeAtLocation(member));
-  const resolved = resolver.at(name, () => resolver.resolve(type, site), symbol?.valueDeclaration ?? member);
-
-  const initialValue = initializer ? getInitializerValue(initializer, checker) : undefined;
-  return {
-    default: initialValue !== undefined ? initialValue : annotations.default,
-    description: annotations.description,
-    example: annotations.example,
-    format: annotations.format,
-    name,
-    required,
-    type: resolved,
-    validators: annotations.validators,
-    deprecated: annotations.deprecated,
-    title: annotations.title,
-    extensions: annotations.extensions,
-  };
+  const annotations = readAnnotations(member, resolver.generator);
+  return property(resolver, name, required, resolver.resolve(type, site), annotations, annotations.description, initializer);
 }
 
-/** A property of a mapped or otherwise unwritten object type. */
-function mappedProperty(resolver: TypeResolver, property: ts.Symbol, site: Site): Tsoa.Property {
+/** A property of a mapped or otherwise unwritten object type. Its docs come from the declaration it was mapped from, if any. */
+function mappedProperty(resolver: TypeResolver, symbol: ts.Symbol, site: Site): Tsoa.Property {
   const checker = resolver.generator.typeChecker;
-  const origin = originDeclaration(property);
-  const annotations = origin ? readAnnotations(origin, resolver.generator) : undefined;
-  const propertyType = withoutMissing(checker, checker.getTypeOfSymbol(property));
-  const hintSite = mappedHint(resolver, origin, propertyType, site);
-  const initializer = origin && (origin as { initializer?: ts.Expression }).initializer;
-  const comments = property.getDocumentationComment(checker);
+  const name = symbol.getName();
+  const origin = originDeclaration(symbol);
+  const propertyType = withoutMissing(checker, checker.getTypeOfSymbol(symbol));
+  const hintSite = mappedHint(resolver, origin, propertyType, site, { segment: name, declaration: origin });
+  const comments = symbol.getDocumentationComment(checker);
+  return property(
+    resolver,
+    name,
+    !(symbol.flags & ts.SymbolFlags.Optional),
+    resolver.resolve(propertyType, hintSite),
+    origin ? readAnnotations(origin, resolver.generator) : undefined,
+    comments.length ? ts.displayPartsToString(comments) : undefined,
+    origin && (origin as { initializer?: ts.Expression }).initializer,
+  );
+}
+
+/** A property's metadata from its resolved type and its docs; an initializer's value wins over `@default`. */
+function property(
+  resolver: TypeResolver,
+  name: string,
+  required: boolean,
+  type: Tsoa.Type,
+  annotations: Annotations | undefined,
+  description: string | undefined,
+  initializer: ts.Expression | undefined,
+): Tsoa.Property {
+  const initialValue = initializer ? getInitializerValue(initializer, resolver.generator.typeChecker) : undefined;
   return {
-    name: property.getName(),
-    required: !(property.flags & ts.SymbolFlags.Optional),
-    deprecated: annotations?.deprecated ?? false,
-    type: resolver.at(property.getName(), () => resolver.resolve(propertyType, hintSite), origin),
-    default: initializer ? getInitializerValue(initializer, checker) : annotations?.default,
-    validators: annotations?.validators ?? {},
-    description: comments.length ? ts.displayPartsToString(comments) : undefined,
-    format: annotations?.format,
+    default: initialValue !== undefined ? initialValue : annotations?.default,
+    description,
     example: annotations?.example,
+    format: annotations?.format,
+    name,
+    required,
+    type,
+    validators: annotations?.validators ?? {},
+    deprecated: annotations?.deprecated ?? false,
+    title: annotations?.title,
     extensions: annotations?.extensions,
   };
 }
@@ -215,11 +218,11 @@ function withoutMembers(checker: ts.TypeChecker, type: ts.Type, drop: (member: t
  * The original declaration's written type is a hint for a mapped property only when it names
  * exactly the property's type (e.g. `id: UUID` through `Omit`); mapped types may transform types.
  */
-function mappedHint(resolver: TypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site): Site {
+function mappedHint(resolver: TypeResolver, origin: ts.Declaration | undefined, propertyType: ts.Type, site: Site, step: PathStep): Site {
   const written = origin && (origin as { type?: ts.TypeNode }).type;
-  const hint: Site = { node: written, declaration: origin, substitutions: site.substitutions };
+  const hint = declarationSite(site, written, origin, site.substitutions, step);
   const usable = written && ts.isTypeReferenceNode(written) && substitutionsCover(origin, site.substitutions) && writtenType(resolver.generator.typeChecker, hint) === propertyType;
-  return usable ? hint : { ...hint, node: undefined };
+  return usable ? hint : withNode(hint, undefined);
 }
 
 function originDeclaration(property: ts.Symbol): ts.Declaration | undefined {
@@ -248,7 +251,7 @@ export function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration:
     return undefined;
   }
   const substitutions = method.parent === declaration ? site.substitutions : emptySubstitutions;
-  return resolver.resolve(checker.getReturnTypeOfSignature(signature), { node: method.type, declaration: undefined, substitutions });
+  return resolver.resolve(checker.getReturnTypeOfSignature(signature), declarationSite(site, method.type, undefined, substitutions));
 }
 
 export function ownIndexSignature(resolver: TypeResolver, declaration: ts.InterfaceDeclaration, type: ts.Type, site: Site): Tsoa.Type | undefined {
@@ -265,7 +268,7 @@ function indexSignatureType(resolver: TypeResolver, index: ts.IndexSignatureDecl
   }
   const info = checker.getIndexInfosOfType(type).find(candidate => candidate.keyType.flags & ts.TypeFlags.String);
   const valueType = info ? info.type : checker.getTypeFromTypeNode(index.type);
-  return resolver.resolve(valueType, { node: index.type, declaration: site.declaration, substitutions: site.substitutions });
+  return resolver.resolve(valueType, childSite(site, index.type));
 }
 
 /**
@@ -290,10 +293,10 @@ function withoutOptionality(resolver: TypeResolver, member: Member, type: ts.Typ
 }
 
 /** Members with a JSON property name; symbol-keyed members have none and are left out. */
-function namedMembers(resolver: TypeResolver, members: Member[], substitutions: Substitutions): WrittenMember[] {
+function namedMembers(resolver: TypeResolver, members: Member[], owner: Site): WrittenMember[] {
   return members.flatMap(member => {
     const name = propertyName(resolver, member);
-    return name === undefined ? [] : [{ name, member, substitutions }];
+    return name === undefined ? [] : [{ name, member, owner }];
   });
 }
 
@@ -327,4 +330,16 @@ function isParameterProperty(parameter: ts.ParameterDeclaration): boolean {
     return true;
   }
   return hasModifier(parameter, ts.SyntaxKind.ReadonlyKeyword) && isPublic(parameter);
+}
+
+// Output kept as tsoa has always written it. A later cleanup can drop these in one place.
+
+/** Members of a written type literal are listed last to first. */
+function writtenLiteralOrder(properties: Tsoa.Property[]): Tsoa.Property[] {
+  return properties.reverse();
+}
+
+/** Properties of an object type with no written form are listed last to first, as the checker prints them. */
+function printedLiteralOrder(properties: Tsoa.Property[]): Tsoa.Property[] {
+  return properties.reverse();
 }
