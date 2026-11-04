@@ -76,3 +76,8 @@ export function isTrueLiteral(type: ts.Type): boolean {
 export function isSymbolKeyed(property: ts.Symbol): boolean {
   return (property.escapedName as string).startsWith('__@');
 }
+
+/** The symbol the binder attached to a declaration, for nodes `getSymbolAtLocation` does not answer for (a declaration itself rather than its name). */
+export function boundSymbol(node: ts.Node): ts.Symbol | undefined {
+  return (node as { symbol?: ts.Symbol }).symbol;
+}

@@ -3,13 +3,14 @@ import { GenerateMetadataError } from '../exceptions';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { throwUnless } from '../../utils/flowUtils';
 import type { MetadataGenerator } from '../metadataGenerator';
+import { boundSymbol } from './internals';
 
 /** Declarations that can back a tsoa model. */
 export type ModelDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.EnumMember;
 
 /** The symbol at a node, with import aliases resolved. */
 export function symbolAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
-  const symbol = checker.getSymbolAtLocation(node) ?? (node as { symbol?: ts.Symbol }).symbol;
+  const symbol = checker.getSymbolAtLocation(node) ?? boundSymbol(node);
   return (symbol && symbol.flags & ts.SymbolFlags.Alias && checker.getAliasedSymbol(symbol)) || symbol;
 }
 
