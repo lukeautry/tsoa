@@ -1976,6 +1976,22 @@ describe('ValidationService', () => {
       expect(error).to.deep.equal({});
     });
 
+    it('should convert the JSON form of a buffer', () => {
+      const error: FieldErrors = {};
+      const result = service.validateBuffer('name', Buffer.from([1, 2, 255]).toJSON(), error);
+      expect(result).to.deep.equal(Buffer.from([1, 2, 255]));
+      expect(error).to.deep.equal({});
+    });
+
+    it('should reject the JSON form of a buffer with non-byte data', () => {
+      for (const data of [[256], { length: 1e9 }, 'abc']) {
+        const error: FieldErrors = {};
+        const result = service.validateBuffer('name', { type: 'Buffer', data }, error);
+        expect(result).to.equal(undefined);
+        expect(error.name.message).to.equal('invalid buffer value');
+      }
+    });
+
     it('should copy an existing buffer', () => {
       const value = Buffer.from('abc');
       const result = service.validateBuffer('name', value, {});

@@ -541,14 +541,23 @@ export class ValidationService {
     if (typeof value === 'string' || Buffer.isBuffer(value)) {
       return Buffer.from(value);
     }
-    if (Array.isArray(value) && value.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)) {
-      return Buffer.from(value);
+    const bytes = ValidationService.isBufferJson(value) ? value.data : value;
+    if (ValidationService.isByteArray(bytes)) {
+      return Buffer.from(bytes);
     }
     fieldErrors[parent + name] = {
       message: 'invalid buffer value',
       value,
     };
     return;
+  }
+
+  private static isBufferJson(value: unknown): value is { type: 'Buffer'; data: unknown } {
+    return typeof value === 'object' && value !== null && (value as { type?: unknown }).type === 'Buffer' && 'data' in value;
+  }
+
+  private static isByteArray(value: unknown): value is number[] {
+    return Array.isArray(value) && value.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255);
   }
 
   public validateUnion(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, property: TsoaRoute.PropertySchema, parent = ''): any {
