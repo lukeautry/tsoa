@@ -6,12 +6,12 @@ import { getInitializerValue } from '../initializer-value';
 import { readAnnotations } from './annotations';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
-import { resolveNamedReference } from './models';
+import { resolveNamedModel } from './models';
 import { isSymbolKeyed, syntheticOrigin, unionOf } from './internals';
 import { writtenType } from './written';
 import { childSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
-type Owner = ts.InterfaceDeclaration | ts.ClassDeclaration;
+export type Owner = ts.InterfaceDeclaration | ts.ClassDeclaration;
 type Member = ts.PropertySignature | ts.PropertyDeclaration | ts.ParameterDeclaration;
 
 /** A property as written in some declaration, with the substitutions its type nodes are read under. */
@@ -19,34 +19,6 @@ interface WrittenMember {
   name: string;
   member: Member;
   substitutions: Substitutions;
-}
-
-/**
- * The model for one interface or class declaration: `toJSON` wins;
- * otherwise inherited properties (heritage clause order), then own properties.
- */
-export function resolveModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site): Tsoa.ReferenceType {
-  const annotations = readAnnotations(declaration, resolver.generator);
-  const header = {
-    refName,
-    description: annotations.description,
-    deprecated: annotations.deprecated,
-    ...(annotations.example !== undefined ? { example: annotations.example } : {}),
-    ...(annotations.title ? { title: annotations.title } : {}),
-  };
-
-  const toJSON = toJSONReturn(resolver, type, declaration, site);
-  if (toJSON) {
-    return { dataType: 'refAlias', ...header, type: toJSON, validators: {} };
-  }
-
-  const properties = modelProperties(resolver, declaration, type, site.substitutions);
-  return {
-    additionalProperties: ts.isInterfaceDeclaration(declaration) ? ownIndexSignature(resolver, declaration, type, site) : undefined,
-    dataType: 'refObject',
-    ...header,
-    properties,
-  };
 }
 
 /**
@@ -93,7 +65,7 @@ export function resolveAnonymousObject(resolver: TypeResolver, type: ts.Type, si
  * built (a cycle) cannot leave properties out. Other bases (aliases such as `Partial<X>`) are
  * resolved as models without being registered, and their properties are taken.
  */
-function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
+export function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: ts.Type, substitutions: Substitutions): Tsoa.Property[] {
   const checker = resolver.generator.typeChecker;
   const own = namedMembers(resolver, ownMembers(declaration), substitutions).map(written => declaredProperty(resolver, ownerType, written));
   const seen = new Set(own.map(property => property.name));
@@ -110,7 +82,7 @@ function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: 
       const site: Site = { node: heritage, declaration: undefined, substitutions };
       const baseType = writtenType(checker, site);
       if (baseType) {
-        const base = resolveNamedReference(resolver, baseType, site, resolveModel, false);
+        const base = resolveNamedModel(resolver, baseType, site);
         const properties = base ? propertiesOf(base) : [];
         properties.forEach(property => seen.add(property.name));
         return properties;
@@ -263,7 +235,7 @@ function isIgnoredMapped(property: ts.Symbol): boolean {
   );
 }
 
-function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner, site: Site): Tsoa.Type | undefined {
+export function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner, site: Site): Tsoa.Type | undefined {
   const checker = resolver.generator.typeChecker;
   const toJSON = checker.getPropertyOfType(type, 'toJSON');
   const method = toJSON?.valueDeclaration;
@@ -279,7 +251,7 @@ function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner,
   return resolver.resolve(checker.getReturnTypeOfSignature(signature), { node: method.type, declaration: undefined, substitutions });
 }
 
-function ownIndexSignature(resolver: TypeResolver, declaration: ts.InterfaceDeclaration, type: ts.Type, site: Site): Tsoa.Type | undefined {
+export function ownIndexSignature(resolver: TypeResolver, declaration: ts.InterfaceDeclaration, type: ts.Type, site: Site): Tsoa.Type | undefined {
   const index = declaration.members.find(ts.isIndexSignatureDeclaration);
   return index ? indexSignatureType(resolver, index, type, site) : undefined;
 }

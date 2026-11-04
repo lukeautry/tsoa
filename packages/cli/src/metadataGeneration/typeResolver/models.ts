@@ -3,21 +3,30 @@ import * as ts from 'typescript';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { getPropertyValidators } from '../../utils/validatorUtils';
 import { GenerateMetadataError } from '../exceptions';
-import { nodeDefault, nodeDescription, nodeExample, nodeFormat, nodeTitle } from './annotations';
+import { nodeDefault, nodeDescription, nodeExample, nodeFormat, nodeTitle, readAnnotations } from './annotations';
+import { modelProperties, ownIndexSignature, toJSONReturn, type Owner } from './members';
 import type { MetadataGenerator } from '../metadataGenerator';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
 import { emptySubstitutions, substitutionsFor, type Site } from './site';
 
-/** Builds the refObject (or toJSON refAlias) for an interface or class; provided by the member resolver. */
-export type ModelBuilder = (resolver: TypeResolver, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration, type: ts.Type, refName: string, site: Site) => Tsoa.ReferenceType;
-
 /**
- * A reference to a named model: a written reference with model declarations, or — when the type
- * has no written form — the reference the checker would print for it.
- * Returns undefined for anything that is not a named model.
+ * A reference to a named model, added to the metadata: a written reference with model
+ * declarations, or — when the type has no written form — the reference the checker would print
+ * for it. Returns undefined for anything that is not a named model.
  */
-export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, site: Site, buildModel: ModelBuilder, register = true): Tsoa.ReferenceType | undefined {
+export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, site: Site): Tsoa.ReferenceType | undefined {
+  const named = namedModel(resolver, type, site);
+  return named && resolver.registry.reference(named.refName, type, named.build);
+}
+
+/** The same model, built and cached but not added to the metadata (how heritage bases are read). */
+export function resolveNamedModel(resolver: TypeResolver, type: ts.Type, site: Site): Tsoa.ReferenceType | undefined {
+  const named = namedModel(resolver, type, site);
+  return named && resolver.registry.model(named.refName, type, named.build);
+}
+
+function namedModel(resolver: TypeResolver, type: ts.Type, site: Site): { refName: string; build: () => Tsoa.ReferenceType } | undefined {
   const written = site.node;
   const node = written ?? resolver.generator.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation);
   if (!node || !(ts.isTypeReferenceNode(node) || ts.isExpressionWithTypeArguments(node)) || isStructuralArray(node)) {
@@ -35,27 +44,51 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
     return undefined;
   }
 
-  return resolver.registry.reference(
-    reference.refName,
-    type,
-    () => {
-      const outer: Site = { ...site, node, substitutions };
-      const models = reference.declarations.map(declaration => {
-        const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
-        const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
-        if (ts.isTypeAliasDeclaration(declaration)) {
-          const { alias, site: aliasSite } = followReexports(resolver, declaration, inner);
-          return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type, aliasBody: alias });
-        }
-        if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
-          return enumModel(resolver, declaration, reference.refName);
-        }
-        return buildModel(resolver, declaration, type, reference.refName, inner);
-      });
-      return mergeModels(models);
-    },
-    register,
-  );
+  const build = () => {
+    const outer: Site = { ...site, node, substitutions };
+    const models = reference.declarations.map(declaration => {
+      const typeParameters = 'typeParameters' in declaration ? declaration.typeParameters : undefined;
+      const inner: Site = { node: undefined, declaration, substitutions: substitutionsFor(node, typeParameters, outer, resolver.namer) };
+      if (ts.isTypeAliasDeclaration(declaration)) {
+        const { alias, site: aliasSite } = followReexports(resolver, declaration, inner);
+        return aliasModel(resolver, alias, type, reference.refName, { ...aliasSite, node: alias.type, aliasBody: alias });
+      }
+      if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
+        return enumModel(resolver, declaration, reference.refName);
+      }
+      return objectModel(resolver, declaration, type, reference.refName, inner);
+    });
+    return mergeModels(models);
+  };
+  return { refName: reference.refName, build };
+}
+
+/**
+ * The model for one interface or class declaration: `toJSON` wins;
+ * otherwise inherited properties (heritage clause order), then own properties.
+ */
+function objectModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site): Tsoa.ReferenceType {
+  const annotations = readAnnotations(declaration, resolver.generator);
+  const header = {
+    refName,
+    description: annotations.description,
+    deprecated: annotations.deprecated,
+    ...(annotations.example !== undefined ? { example: annotations.example } : {}),
+    ...(annotations.title ? { title: annotations.title } : {}),
+  };
+
+  const toJSON = toJSONReturn(resolver, type, declaration, site);
+  if (toJSON) {
+    return { dataType: 'refAlias', ...header, type: toJSON, validators: {} };
+  }
+
+  const properties = modelProperties(resolver, declaration, type, site.substitutions);
+  return {
+    additionalProperties: ts.isInterfaceDeclaration(declaration) ? ownIndexSignature(resolver, declaration, type, site) : undefined,
+    dataType: 'refObject',
+    ...header,
+    properties,
+  };
 }
 
 /**

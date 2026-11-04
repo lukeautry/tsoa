@@ -12,13 +12,15 @@ export class ReferenceRegistry {
   private readonly built = new Map<string, Tsoa.ReferenceType>();
   private readonly types = new Map<string, ts.Type>();
   private readonly shells = new Map<string, Tsoa.ReferenceType[]>();
-  /** Models under construction that a reference asked to register (e.g. a heritage base that refers to itself). */
-  private readonly requested = new Set<string>();
 
   constructor(private readonly generator: MetadataGenerator) {}
 
-  /** `register: false` builds (and caches) the model without adding it to the metadata, as for heritage bases. */
-  public reference(refName: string, type: ts.Type, build: () => Tsoa.ReferenceType, register = true): Tsoa.ReferenceType {
+  /**
+   * The model named `refName`, built once and cached, without adding it to the metadata (heritage
+   * bases are read this way). While the model is being built, a shell is returned that is filled
+   * in when the build completes.
+   */
+  public model(refName: string, type: ts.Type, build: () => Tsoa.ReferenceType): Tsoa.ReferenceType {
     // One refName, one type: a model must never be built from a type it does not describe.
     const known = this.types.get(refName);
     if (known && !mutuallyAssignable(this.generator.typeChecker, known, type)) {
@@ -27,17 +29,11 @@ export class ReferenceRegistry {
     this.types.set(refName, type);
     const existing = this.built.get(refName);
     if (existing) {
-      if (register) {
-        this.generator.AddReferenceType(existing);
-      }
       return existing;
     }
 
     const waiting = this.shells.get(refName);
     if (waiting) {
-      if (register) {
-        this.requested.add(refName);
-      }
       const shell = { dataType: 'refObject', refName } as Tsoa.ReferenceType;
       waiting.push(shell);
       return shell;
@@ -50,14 +46,17 @@ export class ReferenceRegistry {
         Object.assign(shell, result);
       }
       this.built.set(refName, result);
-      if (register || this.requested.has(refName)) {
-        this.generator.AddReferenceType(result);
-      }
       return result;
     } finally {
       this.shells.delete(refName);
-      this.requested.delete(refName);
     }
+  }
+
+  /** The model named `refName`, added to the metadata. A shell registered mid-build is filled in when the build completes. */
+  public reference(refName: string, type: ts.Type, build: () => Tsoa.ReferenceType): Tsoa.ReferenceType {
+    const model = this.model(refName, type, build);
+    this.generator.AddReferenceType(model);
+    return model;
   }
 }
 

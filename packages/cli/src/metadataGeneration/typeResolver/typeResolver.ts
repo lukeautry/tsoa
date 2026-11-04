@@ -4,7 +4,7 @@ import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { numberFormat } from './annotations';
 import { isArrayType, isErrorType, isTrueLiteral, isTupleType, tupleElementFlags } from './internals';
-import { resolveAnonymousObject, resolveModel } from './members';
+import { resolveAnonymousObject } from './members';
 import { resolveNamedReference } from './models';
 import { TypeNamer } from './naming';
 import { ReferenceRegistry } from './registry';
@@ -101,7 +101,7 @@ export class TypeResolver {
       return this.resolve(this.checker.getTypeArguments(type as ts.TypeReference)[0], childSite(followed, typeArgumentNode(followed.node, 0)));
     }
 
-    const named = this.resolveNamed(type, followed);
+    const named = resolveNamedReference(this, type, followed);
     if (named) {
       return named;
     }
@@ -122,16 +122,6 @@ export class TypeResolver {
       return { dataType: 'enum', enums: type.types.map(t => t.value) };
     }
     return this.resolveStructure(type, followed);
-  }
-
-  /** Named models: aliases, interfaces, classes and enums. */
-  private resolveNamed(type: ts.Type, site: Site): Tsoa.ReferenceType | undefined {
-    return resolveNamedReference(this, type, site, resolveModel);
-  }
-
-  /** Object types that are not named models. */
-  private resolveObject(type: ts.Type, site: Site): Tsoa.Type {
-    return resolveAnonymousObject(this, type, site);
   }
 
   private resolveStructure(type: ts.Type, site: Site): Tsoa.Type {
@@ -194,7 +184,7 @@ export class TypeResolver {
           this.sourceNode(site),
         );
       }
-      return this.resolveObject(type, site);
+      return resolveAnonymousObject(this, type, site);
     }
     throw new GenerateMetadataError(`Unknown type: ${this.checker.typeToString(type)}`, site.node);
   }
