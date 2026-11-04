@@ -68,7 +68,8 @@ describe('Express Server With custom multer', () => {
       const formData = { notAFileAttribute: 'not a file' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
-        expect(res.text).to.equal('no file');
+        expect(res.type).to.equal('application/json');
+        expect(res.body).to.equal('no file');
       });
     });
 

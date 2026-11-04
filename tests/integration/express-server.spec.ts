@@ -298,9 +298,10 @@ describe('Express Server', () => {
     });
   });
 
-  it('parses buffer parameter', () => {
-    return verifyGetRequest(app, `${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, _res) => {
-      return;
+  it('parses buffer parameter and returns the Buffer as binary', () => {
+    return verifyGetRequest(app, `${basePath}/GetTest/HandleBufferType?buffer=${base64image}`, (_err, res) => {
+      expect(res.type).to.equal('application/octet-stream');
+      expect(Buffer.from(res.body).toString()).to.equal('testbuffer');
     });
   });
 
@@ -733,6 +734,20 @@ describe('Express Server', () => {
         },
         202,
       );
+    });
+
+    it('should send a string as-is when the controller set a non-JSON content-type', () => {
+      return verifyGetRequest(app, basePath + '/MediaTypeTest/Custom/security.txt', (_err, res) => {
+        expect(res.type).to.eq('text/plain');
+        expect(res.text).to.eq('Contact: mailto: security@example.com\nExpires: 2012-12-12T12:37:00.000Z');
+      });
+    });
+
+    it('should send a string as JSON when @Produces declares text/plain but no content-type is set', () => {
+      return verifyGetRequest(app, basePath + '/ExampleTest/ResponseExampleWithProduces', (_err, res) => {
+        expect(res.type).to.eq('application/json');
+        expect(res.text).to.eq('"test 1"');
+      });
     });
 
     it('should hand a raw octet-stream request body to the controller as a stream', () => {
@@ -1992,7 +2007,8 @@ describe('Express Server', () => {
       const mainResourceId = 'main-123';
 
       return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource`, (_err, res) => {
-        expect(res.text).to.equal(mainResourceId);
+        expect(res.type).to.equal('application/json');
+        expect(res.body).to.equal(mainResourceId);
       });
     });
 
@@ -2001,7 +2017,8 @@ describe('Express Server', () => {
       const subResourceId = 'sub-456';
 
       return verifyGetRequest(app, basePath + `/SubResourceTest/${mainResourceId}/SubResource/${subResourceId}`, (_err, res) => {
-        expect(res.text).to.equal(`${mainResourceId}:${subResourceId}`);
+        expect(res.type).to.equal('application/json');
+        expect(res.body).to.equal(`${mainResourceId}:${subResourceId}`);
       });
     });
   });
@@ -2064,7 +2081,8 @@ describe('Express Server', () => {
       const formData = { notAFileAttribute: 'not a file' };
       return verifyFileUploadRequest(app, basePath + '/PostTest/FileOptional', formData, (_err, res) => {
         expect(res.status).to.equal(200);
-        expect(res.text).to.equal('no file');
+        expect(res.type).to.equal('application/json');
+        expect(res.body).to.equal('no file');
       });
     });
 

@@ -135,25 +135,22 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
       response.set(name, headers[name]);
     });
 
-    // Check if the response is marked to be JSON
-    const isJsonResponse = response.get('Content-Type')?.includes('json') || false;
+    const contentType = response.get('Content-Type');
+    const isJsonResponse = contentType?.includes('json') ?? false;
 
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
       pipeline(data as Readable, response, _ => {});
-    } else if (data !== undefined && (data !== null || isJsonResponse)) {
-      // allow null response when it is a json response
-      if (typeof data === 'number' || isJsonResponse) {
-        // express treats number data as status code so use the json method instead
-        // or if the response was marked as json then use the json so for example strings are quoted
-        response.status(statusCode || 200).json(data);
-      } else {
-        // do not use json for every type since internally the send will invoke json if needed
-        // but for string data it will not quote it, so we can send string as plain/text data
-        response.status(statusCode || 200).send(data);
-      }
-    } else {
+    } else if (data === undefined || (data === null && !isJsonResponse)) {
       response.status(statusCode || 204).end();
+    } else if (data instanceof Uint8Array) {
+      // send() only recognises Buffer as binary and would JSON-encode any other Uint8Array
+      response.status(statusCode || 200).send(Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+    } else if (typeof data === 'string' && contentType !== undefined && !isJsonResponse) {
+      response.status(statusCode || 200).send(data);
+    } else {
+      // the spec documents these as application/json; send() would emit a bare string as text/html and treat a number as a status code
+      response.status(statusCode || 200).json(data);
     }
   }
 }
