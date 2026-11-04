@@ -1,4 +1,4 @@
-import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
+import type { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
 import type { boomify, isBoom, Payload } from '@hapi/boom';
 
 import { Controller } from '../../../interfaces/controller';

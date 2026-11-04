@@ -2,7 +2,8 @@
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import type { TsoaRoute } from '@tsoa/runtime';
-import { fetchMiddlewares, HapiTemplateService{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
+import { fetchMiddlewares{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
+import { HapiTemplateService } from '@tsoa/runtime/hapi';
 {{#each controllers}}
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { {{name}} } from '{{modulePath}}';
