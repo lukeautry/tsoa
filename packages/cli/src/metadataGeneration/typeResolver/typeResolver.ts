@@ -1,11 +1,9 @@
 import type { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
-import { getJSDocTagNames } from '../../utils/jsDocUtils';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
-import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
-import { isTypeScriptLib } from './declarations';
-import { isArrayType, isErrorType, isTupleType, tupleElementFlags } from './internals';
+import { numberFormat } from './annotations';
+import { isArrayType, isErrorType, isTrueLiteral, isTupleType, tupleElementFlags } from './internals';
 import { resolveAnonymousObject, resolveModel } from './members';
 import { resolveNamedReference } from './models';
 import { TypeNamer } from './naming';
@@ -39,12 +37,22 @@ export class TypeResolver {
    */
   private path: Array<{ segment: string; declaration?: ts.Node }> = [];
 
-  /** Entry point used by MetadataGenerator.resolveType. */
-  public resolveNode(typeNode: ts.TypeNode, parentNode?: ts.Node, type?: ts.Type): Tsoa.Type {
+  /** A checker type with no written form (an inferred return or parameter type). */
+  public resolveType(type: ts.Type, declaration?: ts.Node): Tsoa.Type {
+    return this.resolveRoot(type, rootSite(undefined, declaration));
+  }
+
+  /** A type written in source. */
+  public resolveTypeNode(node: ts.TypeNode, declaration?: ts.Node): Tsoa.Type {
+    return this.resolveRoot(this.checker.getTypeFromTypeNode(node), rootSite(node, declaration));
+  }
+
+  private resolveRoot(type: ts.Type, site: Site): Tsoa.Type {
     const outer = this.path;
-    this.path = parentNode && ts.isParameter(parentNode) && ts.isIdentifier(parentNode.name) ? [{ segment: parentNode.name.text, declaration: parentNode }] : [];
+    const declaration = site.declaration;
+    this.path = declaration && ts.isParameter(declaration) && ts.isIdentifier(declaration.name) ? [{ segment: declaration.name.text, declaration }] : [];
     try {
-      return this.resolve(type ?? this.typeOfNode(typeNode, parentNode), rootSite(typeNode, parentNode));
+      return this.resolve(type, site);
     } finally {
       this.path = outer;
     }
@@ -135,7 +143,7 @@ export class TypeResolver {
       return { dataType: 'string' };
     }
     if (flags & ts.TypeFlags.Number) {
-      return PrimitiveTransformer.numberType(this.generator.defaultNumberType, site.declaration ? getJSDocTagNames(site.declaration) : undefined);
+      return numberFormat(this.generator.defaultNumberType, site.declaration);
     }
     if (flags & ts.TypeFlags.Boolean) {
       return { dataType: 'boolean' };
@@ -179,7 +187,7 @@ export class TypeResolver {
       return { dataType: 'array', elementType: this.at('[]', () => this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node)))) };
     }
     if (flags & ts.TypeFlags.Object) {
-      if (isBuiltInClass(type)) {
+      if (isBuiltInClass(this.generator, type)) {
         const path = this.pathText();
         throw new GenerateMetadataError(
           `Unsupported type: ${this.checker.typeToString(type)}${path ? ` at '${path}'` : ''}. Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.`,
@@ -358,16 +366,6 @@ export class TypeResolver {
   private get strictNullChecks(): boolean {
     return this.generator.compilerOptions.strictNullChecks === true;
   }
-
-  private typeOfNode(typeNode: ts.TypeNode, parentNode?: ts.Node): ts.Type {
-    if (typeNode.pos !== -1) {
-      return this.checker.getTypeFromTypeNode(typeNode);
-    }
-    if (parentNode) {
-      return this.checker.getTypeAtLocation(parentNode);
-    }
-    throw new GenerateMetadataError(`Can not succeeded to calculate referencer type.`, typeNode);
-  }
 }
 
 function literalValue(type: ts.Type): LiteralValue | undefined {
@@ -375,7 +373,7 @@ function literalValue(type: ts.Type): LiteralValue | undefined {
     return type.value;
   }
   if (type.flags & ts.TypeFlags.BooleanLiteral) {
-    return (type as { intrinsicName?: string }).intrinsicName === 'true';
+    return isTrueLiteral(type);
   }
   return undefined;
 }
@@ -385,11 +383,11 @@ function literalValue(type: ts.Type): LiteralValue | undefined {
  * Types tsoa maps specially (Date, Promise, arrays) never get here; lib aliases such as `Partial`
  * and `Record` produce anonymous types, and declarations from packages are models.
  */
-function isBuiltInClass(type: ts.Type): boolean {
+function isBuiltInClass(generator: MetadataGenerator, type: ts.Type): boolean {
   const symbol = type.getSymbol();
   const declarations = symbol?.getDeclarations();
   const isClassOrInterface = symbol !== undefined && (symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Interface)) !== 0;
-  return isClassOrInterface && !!declarations?.length && declarations.every(declaration => isTypeScriptLib(declaration.getSourceFile()));
+  return isClassOrInterface && !!declarations?.length && declarations.every(declaration => generator.isDefaultLibrary(declaration.getSourceFile()));
 }
 
 /** Literal values as one enum, or one enum per primitive kind when mixed (as for `keyof`). */

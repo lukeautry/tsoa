@@ -5,7 +5,6 @@ import { throwUnless } from '../../utils/flowUtils';
 import { getPropertyValidators } from '../../utils/validatorUtils';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
-import { PrimitiveTransformer } from '../transformer/primitiveTransformer';
 import { nodeDefault, nodeDescription, nodeExample, nodeExtensions, nodeFormat } from './annotations';
 import { modelDeclarations, type ModelDeclaration } from './declarations';
 import type { Substitutions } from './site';
@@ -41,7 +40,7 @@ export class TypeNamer {
     const typeName = this.withTypeArguments(node, name, subs);
     const refName = TypeNamer.refName(typeName);
     this.generator.CheckExpressionUnicity(refName, typeName);
-    return { entity, typeName, refName, declarations: modelDeclarations(this.checker, entity) };
+    return { entity, typeName, refName, declarations: modelDeclarations(this.generator, entity) };
   }
 
   /** The written type expression, normalized. */
@@ -59,7 +58,7 @@ export class TypeNamer {
       }
       return `${literalValue}`;
     }
-    const primitive = PrimitiveTransformer.resolveKindToPrimitive(arg.kind);
+    const primitive = primitiveKeywords[arg.kind];
     if (primitive) {
       return primitive;
     }
@@ -170,7 +169,7 @@ export class TypeNamer {
       return substitution.name;
     }
 
-    const declarations = modelDeclarations(this.checker, entity);
+    const declarations = modelDeclarations(this.generator, entity);
     if (declarations.length === 0) {
       if (ts.isIdentifier(entity)) {
         return entity.text;
@@ -261,6 +260,16 @@ export function entityOf(node: ts.TypeReferenceType): ts.EntityName {
 function entityText(entity: ts.EntityName): string {
   return ts.isIdentifier(entity) ? entity.text : `${entityText(entity.left)}.${entity.right.text}`;
 }
+
+/** Keyword types and their names. */
+const primitiveKeywords: Partial<Record<ts.SyntaxKind, string>> = {
+  [ts.SyntaxKind.NumberKeyword]: 'number',
+  [ts.SyntaxKind.StringKeyword]: 'string',
+  [ts.SyntaxKind.BooleanKeyword]: 'boolean',
+  [ts.SyntaxKind.VoidKeyword]: 'void',
+  [ts.SyntaxKind.UndefinedKeyword]: 'undefined',
+  [ts.SyntaxKind.NullKeyword]: 'null',
+};
 
 const printer = ts.createPrinter({ removeComments: true });
 const emptySource = ts.createSourceFile('printed.ts', '', ts.ScriptTarget.Latest);

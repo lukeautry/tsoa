@@ -64,21 +64,15 @@ export function unionOf(checker: ts.TypeChecker, types: readonly ts.Type[]): ts.
   return getUnionType ? getUnionType.call(checker, types) : undefined;
 }
 
+/** Whether a boolean literal type is `true`; the checker keeps the value only in `intrinsicName`. */
+export function isTrueLiteral(type: ts.Type): boolean {
+  return (type as { intrinsicName?: string }).intrinsicName === 'true';
+}
+
 /**
- * Whether two checker types describe the same model: identical, the same union/intersection
- * members, or mutually assignable (two written literals `{ a: string }` are distinct types).
- * `isTypeAssignableTo` is public from TypeScript 5.4/6; without it only the first two apply.
+ * Properties keyed by a symbol (`[Symbol.iterator]`, `unique symbol` constants) have no JSON
+ * name. The checker marks them only by the internal `__@` prefix of their escaped name.
  */
-export function sameType(checker: ts.TypeChecker, a: ts.Type, b: ts.Type): boolean {
-  if (a === b) {
-    return true;
-  }
-  const members = (t: ts.Type) => (t.isUnionOrIntersection() ? t.types : undefined);
-  const ma = members(a);
-  const mb = members(b);
-  if (ma && mb && (a.flags & ts.TypeFlags.Union) === (b.flags & ts.TypeFlags.Union) && ma.length === mb.length && ma.every(m => mb.includes(m))) {
-    return true;
-  }
-  const assignable = (checker as { isTypeAssignableTo?: (source: ts.Type, target: ts.Type) => boolean }).isTypeAssignableTo;
-  return assignable ? assignable.call(checker, a, b) && assignable.call(checker, b, a) : false;
+export function isSymbolKeyed(property: ts.Symbol): boolean {
+  return (property.escapedName as string).startsWith('__@');
 }

@@ -7,7 +7,7 @@ import { readAnnotations } from './annotations';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
 import { resolveNamedReference } from './models';
-import { syntheticOrigin, unionOf } from './internals';
+import { isSymbolKeyed, syntheticOrigin, unionOf } from './internals';
 import { writtenType } from './written';
 import { childSite, emptySubstitutions, followSite, substitutionsCover, substitutionsFor, type Site, type Substitutions } from './site';
 
@@ -100,7 +100,7 @@ function modelProperties(resolver: TypeResolver, declaration: Owner, ownerType: 
   const clauses: readonly ts.HeritageClause[] = declaration.heritageClauses ?? [];
   const inherited = clauses.flatMap(clause =>
     clause.types.flatMap((heritage): Tsoa.Property[] => {
-      const bases = modelDeclarations(checker, heritage.expression as ts.EntityName);
+      const bases = modelDeclarations(resolver.generator, heritage.expression as ts.EntityName);
       const owners = bases.filter((base): base is Owner => ts.isInterfaceDeclaration(base) || ts.isClassDeclaration(base));
       if (owners.length) {
         const properties = owners.flatMap(base => modelProperties(resolver, base, ownerType, substitutionsFor(heritage, base.typeParameters, { substitutions }, resolver.namer)));
@@ -188,7 +188,7 @@ function declaredProperty(resolver: TypeResolver, ownerType: ts.Type, { name, me
     required,
     type: resolved,
     validators: annotations.validators,
-    deprecated: isClassMember ? annotations.deprecated : isExistJSDocTag(member, tag => tag.tagName.text === 'deprecated'),
+    deprecated: annotations.deprecated,
     title: annotations.title,
     extensions: annotations.extensions,
   };
@@ -223,11 +223,16 @@ function mappedProperty(resolver: TypeResolver, property: ts.Symbol, site: Site)
  * a different type from the `undefined` a source writes, which stays.
  */
 function withoutMissing(checker: ts.TypeChecker, type: ts.Type): ts.Type {
+  const undefinedType = checker.getUndefinedType();
+  return withoutMembers(checker, type, member => (member.flags & ts.TypeFlags.Undefined) !== 0 && member !== undefinedType);
+}
+
+/** The union without the members `drop` selects, rebuilt as the checker would build it. */
+function withoutMembers(checker: ts.TypeChecker, type: ts.Type, drop: (member: ts.Type) => boolean): ts.Type {
   if (!type.isUnion()) {
     return type;
   }
-  const undefinedType = checker.getUndefinedType();
-  const members = type.types.filter(member => !(member.flags & ts.TypeFlags.Undefined) || member === undefinedType);
+  const members = type.types.filter(member => !drop(member));
   if (members.length === type.types.length) {
     return type;
   }
@@ -270,7 +275,7 @@ function toJSONReturn(resolver: TypeResolver, type: ts.Type, declaration: Owner,
   if (!signature) {
     return undefined;
   }
-  const substitutions = method.parent === declaration ? site.substitutions : new Map();
+  const substitutions = method.parent === declaration ? site.substitutions : emptySubstitutions;
   return resolver.resolve(checker.getReturnTypeOfSignature(signature), { node: method.type, declaration: undefined, substitutions });
 }
 
@@ -309,8 +314,7 @@ function withoutOptionality(resolver: TypeResolver, member: Member, type: ts.Typ
   if (declaresUndefined) {
     return type;
   }
-  const members = type.types.filter(t => !(t.flags & ts.TypeFlags.Undefined));
-  return members.length === 1 ? members[0] : (unionOf(checker, members) ?? type);
+  return withoutMembers(checker, type, member => (member.flags & ts.TypeFlags.Undefined) !== 0);
 }
 
 /** Members with a JSON property name; symbol-keyed members have none and are left out. */
@@ -335,11 +339,6 @@ function propertyName(resolver: TypeResolver, member: Member): string | undefine
   }
   const type = checker.getTypeAtLocation(member.name.expression);
   return type.isStringLiteral() || type.isNumberLiteral() ? String(type.value) : undefined;
-}
-
-/** Properties keyed by a symbol (`[Symbol.iterator]`, `unique symbol` constants) have no JSON name. */
-function isSymbolKeyed(property: ts.Symbol): boolean {
-  return (property.escapedName as string).startsWith('__@');
 }
 
 function hasModifier(node: ts.HasModifiers, kind: ts.SyntaxKind): boolean {

@@ -91,7 +91,7 @@ export class ControllerGenerator {
         description: description || '',
         examples: example === undefined ? undefined : [example],
         name,
-        schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? this.current.resolveType(expression.typeArguments[0]) : undefined,
+        schema: expression.typeArguments && expression.typeArguments.length > 0 && !this.isHidden ? this.current.resolveTypeNode(expression.typeArguments[0]) : undefined,
         headers: getHeaderType(expression.typeArguments, 1, this.current),
       };
     });

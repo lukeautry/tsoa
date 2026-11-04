@@ -3,8 +3,8 @@ import * as ts from 'typescript';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { getPropertyValidators } from '../../utils/validatorUtils';
 import { GenerateMetadataError } from '../exceptions';
-import { ReferenceTransformer } from '../transformer/referenceTransformer';
 import { nodeDefault, nodeDescription, nodeExample, nodeFormat, nodeTitle } from './annotations';
+import type { MetadataGenerator } from '../metadataGenerator';
 import type { TypeResolver } from './typeResolver';
 import { modelDeclarations } from './declarations';
 import { emptySubstitutions, substitutionsFor, type Site } from './site';
@@ -52,7 +52,7 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
         }
         return buildModel(resolver, declaration, type, reference.refName, inner);
       });
-      return ReferenceTransformer.merge(models);
+      return mergeModels(models);
     },
     register,
   );
@@ -65,7 +65,7 @@ export function resolveNamedReference(resolver: TypeResolver, type: ts.Type, sit
  */
 function followReexports(resolver: TypeResolver, alias: ts.TypeAliasDeclaration, site: Site): { alias: ts.TypeAliasDeclaration; site: Site } {
   for (;;) {
-    const target = reexportedAlias(resolver.generator.typeChecker, alias);
+    const target = reexportedAlias(resolver.generator, alias);
     if (!target) {
       return { alias, site };
     }
@@ -74,7 +74,7 @@ function followReexports(resolver: TypeResolver, alias: ts.TypeAliasDeclaration,
   }
 }
 
-function reexportedAlias(checker: ts.TypeChecker, alias: ts.TypeAliasDeclaration): ts.TypeAliasDeclaration | undefined {
+function reexportedAlias(generator: MetadataGenerator, alias: ts.TypeAliasDeclaration): ts.TypeAliasDeclaration | undefined {
   const body = alias.type;
   const parameters = alias.typeParameters;
   if (!parameters?.length || !ts.isTypeReferenceNode(body) || body.typeArguments?.length !== parameters.length) {
@@ -85,7 +85,7 @@ function reexportedAlias(checker: ts.TypeChecker, alias: ts.TypeAliasDeclaration
   if (!forwardsParameters || targetName !== alias.name.text) {
     return undefined;
   }
-  const targets = modelDeclarations(checker, body.typeName);
+  const targets = modelDeclarations(generator, body.typeName);
   return targets.length === 1 && ts.isTypeAliasDeclaration(targets[0]) && targets[0] !== alias ? targets[0] : undefined;
 }
 
@@ -138,4 +138,84 @@ function constantValue(checker: ts.TypeChecker, member: ts.EnumMember): string |
     throw new GenerateMetadataError(`Could not determine the value of enum member ${member.name.getText()}`, member);
   }
   return value;
+}
+
+/** One model from the declarations that share a name (merged interfaces, an enum and its namespace…). */
+export function mergeModels(models: Tsoa.ReferenceType[]): Tsoa.ReferenceType {
+  if (models.length === 0) {
+    throw new GenerateMetadataError('Cannot merge empty reference types array');
+  }
+  if (models.length === 1) {
+    return models[0];
+  }
+  if (models.every((model): model is Tsoa.RefEnumType => model.dataType === 'refEnum')) {
+    return mergeEnums(models);
+  }
+  if (models.every((model): model is Tsoa.RefObjectType => model.dataType === 'refObject')) {
+    return mergeObjects(models);
+  }
+  throw new GenerateMetadataError(`These resolved type merge rules are not defined: ${JSON.stringify(models)}`);
+}
+
+export function mergeEnums(many: Tsoa.RefEnumType[]): Tsoa.RefEnumType {
+  let merged = mergeEnum(many[0], many[1]);
+  for (let i = 2; i < many.length; ++i) {
+    merged = mergeEnum(merged, many[i]);
+  }
+  return merged;
+}
+
+export function mergeEnum(first: Tsoa.RefEnumType, second: Tsoa.RefEnumType): Tsoa.RefEnumType {
+  if (!first) return second;
+  if (!second) return first;
+
+  const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
+  const deprecated = first.deprecated || second.deprecated;
+  const enums = first.enums ? (second.enums ? [...first.enums, ...second.enums] : first.enums) : second.enums;
+  const enumVarnames = first.enumVarnames ? (second.enumVarnames ? [...first.enumVarnames, ...second.enumVarnames] : first.enumVarnames) : second.enumVarnames;
+  const example = first.example ?? second.example;
+  const title = first.title || second.title;
+
+  return {
+    dataType: 'refEnum',
+    description,
+    enums,
+    enumVarnames,
+    refName: first.refName,
+    deprecated,
+    example,
+    ...(title && { title }),
+  };
+}
+
+export function mergeObjects(many: Tsoa.RefObjectType[]): Tsoa.RefObjectType {
+  let merged = mergeObject(many[0], many[1]);
+  for (let i = 2; i < many.length; ++i) {
+    merged = mergeObject(merged, many[i]);
+  }
+  return merged;
+}
+
+export function mergeObject(first: Tsoa.RefObjectType, second: Tsoa.RefObjectType): Tsoa.RefObjectType {
+  const description = first.description ? (second.description ? `${first.description}\n${second.description}` : first.description) : second.description;
+  const deprecated = first.deprecated || second.deprecated;
+  const example = first.example ?? second.example;
+  const properties = [...first.properties, ...second.properties.filter(prop => first.properties.every(firstProp => firstProp.name !== prop.name))];
+  const additionalProperties = first.additionalProperties
+    ? second.additionalProperties
+      ? { dataType: 'union' as const, types: [first.additionalProperties, second.additionalProperties] }
+      : first.additionalProperties
+    : second.additionalProperties;
+  const title = first.title || second.title;
+
+  return {
+    dataType: 'refObject',
+    description,
+    properties,
+    additionalProperties,
+    refName: first.refName,
+    deprecated,
+    example,
+    ...(title && { title }),
+  };
 }

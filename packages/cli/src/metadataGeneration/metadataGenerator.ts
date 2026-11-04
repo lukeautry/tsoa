@@ -1,6 +1,6 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Node, type Program, type Type, type TypeChecker, type TypeNode } from 'typescript';
+import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Node, type Program, type SourceFile, type Type, type TypeChecker, type TypeNode } from 'typescript';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
@@ -210,13 +210,21 @@ export class MetadataGenerator {
     });
   };
 
-  /**
-   * Resolves a type annotation to tsoa metadata.
-   * `type` may be passed when the checker type is already known (e.g. for synthesized nodes).
-   */
-  public resolveType(typeNode: TypeNode, parentNode?: Node, type?: Type): Tsoa.Type {
+  /** Resolves a checker type that has no written form (e.g. an inferred return type) to tsoa metadata. */
+  public resolveType(type: Type, declaration?: Node): Tsoa.Type {
     this.typeResolver ??= new TypeResolver(this);
-    return this.typeResolver.resolveNode(typeNode, parentNode, type);
+    return this.typeResolver.resolveType(type, declaration);
+  }
+
+  /** Resolves a type written in source to tsoa metadata. `declaration` supplies JSDoc and decorators. */
+  public resolveTypeNode(node: TypeNode, declaration?: Node): Tsoa.Type {
+    this.typeResolver ??= new TypeResolver(this);
+    return this.typeResolver.resolveTypeNode(node, declaration);
+  }
+
+  /** Whether a source file is one of TypeScript's own lib files (`lib.es2015.collection.d.ts`, …). */
+  public isDefaultLibrary(sourceFile: SourceFile): boolean {
+    return this.program.isSourceFileDefaultLibrary(sourceFile);
   }
 
   public TypeChecker() {

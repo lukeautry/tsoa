@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { GenerateMetadataError } from '../exceptions';
 import { isExistJSDocTag } from '../../utils/jsDocUtils';
 import { throwUnless } from '../../utils/flowUtils';
+import type { MetadataGenerator } from '../metadataGenerator';
 
 /** Declarations that can back a tsoa model. */
 export type ModelDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.EnumMember;
@@ -16,7 +17,8 @@ export function symbolAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | un
  * The model declarations a written reference points at.
  * Returns [] when the reference has no usable declarations (type parameters, built-ins, unresolved).
  */
-export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName): ModelDeclaration[] {
+export function modelDeclarations(generator: MetadataGenerator, entity: ts.EntityName): ModelDeclaration[] {
+  const checker = generator.typeChecker;
   let typeName = ts.isIdentifier(entity) ? entity.text : entity.right.text;
 
   let symbol = symbolAt(checker, entity);
@@ -33,7 +35,7 @@ export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName
 
   let models = declarations.filter((node): node is ModelDeclaration => isModelDeclaration(node) && node.name?.getText() === typeName);
   if (models.length > 1) {
-    const nonLib = models.filter(model => !isTypeScriptLib(model.getSourceFile()));
+    const nonLib = models.filter(model => !generator.isDefaultLibrary(model.getSourceFile()));
     // ES2022 adds `cause` to Error in a second library declaration.
     if (!(nonLib.length === 0 && typeName === 'Error')) {
       models = nonLib;
@@ -41,11 +43,6 @@ export function modelDeclarations(checker: ts.TypeChecker, entity: ts.EntityName
     models = designatedModels(models, typeName);
   }
   return models;
-}
-
-/** A declaration file shipped with TypeScript itself (`lib.es2015.collection.d.ts`, …). */
-export function isTypeScriptLib(sourceFile: ts.SourceFile): boolean {
-  return sourceFile.fileName.replace(/\\/g, '/').toLowerCase().includes('node_modules/typescript');
 }
 
 function isModelDeclaration(node: ts.Node): node is ModelDeclaration {

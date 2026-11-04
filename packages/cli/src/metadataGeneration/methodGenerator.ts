@@ -40,15 +40,7 @@ export class MethodGenerator {
       throw new GenerateMetadataError("This isn't a valid a controller method.");
     }
 
-    let nodeType = this.node.type;
-    let implicitType: ts.Type | undefined;
-    if (!nodeType) {
-      const typeChecker = this.current.typeChecker;
-      const signature = typeChecker.getSignatureFromDeclaration(this.node);
-      implicitType = typeChecker.getReturnTypeOfSignature(signature!);
-      nodeType = typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation)!;
-    }
-    const type = this.resolveReturnType(nodeType, implicitType);
+    const type = this.withLocation(`'${this.getCurrentLocation()}' return type`, () => this.resolveReturnType());
     const responses = this.commonResponses.concat(this.getMethodResponses());
     const { response: successResponse, status: successStatus } = this.getMethodSuccessResponse(type);
     responses.push(successResponse);
@@ -77,12 +69,21 @@ export class MethodGenerator {
     };
   }
 
-  private resolveReturnType(nodeType: ts.TypeNode, implicitType: ts.Type | undefined): Tsoa.Type {
+  private resolveReturnType(): Tsoa.Type {
+    if (this.node.type) {
+      return this.current.resolveTypeNode(this.node.type);
+    }
+    const signature = this.current.typeChecker.getSignatureFromDeclaration(this.node);
+    return this.current.resolveType(this.current.typeChecker.getReturnTypeOfSignature(signature!));
+  }
+
+  /** Runs `generate`, adding where it ran (`'Controller.method'`) to any error it throws. */
+  private withLocation<T>(location: string, generate: () => T): T {
     try {
-      return this.current.resolveType(nodeType, undefined, implicitType);
+      return generate();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      throw new GenerateMetadataError(`${message} \n in '${this.getCurrentLocation()}' return type`);
+      throw new GenerateMetadataError(`${message} \n in ${location}`);
     }
   }
 
@@ -94,16 +95,7 @@ export class MethodGenerator {
     const fullPath = path.join(this.parentPath || '', this.path);
     const method = this.method;
     const parameters = this.node.parameters
-      .map(p => {
-        try {
-          return new ParameterGenerator(p, method, fullPath, this.current).Generate();
-        } catch (e) {
-          const methodId = this.node.name as ts.Identifier;
-          const controllerId = (this.node.parent as ts.ClassDeclaration).name as ts.Identifier;
-          const message = e instanceof Error ? e.message : String(e);
-          throw new GenerateMetadataError(`${message} \n in '${controllerId.text}.${methodId.text}'`);
-        }
-      })
+      .map(p => this.withLocation(`'${this.getCurrentLocation()}'`, () => new ParameterGenerator(p, method, fullPath, this.current).Generate()))
       .reduce((flattened, params) => [...flattened, ...params], []);
 
     this.validateBodyParameters(parameters);
@@ -272,7 +264,7 @@ export class MethodGenerator {
     if (!ts.isCallExpression(expression) || !expression.typeArguments?.length) {
       return undefined;
     }
-    return this.current.resolveType(expression.typeArguments[schemaIndex]);
+    return this.current.resolveTypeNode(expression.typeArguments[schemaIndex]);
   }
 
   private getMethodSuccessExamples() {

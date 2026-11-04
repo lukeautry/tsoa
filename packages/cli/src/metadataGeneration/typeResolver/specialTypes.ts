@@ -1,7 +1,7 @@
 import type { Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
 import type { MetadataGenerator } from '../metadataGenerator';
-import { DateTransformer } from '../transformer/dateTransformer';
+import { dateFormat } from './annotations';
 import { followSite, type Site } from './site';
 
 /**
@@ -14,7 +14,7 @@ export function resolveSpecialType(type: ts.Type, site: Site, _generator: Metada
   const name = specialName(type, followed);
   switch (name) {
     case 'Date':
-      return new DateTransformer().transform(site.declaration);
+      return dateFormat(site.declaration);
     case 'Buffer':
     case 'Readable':
       return { dataType: 'buffer' };

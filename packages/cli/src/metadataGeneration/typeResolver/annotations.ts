@@ -1,4 +1,4 @@
-import type { Tsoa } from '@tsoa/runtime';
+import type { Config, Tsoa } from '@tsoa/runtime';
 import * as ts from 'typescript';
 import { getDecorators, getNodeFirstDecoratorValue, isDecorator } from '../../utils/decoratorUtils';
 import { getJSDocComment, getJSDocComments, getJSDocTagNames, isExistJSDocTag } from '../../utils/jsDocUtils';
@@ -19,10 +19,8 @@ export interface Annotations {
   format?: string;
   title?: string;
   deprecated: boolean;
-  ignored: boolean;
   validators: Tsoa.Validators;
   extensions: Tsoa.Extension[];
-  tagNames: string[];
 }
 
 export function readAnnotations(declaration: ts.Node, generator: MetadataGenerator): Annotations {
@@ -35,10 +33,8 @@ export function readAnnotations(declaration: ts.Node, generator: MetadataGenerat
     format: nodeFormat(declaration),
     title: nodeTitle(declaration),
     deprecated: isExistJSDocTag(declaration, tag => tag.tagName.text === 'deprecated') || isDecorator(declaration, identifier => identifier.text === 'Deprecated'),
-    ignored: getJSDocTagNames(declaration).some(tag => tag === 'ignore'),
     validators: getPropertyValidators(declaration) || {},
     extensions: nodeExtensions(generator, declaration),
-    tagNames: getJSDocTagNames(declaration),
   };
 }
 
@@ -132,4 +128,27 @@ export function nodeDefault(node: ts.Node): unknown {
     }
   }
   return undefined;
+}
+
+/** The number format selected by `@isInt`/`@isLong`/`@isFloat`/`@isDouble` on `declaration`, else the default. */
+export function numberFormat(defaultNumberType: NonNullable<Config['defaultNumberType']>, declaration: ts.Node | undefined): Tsoa.PrimitiveType {
+  const tag = (declaration ? getJSDocTagNames(declaration) : []).find(name => ['isInt', 'isLong', 'isFloat', 'isDouble'].includes(name));
+  switch (tag) {
+    case 'isInt':
+      return { dataType: 'integer' };
+    case 'isLong':
+      return { dataType: 'long' };
+    case 'isFloat':
+      return { dataType: 'float' };
+    case 'isDouble':
+      return { dataType: 'double' };
+    default:
+      return { dataType: defaultNumberType };
+  }
+}
+
+/** The date format selected by `@isDate`/`@isDateTime` on `declaration`, else date-time. */
+export function dateFormat(declaration: ts.Node | undefined): Tsoa.DateType | Tsoa.DateTimeType {
+  const tag = (declaration ? getJSDocTagNames(declaration) : []).find(name => name === 'isDate' || name === 'isDateTime');
+  return { dataType: tag === 'isDate' ? 'date' : 'datetime' };
 }
