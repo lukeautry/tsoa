@@ -7,7 +7,7 @@ import toFloat from 'validator/lib/toFloat';
 import toInt from 'validator/lib/toInt';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
-import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
+import { TsoaRoute } from './tsoa-route';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
 
@@ -735,22 +735,17 @@ export class ValidationService {
 
   private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[]): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
-
-    if (this.config.noImplicitAdditionalProperties === 'ignore') {
-      return [];
-    }
-
-    const excessProperties = [...properties].filter(property => !modelProperties.has(property));
-    return modelDefinition.additionalProperties ? excessProperties.filter(property => ValidationService.isPrototypeKey(property)) : excessProperties;
+    return properties.filter(property => !modelProperties.has(property) && this.isRejectedExcessProperty(property, !!modelDefinition.additionalProperties));
   }
 
   /**
-   * An own "__proto__" key counts as an excess property even where additional properties are allowed, because a
-   * later assignment or Object.assign of the validated value would turn it into the target's prototype. Like any
-   * excess property it is kept under noImplicitAdditionalProperties: 'ignore', and values typed any are not inspected.
+   * Whether an excess property must be reported or removed. Under noImplicitAdditionalProperties: 'ignore' none is.
+   * Otherwise every excess property is, unless additional properties are allowed. An own "__proto__" key is rejected
+   * even then, because a later assignment or Object.assign of the validated value would turn it into the target's
+   * prototype. Values typed any are not inspected.
    */
-  private static isPrototypeKey(key: string): boolean {
-    return key === '__proto__';
+  private isRejectedExcessProperty(key: string, additionalPropertiesAllowed: boolean): boolean {
+    return this.config.noImplicitAdditionalProperties !== 'ignore' && (!additionalPropertiesAllowed || key === '__proto__');
   }
 
   public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; isBodyParam: boolean; parent?: string }): any {
@@ -794,44 +789,34 @@ export class ValidationService {
       };
 
       const additionalProperties = modelDefinition.additionalProperties;
-      const rejectsPrototypeKey = this.config.noImplicitAdditionalProperties !== 'ignore';
-      const isRejectedExcessProperty = (key: string) => isAnExcessProperty(key) && (additionalProperties === false || (rejectsPrototypeKey && ValidationService.isPrototypeKey(key)));
 
       Object.keys(value).forEach((key: string) => {
-        if (isRejectedExcessProperty(key)) {
+        if (!isAnExcessProperty(key)) {
+          return;
+        }
+        // An undefined additionalProperties allows additional properties, as in Swagger.
+        if (this.isRejectedExcessProperty(key, additionalProperties !== false)) {
           if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
             fieldErrors[`${fieldPath}.${key}`] = {
               message: `"${key}" is an excess property and therefore is not allowed`,
               value: key,
             };
-          } else if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
-            delete value[key];
-          } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
-            // then it's okay to have additionalProperties
           } else {
-            assertNever(this.config.noImplicitAdditionalProperties);
+            delete value[key];
+          }
+        } else if (typeof additionalProperties === 'object') {
+          const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, fieldPath + '.');
+          // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+          if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
+            value[key] = validatedValue;
+          } else {
+            fieldErrors[`${fieldPath}.${key}`] = {
+              message: `No matching model found in additionalProperties to validate ${key}`,
+              value: key,
+            };
           }
         }
       });
-
-      if (additionalProperties === true || isDefaultForAdditionalPropertiesAllowed(additionalProperties) || additionalProperties === false) {
-        // then don't validate any of the additional properties
-      } else {
-        Object.keys(value).forEach((key: string) => {
-          if (isAnExcessProperty(key) && !isRejectedExcessProperty(key)) {
-            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, fieldPath + '.');
-            // Add value from validator if it's not undefined or if value is required and unfedined is valid type
-            if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
-              value[key] = validatedValue;
-            } else {
-              fieldErrors[`${fieldPath}.${key}`] = {
-                message: `No matching model found in additionalProperties to validate ${key}`,
-                value: key,
-              };
-            }
-          }
-        });
-      }
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {

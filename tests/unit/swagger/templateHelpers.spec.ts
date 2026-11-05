@@ -1482,6 +1482,60 @@ describe('ValidationService', () => {
       expect(result).not.to.equal(value);
       expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
     });
+
+    it('should keep it as an own property of a record model with ignore', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      const errors: FieldErrors = {};
+
+      const result = v.validateModel({ name: 'body', value: JSON.parse('{"a":"b","__proto__":{"isAdmin":true}}'), modelDefinition: models.AnyRecord, fieldErrors: errors, isBodyParam: true });
+
+      expect(errors).to.deep.equal({});
+      expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
+      expect(result.isAdmin).to.be.undefined;
+      expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+    });
+
+    describe('in an intersection of record models', () => {
+      const recordModels: TsoaRoute.Models = {
+        Named: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: { dataType: 'any' } },
+        Aged: { dataType: 'refObject', properties: { age: { dataType: 'double', required: true } }, additionalProperties: { dataType: 'any' } },
+      };
+      const intersection: TsoaRoute.PropertySchema[] = [{ ref: 'Named' }, { ref: 'Aged' }];
+      const body = '{"name":"n","age":1,"__proto__":{"isAdmin":true}}';
+
+      it('should reject it with throw-on-extras', () => {
+        const v = new ValidationService(recordModels, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: true });
+        const errors: FieldErrors = {};
+
+        const result = v.validateIntersection('body', JSON.parse(body), errors, true, intersection);
+
+        expect(result).to.be.undefined;
+        expect(errors.body.message).to.contain('Could not match intersection');
+      });
+
+      it('should remove it with silently-remove-extras', () => {
+        const v = new ValidationService(recordModels, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+        const errors: FieldErrors = {};
+
+        const result = v.validateIntersection('body', JSON.parse(body), errors, true, intersection);
+
+        expect(errors).to.deep.equal({});
+        expect(result).to.deep.equal({ name: 'n', age: 1 });
+        expectPlainObject(result);
+      });
+
+      it('should keep it as an own property with ignore', () => {
+        const v = new ValidationService(recordModels, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+        const errors: FieldErrors = {};
+
+        const result = v.validateIntersection('body', JSON.parse(body), errors, true, intersection);
+
+        expect(errors).to.deep.equal({});
+        expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
+        expect(result.isAdmin).to.be.undefined;
+        expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+      });
+    });
   });
 
   describe('Intersection Validate', () => {
