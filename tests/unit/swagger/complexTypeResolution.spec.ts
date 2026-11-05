@@ -3,7 +3,8 @@ import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerato
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
 import { SpecGenerator31 } from '@tsoa/cli/swagger/specGenerator31';
-import { Swagger } from '@tsoa/runtime';
+import { DefaultRouteGenerator } from '@tsoa/cli/routeGeneration/defaultRouteGenerator';
+import { FieldErrors, Swagger, Tsoa, TsoaRoute, ValidationService } from '@tsoa/runtime';
 import { expect } from 'chai';
 import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
@@ -476,6 +477,195 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
             expect(properties).to.have.property('deletedAt');
             expect(properties).to.have.property('reason');
           }
+        });
+      });
+
+      describe('Types the type checker evaluates', () => {
+        const schemas = () => currentSpec.spec.components.schemas!;
+        // Drops undefined-valued keys so schemas can be compared deeply.
+        const resolve = (schema: unknown): Swagger.Schema3 => {
+          const { $ref } = (schema ?? {}) as Swagger.Schema3;
+          return $ref ? resolve(schemas()[$ref.replace('#/components/schemas/', '')]) : (JSON.parse(JSON.stringify(schema)) as Swagger.Schema3);
+        };
+        const response = (path: string) => currentSpec.spec.paths[`/ComplexType/Checked/${path}`].get!.responses['200'].content!['application/json'].schema as Swagger.Schema3;
+
+        it('should resolve typeof a const object', () => {
+          const config = resolve(response('TypeofConst'));
+          expect(config.properties?.mode).to.deep.include({ type: 'string', enum: ['a'] });
+          expect(config.properties?.retries).to.deep.include({ type: 'number', enum: [3] });
+        });
+
+        it('should resolve indexed access by an enum member', () => {
+          expect(resolve(response('IndexedByEnum'))).to.deep.include({ type: 'object', properties: { foo: { type: 'string' } }, required: ['foo'] });
+        });
+
+        it('should evaluate intrinsic string types', () => {
+          const shout = resolve(resolve(response('Intrinsic')).properties?.value);
+          expect(shout.type).to.equal('string');
+          expect(shout.enum).to.have.members(['ABC', 'DEF']);
+        });
+
+        it('should resolve template literal types with an open part to string', () => {
+          expect(resolve(resolve(response('TemplateLiteral')).properties?.id)).to.deep.equal({ type: 'string' });
+        });
+
+        it('should evaluate Exclude over a discriminated union', () => {
+          const members = resolve(response('Exclude')).anyOf!.map(resolve);
+          expect(members.map(member => member.properties?.type)).to.deep.equal([
+            { type: 'string', enum: ['a'], nullable: false },
+            { type: 'string', enum: ['b'], nullable: false },
+          ]);
+        });
+
+        it('should resolve the keys and values of a const object', () => {
+          const { role, value } = resolve(response('KeysAndValues')).properties!;
+          expect(resolve(role)).to.deep.include({ type: 'string', enum: ['admin', 'user'] });
+          expect(resolve(value)).to.deep.include({ type: 'number', enum: [1, 2] });
+        });
+
+        it('should keep validators of aliased property types through Omit', () => {
+          expect(resolve(response('Omit')).properties?.id).to.deep.equal({ $ref: '#/components/schemas/UUID' });
+          expect(resolve(schemas().UUID)).to.deep.equal({ type: 'string', pattern: '^[0-9a-f-]{36}$' });
+        });
+
+        it('should instantiate utility types inside generic aliases', () => {
+          const [partial, required] = resolve(response('OnlyRequire')).allOf!.map(resolve);
+          expect(partial.properties).to.have.all.keys('id', 'name', 'age');
+          expect(partial.required).to.equal(undefined);
+          expect(required.properties).to.have.all.keys('id');
+          expect(required.required).to.deep.equal(['id']);
+        });
+
+        it('should remap keys with `as`', () => {
+          expect(resolve(response('Getters'))).to.deep.include({ required: ['getId', 'getAge'] });
+        });
+
+        it('should include inherited properties of models that reference each other', () => {
+          const item = resolve(response('Tree'));
+          expect(item.properties).to.have.all.keys('items', 'name');
+          expect(item.properties?.items).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeItem' } });
+        });
+
+        it('should resolve z.input and z.output, aliased or written inline', () => {
+          const operation = currentSpec.spec.paths['/ComplexType/Checked/ZodInputOutput'].post!;
+          const input = resolve(operation.requestBody!.content['application/json'].schema);
+          const output = resolve(operation.responses['200'].content!['application/json'].schema);
+          expect(input.properties).to.have.all.keys('email', 'plan');
+          expect(input.required).to.deep.equal(['email']);
+          expect(output.properties).to.have.all.keys('email', 'plan');
+          expect(output.required).to.have.members(['email', 'plan']);
+
+          const inline = currentSpec.spec.paths['/ComplexType/Checked/ZodInputInline'].post!.requestBody!.content['application/json'].schema;
+          expect(resolve(inline)).to.deep.equal(input);
+        });
+
+        it('should take the own properties of each generic base once, in heritage order', () => {
+          const bases = resolve(response('GenericBases')).properties!;
+          const expected = {
+            patchFirst: ['patch', 'base', 'own'],
+            patchLast: ['base', 'patch', 'own'],
+            mappedFirst: ['held', 'base', 'own'],
+            mappedLast: ['base', 'held', 'own'],
+          };
+          for (const [name, order] of Object.entries(expected)) {
+            const model = resolve(bases[name]);
+            expect(Object.keys(model.properties!), name).to.deep.equal(order);
+            expect(model.properties?.base.description, name).to.equal('Declared by the base');
+          }
+          expect(resolve(bases.patchFirst).properties?.patch).to.deep.equal({ $ref: '#/components/schemas/Profile', description: 'The patched value' });
+          expect(resolve(bases.patchLast).properties?.patch).to.deep.equal(resolve(bases.patchFirst).properties?.patch);
+        });
+
+        it('should give each template literal type argument its own name', () => {
+          const { user, org, numbered } = resolve(response('GenericNames')).properties!;
+          expect([user.$ref, org.$ref, numbered.$ref]).to.deep.equal([
+            '#/components/schemas/Labeled_user__string__',
+            '#/components/schemas/Labeled_org__string__',
+            '#/components/schemas/Labeled_user__number__',
+          ]);
+          expect(resolve(user).properties?.value).to.deep.equal({ type: 'string' });
+        });
+
+        it('should publish a heritage base that the model refers to, and only then', () => {
+          const operation = currentSpec.spec.paths['/ComplexType/Checked/RecursiveBase'].post!;
+          const node = resolve(operation.requestBody!.content['application/json'].schema);
+          expect(node.properties?.children).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeNodeBase' } });
+          expect(resolve(schemas().TreeNodeBase).properties?.children).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/TreeNodeBase' } });
+
+          expect(resolve(operation.responses['200'].content!['application/json'].schema).properties).to.have.all.keys('plain', 'extra');
+          expect(schemas()).to.not.have.property('PlainBase');
+        });
+
+        it('should keep the alias and validators of a generic union member', () => {
+          const body = currentSpec.spec.paths['/ComplexType/Checked/AliasInGenericUnion'].post!.requestBody!.content['application/json'].schema;
+          expect(resolve(body).properties?.value.anyOf).to.deep.equal([{ $ref: '#/components/schemas/Nullable_Identifier_' }, { type: 'number', format: 'double' }]);
+          expect(resolve(schemas().Nullable_Identifier_)).to.deep.equal({ allOf: [{ $ref: '#/components/schemas/Identifier' }], nullable: true });
+          expect(resolve(schemas().Identifier)).to.deep.equal({ type: 'string', pattern: '^x' });
+
+          const strict = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts', { strict: true }).Generate();
+          const nullable = strict.referenceTypeMap.Nullable_Identifier_ as Tsoa.RefAliasType;
+          expect(JSON.parse(JSON.stringify(nullable.type))).to.deep.equal({
+            dataType: 'union',
+            types: [
+              { dataType: 'refAlias', refName: 'Identifier', type: { dataType: 'string' }, validators: { pattern: { value: '^x' } }, deprecated: false },
+              { dataType: 'enum', enums: [null] },
+            ],
+          });
+        });
+
+        describe('unions and recursion validated through the generated route models', () => {
+          const models = new DefaultRouteGenerator(metadata, {
+            entryFile: defaultConfig.entryFile,
+            routesDir: './fixtures',
+            noImplicitAdditionalProperties: 'ignore',
+            bodyCoercion: false,
+          }).buildModels();
+          const validate = (schema: TsoaRoute.PropertySchema, value: unknown) => {
+            const errors: FieldErrors = {};
+            // Without coercion, which would wrap a non-array value in an array and retry.
+            new ValidationService(models, { bodyCoercion: false, noImplicitAdditionalProperties: 'ignore' }).ValidateParam({ ...schema, required: true }, value, 'body', errors, true);
+            return Object.keys(errors).length === 0;
+          };
+
+          it('should keep annotated alternatives whose types the checker collapses', () => {
+            const body = currentSpec.spec.paths['/ComplexType/Checked/AnnotatedAlternatives'].post!.requestBody!.content['application/json'].schema;
+            expect(body).to.deep.equal({ anyOf: [{ $ref: '#/components/schemas/Identifier' }, { $ref: '#/components/schemas/OtherIdentifier' }] });
+            const either: TsoaRoute.PropertySchema = { dataType: 'union', subSchemas: [{ ref: 'Identifier' }, { ref: 'OtherIdentifier' }] };
+            expect(validate(either, 'xenon')).to.equal(true);
+            expect(validate(either, 'yellow')).to.equal(true);
+            expect(validate(either, 'zinc')).to.equal(false);
+          });
+
+          it('should keep the written element of a generic array union', () => {
+            expect(resolve(schemas().ArrayUnionBox_Identifier_).properties?.value.anyOf?.[0]).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/Identifier' } });
+            expect(validate({ ref: 'ArrayUnionBox_Identifier_' }, { value: ['xenon'] })).to.equal(true);
+            expect(validate({ ref: 'ArrayUnionBox_Identifier_' }, { value: ['yellow'] })).to.equal(false);
+            expect(validate({ ref: 'NullableArrayBox_string_' }, { value: [null, 'a'] })).to.equal(true);
+          });
+
+          it('should resolve a generic alias that refers to itself', () => {
+            expect(resolve(schemas().RecursiveTree_string_)).to.deep.equal({ anyOf: [{ type: 'string' }, { type: 'array', items: { $ref: '#/components/schemas/RecursiveTree_string_' } }] });
+            expect(resolve(schemas().RecursiveGenericTree_number_).anyOf?.[1]).to.deep.equal({ type: 'array', items: { $ref: '#/components/schemas/RecursiveGenericTree_number_' } });
+            expect(validate({ ref: 'RecursiveTree_string_' }, ['a', ['b', ['c']]])).to.equal(true);
+            expect(validate({ ref: 'RecursiveTree_string_' }, ['a', [{ b: 'c' }]])).to.equal(false);
+          });
+        });
+
+        it('should use an optional toJSON, also under strictNullChecks', () => {
+          expect(resolve(schemas().OptionalToJson)).to.deep.equal({ type: 'object', properties: { b: { type: 'number', format: 'double' } }, required: ['b'] });
+          const strict = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts', { strict: true }).Generate();
+          expect(strict.referenceTypeMap.OptionalToJson).to.deep.include({ dataType: 'refAlias', refName: 'OptionalToJson' });
+        });
+
+        it('should resolve type parameter defaults that refer to earlier parameters', () => {
+          const pair = resolve(response('DefaultTypeArguments'));
+          expect(pair.properties).to.deep.equal({ first: { type: 'string' }, second: { type: 'string' } });
+        });
+
+        it('should name computed keys by their value and leave out symbol keys', () => {
+          const model = resolve(response('ComputedKeys'));
+          expect(model.properties).to.have.all.keys('fromConst', 'literal-key', 'id');
+          expect(model.required).to.have.members(['fromConst', 'literal-key', 'id']);
         });
       });
 

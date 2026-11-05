@@ -3,6 +3,7 @@ import 'mocha';
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
 import { SpecGenerator2 } from '@tsoa/cli/swagger/specGenerator2';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
+import { Tsoa } from '@tsoa/runtime';
 import { getDefaultExtendedOptions } from '../../../fixtures/defaultOptions';
 import { VerifyPathableNumberParameter, VerifyPathableParameter, VerifyPathableStringParameter } from '../../utilities/verifyParameter';
 import { VerifyPath } from '../../utilities/verifyPath';
@@ -234,11 +235,63 @@ describe('GET route generation', () => {
     }).to.throw(/^Unable to parse Header Type any.*/);
   });
 
-  it('should reject unsupported indexed types', () => {
-    expect(() => {
-      const invalidMetadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
-      new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw(/^Unknown type: IndexedAccessType.*/);
+  it('should resolve indexed access into imported values', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/unsupportedIndexedTypeController.ts').Generate();
+    expect(metadata.referenceTypeMap.ForeignIndexedValue).to.deep.include({ dataType: 'refAlias', type: { dataType: 'enum', enums: ['FOO'] } });
+  });
+
+  it('should map Buffer even when its declarations are not in the program', () => {
+    // Without @types/node (TypeScript 6 no longer includes @types by default) Buffer has no declarations.
+    const metadata = new MetadataGenerator('./fixtures/controllers/bufferWithoutNodeTypesController.ts', { types: [], noResolve: true }).Generate();
+    const [method] = metadata.controllers[0].methods;
+    expect(method.type).to.deep.equal({ dataType: 'buffer' });
+    expect(method.parameters[0].type).to.deep.equal({ dataType: 'buffer' });
+  });
+
+  describe('built-in classes that have no JSON form', () => {
+    const errorOf = (controller: string) => {
+      try {
+        new MetadataGenerator(`./fixtures/controllers/${controller}.ts`).Generate();
+      } catch (e) {
+        return (e as Error).message;
+      }
+      throw new Error(`${controller} generated without an error`);
+    };
+    const mustMap = 'Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.';
+
+    it('should name the path, location and method of a written parameter property', () => {
+      const message = errorOf('unsupportedBuiltInController');
+      expect(message).to.include(`Unsupported type: Set<string> at 'body.tags'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInController\.ts:6:6\./);
+      expect(message).to.include("in 'UnsupportedBuiltInController.post'");
+    });
+
+    it('should name the path and declaration of a nested array element reached through a mapped type', () => {
+      const message = errorOf('unsupportedBuiltInNestedController');
+      expect(message).to.include(`Unsupported type: Map<string, number> at 'groups[].members'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInNestedController\.ts:5:5\./);
+      expect(message).to.include("in 'UnsupportedBuiltInNestedController.get' return type");
+    });
+
+    it('should name the path and source of an inferred return type', () => {
+      const message = errorOf('unsupportedBuiltInInferredController');
+      expect(message).to.include(`Unsupported type: Set<string> at 'tags'. ${mustMap}`);
+      expect(message).to.match(/At: fixtures[\\/]controllers[\\/]unsupportedBuiltInInferredController\.ts:7:7\./);
+      expect(message).to.include("in 'UnsupportedBuiltInInferredController.get' return type");
+    });
+  });
+
+  it('should give each tuple type argument its own readable name', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/tupleNamesController.ts').Generate();
+    expect(Object.keys(metadata.referenceTypeMap)).to.include.members(['TupleBox__string.number__', 'TupleBox__number.string__']);
+  });
+
+  it('should keep the written elements of a readonly tuple', () => {
+    const metadata = new MetadataGenerator('./fixtures/controllers/tupleNamesController.ts').Generate();
+    const method = metadata.controllers[0].methods.find(m => m.name === 'getReadonly')!;
+    const ids = (method.type as Tsoa.NestedObjectLiteralType).properties[0].type as Tsoa.TupleType;
+    expect(ids.types[0]).to.deep.include({ dataType: 'refAlias', refName: 'TupleId' });
+    expect((ids.types[0] as Tsoa.RefAliasType).validators.pattern?.value).to.equal('^x');
   });
 
   it('should generate a path description from jsdoc comment', () => {
