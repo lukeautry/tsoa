@@ -472,10 +472,10 @@ export class ValidationService {
     const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
       arrayValue = value.map((elementValue, index) => {
-        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, name + '.');
+        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, parent + name + '.');
       });
     } else {
-      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, name + '.')];
+      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, parent + name + '.')];
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {

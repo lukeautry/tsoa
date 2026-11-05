@@ -2044,10 +2044,10 @@ describe('ValidationService', () => {
       });
 
       expect(Object.keys(fieldErrors)).to.not.be.empty;
-      expect(fieldErrors).to.have.property('children.$0.id');
-      expect(fieldErrors['children.$0.id'].message).to.include('required');
-      expect(fieldErrors).to.have.property('children.$1.value');
-      expect(fieldErrors['children.$1.value'].message).to.include('integer');
+      expect(fieldErrors).to.have.property('.children.$0.id');
+      expect(fieldErrors['.children.$0.id'].message).to.include('required');
+      expect(fieldErrors).to.have.property('.children.$1.value');
+      expect(fieldErrors['.children.$1.value'].message).to.include('integer');
       expect(result).to.be.undefined;
     });
 
@@ -2131,27 +2131,27 @@ describe('ValidationService', () => {
       return { result, fieldErrors };
     }
 
-    it('should validate a recursive model at depth 2', () => {
+    it('should validate a recursive model at depth 2 and report the full path', () => {
       const value = { name: 'ok', children: [{ name: 'ok', children: [{ name: 12345, children: 'notarray' }] }] };
 
       const { result, fieldErrors } = validateCategory(value);
 
       expect(result).to.be.undefined;
       expect(fieldErrors).to.deep.equal({
-        'children.$0.name': { message: 'invalid string value', value: 12345 },
-        'children.$0': { message: 'invalid object', value: 'notarray' },
+        'body.children.$0.children.$0.name': { message: 'invalid string value', value: 12345 },
+        'body.children.$0.children.$0.children.$0': { message: 'invalid object', value: 'notarray' },
       });
     });
 
-    it('should validate a recursive model at depth 3', () => {
+    it('should validate a recursive model at depth 3 and report the full path', () => {
       const value = { name: 'ok', children: [{ name: 'ok', children: [{ name: 'ok' }, { name: 'ok', children: [{ name: 'toolong', extra: 1 }] }] }] };
 
       const { result, fieldErrors } = validateCategory(value);
 
       expect(result).to.be.undefined;
       expect(fieldErrors).to.deep.equal({
-        'children.$0.name': { message: 'maxLength 5', value: 'toolong' },
-        'children.$0.extra': { message: '"extra" is an excess property and therefore is not allowed', value: 'extra' },
+        'body.children.$0.children.$1.children.$0.name': { message: 'maxLength 5', value: 'toolong' },
+        'body.children.$0.children.$1.children.$0.extra': { message: '"extra" is an excess property and therefore is not allowed', value: 'extra' },
       });
     });
 
@@ -2161,8 +2161,21 @@ describe('ValidationService', () => {
       const { result, fieldErrors } = validateCategory(value);
 
       expect(result).to.be.undefined;
-      expect(fieldErrors).to.have.all.keys('children.$0.name');
-      expect(fieldErrors['children.$0.name'].message).to.equal(`'name' is required`);
+      expect(fieldErrors).to.have.all.keys('body.children.$0.children.$0.children.$0.name');
+      expect(fieldErrors['body.children.$0.children.$0.children.$0.name'].message).to.equal(`'name' is required`);
+    });
+
+    it('should report each invalid depth of a recursive model under its own full path', () => {
+      const value = { name: 'ok', children: [{ name: 1, children: [{ name: 2, children: [{ name: 'toolong' }] }] }] };
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.deep.equal({
+        'body.children.$0.name': { message: 'invalid string value', value: 1 },
+        'body.children.$0.children.$0.name': { message: 'invalid string value', value: 2 },
+        'body.children.$0.children.$0.children.$0.name': { message: 'maxLength 5', value: 'toolong' },
+      });
     });
 
     it('should remove extras of a recursive model at depth 3 with silently-remove-extras', () => {
@@ -2190,8 +2203,8 @@ describe('ValidationService', () => {
       const { result, fieldErrors } = validateCategory(value);
 
       expect(result).to.be.undefined;
-      expect(fieldErrors).to.have.all.keys('children.$0');
-      expect(fieldErrors['children.$0'].message).to.equal(`circular reference to 'Category' cannot be validated`);
+      expect(fieldErrors).to.have.all.keys('body.children.$0');
+      expect(fieldErrors['body.children.$0'].message).to.equal(`circular reference to 'Category' cannot be validated`);
     });
 
     const widgetModels: TsoaRoute.Models = {
@@ -2239,7 +2252,7 @@ describe('ValidationService', () => {
 
       expect(result).to.be.undefined;
       expect(fieldErrors).to.have.all.keys('body');
-      expect(fieldErrors.body.message).to.include('items.$0.text');
+      expect(fieldErrors.body.message).to.include('body.items.$0.items.$0.items.$0.text');
       expect(fieldErrors.body.message).to.include('invalid string value');
     });
 
@@ -2281,7 +2294,7 @@ describe('ValidationService', () => {
       expect(result).to.be.undefined;
       expect(fieldErrors).to.have.all.keys('body');
     });
-    it('should keep the error keys of nested arrays in non-recursive models', () => {
+    it('should prefix the error keys of array elements in a model with the model path', () => {
       const models: TsoaRoute.Models = {
         Order: {
           dataType: 'refObject',
@@ -2304,7 +2317,7 @@ describe('ValidationService', () => {
         true,
       );
 
-      expect(fieldErrors).to.have.all.keys('items.$1.id');
+      expect(fieldErrors).to.have.all.keys('body.items.$1.id');
     });
 
     function nestedListModels(secondMember: TsoaRoute.PropertySchema): TsoaRoute.Models {
