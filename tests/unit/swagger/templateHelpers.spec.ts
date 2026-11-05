@@ -1394,6 +1394,96 @@ describe('ValidationService', () => {
     });
   });
 
+  describe('Own "__proto__" key', () => {
+    const models: TsoaRoute.Models = {
+      A: { dataType: 'refObject', properties: { kind: { dataType: 'enum', enums: ['a'], required: true } }, additionalProperties: false },
+      B: { dataType: 'refObject', properties: { kind: { dataType: 'enum', enums: ['b'], required: true } }, additionalProperties: false },
+      StringRecord: { dataType: 'refObject', properties: {}, additionalProperties: { dataType: 'string' } },
+      AnyRecord: { dataType: 'refObject', properties: {}, additionalProperties: { dataType: 'any' } },
+    };
+    const unionOf = (...refs: string[]): TsoaRoute.PropertySchema => ({ dataType: 'union', subSchemas: refs.map(ref => ({ ref })) });
+    const expectPlainObject = (result: any) => {
+      expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
+      expect(Object.prototype.hasOwnProperty.call(result, '__proto__')).to.be.false;
+      expect(result.isAdmin).to.be.undefined;
+    };
+
+    it('should remove it from the matching union member with silently-remove-extras', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+      const errors: FieldErrors = {};
+
+      const result = v.validateUnion('body', JSON.parse('{"kind":"a","__proto__":{"isAdmin":true}}'), errors, true, unionOf('A', 'B'));
+
+      expect(errors).to.deep.equal({});
+      expect(result).to.deep.equal({ kind: 'a' });
+      expectPlainObject(result);
+    });
+
+    it('should report it as an excess property of a union member with throw-on-extras', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: true });
+      const errors: FieldErrors = {};
+
+      const result = v.validateUnion('body', JSON.parse('{"kind":"a","__proto__":{"isAdmin":true}}'), errors, true, unionOf('A', 'B'));
+
+      expect(result).to.be.undefined;
+      expect(errors.body.message).to.contain('\\"__proto__\\" is an excess property');
+    });
+
+    it('should remove it from a record model inside a union with silently-remove-extras', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+      const errors: FieldErrors = {};
+
+      const stringResult = v.validateUnion('body', JSON.parse('{"a":"b","__proto__":"x"}'), errors, true, unionOf('StringRecord'));
+      const anyResult = v.validateUnion('body', JSON.parse('{"a":"b","__proto__":{"isAdmin":true}}'), errors, true, unionOf('AnyRecord'));
+
+      expect(errors).to.deep.equal({});
+      expect(stringResult).to.deep.equal({ a: 'b' });
+      expect(anyResult).to.deep.equal({ a: 'b' });
+      expectPlainObject(stringResult);
+      expectPlainObject(anyResult);
+    });
+
+    it('should report it as an excess property of a record model with throw-on-extras', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: true });
+      const errors: FieldErrors = {};
+
+      const result = v.validateModel({ name: 'body', value: JSON.parse('{"a":"b","__proto__":"x"}'), modelDefinition: models.StringRecord, fieldErrors: errors, isBodyParam: true });
+
+      expect(result).to.be.undefined;
+      expect(errors).to.deep.equal({ 'body.__proto__': { message: '"__proto__" is an excess property and therefore is not allowed', value: '__proto__' } });
+    });
+
+    it('should treat it as an excess property of a nested object literal with additionalProperties', () => {
+      const removing = new ValidationService(models, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+      const throwing = new ValidationService(models, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: true });
+      const nestedProperties: { [name: string]: TsoaRoute.PropertySchema } = { kind: { dataType: 'string', required: true } };
+      const removeErrors: FieldErrors = {};
+      const throwErrors: FieldErrors = {};
+
+      const removed = removing.validateNestedObjectLiteral('body', JSON.parse('{"kind":"a","__proto__":"x"}'), removeErrors, true, nestedProperties, { dataType: 'string' }, '');
+      const thrown = throwing.validateNestedObjectLiteral('body', JSON.parse('{"kind":"a","__proto__":"x"}'), throwErrors, true, nestedProperties, { dataType: 'string' }, '');
+
+      expect(removeErrors).to.deep.equal({});
+      expect(removed).to.deep.equal({ kind: 'a' });
+      expectPlainObject(removed);
+      expect(thrown).to.be.undefined;
+      expect(throwErrors).to.deep.equal({ body: { message: '"__proto__" is an excess property and therefore is not allowed', value: { ['__proto__']: 'x' } } });
+    });
+
+    it('should keep other additional properties of a union member untouched', () => {
+      const v = new ValidationService(models, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+      const errors: FieldErrors = {};
+      const value = { a: 'b', constructor: 'c', prototype: 'd' };
+
+      const result = v.validateUnion('body', value, errors, true, unionOf('StringRecord'));
+
+      expect(errors).to.deep.equal({});
+      expect(result).to.deep.equal(value);
+      expect(result).not.to.equal(value);
+      expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
+    });
+  });
+
   describe('Intersection Validate', () => {
     describe('throw on extras', () => {
       it('should validate intersection with 3 or more types', () => {

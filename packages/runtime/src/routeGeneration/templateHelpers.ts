@@ -145,8 +145,8 @@ export class ValidationService {
     }
 
     const propHandling = this.config.noImplicitAdditionalProperties;
+    const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value));
     if (propHandling !== 'ignore') {
-      const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value));
       if (excessProps.length > 0) {
         if (propHandling === 'silently-remove-extras') {
           excessProps.forEach(excessProp => {
@@ -172,7 +172,7 @@ export class ValidationService {
     });
 
     if (typeof additionalProperties === 'object' && typeof value === 'object') {
-      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined');
+      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined' && !excessProps.includes(key));
       keys.forEach(key => {
         const validatedProp = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, parent + name + '.');
         // Add value from validator if it's not undefined or if value is required and unfedined is valid type
@@ -736,13 +736,21 @@ export class ValidationService {
   private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[]): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
 
-    if (modelDefinition.additionalProperties) {
+    if (this.config.noImplicitAdditionalProperties === 'ignore') {
       return [];
-    } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
-      return [];
-    } else {
-      return [...properties].filter(property => !modelProperties.has(property));
     }
+
+    const excessProperties = [...properties].filter(property => !modelProperties.has(property));
+    return modelDefinition.additionalProperties ? excessProperties.filter(property => ValidationService.isPrototypeKey(property)) : excessProperties;
+  }
+
+  /**
+   * An own "__proto__" key counts as an excess property even where additional properties are allowed, because a
+   * later assignment or Object.assign of the validated value would turn it into the target's prototype. Like any
+   * excess property it is kept under noImplicitAdditionalProperties: 'ignore', and values typed any are not inspected.
+   */
+  private static isPrototypeKey(key: string): boolean {
+    return key === '__proto__';
   }
 
   public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; isBodyParam: boolean; parent?: string }): any {
@@ -786,29 +794,31 @@ export class ValidationService {
       };
 
       const additionalProperties = modelDefinition.additionalProperties;
+      const rejectsPrototypeKey = this.config.noImplicitAdditionalProperties !== 'ignore';
+      const isRejectedExcessProperty = (key: string) => isAnExcessProperty(key) && (additionalProperties === false || (rejectsPrototypeKey && ValidationService.isPrototypeKey(key)));
 
-      if (additionalProperties === true || isDefaultForAdditionalPropertiesAllowed(additionalProperties)) {
-        // then don't validate any of the additional properties
-      } else if (additionalProperties === false) {
-        Object.keys(value).forEach((key: string) => {
-          if (isAnExcessProperty(key)) {
-            if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
-              fieldErrors[`${fieldPath}.${key}`] = {
-                message: `"${key}" is an excess property and therefore is not allowed`,
-                value: key,
-              };
-            } else if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
-              delete value[key];
-            } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
-              // then it's okay to have additionalProperties
-            } else {
-              assertNever(this.config.noImplicitAdditionalProperties);
-            }
+      Object.keys(value).forEach((key: string) => {
+        if (isRejectedExcessProperty(key)) {
+          if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
+            fieldErrors[`${fieldPath}.${key}`] = {
+              message: `"${key}" is an excess property and therefore is not allowed`,
+              value: key,
+            };
+          } else if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
+            delete value[key];
+          } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
+            // then it's okay to have additionalProperties
+          } else {
+            assertNever(this.config.noImplicitAdditionalProperties);
           }
-        });
+        }
+      });
+
+      if (additionalProperties === true || isDefaultForAdditionalPropertiesAllowed(additionalProperties) || additionalProperties === false) {
+        // then don't validate any of the additional properties
       } else {
         Object.keys(value).forEach((key: string) => {
-          if (isAnExcessProperty(key)) {
+          if (isAnExcessProperty(key) && !isRejectedExcessProperty(key)) {
             const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, fieldPath + '.');
             // Add value from validator if it's not undefined or if value is required and unfedined is valid type
             if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
@@ -882,12 +892,11 @@ export class ValidationService {
       return Buffer.from(obj) as any;
     }
 
-    // Handle plain objects
+    // Handle plain objects. defineProperty keeps an own "__proto__" key a plain property;
+    // assigning it would replace the clone's prototype instead.
     const cloneObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        cloneObj[key] = this.deepClone(obj[key]);
-      }
+    for (const key of Object.keys(obj)) {
+      Object.defineProperty(cloneObj, key, { value: this.deepClone((obj as any)[key]), enumerable: true, writable: true, configurable: true });
     }
     return cloneObj;
   }
