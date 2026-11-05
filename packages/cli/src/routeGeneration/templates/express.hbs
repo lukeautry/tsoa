@@ -112,7 +112,7 @@ export function RegisterRoutes(app: Router) {
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, response });
+                validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, response, next });
 
               {{#if ../../iocModule}}
                 const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
