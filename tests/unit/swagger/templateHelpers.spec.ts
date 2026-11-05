@@ -1864,7 +1864,8 @@ describe('ValidationService', () => {
         isBodyParam: true,
       });
 
-      expect(result).to.deep.equal(value);
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.deep.equal({ '': { message: `circular reference to 'RecursiveType' cannot be validated` } });
     });
 
     it('should handle deeply nested circular references', () => {
@@ -2111,6 +2112,295 @@ describe('ValidationService', () => {
 
       expect(Object.keys(fieldErrors)).to.not.be.empty;
       expect(result).to.be.undefined;
+    });
+
+    const categoryModels: TsoaRoute.Models = {
+      Category: {
+        dataType: 'refObject',
+        properties: {
+          name: { dataType: 'string', required: true, validators: { maxLength: { value: 5 } } },
+          children: { dataType: 'array', array: { ref: 'Category' } },
+        },
+        additionalProperties: false,
+      },
+    };
+
+    function validateCategory(value: unknown, noImplicitAdditionalProperties: 'throw-on-extras' | 'silently-remove-extras' | 'ignore' = 'throw-on-extras') {
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService(categoryModels, { noImplicitAdditionalProperties, bodyCoercion: true }).ValidateParam({ ref: 'Category', required: true }, value, 'body', fieldErrors, true);
+      return { result, fieldErrors };
+    }
+
+    it('should validate a recursive model at depth 2', () => {
+      const value = { name: 'ok', children: [{ name: 'ok', children: [{ name: 12345, children: 'notarray' }] }] };
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.deep.equal({
+        'children.$0.name': { message: 'invalid string value', value: 12345 },
+        'children.$0': { message: 'invalid object', value: 'notarray' },
+      });
+    });
+
+    it('should validate a recursive model at depth 3', () => {
+      const value = { name: 'ok', children: [{ name: 'ok', children: [{ name: 'ok' }, { name: 'ok', children: [{ name: 'toolong', extra: 1 }] }] }] };
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.deep.equal({
+        'children.$0.name': { message: 'maxLength 5', value: 'toolong' },
+        'children.$0.extra': { message: '"extra" is an excess property and therefore is not allowed', value: 'extra' },
+      });
+    });
+
+    it('should report a missing required property in a recursive model at depth 3', () => {
+      const value = { name: 'ok', children: [{ name: 'ok', children: [{ name: 'ok', children: [{}] }] }] };
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.have.all.keys('children.$0.name');
+      expect(fieldErrors['children.$0.name'].message).to.equal(`'name' is required`);
+    });
+
+    it('should remove extras of a recursive model at depth 3 with silently-remove-extras', () => {
+      const value = { name: 'a', extra: 1, children: [{ name: 'b', extra: 2, children: [{ name: 'c', extra: 3, children: [{ name: 'd', extra: 4 }] }] }] };
+
+      const { result, fieldErrors } = validateCategory(value, 'silently-remove-extras');
+
+      expect(fieldErrors).to.deep.equal({});
+      expect(result).to.deep.equal({ name: 'a', children: [{ name: 'b', children: [{ name: 'c', children: [{ name: 'd' }] }] }] });
+    });
+
+    it('should accept a valid deep recursive model', () => {
+      const value = { name: 'a', children: [{ name: 'b', children: [{ name: 'c', children: [{ name: 'd', children: [{ name: 'e', children: [] }] }] }] }] };
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(fieldErrors).to.deep.equal({});
+      expect(result).to.deep.equal({ name: 'a', children: [{ name: 'b', children: [{ name: 'c', children: [{ name: 'd', children: [{ name: 'e', children: [] }] }] }] }] });
+    });
+
+    it('should report a field error for a value that contains itself', () => {
+      const value: { name: string; children: unknown[] } = { name: 'ok', children: [] };
+      value.children.push(value);
+
+      const { result, fieldErrors } = validateCategory(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.have.all.keys('children.$0');
+      expect(fieldErrors['children.$0'].message).to.equal(`circular reference to 'Category' cannot be validated`);
+    });
+
+    const widgetModels: TsoaRoute.Models = {
+      Widget: {
+        dataType: 'refAlias',
+        type: { dataType: 'union', subSchemas: [{ ref: 'Container' }, { ref: 'Label' }] },
+      },
+      Container: {
+        dataType: 'refObject',
+        properties: {
+          kind: { dataType: 'enum', enums: ['container'], required: true },
+          items: { dataType: 'array', array: { ref: 'Widget' }, required: true },
+        },
+        additionalProperties: false,
+      },
+      Label: {
+        dataType: 'refObject',
+        properties: {
+          kind: { dataType: 'enum', enums: ['label'], required: true },
+          text: { dataType: 'string', required: true, validators: { maxLength: { value: 5 } } },
+        },
+        additionalProperties: false,
+      },
+    };
+
+    function validateWidget(value: unknown) {
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService(widgetModels, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true, maxValidationErrorSize: 100000 }).ValidateParam(
+        { ref: 'Widget', required: true },
+        value,
+        'body',
+        fieldErrors,
+        true,
+      );
+      return { result, fieldErrors };
+    }
+
+    it('should validate a recursive union at depth 3', () => {
+      const value = {
+        kind: 'container',
+        items: [{ kind: 'container', items: [{ kind: 'container', items: [{ kind: 'label', text: 12345 }] }] }],
+      };
+
+      const { result, fieldErrors } = validateWidget(value);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.have.all.keys('body');
+      expect(fieldErrors.body.message).to.include('items.$0.text');
+      expect(fieldErrors.body.message).to.include('invalid string value');
+    });
+
+    it('should accept a valid recursive union at depth 3 and remove its extras', () => {
+      const value = {
+        kind: 'container',
+        items: [{ kind: 'container', items: [{ kind: 'container', extra: 1, items: [{ kind: 'label', text: 'hi', extra: 2 }] }] }],
+      };
+
+      const { result, fieldErrors } = validateWidget(value);
+
+      expect(fieldErrors).to.deep.equal({});
+      expect(result).to.deep.equal({
+        kind: 'container',
+        items: [{ kind: 'container', items: [{ kind: 'container', items: [{ kind: 'label', text: 'hi' }] }] }],
+      });
+    });
+
+    it('should reject a value matching no branch of a union that recurses through a coerced array', () => {
+      const models: TsoaRoute.Models = {
+        Tree: {
+          dataType: 'refAlias',
+          type: {
+            dataType: 'union',
+            subSchemas: [{ dataType: 'string' }, { dataType: 'array', array: { ref: 'Tree' } }],
+          },
+        },
+      };
+      const fieldErrors: FieldErrors = {};
+
+      const result = new ValidationService(models, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).ValidateParam(
+        { ref: 'Tree', required: true },
+        { unexpected: true },
+        'body',
+        fieldErrors,
+        true,
+      );
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.have.all.keys('body');
+    });
+    it('should keep the error keys of nested arrays in non-recursive models', () => {
+      const models: TsoaRoute.Models = {
+        Order: {
+          dataType: 'refObject',
+          properties: { items: { dataType: 'array', array: { ref: 'Item' }, required: true } },
+          additionalProperties: false,
+        },
+        Item: {
+          dataType: 'refObject',
+          properties: { id: { dataType: 'integer', required: true } },
+          additionalProperties: false,
+        },
+      };
+      const fieldErrors: FieldErrors = {};
+
+      new ValidationService(models, { noImplicitAdditionalProperties: 'throw-on-extras', bodyCoercion: true }).ValidateParam(
+        { ref: 'Order', required: true },
+        { items: [{ id: 1 }, {}] },
+        'body',
+        fieldErrors,
+        true,
+      );
+
+      expect(fieldErrors).to.have.all.keys('items.$1.id');
+    });
+
+    function nestedListModels(secondMember: TsoaRoute.PropertySchema): TsoaRoute.Models {
+      return {
+        NestedList: {
+          dataType: 'refAlias',
+          type: {
+            dataType: 'union',
+            subSchemas: [{ dataType: 'string' }, { dataType: 'intersection', subSchemas: [{ dataType: 'array', array: { ref: 'NestedList' } }, secondMember] }],
+          },
+        },
+      };
+    }
+
+    function validateNestedList(models: TsoaRoute.Models, value: unknown) {
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService(models, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).ValidateParam(
+        { ref: 'NestedList', required: true },
+        value,
+        'body',
+        fieldErrors,
+        true,
+      );
+      return { result, fieldErrors };
+    }
+
+    const intersectedNodeModels: TsoaRoute.Models = {
+      Node: {
+        dataType: 'refAlias',
+        type: {
+          dataType: 'intersection',
+          subSchemas: [
+            { dataType: 'nestedObjectLiteral', nestedProperties: { children: { dataType: 'array', array: { ref: 'Node' } } } },
+            { dataType: 'nestedObjectLiteral', nestedProperties: { name: { dataType: 'string', required: true, validators: { maxLength: { value: 5 } } } } },
+          ],
+        },
+      },
+    };
+
+    function validateIntersectedNode(value: unknown) {
+      const fieldErrors: FieldErrors = {};
+      const result = new ValidationService(intersectedNodeModels, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).ValidateParam(
+        { ref: 'Node', required: true },
+        value,
+        'body',
+        fieldErrors,
+        true,
+      );
+      return { result, fieldErrors };
+    }
+
+    it('should validate a recursion through an intersection at every depth', () => {
+      const value = { name: 'a', children: [{ name: 'b', children: [{ name: 'c', children: [{ name: 'd' }] }] }] };
+
+      const { result, fieldErrors } = validateIntersectedNode(value);
+
+      expect(fieldErrors).to.deep.equal({});
+      expect(result).to.deep.equal(value);
+    });
+
+    it('should reject an invalid value nested deep in a recursion through an intersection', () => {
+      const { result, fieldErrors } = validateIntersectedNode({ name: 'a', children: [{ name: 'b', children: [{ name: 'c', children: [{ name: 'toolong' }] }] }] });
+
+      expect(result).to.be.undefined;
+      expect(JSON.stringify(fieldErrors)).to.include('maxLength 5');
+    });
+
+    it('should terminate for string | (T[] & {}), whose object member never accepts an array', () => {
+      const { result, fieldErrors } = validateNestedList(nestedListModels({ dataType: 'nestedObjectLiteral', nestedProperties: {} }), [['a', [['b']]]]);
+
+      expect(result).to.be.undefined;
+      expect(fieldErrors).to.have.all.keys('body');
+    });
+
+    it('should report a schema loop through an intersection instead of overflowing the stack', () => {
+      const models: TsoaRoute.Models = {
+        Loop: {
+          dataType: 'refAlias',
+          type: {
+            dataType: 'intersection',
+            subSchemas: [{ ref: 'Loop' }, { dataType: 'nestedObjectLiteral', nestedProperties: {} }],
+          },
+        },
+      };
+      const fieldErrors: FieldErrors = {};
+
+      const result = new ValidationService(models, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true }).ValidateParam(
+        { ref: 'Loop', required: true },
+        { a: 1 },
+        'body',
+        fieldErrors,
+        true,
+      );
+
+      expect(result).to.be.undefined;
+      expect(JSON.stringify(fieldErrors)).to.include(`circular reference to 'Loop' cannot be validated`);
     });
   });
 });
