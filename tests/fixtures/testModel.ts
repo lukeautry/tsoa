@@ -602,6 +602,41 @@ const otherIndexedValue = {
 } as const;
 
 export type ForeignIndexedValue = (typeof indexedValue)[keyof typeof otherIndexedValue];
+
+// Mapped type indexed by a type alias (discriminated union from registry pattern)
+type EventType = 'click' | 'hover';
+interface PayloadMap {
+  click: { x: number; y: number };
+  hover: { target: string };
+}
+export type EventUnion = {
+  [K in EventType]: { kind: K; payload: PayloadMap[K] };
+}[EventType];
+
+// keyof hidden behind a type alias used as index (issue #1622 pattern)
+interface ConfigMap {
+  pathMode: 'A' | 'B';
+  items: { name: string; count: number }[];
+}
+type ConfigKey = keyof ConfigMap;
+export type ConfigValue = ConfigMap[ConfigKey];
+
+// Generic-dependent indexed access (issue #1375 — not yet supported)
+export enum PT {
+  C = 'C',
+  E = 'E',
+}
+interface DetailMap {
+  [PT.C]: { cField: string };
+  [PT.E]: { eField: number };
+}
+export class GenericIndexed<T extends PT> {
+  constructor(
+    readonly pt: T,
+    readonly details: DetailMap[T],
+  ) {}
+}
+
 type Maybe<T> = T | null;
 
 export interface TypeAliasModel1 {
