@@ -116,6 +116,28 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         rootSecurity: [{ api_key: [] }],
       }),
     ),
+    log('Fastify Route Generation', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'silently-remove-extras',
+        bodyCoercion: true,
+        authenticationModule: './fixtures/fastify/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/fastify/server.ts',
+        middleware: 'fastify',
+        routesDir: './fixtures/fastify',
+      }),
+    ),
+    log('Fastify Route Generation (throw-on-extras)', () =>
+      generateRoutes({
+        noImplicitAdditionalProperties: 'throw-on-extras',
+        bodyCoercion: true,
+        authenticationModule: './fixtures/fastify/authentication.ts',
+        basePath: '/v1',
+        entryFile: './fixtures/fastifyNoAdditional/server.ts',
+        middleware: 'fastify',
+        routesDir: './fixtures/fastifyNoAdditional',
+      }),
+    ),
     log('Koa Route Generation', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
