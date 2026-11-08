@@ -205,6 +205,7 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
     let body = emptyResponse ? undefined : (data ?? STATUS_CODES[reply.statusCode] ?? String(reply.statusCode));
     const mediaType = String(reply.getHeader('content-type') || '')
       .split(';', 1)[0]
+      .trim()
       .toLowerCase();
     if (body !== undefined && mediaType && !mediaType.includes('json') && typeof body !== 'string' && !Buffer.isBuffer(body) && !(body instanceof Stream)) {
       body = JSON.stringify(body);

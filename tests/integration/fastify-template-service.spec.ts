@@ -84,8 +84,8 @@ describe('FastifyTemplateService', () => {
     });
   }
 
-  for (const contentType of ['application/JSON', 'application/vnd.test+JSON; charset=utf-8']) {
-    it(`preserves native response transformations for ${contentType}`, async () => {
+  for (const contentType of ['application/JSON', 'application/vnd.test+JSON; charset=utf-8', '   ']) {
+    it(`preserves native response transformations for ${JSON.stringify(contentType)}`, async () => {
       const app = Fastify();
       const service = new FastifyTemplateService({}, config);
       app.addHook('preSerialization', async (_request, _reply, payload) => ({ transformed: payload }));
