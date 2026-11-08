@@ -41,6 +41,13 @@ app.use(async (context, next) => {
   }
 });
 
+app.use(async (context, next) => {
+  if (context.query.earlierStatus) {
+    context.status = Number(context.query.earlierStatus);
+  }
+  await next();
+});
+
 app.use(router.routes()).use(router.allowedMethods());
 
 export const server = app.listen();

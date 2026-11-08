@@ -1,11 +1,11 @@
-import { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
+import type { Request as ExRequest, Response as ExResponse, NextFunction as ExNext } from 'express';
 
 import { Controller } from '../../../interfaces/controller';
 import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
 import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
-import { Readable, pipeline } from 'node:stream';
+import { Readable, finished } from 'node:stream';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
@@ -20,6 +20,7 @@ type ExpressValidationArgsParameters = {
   args: Record<string, TsoaRoute.ParameterSchema>;
   request: ExRequest;
   response: ExResponse;
+  next?: ExNext;
 };
 
 type ExpressReturnHandlerParameters = {
@@ -27,6 +28,7 @@ type ExpressReturnHandlerParameters = {
   headers: any;
   statusCode?: number;
   data?: any;
+  next?: ExNext;
 };
 
 // body-parser leaves `{}` when a request has neither `Content-Length` nor `Transfer-Encoding`, or has `Content-Length: 0`
@@ -46,14 +48,14 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         statusCode = controller.getStatus() || statusCode;
       }
 
-      this.returnHandler({ response, headers, statusCode, data });
+      this.returnHandler({ response, headers, statusCode, data, next });
     } catch (error) {
       return next(error);
     }
   }
 
   getValidatedArgs(params: ExpressValidationArgsParameters): any[] {
-    const { args, request, response } = params;
+    const { args, request, response, next } = params;
 
     const fieldErrors: FieldErrors = {};
     const values = this.getParameters(args).map(param => {
@@ -75,6 +77,11 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'header':
           return this.validationService.ValidateParam(param, request.header(name), name, fieldErrors, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            if (!request.readableEnded) return request;
+            fieldErrors[name] = { message: 'request body was already consumed by a body parser' };
+            return undefined;
+          }
           const body = !param.required && isEmptyBodyPlaceholder(request) ? undefined : request.body;
           const bodyFieldErrors: FieldErrors = {};
           const bodyArgs = this.validationService.ValidateParam(param, body, name, bodyFieldErrors, true, undefined);
@@ -94,7 +101,8 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         case 'formData': {
           const files = this.getParameters(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
-            const requestFiles = request.files as { [fileName: string]: Express.Multer.File[] } | undefined;
+            // multer sets request.files; the runtime does not depend on its types
+            const requestFiles = (request as ExRequest & { files?: Record<string, unknown[]> }).files;
 
             const fileArgs = this.validationService.ValidateParam(param, requestFiles?.[name], name, fieldErrors, false, undefined);
             if (param.dataType === 'array') {
@@ -106,7 +114,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
-            this.returnHandler({ response, headers, statusCode: status, data });
+            this.returnHandler({ response, headers, statusCode: status, data, next });
           };
       }
     });
@@ -118,36 +126,60 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
   }
 
   protected returnHandler(params: ExpressReturnHandlerParameters) {
-    const { response, statusCode, data } = params;
+    const { response, statusCode, data, next } = params;
     let { headers } = params;
     headers = headers || {};
 
     if (response.headersSent) {
       return;
     }
+    const restoreResponse = this.captureResponseState(response, Object.keys(headers));
     Object.keys(headers).forEach((name: string) => {
       response.set(name, headers[name]);
     });
 
-    // Check if the response is marked to be JSON
-    const isJsonResponse = response.get('Content-Type')?.includes('json') || false;
+    const contentType = response.get('Content-Type');
+    const isJsonResponse = contentType?.includes('json') ?? false;
 
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
-      pipeline(data as Readable, response, _ => {});
-    } else if (data !== undefined && (data !== null || isJsonResponse)) {
-      // allow null response when it is a json response
-      if (typeof data === 'number' || isJsonResponse) {
-        // express treats number data as status code so use the json method instead
-        // or if the response was marked as json then use the json so for example strings are quoted
-        response.status(statusCode || 200).json(data);
-      } else {
-        // do not use json for every type since internally the send will invoke json if needed
-        // but for string data it will not quote it, so we can send string as plain/text data
-        response.status(statusCode || 200).send(data);
-      }
-    } else {
+      this.pipeStream(data as Readable, response, restoreResponse, next);
+    } else if (data === undefined || (data === null && !isJsonResponse)) {
       response.status(statusCode || 204).end();
+    } else if (data instanceof Uint8Array) {
+      // send() only recognises Buffer as binary and would JSON-encode any other Uint8Array
+      response.status(statusCode || 200).send(Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+    } else if (typeof data === 'string' && contentType !== undefined && !isJsonResponse) {
+      response.status(statusCode || 200).send(data);
+    } else {
+      // the spec documents these as application/json; send() would emit a bare string as text/html and treat a number as a status code
+      response.status(statusCode || 200).json(data);
     }
+  }
+
+  // Restores the status and the given headers to what earlier middleware left, so an error handler does not
+  // answer with the success status, content type or disposition the controller set for its stream.
+  private captureResponseState(response: ExResponse, headerNames: string[]): () => void {
+    const statusCode = response.statusCode;
+    const headers = headerNames.map(name => [name, response.getHeader(name)] as const);
+    return () => {
+      response.statusCode = statusCode;
+      headers.forEach(([name, value]) => (value === undefined ? response.removeHeader(name) : response.setHeader(name, value)));
+    };
+  }
+
+  private pipeStream(stream: Readable, response: ExResponse, restoreResponse: () => void, next?: ExNext) {
+    // stream.pipeline would destroy the response on a source error, leaving no chance to answer with an error status
+    stream.on('error', (error: Error) => {
+      stream.unpipe(response);
+      if (!response.headersSent && next) {
+        restoreResponse();
+        next(error);
+        return;
+      }
+      response.destroy();
+    });
+    finished(response, () => stream.destroy());
+    stream.pipe(response);
   }
 }

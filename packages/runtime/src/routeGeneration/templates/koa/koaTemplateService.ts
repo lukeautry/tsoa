@@ -73,12 +73,17 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
         case 'header':
           return this.validationService.ValidateParam(param, context.request.headers[name], name, errorFields, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            if (!context.req.readableEnded) return context.req;
+            errorFields[name] = { message: 'request body was already consumed by a body parser' };
+            return undefined;
+          }
           const descriptor = Object.getOwnPropertyDescriptor(context.request, 'body');
           const value = descriptor ? descriptor.value : undefined;
           const bodyFieldErrors: FieldErrors = {};
           const result = this.validationService.ValidateParam(param, value, name, bodyFieldErrors, true, undefined);
-          Object.keys(bodyFieldErrors).forEach((key) => {
-            errorFields[key] = { message: bodyFieldErrors[key].message }
+          Object.keys(bodyFieldErrors).forEach(key => {
+            errorFields[key] = { message: bodyFieldErrors[key].message };
           });
           return result;
         }
@@ -87,8 +92,8 @@ export class KoaTemplateService extends TemplateService<KoaApiHandlerParameters,
           const value = descriptor ? descriptor.value[name] : undefined;
           const bodyFieldErrors: FieldErrors = {};
           const result = this.validationService.ValidateParam(param, value, name, bodyFieldErrors, true, 'body.');
-          Object.keys(bodyFieldErrors).forEach((key) => {
-            errorFields[key] = { message: bodyFieldErrors[key].message }
+          Object.keys(bodyFieldErrors).forEach(key => {
+            errorFields[key] = { message: bodyFieldErrors[key].message };
           });
           return result;
         }

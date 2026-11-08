@@ -157,7 +157,7 @@ export class SpecGenerator3 extends SpecGenerator {
       const referenceType = this.metadata.referenceTypeMap[typeName];
 
       if (referenceType.dataType === 'refObject') {
-        const required = referenceType.properties.filter(p => this.isRequiredWithoutDefault(p) && !this.hasUndefined(p)).map(p => p.name);
+        const required = referenceType.properties.filter(p => this.isRequiredInSchema(p)).map(p => p.name);
         schema[referenceType.refName] = {
           description: referenceType.description,
           properties: this.buildProperties(referenceType.properties),
@@ -675,8 +675,8 @@ export class SpecGenerator3 extends SpecGenerator {
    * Describes a discriminated union as `oneOf` plus a `discriminator` mapping; unions without a usable
    * discriminator (see `getUnionDiscriminator`) fall back to `anyOf`.
    */
-  protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: { propertyName: string; mapping: Record<string, string> } } | null {
-    const detected = getUnionDiscriminator(types, property => !!this.isRequiredWithoutDefault(property) && !this.hasUndefined(property));
+  protected getUnionDiscriminator(types: Tsoa.Type[]): { oneOf: Swagger.BaseSchema[]; discriminator: Swagger.Discriminator } | null {
+    const detected = getUnionDiscriminator(types, property => this.isRequiredInSchema(property));
     if (!detected) {
       return null;
     }

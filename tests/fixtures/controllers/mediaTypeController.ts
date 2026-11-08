@@ -1,4 +1,5 @@
-import { Body, Consumes, Controller, Get, Produces, Path, Post, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
+import { Readable } from 'stream';
+import { Body, Consumes, Controller, Get, Produces, Path, Post, Query, Response, Res, Route, SuccessResponse, TsoaResponse } from '@tsoa/runtime';
 import { ErrorResponseModel, UserResponseModel } from '../../fixtures/testModel';
 
 type UserRequestModel = Pick<UserResponseModel, 'name'>;
@@ -47,4 +48,33 @@ export class MediaTypeTestController extends Controller {
     this.setHeader('Content-Type', 'application/vnd.mycompany.myapp.v2+json');
     return body;
   }
+
+  @Post('Binary')
+  async postBinary(@Body() body: Readable): Promise<{ length: number }> {
+    return { length: await countBytes(body) };
+  }
+
+  @Consumes('image/png')
+  @Post('Binary/Custom')
+  async postBinaryCustom(@Body() body: Readable): Promise<{ length: number }> {
+    return { length: await countBytes(body) };
+  }
+
+  @Post('Binary/Query')
+  async postBinaryWithQuery(@Query() tag: number, @Body() body: Readable): Promise<{ length: number; tag: number }> {
+    return { length: await countBytes(body), tag };
+  }
+
+  @Post('Buffer')
+  async postBuffer(@Body() body: Buffer): Promise<{ length: number }> {
+    return { length: body.length };
+  }
+}
+
+async function countBytes(stream: Readable): Promise<number> {
+  let length = 0;
+  for await (const chunk of stream) {
+    length += chunk.length;
+  }
+  return length;
 }

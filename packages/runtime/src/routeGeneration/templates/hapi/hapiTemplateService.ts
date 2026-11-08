@@ -1,4 +1,4 @@
-import { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
+import type { Request as HRequest, ResponseToolkit as HResponse } from '@hapi/hapi';
 import type { boomify, isBoom, Payload } from '@hapi/boom';
 
 import { Controller } from '../../../interfaces/controller';
@@ -94,6 +94,9 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
         case 'header':
           return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, false, undefined);
         case 'body': {
+          if (param.dataType === 'binary') {
+            return request.payload;
+          }
           const bodyFieldErrors: FieldErrors = {};
           const result = this.validationService.ValidateParam(param, request.payload, name, bodyFieldErrors, true, undefined);
           Object.keys(bodyFieldErrors).forEach(key => {

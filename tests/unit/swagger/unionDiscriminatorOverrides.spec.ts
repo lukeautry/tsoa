@@ -40,6 +40,16 @@ describe('Overriding SpecGenerator3 members that take part in union discriminato
     expect(schema.anyOf).to.have.length(3);
   });
 
+  it('honours an overridden isRequiredInSchema', () => {
+    class NothingRequiredInSchema extends SpecGenerator3 {
+      protected isRequiredInSchema() {
+        return false;
+      }
+    }
+
+    expect(contentBlock(new NothingRequiredInSchema(metadata, options)).discriminator).to.equal(undefined);
+  });
+
   it('honours an overridden hasUndefined', () => {
     class EverythingUndefined extends SpecGenerator3 {
       protected hasUndefined() {

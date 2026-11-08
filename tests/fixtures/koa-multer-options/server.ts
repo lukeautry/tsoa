@@ -1,5 +1,7 @@
 import Koa from 'koa';
 import KoaRouter from '@koa/router';
+import multer from '@koa/multer';
+import { tmpdir } from 'os';
 
 import '../controllers/postController';
 
@@ -11,7 +13,15 @@ app.use(bodyParser());
 
 const router = new KoaRouter();
 
-RegisterRoutes(router);
+RegisterRoutes(router, {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- @koa/multer ships no types
+  multer: multer({
+    dest: tmpdir(),
+    limits: {
+      fileSize: 8 * 1024 * 1024,
+    },
+  }),
+});
 
 // It's important that this come after the main routes are registered
 app.use(async (context, next) => {

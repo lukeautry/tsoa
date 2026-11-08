@@ -5,7 +5,7 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha TS Tests",
-      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/mocha.js",
       "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"
@@ -20,7 +20,7 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha TS Tests: Current File",
-      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/mocha.js",
       "cwd": "${workspaceRoot}/tests",
       "env": {
         "NODE_ENV": "tsoa_test"

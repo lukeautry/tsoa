@@ -1,5 +1,4 @@
 import { Swagger } from './swagger/swagger';
-import { Options as MulterOpts } from 'multer';
 
 export interface Config {
   /**
@@ -39,21 +38,6 @@ export interface Config {
    * lib.es2022.d.ts. Put JSON-style values in tsconfig.json.
    */
   compilerOptions?: Record<string, unknown>;
-
-  /**
-   * Multer's options to generate multer's middleware.
-   * It doesn't support storage option
-   *
-   * @example {
-   *   "dest": "/tmp"
-   * } Allow multer to write to file instead of using Memory's buffer
-   * @deprecated
-   *  since v6.4.0 instroduces RegisterRoutes can pass multerOptions,
-   *  we will quickly remove this options soon at future version.
-   *  (https://github.com/lukeautry/tsoa/issues/1587#issuecomment-2391291433)
-   *  (https://github.com/lukeautry/tsoa/pull/1638)
-   */
-  multerOpts?: MulterOpts;
 
   /*
    * OpenAPI number type to be used for TypeScript's 'number', when there isn't a type annotation

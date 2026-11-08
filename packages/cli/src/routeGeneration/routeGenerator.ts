@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
-import { isNullType, isRefType } from '../utils/internalTypeGuards';
+import { hasBinaryBody, isNullType, isRefType } from '../utils/internalTypeGuards';
 import { getUnionDiscriminator } from '../utils/unionDiscriminator';
 import { hasUndefined } from '../utils/propertyRequirement';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
@@ -106,6 +106,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
               name: method.name,
+              binaryBody: hasBinaryBody(method.parameters),
               parameters: parameterObjs,
               path: normalisedMethodPath,
               uploadFile: uploadFilesWithDifferentFieldParameter.length > 0,
@@ -144,8 +145,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
         limits: {
           fileSize: 8388608, // 8mb
         },
-        ...this.options.multerOpts,
-      } as Config['multerOpts'],
+      },
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
       esm: this.options.esm,
     };

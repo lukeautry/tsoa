@@ -2,7 +2,6 @@
 import { dim, green } from 'chalk';
 import { generateSpecAndRoutes, generateRoutes } from '@tsoa/cli';
 import { Timer } from './utils/timer';
-import { tmpdir } from 'node:os';
 
 const spec = async () => {
   const result = await generateSpecAndRoutes({
@@ -129,7 +128,7 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
       }),
     ),
 
-    log('Koa Route Generation (with multerOpts)', () =>
+    log('Koa Route Generation With custom multer instance', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'silently-remove-extras',
         bodyCoercion: true,
@@ -137,9 +136,6 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         entryFile: './fixtures/koa-multer-options/server.ts',
         middleware: 'koa',
         routesDir: './fixtures/koa-multer-options',
-        multerOpts: {
-          dest: tmpdir(),
-        },
       }),
     ),
     log('Koa Route Generation (but noImplicitAdditionalProperties is set to "throw-on-extras")', () =>
