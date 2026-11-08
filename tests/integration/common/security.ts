@@ -5,9 +5,7 @@ import { Model } from '../../fixtures/testModel';
 import { verifyGetRequest } from '../utils';
 
 export function registerSecurityTests(app: App, basePath: string) {
-  const emptyHandler = (_err, _res) => {
-    // This is an empty handler
-  };
+  const emptyHandler = () => {};
 
   it('can handle get request with access_token user id == 1', () => {
     return verifyGetRequest(app, basePath + '/SecurityTest/Koa?access_token=abc123456', (_err, res) => {

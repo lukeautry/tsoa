@@ -102,9 +102,7 @@ describe('Fastify Server', () => {
     registerSecurityTests(app, basePath);
 
     describe('Optional security (empty entry)', () => {
-      const emptyHandler = (_err, _res) => {
-        // This is an empty handler
-      };
+      const emptyHandler = () => {};
 
       for (const [description, kind] of [
         ['no body', 'status-only'],

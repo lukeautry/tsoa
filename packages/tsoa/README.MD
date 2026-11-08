@@ -79,7 +79,7 @@ import { KoaTemplateService } from '@tsoa/runtime/koa';
 ### Fastify
 
 The current Fastify v5 dependency tree requires Node.js 22 or later. Install `fastify` and set `routes.middleware` to `"fastify"` in `tsoa.json`.
-If your controllers accept uploaded files, also install `@fastify/multipart@^9`.
+If your controllers use `@FormField`, `@UploadedFile`, or `@UploadedFiles`, also install `@fastify/multipart@^9`.
 
 Register `RegisterRoutes` with plain `app.register`; wrapping it in `fastify-plugin` removes the isolation and the prefix, and an enclosing multipart registration is rejected at startup.
 
@@ -94,7 +94,16 @@ app.register(RegisterRoutes);
 await app.listen({ port: 3000 });
 ```
 
-Pass a `prefix` or `multipart` options object as the second argument to `app.register` to configure the plugin.
+Pass a `prefix` or `multipart` options object as the second argument to `app.register` to configure the plugin:
+
+```ts
+app.register(RegisterRoutes, {
+  multipart: { limits: { fileSize: 20 * 1024 * 1024, files: 5 } },
+});
+```
+
+Your multipart limits override the defaults, including the 8 MiB file limit. tsoa forces `attachFieldsToBody: false` because it collects the parts itself.
+
 The authentication module exports `fastifyAuthentication(request, securityName, scopes?, reply?)` and returns a promise, like Koa authentication.
 Use native Fastify preHandler hooks with `@Middlewares<preHandlerHookHandler>(...)`.
 

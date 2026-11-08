@@ -144,9 +144,8 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
           return result;
         }
         case 'formData': {
-          const files = this.getParameters(args).filter(p => p.dataType === 'file' || (p.dataType === 'array' && p.array && p.array.dataType === 'file'));
           const body = request.body as Record<string, unknown> | undefined;
-          if ((param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) && files.length > 0) {
+          if (param.dataType === 'file' || (param.dataType === 'array' && param.array && param.array.dataType === 'file')) {
             const fileArgs = this.validationService.ValidateParam(param, this.files.get(request)?.[name], name, errorFields, false, undefined);
             if (param.dataType === 'array') {
               return fileArgs;

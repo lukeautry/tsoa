@@ -132,25 +132,14 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useMult
             const attempts: Promise<any>[] = [];
             const status = reply.statusCode;
             for (const secMethod of security) {
-                if (Object.keys(secMethod).length > 1) {
-                    const secMethodAndPromises: Promise<any>[] = [];
-
-                    for (const name in secMethod) {
-                        secMethodAndPromises.push(
-                            Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply))
-                                .catch(pushAndRethrow)
-                        );
-                    }
-
-                    attempts.push(...secMethodAndPromises);
-                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
-                        .then(users => { return users[0]; }));
-                } else {
-                    for (const name in secMethod) {
-                        const attempt = Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply)).catch(pushAndRethrow);
-                        attempts.push(attempt);
-                        secMethodOrPromises.push(attempt);
-                    }
+                const group = Object.keys(secMethod).map(name =>
+                    Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply)).catch(pushAndRethrow)
+                );
+                attempts.push(...group);
+                if (group.length === 1) {
+                    secMethodOrPromises.push(group[0]);
+                } else if (group.length > 1) {
+                    secMethodOrPromises.push(Promise.all(group).then(users => users[0]));
                 }
             }
 
