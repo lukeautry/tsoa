@@ -12,6 +12,8 @@ describe('Written union candidates', () => {
   for (const strict of [false, true]) {
     describe(`strict ${strict}`, () => {
       const options = { strict, experimentalDecorators: true, skipLibCheck: true, types: [], lib: ['lib.es2021.d.ts'] };
+      const diagnostics = createProgram([entryFile], options).getSemanticDiagnostics();
+      expect(diagnostics.map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
       const metadata = new MetadataGenerator(entryFile, options).Generate();
       const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions('', entryFile)).GetSpec();
       const schemas = JSON.parse(JSON.stringify(spec.components.schemas!)) as Record<string, Swagger.Schema3>;
@@ -23,9 +25,53 @@ describe('Written union candidates', () => {
       };
 
       it('type-checks the fixture', () => {
-        const diagnostics = createProgram([entryFile], options).getSemanticDiagnostics();
-        expect(diagnostics.map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
+        expect(diagnostics).to.deep.equal([]);
       });
+
+      const literalCases = [
+        { field: 'stringAliasFirst', types: [{ $ref: '#/components/schemas/Identifier' }, { type: 'string', enum: ['yellow'] }], accepted: ['xenon', 'yellow'], rejected: ['zinc', 7] },
+        { field: 'stringLiteralFirst', types: [{ type: 'string', enum: ['yellow'] }, { $ref: '#/components/schemas/Identifier' }], accepted: ['xenon', 'yellow'], rejected: ['zinc', 7] },
+        { field: 'numberAliasFirst', types: [{ $ref: '#/components/schemas/Minimum' }, { type: 'number', enum: [7] }], accepted: [10, 42, 7], rejected: [8, '7'] },
+        { field: 'numberLiteralFirst', types: [{ type: 'number', enum: [7] }, { $ref: '#/components/schemas/Minimum' }], accepted: [10, 42, 7], rejected: [8, '7'] },
+        { field: 'aliases', types: [{ $ref: '#/components/schemas/Identifier' }, { $ref: '#/components/schemas/OtherIdentifier' }], accepted: ['xenon', 'yellow'], rejected: ['zinc', 7] },
+        { field: 'reversedAliases', types: [{ $ref: '#/components/schemas/OtherIdentifier' }, { $ref: '#/components/schemas/Identifier' }], accepted: ['xenon', 'yellow'], rejected: ['zinc', 7] },
+        { field: 'stringFirst', types: [{ type: 'string' }, { type: 'string', enum: ['yellow'] }], accepted: ['xenon', 'yellow', 'zinc'], rejected: [7] },
+        { field: 'literalBeforeString', types: [{ type: 'string', enum: ['yellow'] }, { type: 'string' }], accepted: ['xenon', 'yellow', 'zinc'], rejected: [7] },
+        {
+          field: 'numberFirst',
+          types: [
+            { type: 'number', format: 'double' },
+            { type: 'number', enum: [7] },
+          ],
+          accepted: [7, 8, 42],
+          rejected: ['7'],
+        },
+        {
+          field: 'literalBeforeNumber',
+          types: [
+            { type: 'number', enum: [7] },
+            { type: 'number', format: 'double' },
+          ],
+          accepted: [7, 8, 42],
+          rejected: ['7'],
+        },
+      ];
+      const validLiterals = Object.fromEntries(literalCases.map(({ field, accepted }) => [field, accepted[0]]));
+      for (const { field, types, accepted, rejected } of literalCases) {
+        it(`keeps ${field} alternatives in the generated schema`, () => {
+          expect(schemas.LiteralAlternatives.properties![field]).to.deep.equal({ anyOf: types });
+          expect(schemas.Minimum).to.deep.equal({ type: 'number', format: 'double', minimum: 10 });
+        });
+
+        it(`validates ${field} alternatives without body coercion`, () => {
+          for (const value of accepted) {
+            expect(validate('LiteralAlternatives', { ...validLiterals, [field]: value }), `${field} accepts ${JSON.stringify(value)}`).to.equal(true);
+          }
+          for (const value of rejected) {
+            expect(validate('LiteralAlternatives', { ...validLiterals, [field]: value }), `${field} rejects ${JSON.stringify(value)}`).to.equal(false);
+          }
+        });
+      }
 
       it('keeps both annotated generic array alternatives in schemas', () => {
         expect(schemas['Box_Identifier.OtherIdentifier_'].properties!.value).to.deep.equal({

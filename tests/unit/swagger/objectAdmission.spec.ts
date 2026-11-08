@@ -1,6 +1,7 @@
 import { MetadataGenerator } from '@tsoa/cli/metadataGeneration/metadataGenerator';
+import { DefaultRouteGenerator } from '@tsoa/cli/routeGeneration/defaultRouteGenerator';
 import { SpecGenerator3 } from '@tsoa/cli/swagger/specGenerator3';
-import { Swagger } from '@tsoa/runtime';
+import { FieldErrors, Swagger, ValidationService } from '@tsoa/runtime';
 import { expect } from 'chai';
 import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import 'mocha';
@@ -18,19 +19,19 @@ describe('Object admission at resolver boundaries', () => {
   });
   after(() => rmSync(directory, { recursive: true, force: true }));
 
-  const generate = (definitions: string, method: string, lib: string[]) => {
+  const generate = (definitions: string, method: string, lib: string[], strict = true) => {
     const runtime = resolve('../packages/runtime').replace(/\\/g, '/');
     writeFileSync(entryFile, `import { Body, Post, Route } from '${runtime}';\n${definitions}\n@Route('objects') export class ObjectAdmissionController {\n@Post() ${method}\n}`);
-    const options = { strict: true, experimentalDecorators: true, skipLibCheck: true, types: [], lib };
+    const options = { strict, experimentalDecorators: true, skipLibCheck: true, types: [], lib };
     const diagnostics = createProgram([entryFile], options).getSemanticDiagnostics();
     expect(diagnostics.map(diagnostic => flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).to.deep.equal([]);
     return new MetadataGenerator(entryFile, options).Generate();
   };
 
   const cases = [
-    { type: 'RegExp', value: '/x/', libs: [['lib.es5.d.ts'], ['lib.es2021.d.ts']] },
-    { type: 'Set<string>', value: 'new Set<string>()', libs: [['lib.es5.d.ts', 'lib.es2015.collection.d.ts'], ['lib.es2021.d.ts']] },
-    { type: 'WeakRef<object>', value: 'new WeakRef({})', libs: [['lib.es2021.d.ts']] },
+    { type: 'RegExp', value: '/x/', libs: [['lib.es5.d.ts'], ['lib.es2021.d.ts'], ['lib.es2021.d.ts', 'lib.dom.d.ts']] },
+    { type: 'Set<string>', value: 'new Set<string>()', libs: [['lib.es5.d.ts', 'lib.es2015.collection.d.ts'], ['lib.es2021.d.ts'], ['lib.es2021.d.ts', 'lib.dom.d.ts']] },
+    { type: 'WeakRef<object>', value: 'new WeakRef({})', libs: [['lib.es2021.d.ts'], ['lib.es2021.d.ts', 'lib.dom.d.ts']] },
   ];
   for (const { type, value, libs } of cases) {
     for (const lib of libs) {
@@ -53,12 +54,42 @@ describe('Object admission at resolver boundaries', () => {
           const path = form === 'inferred' ? 'value' : form === 'nested' ? 'body.groups[].value' : 'body.value';
           expect(message).to.include('Unsupported type:');
           expect(message).to.include(`at '${path}'. Built-in classes such as Set and Map have no JSON form`);
-          expect(message).to.include(`At: ${entryFile}:`);
+          const sourceLine = form === 'aliased' ? 2 : 4;
+          expect(message).to.include(`At: ${entryFile}:${sourceLine}:${sourceLine}.`);
           expect(message).not.to.include('At unknown position');
           expect(message).to.include("in 'ObjectAdmissionController.post'");
           expect(message).not.to.match(/At: .*lib\.es\d/);
         });
       }
+    }
+  }
+
+  for (const strict of [false, true]) {
+    for (const type of ['URL', 'DOMRect']) {
+      it(`preserves ${type}.toJSON with DOM libs and strict ${strict}`, () => {
+        const metadata = generate('', `post(@Body() body: { value: ${type} }): void {}`, ['lib.es2021.d.ts', 'lib.dom.d.ts'], strict);
+        const spec = new SpecGenerator3(metadata, getDefaultExtendedOptions('', entryFile)).GetSpec();
+        const schemas = JSON.parse(JSON.stringify(spec.components.schemas!)) as Record<string, Swagger.Schema3>;
+        const models = new DefaultRouteGenerator(metadata, { entryFile, routesDir: directory, noImplicitAdditionalProperties: 'ignore', bodyCoercion: false }).buildModels();
+        expect(schemas[type].properties).to.equal(undefined);
+        expect(schemas[type].type).to.equal(type === 'URL' ? 'string' : undefined);
+        expect(models[type].dataType).to.equal('refAlias');
+        const validate = (value: unknown) => {
+          const errors: FieldErrors = {};
+          new ValidationService(models, { bodyCoercion: false, noImplicitAdditionalProperties: 'ignore' }).ValidateParam({ ref: type, required: true }, value, 'body.value', errors, true);
+          return Object.keys(errors).length === 0;
+        };
+        if (type === 'URL') {
+          expect(validate('https://example.com')).to.equal(true);
+          expect(validate(42)).to.equal(false);
+          expect(validate({ href: 'https://example.com' })).to.equal(false);
+        } else {
+          // lib.dom declares DOMRect.toJSON(): any, so no rectangle properties are required.
+          expect(validate({ x: 1, y: 2, width: 3, height: 4 })).to.equal(true);
+          expect(validate({})).to.equal(true);
+          expect(validate('serialized rectangle')).to.equal(true);
+        }
+      });
     }
   }
 
