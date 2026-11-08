@@ -74,7 +74,7 @@ export class ValidationService {
       case 'double':
         return this.validateFloat(name, value, fieldErrors, isBodyParam, property.validators as FloatValidator, parent);
       case 'enum':
-        return this.validateEnum(name, value, fieldErrors, property.enums, parent);
+        return this.validateEnum(name, value, fieldErrors, property.enums, parent, isBodyParam);
       case 'array':
         return this.validateArray(name, value, fieldErrors, isBodyParam, property.array, property.validators as ArrayValidator, parent);
       case 'date':
@@ -82,7 +82,7 @@ export class ValidationService {
       case 'datetime':
         return this.validateDateTime(name, value, fieldErrors, isBodyParam, property.validators as DateTimeValidator, parent);
       case 'buffer':
-        return this.validateBuffer(name, value);
+        return this.validateBuffer(name, value, fieldErrors, parent);
       case 'union':
         return this.validateUnion(name, value, fieldErrors, isBodyParam, property, parent);
       case 'intersection':
@@ -279,7 +279,7 @@ export class ValidationService {
     return numberValue;
   }
 
-  public validateEnum(name: string, value: unknown, fieldErrors: FieldErrors, members?: Array<string | number | boolean | null>, parent = ''): unknown {
+  public validateEnum(name: string, value: unknown, fieldErrors: FieldErrors, members?: Array<string | number | boolean | null>, parent = '', isBodyParam = false): unknown {
     if (!members || members.length === 0) {
       fieldErrors[parent + name] = {
         message: 'no member',
@@ -288,7 +288,7 @@ export class ValidationService {
       return;
     }
 
-    const enumMatchIndex = members.map(member => String(member)).findIndex(member => equals(member, String(value)));
+    const enumMatchIndex = this.findEnumMember(value, members, isBodyParam);
 
     if (enumMatchIndex === -1) {
       const membersInQuotes = members.map(member => (typeof member === 'string' ? `'${member}'` : String(member)));
@@ -300,6 +300,16 @@ export class ValidationService {
     }
 
     return members[enumMatchIndex];
+  }
+
+  private findEnumMember(value: unknown, members: Array<string | number | boolean | null>, isBodyParam: boolean): number {
+    if (value !== null && typeof value === 'object') {
+      return -1;
+    }
+    if (isBodyParam && !this.config.bodyCoercion) {
+      return members.findIndex(member => member === value);
+    }
+    return members.map(member => String(member)).findIndex(member => equals(member, String(value)));
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateValidator, parent = '') {
@@ -468,6 +478,10 @@ export class ValidationService {
       return;
     }
 
+    if (validators && !this.hasValidItemCount(name, value, fieldErrors, validators, parent)) {
+      return;
+    }
+
     let arrayValue = [] as any[];
     const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
@@ -482,45 +496,72 @@ export class ValidationService {
       return;
     }
 
-    if (!validators) {
-      return arrayValue;
-    }
-    if (validators.minItems && validators.minItems.value) {
-      if (validators.minItems.value > arrayValue.length) {
-        fieldErrors[parent + name] = {
-          message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
-          value,
-        };
-        return;
-      }
-    }
-    if (validators.maxItems && validators.maxItems.value) {
-      if (validators.maxItems.value < arrayValue.length) {
-        fieldErrors[parent + name] = {
-          message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
-          value,
-        };
-        return;
-      }
-    }
-    if (validators.uniqueItems) {
-      const unique = arrayValue.some((elem, index, arr) => {
-        const indexOf = arr.indexOf(elem);
-        return indexOf > -1 && indexOf !== index;
-      });
-      if (unique) {
-        fieldErrors[parent + name] = {
-          message: validators.uniqueItems.errorMsg || `required unique array`,
-          value,
-        };
-        return;
-      }
+    if (validators?.uniqueItems && this.hasDuplicateItems(arrayValue)) {
+      fieldErrors[parent + name] = {
+        message: validators.uniqueItems.errorMsg || `required unique array`,
+        value,
+      };
+      return;
     }
     return arrayValue;
   }
 
-  public validateBuffer(_name: string, value: string) {
-    return Buffer.from(value);
+  private hasValidItemCount(name: string, value: unknown, fieldErrors: FieldErrors, validators: ArrayValidator, parent: string): boolean {
+    const itemCount = Array.isArray(value) ? value.length : 1;
+    if (validators.minItems && validators.minItems.value !== undefined && validators.minItems.value > itemCount) {
+      fieldErrors[parent + name] = {
+        message: validators.minItems.errorMsg || `minItems ${validators.minItems.value}`,
+        value,
+      };
+      return false;
+    }
+    if (validators.maxItems && validators.maxItems.value !== undefined && validators.maxItems.value < itemCount) {
+      fieldErrors[parent + name] = {
+        message: validators.maxItems.errorMsg || `maxItems ${validators.maxItems.value}`,
+        value,
+      };
+      return false;
+    }
+    return true;
+  }
+
+  private hasDuplicateItems(items: unknown[]): boolean {
+    // Same identity semantics as the former indexOf scan: SameValueZero for primitives, reference identity for objects.
+    // NaN is skipped because indexOf never matched it.
+    const seen = new Set<unknown>();
+    for (const item of items) {
+      if (Number.isNaN(item)) {
+        continue;
+      }
+      if (seen.has(item)) {
+        return true;
+      }
+      seen.add(item);
+    }
+    return false;
+  }
+
+  public validateBuffer(name: string, value: unknown, fieldErrors: FieldErrors, parent = '') {
+    if (typeof value === 'string' || Buffer.isBuffer(value)) {
+      return Buffer.from(value);
+    }
+    const bytes = ValidationService.isBufferJson(value) ? value.data : value;
+    if (ValidationService.isByteArray(bytes)) {
+      return Buffer.from(bytes);
+    }
+    fieldErrors[parent + name] = {
+      message: 'invalid buffer value',
+      value,
+    };
+    return;
+  }
+
+  private static isBufferJson(value: unknown): value is { type: 'Buffer'; data: unknown } {
+    return typeof value === 'object' && value !== null && (value as { type?: unknown }).type === 'Buffer' && 'data' in value;
+  }
+
+  private static isByteArray(value: unknown): value is number[] {
+    return Array.isArray(value) && value.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255);
   }
 
   public validateUnion(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, property: TsoaRoute.PropertySchema, parent = ''): any {
@@ -755,7 +796,7 @@ export class ValidationService {
 
     if (modelDefinition) {
       if (modelDefinition.dataType === 'refEnum') {
-        return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent);
+        return this.validateEnum(name, value, fieldErrors, modelDefinition.enums, parent, isBodyParam);
       }
 
       if (modelDefinition.dataType === 'refAlias') {
@@ -919,8 +960,27 @@ export class ValidationService {
 
     fieldErrors[errorKey] = {
       message: `${prefix}${this.summarizeValidationErrors(subErrors, maxErrorLength)}`,
-      value,
+      value: this.truncateErrorValue(value),
     };
+  }
+
+  /**
+   * Replaces a value whose string or JSON form exceeds the error size limit with a truncated string
+   * @param value The value that failed validation
+   * @returns The value itself, or a truncated string if it is too large
+   */
+  private truncateErrorValue(value: unknown): unknown {
+    const maxLength = this.config.maxValidationErrorSize || 1000;
+    let serialized: string | undefined;
+    try {
+      serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    } catch {
+      return value;
+    }
+    if (serialized === undefined || serialized.length <= maxLength) {
+      return value;
+    }
+    return `${serialized.substring(0, maxLength)}...`;
   }
 
   /**
