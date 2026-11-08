@@ -167,20 +167,20 @@ export class TypeResolver {
 
   /**
    * A union written in source: members keep their written order (and their own sites, so aliases
-   * like `UUID | null` stay named). Written literals survive primitive widening, and written
+   * like `UUID | null` stay named). Written subtypes survive primitive widening, and written
    * null/undefined members are added back when non-strict programs erase them.
    */
   private resolveWrittenUnion(members: readonly ts.Type[], site: Site, node: ts.UnionTypeNode): Tsoa.Type {
     const remaining = [...members];
     const resolved: Tsoa.Type[] = [];
-    // A written alternative is kept when its types are in the union, even if an earlier
+    // A written alternative is kept when its types are contained in the union, even if an earlier
     // alternative already covered them: `Id | Other` with two annotated aliases of `string`
     // collapses to one checker type but keeps both alternatives and their validators.
     const take = (parts: readonly ts.Type[]) => {
-      if (!parts.every(part => members.includes(part) || ((part.flags & ts.TypeFlags.Literal) !== 0 && members.includes(this.checker.getBaseTypeOfLiteralType(part))))) {
+      if (!parts.every(part => members.some(candidate => this.checker.isTypeAssignableTo(part, candidate)))) {
         return false;
       }
-      // A literal covers only part of its widened type, so only exact matches consume candidates.
+      // A subtype may cover only part of a candidate, so only exact matches consume candidates.
       parts.forEach(part => remaining.includes(part) && remaining.splice(remaining.indexOf(part), 1));
       return true;
     };
@@ -196,6 +196,9 @@ export class TypeResolver {
         continue;
       }
       const memberType = writtenType(this.checker, memberSite);
+      if (memberType && memberType.flags & ts.TypeFlags.Never) {
+        continue;
+      }
       if (memberType && take(memberType.isUnion() ? memberType.types : [memberType])) {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
