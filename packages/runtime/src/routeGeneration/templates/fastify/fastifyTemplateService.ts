@@ -34,12 +34,45 @@ type FastifyReturnHandlerParameters = {
 
 export class FastifyTemplateService extends TemplateService<FastifyApiHandlerParameters, FastifyValidationArgsParameters, FastifyReturnHandlerParameters> {
   private readonly files = new WeakMap<FastifyRequest, Record<string, File[]>>();
-  private readonly responded = new WeakSet<FastifyReply>();
+  private readonly replies = new WeakMap<FastifyReply, { started: boolean }>();
+
+  initializeReply(reply: FastifyReply): void {
+    if (this.replies.has(reply)) return;
+    const state = { started: false };
+    this.replies.set(reply, state);
+    const send = reply.send.bind(reply);
+    reply.send = payload => {
+      // Fastify can send again during error recovery; observe rather than suppress those calls.
+      const result = send(payload);
+      state.started = true;
+      return result;
+    };
+  }
+
+  hasResponseStarted(reply: FastifyReply): boolean {
+    return reply.sent || this.replies.get(reply)?.started === true;
+  }
+
+  private responseCompletion(reply: FastifyReply): Promise<void> {
+    const completion = new Promise<void>((resolve, reject) => reply.then(resolve, reject));
+    void completion.catch(() => undefined);
+    return completion;
+  }
 
   async apiHandler(params: FastifyApiHandlerParameters) {
     const { methodName, controller, request, reply, validatedArgs, successStatus } = params;
+    this.initializeReply(reply);
+    if (this.hasResponseStarted(reply)) return this.responseCompletion(reply);
 
-    const data = await this.buildPromise(methodName, controller, validatedArgs);
+    let data;
+    try {
+      data = await this.buildPromise(methodName, controller, validatedArgs);
+    } catch (error) {
+      if (!this.hasResponseStarted(reply)) throw error;
+      reply.log.error({ err: error }, 'Controller failed after sending a response');
+      return this.responseCompletion(reply);
+    }
+    if (this.hasResponseStarted(reply)) return this.responseCompletion(reply);
     let statusCode = successStatus;
     let headers;
     if (this.isController(controller)) {
@@ -51,6 +84,7 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
 
   getValidatedArgs(params: FastifyValidationArgsParameters): any[] {
     const { args, request, reply } = params;
+    this.initializeReply(reply);
 
     const errorFields: FieldErrors = {};
     const values = this.getParameters(args).map(param => {
@@ -109,10 +143,7 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
           return this.validationService.ValidateParam(param, body?.[name], name, errorFields, false, undefined);
         }
         case 'res':
-          return (status: number | undefined, data: any, headers: any): Promise<void> => {
-            this.returnHandler({ request, reply, headers, statusCode: status, data });
-            return Promise.resolve();
-          };
+          return (status: number | undefined, data: any, headers: any): Promise<void> => this.returnHandler({ request, reply, headers, statusCode: status, data });
       }
     });
     if (this.hasFieldErrors(errorFields)) {
@@ -127,8 +158,7 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
 
   protected returnHandler(params: FastifyReturnHandlerParameters) {
     const { reply, statusCode, data, headers } = params;
-    if (reply.sent || this.responded.has(reply)) return;
-    this.responded.add(reply);
+    if (this.hasResponseStarted(reply)) return this.responseCompletion(reply);
     reply.code(statusCode || (data !== null && data !== undefined ? 200 : 204));
     reply.headers(headers || {});
     // Koa uses the status message for an absent body with an explicit non-empty status.
@@ -141,5 +171,6 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
       body = JSON.stringify(body);
     }
     reply.send(body);
+    return this.responseCompletion(reply);
   }
 }

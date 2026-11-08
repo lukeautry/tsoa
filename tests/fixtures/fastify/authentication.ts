@@ -27,6 +27,12 @@ export function fastifyAuthentication(request: FastifyRequest<{ Querystring: Rec
       response.code(401);
       response.send('some custom response');
       return Promise.resolve();
+    } else if (token === 'send-object' || token === 'send-object-missing') {
+      response.send({ value: 'authentication' });
+      return token === 'send-object' ? Promise.resolve() : Promise.reject(new MissingCredentialsError('api_key'));
+    } else if (token === 'send-empty') {
+      response.send('');
+      return Promise.resolve();
     } else if (token === 'never-settles') {
       return new Promise(() => undefined);
     } else if (token === 'frozen') {

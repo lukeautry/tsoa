@@ -53,6 +53,10 @@ const templateService = new FastifyTemplateService(models, {{{ json minimalSwagg
 
 
 export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFileUploads}}multipart?: FastifyMultipartOptions{{/if}} }) {
+    app.addHook('onRequest', (_request, reply, done) => {
+        templateService.initializeReply(reply);
+        done();
+    });
     {{#if useFileUploads}}
     if (app.hasContentTypeParser('multipart/form-data')) {
         throw new Error('tsoa RegisterRoutes registers @fastify/multipart itself. A multipart parser is already registered in an enclosing scope; register it in a sibling scope instead, and pass options through opts.multipart.');
@@ -117,6 +121,7 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
             ...fetchMiddlewares<preHandlerHookHandler>({{../name}}.prototype.{{name}}),
         ],
         handler: async function {{../name}}_{{name}}(request, reply) {
+            if (templateService.hasResponseStarted(reply)) return reply;
             const validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, reply });
             {{#if ../../iocModule}}
             const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
@@ -173,15 +178,17 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
 
             try {
                 const user = await Promise.any(secMethodOrPromises);
+                if (templateService.hasResponseStarted(reply)) return reply;
                 (request as FastifyRequest & { user: any }).user = user;
             }
             catch(err) {
-                const prepared = () => reply.statusCode !== status || reply.sent;
+                if (templateService.hasResponseStarted(reply)) return reply;
+                const prepared = () => reply.statusCode !== status || templateService.hasResponseStarted(reply);
                 const fallback = isAnonymousFallback(security, prepared() ? [] : attempts); // a prepared response ends the wait
                 const anonymous = fallback !== false && (await fallback);
 
-                if(reply.sent || (anonymous && prepared())) {
-                    if (!reply.sent) reply.send(STATUS_CODES[reply.statusCode] ?? String(reply.statusCode));
+                if(templateService.hasResponseStarted(reply) || (anonymous && prepared())) {
+                    if (!templateService.hasResponseStarted(reply)) reply.send(STATUS_CODES[reply.statusCode] ?? String(reply.statusCode));
                     return reply;
                 }
 
