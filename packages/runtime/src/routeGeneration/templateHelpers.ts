@@ -971,11 +971,15 @@ export class ValidationService {
       return Buffer.from(obj) as any;
     }
 
-    // Handle plain objects
+    // Handle plain objects. defineProperty keeps an own "__proto__" key a plain property;
+    // assigning it would replace the clone's prototype instead.
     const cloneObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        cloneObj[key] = this.deepClone(obj[key]);
+    for (const key of Object.keys(obj)) {
+      const value = this.deepClone((obj as any)[key]);
+      if (key === '__proto__') {
+        Object.defineProperty(cloneObj, key, { value, enumerable: true, writable: true, configurable: true });
+      } else {
+        cloneObj[key] = value;
       }
     }
     return cloneObj;
