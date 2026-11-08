@@ -609,11 +609,20 @@ export class ValidationService {
 
     const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
       const requiredPropError = {};
+      const valueToCheck = this.deepClone(value);
+      if (
+        this.config.noImplicitAdditionalProperties === 'silently-remove-extras' &&
+        typeof valueToCheck === 'object' &&
+        valueToCheck !== null &&
+        !Object.prototype.hasOwnProperty.call(cleanValues, '__proto__')
+      ) {
+        delete valueToCheck.__proto__;
+      }
       this.createChildValidationService({
         noImplicitAdditionalProperties: 'ignore',
       }).validateModel({
         name,
-        value: this.deepClone(value),
+        value: valueToCheck,
         modelDefinition: schema,
         fieldErrors: requiredPropError,
         isBodyParam,

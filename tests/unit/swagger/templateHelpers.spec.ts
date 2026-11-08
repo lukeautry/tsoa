@@ -1524,6 +1524,22 @@ describe('ValidationService', () => {
         expectPlainObject(result);
       });
 
+      it('should remove it before checking an intersection with typed additional properties', () => {
+        const typedModels: TsoaRoute.Models = {
+          Named: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: { dataType: 'string' } },
+          Located: { dataType: 'refObject', properties: { city: { dataType: 'string', required: true } }, additionalProperties: { dataType: 'string' } },
+        };
+        const v = new ValidationService(typedModels, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+        const errors: FieldErrors = {};
+        const value = JSON.parse('{"name":"n","city":"c","__proto__":{"isAdmin":true}}');
+
+        const result = v.validateIntersection('body', value, errors, true, [{ ref: 'Named' }, { ref: 'Located' }]);
+
+        expect(errors).to.deep.equal({});
+        expect(result).to.deep.equal({ name: 'n', city: 'c' });
+        expectPlainObject(result);
+      });
+
       it('should keep it as an own property with ignore', () => {
         const v = new ValidationService(recordModels, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
         const errors: FieldErrors = {};
