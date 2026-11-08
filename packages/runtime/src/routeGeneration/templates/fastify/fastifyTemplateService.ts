@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { STATUS_CODES } from 'http';
-import { Stream } from 'stream';
+import { Readable, Stream } from 'stream';
 import type { File } from '../../../interfaces/file';
 
 import { Controller } from '../../../interfaces/controller';
@@ -24,6 +24,18 @@ type FastifyValidationArgsParameters = {
   reply: FastifyReply;
 };
 
+type MemoryFile = Pick<File, 'fieldname' | 'originalname' | 'encoding' | 'mimetype' | 'size' | 'buffer'>;
+
+type MultipartPart =
+  | { type: 'file'; fieldname: string; filename: string; encoding: string; mimetype: string; file: { truncated: boolean }; toBuffer(): Promise<Buffer> }
+  | { type: 'field'; fieldname: string; value: unknown; valueTruncated: boolean; fieldnameTruncated: boolean };
+
+type MultipartRequest = FastifyRequest & {
+  isMultipart(): boolean;
+  parts(): AsyncIterable<MultipartPart>;
+  server: { multipartErrors: { RequestFileTooLargeError: new () => Error } };
+};
+
 type FastifyReturnHandlerParameters = {
   request: FastifyRequest;
   reply: FastifyReply;
@@ -33,7 +45,7 @@ type FastifyReturnHandlerParameters = {
 };
 
 export class FastifyTemplateService extends TemplateService<FastifyApiHandlerParameters, FastifyValidationArgsParameters, FastifyReturnHandlerParameters> {
-  private readonly files = new WeakMap<FastifyRequest, Record<string, File[]>>();
+  private readonly files = new WeakMap<FastifyRequest, Record<string, MemoryFile[]>>();
   private readonly replies = new WeakMap<FastifyReply, { started: boolean }>();
 
   initializeReply(reply: FastifyReply): void {
@@ -107,7 +119,8 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
           return this.validationService.ValidateParam(param, request.headers[name], name, errorFields, false, undefined);
         case 'body': {
           if (param.dataType === 'binary') {
-            if (!request.raw.readableEnded) return request.raw;
+            if (request.body === undefined) return Readable.from([]);
+            if (request.body instanceof Readable && !request.body.readableEnded) return request.body;
             errorFields[name] = { message: 'request body was already consumed by a body parser' };
             return undefined;
           }
@@ -152,7 +165,34 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
     return values;
   }
 
-  setFiles(request: FastifyRequest, files: Record<string, File[]>) {
+  async collectMultipart(request: MultipartRequest, fields: ReadonlyArray<{ name: string; maxCount?: number }>): Promise<void> {
+    if (!request.isMultipart()) return;
+    const files: Record<string, MemoryFile[]> = Object.create(null);
+    const body: Record<string, unknown> = Object.create(null);
+    for await (const part of request.parts()) {
+      if (part.type === 'file') {
+        const field = fields.find(field => field.name === part.fieldname);
+        if (!field || (field.maxCount && files[part.fieldname]?.length >= field.maxCount)) {
+          throw new Error('Unexpected field');
+        }
+        const buffer = await part.toBuffer();
+        // With throwFileSizeLimit: false the plugin hands back a silently truncated buffer.
+        if (part.file.truncated) throw new request.server.multipartErrors.RequestFileTooLargeError();
+        (files[part.fieldname] ||= []).push({
+          fieldname: part.fieldname,
+          originalname: part.filename,
+          encoding: part.encoding,
+          mimetype: part.mimetype,
+          size: buffer.length,
+          buffer,
+        });
+      } else {
+        if (part.valueTruncated || part.fieldnameTruncated) throw new Error('Field value too long');
+        const previous = body[part.fieldname];
+        body[part.fieldname] = previous === undefined ? part.value : [...(Array.isArray(previous) ? previous : [previous]), part.value];
+      }
+    }
+    request.body = body;
     this.files.set(request, files);
   }
 
