@@ -1,7 +1,9 @@
+import { ValidateError } from '@tsoa/runtime/index';
 import { expect } from 'chai';
 import Fastify, { FastifyInstance } from 'fastify';
 import 'mocha';
 import { Readable, Transform } from 'stream';
+import { buffer } from 'stream/consumers';
 import { RegisterRoutes } from '../fixtures/fastify/routes';
 
 const multipartFile = '--boundary\r\nContent-Disposition: form-data; name="someFile"; filename="a.txt"\r\nContent-Type: text/plain\r\n\r\nlarge\r\n--boundary--\r\n';
@@ -37,6 +39,37 @@ describe('Fastify payload handling', () => {
       expect(response.json()).to.deep.equal({ length: 8 });
     });
 
+    for (const consumed of [false, true]) {
+      it(`rejects a ${consumed ? 'consumed stream' : 'parsed value'} before calling the binary controller`, async () => {
+        app = Fastify();
+        app.addHook('preValidation', async request => {
+          if (consumed && request.body instanceof Readable) {
+            await buffer(request.body);
+          } else {
+            request.body = { parsed: true };
+          }
+        });
+        app.register(RegisterRoutes);
+        const response = await app.inject({ method: 'POST', url: '/v1/MediaTypeTest/Binary', payload: 'data' });
+        expect(response.statusCode).to.equal(400);
+      });
+    }
+
+    it('reports both a consumed stream and an invalid query parameter', async () => {
+      app = Fastify();
+      app.addHook('preValidation', async request => {
+        if (request.body instanceof Readable) await buffer(request.body);
+      });
+      app.setErrorHandler((error, _request, reply) => {
+        if (error instanceof ValidateError) return reply.code(error.status).send({ fields: error.fields });
+        throw error;
+      });
+      app.register(RegisterRoutes);
+      const response = await app.inject({ method: 'POST', url: '/v1/MediaTypeTest/Binary/Query?tag=abc', payload: 'data' });
+      expect(response.statusCode).to.equal(400);
+      expect(Object.keys(response.json().fields)).to.have.members(['body', 'tag']);
+    });
+
     it('hands an empty stream to the controller for a POST without a body or content type', async () => {
       app = Fastify();
       app.register(RegisterRoutes);
@@ -67,6 +100,31 @@ describe('Fastify payload handling', () => {
       app.register(RegisterRoutes, { multipart: { limits: { fileSize: 2 } } });
       const response = await app.inject({ method: 'POST', url: '/v1/PostTest/File', headers: { 'content-type': 'multipart/form-data; boundary=boundary' }, payload: multipartFile });
       expect(response.statusCode).to.equal(413);
+    });
+
+    it('keeps uploaded file buffers separate across concurrent requests', async () => {
+      app = Fastify();
+      app.register(RegisterRoutes);
+      const responses = await Promise.all(
+        ['first', 'second'].map(value =>
+          app.inject({ method: 'POST', url: '/v1/PostTest/File', headers: { 'content-type': 'multipart/form-data; boundary=boundary' }, payload: multipartFile.replace('large', value) }),
+        ),
+      );
+      expect(responses.map(response => response.statusCode)).to.deep.equal([200, 200]);
+      expect(responses.map(response => Buffer.from(response.json().buffer).toString())).to.deep.equal(['first', 'second']);
+    });
+
+    it('rejects two files for a single-file field', async () => {
+      app = Fastify();
+      app.register(RegisterRoutes);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/PostTest/File',
+        headers: { 'content-type': 'multipart/form-data; boundary=boundary' },
+        payload: multipartFile.replace('--boundary--\r\n', multipartFile),
+      });
+      expect(response.statusCode).to.equal(500);
+      expect(response.json().message).to.equal('Unexpected field');
     });
 
     it('accepts a file within the limit when throwFileSizeLimit is false', async () => {

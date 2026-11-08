@@ -113,7 +113,7 @@ export function registerBasicRequestTests(app: App, basePath: string) {
 
     return verifyPostRequest(app, basePath + '/PostTest/WithClassModel', data, (_err: any, res: any) => {
       const model = res.body as TestClassModel;
-      expect(model.id).to.equal(700); // this gets changed on the server
+      expect(model.id).to.equal(700);
     });
   });
 

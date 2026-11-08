@@ -391,7 +391,6 @@ export function registerValidateTests(app: App, basePath: string) {
       } as any;
 
       bodyModel.nullableTypes = {
-        // numberOrNull
         wordOrNull: '',
         maybeString: 1,
         justNull: undefined,

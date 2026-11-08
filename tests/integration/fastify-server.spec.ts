@@ -84,31 +84,6 @@ describe('Fastify Server', () => {
       );
     });
 
-    // Binary routes remove JSON parsers and receive the unread stream in Fastify.
-    it.skip('should reject a JSON body that a body parser consumed instead of passing the ended stream', () => {
-      return verifyRequest(
-        app,
-        (_err, res) => {
-          expect(res.status).to.eq(400);
-        },
-        request => request.post(basePath + '/MediaTypeTest/Binary').send({ name: 'foo' }),
-        400,
-      );
-    });
-
-    // Binary routes remove JSON parsers, so only the invalid query is rejected.
-    it.skip('should report a consumed body and an invalid query parameter together', () => {
-      return verifyRequest(
-        app,
-        (err, _res) => {
-          const body = JSON.parse(err.text);
-          expect(Object.keys(body.fields)).to.have.members(['body', 'tag']);
-        },
-        request => request.post(basePath + '/MediaTypeTest/Binary/Query?tag=abc').send({ name: 'foo' }),
-        400,
-      );
-    });
-
     it('should hand an empty request body to the controller as an empty stream', () => {
       return verifyRequest(
         app,

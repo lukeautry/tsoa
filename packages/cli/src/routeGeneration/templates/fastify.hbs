@@ -93,9 +93,7 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
             authenticateMiddleware({{json security}}),
             {{/if}}
             {{#if uploadFile}}
-            async function (request) {
-                await templateService.collectMultipart(request, uploadFields{{../name}}_{{name}});
-            },
+            request => templateService.collectMultipart(request, uploadFields{{../name}}_{{name}}),
             {{/if}}
             ...fetchMiddlewares<preHandlerHookHandler>({{../name}}),
             ...fetchMiddlewares<preHandlerHookHandler>({{../name}}.prototype.{{name}}),

@@ -6,7 +6,6 @@ import { getFakeModel } from './fake-models';
 import { verifyRequest, verifyGetRequest, verifyPostRequest } from '../utils';
 
 export function registerNoImplicitAdditionalPropertiesTests(app: App, basePath: string) {
-  // While the purpose of this file (additional-properties.ts) is to test the validation of POST bodies, we should have at least one GET test
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath, (_err, res) => {
       const model = res.body as TestModel;
@@ -360,7 +359,6 @@ export function registerNoImplicitAdditionalPropertiesTests(app: App, basePath: 
         err => {
           const body = JSON.parse(err.text);
 
-          // Although dictionaries/records allow additionalProperties they are still subject to their own validation
           const excessPropertyErrMessage = `"key1" is an excess property and therefore is not allowed`;
           const expectedErrorMessage = 'No matching model found in additionalProperties to validate key1';
           expect(body.fields['map.key1'].message).not.to.eql(excessPropertyErrMessage);
