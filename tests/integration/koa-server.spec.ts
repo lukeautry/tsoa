@@ -6,12 +6,14 @@ import { resolve } from 'path';
 import { stateOf } from '../fixtures/controllers/middlewaresKoaController';
 import { server } from '../fixtures/koa/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
-import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
+import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest, describeQueryMethod } from './utils';
 
 const app = server;
 const basePath = '/v1';
 
 describe('Koa Server', () => {
+  describeQueryMethod(app, basePath);
+
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath, (_err, res) => {
       const model = res.body as TestModel;

@@ -24,11 +24,13 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
-import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
+import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest, describeQueryMethod } from './utils';
 
 const basePath = '/v1';
 
 describe('Express Server', () => {
+  describeQueryMethod(app, basePath);
+
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
