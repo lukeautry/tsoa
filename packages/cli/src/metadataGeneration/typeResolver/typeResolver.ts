@@ -167,8 +167,8 @@ export class TypeResolver {
 
   /**
    * A union written in source: members keep their written order (and their own sites, so aliases
-   * like `UUID | null` stay named). In non-strict programs the checker drops null/undefined, so
-   * written null/undefined members are added back — the one place syntax adds to a schema.
+   * like `UUID | null` stay named). Written literals survive primitive widening, and written
+   * null/undefined members are added back when non-strict programs erase them.
    */
   private resolveWrittenUnion(members: readonly ts.Type[], site: Site, node: ts.UnionTypeNode): Tsoa.Type {
     const remaining = [...members];
@@ -177,9 +177,10 @@ export class TypeResolver {
     // alternative already covered them: `Id | Other` with two annotated aliases of `string`
     // collapses to one checker type but keeps both alternatives and their validators.
     const take = (parts: readonly ts.Type[]) => {
-      if (!parts.every(part => members.includes(part))) {
+      if (!parts.every(part => members.includes(part) || ((part.flags & ts.TypeFlags.Literal) !== 0 && members.includes(this.checker.getBaseTypeOfLiteralType(part))))) {
         return false;
       }
+      // A literal covers only part of its widened type, so only exact matches consume candidates.
       parts.forEach(part => remaining.includes(part) && remaining.splice(remaining.indexOf(part), 1));
       return true;
     };

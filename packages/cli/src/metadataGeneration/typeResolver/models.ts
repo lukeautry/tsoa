@@ -55,8 +55,7 @@ function namedModel(resolver: TypeResolver, type: ts.Type, site: Site): { refNam
       if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
         return enumModel(resolver, declaration, reference.refName);
       }
-      resolver.assertSupportedObject(type, site);
-      return objectModel(resolver, declaration, type, reference.refName, inner);
+      return objectModel(resolver, declaration, type, reference.refName, inner, site);
     });
     return mergeModels(models);
   };
@@ -65,9 +64,9 @@ function namedModel(resolver: TypeResolver, type: ts.Type, site: Site): { refNam
 
 /**
  * The model for one interface or class declaration: `toJSON` wins;
- * otherwise inherited properties (heritage clause order), then own properties.
+ * otherwise admission at the outer source site, then inherited and own properties at the declaration site.
  */
-function objectModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site): Tsoa.ReferenceType {
+function objectModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, refName: string, site: Site, outerSite: Site): Tsoa.ReferenceType {
   const annotations = readAnnotations(declaration, resolver.generator);
   const header = {
     refName,
@@ -82,6 +81,7 @@ function objectModel(resolver: TypeResolver, declaration: Owner, type: ts.Type, 
     return { dataType: 'refAlias', ...header, type: toJSON, validators: {} };
   }
 
+  resolver.assertSupportedObject(type, outerSite);
   const properties = modelProperties(resolver, declaration, type, site);
   return {
     additionalProperties: ts.isInterfaceDeclaration(declaration) ? ownIndexSignature(resolver, declaration, type, site) : undefined,
