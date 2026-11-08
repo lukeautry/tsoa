@@ -103,8 +103,8 @@ function indexSignature(checker: ts.TypeChecker, objectType: ts.Type, numberKey:
 }
 
 /**
- * The remaining member that is an instance of the model a written reference names. When several
- * instantiations of one generic remain (`Result<L> | Result<R>`), the written type arguments —
+ * The candidate that is an instance of the model a written reference names. When several
+ * instantiations of one generic match (`Result<L> | Result<R>`), the written type arguments —
  * resolved through the substitutions — pick one; if they cannot, there is no match.
  */
 export function sameModel(checker: ts.TypeChecker, remaining: readonly ts.Type[], site: Site): ts.Type | undefined {

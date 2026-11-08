@@ -198,7 +198,7 @@ export class TypeResolver {
         resolved.push(this.resolve(memberType, memberSite));
         continue;
       }
-      const instance = sameModel(this.checker, remaining, memberSite) ?? this.sameArray(remaining, memberSite);
+      const instance = sameModel(this.checker, members, memberSite) ?? this.sameArray(members, memberSite);
       if (instance && take([instance])) {
         resolved.push(this.resolve(instance, memberSite));
       }
@@ -213,7 +213,7 @@ export class TypeResolver {
 
   /**
    * The checker array a written array alternative (`T[] | number`) stands for, when its element
-   * mentions type parameters and so has no written type of its own: the only array left, or the
+   * mentions type parameters and so has no written type of its own: the only candidate array, or the
    * one whose element is the written element's type.
    */
   private sameArray(remaining: readonly ts.Type[], site: Site): ts.Type | undefined {
