@@ -23,19 +23,6 @@ OpenAPI-compliant REST APIs using TypeScript and Node
   - Express (4 and 5), Hapi, and Koa currently supported, other middleware can be supported using a simple handlebars template
   - Validate request payloads
 
-## Express 5
-
-tsoa does not change its runtime for Express 5 defaults. Set these two options to keep query and form parsing the same as on Express 4:
-
-```ts
-app.set('query parser', 'extended'); // bracket syntax such as ?filter[a]=x and ?ids[]=1
-app.use(express.urlencoded({ extended: true })); // nested form fields such as a[b]=1
-```
-
-- With `express.json()`, a request without a body leaves `req.body` `undefined` on Express 5, so a required `@Body()` fails validation. Express 4 and body-parser 1 leave `{}`, which passes if the body schema accepts an empty object.
-- Express 5 reserves `()[]?+!` in route paths and requires a name for each `*` wildcard. A decorator path that breaks these rules fails at route registration. tsoa emits path parameters as `:name`. See the [Express 5 migration guide](https://expressjs.com/en/guide/migrating-5.html#path-route-matching-syntax).
-- Express 5 forwards a rejected promise from an async custom `@Middlewares` function to the error handler. On Express 4, catch the error and call `next(err)`, or the unhandled rejection can stop the Node process.
-
 ## Philosophy
 
 - Rely on TypeScript type annotations to generate API metadata if possible
@@ -51,28 +38,6 @@ app.use(express.urlencoded({ extended: true })); // nested form fields such as a
 Validation does not make request bodies safe for every downstream operation. A schema that allows additional properties, or `noImplicitAdditionalProperties: 'ignore'`, can retain an own `__proto__` key. Values typed `any` are not inspected. Cloning preserves this key as a data property rather than changing the clone's prototype.
 
 If a retained `__proto__` value is an object, `Object.assign(target, validatedBody)` can change an ordinary target object's prototype. Use object spread, such as `{ ...validatedBody }`, when copying allowed own keys without invoking target setters. This cloning fix is not global protection against prototype mutation.
-
-## Framework packages
-
-`@tsoa/runtime` does not install a web framework. Its framework packages are optional peer dependencies, so install the ones for the framework you use:
-
-| Framework | Packages                             |
-| --------- | ------------------------------------ |
-| Express   | `express`, `@types/express` (4 or 5) |
-| Koa       | `koa`, `@types/koa` (2 or 3)         |
-| Hapi      | `@hapi/hapi`, `@hapi/boom`           |
-
-Routes that accept file uploads also import `multer` (Express) or `@koa/multer` (Koa), so install that package as well. To change its options, pass your own instance: `RegisterRoutes(app, { multer: multer({ dest: '/tmp' }) })`. The generated routes otherwise use a default instance limited to 8 MB per file.
-
-The generated Hapi routes import `boomify` and `isBoom` from `@hapi/boom`. `@hapi/hapi` depends on it, but list it in your own `package.json` as well: with pnpm or another strict layout, the routes cannot resolve it otherwise.
-
-Each framework's template service has its own entry point. The `@tsoa/runtime` and `tsoa` roots do not export them, so custom route templates (`routes.middlewareTemplate`) and classes that extend a template service import them from the subpath:
-
-```ts
-import { ExpressTemplateService } from '@tsoa/runtime/express';
-import { HapiTemplateService } from '@tsoa/runtime/hapi';
-import { KoaTemplateService } from '@tsoa/runtime/koa';
-```
 
 ## Getting Started
 
