@@ -55,6 +55,54 @@ describe('Written union candidates', () => {
           accepted: [7, 8, 42],
           rejected: ['8'],
         },
+        {
+          field: 'stringEnumAliasFirst',
+          types: [{ $ref: '#/components/schemas/Identifier' }, { $ref: '#/components/schemas/Choice' }],
+          accepted: ['xenon', 'yellow', 'green'],
+          rejected: ['zinc', 7],
+        },
+        {
+          field: 'stringEnumFirst',
+          types: [{ $ref: '#/components/schemas/Choice' }, { $ref: '#/components/schemas/Identifier' }],
+          accepted: ['xenon', 'yellow', 'green'],
+          rejected: ['zinc', 7],
+        },
+        {
+          field: 'enumMemberAliasFirst',
+          types: [{ $ref: '#/components/schemas/Identifier' }, { $ref: '#/components/schemas/Choice.Yellow' }],
+          accepted: ['xenon', 'yellow'],
+          rejected: ['zinc', 'green', 7],
+        },
+        {
+          field: 'enumMemberFirst',
+          types: [{ $ref: '#/components/schemas/Choice.Yellow' }, { $ref: '#/components/schemas/Identifier' }],
+          accepted: ['xenon', 'yellow'],
+          rejected: ['zinc', 'green', 7],
+        },
+        {
+          field: 'numericEnumAliasFirst',
+          types: [{ $ref: '#/components/schemas/Minimum' }, { $ref: '#/components/schemas/NumericChoice' }],
+          accepted: [10, 42, 7, 9],
+          rejected: [8, '8'],
+        },
+        {
+          field: 'numericEnumFirst',
+          types: [{ $ref: '#/components/schemas/NumericChoice' }, { $ref: '#/components/schemas/Minimum' }],
+          accepted: [10, 42, 7, 9],
+          rejected: [8, '8'],
+        },
+        {
+          field: 'templateAliasFirst',
+          types: [{ $ref: '#/components/schemas/Identifier' }, { type: 'string' }],
+          accepted: ['xenon', 'yellow', 'zinc'],
+          rejected: [7],
+        },
+        {
+          field: 'templateFirst',
+          types: [{ type: 'string' }, { $ref: '#/components/schemas/Identifier' }],
+          accepted: ['xenon', 'yellow', 'zinc'],
+          rejected: [7],
+        },
       ];
       const validLiterals = Object.fromEntries(literalCases.map(({ field, accepted }) => [field, accepted[0]]));
       for (const { field, types, accepted, rejected } of literalCases) {
@@ -70,6 +118,30 @@ describe('Written union candidates', () => {
           }
           for (const value of rejected) {
             expect(validate('LiteralAlternatives', { ...validLiterals, [field]: value }), `${field} rejects ${JSON.stringify(value)}`).to.equal(false);
+          }
+        });
+      }
+
+      it('keeps enum schema references and their values', () => {
+        expect(schemas.Choice).to.deep.equal({ type: 'string', enum: ['yellow', 'green'] });
+        expect(schemas['Choice.Yellow']).to.deep.equal({ type: 'string', enum: ['yellow'] });
+        expect(schemas.NumericChoice).to.deep.equal({ type: 'number', enum: [7, 9] });
+      });
+
+      const validControls = { neverLast: 'xenon', neverFirst: 'xenon', anyLast: 'xenon', anyFirst: 'xenon', unknownLast: 'xenon', unknownFirst: 'xenon' };
+      for (const field of ['neverLast', 'neverFirst']) {
+        it(`ignores the empty ${field} alternative`, () => {
+          expect(schemas.UnionControls.properties![field]).to.deep.equal({ $ref: '#/components/schemas/Identifier' });
+          expect(validate('UnionControls', { ...validControls, [field]: 'xenon' })).to.equal(true);
+          expect(validate('UnionControls', { ...validControls, [field]: 'zinc' })).to.equal(false);
+        });
+      }
+      for (const field of ['anyLast', 'anyFirst', 'unknownLast', 'unknownFirst']) {
+        it(`retains the broad ${field} alternative`, () => {
+          expect(schemas.UnionControls.properties![field]).to.have.all.keys('anyOf');
+          expect(schemas.UnionControls.properties![field].anyOf).to.have.deep.members([{ $ref: '#/components/schemas/Identifier' }, {}]);
+          for (const value of ['xenon', 'zinc', 7, {}]) {
+            expect(validate('UnionControls', { ...validControls, [field]: value }), `${field} accepts ${JSON.stringify(value)}`).to.equal(true);
           }
         });
       }
