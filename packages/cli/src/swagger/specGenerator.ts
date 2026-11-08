@@ -1,7 +1,7 @@
 import { ExtendedSpecConfig } from '../cli';
 import { Tsoa, assertNever, Swagger } from '@tsoa/runtime';
 import * as handlebars from 'handlebars';
-import { hasUndefined, isRequiredWithoutDefault } from '../utils/propertyRequirement';
+import { hasUndefined } from '../utils/propertyRequirement';
 
 export abstract class SpecGenerator {
   constructor(
@@ -235,6 +235,6 @@ export abstract class SpecGenerator {
   }
 
   protected isRequiredWithoutDefault(prop: Tsoa.Property | Tsoa.Parameter): boolean | undefined {
-    return isRequiredWithoutDefault(prop);
+    return prop.required && prop.default == null;
   }
 }
