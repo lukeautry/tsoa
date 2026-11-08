@@ -3,6 +3,7 @@ import { ExtendedRoutesConfig } from '../cli';
 import { Tsoa, TsoaRoute, assertNever } from '@tsoa/runtime';
 import { isNullType, isRefType } from '../utils/internalTypeGuards';
 import { getUnionDiscriminator } from '../utils/unionDiscriminator';
+import { hasUndefined } from '../utils/propertyRequirement';
 import { convertBracesPathParams, normalisePath } from '../utils/pathUtils';
 import { fsExists, fsReadFile } from '../utils/fs';
 
@@ -233,7 +234,10 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
     }
 
     if (type.dataType === 'union') {
-      const discriminator = getUnionDiscriminator(type.types.filter(x => !isNullType(x) && x.dataType !== 'undefined'));
+      const discriminator = getUnionDiscriminator(
+        type.types.filter(x => !isNullType(x) && x.dataType !== 'undefined'),
+        property => !!property.required && property.default === undefined && !hasUndefined(property),
+      );
       if (discriminator) {
         schema.discriminator = {
           propertyName: discriminator.propertyName,

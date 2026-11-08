@@ -1,5 +1,4 @@
 import { Tsoa } from '@tsoa/runtime';
-import { hasUndefined, isRequiredWithoutDefault } from './propertyRequirement';
 
 export interface UnionDiscriminator {
   propertyName: string;
@@ -22,10 +21,7 @@ const isStringEnum = (t: Tsoa.Type): t is Tsoa.EnumType => t.dataType === 'enum'
  * Callers pass the union members without null/undefined. `isTagRequired` decides whether a property is required on every
  * object of its member, which a tag must be.
  */
-export function getUnionDiscriminator(
-  types: Tsoa.Type[],
-  isTagRequired: (property: Tsoa.Property) => boolean = property => !!isRequiredWithoutDefault(property) && !hasUndefined(property),
-): UnionDiscriminator | null {
+export function getUnionDiscriminator(types: Tsoa.Type[], isTagRequired: (property: Tsoa.Property) => boolean): UnionDiscriminator | null {
   if (types.length < 2 || !types.every(t => isRefObject(t) || isRefAlias(t))) {
     return null;
   }

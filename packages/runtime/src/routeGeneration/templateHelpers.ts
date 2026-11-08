@@ -536,8 +536,19 @@ export class ValidationService {
       const { propertyName, mapping } = property.discriminator;
       const tag = value[propertyName];
 
-      // The tag is matched like an enum member, by its string form
-      const mapped = tag === undefined ? undefined : mapping.find(([mappedTag]) => mappedTag === String(tag));
+      if (tag === undefined) {
+        fieldErrors[parent + name + '.' + propertyName] = { message: `'${propertyName}' is required`, value: tag };
+        return;
+      }
+
+      const normalizedTag = this.validateEnum(
+        propertyName,
+        tag,
+        fieldErrors,
+        mapping.map(([mappedTag]) => mappedTag),
+        parent + name + '.',
+      );
+      const mapped = mapping.find(([mappedTag]) => mappedTag === normalizedTag);
       if (mapped) {
         const subSchema = property.subSchemas.find(candidate => candidate.ref === mapped[1]);
         if (!subSchema) {
@@ -551,14 +562,6 @@ export class ValidationService {
         return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.deepClone(value), name, fieldErrors, isBodyParam, parent);
       }
 
-      const tagPath = parent + name + '.' + propertyName;
-      if (tag === undefined) {
-        // Unlike ValidateParam, this does not look up a custom `is*` error message of the tag property
-        fieldErrors[tagPath] = { message: `'${propertyName}' is required`, value: tag };
-      } else {
-        const tagsInQuotes = mapping.map(([mappedTag]) => `'${mappedTag}'`);
-        fieldErrors[tagPath] = { message: `should be one of the following; [${tagsInQuotes.join(',')}]`, value: tag };
-      }
       return;
     }
 

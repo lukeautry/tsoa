@@ -1441,6 +1441,21 @@ describe('ValidationService', () => {
         properties: { type: { dataType: 'enum', enums: ['true'], required: true } },
         additionalProperties: false,
       },
+      TypeEmpty: {
+        dataType: 'refObject',
+        properties: { type: { dataType: 'enum', enums: [''], required: true } },
+        additionalProperties: false,
+      },
+      TypeUndefined: {
+        dataType: 'refObject',
+        properties: { type: { dataType: 'enum', enums: ['undefined'], required: true } },
+        additionalProperties: false,
+      },
+      TypeNull: {
+        dataType: 'refObject',
+        properties: { type: { dataType: 'enum', enums: ['null'], required: true } },
+        additionalProperties: false,
+      },
     };
     const schema: TsoaRoute.PropertySchema = {
       dataType: 'union',
@@ -1452,6 +1467,21 @@ describe('ValidationService', () => {
           ['B', 'TypeB'],
           ['constructor', 'TypeC'],
           ['D', 'TypeD'],
+        ],
+      },
+    };
+    const stringFormSchema: TsoaRoute.PropertySchema = {
+      dataType: 'union',
+      subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeOne' }, { ref: 'TypeTrue' }, { ref: 'TypeEmpty' }, { ref: 'TypeUndefined' }, { ref: 'TypeNull' }],
+      discriminator: {
+        propertyName: 'type',
+        mapping: [
+          ['A', 'TypeA'],
+          ['1', 'TypeOne'],
+          ['true', 'TypeTrue'],
+          ['', 'TypeEmpty'],
+          ['undefined', 'TypeUndefined'],
+          ['null', 'TypeNull'],
         ],
       },
     };
@@ -1513,31 +1543,43 @@ describe('ValidationService', () => {
       }
     });
 
-    it('matches the tag by its string form like an enum member does', () => {
-      const stringFormSchema: TsoaRoute.PropertySchema = {
-        dataType: 'union',
-        subSchemas: [{ ref: 'TypeA' }, { ref: 'TypeOne' }, { ref: 'TypeTrue' }],
-        discriminator: {
-          propertyName: 'type',
-          mapping: [
-            ['A', 'TypeA'],
-            ['1', 'TypeOne'],
-            ['true', 'TypeTrue'],
-          ],
-        },
-      };
-      const cases: Array<[unknown, unknown]> = [
-        [['A'], 'A'],
-        [1, '1'],
-        [true, 'true'],
+    it('matches and normalizes tags by their enum string form, including empty and null-like values', () => {
+      const cases: Array<[unknown, { type: string; a?: number }]> = [
+        [['A'], { type: 'A', a: 1 }],
+        [1, { type: '1' }],
+        [true, { type: 'true' }],
+        ['', { type: '' }],
+        [[], { type: '' }],
+        ['undefined', { type: 'undefined' }],
+        [null, { type: 'null' }],
       ];
-      for (const [tag, normalised] of cases) {
+      for (const [tag, expected] of cases) {
         const errors: FieldErrors = {};
-        const result = createService().validateUnion('field', { type: tag, ...(normalised === 'A' && { a: 1 }) }, errors, true, stringFormSchema);
+        const result = createService().validateUnion('field', { ...expected, type: tag }, errors, true, stringFormSchema);
 
         expect(errors, JSON.stringify(tag)).to.deep.equal({});
-        expect(result.type).to.equal(normalised);
+        expect(result, JSON.stringify(tag)).to.deep.equal(expected);
       }
+    });
+
+    it('requires a missing tag even when the literal undefined string is mapped', () => {
+      for (const input of [{}, { type: undefined }]) {
+        const errors: FieldErrors = {};
+        const result = createService().validateUnion('field', input, errors, true, stringFormSchema, 'body.');
+
+        expect(result).to.equal(undefined);
+        expect(errors).to.deep.equal({ 'body.field.type': { message: "'type' is required", value: undefined } });
+      }
+    });
+
+    it('reports an invalid tag at its nested path when empty and null-like strings are mapped', () => {
+      const errors: FieldErrors = {};
+      const result = createService().validateUnion('field', { type: 'unknown' }, errors, true, stringFormSchema, 'body.');
+
+      expect(result).to.equal(undefined);
+      expect(errors).to.deep.equal({
+        'body.field.type': { message: "should be one of the following; ['A','1','true','','undefined','null']", value: 'unknown' },
+      });
     });
 
     it('reports a tag that matches no mapping key as unknown', () => {
