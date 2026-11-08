@@ -1,6 +1,8 @@
 import { Controller, TsoaResponse } from '@tsoa/runtime/index';
 import { FastifyTemplateService } from '@tsoa/runtime/fastify';
 import { expect } from 'chai';
+import { execFileSync } from 'child_process';
+import { resolve } from 'path';
 import Fastify, { FastifyInstance } from 'fastify';
 import { setImmediate as nextTurn } from 'timers/promises';
 import { spy } from 'sinon';
@@ -153,6 +155,68 @@ describe('Fastify response lifecycle', () => {
     } finally {
       await app.close();
     }
+  });
+
+  it('serializes a custom error response after a JSON-string response hook fails', async () => {
+    const app = Fastify();
+    const service = new FastifyTemplateService({}, config);
+    class JsonStringController {
+      response(res: TsoaResponse<202, string>) {
+        return res(202, 'first', { 'Content-Type': 'application/json' });
+      }
+    }
+    app.addHook('onSend', async (_request, reply, payload) => {
+      await nextTurn();
+      if (reply.statusCode === 202) throw new Error('response hook failed');
+      return payload;
+    });
+    app.setErrorHandler((_error, _request, reply) => reply.code(500).send({ message: 'safe error' }));
+    app.get('/', async (request, reply) => {
+      const validatedArgs = service.getValidatedArgs({ args: { res: { in: 'res', name: 'res' } }, request, reply });
+      await service.apiHandler({ methodName: 'response', controller: new JsonStringController(), request, reply, validatedArgs });
+      return reply;
+    });
+    try {
+      const response = await app.inject('/');
+      expect(response.statusCode).to.equal(500);
+      expect(response.json()).to.deep.equal({ message: 'safe error' });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('observes every auth failure when schemes both reject and throw', function () {
+    this.timeout(15000);
+    const result = execFileSync(
+      process.execPath,
+      [
+        '--unhandled-rejections=strict',
+        '-r',
+        'ts-node/register/transpile-only',
+        '-r',
+        'tsconfig-paths/register',
+        '-e',
+        `
+          const assert = require('assert');
+          const app = require('fastify')();
+          app.register(require('./fixtures/fastify/routes').RegisterRoutes);
+          (async () => {
+            const statuses = [];
+            for (const path of [
+              '/v1/SecurityTest/OauthAndApiKey?access_token=invalid&tsoa=throw-error',
+              '/v1/SecurityTest/OauthOrApiKey?access_token=invalid&tsoa=throw-error',
+              '/v1/SecurityTest/ApiKeyAndOauthOrAnonymous?tsoa=throw-missing'
+            ]) statuses.push((await app.inject(path)).statusCode);
+            await new Promise(setImmediate);
+            await app.close();
+            assert.deepStrictEqual(statuses, [401, 401, 200]);
+            process.stdout.write('handled');
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+        `,
+      ],
+      { cwd: resolve(__dirname, '..'), encoding: 'utf8', stdio: 'pipe' },
+    );
+    expect(result).to.equal('handled');
   });
 
   it('keeps response ownership separate across concurrent requests', async () => {

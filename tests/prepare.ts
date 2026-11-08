@@ -127,6 +127,17 @@ const log = async <T>(label: string, fn: () => Promise<T>) => {
         routesDir: './fixtures/fastify',
       }),
     ),
+    ...['fastify-fields', 'fastify-head'].map(fixture =>
+      log(`${fixture} Route Generation`, () =>
+        generateRoutes({
+          noImplicitAdditionalProperties: 'throw-on-extras',
+          bodyCoercion: true,
+          entryFile: `./fixtures/${fixture}/server.ts`,
+          middleware: 'fastify',
+          routesDir: `./fixtures/${fixture}`,
+        }),
+      ),
+    ),
     log('Fastify Route Generation (throw-on-extras)', () =>
       generateRoutes({
         noImplicitAdditionalProperties: 'throw-on-extras',

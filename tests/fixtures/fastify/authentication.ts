@@ -47,6 +47,10 @@ export function fastifyAuthentication(request: FastifyRequest<{ Querystring: Rec
   } else {
     if (request.query && request.query.tsoa && request.query.tsoa === 'abc123456') {
       return Promise.resolve({});
+    } else if (request.query && request.query.tsoa === 'throw-error') {
+      throw new Error('synchronous authentication failure');
+    } else if (request.query && request.query.tsoa === 'throw-missing') {
+      throw new MissingCredentialsError('other');
     } else if (request.query && request.query.tsoa === 'slow-invalid') {
       return new Promise((_, reject) => setTimeout(() => reject({ message: 'other' }), 10));
     } else if (request.query && request.query.tsoa === 'slow-custom-response') {

@@ -42,6 +42,7 @@ describe('FastifyTemplateService', () => {
     ['null', null],
     ['undefined', undefined],
     ['null with explicit status', null, 202],
+    ['object with reset-content status', { value: 'discard' }, 205],
     ['undefined with explicit status', undefined, 200],
     ['null with unknown status', null, 299],
     ['false', false],

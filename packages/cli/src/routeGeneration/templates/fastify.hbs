@@ -19,7 +19,7 @@ const fastifyAuthenticationRecasted = fastifyAuthentication as (request: Fastify
 import { iocContainer } from '{{iocModule}}';
 import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
 {{/if}}
-{{#if useFileUploads}}
+{{#if useMultipart}}
 import multipart from '@fastify/multipart';
 import type { FastifyMultipartOptions } from '@fastify/multipart';
 {{/if}}
@@ -51,12 +51,12 @@ const models: TsoaRoute.Models = {
 const templateService = new FastifyTemplateService(models, {{{ json minimalSwaggerConfig }}});
 
 
-export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFileUploads}}multipart?: FastifyMultipartOptions{{/if}} }) {
+export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useMultipart}}multipart?: FastifyMultipartOptions{{/if}} }) {
     app.addHook('onRequest', (_request, reply, done) => {
         templateService.initializeReply(reply);
         done();
     });
-    {{#if useFileUploads}}
+    {{#if useMultipart}}
     if (app.hasContentTypeParser('multipart/form-data')) {
         throw new Error('tsoa RegisterRoutes registers @fastify/multipart itself. A multipart parser is already registered in an enclosing scope; register it in a sibling scope instead, and pass options through opts.multipart.');
     }
@@ -66,14 +66,14 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
         limits: { ...{{{json multerOpts.limits}}}, ...opts.multipart?.limits },
     });
     {{/if}}
-    {{#each controllers}}
+    {{#each routeGroups}}
     {{#each actions}}
     const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
         {{#each parameters}}
         {{@key}}: {{{json this}}},
         {{/each}}
     };
-    {{#if uploadFile}}
+    {{#if multipart}}
     const uploadFields{{../name}}_{{name}} = [
         {{#each uploadFileName}}
         { name: {{{json name}}}{{#if maxCount}}, maxCount: {{maxCount}}{{/if}} },
@@ -92,7 +92,7 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
-            {{#if uploadFile}}
+            {{#if multipart}}
             request => templateService.collectMultipart(request, uploadFields{{../name}}_{{name}}),
             {{/if}}
             ...fetchMiddlewares<preHandlerHookHandler>({{../name}}),
@@ -137,7 +137,7 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
 
                     for (const name in secMethod) {
                         secMethodAndPromises.push(
-                            fastifyAuthenticationRecasted(request, name, secMethod[name], reply)
+                            Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply))
                                 .catch(pushAndRethrow)
                         );
                     }
@@ -147,7 +147,7 @@ export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useFile
                         .then(users => { return users[0]; }));
                 } else {
                     for (const name in secMethod) {
-                        const attempt = fastifyAuthenticationRecasted(request, name, secMethod[name], reply).catch(pushAndRethrow);
+                        const attempt = Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply)).catch(pushAndRethrow);
                         attempts.push(attempt);
                         secMethodOrPromises.push(attempt);
                     }

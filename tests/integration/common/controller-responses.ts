@@ -55,6 +55,7 @@ export function registerControllerTests(app: App, basePath: string) {
         basePath + `/Controller/customStatusCode`,
         (_err, res) => {
           expect(res.status).to.equal(205);
+          expect(res.text).to.equal('');
         },
         205,
       );

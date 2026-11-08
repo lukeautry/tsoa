@@ -61,6 +61,27 @@ export class DefaultRouteGenerator extends AbstractRouteGenerator<ExtendedRoutes
     }
   }
 
+  protected buildContext() {
+    const context = super.buildContext();
+    if (this.options.middleware !== 'fastify') return context;
+
+    const controllers = context.controllers.map(controller => ({
+      ...controller,
+      actions: controller.actions.map(action => ({
+        ...action,
+        multipart: Object.values(action.parameters).some(parameter => parameter.in === 'formData'),
+      })),
+    }));
+
+    // Fastify derives HEAD from GET unless an explicit HEAD route already exists.
+    const routeGroups = [
+      ...controllers.map(controller => ({ ...controller, actions: controller.actions.filter(action => action.method === 'head') })),
+      ...controllers.map(controller => ({ ...controller, actions: controller.actions.filter(action => action.method !== 'head') })),
+    ].filter(controller => controller.actions.length > 0);
+
+    return { ...context, controllers, routeGroups, useMultipart: controllers.some(controller => controller.actions.some(action => action.multipart)) };
+  }
+
   protected pathTransformer(path: string): string {
     return this.pathTransformerFn(path);
   }
