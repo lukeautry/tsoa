@@ -5,7 +5,7 @@ import { FieldErrors } from '../../templateHelpers';
 import { TsoaRoute } from '../../tsoa-route';
 import { ValidateError } from '../../templateHelpers';
 import { TemplateService } from '../templateService';
-import { Readable, pipeline } from 'node:stream';
+import { Readable, finished } from 'node:stream';
 
 type ExpressApiHandlerParameters = {
   methodName: string;
@@ -20,6 +20,7 @@ type ExpressValidationArgsParameters = {
   args: Record<string, TsoaRoute.ParameterSchema>;
   request: ExRequest;
   response: ExResponse;
+  next?: ExNext;
 };
 
 type ExpressReturnHandlerParameters = {
@@ -27,6 +28,7 @@ type ExpressReturnHandlerParameters = {
   headers: any;
   statusCode?: number;
   data?: any;
+  next?: ExNext;
 };
 
 // body-parser leaves `{}` when a request has neither `Content-Length` nor `Transfer-Encoding`, or has `Content-Length: 0`
@@ -46,14 +48,14 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         statusCode = controller.getStatus() || statusCode;
       }
 
-      this.returnHandler({ response, headers, statusCode, data });
+      this.returnHandler({ response, headers, statusCode, data, next });
     } catch (error) {
       return next(error);
     }
   }
 
   getValidatedArgs(params: ExpressValidationArgsParameters): any[] {
-    const { args, request, response } = params;
+    const { args, request, response, next } = params;
 
     const fieldErrors: FieldErrors = {};
     const values = this.getParameters(args).map(param => {
@@ -112,7 +114,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
         }
         case 'res':
           return (status: number | undefined, data: any, headers: any) => {
-            this.returnHandler({ response, headers, statusCode: status, data });
+            this.returnHandler({ response, headers, statusCode: status, data, next });
           };
       }
     });
@@ -124,13 +126,14 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
   }
 
   protected returnHandler(params: ExpressReturnHandlerParameters) {
-    const { response, statusCode, data } = params;
+    const { response, statusCode, data, next } = params;
     let { headers } = params;
     headers = headers || {};
 
     if (response.headersSent) {
       return;
     }
+    const restoreResponse = this.captureResponseState(response, Object.keys(headers));
     Object.keys(headers).forEach((name: string) => {
       response.set(name, headers[name]);
     });
@@ -140,7 +143,7 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
 
     if (data && typeof data.pipe === 'function' && data.readable && typeof data._read === 'function') {
       response.status(statusCode || 200);
-      pipeline(data as Readable, response, _ => {});
+      this.pipeStream(data as Readable, response, restoreResponse, next);
     } else if (data === undefined || (data === null && !isJsonResponse)) {
       response.status(statusCode || 204).end();
     } else if (data instanceof Uint8Array) {
@@ -152,5 +155,31 @@ export class ExpressTemplateService extends TemplateService<ExpressApiHandlerPar
       // the spec documents these as application/json; send() would emit a bare string as text/html and treat a number as a status code
       response.status(statusCode || 200).json(data);
     }
+  }
+
+  // Restores the status and the given headers to what earlier middleware left, so an error handler does not
+  // answer with the success status, content type or disposition the controller set for its stream.
+  private captureResponseState(response: ExResponse, headerNames: string[]): () => void {
+    const statusCode = response.statusCode;
+    const headers = headerNames.map(name => [name, response.getHeader(name)] as const);
+    return () => {
+      response.statusCode = statusCode;
+      headers.forEach(([name, value]) => (value === undefined ? response.removeHeader(name) : response.setHeader(name, value)));
+    };
+  }
+
+  private pipeStream(stream: Readable, response: ExResponse, restoreResponse: () => void, next?: ExNext) {
+    // stream.pipeline would destroy the response on a source error, leaving no chance to answer with an error status
+    stream.on('error', (error: Error) => {
+      stream.unpipe(response);
+      if (!response.headersSent && next) {
+        restoreResponse();
+        next(error);
+        return;
+      }
+      response.destroy();
+    });
+    finished(response, () => stream.destroy());
+    stream.pipe(response);
   }
 }
