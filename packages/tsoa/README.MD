@@ -46,6 +46,12 @@ app.use(express.urlencoded({ extended: true })); // nested form fields such as a
 - Runtime validation of tsoa should behave as closely as possible to the specifications that the generated OpenAPI 2/3 schema describes. Any differences in validation logic are clarified by logging warnings during the generation of the OpenAPI Specification (OAS) and/or the routes.
   - Please note that by enabling OpenAPI 3 you minimize the chances of divergent validation logic since OpenAPI 3 has a more expressive schema syntax.
 
+## Validated request bodies
+
+Validation does not make request bodies safe for every downstream operation. A schema that allows additional properties, or `noImplicitAdditionalProperties: 'ignore'`, can retain an own `__proto__` key. Values typed `any` are not inspected. Cloning preserves this key as a data property rather than changing the clone's prototype.
+
+If a retained `__proto__` value is an object, `Object.assign(target, validatedBody)` can change an ordinary target object's prototype. Use object spread, such as `{ ...validatedBody }`, when copying allowed own keys without invoking target setters. This cloning fix is not global protection against prototype mutation.
+
 ## Framework packages
 
 `@tsoa/runtime` does not install a web framework. Its framework packages are optional peer dependencies, so install the ones for the framework you use:

@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import 'mocha';
-import { EnumTransformer } from '@tsoa/cli/metadataGeneration/transformer/enumTransformer';
+import { mergeEnum, mergeEnums } from '@tsoa/cli/metadataGeneration/typeResolver/models';
 import { Tsoa } from '@tsoa/runtime';
 
-describe('EnumTransformer - Null Safety', () => {
+describe('mergeEnum - Null Safety', () => {
   describe('merge method', () => {
     it('should return second enum when first is null', () => {
       const first: Tsoa.RefEnumType | null = null;
@@ -16,7 +16,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: false,
       };
 
-      const result = EnumTransformer.merge(first as any, second);
+      const result = mergeEnum(first as any, second);
 
       expect(result).to.deep.equal(second);
     });
@@ -32,7 +32,7 @@ describe('EnumTransformer - Null Safety', () => {
       };
       const second: Tsoa.RefEnumType | null = null;
 
-      const result = EnumTransformer.merge(first, second as any);
+      const result = mergeEnum(first, second as any);
 
       expect(result).to.deep.equal(first);
     });
@@ -41,7 +41,7 @@ describe('EnumTransformer - Null Safety', () => {
       const first: Tsoa.RefEnumType | null = null;
       const second: Tsoa.RefEnumType | null = null;
 
-      const result = EnumTransformer.merge(first as any, second as any);
+      const result = mergeEnum(first as any, second as any);
 
       expect(result).to.be.null;
     });
@@ -65,7 +65,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: true,
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -97,7 +97,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: false,
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -129,7 +129,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: false,
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -161,7 +161,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: false,
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -195,7 +195,7 @@ describe('EnumTransformer - Null Safety', () => {
         example: 'example2',
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -229,7 +229,7 @@ describe('EnumTransformer - Null Safety', () => {
         title: 'Second Title',
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result.title).to.equal('First Title'); // First title should be used
     });
@@ -254,7 +254,7 @@ describe('EnumTransformer - Null Safety', () => {
         title: 'Second Title',
       };
 
-      const result = EnumTransformer.merge(first, second);
+      const result = mergeEnum(first, second);
 
       expect(result.title).to.equal('Second Title');
     });
@@ -262,7 +262,7 @@ describe('EnumTransformer - Null Safety', () => {
 
   describe('mergeMany method', () => {
     it('should handle empty array', () => {
-      const result = EnumTransformer.mergeMany([]);
+      const result = mergeEnums([]);
       expect(result).to.be.undefined;
     });
 
@@ -276,7 +276,7 @@ describe('EnumTransformer - Null Safety', () => {
         deprecated: false,
       };
 
-      const result = EnumTransformer.mergeMany([enumType]);
+      const result = mergeEnums([enumType]);
       expect(result).to.deep.equal(enumType);
     });
 
@@ -308,7 +308,7 @@ describe('EnumTransformer - Null Safety', () => {
         },
       ];
 
-      const result = EnumTransformer.mergeMany(enums);
+      const result = mergeEnums(enums);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',

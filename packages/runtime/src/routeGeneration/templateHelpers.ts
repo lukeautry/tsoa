@@ -8,7 +8,7 @@ import toInt from 'validator/lib/toInt';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
 import { RefRecursionGuard } from './refRecursionGuard';
-import { TsoaRoute } from './tsoa-route';
+import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
 
@@ -149,8 +149,8 @@ export class ValidationService {
     }
 
     const propHandling = this.config.noImplicitAdditionalProperties;
-    const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value));
     if (propHandling !== 'ignore') {
+      const excessProps = this.getExcessPropertiesFor({ dataType: 'refObject', properties: nestedProperties, additionalProperties }, Object.keys(value));
       if (excessProps.length > 0) {
         if (propHandling === 'silently-remove-extras') {
           excessProps.forEach(excessProp => {
@@ -176,7 +176,7 @@ export class ValidationService {
     });
 
     if (typeof additionalProperties === 'object' && typeof value === 'object') {
-      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined' && !excessProps.includes(key));
+      const keys = Object.keys(value).filter(key => typeof nestedProperties[key] === 'undefined');
       keys.forEach(key => {
         const validatedProp = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, parent + name + '.');
         // Add value from validator if it's not undefined or if value is required and unfedined is valid type
@@ -577,6 +577,40 @@ export class ValidationService {
       return null;
     }
 
+    if (property.discriminator && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const { propertyName, mapping } = property.discriminator;
+      const tag = Object.prototype.hasOwnProperty.call(value, propertyName) ? value[propertyName] : undefined;
+
+      if (tag === undefined) {
+        fieldErrors[parent + name + '.' + propertyName] = { message: `'${propertyName}' is required`, value: tag };
+        return;
+      }
+
+      const normalizedTag = this.validateEnum(
+        propertyName,
+        tag,
+        fieldErrors,
+        mapping.map(([mappedTag]) => mappedTag),
+        parent + name + '.',
+        isBodyParam,
+      );
+      const mapped = mapping.find(([mappedTag]) => mappedTag === normalizedTag);
+      if (mapped) {
+        const subSchema = property.subSchemas.find(candidate => candidate.ref === mapped[1]);
+        if (!subSchema) {
+          throw new Error(
+            'internal tsoa error: ' +
+              `the discriminator maps the tag '${String(tag)}' to the model '${mapped[1]}', however that model is not one of the sub schemas of the union. ` +
+              'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          );
+        }
+        // Only the member the tag selects is validated, so its errors are reported as they are
+        return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.cloneForBranch(value), name, fieldErrors, isBodyParam, parent);
+      }
+
+      return;
+    }
+
     const subFieldErrors: FieldErrors[] = [];
 
     for (const subSchema of property.subSchemas) {
@@ -654,15 +688,11 @@ export class ValidationService {
 
     const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
       const requiredPropError = {};
-      const valueToCheck = this.cloneForBranch(value);
-      if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
-        this.removeDiscardedProtoKeys(valueToCheck, cleanValues);
-      }
       this.createChildValidationService({
         noImplicitAdditionalProperties: 'ignore',
       }).validateModel({
         name,
-        value: valueToCheck,
+        value: this.cloneForBranch(value),
         modelDefinition: schema,
         fieldErrors: requiredPropError,
         isBodyParam,
@@ -696,32 +726,6 @@ export class ValidationService {
         value,
       };
       return;
-    }
-  }
-
-  /**
-   * Removes only own __proto__ keys absent from the cleaned projection. Rechecks still need raw values for coercion,
-   * and keys retained by any or declared properties must still be validated.
-   */
-  private removeDiscardedProtoKeys(value: unknown, cleanValue: unknown): void {
-    if (typeof value !== 'object' || value === null || typeof cleanValue !== 'object' || cleanValue === null) {
-      return;
-    }
-
-    // Array validation wraps a non-array value, so its properties correspond to the first element, not the array.
-    if (Array.isArray(cleanValue) && !Array.isArray(value)) {
-      this.removeDiscardedProtoKeys(value, cleanValue[0]);
-      return;
-    }
-
-    const rawObject = value as Record<string, unknown>;
-    const cleanObject = cleanValue as Record<string, unknown>;
-    for (const key of Object.keys(rawObject)) {
-      if (Object.prototype.hasOwnProperty.call(cleanObject, key)) {
-        this.removeDiscardedProtoKeys(rawObject[key], cleanObject[key]);
-      } else if (key === '__proto__') {
-        delete rawObject[key];
-      }
     }
   }
 
@@ -810,17 +814,14 @@ export class ValidationService {
 
   private getExcessPropertiesFor(modelDefinition: TsoaRoute.RefObjectModelSchema, properties: string[]): string[] {
     const modelProperties = new Set(Object.keys(modelDefinition.properties));
-    return properties.filter(property => !modelProperties.has(property) && this.isRejectedExcessProperty(property, !!modelDefinition.additionalProperties));
-  }
 
-  /**
-   * Whether an excess property must be reported or removed. Under noImplicitAdditionalProperties: 'ignore' none is.
-   * Otherwise every excess property is, unless additional properties are allowed. An own "__proto__" key is rejected
-   * even then, because a later assignment or Object.assign of the validated value would turn it into the target's
-   * prototype. Values typed any are not inspected.
-   */
-  private isRejectedExcessProperty(key: string, additionalPropertiesAllowed: boolean): boolean {
-    return this.config.noImplicitAdditionalProperties !== 'ignore' && (!additionalPropertiesAllowed || key === '__proto__');
+    if (modelDefinition.additionalProperties) {
+      return [];
+    } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
+      return [];
+    } else {
+      return [...properties].filter(property => !modelProperties.has(property));
+    }
   }
 
   public validateModel(input: { name: string; value: any; modelDefinition: TsoaRoute.ModelSchema; fieldErrors: FieldErrors; isBodyParam: boolean; parent?: string }): any {
@@ -865,33 +866,41 @@ export class ValidationService {
 
       const additionalProperties = modelDefinition.additionalProperties;
 
-      Object.keys(value).forEach((key: string) => {
-        if (!isAnExcessProperty(key)) {
-          return;
-        }
-        // An undefined additionalProperties allows additional properties, as in Swagger.
-        if (this.isRejectedExcessProperty(key, additionalProperties !== false)) {
-          if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
-            fieldErrors[`${fieldPath}.${key}`] = {
-              message: `"${key}" is an excess property and therefore is not allowed`,
-              value: key,
-            };
-          } else {
-            delete value[key];
+      if (additionalProperties === true || isDefaultForAdditionalPropertiesAllowed(additionalProperties)) {
+        // then don't validate any of the additional properties
+      } else if (additionalProperties === false) {
+        Object.keys(value).forEach((key: string) => {
+          if (isAnExcessProperty(key)) {
+            if (this.config.noImplicitAdditionalProperties === 'throw-on-extras') {
+              fieldErrors[`${fieldPath}.${key}`] = {
+                message: `"${key}" is an excess property and therefore is not allowed`,
+                value: key,
+              };
+            } else if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
+              delete value[key];
+            } else if (this.config.noImplicitAdditionalProperties === 'ignore') {
+              // then it's okay to have additionalProperties
+            } else {
+              assertNever(this.config.noImplicitAdditionalProperties);
+            }
           }
-        } else if (typeof additionalProperties === 'object') {
-          const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, fieldPath + '.');
-          // Add value from validator if it's not undefined or if value is required and unfedined is valid type
-          if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
-            value[key] = validatedValue;
-          } else {
-            fieldErrors[`${fieldPath}.${key}`] = {
-              message: `No matching model found in additionalProperties to validate ${key}`,
-              value: key,
-            };
+        });
+      } else {
+        Object.keys(value).forEach((key: string) => {
+          if (isAnExcessProperty(key)) {
+            const validatedValue = this.ValidateParam(additionalProperties, value[key], key, fieldErrors, isBodyParam, fieldPath + '.');
+            // Add value from validator if it's not undefined or if value is required and unfedined is valid type
+            if (validatedValue !== undefined || (additionalProperties.dataType === 'undefined' && additionalProperties.required)) {
+              value[key] = validatedValue;
+            } else {
+              fieldErrors[`${fieldPath}.${key}`] = {
+                message: `No matching model found in additionalProperties to validate ${key}`,
+                value: key,
+              };
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {
@@ -966,7 +975,12 @@ export class ValidationService {
     // assigning it would replace the clone's prototype instead.
     const cloneObj: any = {};
     for (const key of Object.keys(obj)) {
-      Object.defineProperty(cloneObj, key, { value: this.deepClone((obj as any)[key]), enumerable: true, writable: true, configurable: true });
+      const value = this.deepClone((obj as any)[key]);
+      if (key === '__proto__') {
+        Object.defineProperty(cloneObj, key, { value, enumerable: true, writable: true, configurable: true });
+      } else {
+        cloneObj[key] = value;
+      }
     }
     return cloneObj;
   }

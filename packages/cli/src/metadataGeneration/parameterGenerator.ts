@@ -6,7 +6,6 @@ import { GenerateMetadataError } from './exceptions';
 import { getInitializerValue } from './initializer-value';
 import { MetadataGenerator } from './metadataGenerator';
 import { Tsoa } from '@tsoa/runtime';
-import { TypeResolver } from './typeResolver';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
 export class ParameterGenerator {
@@ -144,7 +143,7 @@ export class ParameterGenerator {
 
       const status = String(statusArgumentType.value);
 
-      const type = new TypeResolver(bodyArgument, this.current, typeNode).resolve();
+      const type = this.current.resolveTypeNode(bodyArgument, typeNode);
       const { examples, exampleLabels } = this.getParameterExample(parameter, parameterName);
       return {
         description: this.getParameterDescription(parameter) || '',
@@ -302,7 +301,7 @@ export class ParameterGenerator {
     const parameterName = (parameter.name as ts.Identifier).text;
     const type = this.getValidatedType(parameter);
 
-    const queriesType = this.resolveQueriesType(type, parameterName, parameter);
+    const queriesType = this.resolveQueriesType(type, parameterName);
 
     for (const property of queriesType.properties) {
       this.validateQueriesProperties(property, parameterName);
@@ -328,7 +327,7 @@ export class ParameterGenerator {
    * Resolves the type for @Queries, unwrapping refAlias types (TypeScript type aliases)
    * to their underlying object type when possible.
    */
-  private resolveQueriesType(type: Tsoa.Type, parameterName: string, parameter: ts.ParameterDeclaration): Tsoa.RefObjectType | Tsoa.NestedObjectLiteralType {
+  private resolveQueriesType(type: Tsoa.Type, parameterName: string): Tsoa.RefObjectType | Tsoa.NestedObjectLiteralType {
     if (type.dataType === 'refObject' || type.dataType === 'nestedObjectLiteral') {
       return type;
     }
@@ -341,28 +340,6 @@ export class ParameterGenerator {
       }
       if (unwrapped.dataType === 'refObject' || unwrapped.dataType === 'nestedObjectLiteral') {
         return unwrapped;
-      }
-    }
-
-    // Handle cases where TypeResolver doesn't properly resolve complex types
-    // like Zod's z.infer types to refObject or nestedObjectLiteral
-    let typeNode = parameter.type;
-    if (!typeNode) {
-      const typeFromChecker = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(typeFromChecker, undefined, ts.NodeBuilderFlags.NoTruncation);
-    }
-
-    if (typeNode && ts.isTypeReferenceNode(typeNode)) {
-      try {
-        const actualType = this.current.typeChecker.getTypeAtLocation(typeNode);
-        const typeNodeFromType = this.current.typeChecker.typeToTypeNode(actualType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
-        const resolvedType = new TypeResolver(typeNodeFromType, this.current, parameter).resolve();
-
-        if (resolvedType.dataType === 'refObject' || resolvedType.dataType === 'nestedObjectLiteral') {
-          return resolvedType;
-        }
-      } catch (error) {
-        console.warn(`Failed to resolve complex type for @Queries('${parameterName}'):`, error);
       }
     }
 
@@ -560,12 +537,10 @@ export class ParameterGenerator {
   }
 
   private getValidatedType(parameter: ts.ParameterDeclaration) {
-    let typeNode = parameter.type;
-    if (!typeNode) {
-      const type = this.current.typeChecker.getTypeAtLocation(parameter);
-      typeNode = this.current.typeChecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)!;
+    if (parameter.type) {
+      return this.current.resolveTypeNode(parameter.type, parameter);
     }
-    return new TypeResolver(typeNode, this.current, parameter).resolve();
+    return this.current.resolveType(this.current.typeChecker.getTypeAtLocation(parameter), parameter);
   }
 
   private getQueryParameterIsHidden(parameter: ts.ParameterDeclaration) {

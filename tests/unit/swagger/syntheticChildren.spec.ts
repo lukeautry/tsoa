@@ -241,10 +241,8 @@ const rows: Row[] = [
       expect(schemas.FrozenChain_Leaf_.properties).to.have.all.keys('front', 'rest');
 
       const mapped = resolve(response(route('mapped')));
-      expect(mapped.properties?.frozen.$ref).to.equal(ref('ReadonlyArray_Leaf_'));
-      const frozen = resolve(mapped.properties?.frozen);
-      expect(frozen).to.deep.include({ type: 'object' });
-      expect(frozen.properties).to.have.all.keys('front', 'rest');
+      expect(mapped.properties?.frozen.$ref).to.equal(ref('FrozenChain_Leaf_'));
+      expect(schemas).to.not.have.property('ReadonlyArray_Leaf_');
     },
   },
   {
@@ -289,30 +287,37 @@ const rows: Row[] = [
     },
   },
   {
-    name: 'keeps the output of an optional member that allows null, in either property order',
+    name: 'gives the same output for an optional member that allows null, in either property order',
     controller: 'syntheticChildren/exactNullAliasLitFirstController',
     openapi: '3.1',
     modes: [...nullModes, exactMode],
     check: ({ generate, strictNullChecks, compilerOptions }) => {
-      const name = strictNullChecks ? 'P_Leaf-or-null_' : 'P_Leaf_';
       const leaf = leafObject(strictNullChecks && !compilerOptions.exactOptionalPropertyTypes);
-      const nullable: Tsoa.UnionType = { dataType: 'union', types: [{ dataType: 'enum', enums: [null] }, leaf] };
-      const empty: Tsoa.NestedObjectLiteralType = { dataType: 'nestedObjectLiteral', properties: [] };
-      // The first order gives the empty object on master too.
-      const outputs = {
-        exactNullAliasLitFirst: strictNullChecks ? { type: empty, schema: { type: 'object', properties: {} } } : { type: leaf, schema: leafSchema },
-        exactNullAliasDirectFirst: strictNullChecks ? { type: nullable, schema: { ...leafSchema, nullable: true } } : { type: leaf, schema: leafSchema },
-      };
-      for (const [controller, output] of Object.entries(outputs)) {
+      const type: Tsoa.Type = strictNullChecks ? { dataType: 'union', types: [leaf, { dataType: 'enum', enums: [null] }] } : leaf;
+      const schema = strictNullChecks ? { ...leafSchema, nullable: true } : leafSchema;
+      for (const controller of ['exactNullAliasLitFirst', 'exactNullAliasDirectFirst']) {
         const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
-        expect(JSON.parse(JSON.stringify(refAlias(metadata, name).type)), `${controller} alias`).to.deep.equal(output.type);
-        expect(schemas[name], `${controller} schema`).to.deep.equal(output.schema);
-        expect(strictNullChecks && schemas[name].properties?.text !== undefined && schemas[name].nullable !== true, `${controller} object without null`).to.equal(false);
+        expect(JSON.parse(JSON.stringify(refAlias(metadata, 'P_Leaf-or-null_').type)), `${controller} alias`).to.deep.equal(type);
+        expect(schemas['P_Leaf-or-null_'], `${controller} schema`).to.deep.equal(schema);
       }
     },
   },
   aliasWithoutUndefinedRow('keeps undefined out of the alias of an optional member, whatever the order', ['exactInnerFirst', 'exactNullPlainFirst']),
   aliasWithoutUndefinedRow('keeps undefined out of the alias of an optional tuple element, whatever the order', ['exactTupleFirst', 'exactDirectFirst']),
+  {
+    name: 'keeps an alias that includes undefined whole when an optional property uses it, whatever the order',
+    controller: 'syntheticChildren/optionalAliasBoxFirstController',
+    modes: [...nullModes, exactMode],
+    check: ({ generate }) => {
+      const maybe: Tsoa.Type = { dataType: 'union', types: [{ dataType: 'string' }, { dataType: 'undefined' }] };
+      for (const controller of ['optionalAliasBoxFirst', 'optionalAliasMaybeFirst']) {
+        const { metadata, schemas } = generate(`syntheticChildren/${controller}Controller`);
+        expect(JSON.parse(JSON.stringify(refAlias(metadata, 'Maybe_string_').type)), `${controller} alias`).to.deep.equal(maybe);
+        expect(schemas.MaybeBox_string_.properties?.value.$ref, `${controller} property`).to.equal(ref('Maybe_string_'));
+        expect(schemas.MaybeBox_string_.required, `${controller} required`).to.equal(undefined);
+      }
+    },
+  },
   {
     name: 'resolves union members by the names the source file imports',
     controller: 'syntheticChildren/indexedUnionController',
@@ -364,15 +369,15 @@ const rows: Row[] = [
     },
   },
   {
-    name: 'gives no type to union members that print the same name',
+    name: 'keeps the types of union members that print the same name',
     controller: 'syntheticChildren/sharedPrintController',
     modes: [...nullModes, exactMode],
     check: ({ generate }) => {
       const { schemas, response, resolve } = generate();
       const members = required(resolve(response('/synthetic-children')).properties?.value.anyOf, 'union members');
       expect(members.map(member => member.$ref)).to.deep.equal([ref('Optional_First.Nested_'), ref('Optional_Second.Nested_')]);
-      expect(schemas['Optional_First.Nested_']).to.deep.equal({ type: 'object', properties: {} });
-      expect(schemas['Optional_Second.Nested_']).to.deep.equal({ type: 'object', properties: {} });
+      expectOptionalLeaf(schemas['Optional_First.Nested_'], { a: 'string' });
+      expectOptionalLeaf(schemas['Optional_Second.Nested_'], { b: 'number' });
     },
   },
   {
