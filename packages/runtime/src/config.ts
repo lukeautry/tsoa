@@ -83,7 +83,8 @@ export interface SpecConfig {
   version?: string;
 
   /**
-   * Major OpenAPI version to generate; defaults to version 2 when not specified
+   * Major OpenAPI version to generate.
+   * The tsoa CLI and validateSpecConfig default to 2. generateSpec defaults to 3.1 when it is called without one.
    * Possible values:
    *  - 2: generates OpenAPI version 2.
    *  - 3: generates OpenAPI version 3.
