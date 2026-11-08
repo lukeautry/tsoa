@@ -534,7 +534,7 @@ export class ValidationService {
 
     if (property.discriminator && typeof value === 'object' && value !== null && !Array.isArray(value)) {
       const { propertyName, mapping } = property.discriminator;
-      const tag = value[propertyName];
+      const tag = Object.prototype.hasOwnProperty.call(value, propertyName) ? value[propertyName] : undefined;
 
       if (tag === undefined) {
         fieldErrors[parent + name + '.' + propertyName] = { message: `'${propertyName}' is required`, value: tag };
