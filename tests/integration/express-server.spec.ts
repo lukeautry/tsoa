@@ -311,14 +311,15 @@ describe('Express Server', () => {
     });
   });
 
-  it('aborts the connection on a stream error before data was sent', async () => {
-    let failure: unknown;
-    try {
-      await verifyGetRequest(app, `${basePath}/GetTest/HandleStreamFailure`, () => undefined);
-    } catch (error) {
-      failure = error;
-    }
-    expect(failure).to.have.nested.property('error.code', 'ECONNRESET');
+  it('hands a stream error before any data to the error handler', () => {
+    return verifyGetRequest(
+      app,
+      `${basePath}/GetTest/HandleStreamFailure`,
+      (_err, res) => {
+        expect(res.body.message).to.equal('stream_test_error');
+      },
+      500,
+    );
   });
 
   it('aborts the connection on a stream error after data was sent', async () => {
