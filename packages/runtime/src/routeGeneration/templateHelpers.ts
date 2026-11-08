@@ -7,6 +7,7 @@ import toFloat from 'validator/lib/toFloat';
 import toInt from 'validator/lib/toInt';
 import { assertNever } from '../utils/assertNever';
 import { AdditionalProps } from './additionalProps';
+import { RefRecursionGuard } from './refRecursionGuard';
 import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route';
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
@@ -26,11 +27,10 @@ export function ValidateParam(
 }
 
 export class ValidationService {
-  private validationStack: Set<string> = new Set();
-
   constructor(
     private readonly models: TsoaRoute.Models,
     private readonly config: AdditionalProps,
+    private readonly refRecursionGuard = new RefRecursionGuard(),
   ) {}
 
   public ValidateParam(property: TsoaRoute.PropertySchema, rawValue: any, name = '', fieldErrors: FieldErrors, isBodyParam: boolean, parent = '') {
@@ -95,20 +95,24 @@ export class ValidationService {
         return this.validateNestedObjectLiteral(name, value, fieldErrors, isBodyParam, property.nestedProperties, property.additionalProperties, parent);
       default:
         if (property.ref) {
-          // Detect circular references to prevent stack overflow
-          const refPath = `${parent}${name}:${property.ref}`;
-          if (this.validationStack.has(refPath)) {
-            return value;
-          }
-
-          this.validationStack.add(refPath);
-          try {
-            return this.validateModel({ name, value, modelDefinition: this.models[property.ref], fieldErrors, isBodyParam, parent });
-          } finally {
-            this.validationStack.delete(refPath);
-          }
+          return this.validateRef(name, value, fieldErrors, isBodyParam, property.ref, parent);
         }
         return value;
+    }
+  }
+
+  private validateRef(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, ref: string, parent: string) {
+    if (!this.refRecursionGuard.enter(value, ref)) {
+      fieldErrors[parent + name] = {
+        message: `circular reference to '${ref}' cannot be validated`,
+      };
+      return;
+    }
+
+    try {
+      return this.validateModel({ name, value, modelDefinition: this.models[ref], fieldErrors, isBodyParam, parent });
+    } finally {
+      this.refRecursionGuard.leave(value, ref);
     }
   }
 
@@ -468,10 +472,10 @@ export class ValidationService {
     const previousErrors = Object.keys(fieldErrors).length;
     if (Array.isArray(value)) {
       arrayValue = value.map((elementValue, index) => {
-        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, name + '.');
+        return this.ValidateParam(schema, elementValue, `$${index}`, fieldErrors, isBodyParam, parent + name + '.');
       });
     } else {
-      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, name + '.')];
+      arrayValue = [this.ValidateParam(schema, value, '$0', fieldErrors, isBodyParam, parent + name + '.')];
     }
 
     if (Object.keys(fieldErrors).length > previousErrors) {
@@ -539,7 +543,7 @@ export class ValidationService {
 
       // Clean value if it's not undefined or use undefined directly if it's undefined.
       // Value can be undefined if undefined is allowed datatype of the union
-      const validateableValue = value !== undefined ? this.deepClone(value) : value;
+      const validateableValue = value !== undefined ? this.cloneForBranch(value) : value;
       const cleanValue = this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, validateableValue, name, subFieldError, isBodyParam, parent);
       subFieldErrors.push(subFieldError);
 
@@ -590,7 +594,7 @@ export class ValidationService {
       const subFieldError: FieldErrors = {};
       const cleanValue = this.createChildValidationService({
         noImplicitAdditionalProperties: 'silently-remove-extras',
-      }).ValidateParam(subSchema, this.deepClone(value), name, subFieldError, isBodyParam, parent);
+      }).ValidateParam(subSchema, this.cloneForBranch(value), name, subFieldError, isBodyParam, parent);
       cleanValues = {
         ...cleanValues,
         ...cleanValue,
@@ -613,7 +617,7 @@ export class ValidationService {
         noImplicitAdditionalProperties: 'ignore',
       }).validateModel({
         name,
-        value: this.deepClone(value),
+        value: this.cloneForBranch(value),
         modelDefinition: schema,
         fieldErrors: requiredPropError,
         isBodyParam,
@@ -837,10 +841,20 @@ export class ValidationService {
    * @returns New ValidationService instance
    */
   private createChildValidationService(overrides: Partial<AdditionalProps> = {}): ValidationService {
-    return new ValidationService(this.models, {
-      ...this.config,
-      ...overrides,
-    });
+    return new ValidationService(
+      this.models,
+      {
+        ...this.config,
+        ...overrides,
+      },
+      this.refRecursionGuard,
+    );
+  }
+
+  private cloneForBranch<T>(value: T): T {
+    const clone = this.deepClone(value);
+    this.refRecursionGuard.registerBranchClone(clone, value);
+    return clone;
   }
 
   /**
