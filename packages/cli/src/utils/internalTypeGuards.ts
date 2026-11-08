@@ -62,6 +62,13 @@ export function isRefType(metaType: Tsoa.Type): metaType is Tsoa.ReferenceType {
   }
 }
 
+/**
+ * An enum whose only member is `null`, which is how a `null` union member is represented.
+ */
+export function isNullType(metaType: Tsoa.Type): boolean {
+  return metaType.dataType === 'enum' && metaType.enums.length === 1 && metaType.enums[0] === null;
+}
+
 export function isBinaryBodyParameter(parameter: Tsoa.Parameter): boolean {
   return parameter.in === 'body' && parameter.type.dataType === 'binary';
 }

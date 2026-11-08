@@ -577,6 +577,40 @@ export class ValidationService {
       return null;
     }
 
+    if (property.discriminator && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const { propertyName, mapping } = property.discriminator;
+      const tag = Object.prototype.hasOwnProperty.call(value, propertyName) ? value[propertyName] : undefined;
+
+      if (tag === undefined) {
+        fieldErrors[parent + name + '.' + propertyName] = { message: `'${propertyName}' is required`, value: tag };
+        return;
+      }
+
+      const normalizedTag = this.validateEnum(
+        propertyName,
+        tag,
+        fieldErrors,
+        mapping.map(([mappedTag]) => mappedTag),
+        parent + name + '.',
+        isBodyParam,
+      );
+      const mapped = mapping.find(([mappedTag]) => mappedTag === normalizedTag);
+      if (mapped) {
+        const subSchema = property.subSchemas.find(candidate => candidate.ref === mapped[1]);
+        if (!subSchema) {
+          throw new Error(
+            'internal tsoa error: ' +
+              `the discriminator maps the tag '${String(tag)}' to the model '${mapped[1]}', however that model is not one of the sub schemas of the union. ` +
+              'Please file an issue with tsoa at https://github.com/lukeautry/tsoa/issues',
+          );
+        }
+        // Only the member the tag selects is validated, so its errors are reported as they are
+        return this.ValidateParam({ ...subSchema, validators: { ...property.validators, ...subSchema.validators } }, this.cloneForBranch(value), name, fieldErrors, isBodyParam, parent);
+      }
+
+      return;
+    }
+
     const subFieldErrors: FieldErrors[] = [];
 
     for (const subSchema of property.subSchemas) {
