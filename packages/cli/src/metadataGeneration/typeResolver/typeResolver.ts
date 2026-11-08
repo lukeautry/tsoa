@@ -3,6 +3,7 @@ import * as ts from 'typescript';
 import { GenerateMetadataError } from '../exceptions';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { numberFormat } from './annotations';
+import { legacyErrorName } from './declarations';
 import { isArrayType, isErrorType, isTrueLiteral, isTupleType, tupleElementFlags } from './internals';
 import { resolveAnonymousObject } from './members';
 import { resolveNamedReference } from './models';
@@ -55,6 +56,17 @@ export class TypeResolver {
       return site.declaration;
     }
     return [...site.path].reverse().find(step => inSource(step.declaration))?.declaration;
+  }
+
+  /** Rejects library objects without a JSON form, preserving the legacy Error model. */
+  public assertSupportedObject(type: ts.Type, site: Site): void {
+    if (isBuiltInClass(this.generator, type) && type.getSymbol()?.getName() !== legacyErrorName) {
+      const path = this.pathText(site);
+      throw new GenerateMetadataError(
+        `Unsupported type: ${this.checker.typeToString(type)}${path ? ` at '${path}'` : ''}. Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.`,
+        this.sourceNode(site),
+      );
+    }
   }
 
   /** The single classification dispatch. Order matters. */
@@ -147,13 +159,7 @@ export class TypeResolver {
       return { dataType: 'array', elementType: this.resolve(this.checker.getTypeArguments(type)[0], childSite(site, arrayElementNode(site.node), undefined, { segment: '[]' })) };
     }
     if (flags & ts.TypeFlags.Object) {
-      if (isBuiltInClass(this.generator, type)) {
-        const path = this.pathText(site);
-        throw new GenerateMetadataError(
-          `Unsupported type: ${this.checker.typeToString(type)}${path ? ` at '${path}'` : ''}. Built-in classes such as Set and Map have no JSON form and must be mapped to a supported type: an array, an object type or an interface.`,
-          this.sourceNode(site),
-        );
-      }
+      this.assertSupportedObject(type, site);
       return resolveAnonymousObject(this, type, site);
     }
     throw new GenerateMetadataError(`Unknown type: ${this.checker.typeToString(type)}`, site.node);

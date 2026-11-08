@@ -55,6 +55,7 @@ function namedModel(resolver: TypeResolver, type: ts.Type, site: Site): { refNam
       if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
         return enumModel(resolver, declaration, reference.refName);
       }
+      resolver.assertSupportedObject(type, site);
       return objectModel(resolver, declaration, type, reference.refName, inner);
     });
     return mergeModels(models);

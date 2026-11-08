@@ -5,6 +5,8 @@ import { throwUnless } from '../../utils/flowUtils';
 import type { MetadataGenerator } from '../metadataGenerator';
 import { boundSymbol } from './internals';
 
+export const legacyErrorName = 'Error';
+
 /** Declarations that can back a tsoa model. */
 export type ModelDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.EnumDeclaration | ts.EnumMember;
 
@@ -38,7 +40,7 @@ export function modelDeclarations(generator: MetadataGenerator, entity: ts.Entit
   if (models.length > 1) {
     const nonLib = models.filter(model => !generator.isDefaultLibrary(model.getSourceFile()));
     // ES2022 adds `cause` to Error in a second library declaration.
-    if (!(nonLib.length === 0 && typeName === 'Error')) {
+    if (!(nonLib.length === 0 && typeName === legacyErrorName)) {
       models = nonLib;
     }
     models = designatedModels(models, typeName);
