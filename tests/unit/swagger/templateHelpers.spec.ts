@@ -1706,6 +1706,301 @@ describe('ValidationService', () => {
       expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).to.deep.equal({ isAdmin: true });
     });
 
+    describe('intersection rechecks', () => {
+      const recheckModels: TsoaRoute.Models = {
+        ...models,
+        RecordAlias: { dataType: 'refAlias', type: { ref: 'StringRecord' } },
+        DeepRecord: { dataType: 'refObject', properties: {}, additionalProperties: { ref: 'RecordAlias' } },
+        Marker: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: false },
+        NamedRecord: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: { dataType: 'string' } },
+      };
+      const policies = ['silently-remove-extras', 'throw-on-extras', 'ignore'] as const;
+      const poisonedRecord = () => JSON.parse('{"x":"y","constructor":"c","prototype":"p","__proto__":{"isAdmin":true}}');
+      const cleanRecord = { x: 'y', constructor: 'c', prototype: 'p' };
+      const cases: Array<{ label: string; schema: TsoaRoute.PropertySchema; input: () => unknown; expected: unknown }> = [
+        { label: 'nested record', schema: { ref: 'StringRecord' }, input: poisonedRecord, expected: cleanRecord },
+        { label: 'array', schema: { dataType: 'array', array: { ref: 'StringRecord' } }, input: () => [poisonedRecord()], expected: [cleanRecord] },
+        { label: 'coerced singleton array', schema: { dataType: 'array', array: { ref: 'StringRecord' } }, input: poisonedRecord, expected: [cleanRecord] },
+        { label: 'alias', schema: { ref: 'RecordAlias' }, input: poisonedRecord, expected: cleanRecord },
+        {
+          label: 'nested literal',
+          schema: { dataType: 'nestedObjectLiteral', nestedProperties: { dict: { ref: 'RecordAlias', required: true } }, additionalProperties: false },
+          input: () => ({ dict: poisonedRecord() }),
+          expected: { dict: cleanRecord },
+        },
+        { label: 'typed additional-property chain', schema: { ref: 'DeepRecord' }, input: () => ({ dict: poisonedRecord() }), expected: { dict: cleanRecord } },
+        {
+          label: 'union fallback',
+          schema: { dataType: 'union', subSchemas: [{ ref: 'A' }, { ref: 'RecordAlias' }] },
+          input: poisonedRecord,
+          expected: cleanRecord,
+        },
+      ];
+
+      for (const { label, schema, input, expected } of cases) {
+        for (const policy of policies) {
+          it(`should preserve ${policy} behavior for a poisoned ${label}`, () => {
+            const v = new ValidationService(
+              {
+                ...recheckModels,
+                Member: { dataType: 'refObject', properties: { payload: { ...schema, required: true } }, additionalProperties: false },
+              },
+              { noImplicitAdditionalProperties: policy, bodyCoercion: true },
+            );
+            const value = { name: 'n', payload: input() };
+            const original = JSON.stringify(value);
+            const errors: FieldErrors = {};
+
+            const result = v.ValidateParam({ dataType: 'intersection', subSchemas: [{ ref: 'Member' }, { ref: 'Marker' }] }, value, 'body', errors, true);
+
+            expect(JSON.stringify(value)).to.equal(original);
+            if (policy === 'throw-on-extras') {
+              expect(result).to.be.undefined;
+              expect(errors.body.message).to.include('Could not match intersection');
+            } else {
+              expect(errors).to.deep.equal({});
+              expect(result).to.deep.equal({ name: 'n', payload: expected });
+              const record = Array.isArray(result.payload) ? result.payload[0] : (result.payload.dict ?? result.payload);
+              expectPlainObject(record);
+              expectPlainObject(result);
+            }
+          });
+        }
+      }
+
+      for (const permissive of [{ dataType: 'any' }, { dataType: 'union', subSchemas: [{ dataType: 'any' }, { ref: 'StringRecord' }] }] as TsoaRoute.PropertySchema[]) {
+        for (const anyFirst of [true, false]) {
+          for (const policy of policies) {
+            it(`should not bypass typed record validation with ${permissive.dataType}, anyFirst=${anyFirst}, policy=${policy}`, () => {
+              const errors: FieldErrors = {};
+              const value = JSON.parse('{"name":"n","__proto__":{"isAdmin":true}}');
+              const subSchemas = anyFirst ? [permissive, { ref: 'NamedRecord' }] : [{ ref: 'NamedRecord' }, permissive];
+              const v = new ValidationService(recheckModels, { noImplicitAdditionalProperties: policy, bodyCoercion: true });
+
+              const result = v.ValidateParam({ dataType: 'intersection', subSchemas }, value, 'body', errors, true);
+
+              expect(Object.getOwnPropertyDescriptor(value, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+              if (policy === 'ignore') {
+                expect(errors).to.deep.equal({});
+                expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+                expect(Object.getPrototypeOf(result)).to.equal(Object.prototype);
+              } else {
+                expect(result).to.be.undefined;
+                expect(errors.body.message).to.include('Could not match intersection');
+              }
+            });
+          }
+        }
+      }
+
+      for (const inArray of [false, true]) {
+        for (const anyFirst of [false, true]) {
+          it(`should respect the cleaned owner of a nested key, inArray=${inArray}, anyFirst=${anyFirst}`, () => {
+            const errors: FieldErrors = {};
+            const value = { payload: inArray ? [poisonedRecord()] : poisonedRecord() };
+            const original = JSON.stringify(value);
+            const v = new ValidationService(
+              {
+                ...recheckModels,
+                Member: {
+                  dataType: 'refObject',
+                  properties: { payload: inArray ? { dataType: 'array', array: { ref: 'StringRecord' }, required: true } : { ref: 'StringRecord', required: true } },
+                  additionalProperties: false,
+                },
+              },
+              { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true },
+            );
+            const subSchemas: TsoaRoute.PropertySchema[] = anyFirst ? [{ dataType: 'any' }, { ref: 'Member' }] : [{ ref: 'Member' }, { dataType: 'any' }];
+
+            const result = v.ValidateParam({ dataType: 'intersection', subSchemas }, value, 'body', errors, true);
+
+            expect(JSON.stringify(value)).to.equal(original);
+            if (anyFirst) {
+              expect(errors).to.deep.equal({});
+              expect(result).to.deep.equal({ payload: inArray ? [cleanRecord] : cleanRecord });
+              expectPlainObject(inArray ? result.payload[0] : result.payload);
+            } else {
+              expect(result).to.be.undefined;
+              expect(errors.body.message).to.include('Could not match intersection');
+            }
+          });
+        }
+      }
+
+      it('should retain opaque any and declared __proto__ values beside sanitized records', () => {
+        const errors: FieldErrors = {};
+        const value = { name: 'n', payload: poisonedRecord(), opaque: poisonedRecord(), declared: JSON.parse('{"__proto__":{"isAdmin":true}}') };
+        const original = JSON.stringify(value);
+        const v = new ValidationService(
+          {
+            ...recheckModels,
+            Member: {
+              dataType: 'refObject',
+              properties: {
+                payload: { ref: 'StringRecord', required: true },
+                opaque: { dataType: 'any', required: true },
+                declared: { dataType: 'nestedObjectLiteral', nestedProperties: { ['__proto__']: { dataType: 'any', required: true } }, additionalProperties: false },
+              },
+              additionalProperties: false,
+            },
+          },
+          { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true },
+        );
+
+        const result = v.ValidateParam({ dataType: 'intersection', subSchemas: [{ ref: 'Member' }, { ref: 'Marker' }] }, value, 'body', errors, true);
+
+        expect(errors).to.deep.equal({});
+        expectPlainObject(result.payload);
+        expect(Object.getOwnPropertyDescriptor(result.opaque, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+        expect(Object.getOwnPropertyDescriptor(result.declared, '__proto__')?.value).to.deep.equal({ isAdmin: true });
+        expect(Object.getPrototypeOf(result.opaque)).to.equal(Object.prototype);
+        expect(Object.getPrototypeOf(result.declared)).to.equal(Object.prototype);
+        expect(JSON.stringify(value)).to.equal(original);
+      });
+
+      it('should not confuse a literal 0 property with a coerced array index', () => {
+        const errors: FieldErrors = {};
+        const value = { name: 'n', payload: { '0': poisonedRecord(), dict: poisonedRecord() } };
+        const original = JSON.stringify(value);
+        const v = new ValidationService(
+          {
+            ...recheckModels,
+            Member: {
+              dataType: 'refObject',
+              properties: {
+                payload: {
+                  dataType: 'array',
+                  array: {
+                    dataType: 'nestedObjectLiteral',
+                    nestedProperties: { '0': { dataType: 'any', required: true }, dict: { ref: 'StringRecord', required: true } },
+                    additionalProperties: false,
+                  },
+                },
+              },
+              additionalProperties: false,
+            },
+          },
+          { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true },
+        );
+
+        const result = v.ValidateParam({ dataType: 'intersection', subSchemas: [{ ref: 'Member' }, { ref: 'Marker' }] }, value, 'body', errors, true);
+
+        expect(errors).to.deep.equal({});
+        expect(result.payload).to.have.length(1);
+        expect(result.payload[0]['0']).to.deep.equal(value.payload['0']);
+        expect(Object.getOwnPropertyDescriptor(result.payload[0]['0'], '__proto__')?.value).to.deep.equal({ isAdmin: true });
+        expect(result.payload[0].dict).to.deep.equal(cleanRecord);
+        expectPlainObject(result.payload[0].dict);
+        expect(JSON.stringify(value)).to.equal(original);
+      });
+
+      it('should recheck raw dates and scalar coercions rather than validated values', () => {
+        const errors: FieldErrors = {};
+        const value = { name: 'n', payload: poisonedRecord(), date: '2026-01-02', datetime: '2026-01-02T03:04:05Z', count: '2', enabled: 'true', numbers: '3' };
+        const original = JSON.stringify(value);
+        const v = new ValidationService(
+          {
+            ...recheckModels,
+            Member: {
+              dataType: 'refObject',
+              properties: {
+                payload: { ref: 'StringRecord', required: true },
+                date: { dataType: 'date', required: true },
+                datetime: { dataType: 'datetime', required: true },
+                count: { dataType: 'integer', required: true },
+                enabled: { dataType: 'boolean', required: true },
+                numbers: { dataType: 'array', array: { dataType: 'integer' }, required: true },
+              },
+              additionalProperties: false,
+            },
+          },
+          { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true },
+        );
+
+        const result = v.ValidateParam({ dataType: 'intersection', subSchemas: [{ ref: 'Member' }, { ref: 'Marker' }] }, value, 'body', errors, true);
+
+        expect(errors).to.deep.equal({});
+        expect(result).to.deep.equal({ name: 'n', payload: cleanRecord, date: new Date('2026-01-02'), datetime: new Date('2026-01-02T03:04:05Z'), count: 2, enabled: true, numbers: [3] });
+        expect(JSON.stringify(value)).to.equal(original);
+      });
+
+      for (const policy of policies) {
+        it(`should retain recursive intersection validation with ${policy}`, () => {
+          const recursiveModels: TsoaRoute.Models = {
+            ...recheckModels,
+            Node: { dataType: 'refAlias', type: { dataType: 'intersection', subSchemas: [{ ref: 'Branch' }, { ref: 'Marker' }] } },
+            Branch: {
+              dataType: 'refObject',
+              properties: { payload: { ref: 'StringRecord', required: true }, children: { dataType: 'array', array: { ref: 'Node' } } },
+              additionalProperties: false,
+            },
+          };
+          const v = new ValidationService(recursiveModels, { noImplicitAdditionalProperties: policy, bodyCoercion: true, maxValidationErrorSize: 100000 });
+          const value = { name: 'a', payload: poisonedRecord(), children: [{ name: 'b', payload: poisonedRecord(), children: [{ name: 'c', payload: poisonedRecord() }] }] };
+          const original = JSON.stringify(value);
+          const errors: FieldErrors = {};
+
+          const result = v.ValidateParam({ ref: 'Node' }, value, 'body', errors, true);
+
+          expect(JSON.stringify(value)).to.equal(original);
+          if (policy === 'throw-on-extras') {
+            expect(result).to.be.undefined;
+            expect(errors.body.message).to.include('Could not match intersection');
+          } else {
+            expect(errors).to.deep.equal({});
+            expect(result).to.deep.equal({ name: 'a', payload: cleanRecord, children: [{ name: 'b', payload: cleanRecord, children: [{ name: 'c', payload: cleanRecord }] }] });
+          }
+
+          const invalidErrors: FieldErrors = {};
+          const invalid = v.ValidateParam(
+            { ref: 'Node' },
+            { name: 'a', payload: poisonedRecord(), children: [{ name: 'b', payload: poisonedRecord(), children: [{ payload: poisonedRecord() }] }] },
+            'body',
+            invalidErrors,
+            true,
+          );
+          expect(invalid).to.be.undefined;
+          expect(JSON.stringify(invalidErrors)).to.include('body.children.$0.children.$0.name');
+          expect(JSON.stringify(invalidErrors)).to.include("'name' is required");
+        });
+
+        it(`should retain branch source identity for a schema loop with ${policy}`, () => {
+          const errors: FieldErrors = {};
+          const v = new ValidationService(
+            {
+              Loop: { dataType: 'refAlias', type: { dataType: 'intersection', subSchemas: [{ ref: 'Loop' }, { dataType: 'nestedObjectLiteral', nestedProperties: {} }] } },
+            },
+            { noImplicitAdditionalProperties: policy, bodyCoercion: true, maxValidationErrorSize: 100000 },
+          );
+
+          const result = v.ValidateParam({ ref: 'Loop' }, { name: 'n' }, 'body', errors, true);
+
+          expect(result).to.be.undefined;
+          expect(errors.body.message).to.include("circular reference to 'Loop' cannot be validated");
+        });
+      }
+
+      it('should still reject invalid values beside a removed key', () => {
+        const errors: FieldErrors = {};
+        const v = new ValidationService(
+          { ...recheckModels, Member: { dataType: 'refObject', properties: { payload: { ref: 'StringRecord', required: true } }, additionalProperties: false } },
+          { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true, maxValidationErrorSize: 100000 },
+        );
+
+        const result = v.ValidateParam(
+          { dataType: 'intersection', subSchemas: [{ ref: 'Member' }, { ref: 'Marker' }] },
+          { name: 'n', payload: { ...poisonedRecord(), invalid: 42 } },
+          'body',
+          errors,
+          true,
+        );
+
+        expect(result).to.be.undefined;
+        expect(errors.body.message).to.include('body.payload.invalid');
+        expect(errors.body.message).to.include('No matching model found in additionalProperties');
+      });
+    });
+
     describe('in an intersection of record models', () => {
       const recordModels: TsoaRoute.Models = {
         Named: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: { dataType: 'any' } },

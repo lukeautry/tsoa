@@ -655,13 +655,8 @@ export class ValidationService {
     const getRequiredPropError = (schema: TsoaRoute.ModelSchema) => {
       const requiredPropError = {};
       const valueToCheck = this.cloneForBranch(value);
-      if (
-        this.config.noImplicitAdditionalProperties === 'silently-remove-extras' &&
-        typeof valueToCheck === 'object' &&
-        valueToCheck !== null &&
-        !Object.prototype.hasOwnProperty.call(cleanValues, '__proto__')
-      ) {
-        delete valueToCheck.__proto__;
+      if (this.config.noImplicitAdditionalProperties === 'silently-remove-extras') {
+        this.removeDiscardedProtoKeys(valueToCheck, cleanValues);
       }
       this.createChildValidationService({
         noImplicitAdditionalProperties: 'ignore',
@@ -701,6 +696,32 @@ export class ValidationService {
         value,
       };
       return;
+    }
+  }
+
+  /**
+   * Removes only own __proto__ keys absent from the cleaned projection. Rechecks still need raw values for coercion,
+   * and keys retained by any or declared properties must still be validated.
+   */
+  private removeDiscardedProtoKeys(value: unknown, cleanValue: unknown): void {
+    if (typeof value !== 'object' || value === null || typeof cleanValue !== 'object' || cleanValue === null) {
+      return;
+    }
+
+    // Array validation wraps a non-array value, so its properties correspond to the first element, not the array.
+    if (Array.isArray(cleanValue) && !Array.isArray(value)) {
+      this.removeDiscardedProtoKeys(value, cleanValue[0]);
+      return;
+    }
+
+    const rawObject = value as Record<string, unknown>;
+    const cleanObject = cleanValue as Record<string, unknown>;
+    for (const key of Object.keys(rawObject)) {
+      if (Object.prototype.hasOwnProperty.call(cleanObject, key)) {
+        this.removeDiscardedProtoKeys(rawObject[key], cleanObject[key]);
+      } else if (key === '__proto__') {
+        delete rawObject[key];
+      }
     }
   }
 
