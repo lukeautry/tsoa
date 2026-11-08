@@ -1751,6 +1751,29 @@ describe('ValidationService', () => {
         expectPlainObject(result);
       });
 
+      for (const inArray of [false, true]) {
+        it(`should remove it from a ${inArray ? 'record in an array' : 'nested record'} in an intersection`, () => {
+          const typedModels: TsoaRoute.Models = {
+            Record: { dataType: 'refObject', properties: {}, additionalProperties: { dataType: 'string' } },
+            Named: {
+              dataType: 'refObject',
+              properties: { dict: inArray ? { dataType: 'array', array: { ref: 'Record' }, required: true } : { ref: 'Record', required: true } },
+              additionalProperties: false,
+            },
+            Located: { dataType: 'refObject', properties: { name: { dataType: 'string', required: true } }, additionalProperties: false },
+          };
+          const v = new ValidationService(typedModels, { noImplicitAdditionalProperties: 'silently-remove-extras', bodyCoercion: true });
+          const errors: FieldErrors = {};
+          const record = '{"x":"y","__proto__":{"admin":true}}';
+          const value = JSON.parse(`{"name":"n","dict":${inArray ? `[${record}]` : record}}`);
+
+          const result = v.validateIntersection('body', value, errors, true, [{ ref: 'Named' }, { ref: 'Located' }]);
+
+          expect(errors).to.deep.equal({});
+          expect(result).to.deep.equal({ name: 'n', dict: inArray ? [{ x: 'y' }] : { x: 'y' } });
+        });
+      }
+
       it('should keep it as an own property with ignore', () => {
         const v = new ValidationService(recordModels, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
         const errors: FieldErrors = {};
