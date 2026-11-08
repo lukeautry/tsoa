@@ -1,4 +1,4 @@
-import { Body, Post, Query, Route } from '@tsoa/runtime';
+import { Body, Post, QueryParam, Route } from '@tsoa/runtime';
 
 interface PatternBody {
   /** @pattern `^[a-z ]+$` Only letters and spaces */
@@ -9,5 +9,5 @@ interface PatternBody {
 export class PatternController {
   /** @pattern value `^a b$` Expected a b */
   @Post()
-  public create(@Body() body: PatternBody, @Query() value: string): void {}
+  public create(@Body() body: PatternBody, @QueryParam() value: string): void {}
 }

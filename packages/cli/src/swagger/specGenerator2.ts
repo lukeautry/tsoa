@@ -328,7 +328,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
       return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
     }
-    throw new Error(`Queries '${source.name}' parameter must be an object.`);
+    throw new Error(`QueryParams '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {

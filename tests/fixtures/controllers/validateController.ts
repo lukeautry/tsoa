@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Post, Query, Route } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Post, QueryParam, Route } from '@tsoa/runtime';
 import { ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from './../testModel';
 
 export interface ValidateDateResponse {
@@ -35,7 +35,7 @@ export class ValidateController {
    * @maxDate maxDateValue 2016-01-01
    */
   @Get('parameter/date')
-  public dateValidate(@Query() minDateValue: Date, @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+  public dateValidate(@QueryParam() minDateValue: Date, @QueryParam() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -51,7 +51,7 @@ export class ValidateController {
    * @maxDate maxDateValue 2016-01-01T00:00:00
    */
   @Get('parameter/datetime')
-  public dateTimeValidate(@Query() minDateValue: Date, @Query() maxDateValue: Date): Promise<ValidateDateResponse> {
+  public dateTimeValidate(@QueryParam() minDateValue: Date, @QueryParam() maxDateValue: Date): Promise<ValidateDateResponse> {
     return Promise.resolve({
       maxDateValue,
       minDateValue,
@@ -66,7 +66,7 @@ export class ValidateController {
    * @maximum value_max 3
    */
   @Get('parameter/integer')
-  public longValidate(@Query() value: number, @Query() value_max: number): Promise<ValidateNumberResponse> {
+  public longValidate(@QueryParam() value: number, @QueryParam() value_max: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       minValue: value,
       maxValue: value_max,
@@ -81,7 +81,7 @@ export class ValidateController {
    * @maximum maxValue 3.5
    */
   @Get('parameter/float')
-  public doubleValidate(@Query() minValue: number, @Query() maxValue: number): Promise<ValidateNumberResponse> {
+  public doubleValidate(@QueryParam() minValue: number, @QueryParam() maxValue: number): Promise<ValidateNumberResponse> {
     return Promise.resolve({
       maxValue,
       minValue,
@@ -92,7 +92,7 @@ export class ValidateController {
    * @isBoolean boolValue
    */
   @Get('parameter/boolean')
-  public booleanValidate(@Query() boolValue: boolean): Promise<ValidateBooleanResponse> {
+  public booleanValidate(@QueryParam() boolValue: boolean): Promise<ValidateBooleanResponse> {
     return Promise.resolve({
       boolValue,
     });
@@ -108,7 +108,12 @@ export class ValidateController {
    * @example quotedPatternValue "A"
    */
   @Get('parameter/string')
-  public stringValidate(@Query() minLength: string, @Query() maxLength: string, @Query() patternValue: string, @Query() quotedPatternValue: string): Promise<ValidateStringResponse> {
+  public stringValidate(
+    @QueryParam() minLength: string,
+    @QueryParam() maxLength: string,
+    @QueryParam() patternValue: string,
+    @QueryParam() quotedPatternValue: string,
+  ): Promise<ValidateStringResponse> {
     return Promise.resolve({
       maxLength,
       minLength,
@@ -121,7 +126,7 @@ export class ValidateController {
    * @isLong longValue Required long number.
    */
   @Get('parameter/customRequiredErrorMsg')
-  public customRequiredErrorMsg(@Query() longValue: number): Promise<void> {
+  public customRequiredErrorMsg(@QueryParam() longValue: number): Promise<void> {
     return Promise.resolve();
   }
   /**
@@ -129,7 +134,7 @@ export class ValidateController {
    * @isLong longValue Invalid long number.
    */
   @Get('parameter/customInvalidErrorMsg')
-  public customInvalidErrorMsg(@Query() longValue: number): Promise<void> {
+  public customInvalidErrorMsg(@QueryParam() longValue: number): Promise<void> {
     return Promise.resolve();
   }
 

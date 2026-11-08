@@ -1,10 +1,10 @@
-import { Controller, Get, Route, Queries } from '@tsoa/runtime';
+import { Controller, Get, Route, QueryParams } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 
 @Route('Controller')
 export class InvalidNestedQueriesController extends Controller {
   @Get('nestedQueriesMethod')
-  public nestedQueriesMethod(@Queries() nestedQueries: QueriesObject) {
+  public nestedQueriesMethod(@QueryParams() nestedQueries: QueriesObject) {
     return new ModelService().getModel();
   }
 }

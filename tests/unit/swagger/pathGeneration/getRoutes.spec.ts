@@ -188,31 +188,31 @@ describe('GET route generation', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidGetController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Query('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
+    }).to.throw("@QueryParam('myModel') Can't support 'refObject' type. \n in 'InvalidGetTestController.getModelWithComplex'");
   });
 
-  it('should reject Query and Queries decorators at the same time', () => {
+  it('should reject QueryParam and QueryParams decorators at the same time', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueryController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("Choose either during @Query or @Queries in 'InvalidQueryTestController.getQueryAndQueries' method.");
+    }).to.throw("Choose either during @QueryParam or @QueryParams in 'InvalidQueryTestController.getQueryAndQueries' method.");
   });
 
-  it('should reject multiple Queries decorators', () => {
+  it('should reject multiple QueryParams decorators', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidQueriesController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
     }).to.throw("Only one queries parameter allowed in 'InvalidQueriesTestController.getWithMultipleQueriesParams' method.");
   });
 
-  it('should reject nested Query object inside Queries decorator', () => {
+  it('should reject nested QueryParam object inside QueryParams decorator', () => {
     expect(() => {
       const invalidMetadata = new MetadataGenerator('./fixtures/controllers/invalidNestedQueriesController.ts').Generate();
       new SpecGenerator2(invalidMetadata, getDefaultExtendedOptions()).GetSpec();
-    }).to.throw("@Queries('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
+    }).to.throw("@QueryParams('nestedQueries') nested property 'nestedObject' Can't support 'refObject' type. \n in 'InvalidNestedQueriesController.nestedQueriesMethod'");
   });
 
-  it('should support TypeScript type aliases for @Queries', () => {
+  it('should support TypeScript type aliases for @QueryParams', () => {
     const operation = getValidatedGetOperation(`${baseRoute}/AllQueriesInOneObjectWithTypeAlias`);
     expect(operation.parameters).to.have.length(4);
 

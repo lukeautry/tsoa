@@ -1,4 +1,4 @@
-import { Delete, Query, Route } from '@tsoa/runtime';
+import { Delete, QueryParam, Route } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { TestModel } from '../testModel';
 
@@ -19,9 +19,9 @@ export class DeleteTestController {
     numberPathParam: number,
     stringPathParam: string,
     booleanPathParam: boolean,
-    @Query() booleanParam: boolean,
-    @Query() stringParam: string,
-    @Query() numberParam: number,
+    @QueryParam() booleanParam: boolean,
+    @QueryParam() stringParam: string,
+    @QueryParam() numberParam: number,
   ): Promise<void> {
     return;
   }
