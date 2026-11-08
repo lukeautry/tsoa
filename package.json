@@ -13,7 +13,8 @@
     "generation",
     "express",
     "hapi.js",
-    "koa"
+    "koa",
+    "fastify"
   ],
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
