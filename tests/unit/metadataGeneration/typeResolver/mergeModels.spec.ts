@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { ReferenceTransformer } from '@tsoa/cli/metadataGeneration/transformer/referenceTransformer';
+import { mergeModels, mergeObjects } from '@tsoa/cli/metadataGeneration/typeResolver/models';
 import { GenerateMetadataError } from '@tsoa/cli/metadataGeneration/exceptions';
 import { Tsoa } from '@tsoa/runtime';
 
@@ -13,11 +13,11 @@ function createProperty(name: string, type: Tsoa.Type, required: boolean = true)
   };
 }
 
-describe('ReferenceTransformer - Empty Array Handling', () => {
+describe('mergeModels - Empty Array Handling', () => {
   describe('merge method', () => {
     it('should throw error when merging empty array', () => {
       expect(() => {
-        ReferenceTransformer.merge([]);
+        mergeModels([]);
       }).to.throw(GenerateMetadataError, 'Cannot merge empty reference types array');
     });
 
@@ -31,7 +31,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         deprecated: false,
       };
 
-      const result = ReferenceTransformer.merge([singleRef]);
+      const result = mergeModels([singleRef]);
 
       expect(result).to.deep.equal(singleRef);
     });
@@ -56,7 +56,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.merge(refEnums);
+      const result = mergeModels(refEnums);
 
       expect(result).to.deep.equal({
         dataType: 'refEnum',
@@ -89,7 +89,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.merge(refObjects);
+      const result = mergeModels(refObjects);
 
       expect(result).to.deep.equal({
         dataType: 'refObject',
@@ -123,7 +123,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
       ];
 
       expect(() => {
-        ReferenceTransformer.merge(mixedRefs);
+        mergeModels(mixedRefs);
       }).to.throw(GenerateMetadataError, 'These resolved type merge rules are not defined');
     });
 
@@ -147,7 +147,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.merge(refObjects);
+      const result = mergeModels(refObjects);
 
       expect(result).to.deep.equal({
         dataType: 'refObject',
@@ -185,7 +185,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.merge(refObjects);
+      const result = mergeModels(refObjects);
 
       expect(result).to.deep.equal({
         dataType: 'refObject',
@@ -229,7 +229,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.merge(refObjects);
+      const result = mergeModels(refObjects);
 
       expect(result).to.deep.equal({
         dataType: 'refObject',
@@ -277,7 +277,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.mergeManyRefObj(refObjects);
+      const result = mergeObjects(refObjects);
 
       expect(result.title).to.equal('FirstTitle');
       expect(result).to.include({
@@ -303,7 +303,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
       };
 
       // mergeManyRefObj requires at least 2 elements, so we'll test with 2 identical objects
-      const result = ReferenceTransformer.mergeManyRefObj([refObject, refObject]);
+      const result = mergeObjects([refObject, refObject]);
 
       expect(result).to.deep.equal({
         ...refObject,
@@ -340,7 +340,7 @@ describe('ReferenceTransformer - Empty Array Handling', () => {
         },
       ];
 
-      const result = ReferenceTransformer.mergeManyRefObj(refObjects);
+      const result = mergeObjects(refObjects);
 
       expect(result).to.deep.equal({
         dataType: 'refObject',

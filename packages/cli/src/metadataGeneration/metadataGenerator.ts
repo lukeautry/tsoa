@@ -1,11 +1,23 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import { createProgram, forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Program, type TypeChecker } from 'typescript';
+import {
+  createProgram,
+  forEachChild,
+  isClassDeclaration,
+  type ClassDeclaration,
+  type CompilerOptions,
+  type Node,
+  type Program,
+  type SourceFile,
+  type Type,
+  type TypeChecker,
+  type TypeNode,
+} from 'typescript';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
-import { TypeResolver } from './typeResolver';
+import { TypeResolver } from './typeResolver/typeResolver';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
@@ -14,7 +26,8 @@ export class MetadataGenerator {
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
-  private readonly compilerOptions: CompilerOptions;
+  public readonly compilerOptions: CompilerOptions;
+  private typeResolver?: TypeResolver;
 
   constructor(
     entryFile: string,
@@ -25,7 +38,6 @@ export class MetadataGenerator {
     public readonly defaultNumberType: NonNullable<Config['defaultNumberType']> = 'double',
     esm = false,
   ) {
-    TypeResolver.clearCache();
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
     this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
@@ -209,6 +221,23 @@ export class MetadataGenerator {
       console.warn(message);
     });
   };
+
+  /** Resolves a checker type that has no written form (e.g. an inferred return type) to tsoa metadata. */
+  public resolveType(type: Type, declaration?: Node): Tsoa.Type {
+    this.typeResolver ??= new TypeResolver(this);
+    return this.typeResolver.resolveType(type, declaration);
+  }
+
+  /** Resolves a type written in source to tsoa metadata. `declaration` supplies JSDoc and decorators. */
+  public resolveTypeNode(node: TypeNode, declaration?: Node): Tsoa.Type {
+    this.typeResolver ??= new TypeResolver(this);
+    return this.typeResolver.resolveTypeNode(node, declaration);
+  }
+
+  /** Whether a source file is one of TypeScript's own lib files (`lib.es2015.collection.d.ts`, …). */
+  public isDefaultLibrary(sourceFile: SourceFile): boolean {
+    return this.program.isSourceFileDefaultLibrary(sourceFile);
+  }
 
   public TypeChecker() {
     return this.typeChecker;
