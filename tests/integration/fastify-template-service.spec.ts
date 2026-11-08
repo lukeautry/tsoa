@@ -50,6 +50,7 @@ describe('FastifyTemplateService', () => {
     ['JSON string', 'plain string', 200, 'application/json'],
     ['vendor JSON string', 'plain string', 200, 'application/vnd.test+json'],
     ['object under text/plain', { a: 1 }, 200, 'text/plain'],
+    ['object under text/plain with a JSON-named parameter', { a: 1 }, 200, 'text/plain; format=json'],
     ['false under text/plain', false, 200, 'text/plain'],
     ['number under application/xml', 42, 200, 'application/xml'],
   ] as const) {
@@ -77,6 +78,31 @@ describe('FastifyTemplateService', () => {
         const actual = await app.inject('/');
         expect(actual.statusCode).to.equal(expected.status);
         expect(actual.body).to.equal(expected.body || '');
+      } finally {
+        await app.close();
+      }
+    });
+  }
+
+  for (const contentType of ['application/JSON', 'application/vnd.test+JSON; charset=utf-8']) {
+    it(`preserves native response transformations for ${contentType}`, async () => {
+      const app = Fastify();
+      const service = new FastifyTemplateService({}, config);
+      app.addHook('preSerialization', async (_request, _reply, payload) => ({ transformed: payload }));
+      app.get('/', async (request, reply) => {
+        await service.apiHandler({
+          methodName: 'response',
+          controller: new ResponseController({ value: 'original' }, 200, contentType),
+          request,
+          reply,
+          validatedArgs: [],
+        });
+        return reply;
+      });
+      try {
+        const response = await app.inject('/');
+        expect(response.statusCode).to.equal(200);
+        expect(response.json()).to.deep.equal({ transformed: { value: 'original' } });
       } finally {
         await app.close();
       }

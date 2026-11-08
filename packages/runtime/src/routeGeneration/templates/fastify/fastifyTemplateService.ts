@@ -203,8 +203,10 @@ export class FastifyTemplateService extends TemplateService<FastifyApiHandlerPar
     // Koa uses the status message for an absent body with an explicit non-empty status.
     const emptyResponse = reply.statusCode === 204 || reply.statusCode === 205 || reply.statusCode === 304;
     let body = emptyResponse ? undefined : (data ?? STATUS_CODES[reply.statusCode] ?? String(reply.statusCode));
-    const contentType = String(reply.getHeader('content-type') || '');
-    if (body !== undefined && contentType && !contentType.includes('json') && typeof body !== 'string' && !Buffer.isBuffer(body) && !(body instanceof Stream)) {
+    const mediaType = String(reply.getHeader('content-type') || '')
+      .split(';', 1)[0]
+      .toLowerCase();
+    if (body !== undefined && mediaType && !mediaType.includes('json') && typeof body !== 'string' && !Buffer.isBuffer(body) && !(body instanceof Stream)) {
       body = JSON.stringify(body);
     }
     reply.send(body);
