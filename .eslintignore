@@ -4,3 +4,6 @@ dist
 tests/fixtures/**/routes.ts
 tests/fixtures/**/customRoutes.ts
 tests/fixtures/**/custom-route-generator/routes/
+# Bundled-consumer fixture: esbuild entry point that is never part of the
+# package program, so Node globals and the deep @tsoa/cli import stay untyped.
+tests/fixtures/tsconfig-bundler/pkg/consumer/
