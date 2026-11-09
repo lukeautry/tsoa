@@ -32,7 +32,7 @@
   "dependencies": {
     "@tsoa/runtime": "^7.0.0-alpha.0",
     "fs-extra": "^11.2.0",
-    "glob": "^10.3.10",
+    "glob": "^14.0.2",
     "handlebars": "^4.7.8",
     "merge-anything": "^5.1.7",
     "minimatch": "^9.0.1",
