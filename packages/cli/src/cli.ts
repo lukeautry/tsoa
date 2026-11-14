@@ -6,7 +6,7 @@ import { Config, RoutesConfig, SpecConfig, Tsoa } from '@tsoa/runtime';
 import { MetadataGenerator } from './metadataGeneration/metadataGenerator';
 import { generateRoutes } from './module/generate-routes';
 import { generateSpec } from './module/generate-spec';
-import { fsExists, fsReadFile } from './utils/fs';
+import { fsExists, fsReadFile, fsWriteFile } from './utils/fs';
 import { AbstractRouteGenerator } from './routeGeneration/routeGenerator';
 import { extname, isAbsolute } from 'node:path';
 import * as ts from 'typescript';
@@ -297,9 +297,47 @@ export interface SwaggerArgs extends ConfigArgs {
   yaml?: boolean;
 }
 
+export interface InitArgs {
+  middleware?: string;
+}
+
+const middlewareArgs = {
+  describe: 'Middleware the routes are generated for',
+  choices: ['express', 'koa', 'hapi'],
+  default: 'express',
+} as const;
+
+export const initConfig = async (args: InitArgs = {}, cwd = workingDir): Promise<string> => {
+  const configPath = `${cwd}/tsoa.json`;
+  if (await fsExists(configPath)) {
+    throw new Error(`A tsoa.json already exists at '${configPath}'`);
+  }
+
+  const routes: Config['routes'] = { routesDir: 'build' };
+  if (args.middleware && args.middleware !== 'express') {
+    routes.middleware = args.middleware as Config['routes']['middleware'];
+  }
+  const config = {
+    noImplicitAdditionalProperties: 'throw-on-extras',
+    controllerPathGlobs: ['src/**/*Controller.ts'],
+    spec: { outputDirectory: 'build', specVersion: 3 },
+    routes,
+  };
+  await fsWriteFile(configPath, JSON.stringify(config, null, 2) + '\n');
+  return configPath;
+};
+
 export function runCLI() {
   return yargs(hideBin(process.argv))
     .usage('Usage: $0 <command> [options]')
+    .command(
+      'init',
+      'Create a tsoa.json with the default configuration',
+      {
+        middleware: middlewareArgs,
+      },
+      async args => console.info(`Created ${await initConfig(args)}`),
+    )
     .command(
       'spec',
       'Generate OpenAPI spec',
