@@ -1,4 +1,4 @@
-import { Route, Controller, Get, Query } from '@tsoa/runtime';
+import { Route, Controller, Get, QueryParam } from '@tsoa/runtime';
 
 /**
  * @isLong
@@ -12,7 +12,7 @@ export class TagController extends Controller {
    * @param {number} index
    */
   @Get()
-  public async get(@Query() index: NumType, @Query() index2: number): Promise<void> {
+  public async get(@QueryParam() index: NumType, @QueryParam() index2: number): Promise<void> {
     return;
   }
 }

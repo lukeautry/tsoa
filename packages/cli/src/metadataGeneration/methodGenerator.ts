@@ -131,7 +131,7 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one queries parameter allowed in '${this.getCurrentLocation()}' method.`);
     }
     if (queriesParameters.length > 0 && queryParameters.length > 0) {
-      throw new GenerateMetadataError(`Choose either during @Query or @Queries in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Choose either during @QueryParam or @QueryParams in '${this.getCurrentLocation()}' method.`);
     }
   }
 

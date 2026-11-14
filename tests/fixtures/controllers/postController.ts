@@ -1,4 +1,4 @@
-import { Body, Deprecated, File, FormField, Patch, Post, Query, Route, UploadedFile, UploadedFiles } from '@tsoa/runtime';
+import { Body, Deprecated, File, FormField, Patch, Post, QueryParam, Route, UploadedFile, UploadedFiles } from '@tsoa/runtime';
 import { ModelService } from '../services/modelService';
 import { GenericRequest, TestClassModel, TestModel } from '../testModel';
 
@@ -120,7 +120,7 @@ export class PostTestController {
   }
 
   @Post('WithBodyAndQueryParams')
-  public async postWithBodyAndQueryParams(@Body() model: TestModel, @Query() query: string): Promise<TestModel> {
+  public async postWithBodyAndQueryParams(@Body() model: TestModel, @QueryParam() query: string): Promise<TestModel> {
     return new ModelService().getModel();
   }
 

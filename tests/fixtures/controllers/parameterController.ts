@@ -1,4 +1,4 @@
-import { Body, BodyProp, Get, Header, Path, Post, Query, Request, Route, Res, TsoaResponse, Deprecated, Queries, RequestProp, FormField } from '@tsoa/runtime';
+import { Body, BodyProp, Get, Header, Path, Post, QueryParam, Request, Route, Res, TsoaResponse, Deprecated, QueryParams, RequestProp, FormField } from '@tsoa/runtime';
 import { EnumNumberValue, FormTestModel, Gender, ParameterTestModel } from '../testModel';
 
 @Route('ParameterTest')
@@ -25,7 +25,7 @@ export class ParameterController {
    * ]
    */
   @Post('Example/{firstname}')
-  public async example(@Path() firstname: string, @Query() lastname: string, @Body() gender: Gender, @Query() nicknames: string[]): Promise<void> {
+  public async example(@Path() firstname: string, @QueryParam() lastname: string, @Body() gender: Gender, @QueryParam() nicknames: string[]): Promise<void> {
     return;
   }
 
@@ -48,13 +48,13 @@ export class ParameterController {
    */
   @Get('Query')
   public async getQuery(
-    @Query() firstname: string,
-    @Query('last_name') lastname: string,
-    @Query() age: number,
-    @Query() weight: number,
-    @Query() human: boolean,
-    @Query() gender: Gender,
-    @Query() nicknames: string[],
+    @QueryParam() firstname: string,
+    @QueryParam('last_name') lastname: string,
+    @QueryParam() age: number,
+    @QueryParam() weight: number,
+    @QueryParam() human: boolean,
+    @QueryParam() gender: Gender,
+    @QueryParam() nicknames: string[],
   ): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age,
@@ -84,7 +84,7 @@ export class ParameterController {
    * }
    */
   @Get('Queries')
-  public async getQueries(@Queries() queryParams: ParameterTestModel): Promise<ParameterTestModel> {
+  public async getQueries(@QueryParams() queryParams: ParameterTestModel): Promise<ParameterTestModel> {
     return Promise.resolve<ParameterTestModel>({
       age: queryParams.age,
       firstname: queryParams.firstname,
@@ -328,12 +328,12 @@ export class ParameterController {
   }
 
   @Get('ParamaterQueryAnyType')
-  public async queryAnyType(@Query() name: any): Promise<void> {
+  public async queryAnyType(@QueryParam() name: any): Promise<void> {
     //
   }
 
   @Post('ParamaterQueryArray')
-  public async queyArray(@Query() name: string[]): Promise<void> {
+  public async queyArray(@QueryParam() name: string[]): Promise<void> {
     //
   }
 
@@ -348,32 +348,32 @@ export class ParameterController {
   }
 
   @Get('ParamaterImplicitString')
-  public async implicitString(@Query() name = 'Iron man'): Promise<void> {
+  public async implicitString(@QueryParam() name = 'Iron man'): Promise<void> {
     //
   }
 
   @Get('ParamaterImplicitNumber')
-  public async implicitNumber(@Query() age = 40): Promise<void> {
+  public async implicitNumber(@QueryParam() age = 40): Promise<void> {
     //
   }
 
   @Get('ParamaterImplicitEnum')
-  public async implicitEnum(@Query() gender = Gender.MALE): Promise<void> {
+  public async implicitEnum(@QueryParam() gender = Gender.MALE): Promise<void> {
     //
   }
 
   @Get('ParamaterImplicitStringArray')
-  public async implicitStringArray(@Query() arr = ['V1', 'V2']): Promise<void> {
+  public async implicitStringArray(@QueryParam() arr = ['V1', 'V2']): Promise<void> {
     //
   }
 
   @Get('paramaterImplicitNumberArray')
-  public async implicitNumberArray(@Query() arr = [1, 2, 3]): Promise<void> {
+  public async implicitNumberArray(@QueryParam() arr = [1, 2, 3]): Promise<void> {
     //
   }
 
   @Get('paramaterImplicitDateTime')
-  public async implicitDateTime(@Query() date = new Date('2017-01-01')): Promise<void> {
+  public async implicitDateTime(@QueryParam() date = new Date('2017-01-01')): Promise<void> {
     //
   }
 
@@ -381,7 +381,7 @@ export class ParameterController {
    * @isDate date
    */
   @Get('paramaterImplicitDate')
-  public async implicitDate(@Query() date = new Date(2018, 1, 15)): Promise<void> {
+  public async implicitDate(@QueryParam() date = new Date(2018, 1, 15)): Promise<void> {
     //
   }
 
@@ -395,9 +395,9 @@ export class ParameterController {
 
   @Post('ParameterDeprecated')
   public async postDeprecated(
-    @Query('supportedSetting') supportedSetting = true,
-    @Deprecated() @Query('deprecatedSetting') deprecatedSetting = false,
-    /** @deprecated */ @Query('anotherDeprecatedSetting') anotherDeprecatedSetting = false,
+    @QueryParam('supportedSetting') supportedSetting = true,
+    @Deprecated() @QueryParam('deprecatedSetting') deprecatedSetting = false,
+    /** @deprecated */ @QueryParam('anotherDeprecatedSetting') anotherDeprecatedSetting = false,
   ): Promise<void> {
     //
   }

@@ -1,4 +1,4 @@
-import { Route, Get, Path, Query, Header, Post, Body, BodyProp, Example, Res, TsoaResponse, Produces } from '@tsoa/runtime';
+import { Route, Get, Path, QueryParam, Header, Post, Body, BodyProp, Example, Res, TsoaResponse, Produces } from '@tsoa/runtime';
 import { exampleResponse } from './consts';
 
 /**
@@ -33,7 +33,7 @@ export class ExampleTestController {
    * @example query "an_example_query2"
    */
   @Get('/query')
-  public async query(@Query() query: string): Promise<void> {
+  public async query(@QueryParam() query: string): Promise<void> {
     return;
   }
 

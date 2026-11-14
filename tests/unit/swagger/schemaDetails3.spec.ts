@@ -336,7 +336,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
         expect(pathParams.examples).to.deep.equal({ 'Example 1': { value: 'an_example_path' }, 'Example 2': { value: 'an_example_path2' } });
       });
 
-      it('@Query parameter in Get method', () => {
+      it('@QueryParam parameter in Get method', () => {
         const queryParams = exampleSpec.paths['/ExampleTest/query'].get!.parameters![0];
         expect(queryParams.example).to.be.undefined;
         expect(queryParams.examples).to.deep.equal({ 'Example 1': { value: 'an_example_query' }, 'Example 2': { value: 'an_example_query2' } });

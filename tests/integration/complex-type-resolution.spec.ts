@@ -150,7 +150,7 @@ describe('Complex Type Resolution Integration Tests', () => {
   });
 
   describe('Simple query parameters', () => {
-    it('should generate correct OpenAPI spec for @Query with simple types', () => {
+    it('should generate correct OpenAPI spec for @QueryParam with simple types', () => {
       const path = spec.paths['/ComplexType/SimpleQuery'];
       expect(path).to.exist;
       expect(path.get).to.exist;
@@ -165,7 +165,7 @@ describe('Complex Type Resolution Integration Tests', () => {
       });
     });
 
-    it('should generate correct OpenAPI spec for @Query with union types', () => {
+    it('should generate correct OpenAPI spec for @QueryParam with union types', () => {
       const path = spec.paths['/ComplexType/UnionQuery'];
       expect(path).to.exist;
       expect(path.get).to.exist;
@@ -179,7 +179,7 @@ describe('Complex Type Resolution Integration Tests', () => {
       expect(parameter.name).to.equal('status');
     });
 
-    it('should generate correct OpenAPI spec for @Query with enum types', () => {
+    it('should generate correct OpenAPI spec for @QueryParam with enum types', () => {
       const path = spec.paths['/ComplexType/EnumQuery'];
       expect(path).to.exist;
       expect(path.get).to.exist;
@@ -211,7 +211,7 @@ describe('Complex Type Resolution Integration Tests', () => {
   });
 
   describe('Pagination queries', () => {
-    it('should generate correct OpenAPI spec for @Queries with pagination schema', () => {
+    it('should generate correct OpenAPI spec for @QueryParams with pagination schema', () => {
       const path = spec.paths['/ComplexType/PaginationQuery'];
       expect(path).to.exist;
       expect(path.get).to.exist;
