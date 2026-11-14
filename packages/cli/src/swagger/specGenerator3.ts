@@ -266,7 +266,8 @@ export class SpecGenerator3 extends SpecGenerator {
   }
 
   protected buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
-    const pathMethod: Swagger.Operation3 = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
+    const [operations, operationKey] = this.operationSlot(pathObject, method.method);
+    const pathMethod: Swagger.Operation3 = (operations[operationKey] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;

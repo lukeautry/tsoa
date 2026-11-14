@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import request from 'supertest';
 import TestAgent = require('supertest/lib/agent');
 import { Agent } from 'http';
@@ -75,4 +76,20 @@ export function verifyFileUploadRequest(
       }, request.post(path)),
     expectedStatus,
   );
+}
+
+export function describeQueryMethod(app: App, basePath: string) {
+  // supertest sends QUERY at runtime, but its types still describe agent.query as the query-string helper.
+  const query = (path: string, body: object) => (agent: TestAgent<request.Test>) => (agent as unknown as { query(url: string): request.Test }).query(path).send(body);
+
+  describe('QUERY method', () => {
+    it('passes the request body and query string to the controller', () =>
+      verifyRequest(app, (_err, res) => expect(res.body).to.deep.equal({ surname: 'Smith', limit: 5, page: 2 }), query(`${basePath}/QueryMethodTest?page=2`, { surname: 'Smith', limit: 5 })));
+
+    it('passes a path parameter to the controller', () =>
+      verifyRequest(app, (_err, res) => expect(res.body).to.deep.equal({ surname: 'Jones', limit: 10, tenant: 'acme' }), query(`${basePath}/QueryMethodTest/acme`, { surname: 'Jones' })));
+
+    it('validates the request body', () =>
+      verifyRequest(app, (err, _res) => expect(JSON.parse(err.text).fields['filter.surname'].message).to.equal("'surname' is required"), query(`${basePath}/QueryMethodTest`, { limit: 5 }), 400));
+  });
 }

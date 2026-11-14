@@ -17,6 +17,10 @@ export class ParameterGenerator {
   ) {}
 
   public Generate(): Tsoa.Parameter[] {
+    if (getDecorators(this.parameter, identifier => identifier.text === 'Query')?.length) {
+      const parameterName = (this.parameter.name as ts.Identifier).text;
+      throw new GenerateMetadataError(`@Query is the HTTP QUERY method decorator. Use @QueryParam('${parameterName}') for a query string parameter.`);
+    }
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
@@ -506,7 +510,7 @@ export class ParameterGenerator {
   }
 
   private supportBodyMethod(method: string) {
-    return ['post', 'put', 'patch', 'delete'].some(m => m === method.toLowerCase());
+    return ['post', 'put', 'patch', 'delete', 'query'].some(m => m === method.toLowerCase());
   }
 
   private supportParameterDecorator(decoratorName: string) {

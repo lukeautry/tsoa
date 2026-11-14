@@ -7,6 +7,7 @@ import '../controllers/getController';
 import '../controllers/patchController';
 import '../controllers/postController';
 import '../controllers/putController';
+import '../controllers/queryMethodController';
 
 import '../controllers/methodController';
 import '../controllers/mediaTypeController';
