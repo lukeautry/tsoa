@@ -2,8 +2,21 @@
   "name": "tsoa-tests",
   "private": true,
   "description": "Build swagger-compliant REST APIs using TypeScript and Node",
-  "version": "7.0.0-alpha.0",
-  "keywords": ["typescript", "openapi", "swagger", "server", "node", "node.js", "codegen", "generation", "express", "hapi.js", "koa", "fastify"],
+  "version": "7.0.0-rc.0",
+  "keywords": [
+    "typescript",
+    "openapi",
+    "swagger",
+    "server",
+    "node",
+    "node.js",
+    "codegen",
+    "generation",
+    "express",
+    "hapi.js",
+    "koa",
+    "fastify"
+  ],
   "scripts": {
     "clean": "rimraf --glob dist fixtures/*/routes.ts fixtures/*/customRoutes.ts fixtures/*/custom-route-generator/routes/*",
     "prepare-test": "cross-env NODE_ENV=tsoa_test ts-node --require=tsconfig-paths/register ./prepare.ts",
