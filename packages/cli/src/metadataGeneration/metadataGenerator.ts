@@ -46,7 +46,7 @@ export class MetadataGenerator {
         referenceTypeMap: this.referenceTypeMap,
       };
     } finally {
-      this.program.close?.();
+      this.program.close();
     }
   }
 

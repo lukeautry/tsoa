@@ -1,5 +1,6 @@
 /** The checker tsoa's metadata generation calls, answered by the helper. */
 import * as ts from 'typescript';
+import type { MetadataChecker } from '../metadataProgram';
 import { singleBitNames } from './flags';
 import { detachFromParent, isJSDocTag, markSynthesized, objectConstructors } from './internals';
 import type { NativeObjects, NativeSymbol, NativeType } from './objects';
@@ -9,34 +10,6 @@ import type { SourceIndex } from './sourceIndex';
 
 const linkMeaning = singleBitNames(ts.SymbolFlags, ts.SymbolFlags.Value | ts.SymbolFlags.Type | ts.SymbolFlags.Namespace | ts.SymbolFlags.Alias);
 const isJSDocNode = (node: ts.Node) => ts.isJSDoc(node) || isJSDocTag(node);
-
-/** The checker methods tsoa's metadata generation calls. */
-export type MetadataChecker = Pick<
-  ts.TypeChecker,
-  | 'getTypeAtLocation'
-  | 'getTypeFromTypeNode'
-  | 'getSymbolAtLocation'
-  | 'getSignatureFromDeclaration'
-  | 'getReturnTypeOfSignature'
-  | 'getConstantValue'
-  | 'getTypeOfSymbol'
-  | 'getPropertiesOfType'
-  | 'getPropertyOfType'
-  | 'getIndexInfosOfType'
-  | 'getIndexInfoOfType'
-  | 'getIndexTypeOfType'
-  | 'getSignaturesOfType'
-  | 'getNonNullableType'
-  | 'isTypeAssignableTo'
-  | 'getUndefinedType'
-  | 'getTypeArguments'
-  | 'getBaseTypeOfLiteralType'
-  | 'getAliasedSymbol'
-  | 'isArrayType'
-  | 'isTupleType'
-  | 'typeToString'
-  | 'typeToTypeNode'
-> & { getUnionType(types: readonly ts.Type[]): ts.Type };
 
 interface Members {
   properties: ts.Symbol[];

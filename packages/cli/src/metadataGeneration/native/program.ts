@@ -5,17 +5,14 @@
  * come from the helper's facts and whose `checker` is the native checker, so their own methods forward to it.
  */
 import type * as ts from 'typescript';
+import type { MetadataProgram } from '../metadataProgram';
 import { openChannel, type Channel } from './channel';
 import { createNativeChecker } from './checker';
 import { createNativeObjects } from './objects';
 import { openHelperSession } from './session';
 import { createSourceIndex } from './sourceIndex';
 
-export interface NativeProgram extends Pick<ts.Program, 'getTypeChecker' | 'getSourceFiles' | 'isSourceFileDefaultLibrary'> {
-  close(): void;
-}
-
-export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
+export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): MetadataProgram {
   const channel = openChannel(helperPath);
   try {
     return createProgramOverChannel(channel, rootFiles, compilerOptions);
@@ -25,7 +22,7 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
   }
 }
 
-export function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
+export function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): MetadataProgram {
   const session = openHelperSession(channel, rootFiles, compilerOptions);
   const index = createSourceIndex(session, rootFiles, compilerOptions);
   const objects = createNativeObjects(session, index);
