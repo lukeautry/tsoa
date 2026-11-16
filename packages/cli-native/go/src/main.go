@@ -38,20 +38,20 @@ type nodeRef struct {
 
 // args is every query's input; each op reads the fields its row in the protocol table names.
 type args struct {
-	Op               string            `json:"op"`
-	Queries          []json.RawMessage `json:"queries"`
-	Cwd              string            `json:"cwd"`
-	RootFiles        []string          `json:"rootFiles"`
-	CompilerOptions  map[string]any    `json:"compilerOptions"`
-	File             int               `json:"file"`
-	Node             *nodeRef          `json:"node"`
-	Type             int               `json:"type"`
-	Types            []int             `json:"types"`
-	Symbol           int               `json:"symbol"`
-	Name             string            `json:"name"`
-	Source           int               `json:"source"`
-	Meaning          []string          `json:"meaning"`
-	Target           int               `json:"target"`
+	Op              string            `json:"op"`
+	Queries         []json.RawMessage `json:"queries"`
+	Cwd             string            `json:"cwd"`
+	RootFiles       []string          `json:"rootFiles"`
+	CompilerOptions map[string]any    `json:"compilerOptions"`
+	File            int               `json:"file"`
+	Node            *nodeRef          `json:"node"`
+	Type            int               `json:"type"`
+	Types           []int             `json:"types"`
+	Symbol          int               `json:"symbol"`
+	Name            string            `json:"name"`
+	Source          int               `json:"source"`
+	Meaning         []string          `json:"meaning"`
+	Target          int               `json:"target"`
 }
 
 type response struct {
