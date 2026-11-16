@@ -79,3 +79,92 @@ jobs:
         if: matrix.express-version
         working-directory: tests
         run: yarn cross-env NODE_ENV=tsoa_test mocha "integration/*express*.spec.ts"
+
+  compiler-helper-go:
+    name: Suite on the Go compiler helper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      # tsc/go.mod at the tsgo pin asks for go 1.27; go/build.sh fails if this is older.
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+
+      - name: Install Yarn
+        run: npm install -g yarn@1.22.22
+
+      - name: Install
+        run: yarn install --ignore-scripts --no-lockfile
+
+      - name: Build the Go helper
+        run: packages/cli-native/go/build.sh
+
+      - name: Build
+        run: yarn run build
+
+      - name: Test on the Go helper
+        working-directory: tests
+        run: TSOA_COMPILER_HELPER=$PWD/../packages/cli-native/go/bin/helper yarn test
+
+  compiler-helper-rust:
+    name: Suite on the Rust compiler helper, and conformance with Go
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+
+      # The toolchain tsrs v0.25.0 pins in its rust-toolchain.toml.
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+
+      - name: Cache cargo and the tsrs build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/cli-native/rs/tsrs/target
+          key: tsrs-v0.25.0-${{ hashFiles('packages/cli-native/rs/build.sh', 'packages/cli-native/rs/tsoa_facts/**', 'packages/cli-native/rs/tsrs-patch/**') }}
+          restore-keys: tsrs-v0.25.0-
+
+      - name: Install Yarn
+        run: npm install -g yarn@1.22.22
+
+      - name: Install
+        run: yarn install --ignore-scripts --no-lockfile
+
+      - name: Build the Rust helper
+        run: packages/cli-native/rs/build.sh
+
+      - name: Build the Go helper
+        run: packages/cli-native/go/build.sh
+
+      - name: Build
+        run: yarn run build
+
+      - name: Test on the Rust helper
+        working-directory: tests
+        run: TSOA_COMPILER_HELPER=$PWD/../packages/cli-native/rs/bin/helper yarn test
+
+      - name: Conformance, Go against Rust
+        run: node packages/cli-native/conformance/conformance.cjs packages/cli-native/go/bin/helper packages/cli-native/rs/bin/helper
