@@ -94,7 +94,7 @@ const kindNames = ownNames(ts.SyntaxKind);
 const kindName = (kind: ts.SyntaxKind) => kindNames.get(kind) ?? String(kind);
 const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kind}`;
 
-/** The protocol revision (PROTOCOL.md) this program speaks; `open` must report the same. */
+/** The protocol revision (packages/cli-native/PROTOCOL.md) this program speaks; `open` must report the same. */
 const protocolRevision = 8;
 
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {

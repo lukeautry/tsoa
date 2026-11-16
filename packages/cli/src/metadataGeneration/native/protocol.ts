@@ -1,6 +1,6 @@
 /**
  * The wire shape of the tsoa facts protocol (revision 8), spoken between tsoa and a native compiler helper
- * (tsgo or tsrs). Each message is a 4-byte little-endian length followed by UTF-8 JSON.
+ * (tsgo or tsrs). The contract is packages/cli-native/PROTOCOL.md; this file mirrors its shapes.
  */
 
 export type TypeId = number & { readonly __brand: 'TypeId' };
