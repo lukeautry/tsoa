@@ -7,6 +7,7 @@
 import * as path from 'node:path';
 import * as ts from 'typescript';
 import { openChannel, type Channel } from './channel';
+import { flagValue, kindName, singleBitNames } from './flags';
 import { defineBoundSymbol, detachFromParent, isDeclaration, isJSDocTag, markSynthesized, objectConstructors, optionsDirectory, tsconfigCompilerOptions } from './internals';
 import type { Answer, FileId, FileInfo, NodeRef, Op, Query, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
 
@@ -44,46 +45,6 @@ export interface NativeProgram extends Pick<ts.Program, 'getTypeChecker' | 'getS
 
 type NodeOp = 'symbolAtLocation' | 'typeFromTypeNode' | 'symbolOfDeclaration';
 
-type FlagTable = Record<string, string | number>;
-
-/**
- * TypeScript enums declare several names for one value (`Alias = AliasExcludes`, `QualifiedName = FirstNode`).
- * The first declared name is the member's own name; the protocol uses only those.
- */
-function ownNames(table: FlagTable): Map<number, string> {
-  const names = new Map<number, string>();
-  for (const [name, value] of Object.entries(table)) {
-    if (typeof value === 'number' && !names.has(value)) names.set(value, name);
-  }
-  return names;
-}
-
-function singleBitNames(table: FlagTable, mask: number): string[] {
-  return [...ownNames(table)].filter(([value]) => value && (value & (value - 1)) === 0 && (mask & value) === value).map(([, name]) => name);
-}
-
-type FlagEnum = 'TypeFlags' | 'ObjectFlags' | 'SymbolFlags' | 'ElementFlags';
-
-const flagTables: Record<FlagEnum, FlagTable> = {
-  TypeFlags: ts.TypeFlags,
-  ObjectFlags: ts.ObjectFlags,
-  SymbolFlags: ts.SymbolFlags,
-  ElementFlags: ts.ElementFlags,
-};
-
-function flagValue(flagEnum: FlagEnum, names: string[]): number {
-  const table = flagTables[flagEnum];
-  let value = 0;
-  for (const name of names) {
-    const bit = table[name];
-    if (typeof bit === 'number') value |= bit;
-    else throw new Error(`unknown ${flagEnum} name ${name} from tsoa compiler helper`);
-  }
-  return value;
-}
-
-const kindNames = ownNames(ts.SyntaxKind);
-const kindName = (kind: ts.SyntaxKind) => kindNames.get(kind) ?? String(kind);
 const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kind}`;
 
 /** The protocol revision (packages/cli-native/PROTOCOL.md) this program speaks; `open` must report the same. */
