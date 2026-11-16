@@ -6,7 +6,7 @@ import (
 )
 
 // Flag tables map tsgo's single-bit enum members to TypeScript 6's member names. Node maps the names back to
-// TS 6 numbers, so a Go member with no TS 6 counterpart has no entry (see NOTES.md).
+// TS 6 numbers, so a Go member with no TS 6 counterpart has no entry.
 
 type flagName struct {
 	bit  uint64

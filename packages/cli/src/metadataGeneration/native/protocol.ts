@@ -105,9 +105,7 @@ export interface Operations {
   typeOfSymbol: { input: { symbol: SymbolId }; result: TypeId };
   exportOf: { input: { symbol: SymbolId; name: string }; result: SymbolId | null };
   members: { input: { type: TypeId }; result: Members };
-  properties: { input: { type: TypeId }; result: SymbolId[] };
   property: { input: { type: TypeId; name: string }; result: SymbolId | null };
-  indexInfos: { input: { type: TypeId }; result: IndexInfo[] };
   callSignatures: { input: { type: TypeId }; result: Array<{ returnType: TypeId }> };
   nonNullable: { input: { type: TypeId }; result: TypeId };
   union: { input: { types: TypeId[] }; result: TypeId };

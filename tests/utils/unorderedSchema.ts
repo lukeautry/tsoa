@@ -8,6 +8,7 @@ const byJson = (left: unknown, right: unknown): number => {
 
 /**
  * Returns a copy of `value` with object keys sorted and the items of union-ordered lists sorted, recursively.
+ * Keys are sorted because union-ordered items are compared by their JSON text, which depends on key order.
  * TypeScript 6 and 7 order union members differently, so tests compare these lists as multisets.
  * Every other array keeps its order.
  */

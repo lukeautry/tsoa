@@ -37,12 +37,7 @@ A batch answers with `ok: true` and `result: Response[]`, one per query in the s
     | `ExpressionWithTypeArguments` | `TypeReference` |
 
 - Flags cross as lists of enum member names, such as `["Object"]` or `["Union"]`, never as numbers. Node maps names to TypeScript 6 numbers. A helper sends only single-bit members that are set, never aliases or masks (`First*`, `Last*`, `Literal`, `Narrowable`).
-- Flag names without a TypeScript 6 member are a closed list. Node ignores the names below and fails on any other unknown name with `unknown <TypeFlags|ObjectFlags|SymbolFlags|ElementFlags> name <n> from tsoa compiler helper`. A helper that adds a bookkeeping name adds it here and to `helperOnlyFlagNames` in `native/program.ts`.
-
-  | enum | names TypeScript 6 lacks |
-  |---|---|
-  | `ObjectFlags` | `MembersResolved`, `FromTypeNode` |
-  | `SymbolFlags` | `ConstEnumOnlyModule`, `ReplaceableByMethod` |
+- A helper sends only names TypeScript 6 has. Members the native compiler adds for its own bookkeeping (tsgo and tsrs have `MembersResolved`, `FromTypeNode`, `ConstEnumOnlyModule`, `ReplaceableByMethod`) are left out of its flag tables. Node fails on any unknown name with `unknown <TypeFlags|ObjectFlags|SymbolFlags|ElementFlags> name <n> from tsoa compiler helper`.
 
 ## Inline facts
 
@@ -69,9 +64,7 @@ A helper records every id it hands out while the op runs, snapshots that list, t
 | `typeOfSymbol` | `{ symbol }` | `TypeId` |
 | `exportOf` | `{ symbol, name }` | `SymbolId \| null`, member `name` of the symbol's own `exports` table (not `export *`) |
 | `members` | `{ type }` | `{ properties: [SymbolId, TypeId][], indexInfos: IndexInfo[] }` |
-| `properties` | `{ type }` | `SymbolId[]` (`getPropertiesOfType`, checker order) |
 | `property` | `{ type, name }` | `SymbolId \| null` (`getPropertyOfType`) |
-| `indexInfos` | `{ type }` | `IndexInfo[]` |
 | `callSignatures` | `{ type }` | `{ returnType: TypeId }[]` (`getSignaturesOfType(type, Call)`) |
 | `nonNullable` | `{ type }` | `TypeId` |
 | `union` | `{ types: TypeId[] }` | `TypeId`, built as the checker's `getUnionType` builds it |
@@ -115,7 +108,7 @@ The answers are the values the single ops return for the same node. Node calls `
 
 ### `members`
 
-`properties` is `getPropertiesOfType(type)` in checker order, each paired with `getTypeOfSymbol(property)`. `indexInfos` is the `indexInfos` result. Node calls `members` once per type, the first time it needs properties, a property, index infos, or the type of one of the type's properties. It answers `property(type, name)` from the list by `escapedName`, and falls back to the `property` op when the name is not listed, because `getPropertyOfType` also synthesizes properties on unions and intersections that `getPropertiesOfType` does not list.
+`properties` is `getPropertiesOfType(type)` in checker order, each paired with `getTypeOfSymbol(property)`. `indexInfos` lists the type's index signatures as `IndexInfo`s. Node calls `members` once per type, the first time it needs properties, a property, index infos, or the type of one of the type's properties. It answers `property(type, name)` from the list by `escapedName`, and falls back to the `property` op when the name is not listed, because `getPropertyOfType` also synthesizes properties on unions and intersections that `getPropertiesOfType` does not list.
 
 ### Shapes
 

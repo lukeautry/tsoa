@@ -71,21 +71,13 @@ const flagTables: Record<FlagEnum, FlagTable> = {
   ElementFlags: ts.ElementFlags,
 };
 
-/** tsgo and tsrs bookkeeping bits TypeScript 6 has no member for; they carry nothing tsoa reads (protocol revision 8). */
-const helperOnlyFlagNames: Record<FlagEnum, ReadonlySet<string>> = {
-  TypeFlags: new Set(),
-  ObjectFlags: new Set(['MembersResolved', 'FromTypeNode']),
-  SymbolFlags: new Set(['ConstEnumOnlyModule', 'ReplaceableByMethod']),
-  ElementFlags: new Set(),
-};
-
 function flagValue(flagEnum: FlagEnum, names: string[]): number {
   const table = flagTables[flagEnum];
   let value = 0;
   for (const name of names) {
     const bit = table[name];
     if (typeof bit === 'number') value |= bit;
-    else if (!helperOnlyFlagNames[flagEnum].has(name)) throw new Error(`unknown ${flagEnum} name ${name} from tsoa compiler helper`);
+    else throw new Error(`unknown ${flagEnum} name ${name} from tsoa compiler helper`);
   }
   return value;
 }

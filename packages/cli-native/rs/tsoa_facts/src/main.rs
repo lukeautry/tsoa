@@ -772,19 +772,10 @@ impl Session {
                 let member = s.exports().and_then(|table| table.lookup(name));
                 self.opt_symbol(member)
             }
-            "properties" => {
-                let t = self.ty(q, "type")?;
-                let props = self.checker.get_properties_of_type_exported(t);
-                Value::Array(props.iter().map(|p| json!(self.symbols.id(*p))).collect())
-            }
             "property" => {
                 let t = self.ty(q, "type")?;
                 let p = self.checker.get_property_of_type_exported(t, field_str(q, "name")?);
                 self.opt_symbol(p)
-            }
-            "indexInfos" => {
-                let t = self.ty(q, "type")?;
-                self.index_infos(t)
             }
             "members" => {
                 let t = self.ty(q, "type")?;

@@ -309,30 +309,12 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 		}
 		return s.symbolId(sym.Exports()[a.Name]), nil
 	},
-	"properties": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
-		if err != nil {
-			return nil, err
-		}
-		ids := []int{}
-		for _, p := range s.checker.GetPropertiesOfType(t) {
-			ids = append(ids, s.symbolId(p).(int))
-		}
-		return ids, nil
-	},
 	"property": func(s *session, a *args) (any, error) {
 		t, err := s.type_(a.Type)
 		if err != nil {
 			return nil, err
 		}
 		return s.symbolId(s.checker.GetPropertyOfType(t, a.Name)), nil
-	},
-	"indexInfos": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
-		if err != nil {
-			return nil, err
-		}
-		return s.indexInfos(t), nil
 	},
 	"members": func(s *session, a *args) (any, error) {
 		t, err := s.type_(a.Type)
