@@ -94,6 +94,9 @@ const kindNames = ownNames(ts.SyntaxKind);
 const kindName = (kind: ts.SyntaxKind) => kindNames.get(kind) ?? String(kind);
 const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kind}`;
 
+/** The protocol revision (PROTOCOL.md) this program speaks; `open` must report the same. */
+const protocolRevision = 8;
+
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const channel = openChannel(helperPath);
   try {
@@ -129,6 +132,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
   const directory = optionsDirectory(compilerOptions) ?? process.cwd();
   const absoluteRoots = rootFiles.map(file => path.resolve(file));
   const opened = askHelper({ op: 'open', cwd: directory, rootFiles: absoluteRoots, compilerOptions: tsconfigCompilerOptions(compilerOptions, directory) });
+  if (opened.protocol !== protocolRevision) throw new Error(`tsoa compiler helper speaks protocol ${opened.protocol}, this tsoa needs ${protocolRevision}`);
 
   // Declaration files (lib.*.d.ts, @types, package typings) are parsed only when a fact points into them. tsoa walks
   // only the program's own files for controllers.

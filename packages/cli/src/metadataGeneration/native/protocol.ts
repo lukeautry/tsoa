@@ -1,5 +1,5 @@
 /**
- * The wire shape of the tsoa facts protocol (revision 6), spoken between tsoa and a native compiler helper
+ * The wire shape of the tsoa facts protocol (revision 8), spoken between tsoa and a native compiler helper
  * (tsgo or tsrs). Each message is a 4-byte little-endian length followed by UTF-8 JSON.
  */
 
@@ -77,6 +77,8 @@ export interface Members {
 }
 
 export interface OpenResult {
+  /** The protocol revision the helper speaks. */
+  protocol?: number;
   files: FileInfo[];
   undefinedType: TypeId;
 }
