@@ -303,7 +303,12 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
     members = {
       properties,
       byName: new Map(properties.map(property => [property.escapedName, property])),
-      indexInfos: answer.indexInfos.map(info => ({ keyType: typeOf(info.keyType), type: typeOf(info.type), isReadonly: info.isReadonly })),
+      indexInfos: answer.indexInfos.map(info => ({
+        keyType: typeOf(info.keyType),
+        type: typeOf(info.type),
+        isReadonly: info.isReadonly,
+        declaration: fromRef(info.declaration) as ts.IndexSignatureDeclaration | undefined,
+      })),
     };
     membersCache.set(type, members);
     return members;

@@ -58,6 +58,7 @@ export interface IndexInfo {
   keyType: TypeId;
   type: TypeId;
   isReadonly: boolean;
+  declaration?: NodeRef;
 }
 
 /** One `prefetchFile` answer for the node at `pos`, `end` and `kind`. */
