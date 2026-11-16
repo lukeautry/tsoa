@@ -8,6 +8,7 @@ import { FieldErrors, Swagger, Tsoa, TsoaRoute, ValidationService } from '@tsoa/
 import { expect } from 'chai';
 import 'mocha';
 import { getDefaultOptions } from '../../fixtures/defaultOptions';
+import { unorderedSchema } from '../../utils/unorderedSchema';
 
 describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
   const metadata = new MetadataGenerator('./fixtures/controllers/complexTypeController.ts').Generate();
@@ -537,7 +538,7 @@ describe('Complex Type Resolution for OpenAPI 3.0.0', () => {
         });
 
         it('should remap keys with `as`', () => {
-          expect(resolve(response('Getters'))).to.deep.include({ required: ['getId', 'getAge'] });
+          expect(unorderedSchema(resolve(response('Getters')))).to.deep.include(unorderedSchema({ required: ['getId', 'getAge'] }));
         });
 
         it('should include inherited properties of models that reference each other', () => {

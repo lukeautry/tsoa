@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import 'mocha';
 import { CompilerOptions, createProgram, flattenDiagnosticMessageText, getPreEmitDiagnostics, ModuleKind, ScriptTarget } from 'typescript';
 import { getDefaultExtendedOptions } from '../../fixtures/defaultOptions';
+import { unorderedSchema } from '../../utils/unorderedSchema';
 
 const fixtureRoot = './fixtures/controllers/';
 const syntheticRoot = `${fixtureRoot}syntheticChildren/`;
@@ -350,7 +351,7 @@ const rows: Row[] = [
       const { schemas, response, resolve } = generate();
       const members = required(resolve(response('/synthetic-children')).properties, 'members');
       expect(members.flag.anyOf).to.deep.equal([{ type: 'boolean' }, { $ref: ref('multer.Field') }]);
-      expect(members.color.anyOf).to.deep.equal([{ $ref: ref('multer.Field') }, { $ref: ref('Color') }]);
+      expect(unorderedSchema(members.color)).to.deep.equal(unorderedSchema({ anyOf: [{ $ref: ref('multer.Field') }, { $ref: ref('Color') }] }));
       expect(Object.keys(schemas['multer.Field'].properties ?? {})).to.deep.equal(['name', 'maxCount']);
       expect(schemas['multer.Field'].required).to.deep.equal(['name']);
     },
@@ -362,7 +363,9 @@ const rows: Row[] = [
     check: ({ generate }) => {
       const { schemas, response, resolve } = generate();
       const members = required(resolve(response('/synthetic-children')).properties?.value.anyOf, 'union members');
-      expect(members.map(member => member.$ref)).to.deep.equal([ref('First.Optional_First.Nested_'), ref('Second.Optional_Second.Nested_'), ref('multer.Field')]);
+      expect(unorderedSchema({ anyOf: members.map(member => member.$ref) })).to.deep.equal(
+        unorderedSchema({ anyOf: [ref('First.Optional_First.Nested_'), ref('Second.Optional_Second.Nested_'), ref('multer.Field')] }),
+      );
       expectOptionalLeaf(schemas['First.Optional_First.Nested_'], { a: 'string' });
       expectOptionalLeaf(schemas['Second.Optional_Second.Nested_'], { b: 'number' });
       expect(Object.keys(schemas['multer.Field'].properties ?? {})).to.deep.equal(['name', 'maxCount']);
@@ -402,7 +405,7 @@ const rows: Row[] = [
   }),
   preservationRow('a keyof union', ({ resolve, response }) => {
     const mapped = required(resolve(response(route('mapped'))).properties, 'mapped members');
-    expect(mapped.side).to.deep.equal({ type: 'string', enum: ['width', 'height'] });
+    expect(unorderedSchema(mapped.side)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'] }));
     const source = required(resolve(response(route('source'))).properties, 'source members');
     expect(source.key).to.deep.equal({ type: 'string', enum: ['width', 'height'], nullable: false });
     expect(source.mixed).to.deep.equal({ type: 'string', enum: ['width', 'height', 'other'] });
