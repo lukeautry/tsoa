@@ -163,6 +163,12 @@ type SymbolFacts = {
 
 TypeScript 6 resolves `{@link X}` with `getSymbolAtLocation` on a JSDoc identifier. Helpers do not visit JSDoc nodes, so Node uses `resolveName` with the nearest enclosing non-JSDoc node as the location.
 
+## Known differences between helpers
+
+`conformance/conformance.cjs` compares the two helpers' answers and allows exactly this difference, counting it.
+
+- **Tuple target element type parameters (tsrs).** TypeScript 6 (`createTupleTargetType`) and tsgo mint new element type parameters for each tuple target. tsrs shares one type parameter per element index across all tuple targets (tsrs `crates/tsrs_checker/src/checker_12.rs`, `create_tuple_target_type`; `notes/perf-shared-tuple-elements.md`). So two tuple targets of the same arity have the same `typeArguments` ids in tsrs and different ones in tsgo. The same holds for the types in a tuple target's `members` answer: element property types, Array methods such as `at` instantiated over the element parameters, and the index type. Property symbols are per target in both. tsoa does not observe this, because it reads element types from tuple references (`getTypeArguments` of the reference), whose arguments are the written element types, never from the target.
+
 ## Not in the protocol
 
 - Documentation. Node reads JSDoc from TypeScript 6 declaration nodes itself.
@@ -177,4 +183,4 @@ TypeScript 6 resolves `{@link X}` with `getSymbolAtLocation` on a JSDoc identifi
 5. `members`.
 6. `open` takes full `compilerOptions`; `tsconfig` and `strictNullChecks` dropped.
 7. `IndexInfo.declaration`; element flags on tuple targets only.
-8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member.
+8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member. Later, without a number change: helpers stop sending the names in that list.
