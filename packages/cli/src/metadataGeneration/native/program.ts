@@ -353,7 +353,13 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
     if (identifiers.length !== printed.identifiers.length) {
       throw new Error(`tsoa compiler helper: printed identifiers differ: ${identifiers.length} vs ${printed.identifiers.length} in ${printed.text}`);
     }
-    identifiers.forEach((identifier, i) => printedSymbols.set(identifier, symbolOf(printed.identifiers[i])));
+    identifiers.forEach((identifier, i) => {
+      const symbol = symbolOf(printed.identifiers[i]);
+      if (symbol && symbol.escapedName !== identifier.escapedText) {
+        throw new Error(`tsoa compiler helper: printed identifier ${identifier.text} is bound to ${String(symbol.escapedName)} in ${printed.text}`);
+      }
+      printedSymbols.set(identifier, symbol);
+    });
     const synthesize = (child: ts.Node) => {
       ts.forEachChild(child, synthesize);
       markSynthesized(child);
