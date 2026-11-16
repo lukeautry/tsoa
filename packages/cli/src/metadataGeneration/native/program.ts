@@ -62,9 +62,32 @@ function singleBitNames(table: FlagTable, mask: number): string[] {
   return [...ownNames(table)].filter(([value]) => value && (value & (value - 1)) === 0 && (mask & value) === value).map(([, name]) => name);
 }
 
-/** Names TypeScript 6 has no member for (tsgo and tsrs bookkeeping bits) carry nothing tsoa reads (protocol revision 3). */
-function flagValue(table: FlagTable, names: string[]): number {
-  return names.reduce((value, name) => (typeof table[name] === 'number' ? value | table[name] : value), 0);
+type FlagEnum = 'TypeFlags' | 'ObjectFlags' | 'SymbolFlags' | 'ElementFlags';
+
+const flagTables: Record<FlagEnum, FlagTable> = {
+  TypeFlags: ts.TypeFlags,
+  ObjectFlags: ts.ObjectFlags,
+  SymbolFlags: ts.SymbolFlags,
+  ElementFlags: ts.ElementFlags,
+};
+
+/** tsgo and tsrs bookkeeping bits TypeScript 6 has no member for; they carry nothing tsoa reads (protocol revision 8). */
+const helperOnlyFlagNames: Record<FlagEnum, ReadonlySet<string>> = {
+  TypeFlags: new Set(),
+  ObjectFlags: new Set(['MembersResolved', 'FromTypeNode']),
+  SymbolFlags: new Set(['ConstEnumOnlyModule', 'ReplaceableByMethod']),
+  ElementFlags: new Set(),
+};
+
+function flagValue(flagEnum: FlagEnum, names: string[]): number {
+  const table = flagTables[flagEnum];
+  let value = 0;
+  for (const name of names) {
+    const bit = table[name];
+    if (typeof bit === 'number') value |= bit;
+    else if (!helperOnlyFlagNames[flagEnum].has(name)) throw new Error(`unknown ${flagEnum} name ${name} from tsoa compiler helper`);
+  }
+  return value;
 }
 
 const kindNames = ownNames(ts.SyntaxKind);
@@ -237,8 +260,8 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
     }
   };
   defineFields<TypeFacts>(NativeType.prototype, {
-    flags: facts => flagValue(ts.TypeFlags, facts.flags),
-    objectFlags: facts => flagValue(ts.ObjectFlags, facts.objectFlags),
+    flags: facts => flagValue('TypeFlags', facts.flags),
+    objectFlags: facts => flagValue('ObjectFlags', facts.objectFlags),
     symbol: facts => symbolOf(facts.symbol),
     aliasSymbol: facts => symbolOf(facts.aliasSymbol),
     aliasTypeArguments: facts => facts.aliasTypeArguments?.map(typeOf),
@@ -247,11 +270,11 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
     target: facts => typeOf(facts.target),
     intrinsicName: facts => facts.intrinsicName,
     value: facts => (facts.value && typeof facts.value === 'object' ? { negative: facts.value.negative, base10Value: facts.value.base10Value } : facts.value),
-    elementFlags: facts => facts.elementFlags?.map(names => flagValue(ts.ElementFlags, names)),
+    elementFlags: facts => facts.elementFlags?.map(names => flagValue('ElementFlags', names)),
     resolvedTypeArguments: facts => facts.typeArguments?.map(typeOf),
   });
   defineFields<SymbolFacts>(NativeSymbol.prototype, {
-    flags: facts => flagValue(ts.SymbolFlags, facts.flags),
+    flags: facts => flagValue('SymbolFlags', facts.flags),
     escapedName: facts => facts.escapedName,
     declarations: facts => (facts.declarations.length ? facts.declarations.map(fromRef) : undefined),
     valueDeclaration: facts => fromRef(facts.valueDeclaration),
