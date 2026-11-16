@@ -8,8 +8,9 @@ import * as path from 'node:path';
 import * as ts from 'typescript';
 import { openChannel, type Channel } from './channel';
 import { flagValue, kindName, singleBitNames } from './flags';
-import { defineBoundSymbol, detachFromParent, isDeclaration, isJSDocTag, markSynthesized, objectConstructors, optionsDirectory, tsconfigCompilerOptions } from './internals';
-import type { Answer, FileId, FileInfo, NodeRef, Op, Query, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
+import { defineBoundSymbol, detachFromParent, isDeclaration, isJSDocTag, markSynthesized, objectConstructors } from './internals';
+import type { Answer, FileId, FileInfo, NodeRef, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
+import { openHelperSession, type NodeOp } from './session';
 
 /** The checker methods tsoa's metadata generation calls. */
 type CheckerSubset = Pick<
@@ -43,12 +44,7 @@ export interface NativeProgram extends Pick<ts.Program, 'getTypeChecker' | 'getS
   close(): void;
 }
 
-type NodeOp = 'symbolAtLocation' | 'typeFromTypeNode' | 'symbolOfDeclaration';
-
 const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kind}`;
-
-/** The protocol revision (packages/cli-native/PROTOCOL.md) this program speaks; `open` must report the same. */
-const protocolRevision = 8;
 
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const channel = openChannel(helperPath);
@@ -61,31 +57,9 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
 }
 
 function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
-  const inlineTypes = new Map<TypeId, TypeFacts>();
-  const inlineSymbols = new Map<SymbolId, SymbolFacts>();
-
-  const askHelper = <O extends Op>(query: Query<O>, failure = `tsoa compiler helper: ${query.op} failed`): Answer<O> => {
-    const response = channel.request(query as Query);
-    if (!response.ok) throw new Error(`${failure}: ${response.error}`);
-    for (const [id, facts] of Object.entries(response.facts?.types ?? {})) inlineTypes.set(Number(id) as TypeId, facts);
-    for (const [id, facts] of Object.entries(response.facts?.symbols ?? {})) inlineSymbols.set(Number(id) as SymbolId, facts);
-    return response.result as Answer<O>;
-  };
-  // Every op except open and close is a pure function of its input within one session. Interning keeps object
-  // identity; this keeps the helper from being asked twice.
-  const memo = new Map<string, unknown>();
-  const ask = <O extends Op>(query: Query<O>): Answer<O> => {
-    const key = JSON.stringify(query);
-    if (memo.has(key)) return memo.get(key) as Answer<O>;
-    const result = askHelper(query);
-    memo.set(key, result);
-    return result;
-  };
-
-  const directory = optionsDirectory(compilerOptions) ?? process.cwd();
+  const session = openHelperSession(channel, rootFiles, compilerOptions);
+  const { ask, askHelper, opened } = session;
   const absoluteRoots = rootFiles.map(file => path.resolve(file));
-  const opened = askHelper({ op: 'open', cwd: directory, rootFiles: absoluteRoots, compilerOptions: tsconfigCompilerOptions(compilerOptions, directory) });
-  if (opened.protocol !== protocolRevision) throw new Error(`tsoa compiler helper speaks protocol ${opened.protocol}, this tsoa needs ${protocolRevision}`);
 
   // Declaration files (lib.*.d.ts, @types, package typings) are parsed only when a fact points into them. tsoa walks
   // only the program's own files for controllers.
@@ -94,7 +68,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
   const defaultLibraries = new Set<ts.SourceFile>();
   const infos = new Map(opened.files.map(info => [info.id, info]));
   const parseFile = (info: FileInfo) => {
-    const text = ask({ op: 'fileText', file: info.id });
+    const text = askHelper({ op: 'fileText', file: info.id });
     // TypeScript 6 names a root file as it was given (relative stays relative), other files by their resolved path.
     const given = rootFiles[absoluteRoots.indexOf(info.fileName)];
     const fileName = info.fileName.startsWith('bundled:///') ? path.join('/__tsoa_bundled__', info.fileName.slice('bundled:///'.length)) : (given ?? info.fileName);
@@ -149,7 +123,6 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     typeFromTypeNode: new WeakMap(),
     symbolOfDeclaration: new WeakMap(),
   };
-  const typeOfSymbolIds = new Map<SymbolId, TypeId>();
   const prefetched = new Set<FileId>();
   const prefetch = (file: FileId) => {
     if (prefetched.has(file)) return;
@@ -168,7 +141,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     seed('symbolAtLocation', answers.symbolAt);
     seed('typeFromTypeNode', answers.typeFrom);
     seed('symbolOfDeclaration', answers.declared);
-    for (const [symbol, type] of answers.typeOfSymbol) typeOfSymbolIds.set(symbol, type);
+    session.learnTypesOfSymbols(answers.typeOfSymbol);
   };
   const refOf = (node: ts.Node): NodeRef => {
     const file = node.pos < 0 ? undefined : fileIds.get(node.getSourceFile());
@@ -180,7 +153,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     const answers = byNode[op];
     if (!answers.has(node)) {
       const ref = refOf(node);
-      if (!answers.has(node)) answers.set(node, ask({ op, node: ref }));
+      if (!answers.has(node)) answers.set(node, askHelper({ op, node: ref }));
     }
     return answers.get(node) as Answer<O>;
   };
@@ -192,7 +165,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
   class NativeType extends constructors.Type {
     declare nativeId: TypeId;
     get facts(): TypeFacts {
-      const value = inlineTypes.get(this.nativeId) ?? ask({ op: 'type', type: this.nativeId });
+      const value = session.typeFacts(this.nativeId);
       Object.defineProperty(this, 'facts', { value });
       return value;
     }
@@ -200,7 +173,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
   class NativeSymbol extends constructors.Symbol {
     declare nativeId: SymbolId;
     get facts(): SymbolFacts {
-      const value = inlineSymbols.get(this.nativeId) ?? ask({ op: 'symbol', symbol: this.nativeId });
+      const value = session.symbolFacts(this.nativeId);
       Object.defineProperty(this, 'facts', { value });
       return value;
     }
@@ -287,7 +260,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     let members = membersCache.get(type);
     if (members) return members;
     const answer = askHelper({ op: 'members', type: typeId(type) });
-    for (const [symbol, propertyType] of answer.properties) typeOfSymbolIds.set(symbol, propertyType);
+    session.learnTypesOfSymbols(answer.properties);
     const properties: ts.Symbol[] = answer.properties.map(([id]) => symbolOf(id)!);
     members = {
       properties,
@@ -357,7 +330,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     getSignatureFromDeclaration: declaration => signatureReturning(typeOf(ask({ op: 'returnTypeOfDeclaration', node: refOf(declaration) }))),
     getReturnTypeOfSignature: signature => returnTypes.get(signature)!,
     getConstantValue: node => ask({ op: 'constantValue', node: refOf(node) }) ?? undefined,
-    getTypeOfSymbol: symbol => typeOf(typeOfSymbolIds.get(symbolId(symbol)) ?? ask({ op: 'typeOfSymbol', symbol: symbolId(symbol) })),
+    getTypeOfSymbol: symbol => typeOf(session.typeOfSymbol(symbolId(symbol))),
     getPropertiesOfType: type => membersOf(type).properties,
     getPropertyOfType: (type, name) => membersOf(type).byName.get(name as ts.__String) ?? symbolOf(ask({ op: 'property', type: typeId(type), name })),
     getIndexInfosOfType: type => membersOf(type).indexInfos,
@@ -381,15 +354,6 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     getTypeChecker: () => checker as unknown as ts.TypeChecker,
     getSourceFiles: () => opened.files.filter(info => !info.isDeclarationFile).map(info => fileOf(info.id)),
     isSourceFileDefaultLibrary: sourceFile => defaultLibraries.has(sourceFile),
-    // A program that is never closed (a MetadataGenerator built but never `Generate()`d) keeps its helper until this
-    // process exits.
-    close: () => {
-      try {
-        askHelper({ op: 'close' });
-      } catch {
-        // A helper that already exited cannot answer; it is killed below either way.
-      }
-      channel.close();
-    },
+    close: session.close,
   };
 }
