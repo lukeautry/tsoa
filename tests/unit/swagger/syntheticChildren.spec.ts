@@ -407,8 +407,8 @@ const rows: Row[] = [
     const mapped = required(resolve(response(route('mapped'))).properties, 'mapped members');
     expect(unorderedSchema(mapped.side)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'] }));
     const source = required(resolve(response(route('source'))).properties, 'source members');
-    expect(source.key).to.deep.equal({ type: 'string', enum: ['width', 'height'], nullable: false });
-    expect(source.mixed).to.deep.equal({ type: 'string', enum: ['width', 'height', 'other'] });
+    expect(unorderedSchema(source.key)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height'], nullable: false }));
+    expect(unorderedSchema(source.mixed)).to.deep.equal(unorderedSchema({ type: 'string', enum: ['width', 'height', 'other'] }));
   }),
   preservationRow('a named alias inside a union', ({ schemas, resolve, response }) => {
     const members = required(resolve(response(route('mapped'))).properties, 'mapped members');

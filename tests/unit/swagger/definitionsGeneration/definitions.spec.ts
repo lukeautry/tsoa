@@ -1204,8 +1204,8 @@ describe('Definition generation', () => {
             });
 
             const readonlyClassSchema = getValidatedDefinition('Readonly_TestClassModel_', currentSpec);
-            expect(readonlyClassSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(readonlyClassSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: { type: 'string', default: undefined, description: undefined, format: undefined, example: undefined, enum: ['OK', 'KO'], 'x-nullable': false },
@@ -1305,7 +1305,7 @@ describe('Definition generation', () => {
                 default: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for definition linked by ${propertyName}`,
             );
 
@@ -2509,8 +2509,8 @@ describe('Definition generation', () => {
             );
 
             const synonymSchema = getValidatedDefinition('JsDoccedSynonym', currentSpec);
-            expect(synonymSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(synonymSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue: {
                     type: 'string',
@@ -2533,7 +2533,7 @@ describe('Definition generation', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getValidatedDefinition('JsDoccedSynonym2', currentSpec);

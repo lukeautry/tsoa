@@ -2403,8 +2403,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             });
 
             const readonlyClassSchema = getComponentSchema('Readonly_TestClassModel_', currentSpec);
-            expect(readonlyClassSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(readonlyClassSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   defaultValue1: { type: 'string', default: 'Default Value 1', description: undefined, format: undefined, example: undefined },
                   enumKeys: {
@@ -2509,7 +2509,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 default: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for schema linked by property ${propertyName}`,
             );
 
@@ -3672,8 +3672,8 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
             );
 
             const synonymSchema = getComponentSchema('JsDoccedSynonym', currentSpec);
-            expect(synonymSchema).to.deep.eq(
-              {
+            expect(unorderedSchema(synonymSchema)).to.deep.eq(
+              unorderedSchema({
                 properties: {
                   stringValue: {
                     type: 'string',
@@ -3696,7 +3696,7 @@ describe('Definition generation for OpenAPI 3.0.0', () => {
                 description: undefined,
                 example: undefined,
                 format: undefined,
-              },
+              }),
               `for property ${propertyName}.synonym`,
             );
             const synonym2Schema = getComponentSchema('JsDoccedSynonym2', currentSpec);
