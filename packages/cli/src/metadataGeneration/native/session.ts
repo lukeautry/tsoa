@@ -18,14 +18,14 @@ export type CachedOp = Exclude<Op, UncachedOp>;
 export interface HelperSession {
   readonly opened: OpenResult;
   /** Asks once per distinct query; the answer is a pure function of the query within one session. */
-  ask<O extends CachedOp>(query: Query<O>): Answer<O>;
-  askHelper<O extends Op>(query: Query<O>, failure?: string): Answer<O>;
-  typeFacts(type: TypeId): TypeFacts;
-  symbolFacts(symbol: SymbolId): SymbolFacts;
-  typeOfSymbol(symbol: SymbolId): TypeId;
+  ask: <O extends CachedOp>(query: Query<O>) => Answer<O>;
+  askHelper: <O extends Op>(query: Query<O>, failure?: string) => Answer<O>;
+  typeFacts: (type: TypeId) => TypeFacts;
+  symbolFacts: (symbol: SymbolId) => SymbolFacts;
+  typeOfSymbol: (symbol: SymbolId) => TypeId;
   /** Records `typeOfSymbol` answers that came with another answer (`prefetchFile`, `members`). */
-  learnTypesOfSymbols(pairs: ReadonlyArray<[SymbolId, TypeId]>): void;
-  close(): void;
+  learnTypesOfSymbols: (pairs: ReadonlyArray<[SymbolId, TypeId]>) => void;
+  close: () => void;
 }
 
 export function openHelperSession(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): HelperSession {

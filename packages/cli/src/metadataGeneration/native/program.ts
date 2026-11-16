@@ -4,13 +4,13 @@
  * `ts.createSourceFile`, and its nodes are the ones tsoa walks. Types and symbols are TypeScript 6 objects whose fields
  * come from the helper's facts and whose `checker` is the native checker, so their own methods forward here.
  */
-import * as path from 'node:path';
 import * as ts from 'typescript';
 import { openChannel, type Channel } from './channel';
-import { flagValue, kindName, singleBitNames } from './flags';
-import { defineBoundSymbol, detachFromParent, isDeclaration, isJSDocTag, markSynthesized, objectConstructors } from './internals';
-import type { Answer, FileId, FileInfo, NodeRef, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
-import { openHelperSession, type NodeOp } from './session';
+import { flagValue, singleBitNames } from './flags';
+import { detachFromParent, isJSDocTag, markSynthesized, objectConstructors } from './internals';
+import type { NodeRef, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
+import { openHelperSession } from './session';
+import { createSourceIndex } from './sourceIndex';
 
 /** The checker methods tsoa's metadata generation calls. */
 type CheckerSubset = Pick<
@@ -44,8 +44,6 @@ export interface NativeProgram extends Pick<ts.Program, 'getTypeChecker' | 'getS
   close(): void;
 }
 
-const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kind}`;
-
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const channel = openChannel(helperPath);
   try {
@@ -59,103 +57,13 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
 function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const session = openHelperSession(channel, rootFiles, compilerOptions);
   const { ask, askHelper, opened } = session;
-  const absoluteRoots = rootFiles.map(file => path.resolve(file));
-
-  // Declaration files (lib.*.d.ts, @types, package typings) are parsed only when a fact points into them. tsoa walks
-  // only the program's own files for controllers.
-  const sourceFiles = new Map<FileId, ts.SourceFile>();
-  const fileIds = new Map<ts.SourceFile, FileId>();
-  const defaultLibraries = new Set<ts.SourceFile>();
-  const infos = new Map(opened.files.map(info => [info.id, info]));
-  const parseFile = (info: FileInfo) => {
-    const text = askHelper({ op: 'fileText', file: info.id });
-    // TypeScript 6 names a root file as it was given (relative stays relative), other files by their resolved path.
-    const given = rootFiles[absoluteRoots.indexOf(info.fileName)];
-    const fileName = info.fileName.startsWith('bundled:///') ? path.join('/__tsoa_bundled__', info.fileName.slice('bundled:///'.length)) : (given ?? info.fileName);
-    const sourceFile = ts.createSourceFile(fileName, text, compilerOptions.target ?? ts.ScriptTarget.ES2021, true);
-    fileIds.set(sourceFile, info.id);
-    if (info.isDefaultLibrary) defaultLibraries.add(sourceFile);
-    sourceFiles.set(info.id, sourceFile);
-    return sourceFile;
-  };
-  const fileOf = (id: FileId) => {
-    const sourceFile = sourceFiles.get(id);
-    if (sourceFile) return sourceFile;
-    const info = infos.get(id);
-    if (!info) throw new Error(`tsoa compiler helper: unknown file ${id}`);
-    return parseFile(info);
-  };
-  for (const info of opened.files) {
-    if (!info.isDeclarationFile) parseFile(info);
-  }
-
-  // NodeRef <-> TypeScript 6 node. One walk per file indexes nodes by NodeRef key (the first in preorder wins) and
-  // gives declarations their binder symbol.
-  const nodeIndexes = new Map<ts.SourceFile, Map<string, ts.Node>>();
-  const indexFile = (sourceFile: ts.SourceFile) => {
-    let index = nodeIndexes.get(sourceFile);
-    if (index) return index;
-    const nodes = new Map<string, ts.Node>();
-    const visit = (node: ts.Node) => {
-      const key = nodeKey(node.pos, node.end, kindName(node.kind));
-      if (!nodes.has(key)) nodes.set(key, node);
-      if (isDeclaration(node)) defineBoundSymbol(node, () => symbolOf(nodeAnswer('symbolOfDeclaration', node)));
-      ts.forEachChild(node, visit);
-    };
-    visit(sourceFile);
-    index = nodes;
-    nodeIndexes.set(sourceFile, index);
-    return index;
-  };
-  const fromRef = (ref: NodeRef | undefined): ts.Node | undefined => {
-    if (!ref) return undefined;
-    const sourceFile = fileOf(ref.file);
-    if (ref.kind === 'SourceFile') return sourceFile;
-    const node = indexFile(sourceFile).get(nodeKey(ref.pos, ref.end, ref.kind));
-    if (!node) throw new Error(`tsoa compiler helper: no TypeScript 6 node at ${sourceFile.fileName}:${ref.pos}-${ref.end} ${ref.kind}`);
-    return node;
-  };
-
-  // Per-file answers for every identifier, type node and declaration, fetched the first time tsoa asks about a node in
-  // the file (protocol revision 4b).
-  const byNode: Record<NodeOp, WeakMap<ts.Node, number | null>> = {
-    symbolAtLocation: new WeakMap(),
-    typeFromTypeNode: new WeakMap(),
-    symbolOfDeclaration: new WeakMap(),
-  };
-  const prefetched = new Set<FileId>();
-  const prefetch = (file: FileId) => {
-    if (prefetched.has(file)) return;
-    prefetched.add(file);
-    const sourceFile = sourceFiles.get(file);
-    if (!sourceFile || sourceFile.isDeclarationFile) return;
-    const answers = askHelper({ op: 'prefetchFile', file }, `tsoa compiler helper failed on ${infos.get(file)!.fileName}`);
-    const index = indexFile(sourceFile);
-    const seed = (op: NodeOp, entries: Array<[number, number, string, number | null]>) => {
-      for (const [pos, end, kind, id] of entries) {
-        // Protocol revision 1: tsgo reports an interface's `extends X` as a TypeReference.
-        const node = index.get(nodeKey(pos, end, kind)) ?? (kind === 'TypeReference' ? index.get(nodeKey(pos, end, 'ExpressionWithTypeArguments')) : undefined);
-        if (node) byNode[op].set(node, id);
-      }
-    };
-    seed('symbolAtLocation', answers.symbolAt);
-    seed('typeFromTypeNode', answers.typeFrom);
-    seed('symbolOfDeclaration', answers.declared);
-    session.learnTypesOfSymbols(answers.typeOfSymbol);
-  };
+  const index = createSourceIndex(session, rootFiles, compilerOptions);
+  const { fromRef } = index;
+  /** A node query prefetches the node's file first, so later queries about its nodes need no request. */
   const refOf = (node: ts.Node): NodeRef => {
-    const file = node.pos < 0 ? undefined : fileIds.get(node.getSourceFile());
-    if (file === undefined) throw new Error(`tsoa compiler helper: node outside the program: ${kindName(node.kind)}`);
-    prefetch(file);
-    return { file, pos: node.pos, end: node.end, kind: kindName(node.kind) };
-  };
-  const nodeAnswer = <O extends NodeOp>(op: O, node: ts.Node): Answer<O> => {
-    const answers = byNode[op];
-    if (!answers.has(node)) {
-      const ref = refOf(node);
-      if (!answers.has(node)) answers.set(node, askHelper({ op, node: ref }));
-    }
-    return answers.get(node) as Answer<O>;
+    const ref = index.refOf(node);
+    index.ensurePrefetched(ref.file);
+    return ref;
   };
 
   // Native types and symbols: fields read the helper's facts on first use. The base constructors assign flags,
@@ -221,6 +129,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     links: facts => ({ syntheticOrigin: symbolOf(facts.syntheticOrigin) }),
   });
 
+  index.bindDeclarationSymbols(symbolOf);
   const types = new Map<TypeId, NativeType>();
   const symbols = new Map<SymbolId, NativeSymbol>();
   function typeOf(id: TypeId): NativeType;
@@ -321,11 +230,11 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
 
   const checker: CheckerSubset = {
     getTypeAtLocation: node => typeOf(ask({ op: 'typeAtLocation', node: refOf(node) })),
-    getTypeFromTypeNode: node => typeOf(nodeAnswer('typeFromTypeNode', node)),
+    getTypeFromTypeNode: node => typeOf(index.nodeAnswer('typeFromTypeNode', node)),
     getSymbolAtLocation: node => {
       if (node.pos < 0) return printedSymbols.get(node);
       const jsDoc = ts.findAncestor(node, isJSDocNode);
-      return jsDoc ? symbolInJSDoc(node, jsDoc) : symbolOf(nodeAnswer('symbolAtLocation', node));
+      return jsDoc ? symbolInJSDoc(node, jsDoc) : symbolOf(index.nodeAnswer('symbolAtLocation', node));
     },
     getSignatureFromDeclaration: declaration => signatureReturning(typeOf(ask({ op: 'returnTypeOfDeclaration', node: refOf(declaration) }))),
     getReturnTypeOfSignature: signature => returnTypes.get(signature)!,
@@ -352,8 +261,8 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
 
   return {
     getTypeChecker: () => checker as unknown as ts.TypeChecker,
-    getSourceFiles: () => opened.files.filter(info => !info.isDeclarationFile).map(info => fileOf(info.id)),
-    isSourceFileDefaultLibrary: sourceFile => defaultLibraries.has(sourceFile),
+    getSourceFiles: index.ownFiles,
+    isSourceFileDefaultLibrary: index.isDefaultLibrary,
     close: session.close,
   };
 }
