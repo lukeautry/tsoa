@@ -41,9 +41,9 @@ A batch answers with `ok: true` and `result: Response[]`, one per query in the s
 
 ## Inline facts
 
-Every top-level response may carry `facts`. It holds the `TypeFacts` or `SymbolFacts` of every type and symbol id that this request returned to Node and whose facts the helper has not sent before in the session. A helper may send a superset: every id the request minted or looked up. Ids that appear only inside the facts themselves (a `TypeFacts.aliasSymbol`, a `SymbolFacts.parent`) are not expanded. Each id's facts are sent at most once per session. The `type` and `symbol` ops keep returning the same facts.
+Every top-level response may carry `facts`. It holds the `TypeFacts` or `SymbolFacts` of every type and symbol id that this request returned to Node and whose facts the helper has not sent before in the session. Ids that appear only inside the facts themselves (a `TypeFacts.aliasSymbol`, a `SymbolFacts.parent`) are not expanded. Each id's facts are sent at most once per session. The `type` and `symbol` ops keep returning the same facts and do not add their own id to `facts`.
 
-A helper records every id it hands out while the op runs, snapshots that list, then computes facts for the ids in the snapshot not sent yet. Computing facts must not add to the snapshot.
+A helper records each id an op returns to Node. After the op, it computes facts for the recorded ids not sent yet; ids that only appear inside facts are not recorded. Facts are computed under the op's own panic handling: a panic while computing them fails that query with an error, as a panic in the op does.
 
 ## Operations
 

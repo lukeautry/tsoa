@@ -57,29 +57,76 @@ type args struct {
 }
 
 type response struct {
-	Ok     bool   `json:"ok"`
-	Result any    `json:"result"`
-	Error  string `json:"error,omitempty"`
-	Facts  any    `json:"facts,omitempty"`
+	Ok     bool         `json:"ok"`
+	Result any          `json:"result"`
+	Error  string       `json:"error,omitempty"`
+	Facts  *inlineFacts `json:"facts,omitempty"`
 }
 
 type session struct {
-	program   *compiler.Program
-	checker   *checker.Checker
-	files     []*ast.SourceFile
-	fileIds   map[*ast.SourceFile]int
-	types     []*checker.Type
-	typeIds   map[*checker.Type]int
-	symbols   []*ast.Symbol
-	symbolIds map[*ast.Symbol]int
-	closed    bool
+	program *compiler.Program
+	checker *checker.Checker
+	files   []*ast.SourceFile
+	fileIds map[*ast.SourceFile]int
+	types   *interner[*checker.Type]
+	symbols *interner[*ast.Symbol]
+	closed  bool
+}
 
-	// Revision 4a: ids handed out while a request runs, and the ids whose facts already went out.
-	recording      bool
-	touchedTypes   []int
-	touchedSymbols []int
-	sentTypes      map[int]bool
-	sentSymbols    map[int]bool
+// interner assigns protocol ids to checker values: 1-based and stable for the session. intern only assigns;
+// handOut also records the id as returned to Node, so the response carries its facts (PROTOCOL.md, inline facts).
+type interner[T comparable] struct {
+	what      string
+	values    []T
+	ids       map[T]int
+	handedOut []int
+	sent      map[int]bool
+}
+
+func newInterner[T comparable](what string) *interner[T] {
+	return &interner[T]{what: what, ids: map[T]int{}, sent: map[int]bool{}}
+}
+
+func (n *interner[T]) intern(v T) int {
+	if id, ok := n.ids[v]; ok {
+		return id
+	}
+	n.values = append(n.values, v)
+	n.ids[v] = len(n.values)
+	return len(n.values)
+}
+
+// handOut interns v for an op's result; the zero value (a nil type or symbol) is null on the wire.
+func (n *interner[T]) handOut(v T) *int {
+	var zero T
+	if v == zero {
+		return nil
+	}
+	id := n.intern(v)
+	n.handedOut = append(n.handedOut, id)
+	return &id
+}
+
+func (n *interner[T]) get(id int) (T, error) {
+	if id < 1 || id > len(n.values) {
+		var zero T
+		return zero, fmt.Errorf("unknown %s %d", n.what, id)
+	}
+	return n.values[id-1], nil
+}
+
+// takeUnsent returns the distinct ids handed out since the last call whose facts Node does not have yet.
+func (n *interner[T]) takeUnsent() []int {
+	var unsent []int
+	seen := map[int]bool{}
+	for _, id := range n.handedOut {
+		if !n.sent[id] && !seen[id] {
+			seen[id] = true
+			unsent = append(unsent, id)
+		}
+	}
+	n.handedOut = nil
+	return unsent
 }
 
 func main() {
@@ -106,7 +153,7 @@ func main() {
 	}
 	in := bufio.NewReader(conn)
 	out := bufio.NewWriter(conn)
-	s := &session{sentTypes: map[int]bool{}, sentSymbols: map[int]bool{}}
+	s := &session{types: newInterner[*checker.Type]("type"), symbols: newInterner[*ast.Symbol]("symbol")}
 	for !s.closed {
 		var header [4]byte
 		if _, err := io.ReadFull(in, header[:]); err != nil {
@@ -129,49 +176,38 @@ func main() {
 }
 
 func (s *session) serve(body []byte) response {
-	s.recording, s.touchedTypes, s.touchedSymbols = true, nil, nil
-	r := s.serveRequest(body)
-	r.Facts = s.takeFacts()
+	facts := inlineFacts{Types: map[int]any{}, Symbols: map[int]any{}}
+	r := s.serveRequest(body, &facts)
+	if len(facts.Types) > 0 || len(facts.Symbols) > 0 {
+		r.Facts = &facts
+	}
 	return r
 }
 
-// takeFacts computes the facts of every id handed out during the request whose facts were not sent yet.
-// The snapshot is taken first and recording stops, so computing facts adds no ids to it.
-func (s *session) takeFacts() any {
-	s.recording = false
-	typeFacts, symbolFacts := map[int]any{}, map[int]any{}
-	for _, id := range s.touchedTypes {
-		if !s.sentTypes[id] {
-			s.sentTypes[id] = true
-			typeFacts[id] = s.typeFacts(s.types[id-1])
-		}
-	}
-	for _, id := range s.touchedSymbols {
-		if !s.sentSymbols[id] {
-			s.sentSymbols[id] = true
-			symbolFacts[id] = s.symbolFacts(s.symbols[id-1])
-		}
-	}
-	if len(typeFacts) == 0 && len(symbolFacts) == 0 {
-		return nil
-	}
-	facts := map[string]any{}
-	if len(typeFacts) > 0 {
-		facts["types"] = typeFacts
-	}
-	if len(symbolFacts) > 0 {
-		facts["symbols"] = symbolFacts
-	}
-	return facts
+type inlineFacts struct {
+	Types   map[int]any `json:"types,omitempty"`
+	Symbols map[int]any `json:"symbols,omitempty"`
 }
 
-func (s *session) serveRequest(body []byte) response {
+// addFacts adds the facts of the ids the last op handed out and Node does not have yet.
+func (s *session) addFacts(facts *inlineFacts) {
+	for _, id := range s.types.takeUnsent() {
+		facts.Types[id] = s.typeFacts(s.types.values[id-1])
+		s.types.sent[id] = true
+	}
+	for _, id := range s.symbols.takeUnsent() {
+		facts.Symbols[id] = s.symbolFacts(s.symbols.values[id-1])
+		s.symbols.sent[id] = true
+	}
+}
+
+func (s *session) serveRequest(body []byte, facts *inlineFacts) response {
 	var a args
 	if err := json.Unmarshal(body, &a); err != nil {
 		return response{Error: "invalid request: " + err.Error()}
 	}
 	if a.Op != "batch" {
-		return s.query(&a)
+		return s.query(&a, facts)
 	}
 	results := make([]response, len(a.Queries))
 	for i, raw := range a.Queries {
@@ -180,14 +216,16 @@ func (s *session) serveRequest(body []byte) response {
 			results[i] = response{Error: "invalid query: " + err.Error()}
 			continue
 		}
-		results[i] = s.query(&q)
+		results[i] = s.query(&q, facts)
 	}
 	return response{Ok: true, Result: results}
 }
 
-func (s *session) query(a *args) (r response) {
+// query answers one op. The facts it adds are computed under the same recover, so a panic in either fails the query.
+func (s *session) query(a *args, facts *inlineFacts) (r response) {
 	defer func() {
 		if p := recover(); p != nil {
+			s.types.handedOut, s.symbols.handedOut = nil, nil
 			r = response{Error: fmt.Sprintf("%s: panic: %v\n%s", a.Op, p, debug.Stack())}
 		}
 	}()
@@ -198,11 +236,8 @@ func (s *session) query(a *args) (r response) {
 	if a.Op != "open" && a.Op != "close" && s.checker == nil {
 		return response{Error: a.Op + ": no program is open"}
 	}
-	if a.Op == "type" || a.Op == "symbol" {
-		defer func(prev bool) { s.recording = prev }(s.recording)
-		s.recording = false
-	}
 	result, err := handler(s, a)
+	s.addFacts(facts)
 	if err != nil {
 		return response{Error: a.Op + ": " + err.Error()}
 	}
@@ -226,14 +261,14 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 		if err != nil {
 			return nil, err
 		}
-		return s.symbolId(s.checker.GetSymbolAtLocation(n)), nil
+		return s.symbols.handOut(s.checker.GetSymbolAtLocation(n)), nil
 	},
 	"symbolOfDeclaration": func(s *session, a *args) (any, error) {
 		n, err := s.node(a.Node)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbolId(n.Symbol()), nil
+		return s.symbols.handOut(n.Symbol()), nil
 	},
 	"returnTypeOfDeclaration": func(s *session, a *args) (any, error) {
 		n, err := s.node(a.Node)
@@ -247,7 +282,7 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 		if sig == nil {
 			return nil, nil
 		}
-		return s.typeId(s.checker.GetReturnTypeOfSignature(sig)), nil
+		return s.types.handOut(s.checker.GetReturnTypeOfSignature(sig)), nil
 	},
 	"constantValue": func(s *session, a *args) (any, error) {
 		n, err := s.node(a.Node)
@@ -263,23 +298,23 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 		return nil, nil
 	},
 	"type": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		if err != nil {
 			return nil, err
 		}
-		s.sentTypes[a.Type] = true
+		s.types.sent[a.Type] = true
 		return s.typeFacts(t), nil
 	},
 	"symbol": func(s *session, a *args) (any, error) {
-		sym, err := s.symbol(a.Symbol)
+		sym, err := s.symbols.get(a.Symbol)
 		if err != nil {
 			return nil, err
 		}
-		s.sentSymbols[a.Symbol] = true
+		s.symbols.sent[a.Symbol] = true
 		return s.symbolFacts(sym), nil
 	},
 	"typeOfSymbol": func(s *session, a *args) (any, error) {
-		sym, err := s.symbol(a.Symbol)
+		sym, err := s.symbols.get(a.Symbol)
 		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetTypeOfSymbol(sym) })
 	},
 	"resolveName": func(s *session, a *args) (any, error) {
@@ -300,72 +335,72 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 				return nil, fmt.Errorf("unknown SymbolFlags name %q", name)
 			}
 		}
-		return s.symbolId(s.checker.ResolveName(a.Name, location, meaning, false)), nil
+		return s.symbols.handOut(s.checker.ResolveName(a.Name, location, meaning, false)), nil
 	},
 	"exportOf": func(s *session, a *args) (any, error) {
-		sym, err := s.symbol(a.Symbol)
+		sym, err := s.symbols.get(a.Symbol)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbolId(sym.Exports()[a.Name]), nil
+		return s.symbols.handOut(sym.Exports()[a.Name]), nil
 	},
 	"property": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbolId(s.checker.GetPropertyOfType(t, a.Name)), nil
+		return s.symbols.handOut(s.checker.GetPropertyOfType(t, a.Name)), nil
 	},
 	"members": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		if err != nil {
 			return nil, err
 		}
 		properties := [][2]any{}
 		for _, p := range s.checker.GetPropertiesOfType(t) {
-			properties = append(properties, [2]any{s.symbolId(p), s.typeId(s.checker.GetTypeOfSymbol(p))})
+			properties = append(properties, [2]any{s.symbols.handOut(p), s.types.handOut(s.checker.GetTypeOfSymbol(p))})
 		}
 		return map[string]any{"properties": properties, "indexInfos": s.indexInfos(t)}, nil
 	},
 	"callSignatures": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		if err != nil {
 			return nil, err
 		}
 		sigs := []map[string]any{}
 		for _, sig := range s.checker.GetSignaturesOfType(t, checker.SignatureKindCall) {
-			sigs = append(sigs, map[string]any{"returnType": s.typeId(s.checker.GetReturnTypeOfSignature(sig))})
+			sigs = append(sigs, map[string]any{"returnType": s.types.handOut(s.checker.GetReturnTypeOfSignature(sig))})
 		}
 		return sigs, nil
 	},
 	"nonNullable": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetNonNullableType(t) })
 	},
 	"union": func(s *session, a *args) (any, error) {
 		types := make([]*checker.Type, len(a.Types))
 		for i, id := range a.Types {
-			t, err := s.type_(id)
+			t, err := s.types.get(id)
 			if err != nil {
 				return nil, err
 			}
 			types[i] = t
 		}
-		return s.typeId(s.checker.GetUnionType(types)), nil
+		return s.types.handOut(s.checker.GetUnionType(types)), nil
 	},
 	"assignable": func(s *session, a *args) (any, error) {
-		source, err := s.type_(a.Source)
+		source, err := s.types.get(a.Source)
 		if err != nil {
 			return nil, err
 		}
-		target, err := s.type_(a.Target)
+		target, err := s.types.get(a.Target)
 		if err != nil {
 			return nil, err
 		}
 		return s.checker.IsTypeAssignableTo(source, target), nil
 	},
 	"typeToString": func(s *session, a *args) (any, error) {
-		t, err := s.type_(a.Type)
+		t, err := s.types.get(a.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -378,7 +413,7 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 func (s *session) indexInfos(t *checker.Type) []map[string]any {
 	infos := []map[string]any{}
 	for _, info := range s.checker.GetIndexInfosOfType(t) {
-		entry := map[string]any{"keyType": s.typeId(info.KeyType()), "type": s.typeId(info.ValueType()), "isReadonly": info.IsReadonly()}
+		entry := map[string]any{"keyType": s.types.handOut(info.KeyType()), "type": s.types.handOut(info.ValueType()), "isReadonly": info.IsReadonly()}
 		if d := info.Declaration(); d != nil {
 			if ref := s.ref(d); ref != nil {
 				entry["declaration"] = ref
@@ -430,8 +465,6 @@ func (s *session) open(a *args) (any, error) {
 	s.program = compiler.NewProgram(compiler.ProgramOptions{ProgramConfig: compiler.ProgramConfig{Config: config}, ProgramHosts: compiler.ProgramHosts{Host: host}})
 	s.checker, _ = checker.NewChecker(s.program, nil)
 	s.fileIds = map[*ast.SourceFile]int{}
-	s.typeIds = map[*checker.Type]int{}
-	s.symbolIds = map[*ast.Symbol]int{}
 	infos := []map[string]any{}
 	for _, f := range s.program.GetSourceFiles() {
 		s.files = append(s.files, f)
@@ -444,7 +477,7 @@ func (s *session) open(a *args) (any, error) {
 			"isDefaultLibrary":  s.program.IsSourceFileDefaultLibrary(f.PathKey()),
 		})
 	}
-	return map[string]any{"protocol": protocolRevision, "files": infos, "undefinedType": s.typeId(s.checker.GetUndefinedType())}, nil
+	return map[string]any{"protocol": protocolRevision, "files": infos, "undefinedType": s.types.handOut(s.checker.GetUndefinedType())}, nil
 }
 
 func (s *session) file(id int) (*ast.SourceFile, error) {
@@ -454,61 +487,11 @@ func (s *session) file(id int) (*ast.SourceFile, error) {
 	return s.files[id-1], nil
 }
 
-func (s *session) type_(id int) (*checker.Type, error) {
-	if id < 1 || id > len(s.types) {
-		return nil, fmt.Errorf("unknown type %d", id)
-	}
-	return s.types[id-1], nil
-}
-
-func (s *session) symbol(id int) (*ast.Symbol, error) {
-	if id < 1 || id > len(s.symbols) {
-		return nil, fmt.Errorf("unknown symbol %d", id)
-	}
-	return s.symbols[id-1], nil
-}
-
-func (s *session) typeId(t *checker.Type) any {
-	if t == nil {
-		return nil
-	}
-	if id, ok := s.typeIds[t]; ok {
-		if s.recording {
-			s.touchedTypes = append(s.touchedTypes, id)
-		}
-		return id
-	}
-	s.types = append(s.types, t)
-	s.typeIds[t] = len(s.types)
-	if s.recording {
-		s.touchedTypes = append(s.touchedTypes, len(s.types))
-	}
-	return len(s.types)
-}
-
 func (s *session) typeIdOr(err error, get func() *checker.Type) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.typeId(get()), nil
-}
-
-func (s *session) symbolId(sym *ast.Symbol) any {
-	if sym == nil {
-		return nil
-	}
-	if id, ok := s.symbolIds[sym]; ok {
-		if s.recording {
-			s.touchedSymbols = append(s.touchedSymbols, id)
-		}
-		return id
-	}
-	s.symbols = append(s.symbols, sym)
-	s.symbolIds[sym] = len(s.symbols)
-	if s.recording {
-		s.touchedSymbols = append(s.touchedSymbols, len(s.symbols))
-	}
-	return len(s.symbols)
+	return s.types.handOut(get()), nil
 }
 
 // node resolves a NodeRef: the first node in preorder with the ref's kind and UTF-16 full range.
@@ -575,7 +558,7 @@ var kindRenames = map[string]string{"EndOfFile": "EndOfFileToken", "JSDocUnknown
 func (s *session) typeFacts(t *checker.Type) map[string]any {
 	flags := t.Flags()
 	facts := map[string]any{
-		"id":          s.typeId(t),
+		"id":          s.types.intern(t),
 		"flags":       flagNames(uint64(flags), typeFlagNames),
 		"objectFlags": objectFlagNames(t),
 		"isArray":     s.checker.IsArrayType(t),
@@ -597,23 +580,27 @@ func (s *session) typeFacts(t *checker.Type) map[string]any {
 		}
 	}
 	if t.Symbol() != nil {
-		facts["symbol"] = s.symbolId(t.Symbol())
+		facts["symbol"] = s.symbols.intern(t.Symbol())
 	}
 	if alias := t.Alias(); alias != nil {
-		facts["aliasSymbol"] = s.symbolId(alias.Symbol())
+		if alias.Symbol() != nil {
+			facts["aliasSymbol"] = s.symbols.intern(alias.Symbol())
+		}
 		if args := alias.TypeArguments(); len(args) > 0 {
-			facts["aliasTypeArguments"] = s.typeIds_(args)
+			facts["aliasTypeArguments"] = s.internTypes(args)
 		}
 	}
 	if flags&checker.TypeFlagsObject != 0 && t.ObjectFlags()&checker.ObjectFlagsReference != 0 {
-		facts["typeArguments"] = s.typeIds_(s.checker.GetTypeArguments(t))
-		facts["target"] = s.typeId(t.Target())
+		facts["typeArguments"] = s.internTypes(s.checker.GetTypeArguments(t))
+		if t.Target() != nil {
+			facts["target"] = s.types.intern(t.Target())
+		}
 	}
 	if flags&checker.TypeFlagsUnionOrIntersection != 0 {
-		facts["types"] = s.typeIds_(t.Types())
+		facts["types"] = s.internTypes(t.Types())
 	}
 	if origin := t.TsoaOrigin(); origin != nil {
-		facts["origin"] = s.typeId(origin)
+		facts["origin"] = s.types.intern(origin)
 	}
 	if t.IsTupleType() && t.Target() == t {
 		elementFlags := [][]string{}
@@ -623,15 +610,15 @@ func (s *session) typeFacts(t *checker.Type) map[string]any {
 		facts["elementFlags"] = elementFlags
 	}
 	if flags&(checker.TypeFlagsLiteral|checker.TypeFlagsEnumLiteral) != 0 {
-		facts["baseLiteral"] = s.typeId(s.checker.GetBaseTypeOfLiteralType(t))
+		facts["baseLiteral"] = s.types.intern(s.checker.GetBaseTypeOfLiteralType(t))
 	}
 	return facts
 }
 
-func (s *session) typeIds_(types []*checker.Type) []any {
-	ids := make([]any, len(types))
+func (s *session) internTypes(types []*checker.Type) []int {
+	ids := make([]int, len(types))
 	for i, t := range types {
-		ids[i] = s.typeId(t)
+		ids[i] = s.types.intern(t)
 	}
 	return ids
 }
@@ -644,7 +631,7 @@ func (s *session) symbolFacts(sym *ast.Symbol) map[string]any {
 		}
 	}
 	facts := map[string]any{
-		"id":           s.symbolId(sym),
+		"id":           s.symbols.intern(sym),
 		"name":         ast.EscapeInternalSymbolName(ast.SymbolName(sym)),
 		"escapedName":  ast.EscapeSymbolName(sym.Name()),
 		"flags":        flagNames(uint64(sym.Flags()), symbolFlagNames),
@@ -654,21 +641,21 @@ func (s *session) symbolFacts(sym *ast.Symbol) map[string]any {
 		facts["valueDeclaration"] = r
 	}
 	if sym.Parent() != nil {
-		facts["parent"] = s.symbolId(sym.Parent())
+		facts["parent"] = s.symbols.intern(sym.Parent())
 	}
 	if sym.Flags()&ast.SymbolFlagsAlias != 0 {
 		if aliased := s.checker.GetAliasedSymbol(sym); aliased != nil {
-			facts["aliased"] = s.symbolId(aliased)
+			facts["aliased"] = s.symbols.intern(aliased)
 		}
 	}
 	if origin := s.checker.TsoaSyntheticOrigin(sym); origin != nil {
-		facts["syntheticOrigin"] = s.symbolId(origin)
+		facts["syntheticOrigin"] = s.symbols.intern(origin)
 	}
 	return facts
 }
 
 func (s *session) print(a *args) (any, error) {
-	t, err := s.type_(a.Type)
+	t, err := s.types.get(a.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +671,7 @@ func (s *session) print(a *args) (any, error) {
 	var visit func(n *ast.Node) bool
 	visit = func(n *ast.Node) bool {
 		if ast.IsIdentifier(n) {
-			identifiers = append(identifiers, s.symbolId(idToSymbol[n]))
+			identifiers = append(identifiers, s.symbols.handOut(idToSymbol[n]))
 		}
 		n.ForEachChild(visit)
 		return false
@@ -732,14 +719,14 @@ func (s *session) prefetchFile(a *args) (any, error) {
 			}
 			if ast.IsIdentifier(n) {
 				sym := s.checker.GetSymbolAtLocation(n)
-				symbolAt = append(symbolAt, entry(s.symbolId(sym)))
+				symbolAt = append(symbolAt, entry(s.symbols.handOut(sym)))
 				noteProperty(sym)
 			}
 			if ast.IsTypeNode(n) {
-				typeFrom = append(typeFrom, entry(s.typeId(s.checker.GetTypeFromTypeNode(n))))
+				typeFrom = append(typeFrom, entry(s.types.handOut(s.checker.GetTypeFromTypeNode(n))))
 			}
 			if sym := n.Symbol(); sym != nil {
-				declared = append(declared, entry(s.symbolId(sym)))
+				declared = append(declared, entry(s.symbols.handOut(sym)))
 				noteProperty(sym)
 			}
 		}
@@ -749,7 +736,7 @@ func (s *session) prefetchFile(a *args) (any, error) {
 	visit(f.AsNode())
 	typeOfSymbol := [][2]any{}
 	for _, sym := range propertySymbols {
-		typeOfSymbol = append(typeOfSymbol, [2]any{s.symbolId(sym), s.typeId(s.checker.GetTypeOfSymbol(sym))})
+		typeOfSymbol = append(typeOfSymbol, [2]any{s.symbols.handOut(sym), s.types.handOut(s.checker.GetTypeOfSymbol(sym))})
 	}
 	return map[string]any{"symbolAt": symbolAt, "typeFrom": typeFrom, "declared": declared, "typeOfSymbol": typeOfSymbol}, nil
 }

@@ -137,45 +137,70 @@ fn flag_names<F: bitflags::Flags + Copy>(flags: F, table: &[(F, &str)]) -> Value
     Value::Array(table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| json!(n)).collect())
 }
 
-/// Interns checker values as protocol ids (1-based, stable for the session).
+/// Interns checker values as protocol ids (1-based, stable for the session). `intern` only assigns; `hand_out` also
+/// records the id as returned to Node, so the response carries its facts (PROTOCOL.md, inline facts).
 struct Ids<T: 'static> {
     list: Vec<P<T>>,
     index: FxHashMap<P<T>, u32>,
-    /// Ids handed out since the last `take_touched`, for inline facts (PROTOCOL.md revision 4a).
-    touched: Vec<u32>,
+    handed_out: Vec<u32>,
     /// Ids whose facts already went to Node, indexed by id - 1.
     sent: Vec<bool>,
 }
 
 impl<T> Ids<T> {
     fn new() -> Self {
-        Ids { list: Vec::new(), index: FxHashMap::default(), touched: Vec::new(), sent: Vec::new() }
+        Ids {
+            list: Vec::new(),
+            index: FxHashMap::default(),
+            handed_out: Vec::new(),
+            sent: Vec::new(),
+        }
     }
-    fn id(&mut self, v: P<T>) -> u32 {
-        let id = *self.index.entry(v).or_insert_with(|| {
+    fn intern(&mut self, v: P<T>) -> u32 {
+        *self.index.entry(v).or_insert_with(|| {
             self.list.push(v);
             self.sent.push(false);
             self.list.len() as u32
-        });
-        self.touched.push(id);
+        })
+    }
+    fn hand_out(&mut self, v: P<T>) -> u32 {
+        let id = self.intern(v);
+        self.handed_out.push(id);
         id
     }
     fn mark_sent(&mut self, id: u32) {
         self.sent[id as usize - 1] = true;
     }
-    /// The distinct touched ids whose facts were not sent yet, in first-touched order.
+    /// The distinct ids handed out since the last call whose facts Node does not have yet, in first-handed-out order.
     fn take_unsent(&mut self) -> Vec<u32> {
-        let mut out = Vec::new();
-        for id in std::mem::take(&mut self.touched) {
-            if !self.sent[id as usize - 1] && !out.contains(&id) {
-                out.push(id);
-            }
-        }
-        out
+        let mut seen = rustc_hash::FxHashSet::default();
+        std::mem::take(&mut self.handed_out)
+            .into_iter()
+            .filter(|&id| !self.sent[id as usize - 1] && seen.insert(id))
+            .collect()
     }
     fn get(&self, id: &Value, what: &str) -> Result<P<T>, String> {
         let n = id.as_u64().ok_or_else(|| format!("{what}: expected an id"))? as usize;
         self.list.get(n.wrapping_sub(1)).copied().ok_or_else(|| format!("unknown {what} id {n}"))
+    }
+}
+
+#[derive(Default)]
+struct InlineFacts {
+    types: Map<String, Value>,
+    symbols: Map<String, Value>,
+}
+
+impl InlineFacts {
+    fn into_value(self) -> Option<Value> {
+        let mut out = Map::new();
+        if !self.types.is_empty() {
+            out.insert("types".into(), Value::Object(self.types));
+        }
+        if !self.symbols.is_empty() {
+            out.insert("symbols".into(), Value::Object(self.symbols));
+        }
+        (!out.is_empty()).then_some(Value::Object(out))
     }
 }
 
@@ -284,7 +309,7 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
         .iter()
         .map(|f| {
             json!({
-                "id": s.files.id(*f),
+                "id": s.files.intern(*f),
                 "fileName": f.file_name(),
                 "isDeclarationFile": f.is_declaration_file(),
                 "isDefaultLibrary": program.is_source_file_default_library(f.path()),
@@ -292,7 +317,7 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
         })
         .collect();
     let undefined = s.checker.get_undefined_type();
-    let result = json!({ "protocol": PROTOCOL_REVISION, "files": files, "undefinedType": s.types.id(undefined) });
+    let result = json!({ "protocol": PROTOCOL_REVISION, "files": files, "undefinedType": s.types.hand_out(undefined) });
     Ok((s, result))
 }
 
@@ -358,7 +383,7 @@ impl Session {
             p.source_offset().map_or(-1, |o| map.utf8_to_utf16(o) as i64)
         };
         json!({
-            "file": self.files.id(file),
+            "file": self.files.intern(file),
             "pos": utf16(node.pos()),
             "end": utf16(node.end()),
             "kind": kind_name(node.kind()),
@@ -374,21 +399,21 @@ impl Session {
     }
 
     fn type_id(&mut self, t: P<Type>) -> Value {
-        json!(self.types.id(t))
+        json!(self.types.hand_out(t))
     }
 
-    fn type_ids(&mut self, ts: &[P<Type>]) -> Value {
-        Value::Array(ts.iter().map(|t| self.type_id(*t)).collect())
+    fn intern_types(&mut self, ts: &[P<Type>]) -> Value {
+        Value::Array(ts.iter().map(|t| json!(self.types.intern(*t))).collect())
     }
 
     fn opt_symbol(&mut self, s: Option<P<Symbol>>) -> Value {
-        s.map_or(Value::Null, |s| json!(self.symbols.id(s)))
+        s.map_or(Value::Null, |s| json!(self.symbols.hand_out(s)))
     }
 
     fn type_facts(&mut self, t: P<Type>) -> Value {
         let flags = t.flags();
         let mut o = Map::new();
-        o.insert("id".into(), self.type_id(t));
+        o.insert("id".into(), json!(self.types.intern(t)));
         o.insert("flags".into(), flag_names(flags, TYPE_FLAG_NAMES));
         let object_flags = if flags.intersects(TypeFlags::Object) {
             flag_names(t.object_flags(), OBJECT_FLAG_NAMES)
@@ -423,14 +448,14 @@ impl Session {
             }
         }
         if let Some(s) = t.symbol() {
-            o.insert("symbol".into(), json!(self.symbols.id(s)));
+            o.insert("symbol".into(), json!(self.symbols.intern(s)));
         }
         if let Some(alias) = t.alias() {
             if let Some(s) = alias.symbol() {
-                o.insert("aliasSymbol".into(), json!(self.symbols.id(s)));
+                o.insert("aliasSymbol".into(), json!(self.symbols.intern(s)));
             }
             if !alias.type_arguments().is_empty() {
-                let args = self.type_ids(alias.type_arguments());
+                let args = self.intern_types(alias.type_arguments());
                 o.insert("aliasTypeArguments".into(), args);
             }
         }
@@ -438,18 +463,18 @@ impl Session {
             && t.object_flags().intersects(ObjectFlags::Reference)
         {
             let args = self.checker.get_type_arguments_exported(t);
-            let args = self.type_ids(args);
+            let args = self.intern_types(args);
             o.insert("typeArguments".into(), args);
             if let Some(target) = t.target() {
-                o.insert("target".into(), self.type_id(target));
+                o.insert("target".into(), json!(self.types.intern(target)));
             }
         }
         if flags.intersects(TypeFlags::UnionOrIntersection) {
-            let types = self.type_ids(t.types());
+            let types = self.intern_types(t.types());
             o.insert("types".into(), types);
         }
         if let Some(origin) = t.union_origin() {
-            o.insert("origin".into(), self.type_id(origin));
+            o.insert("origin".into(), json!(self.types.intern(origin)));
         }
         if tsrs_checker::is_tuple_type_target(t) {
             let per_element = t
@@ -464,7 +489,7 @@ impl Session {
         o.insert("isTuple".into(), json!(tsrs_checker::is_tuple_type_exported(t)));
         if flags.intersects(TypeFlags::Literal | TypeFlags::EnumLiteral) {
             let base = self.checker.get_base_type_of_literal_type_exported(t);
-            o.insert("baseLiteral".into(), self.type_id(base));
+            o.insert("baseLiteral".into(), json!(self.types.intern(base)));
         }
         Value::Object(o)
     }
@@ -472,7 +497,7 @@ impl Session {
     fn symbol_facts(&mut self, s: P<Symbol>) -> Value {
         let raw = tsrs_ast::symbol_name(s);
         let mut o = Map::new();
-        o.insert("id".into(), json!(self.symbols.id(s)));
+        o.insert("id".into(), json!(self.symbols.intern(s)));
         o.insert("name".into(), json!(tsrs_ast::escape_internal_symbol_name(raw)));
         o.insert("escapedName".into(), json!(tsrs_ast::escape_symbol_name(s.name())));
         o.insert("flags".into(), flag_names(s.flags(), SYMBOL_FLAG_NAMES));
@@ -482,53 +507,30 @@ impl Session {
             o.insert("valueDeclaration".into(), self.node_ref(d));
         }
         if let Some(p) = s.parent() {
-            o.insert("parent".into(), json!(self.symbols.id(p)));
+            o.insert("parent".into(), json!(self.symbols.intern(p)));
         }
         if s.flags().intersects(SymbolFlags::Alias) {
             let aliased = self.checker.get_aliased_symbol(s);
-            o.insert("aliased".into(), json!(self.symbols.id(aliased)));
+            o.insert("aliased".into(), json!(self.symbols.intern(aliased)));
         }
         if let Some(origin) = self.checker.synthetic_origin_of(s) {
-            o.insert("syntheticOrigin".into(), json!(self.symbols.id(origin)));
+            o.insert("syntheticOrigin".into(), json!(self.symbols.intern(origin)));
         }
         Value::Object(o)
     }
 
-    /// Facts for every id handed out since the last call that Node has not received (PROTOCOL.md revision 4a).
-    fn inline_facts(&mut self) -> Option<Value> {
-        let type_ids = self.types.take_unsent();
-        let symbol_ids = self.symbols.take_unsent();
-        let mut types = Map::new();
-        for id in type_ids {
+    /// Adds the facts of the ids the last op handed out and Node does not have yet (PROTOCOL.md, inline facts).
+    fn add_facts(&mut self, facts: &mut InlineFacts) {
+        for id in self.types.take_unsent() {
             let t = self.types.list[id as usize - 1];
-            if let Ok(facts) =
-                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.type_facts(t)))
-            {
-                self.types.mark_sent(id);
-                types.insert(id.to_string(), facts);
-            }
+            facts.types.insert(id.to_string(), self.type_facts(t));
+            self.types.mark_sent(id);
         }
-        let mut symbols = Map::new();
-        for id in symbol_ids {
+        for id in self.symbols.take_unsent() {
             let s = self.symbols.list[id as usize - 1];
-            if let Ok(facts) =
-                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.symbol_facts(s)))
-            {
-                self.symbols.mark_sent(id);
-                symbols.insert(id.to_string(), facts);
-            }
+            facts.symbols.insert(id.to_string(), self.symbol_facts(s));
+            self.symbols.mark_sent(id);
         }
-        // Computing facts hands out ids too. They are not expanded.
-        self.types.touched.clear();
-        self.symbols.touched.clear();
-        let mut out = Map::new();
-        if !types.is_empty() {
-            out.insert("types".into(), Value::Object(types));
-        }
-        if !symbols.is_empty() {
-            out.insert("symbols".into(), Value::Object(symbols));
-        }
-        (!out.is_empty()).then(|| Value::Object(out))
     }
 
     /// PROTOCOL.md revision 4b.
@@ -579,17 +581,17 @@ impl Session {
                     if let Some(sym) = sym {
                         property_symbols.push(sym);
                     }
-                    let id = sym.map(|x| s.symbols.id(x));
+                    let id = sym.map(|x| s.symbols.hand_out(x));
                     symbol_at.push(pos, end, &kind, id, map);
                 }
                 if tsrs_ast::is_type_node(node) {
                     let t = s.checker.get_type_from_type_node_exported(node);
-                    let id = s.types.id(t);
+                    let id = s.types.hand_out(t);
                     type_from.push(pos, end, &kind, Some(id), map);
                 }
                 if let Some(sym) = node.symbol() {
                     property_symbols.push(sym);
-                    let id = s.symbols.id(sym);
+                    let id = s.symbols.hand_out(sym);
                     declared.push(pos, end, &kind, Some(id), map);
                 }
             }
@@ -613,7 +615,7 @@ impl Session {
         for sym in property_symbols {
             if sym.flags().intersects(SymbolFlags::Property) && done.insert(sym) {
                 let t = self.checker.get_type_of_symbol_exported(sym);
-                type_of_symbol.push(json!([self.symbols.id(sym), self.types.id(t)]));
+                type_of_symbol.push(json!([self.symbols.hand_out(sym), self.types.hand_out(t)]));
             }
         }
         json!({
@@ -631,8 +633,8 @@ impl Session {
                 .iter()
                 .map(|i| {
                     let mut entry = json!({
-                        "keyType": self.types.id(i.key_type()),
-                        "type": self.types.id(i.value_type()),
+                        "keyType": self.types.hand_out(i.key_type()),
+                        "type": self.types.hand_out(i.value_type()),
                         "isReadonly": i.is_readonly(),
                     });
                     if let Some(d) = i.declaration() {
@@ -731,14 +733,14 @@ impl Session {
             "type" => {
                 let t = self.ty(q, "type")?;
                 let facts = self.type_facts(t);
-                let id = self.types.id(t);
+                let id = self.types.intern(t);
                 self.types.mark_sent(id);
                 facts
             }
             "symbol" => {
                 let s = self.sym(q)?;
                 let facts = self.symbol_facts(s);
-                let id = self.symbols.id(s);
+                let id = self.symbols.intern(s);
                 self.symbols.mark_sent(id);
                 facts
             }
@@ -783,7 +785,7 @@ impl Session {
                 let mut properties = Vec::with_capacity(props.len());
                 for p in props {
                     let pt = self.checker.get_type_of_symbol_exported(*p);
-                    properties.push(json!([self.symbols.id(*p), self.types.id(pt)]));
+                    properties.push(json!([self.symbols.hand_out(*p), self.types.hand_out(pt)]));
                 }
                 json!({ "properties": properties, "indexInfos": self.index_infos(t) })
             }
@@ -793,7 +795,7 @@ impl Session {
                 let mut out = Vec::with_capacity(sigs.len());
                 for sig in sigs {
                     let r = self.checker.get_return_type_of_signature_exported(*sig);
-                    out.push(json!({ "returnType": self.types.id(r) }));
+                    out.push(json!({ "returnType": self.types.hand_out(r) }));
                 }
                 Value::Array(out)
             }
@@ -844,21 +846,35 @@ fn panic_text(p: &(dyn std::any::Any + Send)) -> String {
         .unwrap_or_else(|| "panic".to_string())
 }
 
-/// One query, with a checker panic reported as its own error rather than ending the process.
-fn answer(session: &mut Option<Session>, q: &Value) -> Res {
+/// One query and the facts it adds, with a checker panic in either reported as the query's error rather than ending
+/// the process.
+fn answer(session: &mut Option<Session>, q: &Value, facts: &mut InlineFacts) -> Res {
     let op = field_str(q, "op")?;
+    let panicked = |p: Box<dyn std::any::Any + Send>| format!("panic: {}", panic_text(&*p));
     if op == "open" {
         if session.is_some() {
             return Err("open: a program is already open".into());
         }
-        let (s, result) = std::panic::catch_unwind(|| open(q))
-            .map_err(|p| format!("panic: {}", panic_text(&*p)))??;
+        let (s, result) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let (mut s, result) = open(q)?;
+            s.add_facts(facts);
+            Ok::<_, String>((s, result))
+        }))
+        .map_err(panicked)??;
         *session = Some(s);
         return Ok(result);
     }
     let s = session.as_mut().ok_or("no program: send open first")?;
-    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| s.query(op, q)))
-        .map_err(|p| format!("panic: {}", panic_text(&*p)))?
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let result = s.query(op, q);
+        s.add_facts(facts);
+        result
+    }))
+    .unwrap_or_else(|p| {
+        s.types.handed_out.clear();
+        s.symbols.handed_out.clear();
+        Err(panicked(p))
+    })
 }
 
 fn read_message(input: &mut impl Read) -> Option<Vec<u8>> {
@@ -879,6 +895,7 @@ fn write_message(output: &mut impl Write, v: &Value) {
 fn serve(mut input: impl Read, mut output: impl Write) {
     let mut session: Option<Session> = None;
     while let Some(body) = read_message(&mut input) {
+        let mut facts = InlineFacts::default();
         let request: Value = match serde_json::from_slice(&body) {
             Ok(v) => v,
             Err(e) => {
@@ -889,7 +906,7 @@ fn serve(mut input: impl Read, mut output: impl Write) {
         let response = match request.get("op").and_then(Value::as_str) {
             Some("batch") => match request.get("queries").and_then(Value::as_array) {
                 Some(queries) => respond(Ok(Value::Array(
-                    queries.iter().map(|q| respond(answer(&mut session, q))).collect(),
+                    queries.iter().map(|q| respond(answer(&mut session, q, &mut facts))).collect(),
                 ))),
                 None => respond(Err("batch: missing queries".into())),
             },
@@ -897,13 +914,11 @@ fn serve(mut input: impl Read, mut output: impl Write) {
                 write_message(&mut output, &respond(Ok(Value::Null)));
                 break;
             }
-            _ => respond(answer(&mut session, &request)),
+            _ => respond(answer(&mut session, &request, &mut facts)),
         };
         let mut response = response;
-        if let Some(s) = session.as_mut() {
-            if let Some(facts) = s.inline_facts() {
-                response["facts"] = facts;
-            }
+        if let Some(facts) = facts.into_value() {
+            response["facts"] = facts;
         }
         write_message(&mut output, &response);
     }
