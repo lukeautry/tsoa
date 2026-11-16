@@ -6,7 +6,7 @@
  */
 import * as path from 'node:path';
 import * as ts from 'typescript';
-import { openChannel } from './channel';
+import { openChannel, type Channel } from './channel';
 import { defineBoundSymbol, detachFromParent, isDeclaration, isJSDocTag, markSynthesized, objectConstructors, optionsDirectory, tsconfigCompilerOptions } from './internals';
 import type { Answer, FileId, FileInfo, NodeRef, Op, Query, SymbolFacts, SymbolId, TypeFacts, TypeId } from './protocol';
 
@@ -96,6 +96,15 @@ const nodeKey = (pos: number, end: number, kind: string) => `${pos}:${end}:${kin
 
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const channel = openChannel(helperPath);
+  try {
+    return createProgramOverChannel(channel, rootFiles, compilerOptions);
+  } catch (error) {
+    channel.close();
+    throw error;
+  }
+}
+
+function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): NativeProgram {
   const inlineTypes = new Map<TypeId, TypeFacts>();
   const inlineSymbols = new Map<SymbolId, SymbolFacts>();
 
@@ -415,6 +424,8 @@ export function createNativeProgram(helperPath: string, rootFiles: readonly stri
     getTypeChecker: () => checker as unknown as ts.TypeChecker,
     getSourceFiles: () => opened.files.filter(info => !info.isDeclarationFile).map(info => fileOf(info.id)),
     isSourceFileDefaultLibrary: sourceFile => defaultLibraries.has(sourceFile),
+    // A program that is never closed (a MetadataGenerator built but never `Generate()`d) keeps its helper until this
+    // process exits.
     close: () => {
       try {
         askHelper({ op: 'close' });
