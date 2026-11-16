@@ -1,4 +1,4 @@
-const unionOrderedKeys = new Set(['enum', 'enums', 'required', 'anyOf', 'oneOf', 'allOf', 'subSchemas', 'types']);
+const unionOrderedKeys = new Set(['enum', 'required', 'anyOf', 'oneOf', 'allOf']);
 
 const byJson = (left: unknown, right: unknown): number => {
   const a = JSON.stringify(left) ?? '';

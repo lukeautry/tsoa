@@ -3,7 +3,7 @@ import 'mocha';
 import { unorderedSchema } from '../../utils/unorderedSchema';
 
 describe('unorderedSchema', () => {
-  const unionOrderedKeys = ['enum', 'enums', 'required', 'anyOf', 'oneOf', 'allOf', 'subSchemas', 'types'];
+  const unionOrderedKeys = ['enum', 'required', 'anyOf', 'oneOf', 'allOf'];
 
   it('ignores the order of every union-ordered list', () => {
     for (const key of unionOrderedKeys) {
@@ -14,13 +14,10 @@ describe('unorderedSchema', () => {
   it('ignores object key order and does not mutate its input', () => {
     const lists = {
       enum: ['b', 'a'],
-      enums: ['b', 'a'],
       required: ['b', 'a'],
       anyOf: [{ type: 'string' }, { type: 'number' }],
       oneOf: ['b', 'a'],
       allOf: ['b', 'a'],
-      subSchemas: ['b', 'a'],
-      types: ['b', 'a'],
     };
     const original = JSON.stringify(lists);
     const reversed = Object.fromEntries(
@@ -30,11 +27,11 @@ describe('unorderedSchema', () => {
     );
     expect(unorderedSchema(lists)).to.deep.equal(unorderedSchema(reversed));
     expect(JSON.stringify(lists)).to.equal(original);
-    expect(Object.keys(unorderedSchema(lists) as object)).to.deep.equal(['allOf', 'anyOf', 'enum', 'enums', 'oneOf', 'required', 'subSchemas', 'types']);
+    expect(Object.keys(unorderedSchema(lists) as object)).to.deep.equal(['allOf', 'anyOf', 'enum', 'oneOf', 'required']);
   });
 
   it('keeps tuple, parameter and other array order', () => {
-    for (const key of ['items', 'parameters', 'properties', 'routes', 'paths', 'example', 'examples']) {
+    for (const key of ['enums', 'subSchemas', 'types', 'items', 'parameters', 'properties', 'routes', 'paths', 'example', 'examples']) {
       expect(unorderedSchema({ [key]: ['a', 'b'] }), key).not.to.deep.equal(unorderedSchema({ [key]: ['b', 'a'] }));
     }
     expect(unorderedSchema(['a', 'b'])).not.to.deep.equal(unorderedSchema(['b', 'a']));
