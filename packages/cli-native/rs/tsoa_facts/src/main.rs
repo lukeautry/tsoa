@@ -82,7 +82,6 @@ const OBJECT_FLAG_NAMES: &[(ObjectFlags, &str)] = &[
     (ObjectFlags::NonInferrableType, "NonInferrableType"),
     (ObjectFlags::CouldContainTypeVariablesComputed, "CouldContainTypeVariablesComputed"),
     (ObjectFlags::CouldContainTypeVariables, "CouldContainTypeVariables"),
-    (ObjectFlags::MembersResolved, "MembersResolved"),
     (ObjectFlags::ContainsSpread, "ContainsSpread"),
     (ObjectFlags::ObjectRestType, "ObjectRestType"),
     (ObjectFlags::InstantiationExpressionType, "InstantiationExpressionType"),
@@ -90,7 +89,6 @@ const OBJECT_FLAG_NAMES: &[(ObjectFlags, &str)] = &[
     (ObjectFlags::IsClassInstanceClone, "IsClassInstanceClone"),
     (ObjectFlags::IdenticalBaseTypeCalculated, "IdenticalBaseTypeCalculated"),
     (ObjectFlags::IdenticalBaseTypeExists, "IdenticalBaseTypeExists"),
-    (ObjectFlags::FromTypeNode, "FromTypeNode"),
 ];
 
 const SYMBOL_FLAG_NAMES: &[(SymbolFlags, &str)] = &[
@@ -122,8 +120,6 @@ const SYMBOL_FLAG_NAMES: &[(SymbolFlags, &str)] = &[
     (SymbolFlags::Transient, "Transient"),
     (SymbolFlags::Assignment, "Assignment"),
     (SymbolFlags::ModuleExports, "ModuleExports"),
-    (SymbolFlags::ConstEnumOnlyModule, "ConstEnumOnlyModule"),
-    (SymbolFlags::ReplaceableByMethod, "ReplaceableByMethod"),
 ];
 
 const ELEMENT_FLAG_NAMES: &[(ElementFlags, &str)] = &[
