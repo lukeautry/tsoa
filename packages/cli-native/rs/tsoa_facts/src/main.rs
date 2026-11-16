@@ -15,9 +15,9 @@ use tsrs_checker::{
     Type, TypeDataTag, TypeFlags,
 };
 use tsrs_compiler::{CheckerHandle, ProgramOptions};
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::{self, ComparePathsOptions};
 use tsrs_core::{CompilerOptions, Context, P, Tristate};
-use tsrs_core::collections::OrderedMap;
 use tsrs_tsoptions::{CompilerOptionsValue, ParseConfigHost};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs};
 
@@ -70,7 +70,10 @@ const OBJECT_FLAG_NAMES: &[(ObjectFlags, &str)] = &[
     (ObjectFlags::Instantiated, "Instantiated"),
     (ObjectFlags::ObjectLiteral, "ObjectLiteral"),
     (ObjectFlags::EvolvingArray, "EvolvingArray"),
-    (ObjectFlags::ObjectLiteralPatternWithComputedProperties, "ObjectLiteralPatternWithComputedProperties"),
+    (
+        ObjectFlags::ObjectLiteralPatternWithComputedProperties,
+        "ObjectLiteralPatternWithComputedProperties",
+    ),
     (ObjectFlags::ReverseMapped, "ReverseMapped"),
     (ObjectFlags::JsxAttributes, "JsxAttributes"),
     (ObjectFlags::JSLiteral, "JSLiteral"),
@@ -130,9 +133,7 @@ const ELEMENT_FLAG_NAMES: &[(ElementFlags, &str)] = &[
 ];
 
 fn flag_names<F: bitflags::Flags + Copy>(flags: F, table: &[(F, &str)]) -> Value {
-    Value::Array(
-        table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| json!(n)).collect(),
-    )
+    Value::Array(table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| json!(n)).collect())
 }
 
 /// Interns checker values as protocol ids (1-based, stable for the session).
@@ -213,9 +214,9 @@ fn config_value(v: &Value) -> CompilerOptionsValue {
         Value::Number(n) => CompilerOptionsValue::Float(n.as_f64().unwrap_or(0.0)),
         Value::String(s) => CompilerOptionsValue::String(s.clone()),
         Value::Array(a) => CompilerOptionsValue::Array(a.iter().map(config_value).collect()),
-        Value::Object(m) => {
-            CompilerOptionsValue::Object(m.iter().map(|(k, v)| (k.clone(), config_value(v))).collect())
-        }
+        Value::Object(m) => CompilerOptionsValue::Object(
+            m.iter().map(|(k, v)| (k.clone(), config_value(v))).collect(),
+        ),
     }
 }
 
@@ -234,7 +235,9 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
     json.insert("compilerOptions".to_string(), config_value(field(q, "compilerOptions")?));
     json.insert(
         "files".to_string(),
-        CompilerOptionsValue::Array(roots.iter().map(|r| CompilerOptionsValue::String(r.clone())).collect()),
+        CompilerOptionsValue::Array(
+            roots.iter().map(|r| CompilerOptionsValue::String(r.clone())).collect(),
+        ),
     );
     let parsed = tsrs_tsoptions::parse_json_config_file_content(
         CompilerOptionsValue::Object(json),
@@ -246,28 +249,27 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
         None,
     );
     // 18002: no inputs (empty rootFiles), 18003: no inputs found.
-    let failures: Vec<String> =
-        parsed.errors.iter().filter(|d| d.code() != 18002 && d.code() != 18003).map(|d| d.localize()).collect();
+    let failures: Vec<String> = parsed
+        .errors
+        .iter()
+        .filter(|d| d.code() != 18002 && d.code() != 18003)
+        .map(|d| d.localize())
+        .collect();
     if !failures.is_empty() {
         return Err(failures.join("\n"));
     }
     let base = (*parsed.compiler_options().unwrap()).clone();
     // One checker on this thread: the pool's single checker is the one every query uses.
-    let options = P::new(CompilerOptions { single_threaded: Tristate::True, checkers: Some(1), ..base });
+    let options =
+        P::new(CompilerOptions { single_threaded: Tristate::True, checkers: Some(1), ..base });
     let compare = ComparePathsOptions {
         use_case_sensitive_file_names: fs.use_case_sensitive_file_names(),
         current_directory: cwd.clone(),
     };
     let config =
         P::new(tsrs_tsoptions::new_parsed_command_line(options, roots, Vec::new(), compare));
-    let compiler_host = tsrs_compiler::new_compiler_host(
-        &cwd,
-        fs,
-        &bundled::default_lib_path(),
-        None,
-        None,
-        None,
-    );
+    let compiler_host =
+        tsrs_compiler::new_compiler_host(&cwd, fs, &bundled::default_lib_path(), None, None, None);
     let mut program_options = ProgramOptions::new(config, compiler_host);
     program_options.single_threaded = Tristate::True;
     let program = tsrs_compiler::new_program(program_options);
@@ -275,12 +277,7 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
         eprintln!("tsoa-facts: program: {}", d.localize());
     }
     let checker = program.get_type_checker(&Context::background());
-    let mut s = Session {
-        checker,
-        files: Ids::new(),
-        types: Ids::new(),
-        symbols: Ids::new(),
-    };
+    let mut s = Session { checker, files: Ids::new(), types: Ids::new(), symbols: Ids::new() };
     let files: Vec<Value> = program
         .get_source_files()
         .iter()
@@ -313,7 +310,8 @@ fn equivalent_kind(kind: &str) -> Option<&'static str> {
 fn find_node(node: P<Node>, pos: u32, end: u32, kind: &str) -> Option<P<Node>> {
     if node.pos().source_offset() == Some(pos)
         && node.end().source_offset() == Some(end)
-        && (kind_name(node.kind()) == kind || equivalent_kind(kind) == Some(kind_name(node.kind()).as_str()))
+        && (kind_name(node.kind()) == kind
+            || equivalent_kind(kind) == Some(kind_name(node.kind()).as_str()))
     {
         return Some(node);
     }
@@ -337,7 +335,10 @@ impl Session {
         let file = self.files.get(field(r, "file")?, "file")?;
         let map = file.get_position_map();
         let utf16 = |name: &str| -> Result<u32, String> {
-            field(r, name)?.as_u64().map(|n| n as u32).ok_or_else(|| format!("node.{name}: expected a number"))
+            field(r, name)?
+                .as_u64()
+                .map(|n| n as u32)
+                .ok_or_else(|| format!("node.{name}: expected a number"))
         };
         let (pos16, end16) = (utf16("pos")?, utf16("end")?);
         let pos = map.utf16_to_utf8(pos16);
@@ -352,7 +353,9 @@ impl Session {
             return Value::Null;
         };
         let map = file.get_position_map();
-        let utf16 = |p: tsrs_core::text::TextPos| p.source_offset().map_or(-1, |o| map.utf8_to_utf16(o) as i64);
+        let utf16 = |p: tsrs_core::text::TextPos| {
+            p.source_offset().map_or(-1, |o| map.utf8_to_utf16(o) as i64)
+        };
         json!({
             "file": self.files.id(file),
             "pos": utf16(node.pos()),
@@ -410,7 +413,10 @@ impl Session {
                 }
                 Some(LiteralValue::BigInt(b)) => {
                     let digits = if b.base10_value.is_empty() { "0" } else { b.base10_value };
-                    o.insert("value".into(), json!({ "negative": b.negative, "base10Value": digits }));
+                    o.insert(
+                        "value".into(),
+                        json!({ "negative": b.negative, "base10Value": digits }),
+                    );
                 }
                 None => {}
             }
@@ -427,7 +433,9 @@ impl Session {
                 o.insert("aliasTypeArguments".into(), args);
             }
         }
-        if flags.intersects(TypeFlags::Object) && t.object_flags().intersects(ObjectFlags::Reference) {
+        if flags.intersects(TypeFlags::Object)
+            && t.object_flags().intersects(ObjectFlags::Reference)
+        {
             let args = self.checker.get_type_arguments_exported(t);
             let args = self.type_ids(args);
             o.insert("typeArguments".into(), args);
@@ -492,7 +500,9 @@ impl Session {
         let mut types = Map::new();
         for id in type_ids {
             let t = self.types.list[id as usize - 1];
-            if let Ok(facts) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.type_facts(t))) {
+            if let Ok(facts) =
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.type_facts(t)))
+            {
                 self.types.mark_sent(id);
                 types.insert(id.to_string(), facts);
             }
@@ -500,7 +510,9 @@ impl Session {
         let mut symbols = Map::new();
         for id in symbol_ids {
             let s = self.symbols.list[id as usize - 1];
-            if let Ok(facts) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.symbol_facts(s))) {
+            if let Ok(facts) =
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.symbol_facts(s)))
+            {
                 self.symbols.mark_sent(id);
                 symbols.insert(id.to_string(), facts);
             }
@@ -525,14 +537,27 @@ impl Session {
             list: Vec<Value>,
         }
         impl Entries {
-            fn push(&mut self, pos: u32, end: u32, kind: &str, id: Option<u32>, map: &tsrs_ast::PositionMap) {
+            fn push(
+                &mut self,
+                pos: u32,
+                end: u32,
+                kind: &str,
+                id: Option<u32>,
+                map: &tsrs_ast::PositionMap,
+            ) {
                 if self.seen.insert((pos, end, kind.to_string())) {
-                    self.list.push(json!([map.utf8_to_utf16(pos), map.utf8_to_utf16(end), kind, id]));
+                    self.list.push(json!([
+                        map.utf8_to_utf16(pos),
+                        map.utf8_to_utf16(end),
+                        kind,
+                        id
+                    ]));
                 }
             }
         }
         let new_entries = || Entries { seen: Default::default(), list: Vec::new() };
-        let (mut symbol_at, mut type_from, mut declared) = (new_entries(), new_entries(), new_entries());
+        let (mut symbol_at, mut type_from, mut declared) =
+            (new_entries(), new_entries(), new_entries());
         let mut property_symbols: Vec<P<Symbol>> = Vec::new();
         let map = file.get_position_map();
 
@@ -545,7 +570,8 @@ impl Session {
             declared: &mut Entries,
             property_symbols: &mut Vec<P<Symbol>>,
         ) {
-            if let (Some(pos), Some(end)) = (node.pos().source_offset(), node.end().source_offset()) {
+            if let (Some(pos), Some(end)) = (node.pos().source_offset(), node.end().source_offset())
+            {
                 let kind = kind_name(node.kind());
                 if node.kind() == Kind::Identifier {
                     let sym = s.checker.get_symbol_at_location_exported(node);
@@ -571,7 +597,15 @@ impl Session {
                 false
             });
         }
-        visit(self, file.as_node(), &map, &mut symbol_at, &mut type_from, &mut declared, &mut property_symbols);
+        visit(
+            self,
+            file.as_node(),
+            &map,
+            &mut symbol_at,
+            &mut type_from,
+            &mut declared,
+            &mut property_symbols,
+        );
 
         let mut type_of_symbol = Vec::new();
         let mut done = std::collections::HashSet::new();
@@ -617,7 +651,8 @@ impl Session {
         // The printer must share the node builder's emit context: the builder records emit flags there (SingleLine
         // on type literals), as TypeScript 6 records them on the nodes.
         let emit_context = tsrs_printer::new_emit_context();
-        let builder = tsrs_checker::new_node_builder_ex(&self.checker, emit_context, Some(id_to_symbol));
+        let builder =
+            tsrs_checker::new_node_builder_ex(&self.checker, emit_context, Some(id_to_symbol));
         let Some(node) = builder.type_to_type_node(
             &mut self.checker,
             t,
@@ -635,7 +670,11 @@ impl Session {
         );
         let text = printer.emit(node, None);
         let mut symbols = Vec::new();
-        fn visit(node: P<Node>, out: &mut Vec<Option<P<Symbol>>>, map: &FxHashMap<P<Node>, P<Symbol>>) {
+        fn visit(
+            node: P<Node>,
+            out: &mut Vec<Option<P<Symbol>>>,
+            map: &FxHashMap<P<Node>, P<Symbol>>,
+        ) {
             if node.kind() == Kind::Identifier {
                 out.push(map.get(&node).copied());
             }
@@ -886,5 +925,11 @@ fn main() {
     #[cfg(target_os = "linux")]
     tsrs_core::allocator::init_mimalloc();
     // Checking recurses deeply; serve on a large stack as the tsrs CLI does.
-    std::thread::Builder::new().name("tsoa-facts".into()).stack_size(512 << 20).spawn(serve).unwrap().join().unwrap();
+    std::thread::Builder::new()
+        .name("tsoa-facts".into())
+        .stack_size(512 << 20)
+        .spawn(serve)
+        .unwrap()
+        .join()
+        .unwrap();
 }
