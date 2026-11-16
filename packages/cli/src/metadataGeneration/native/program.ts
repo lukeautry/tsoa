@@ -108,9 +108,9 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
   const inlineTypes = new Map<TypeId, TypeFacts>();
   const inlineSymbols = new Map<SymbolId, SymbolFacts>();
 
-  const askHelper = <O extends Op>(query: Query<O>): Answer<O> => {
+  const askHelper = <O extends Op>(query: Query<O>, failure = `tsoa compiler helper: ${query.op} failed`): Answer<O> => {
     const response = channel.request(query as Query);
-    if (!response.ok) throw new Error(`tsoa compiler helper: ${query.op} failed: ${response.error}`);
+    if (!response.ok) throw new Error(`${failure}: ${response.error}`);
     for (const [id, facts] of Object.entries(response.facts?.types ?? {})) inlineTypes.set(Number(id) as TypeId, facts);
     for (const [id, facts] of Object.entries(response.facts?.symbols ?? {})) inlineSymbols.set(Number(id) as SymbolId, facts);
     return response.result as Answer<O>;
@@ -199,7 +199,7 @@ function createProgramOverChannel(channel: Channel, rootFiles: readonly string[]
     prefetched.add(file);
     const sourceFile = sourceFiles.get(file);
     if (!sourceFile || sourceFile.isDeclarationFile) return;
-    const answers = askHelper({ op: 'prefetchFile', file });
+    const answers = askHelper({ op: 'prefetchFile', file }, `tsoa compiler helper failed on ${infos.get(file)!.fileName}`);
     const index = indexFile(sourceFile);
     const seed = (op: NodeOp, entries: Array<[number, number, string, number | null]>) => {
       for (const [pos, end, kind, id] of entries) {
