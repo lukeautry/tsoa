@@ -7,3 +7,7 @@ tests/fixtures/**/custom-route-generator/routes/
 # Bundled-consumer fixture: esbuild entry point that is never part of the
 # package program, so Node globals and the deep @tsoa/cli import stay untyped.
 tests/fixtures/tsconfig-bundler/pkg/consumer/
+# Build outputs of the compiler helpers: upstream compiler checkouts and binaries.
+packages/cli-native/go/upstream/
+packages/cli-native/rs/tsrs/
+packages/cli-native/**/bin/
