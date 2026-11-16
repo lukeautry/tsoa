@@ -13,26 +13,26 @@ import { openHelperSession } from './session';
 import { createSourceIndex } from './sourceIndex';
 
 export function createNativeProgram(helperPath: string, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): MetadataProgram {
-  const channel = openChannel(helperPath);
+  return createProgramOverChannel(openChannel(helperPath), rootFiles, compilerOptions);
+}
+
+/** Closes the channel if the program cannot be made. */
+export function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): MetadataProgram {
   try {
-    return createProgramOverChannel(channel, rootFiles, compilerOptions);
+    const session = openHelperSession(channel, rootFiles, compilerOptions);
+    const index = createSourceIndex(session, rootFiles, compilerOptions);
+    const objects = createNativeObjects(session, index);
+    index.bindDeclarationSymbols(objects.symbolOf);
+    const checker = createNativeChecker(session, index, objects) as unknown as ts.TypeChecker;
+    objects.setChecker(checker);
+    return {
+      getTypeChecker: () => checker,
+      getSourceFiles: index.ownFiles,
+      isSourceFileDefaultLibrary: index.isDefaultLibrary,
+      close: session.close,
+    };
   } catch (error) {
     channel.close();
     throw error;
   }
-}
-
-export function createProgramOverChannel(channel: Channel, rootFiles: readonly string[], compilerOptions: ts.CompilerOptions): MetadataProgram {
-  const session = openHelperSession(channel, rootFiles, compilerOptions);
-  const index = createSourceIndex(session, rootFiles, compilerOptions);
-  const objects = createNativeObjects(session, index);
-  index.bindDeclarationSymbols(objects.symbolOf);
-  const checker = createNativeChecker(session, index, objects) as unknown as ts.TypeChecker;
-  objects.setChecker(checker);
-  return {
-    getTypeChecker: () => checker,
-    getSourceFiles: index.ownFiles,
-    isSourceFileDefaultLibrary: index.isDefaultLibrary,
-    close: session.close,
-  };
 }
