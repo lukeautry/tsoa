@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { accessSync, constants, readSync, writeSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { accessSync, closeSync, constants, openSync, readSync, writeSync } from 'node:fs';
 import type { Readable, Writable } from 'node:stream';
 import type { Query, Response } from './protocol';
 
@@ -21,16 +22,15 @@ function pipeHandle(stream: Readable | Writable): PipeHandle {
 const liveHelpers = new Set<ChildProcess>();
 process.on('exit', () => liveHelpers.forEach(child => child.kill()));
 
-/**
- * Length-prefixed JSON over the helper's stdio, read synchronously so tsoa's synchronous resolver stays synchronous.
- * The child is unref'd so it never holds the event loop open; it is killed on `close()` or when this process exits.
- */
-export function openChannel(helperPath: string): Channel {
-  try {
-    accessSync(helperPath, constants.X_OK);
-  } catch {
-    throw new Error(`tsoa compiler helper not found or not executable: ${helperPath}`);
-  }
+interface Connection {
+  child: ChildProcess;
+  readFd: number;
+  writeFd: number;
+  close(): void;
+}
+
+/** POSIX: the child's stdio pipes, read and written through their file descriptors. */
+function connectOverStdio(helperPath: string): Connection {
   const child = spawn(helperPath, [], { stdio: ['pipe', 'pipe', 'inherit'] });
   liveHelpers.add(child);
   // A helper that fails to start (or to be killed) emits `error` after the synchronous request that saw it fail has
@@ -44,6 +44,55 @@ export function openChannel(helperPath: string): Channel {
   (child.stdout as unknown as { unref(): void }).unref();
   (child.stdin as unknown as { unref(): void }).unref();
   child.unref();
+  return {
+    child,
+    readFd: output.fd,
+    writeFd: input.fd,
+    close() {
+      child.stdout.destroy();
+      child.stdin.destroy();
+    },
+  };
+}
+
+/**
+ * Windows: libuv pipe handles expose no file descriptor, so the helper serves a named pipe given as `--pipe` and this
+ * process opens it with `openSync`, as TypeScript 7's own API client does. Untested on Windows.
+ */
+function connectOverNamedPipe(helperPath: string): Connection {
+  const pipePath = `\\\\.\\pipe\\tsoa-facts-${process.pid}-${randomBytes(16).toString('hex')}`;
+  const child = spawn(helperPath, ['--pipe', pipePath], { stdio: ['ignore', 'ignore', 'inherit'] });
+  liveHelpers.add(child);
+  child.on('error', () => liveHelpers.delete(child));
+  child.unref();
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  for (let attempt = 0; attempt < 500; attempt++) {
+    try {
+      const fd = openSync(pipePath, 'r+');
+      return { child, readFd: fd, writeFd: fd, close: () => closeSync(fd) };
+    } catch {
+      if (child.exitCode !== null) break;
+      Atomics.wait(pause, 0, 0, 10);
+    }
+  }
+  liveHelpers.delete(child);
+  child.kill();
+  throw new Error(`tsoa compiler helper did not open its pipe ${pipePath}`);
+}
+
+/**
+ * Length-prefixed JSON over the helper's stdio (a named pipe on Windows), read synchronously so tsoa's synchronous
+ * resolver stays synchronous. The child is unref'd so it never holds the event loop open; it is killed on `close()` or
+ * when this process exits.
+ */
+export function openChannel(helperPath: string): Channel {
+  try {
+    accessSync(helperPath, constants.X_OK);
+  } catch {
+    throw new Error(`tsoa compiler helper not found or not executable: ${helperPath}`);
+  }
+  const connection = process.platform === 'win32' ? connectOverNamedPipe(helperPath) : connectOverStdio(helperPath);
+  const { child, readFd, writeFd } = connection;
 
   let buffer = Buffer.alloc(1 << 20);
   let start = 0;
@@ -64,7 +113,7 @@ export function openChannel(helperPath: string): Channel {
       }
       let n: number;
       try {
-        n = readSync(output.fd, buffer, end, buffer.length - end, null);
+        n = readSync(readFd, buffer, end, buffer.length - end, null);
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EAGAIN') continue;
         throw error;
@@ -83,7 +132,7 @@ export function openChannel(helperPath: string): Channel {
       let written = 0;
       while (written < message.length) {
         try {
-          written += writeSync(input.fd, message, written);
+          written += writeSync(writeFd, message, written);
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== 'EAGAIN') throw error;
         }
@@ -98,8 +147,7 @@ export function openChannel(helperPath: string): Channel {
     },
     close() {
       liveHelpers.delete(child);
-      child.stdout.destroy();
-      child.stdin.destroy();
+      connection.close();
       child.kill();
     },
   };

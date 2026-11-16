@@ -14,6 +14,7 @@ tsrs_tsoptions.workspace = true
 tsrs_compiler.workspace = true
 tsrs_checker.workspace = true
 tsrs_printer.workspace = true
+tsrs_api_transport.workspace = true
 rustc-hash.workspace = true
 bitflags.workspace = true
 serde_json.workspace = true

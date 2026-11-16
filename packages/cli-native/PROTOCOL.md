@@ -6,9 +6,12 @@ tsoa starts one short-lived helper process per generation. The helper loads one 
 
 **Syntax stays in Node.** Node parses every file with TypeScript 6's parser (`ts.createSourceFile`, `setParentNodes: true`). JSDoc, decorators, `getText`, `forEachChild` and every `ts.isX` guard keep running on TypeScript 6 nodes. The helper never sends a syntax tree. A node crosses the boundary only as a `NodeRef`, which the helper resolves in its own tree.
 
-## Framing
+## Transport and framing
 
-Each message is a 4-byte little-endian length followed by that many bytes of UTF-8 JSON. Node writes a request to the helper's stdin and blocks reading one response from its stdout. One request is in flight at a time. stderr is free for logs.
+Each message is a 4-byte little-endian length followed by that many bytes of UTF-8 JSON. Node writes a request and blocks reading one response. One request is in flight at a time.
+
+- By default the helper reads requests from stdin and writes responses to stdout. stderr is free for logs.
+- With `--pipe <path>` the helper listens on that named pipe (Windows) or Unix domain socket, accepts one connection, and serves the same framing over it. Node uses this on Windows, where it cannot read a child's stdout synchronously.
 
 ```ts
 type Request = { op: 'batch'; queries: Query[] } | Query;
@@ -183,4 +186,4 @@ TypeScript 6 resolves `{@link X}` with `getSymbolAtLocation` on a JSDoc identifi
 5. `members`.
 6. `open` takes full `compilerOptions`; `tsconfig` and `strictNullChecks` dropped.
 7. `IndexInfo.declaration`; element flags on tuple targets only.
-8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member. Later, without a number change: helpers stop sending the names in that list.
+8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member. Later, without a number change: helpers stop sending the names in that list, and the `--pipe` transport.

@@ -1,4 +1,5 @@
-// tsoa facts helper on tsrs: answers PROTOCOL.md queries about one program with one checker, on one thread.
+// tsoa facts helper on tsrs: answers PROTOCOL.md queries about one program with one checker, on one thread, over
+// stdio or the named pipe given as `--pipe <path>`.
 
 #[global_allocator]
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
@@ -884,9 +885,7 @@ fn write_message(output: &mut impl Write, v: &Value) {
     output.flush().unwrap();
 }
 
-fn serve() {
-    let mut input = std::io::stdin().lock();
-    let mut output = std::io::stdout().lock();
+fn serve(mut input: impl Read, mut output: impl Write) {
     let mut session: Option<Session> = None;
     while let Some(body) = read_message(&mut input) {
         let request: Value = match serde_json::from_slice(&body) {
@@ -925,10 +924,28 @@ fn main() {
     #[cfg(target_os = "linux")]
     tsrs_core::allocator::init_mimalloc();
     // Checking recurses deeply; serve on a large stack as the tsrs CLI does.
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let stream = match args.as_slice() {
+        [flag, path] if flag == "--pipe" => {
+            match tsrs_api_transport::PipeListener::bind(std::path::Path::new(path))
+                .and_then(|l| l.accept())
+            {
+                Ok(stream) => Some(stream),
+                Err(e) => {
+                    eprintln!("--pipe: {e}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        _ => None,
+    };
     std::thread::Builder::new()
         .name("tsoa-facts".into())
         .stack_size(512 << 20)
-        .spawn(serve)
+        .spawn(move || match stream {
+            Some(stream) => serve(stream.reader, stream.writer),
+            None => serve(std::io::stdin().lock(), std::io::stdout().lock()),
+        })
         .unwrap()
         .join()
         .unwrap();

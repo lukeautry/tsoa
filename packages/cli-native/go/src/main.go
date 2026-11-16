@@ -1,5 +1,6 @@
 // Command tsoa-facts answers type and symbol questions about one program over the tsoa facts protocol
-// (spike/PROTOCOL.md): length-prefixed JSON on stdin and stdout, one checker, one goroutine.
+// (packages/cli-native/PROTOCOL.md): length-prefixed JSON on stdin and stdout, or on the named pipe given as
+// `--pipe <path>`, one checker, one goroutine.
 package main
 
 import (
@@ -18,6 +19,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/ipc"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
@@ -83,8 +85,27 @@ type session struct {
 func main() {
 	debug.SetGCPercent(-1)
 	debug.SetMemoryLimit(2 << 30)
-	in := bufio.NewReader(os.Stdin)
-	out := bufio.NewWriter(os.Stdout)
+	var conn io.ReadWriter = struct {
+		io.Reader
+		io.Writer
+	}{os.Stdin, os.Stdout}
+	if len(os.Args) == 3 && os.Args[1] == "--pipe" {
+		transport, err := ipc.NewPipeTransport(os.Args[2])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "--pipe:", err)
+			os.Exit(1)
+		}
+		defer transport.Close()
+		accepted, err := transport.Accept()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "--pipe:", err)
+			os.Exit(1)
+		}
+		defer accepted.Close()
+		conn = accepted
+	}
+	in := bufio.NewReader(conn)
+	out := bufio.NewWriter(conn)
 	s := &session{sentTypes: map[int]bool{}, sentSymbols: map[int]bool{}}
 	for !s.closed {
 		var header [4]byte
