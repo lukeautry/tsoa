@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { readSync, writeSync } from 'node:fs';
+import { accessSync, constants, readSync, writeSync } from 'node:fs';
 import type { Readable, Writable } from 'node:stream';
 import type { Query, Response } from './protocol';
 
@@ -26,8 +26,16 @@ process.on('exit', () => liveHelpers.forEach(child => child.kill()));
  * The child is unref'd so it never holds the event loop open; it is killed on `close()` or when this process exits.
  */
 export function openChannel(helperPath: string): Channel {
+  try {
+    accessSync(helperPath, constants.X_OK);
+  } catch {
+    throw new Error(`tsoa compiler helper not found or not executable: ${helperPath}`);
+  }
   const child = spawn(helperPath, [], { stdio: ['pipe', 'pipe', 'inherit'] });
   liveHelpers.add(child);
+  // A helper that fails to start (or to be killed) emits `error` after the synchronous request that saw it fail has
+  // already thrown; listening keeps Node from printing it as unhandled.
+  child.on('error', () => liveHelpers.delete(child));
   const output = pipeHandle(child.stdout);
   const input = pipeHandle(child.stdin);
   output.setBlocking?.(true);
