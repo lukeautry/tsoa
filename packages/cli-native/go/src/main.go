@@ -41,9 +41,7 @@ type args struct {
 	Op               string            `json:"op"`
 	Queries          []json.RawMessage `json:"queries"`
 	Cwd              string            `json:"cwd"`
-	Tsconfig         *string           `json:"tsconfig"`
 	RootFiles        []string          `json:"rootFiles"`
-	StrictNullChecks *bool             `json:"strictNullChecks"`
 	CompilerOptions  map[string]any    `json:"compilerOptions"`
 	File             int               `json:"file"`
 	Node             *nodeRef          `json:"node"`
@@ -401,25 +399,16 @@ func (s *session) open(a *args) (any, error) {
 	}
 	fs := bundled.WrapFS(osvfs.FS())
 	cwd := tspath.RootedDirectoryPathFromAbsolute(a.Cwd)
-	var config *tsoptions.ParsedCommandLine
-	var diags []*ast.Diagnostic
-	if a.CompilerOptions != nil {
-		files := make([]any, len(a.RootFiles))
-		for i, f := range a.RootFiles {
-			files[i] = f
-		}
-		config = tsoptions.ParseJsonConfigFileContent(map[string]any{"compilerOptions": a.CompilerOptions, "files": files}, fs, cwd, nil, tspath.ToRootedFilePath("tsconfig.json", cwd), nil, nil)
-	} else if a.Tsconfig != nil {
-		config, diags = tsoptions.GetParsedCommandLineOfConfigFile(tspath.ToRootedFilePath(*a.Tsconfig, cwd), &core.CompilerOptions{}, nil, fs, nil)
-	} else {
-		config = tsoptions.NewParsedCommandLine(&core.CompilerOptions{}, nil, nil, cwd, fs.CaseSensitivity())
+	files := make([]any, len(a.RootFiles))
+	for i, f := range a.RootFiles {
+		files[i] = f
 	}
-	if config != nil {
-		for _, d := range config.Errors {
-			// "No inputs were found": the root files below replace the config's own file list.
-			if d.Code() != 18002 && d.Code() != 18003 {
-				diags = append(diags, d)
-			}
+	config := tsoptions.ParseJsonConfigFileContent(map[string]any{"compilerOptions": a.CompilerOptions, "files": files}, fs, cwd, nil, tspath.ToRootedFilePath("tsconfig.json", cwd), nil, nil)
+	var diags []*ast.Diagnostic
+	for _, d := range config.Errors {
+		// "No inputs were found": the root files below replace the config's own file list.
+		if d.Code() != 18002 && d.Code() != 18003 {
+			diags = append(diags, d)
 		}
 	}
 	if len(diags) > 0 {
@@ -429,18 +418,11 @@ func (s *session) open(a *args) (any, error) {
 		}
 		return nil, errors.New(strings.Join(messages, "\n"))
 	}
-	options := config.CompilerOptions().Clone()
-	if a.StrictNullChecks != nil && a.CompilerOptions == nil {
-		options.StrictNullChecks = core.IfElse(*a.StrictNullChecks, core.TSTrue, core.TSFalse)
+	roots := make([]tspath.RootedFilePath, len(a.RootFiles))
+	for i, f := range a.RootFiles {
+		roots[i] = tspath.ToRootedFilePath(f, cwd)
 	}
-	config.SetCompilerOptions(options)
-	if a.RootFiles != nil {
-		roots := make([]tspath.RootedFilePath, len(a.RootFiles))
-		for i, f := range a.RootFiles {
-			roots[i] = tspath.ToRootedFilePath(f, cwd)
-		}
-		config = config.WithFileNames(roots)
-	}
+	config = config.WithFileNames(roots)
 	host := compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)
 	s.program = compiler.NewProgram(compiler.ProgramOptions{ProgramConfig: compiler.ProgramConfig{Config: config}, ProgramHosts: compiler.ProgramHosts{Host: host}})
 	s.checker, _ = checker.NewChecker(s.program, nil)

@@ -234,51 +234,28 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
         .map(|v| v.as_str().map(|s| tspath::get_normalized_absolute_path(s, &cwd)))
         .collect::<Option<_>>()
         .ok_or("rootFiles: expected strings")?;
-    let (base, roots) = match q.get("compilerOptions") {
-        Some(compiler_options) => {
-            let mut json = OrderedMap::default();
-            json.insert("compilerOptions".to_string(), config_value(compiler_options));
-            json.insert(
-                "files".to_string(),
-                CompilerOptionsValue::Array(roots.iter().map(|r| CompilerOptionsValue::String(r.clone())).collect()),
-            );
-            let parsed = tsrs_tsoptions::parse_json_config_file_content(
-                CompilerOptionsValue::Object(json),
-                &host,
-                &cwd,
-                None,
-                &format!("{cwd}/tsconfig.json"),
-                &[],
-                None,
-            );
-            // 18002: no inputs (empty rootFiles), 18003: no inputs found.
-            let failures: Vec<String> =
-                parsed.errors.iter().filter(|d| d.code() != 18002 && d.code() != 18003).map(|d| d.localize()).collect();
-            if !failures.is_empty() {
-                return Err(failures.join("\n"));
-            }
-            ((*parsed.compiler_options().unwrap()).clone(), roots)
-        }
-        None => {
-            let base = match q.get("tsconfig").and_then(Value::as_str) {
-                Some(path) => {
-                    let (config, errors) =
-                        tsrs_tsoptions::get_parsed_command_line_of_config_file(path, None, None, &host, None);
-                    let config = config.ok_or_else(|| {
-                        errors.iter().map(|d| d.localize()).collect::<Vec<_>>().join("\n")
-                    })?;
-                    for e in &config.errors {
-                        eprintln!("tsoa-facts: tsconfig: {}", e.localize());
-                    }
-                    (*config.compiler_options().unwrap()).clone()
-                }
-                None => CompilerOptions::default(),
-            };
-            let strict_null_checks =
-                if field(q, "strictNullChecks")?.as_bool() == Some(true) { Tristate::True } else { Tristate::False };
-            (CompilerOptions { strict_null_checks, ..base }, roots)
-        }
-    };
+    let mut json = OrderedMap::default();
+    json.insert("compilerOptions".to_string(), config_value(field(q, "compilerOptions")?));
+    json.insert(
+        "files".to_string(),
+        CompilerOptionsValue::Array(roots.iter().map(|r| CompilerOptionsValue::String(r.clone())).collect()),
+    );
+    let parsed = tsrs_tsoptions::parse_json_config_file_content(
+        CompilerOptionsValue::Object(json),
+        &host,
+        &cwd,
+        None,
+        &format!("{cwd}/tsconfig.json"),
+        &[],
+        None,
+    );
+    // 18002: no inputs (empty rootFiles), 18003: no inputs found.
+    let failures: Vec<String> =
+        parsed.errors.iter().filter(|d| d.code() != 18002 && d.code() != 18003).map(|d| d.localize()).collect();
+    if !failures.is_empty() {
+        return Err(failures.join("\n"));
+    }
+    let base = (*parsed.compiler_options().unwrap()).clone();
     // One checker on this thread: the pool's single checker is the one every query uses.
     let options = P::new(CompilerOptions { single_threaded: Tristate::True, checkers: Some(1), ..base });
     let compare = ComparePathsOptions {
