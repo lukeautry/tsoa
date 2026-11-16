@@ -1,0 +1,55 @@
+name: Locked dependency inventory
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install Yarn
+        run: npm install -g --ignore-scripts yarn@1.22.22
+
+      - name: Install locked dependencies
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Build locked tree
+        run: yarn build
+
+      - name: Download and verify cdxgen
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL https://github.com/CycloneDX/cdxgen/releases/download/v13.5.0/cdxgen-linux-amd64 -o cdxgen-linux-amd64
+          echo 'b61a36124390ea7b64ca544f12eda902583f8769ff1de7b84e5e8ada2a2ec96a  cdxgen-linux-amd64' | sha256sum -c -
+          chmod +x cdxgen-linux-amd64
+
+      - name: Generate CycloneDX inventory
+        run: '"$RUNNER_TEMP/cdxgen-linux-amd64" -t js --no-install-deps --fail-on-error --spec-version 1.6 -o "$RUNNER_TEMP/tsoa-${{ github.sha }}.cdx.json" .'
+
+      - name: Validate workspace inventory
+        run: yarn ts-node --project tests/tsconfig.json tests/sbom/checkInventory.ts "$RUNNER_TEMP/tsoa-${{ github.sha }}.cdx.json"
+
+      - name: Check tracked inputs are unchanged
+        run: git diff --exit-code
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-${{ github.sha }}
+          path: ${{ runner.temp }}/tsoa-${{ github.sha }}.cdx.json
+          if-no-files-found: error
