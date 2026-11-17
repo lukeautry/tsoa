@@ -54,6 +54,12 @@ export class WidgetController extends Controller {
   public async get(@Path() id: number): Promise<Omit<Page<Widget<string>>, 'total'> | undefined> {
     return undefined;
   }
+
+  /** Omit on an interface that extends another: TypeScript 7 lists the inherited \`id\` first, TypeScript 6 last. */
+  @Get('{id}/summary')
+  public async summary(@Path() id: number): Promise<Omit<Widget<string>, 'extra'>> {
+    return { id, name: '', tags: [], payload: '', size: 3, dimensions: null };
+  }
 }
 `;
 
@@ -69,20 +75,29 @@ process.stdout.write(JSON.stringify({ choice, nativeLoaded, metadata }));
 `;
 
 // TypeScript 6 and 7 order union members differently, so union members, enum values and `required` lists are sorted
-// before comparing, as tests/utils/unorderedSchema.ts does for specs. Every other list keeps its order.
+// before comparing, as tests/utils/unorderedSchema.ts does for specs. TypeScript 7's order also reaches the properties of
+// mapped types such as Omit and Pick, so those are sorted by name too. Every other list keeps its order.
+let mappedTypeDepth = 0;
 const byJson = (a, b) => (JSON.stringify(a) < JSON.stringify(b) ? -1 : JSON.stringify(a) > JSON.stringify(b) ? 1 : 0);
 const unordered = (value, parent, key) => {
   if (!value || typeof value !== 'object') return value;
   if (Array.isArray(value)) {
     const items = value.map(item => unordered(item, value));
     const union = (key === 'types' && ['union', 'intersection'].includes(parent?.dataType)) || key === 'enums' || key === 'required';
-    return union ? items.sort(byJson) : items;
+    const mapped = key === 'properties' && mappedTypeDepth > 0;
+    return union || mapped ? items.sort(byJson) : items;
   }
-  return Object.fromEntries(
-    Object.keys(value)
-      .sort()
-      .map(name => [name, unordered(value[name], value, name)]),
-  );
+  const mapped = /^(Omit|Pick)_/.test(value.refName ?? '');
+  if (mapped) mappedTypeDepth++;
+  try {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map(name => [name, unordered(value[name], value, name)]),
+    );
+  } finally {
+    if (mapped) mappedTypeDepth--;
+  }
 };
 
 const run = (command, args, options) => execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...options });
