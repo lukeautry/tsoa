@@ -1,6 +1,6 @@
 import { findInstalledPackage, selectCompiler, type InstalledPackage } from '@tsoa/cli/metadataGeneration/native/selectCompiler';
 import { expect } from 'chai';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import 'mocha';
@@ -117,8 +117,9 @@ describe('findInstalledPackage', () => {
   });
   after(() => rmSync(root, { recursive: true, force: true }));
 
+  // Node resolves symlinks, and macOS's temporary directory sits under one (/var is /private/var).
   it('resolves a package from the project directory, not from tsoa', () => {
-    expect(findInstalledPackage('typescript', root)).to.deep.include({ version: '7.0.2', directory: join(root, 'node_modules', 'typescript') });
+    expect(findInstalledPackage('typescript', root)).to.deep.include({ version: '7.0.2', directory: join(realpathSync(root), 'node_modules', 'typescript') });
   });
 
   it('returns undefined for a package the project does not have', () => {
