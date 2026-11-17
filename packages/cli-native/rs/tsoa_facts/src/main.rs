@@ -1,9 +1,6 @@
 // tsoa facts helper on tsrs: answers PROTOCOL.md queries about one program with one checker, on one thread, over
 // stdio or the named pipe given as `--pipe <path>`.
 
-#[global_allocator]
-static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
-
 use std::cell::RefCell;
 use std::io::{Read, Write};
 use std::sync::Arc;
@@ -726,8 +723,6 @@ fn serve(mut input: impl Read, mut output: impl Write) {
 }
 
 fn main() {
-    #[cfg(target_os = "linux")]
-    tsrs_core::allocator::init_mimalloc();
     // Checking recurses deeply; serve on a large stack as the tsrs CLI does.
     let args: Vec<String> = std::env::args().skip(1).collect();
     let stream = match args.as_slice() {

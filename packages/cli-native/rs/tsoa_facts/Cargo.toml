@@ -19,7 +19,6 @@ rustc-hash.workspace = true
 bitflags.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-mimalloc-safe.workspace = true
 
 [[bin]]
 name = "tsoa-facts"
