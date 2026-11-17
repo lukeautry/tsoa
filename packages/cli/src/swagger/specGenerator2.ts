@@ -180,7 +180,8 @@ export class SpecGenerator2 extends SpecGenerator {
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any, defaultProduces?: string[]) {
-    const pathMethod: Swagger.Operation = (pathObject[method.method] = this.buildOperation(controllerName, method, defaultProduces));
+    const [operations, operationKey] = this.operationSlot(pathObject, method.method);
+    const pathMethod: Swagger.Operation = (operations[operationKey] = this.buildOperation(controllerName, method, defaultProduces));
     pathMethod.description = method.description;
     pathMethod.summary = method.summary;
     pathMethod.tags = method.tags;
@@ -328,7 +329,7 @@ export class SpecGenerator2 extends SpecGenerator {
 
       return properties.map(property => this.buildParameter(this.queriesPropertyToQueryParameter(property)));
     }
-    throw new Error(`Queries '${source.name}' parameter must be an object.`);
+    throw new Error(`QueryParams '${source.name}' parameter must be an object.`);
   }
 
   private buildParameter(source: Tsoa.Parameter): Swagger.Parameter2 {
@@ -465,7 +466,7 @@ export class SpecGenerator2 extends SpecGenerator {
       }
     } else if (process.env.NODE_ENV !== 'tsoa_test') {
       // eslint-disable-next-line no-console
-      console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+      console.warn('Swagger 2.0 does not support union types beyond string literals.\n' + 'If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.1.');
     }
     return { type: 'object' };
   }
@@ -488,7 +489,7 @@ export class SpecGenerator2 extends SpecGenerator {
       } else {
         if (process.env.NODE_ENV !== 'tsoa_test') {
           // eslint-disable-next-line no-console
-          console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.');
+          console.warn('Swagger 2.0 does not fully support this kind of intersection types. If you would like to take advantage of this, please change tsoa.json\'s "specVersion" to 3.1.');
         }
         return { ...acc };
       }

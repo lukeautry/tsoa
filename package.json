@@ -13,7 +13,8 @@
     "generation",
     "express",
     "hapi.js",
-    "koa"
+    "koa",
+    "fastify"
   ],
   "author": "Luke Autry <lukeautry@gmail.com> (http://www.lukeautry.com)",
   "license": "MIT",
@@ -57,7 +58,8 @@
   },
   "resolutions": {
     "typescript": "^6.0.3",
-    "**/nx/undici": "^7.30.1"
+    "**/nx/undici": "^7.30.1",
+    "@types/koa": "^2.15.0"
   },
   "repository": {
     "type": "git",

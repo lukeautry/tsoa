@@ -12,7 +12,8 @@ import { Tsoa } from '@tsoa/runtime';
 import { hasBinaryBody } from '../utils/internalTypeGuards';
 import { getHeaderType } from '../utils/headerTypeHelpers';
 
-type HttpMethod = 'options' | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head';
+type HttpMethod = Tsoa.Method['method'];
+const httpMethods: readonly HttpMethod[] = ['options', 'get', 'post', 'put', 'patch', 'delete', 'head', 'query'];
 
 export class MethodGenerator {
   protected method?: HttpMethod;
@@ -131,7 +132,7 @@ export class MethodGenerator {
       throw new GenerateMetadataError(`Only one queries parameter allowed in '${this.getCurrentLocation()}' method.`);
     }
     if (queriesParameters.length > 0 && queryParameters.length > 0) {
-      throw new GenerateMetadataError(`Choose either during @Query or @Queries in '${this.getCurrentLocation()}' method.`);
+      throw new GenerateMetadataError(`Choose either during @QueryParam or @QueryParams in '${this.getCurrentLocation()}' method.`);
     }
   }
 
@@ -161,7 +162,7 @@ export class MethodGenerator {
 
     const decorator = pathDecorators[0];
 
-    this.method = decorator.text.toLowerCase() as any;
+    this.method = decorator.text.toLowerCase() as HttpMethod;
     // if you don't pass in a path to the method decorator, we'll just use the base route
     // todo: what if someone has multiple no argument methods of the same type in a single controller?
     // we need to throw an error there
@@ -283,7 +284,7 @@ export class MethodGenerator {
   }
 
   private supportsPathMethod(method: string) {
-    return ['options', 'get', 'post', 'put', 'patch', 'delete', 'head'].some(m => m === method.toLowerCase());
+    return httpMethods.some(m => m === method.toLowerCase());
   }
 
   private getIsDeprecated() {

@@ -70,6 +70,7 @@ export namespace Swagger {
     options?: Operation31;
     head?: Operation31;
     patch?: Operation31;
+    'x-oai-additionalOperations'?: { [method: string]: Operation31 };
     parameters?: Parameter31[];
   }
 
@@ -212,6 +213,7 @@ export namespace Swagger {
     options?: Operation;
     head?: Operation;
     patch?: Operation;
+    'x-oai-additionalOperations'?: { [method: string]: Operation };
     parameters?: Parameter2[];
   }
 
@@ -224,6 +226,7 @@ export namespace Swagger {
     options?: Operation3;
     head?: Operation3;
     patch?: Operation3;
+    'x-oai-additionalOperations'?: { [method: string]: Operation3 };
     parameters?: Parameter3[];
   }
 

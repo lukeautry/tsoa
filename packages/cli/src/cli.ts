@@ -145,7 +145,7 @@ export const validateSpecConfig = async (config: Config): Promise<ExtendedSpecCo
   }
   config.spec.version = config.spec.version || (await versionDefault());
 
-  config.spec.specVersion = config.spec.specVersion || 2;
+  config.spec.specVersion = config.spec.specVersion || 3.1;
   const supportedVersions = [2, 3, 3.1];
   if (!supportedVersions.includes(config.spec.specVersion)) {
     throw new Error(`Unsupported Spec version: ${config.spec.specVersion}.`);

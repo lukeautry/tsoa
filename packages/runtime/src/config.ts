@@ -65,7 +65,7 @@ export interface SpecConfig {
   /**
    * API servers, expressTemplate.g. [production.api.com, staging.api.com]
    *
-   * Only available with the specVersion 3
+   * Only available with specVersion 3 and 3.1
    */
   servers?: string[];
 
@@ -84,7 +84,7 @@ export interface SpecConfig {
 
   /**
    * Major OpenAPI version to generate.
-   * The tsoa CLI and validateSpecConfig default to 2. generateSpec defaults to 3.1 when it is called without one.
+   * Defaults to 3.1.
    * Possible values:
    *  - 2: generates OpenAPI version 2.
    *  - 3: generates OpenAPI version 3.
@@ -147,7 +147,7 @@ export interface SpecConfig {
    * e.g. the 'v1' with toggle true will be https://myapi.comv1
    * Otherwise, http://myapi.com/v1
    *
-   * Only available with the specVersion 3
+   * Only available with specVersion 3 and 3.1
    */
   disableBasePathPrefixSlash?: boolean;
 
@@ -241,7 +241,7 @@ export interface RoutesConfig {
   /**
    * Middleware provider.
    */
-  middleware?: 'express' | 'hapi' | 'koa';
+  middleware?: 'express' | 'hapi' | 'koa' | 'fastify';
 
   /**
    * Override the Middleware template
@@ -254,7 +254,7 @@ export interface RoutesConfig {
   iocModule?: string;
 
   /**
-   * Authentication Module for express, hapi and koa
+   * Authentication Module for express, hapi, koa and fastify
    */
   authenticationModule?: string;
 

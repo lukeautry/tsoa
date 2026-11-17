@@ -1,4 +1,4 @@
-import { Body, Get, Post, Queries, Query, Route } from '@tsoa/runtime';
+import { Body, Get, Post, QueryParams, QueryParam, Route } from '@tsoa/runtime';
 import { z } from 'zod';
 
 // Zod schemas for testing z.infer type resolution
@@ -84,7 +84,7 @@ interface Task {
   dueDate?: Date;
 }
 
-// Pagination schema for @Queries testing
+// Pagination schema for @QueryParams testing
 export const PaginationSchema = z.object({
   page: z
     .string()
@@ -409,7 +409,7 @@ export interface WithComputedKeys {
 @Route('ComplexType')
 export class ComplexTypeController {
   /**
-   * Test @Body with z.infer type (complex types should use @Body, not @Queries)
+   * Test @Body with z.infer type (complex types should use @Body, not @QueryParams)
    */
   @Post('ZodUserBody')
   public async postZodUserBody(@Body() body: z.infer<typeof UserSchema>): Promise<z.infer<typeof UserSchema>> {
@@ -465,34 +465,39 @@ export class ComplexTypeController {
   }
 
   /**
-   * Test @Query with simple primitive types (appropriate for query parameters)
+   * Test @QueryParam with simple primitive types (appropriate for query parameters)
    */
   @Get('SimpleQuery')
-  public async getSimpleQuery(@Query() id: string, @Query() name: string, @Query() age: number, @Query() isActive: boolean): Promise<{ id: string; name: string; age: number; isActive: boolean }> {
+  public async getSimpleQuery(
+    @QueryParam() id: string,
+    @QueryParam() name: string,
+    @QueryParam() age: number,
+    @QueryParam() isActive: boolean,
+  ): Promise<{ id: string; name: string; age: number; isActive: boolean }> {
     return { id, name, age, isActive };
   }
 
   /**
-   * Test @Query with union types (appropriate for query parameters)
+   * Test @QueryParam with union types (appropriate for query parameters)
    */
   @Get('UnionQuery')
-  public async getUnionQuery(@Query() status: Status): Promise<{ status: Status }> {
+  public async getUnionQuery(@QueryParam() status: Status): Promise<{ status: Status }> {
     return { status };
   }
 
   /**
-   * Test @Query with enum types (appropriate for query parameters)
+   * Test @QueryParam with enum types (appropriate for query parameters)
    */
   @Get('EnumQuery')
-  public async getEnumQuery(@Query() priority: Priority): Promise<{ priority: Priority }> {
+  public async getEnumQuery(@QueryParam() priority: Priority): Promise<{ priority: Priority }> {
     return { priority };
   }
 
   /**
-   * Test @Queries with pagination schema (appropriate for query parameters)
+   * Test @QueryParams with pagination schema (appropriate for query parameters)
    */
   @Get('PaginationQuery')
-  public async getPaginationQuery(@Queries() query: PaginationQuery): Promise<{ pagination: PaginationQuery; data: any[] }> {
+  public async getPaginationQuery(@QueryParams() query: PaginationQuery): Promise<{ pagination: PaginationQuery; data: any[] }> {
     return {
       pagination: query,
       data: [

@@ -21,7 +21,7 @@ export namespace Tsoa {
     extensions: Extension[];
     deprecated?: boolean;
     description?: string;
-    method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch';
+    method: 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'patch' | 'query';
     name: string;
     parameters: Parameter[];
     path: string;

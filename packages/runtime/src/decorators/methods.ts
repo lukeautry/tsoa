@@ -39,3 +39,12 @@ export function Head(value?: string): MethodDecorator {
     return;
   };
 }
+
+/**
+ * HTTP QUERY method (RFC 10008): a safe, idempotent request that carries its query in the request body.
+ */
+export function Query(value?: string): MethodDecorator {
+  return () => {
+    return;
+  };
+}

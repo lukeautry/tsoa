@@ -62,10 +62,10 @@ describe('Configuration', () => {
       });
     });
 
-    it('should set the default Spec version 2 when not specified', done => {
+    it('should set the default Spec version 3.1 when not specified', done => {
       const config: Config = getDefaultOptions('some/output/directory', 'tsoa.json');
       validateSpecConfig(config).then((configResult: ExtendedSpecConfig) => {
-        expect(configResult.specVersion).to.equal(2);
+        expect(configResult.specVersion).to.equal(3.1);
         done();
       });
     });

@@ -69,6 +69,11 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 {{else}}
 export function RegisterRoutes(app: Router) {
 {{/if}}
+{{#if useQueryMethod}}
+    if (!app.query) {
+        throw new Error('@Query routes need an Express version that provides app.query.');
+    }
+{{/if}}
 
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look

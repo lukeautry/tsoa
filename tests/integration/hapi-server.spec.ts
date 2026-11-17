@@ -10,12 +10,14 @@ import { optionalOrSecurityState } from '../fixtures/controllers/securityControl
 import { RegisterRoutes } from '../fixtures/hapi/routes';
 import { server } from '../fixtures/hapi/server';
 import { Gender, GenericModel, GenericRequest, Model, ParameterTestModel, TestClassModel, TestModel, ValidateMapStringToAny, ValidateMapStringToNumber, ValidateModel } from '../fixtures/testModel';
-import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest } from './utils';
+import { verifyRequest, verifyGetRequest, verifyPostRequest, verifyFileUploadRequest, describeQueryMethod } from './utils';
 
 const app = server.listener;
 const basePath = '/v1';
 
 describe('Hapi Server', () => {
+  describeQueryMethod(app, basePath);
+
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath, (_err, res) => {
       const model = res.body as TestModel;

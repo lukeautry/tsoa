@@ -1,0 +1,183 @@
+/* tslint:disable */
+/* eslint-disable */
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import type { TsoaRoute } from '@tsoa/runtime';
+import { fetchMiddlewares{{#if useSecurity}}, failureToReport, isAnonymousFallback{{/if}} } from '@tsoa/runtime';
+import { FastifyTemplateService } from '@tsoa/runtime/fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply, preHandlerHookHandler } from 'fastify';
+{{#if useSecurity}}
+import { STATUS_CODES } from 'http';
+{{/if}}
+{{#each controllers}}
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
+{{#if authenticationModule}}
+import { fastifyAuthentication } from '{{authenticationModule}}';
+const fastifyAuthenticationRecasted = fastifyAuthentication as (request: FastifyRequest, securityName: string, scopes?: string[], reply?: FastifyReply) => Promise<any>;
+{{/if}}
+{{#if iocModule}}
+import { iocContainer } from '{{iocModule}}';
+import type { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+{{/if}}
+{{#if useMultipart}}
+import multipart from '@fastify/multipart';
+import type { FastifyMultipartOptions } from '@fastify/multipart';
+{{/if}}
+
+const models: TsoaRoute.Models = {
+    {{#each models}}
+    "{{@key}}": {
+        {{#if enums}}
+        "dataType": "refEnum",
+        "enums": {{{json enums}}},
+        {{/if}}
+        {{#if properties}}
+        "dataType": "refObject",
+        "properties": {
+            {{#each properties}}
+            "{{@key}}": {{{json this}}},
+            {{/each}}
+        },
+        "additionalProperties": {{{json additionalProperties}}},
+        {{/if}}
+        {{#if type}}
+        "dataType": "refAlias",
+        "type": {{{json type}}},
+        {{/if}}
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    {{/each}}
+};
+const templateService = new FastifyTemplateService(models, {{{ json minimalSwaggerConfig }}});
+
+
+// Fastify skips the remaining preHandlers only once a response has ended. A client that disconnects while a
+// slow onSend or preSerialization hook runs leaves an answered request unended, so check before each step.
+function unlessAnswered(hook: preHandlerHookHandler): preHandlerHookHandler {
+    return function (this: FastifyInstance, request, reply, done) {
+        if (templateService.hasResponseStarted(reply)) return done();
+        // Returning the hook's result lets Fastify wait for a promise, as it does for an unwrapped hook.
+        return hook.call(this, request, reply, done);
+    };
+}
+
+export async function RegisterRoutes(app: FastifyInstance, opts: { {{#if useMultipart}}multipart?: FastifyMultipartOptions{{/if}} }) {
+    app.addHook('onRequest', (_request, reply, done) => {
+        templateService.initializeReply(reply);
+        done();
+    });
+    {{#if useMultipart}}
+    if (app.hasContentTypeParser('multipart/form-data')) {
+        throw new Error('tsoa RegisterRoutes registers @fastify/multipart itself. A multipart parser is already registered in an enclosing scope; register it in a sibling scope instead, and pass options through opts.multipart.');
+    }
+    await app.register(multipart, {
+        ...opts.multipart,
+        attachFieldsToBody: false,
+        limits: { ...{{{json multerOpts.limits}}}, ...opts.multipart?.limits },
+    });
+    {{/if}}
+    {{#each routeGroups}}
+    {{#each actions}}
+    const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+        {{#each parameters}}
+        {{@key}}: {{{json this}}},
+        {{/each}}
+    };
+    {{#if multipart}}
+    const uploadFields{{../name}}_{{name}} = [
+        {{#each uploadFileName}}
+        { name: {{{json name}}}{{#if maxCount}}, maxCount: {{maxCount}}{{/if}} },
+        {{/each}}
+    ] as const;
+    {{/if}}
+    {{#if binaryBody}}
+    await app.register(async function (app) {
+        app.removeAllContentTypeParsers();
+        app.addContentTypeParser('*', (request, payload, done) => done(null, payload));
+    {{/if}}
+    app.route({
+        method: '{{method}}',
+        url: '{{fullPath}}',
+        preHandler: [
+            {{#if security.length}}
+            authenticateMiddleware({{json security}}),
+            {{/if}}
+            {{#if multipart}}
+            unlessAnswered(async request => templateService.collectMultipart(request, uploadFields{{../name}}_{{name}})),
+            {{/if}}
+            ...fetchMiddlewares<preHandlerHookHandler>({{../name}}).map(unlessAnswered),
+            ...fetchMiddlewares<preHandlerHookHandler>({{../name}}.prototype.{{name}}).map(unlessAnswered),
+        ],
+        handler: async function {{../name}}_{{name}}(request, reply) {
+            if (templateService.hasResponseStarted(reply)) return reply;
+            const validatedArgs = templateService.getValidatedArgs({ args: args{{../name}}_{{name}}, request, reply });
+            {{#if ../../iocModule}}
+            const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+            const controller: any = await container.get<{{../name}}>({{../name}});
+            if (typeof controller['setStatus'] === 'function') controller.setStatus(undefined);
+            {{else}}
+            const controller = new {{../name}}();
+            {{/if}}
+            await templateService.apiHandler({
+                methodName: '{{name}}', controller, request, reply, validatedArgs, successStatus: {{successStatus}},
+            });
+            return reply;
+        },
+    });
+    {{#if binaryBody}}
+    });
+    {{/if}}
+    {{/each}}
+    {{/each}}
+    {{#if useSecurity}}
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return async function runAuthenticationMiddleware(request: FastifyRequest, reply: FastifyReply) {
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
+            };
+
+            const secMethodOrPromises: Promise<any>[] = [];
+            const attempts: Promise<any>[] = [];
+            const status = reply.statusCode;
+            for (const secMethod of security) {
+                const group = Object.keys(secMethod).map(name =>
+                    Promise.resolve().then(() => fastifyAuthenticationRecasted(request, name, secMethod[name], reply)).catch(pushAndRethrow)
+                );
+                attempts.push(...group);
+                if (group.length === 1) {
+                    secMethodOrPromises.push(group[0]);
+                } else if (group.length > 1) {
+                    secMethodOrPromises.push(Promise.all(group).then(users => users[0]));
+                }
+            }
+
+            try {
+                const user = await Promise.any(secMethodOrPromises);
+                if (templateService.hasResponseStarted(reply)) return reply;
+                (request as FastifyRequest & { user: any }).user = user;
+            }
+            catch(err) {
+                if (templateService.hasResponseStarted(reply)) return reply;
+                const prepared = () => reply.statusCode !== status || templateService.hasResponseStarted(reply);
+                const fallback = isAnonymousFallback(security, prepared() ? [] : attempts); // a prepared response ends the wait
+                const anonymous = fallback !== false && (await fallback);
+
+                if(templateService.hasResponseStarted(reply) || (anonymous && prepared())) {
+                    // A status set by authentication with no body answers with the status text, as Koa authentication does.
+                    if (!templateService.hasResponseStarted(reply)) reply.send(STATUS_CODES[reply.statusCode] ?? String(reply.statusCode));
+                    return reply;
+                }
+
+                if (anonymous) {
+                    return;
+                }
+
+                throw templateService.authenticationError(failureToReport(security, failedAttempts));
+            }
+        }
+    }
+
+    {{/if}}
+}

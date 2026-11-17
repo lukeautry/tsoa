@@ -83,7 +83,11 @@ export function RegisterRoutes(router: KoaRouter) {
                 {{@key}}: {{{json this}}},
             {{/each}}
         };
+        {{#if isQueryMethod}}
+        router.register('{{fullPath}}', ['query'], [
+        {{else}}
         router.{{method}}('{{fullPath}}',
+        {{/if}}
             {{#if security.length}}
             authenticateMiddleware({{json security}}),
             {{/if}}
@@ -132,7 +136,7 @@ export function RegisterRoutes(router: KoaRouter) {
               validatedArgs,
               successStatus: {{successStatus}},
             });
-        });
+        }{{#if isQueryMethod}}]{{/if}});
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     {{/each}}
     {{/each}}

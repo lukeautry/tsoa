@@ -65,7 +65,7 @@ export function Path(name?: string): ParameterDecorator {
  *
  * @param {string} [name] The name of the query parameter
  */
-export function Query(name?: string): ParameterDecorator {
+export function QueryParam(name?: string): ParameterDecorator {
   return () => {
     return;
   };
@@ -74,7 +74,7 @@ export function Query(name?: string): ParameterDecorator {
 /**
  * Inject all query values in a single object
  */
-export function Queries(): ParameterDecorator {
+export function QueryParams(): ParameterDecorator {
   return () => {
     return;
   };

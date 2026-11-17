@@ -1,5 +1,5 @@
 ///<reference path="../tsoaTestModule.d.ts" />
-import { Controller, Example, Get, OperationId, Queries, Query, Request, Res, Response, Route, SuccessResponse, Tags, TsoaResponse } from '@tsoa/runtime';
+import { Controller, Example, Get, OperationId, QueryParams, QueryParam, Request, Res, Response, Route, SuccessResponse, Tags, TsoaResponse } from '@tsoa/runtime';
 import { Readable } from 'stream';
 import TsoaTest from 'tsoaTest';
 import '../duplicateTestModel';
@@ -153,10 +153,10 @@ export class GetTestController extends Controller {
     numberPathParam: number,
     stringPathParam: string,
     booleanPathParam: boolean,
-    @Query() booleanParam: boolean,
-    @Query() stringParam: string,
-    @Query() numberParam: number,
-    @Query() optionalStringParam = '',
+    @QueryParam() booleanParam: boolean,
+    @QueryParam() stringParam: string,
+    @QueryParam() numberParam: number,
+    @QueryParam() optionalStringParam = '',
   ) {
     const model = new ModelService().getModel();
     model.optionalString = optionalStringParam;
@@ -168,7 +168,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('AllQueriesInOneObject')
-  public async getAllQueriesInOneObject(@Queries() queryParams: QueryParams) {
+  public async getAllQueriesInOneObject(@QueryParams() queryParams: QueryParams) {
     const model = new ModelService().getModel();
     model.optionalString = queryParams.optionalStringParam;
     model.numberValue = queryParams.numberParam;
@@ -179,7 +179,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('WildcardQueries')
-  public async getWildcardQueries(@Queries() queryParams: { [name: string]: any }) {
+  public async getWildcardQueries(@QueryParams() queryParams: { [name: string]: any }) {
     const model = new ModelService().getModel();
     model.anyType = queryParams;
 
@@ -187,7 +187,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('TypedRecordQueries')
-  public async getTypedRecordQueries(@Queries() queryParams: { [name: string]: number }) {
+  public async getTypedRecordQueries(@QueryParams() queryParams: { [name: string]: number }) {
     const model = new ModelService().getModel();
     model.anyType = queryParams;
 
@@ -195,7 +195,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('AllQueriesInOneObjectWithTypeAlias')
-  public async getAllQueriesInOneObjectWithTypeAlias(@Queries() queryParams: QueryParamsType) {
+  public async getAllQueriesInOneObjectWithTypeAlias(@QueryParams() queryParams: QueryParamsType) {
     const model = new ModelService().getModel();
     model.optionalString = queryParams.optionalStringParam;
     model.numberValue = queryParams.numberParam;
@@ -226,7 +226,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('DateParam')
-  public async getByDataParam(@Query() date: Date): Promise<TestModel> {
+  public async getByDataParam(@QueryParam() date: Date): Promise<TestModel> {
     const model = new ModelService().getModel();
     model.dateValue = date;
 
@@ -256,7 +256,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('HandleBufferType')
-  public async getBuffer(@Query() buffer: Buffer): Promise<Buffer> {
+  public async getBuffer(@QueryParam() buffer: Buffer): Promise<Buffer> {
     return Buffer.from('testbuffer');
   }
 
@@ -382,7 +382,7 @@ export class GetTestController extends Controller {
    * @param res The alternate response
    */
   @Get('MultipleStatusCodeRes')
-  public async multipleStatusCodeRes(@Res() res: TsoaResponse<400 | 500, TestModel, { 'custom-header': string }>, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
+  public async multipleStatusCodeRes(@Res() res: TsoaResponse<400 | 500, TestModel, { 'custom-header': string }>, @QueryParam('statusCode') statusCode: 400 | 500): Promise<void> {
     res?.(statusCode, new ModelService().getModel(), { 'custom-header': 'hello' });
   }
 
@@ -390,7 +390,7 @@ export class GetTestController extends Controller {
    * @param res The alternate response
    */
   @Get('MultipleStatusCodeRes_Alias')
-  public async multipleStatusCodeResAlias(@Res() res: BadAndInternalErrorRequest, @Query('statusCode') statusCode: 400 | 500): Promise<void> {
+  public async multipleStatusCodeResAlias(@Res() res: BadAndInternalErrorRequest, @QueryParam('statusCode') statusCode: 400 | 500): Promise<void> {
     res?.(statusCode, new ModelService().getModel(), { name: 'combine' });
   }
 
@@ -425,7 +425,7 @@ export class GetTestController extends Controller {
   }
 
   @Get('UnionTypeWithDefault')
-  public async getUnionTypeWithDefault(@Query() unionType: 'a' | 'b' | undefined = 'a'): Promise<void> {
+  public async getUnionTypeWithDefault(@QueryParam() unionType: 'a' | 'b' | undefined = 'a'): Promise<void> {
     return;
   }
 }

@@ -105,6 +105,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
             return {
               fullPath: normalisedFullPath,
               method: method.method.toLowerCase(),
+              isQueryMethod: method.method === 'query',
               name: method.name,
               binaryBody: hasBinaryBody(method.parameters),
               parameters: parameterObjs,
@@ -147,6 +148,7 @@ export abstract class AbstractRouteGenerator<Config extends ExtendedRoutesConfig
         },
       },
       useSecurity: this.metadata.controllers.some(controller => controller.methods.some(method => !!method.security.length)),
+      useQueryMethod: this.metadata.controllers.some(controller => controller.methods.some(method => method.method === 'query')),
       esm: this.options.esm,
     };
   }

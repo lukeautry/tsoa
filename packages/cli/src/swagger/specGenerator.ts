@@ -9,6 +9,18 @@ export abstract class SpecGenerator {
     protected readonly config: ExtendedSpecConfig,
   ) {}
 
+  /**
+   * OpenAPI before 3.2 has no `query` field on a path item, so a QUERY operation goes in the
+   * registered `x-oai-additionalOperations` extension: https://spec.openapis.org/registry/extension/x-oai-additionalOperations
+   */
+  protected operationSlot(pathObject: Record<string, any>, method: Tsoa.Method['method']): [Record<string, any>, string] {
+    if (method === 'query') {
+      pathObject['x-oai-additionalOperations'] = pathObject['x-oai-additionalOperations'] || {};
+      return [pathObject['x-oai-additionalOperations'], 'QUERY'];
+    }
+    return [pathObject, method];
+  }
+
   protected buildAdditionalProperties(type: Tsoa.Type) {
     return this.getSwaggerType(type);
   }

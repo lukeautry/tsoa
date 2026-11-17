@@ -14,11 +14,13 @@ import {
   ValidateMapStringToNumber,
   ValidateModel,
 } from '../fixtures/testModel';
-import { verifyGetRequest, verifyPostRequest, verifyRequest } from './utils';
+import { verifyGetRequest, verifyPostRequest, verifyRequest, describeQueryMethod } from './utils';
 
 const basePath = '/v1';
 
 describe('Express Server', () => {
+  describeQueryMethod(app, basePath);
+
   it('can handle get request to root controller`s path', () => {
     return verifyGetRequest(app, basePath + '/', (_err, res) => {
       const model = res.body as TestModel;
@@ -941,14 +943,14 @@ describe('Express Server', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 'Nick Yang' },
+          { name: 'Nick Yang' },
           (_err, res) => {
             const { body } = res;
 
-            expect(body.name).to.equal("Nick Yang-validated");
+            expect(body.name).to.equal('Nick Yang-validated');
           },
           200,
-        )
+        );
       });
 
       it('should invalid body props missing required field', () => {
@@ -963,22 +965,22 @@ describe('Express Server', () => {
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
 
       it('should invalid body props incorrect type', () => {
         return verifyPostRequest(
           app,
           basePath + `/Validate/body-prop`,
-          { 'name': 1234 },
+          { name: 1234 },
           (err, _res) => {
             const body = JSON.parse(err.text);
 
-            expect(body.fields['body.name'].message).to.equal("invalid string value");
+            expect(body.fields['body.name'].message).to.equal('invalid string value');
             expect(body.fields['body.name'].value).to.be.undefined;
           },
           400,
-        )
+        );
       });
     });
 

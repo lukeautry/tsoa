@@ -17,6 +17,10 @@ export class ParameterGenerator {
   ) {}
 
   public Generate(): Tsoa.Parameter[] {
+    if (getDecorators(this.parameter, identifier => identifier.text === 'Query')?.length) {
+      const parameterName = (this.parameter.name as ts.Identifier).text;
+      throw new GenerateMetadataError(`@Query is the HTTP QUERY method decorator. Use @QueryParam('${parameterName}') for a query string parameter.`);
+    }
     const decoratorName = getNodeFirstDecoratorName(this.parameter, identifier => this.supportParameterDecorator(identifier.text));
 
     switch (decoratorName) {
@@ -32,9 +36,9 @@ export class ParameterGenerator {
         return [this.getFormFieldParameter(this.parameter)];
       case 'Header':
         return [this.getHeaderParameter(this.parameter)];
-      case 'Query':
+      case 'QueryParam':
         return this.getQueryParameters(this.parameter);
-      case 'Queries':
+      case 'QueryParams':
         return [this.getQueriesParameters(this.parameter)];
       case 'Path':
         return [this.getPathParameter(this.parameter)];
@@ -324,7 +328,7 @@ export class ParameterGenerator {
   }
 
   /**
-   * Resolves the type for @Queries, unwrapping refAlias types (TypeScript type aliases)
+   * Resolves the type for @QueryParams, unwrapping refAlias types (TypeScript type aliases)
    * to their underlying object type when possible.
    */
   private resolveQueriesType(type: Tsoa.Type, parameterName: string): Tsoa.RefObjectType | Tsoa.NestedObjectLiteralType {
@@ -343,7 +347,9 @@ export class ParameterGenerator {
       }
     }
 
-    throw new GenerateMetadataError(`@Queries('${parameterName}') only support 'refObject' or 'nestedObjectLiteral' types. If you want only one query parameter, please use the '@Query' decorator.`);
+    throw new GenerateMetadataError(
+      `@QueryParams('${parameterName}') only support 'refObject' or 'nestedObjectLiteral' types. If you want only one query parameter, please use the '@QueryParam' decorator.`,
+    );
   }
 
   private validateQueriesProperties(property: Tsoa.Property, parentName: string) {
@@ -358,7 +364,7 @@ export class ParameterGenerator {
           }
         }
       } else if (!this.supportPathDataType(arrayType.elementType)) {
-        throw new GenerateMetadataError(`@Queries('${parentName}') property '${property.name}' can't support array '${arrayType.elementType.dataType}' type.`);
+        throw new GenerateMetadataError(`@QueryParams('${parentName}') property '${property.name}' can't support array '${arrayType.elementType.dataType}' type.`);
       }
     } else if (property.type.dataType === 'nestedObjectLiteral') {
       // For nestedObjectLiteral, validate each property recursively
@@ -369,7 +375,7 @@ export class ParameterGenerator {
         }
       }
     } else if (!this.supportPathDataType(property.type)) {
-      throw new GenerateMetadataError(`@Queries('${parentName}') nested property '${property.name}' Can't support '${property.type.dataType}' type.`);
+      throw new GenerateMetadataError(`@QueryParams('${parentName}') nested property '${property.name}' Can't support '${property.type.dataType}' type.`);
     }
   }
 
@@ -385,7 +391,7 @@ export class ParameterGenerator {
       example,
       exampleLabels,
       in: 'query' as const,
-      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'Query') || parameterName,
+      name: getNodeFirstDecoratorValue(this.parameter, this.current.typeChecker, ident => ident.text === 'QueryParam') || parameterName,
       parameterName,
       required: !parameter.questionToken && !parameter.initializer,
       validators: getParameterValidators(this.parameter, parameterName),
@@ -394,7 +400,7 @@ export class ParameterGenerator {
 
     if (this.getQueryParameterIsHidden(parameter)) {
       if (commonProperties.required) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support @Hidden because it is required (does not allow undefined and does not have a default value).`);
+        throw new GenerateMetadataError(`@QueryParam('${parameterName}') Can't support @Hidden because it is required (does not allow undefined and does not have a default value).`);
       }
       return [];
     }
@@ -402,7 +408,7 @@ export class ParameterGenerator {
     if (type.dataType === 'array') {
       const arrayType = type;
       if (!this.supportPathDataType(arrayType.elementType)) {
-        throw new GenerateMetadataError(`@Query('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
+        throw new GenerateMetadataError(`@QueryParam('${parameterName}') Can't support array '${arrayType.elementType.dataType}' type.`);
       }
       return [
         {
@@ -414,7 +420,7 @@ export class ParameterGenerator {
     }
 
     if (!this.supportPathDataType(type)) {
-      throw new GenerateMetadataError(`@Query('${parameterName}') Can't support '${type.dataType}' type.`);
+      throw new GenerateMetadataError(`@QueryParam('${parameterName}') Can't support '${type.dataType}' type.`);
     }
 
     return [
@@ -504,11 +510,11 @@ export class ParameterGenerator {
   }
 
   private supportBodyMethod(method: string) {
-    return ['post', 'put', 'patch', 'delete'].some(m => m === method.toLowerCase());
+    return ['post', 'put', 'patch', 'delete', 'query'].some(m => m === method.toLowerCase());
   }
 
   private supportParameterDecorator(decoratorName: string) {
-    return ['header', 'query', 'queries', 'path', 'body', 'bodyprop', 'request', 'requestprop', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(
+    return ['header', 'queryparam', 'queryparams', 'path', 'body', 'bodyprop', 'request', 'requestprop', 'res', 'inject', 'uploadedfile', 'uploadedfiles', 'formfield'].some(
       d => d === decoratorName.toLocaleLowerCase(),
     );
   }
@@ -551,7 +557,7 @@ export class ParameterGenerator {
 
     if (hiddenDecorators.length > 1) {
       const parameterName = (parameter.name as ts.Identifier).text;
-      throw new GenerateMetadataError(`Only one Hidden decorator allowed on @Query('${parameterName}').`);
+      throw new GenerateMetadataError(`Only one Hidden decorator allowed on @QueryParam('${parameterName}').`);
     }
 
     return true;
