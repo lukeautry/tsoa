@@ -93,8 +93,12 @@ function buildRs() {
   const tsrs = join(rs, 'tsrs');
   run('cargo', ['--version']);
 
+  // Fetch into the directory rather than clone: CI restores tsrs/target from its cache before the checkout exists.
   if (!existsSync(join(tsrs, '.git'))) {
-    run('git', ['clone', '--quiet', '--depth', '1', '--branch', tag, 'https://github.com/oxc-project/tsrs.git', tsrs]);
+    mkdirSync(tsrs, { recursive: true });
+    run('git', ['-C', tsrs, 'init', '--quiet']);
+    run('git', ['-C', tsrs, 'fetch', '--quiet', '--depth', '1', 'https://github.com/oxc-project/tsrs.git', `refs/tags/${tag}`]);
+    run('git', ['-C', tsrs, 'checkout', '--quiet', '--force', 'FETCH_HEAD']);
   }
   const actual = run('git', ['-C', tsrs, 'rev-parse', 'HEAD']).trim();
   if (actual !== revision) {
