@@ -91,6 +91,13 @@ jobs:
       matrix:
         helper: [go, rs]
         os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - helper: go
+            compiler: tsgo
+            compiler-package: typescript@7.0.2
+          - helper: rs
+            compiler: tsrs
+            compiler-package: tsrs@0.25.0-ts7.1.0-beta
     steps:
       - uses: actions/checkout@v7
 
@@ -142,6 +149,17 @@ jobs:
         env:
           TSOA_COMPILER_HELPER: ${{ github.workspace }}/packages/cli-native/${{ matrix.helper }}/bin/helper${{ runner.os == 'Windows' && '.exe' || '' }}
         run: yarn test
+
+      - name: Pack the ${{ matrix.compiler }} helper for this platform
+        shell: bash
+        run: node packages/cli-native/pack.mjs ${{ matrix.compiler }} helper-packages "$(node -p 'process.platform + "-" + process.arch')=packages/cli-native/${{ matrix.helper }}/bin/helper${{ runner.os == 'Windows' && '.exe' || '' }}"
+
+      - name: Generate in a project with ${{ matrix.compiler-package }} and the packed helper installed
+        run: node packages/cli-native/check-installed.mjs ${{ matrix.compiler-package }} ${{ matrix.compiler }} helper-packages
+
+      - name: Generate in a project with typescript@6 installed
+        if: runner.os == 'Linux' && matrix.helper == 'go'
+        run: node packages/cli-native/check-installed.mjs typescript@6
 
       - name: Keep the Linux helper for conformance
         if: runner.os == 'Linux'
