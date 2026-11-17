@@ -42,4 +42,4 @@ node packages/cli-native/conformance/conformance.cjs packages/cli-native/go/bin/
 
 It opens every program `tests/prepare.ts` generates from in both helpers, walks each own file with `prefetchFile`, then asks `type`, `members`, `print` and `typeToString` of every type and `symbol` of every symbol either reaches. It prints each disagreement with both queries and answers and exits 1 on any. Ids are paired by where they appear, not by value. The one allowed difference is described under "Known differences" in PROTOCOL.md.
 
-On Windows the helper serves a named pipe passed as `--pipe <path>` instead of stdio. That path is cross-compiled but untested.
+On Windows the helper serves a named pipe passed as `--pipe <path>` instead of stdio. CI runs the full suite over it on Windows for both helpers.
