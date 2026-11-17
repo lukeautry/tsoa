@@ -4,7 +4,7 @@ import type { Query, Response } from '@tsoa/cli/metadataGeneration/native/protoc
 import { expect } from 'chai';
 import 'mocha';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const fileName = '/virtual/controller.ts';
 const text = 'export const answer = 42;\n';
@@ -51,7 +51,7 @@ describe('native program over a channel', () => {
   it('names the file the helper failed to prefetch', () => {
     const channel = fakeChannel({ prefetchFile: () => ({ ok: false, error: 'out of memory' }) });
     const program = createProgramOverChannel(channel, [fileName], {});
-    expect(() => program.getTypeChecker().getSymbolAtLocation(firstStatement(program))).to.throw(`tsoa compiler helper failed on ${fileName}: out of memory`);
+    expect(() => program.getTypeChecker().getSymbolAtLocation(firstStatement(program))).to.throw(`tsoa compiler helper failed on ${resolve(fileName)}: out of memory`);
   });
 
   it('parses the files the helper opened and answers from it', () => {
