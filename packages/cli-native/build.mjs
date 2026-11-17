@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Builds a compiler helper from the pinned TypeScript 7 compiler it links against. Idempotent.
+// Builds a compiler helper from the pinned TypeScript 7 compiler it links against, and copies the compiler's LICENSE and
+// NOTICE next to it for pack.mjs. Idempotent.
 // Usage: node build.mjs <go|rs> [output path]   (default: <go|rs>/bin/helper, helper.exe for a Windows target)
 // go: GOOS/GOARCH cross-compile. rs: PROFILE=dev builds unoptimized, TARGET=<triple> cross-compiles.
 import { execFileSync } from 'node:child_process';
@@ -25,6 +26,11 @@ function run(command, args, options = {}) {
 
 function outputPath(windowsTarget) {
   return resolve(outputArg ?? join(here, helper, 'bin', windowsTarget ? 'helper.exe' : 'helper'));
+}
+
+function copyUpstreamLicense(output, license, notice) {
+  copyFileSync(license, join(dirname(output), 'LICENSE'));
+  copyFileSync(notice, join(dirname(output), 'NOTICE'));
 }
 
 function isOlder(have, wanted) {
@@ -80,6 +86,7 @@ function buildGo() {
   const output = outputPath(env.GOOS ? env.GOOS === 'windows' : process.platform === 'win32');
   mkdirSync(dirname(output), { recursive: true });
   run('go', ['build', '-trimpath', '-ldflags=-s -w', '-o', output, './cmd/tsoa-facts'], { cwd: join(upstream, 'tsc'), env, stdio: 'inherit' });
+  copyUpstreamLicense(output, join(upstream, 'LICENSE.txt'), join(upstream, 'NOTICE.txt'));
   console.log(`built ${output}`);
 }
 
@@ -121,6 +128,7 @@ function buildRs() {
   const output = outputPath(windows);
   mkdirSync(dirname(output), { recursive: true });
   copyFileSync(built, output);
+  copyUpstreamLicense(output, join(tsrs, 'LICENSE'), join(tsrs, 'NOTICE'));
   console.log(`built ${output} (${profile}${target ? `, ${target}` : ''})`);
 }
 
