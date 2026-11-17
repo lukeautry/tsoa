@@ -94,12 +94,15 @@ try {
   const tarballs = join(project, 'tarballs');
   mkdirSync(tarballs);
   for (const workspace of ['runtime', 'cli']) npm(`pack --silent --pack-destination "${tarballs}"`, join(repo, 'packages', workspace));
+  // Only the umbrella and this platform's package: npm refuses an explicit tarball for another platform (EBADPLATFORM).
   const helperTarballs = helper
     ? readdirSync(resolve(tarballArg))
-        .filter(file => file.startsWith(`tsoa-compiler-helper-${helper}-`) && file.endsWith('.tgz'))
+        .filter(file => new RegExp(`^tsoa-compiler-helper-${helper}-(${process.platform}-${process.arch}-)?[0-9].*\\.tgz$`).test(file))
         .map(file => join(resolve(tarballArg), file))
     : [];
-  if (helper && helperTarballs.length < 2) throw new Error(`want the umbrella and a platform tarball for ${helper} in ${tarballArg}, found ${helperTarballs.join(', ') || 'none'}`);
+  if (helper && helperTarballs.length !== 2) {
+    throw new Error(`want the umbrella and the ${process.platform}-${process.arch} tarball for ${helper} in ${tarballArg}, found ${helperTarballs.join(', ') || 'none'}`);
+  }
 
   writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'tsoa-installed-helper-check', private: true }, null, 2));
   mkdirSync(join(project, 'src'));
