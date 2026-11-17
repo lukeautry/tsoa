@@ -1,4 +1,4 @@
-// Accessors the tsoa facts helper adds to the checker crate (rs/build.sh copies this file in and adds `mod tsoa_exports;`).
+// Accessors the tsoa facts helper adds to the checker crate (build.mjs copies this file in and adds `mod tsoa_exports;`).
 // They expose state the checker keeps but does not export. No existing checker function changes.
 
 use tsrs_ast::Symbol;

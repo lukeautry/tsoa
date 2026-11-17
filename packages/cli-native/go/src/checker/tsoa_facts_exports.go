@@ -2,7 +2,7 @@ package checker
 
 import "github.com/microsoft/TypeScript/tsc/internal/ast"
 
-// Read-only accessors the tsoa facts helper adds to the checker package (build.sh copies this file here).
+// Read-only accessors the tsoa facts helper adds to the checker package (build.mjs copies this file here).
 // No existing compiler file changes.
 
 // TsoaOrigin is the union as written, before flattening, when the checker kept one.

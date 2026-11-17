@@ -9,18 +9,20 @@ Neither is published with `@tsoa/cli`. This directory is not a workspace package
 
 ## Build
 
-Each script fetches its pinned compiler into a gitignored directory next to it, adds the helper's sources, and builds. Both are idempotent and write nothing outside this directory unless you pass an output path.
+`build.mjs` fetches the pinned compiler into a gitignored directory, adds the helper's sources, and builds. It needs only Node, git and the language's toolchain, runs the same on Linux, macOS and Windows, is idempotent, and writes nothing outside this directory unless you pass an output path.
 
 ```sh
-packages/cli-native/go/build.sh [output]   # default go/bin/helper; needs go >= the version tsc/go.mod asks for (1.27)
-packages/cli-native/rs/build.sh [output]   # default rs/bin/helper; needs rustup (tsrs pins Rust 1.99.1) and cmake
+node packages/cli-native/build.mjs go [output]   # default go/bin/helper; needs go >= the version tsc/go.mod asks for (1.27)
+node packages/cli-native/build.mjs rs [output]   # default rs/bin/helper; needs rustup (tsrs pins Rust 1.99.1)
 ```
+
+On Windows the default output is `bin/helper.exe`.
 
 The Go build fetches a sparse checkout of `tsc/` into `go/upstream/`, copies `go/src/*.go` in as `tsc/cmd/tsoa-facts`, and copies `go/src/checker/tsoa_facts_exports.go` into `tsc/internal/checker`. It changes no existing compiler file.
 
-The Rust build clones tsrs into `rs/tsrs/`, copies `rs/tsrs-patch/tsoa_exports.rs` into the checker crate with one `mod` line, and adds `rs/tsoa_facts` as a crate. A release build takes 2 to 3 minutes. `PROFILE=dev` builds unoptimized. tsrs's allocator crate (`libmimalloc-sys2`) runs cmake. When cmake is not on PATH the script installs a pinned copy into `rs/.tools/` with `uv`.
+The Rust build clones tsrs into `rs/tsrs/`, copies `rs/tsrs-patch/tsoa_exports.rs` into the checker crate with one `mod` line, and adds `rs/tsoa_facts` as a crate. A release build takes 2 to 3 minutes. `PROFILE=dev` builds unoptimized. The helper uses the system allocator rather than tsrs's mimalloc, so the build needs no C toolchain beyond what Rust itself needs.
 
-Cross-compiling: `GOOS=windows GOARCH=amd64 go/build.sh go/bin/helper.exe`. For Rust, `TARGET=<triple> rs/build.sh`, which for `x86_64-pc-windows-msvc` needs the MSVC tools and does not build on Linux.
+Cross-compiling: `GOOS=windows GOARCH=amd64 node build.mjs go` writes `go/bin/helper.exe`. For Rust, `TARGET=<triple> node build.mjs rs`, which for `x86_64-pc-windows-msvc` needs the MSVC tools and does not build on Linux.
 
 ## Run tsoa's suite on a helper
 
