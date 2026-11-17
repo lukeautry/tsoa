@@ -5,11 +5,14 @@
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
-use serde_json::{Map, Value, json};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
 use tsrs_ast::{Kind, Node, SourceFile, Symbol, SymbolFlags};
 use tsrs_checker::{
     ElementFlags, Flags as BuilderFlags, InternalFlags, LiteralValue, ObjectFlags, SignatureKind,
@@ -133,8 +136,233 @@ const ELEMENT_FLAG_NAMES: &[(ElementFlags, &str)] = &[
     (ElementFlags::Variadic, "Variadic"),
 ];
 
-fn flag_names<F: bitflags::Flags + Copy>(flags: F, table: &[(F, &str)]) -> Value {
-    Value::Array(table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| json!(n)).collect())
+fn flag_names<F: bitflags::Flags + Copy>(
+    flags: F,
+    table: &[(F, &'static str)],
+) -> Vec<&'static str> {
+    table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| *n).collect()
+}
+
+// Wire shapes, field for field as in packages/cli/src/metadataGeneration/native/protocol.ts.
+
+#[derive(Serialize, Deserialize)]
+struct NodeRef {
+    file: u32,
+    pos: i64,
+    end: i64,
+    kind: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FileInfo {
+    id: u32,
+    file_name: &'static str,
+    is_declaration_file: bool,
+    is_default_library: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OpenResult {
+    protocol: u32,
+    files: Vec<FileInfo>,
+    undefined_type: u32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TypeFacts {
+    id: u32,
+    flags: Vec<&'static str>,
+    object_flags: Vec<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    intrinsic_name: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<LiteralFact>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    symbol: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    alias_symbol: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    alias_type_arguments: Option<Vec<u32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    type_arguments: Option<Vec<u32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    types: Option<Vec<u32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    origin: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    element_flags: Option<Vec<Vec<&'static str>>>,
+    is_array: bool,
+    is_tuple: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    base_literal: Option<u32>,
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum LiteralFact {
+    String(&'static str),
+    Number(f64),
+    #[serde(rename_all = "camelCase")]
+    BigInt {
+        negative: bool,
+        base10_value: &'static str,
+    },
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SymbolFacts {
+    id: u32,
+    name: String,
+    escaped_name: String,
+    flags: Vec<&'static str>,
+    declarations: Vec<NodeRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value_declaration: Option<NodeRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    aliased: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    synthetic_origin: Option<u32>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct IndexInfo {
+    key_type: u32,
+    #[serde(rename = "type")]
+    ty: u32,
+    is_readonly: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    declaration: Option<NodeRef>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Members {
+    properties: Vec<(u32, u32)>,
+    index_infos: Vec<IndexInfo>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CallSignature {
+    return_type: u32,
+}
+
+/// One prefetchFile answer: UTF-16 pos and end, kind, id.
+type Entry = (u32, u32, String, Option<u32>);
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PrefetchResult {
+    symbol_at: Vec<Entry>,
+    type_from: Vec<Entry>,
+    declared: Vec<Entry>,
+    type_of_symbol: Vec<(u32, u32)>,
+}
+
+#[derive(Serialize)]
+struct PrintResult {
+    text: String,
+    identifiers: Vec<Option<u32>>,
+}
+
+#[derive(Default, Serialize)]
+struct InlineFacts {
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    types: BTreeMap<u32, TypeFacts>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    symbols: BTreeMap<u32, SymbolFacts>,
+}
+
+// Op inputs, one struct per input shape in the protocol's operation table. Every field is required.
+
+#[derive(Deserialize)]
+struct Query {
+    op: String,
+}
+
+#[derive(Deserialize)]
+struct Batch {
+    queries: Vec<Value>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct OpenInput {
+    cwd: String,
+    root_files: Vec<String>,
+    compiler_options: Value,
+}
+
+#[derive(Deserialize)]
+struct FileInput {
+    file: u32,
+}
+
+#[derive(Deserialize)]
+struct NodeInput {
+    node: NodeRef,
+}
+
+#[derive(Deserialize)]
+struct TypeInput {
+    #[serde(rename = "type")]
+    ty: u32,
+}
+
+#[derive(Deserialize)]
+struct SymbolInput {
+    symbol: u32,
+}
+
+#[derive(Deserialize)]
+struct ResolveNameInput {
+    name: String,
+    node: NodeRef,
+    meaning: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct ExportOfInput {
+    symbol: u32,
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct PropertyInput {
+    #[serde(rename = "type")]
+    ty: u32,
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct UnionInput {
+    types: Vec<u32>,
+}
+
+#[derive(Deserialize)]
+struct AssignableInput {
+    source: u32,
+    target: u32,
+}
+
+/// Parses an op's input; a field the query leaves out fails with "missing <field>".
+fn decode<In: DeserializeOwned>(q: &Value) -> Result<In, String> {
+    In::deserialize(q).map_err(|e| {
+        let e = e.to_string();
+        match e.strip_prefix("missing field `").and_then(|f| f.strip_suffix('`')) {
+            Some(field) => format!("missing {field}"),
+            None => e,
+        }
+    })
 }
 
 /// Interns checker values as protocol ids (1-based, stable for the session). `intern` only assigns; `hand_out` also
@@ -179,28 +407,12 @@ impl<T> Ids<T> {
             .filter(|&id| !self.sent[id as usize - 1] && seen.insert(id))
             .collect()
     }
-    fn get(&self, id: &Value, what: &str) -> Result<P<T>, String> {
-        let n = id.as_u64().ok_or_else(|| format!("{what}: expected an id"))? as usize;
-        self.list.get(n.wrapping_sub(1)).copied().ok_or_else(|| format!("unknown {what} id {n}"))
-    }
-}
-
-#[derive(Default)]
-struct InlineFacts {
-    types: Map<String, Value>,
-    symbols: Map<String, Value>,
-}
-
-impl InlineFacts {
-    fn into_value(self) -> Option<Value> {
-        let mut out = Map::new();
-        if !self.types.is_empty() {
-            out.insert("types".into(), Value::Object(self.types));
-        }
-        if !self.symbols.is_empty() {
-            out.insert("symbols".into(), Value::Object(self.symbols));
-        }
-        (!out.is_empty()).then_some(Value::Object(out))
+    fn get(&self, id: u32, what: &str) -> Result<P<T>, String> {
+        (id as usize)
+            .checked_sub(1)
+            .and_then(|i| self.list.get(i))
+            .copied()
+            .ok_or_else(|| format!("unknown {what} id {id}"))
     }
 }
 
@@ -225,14 +437,6 @@ impl ParseConfigHost for ConfigHost {
     }
 }
 
-fn field<'a>(q: &'a Value, name: &str) -> Result<&'a Value, String> {
-    q.get(name).ok_or_else(|| format!("missing field {name}"))
-}
-
-fn field_str<'a>(q: &'a Value, name: &str) -> Result<&'a str, String> {
-    field(q, name)?.as_str().ok_or_else(|| format!("field {name}: expected a string"))
-}
-
 fn config_value(v: &Value) -> CompilerOptionsValue {
     match v {
         Value::Null => CompilerOptionsValue::Null,
@@ -246,19 +450,14 @@ fn config_value(v: &Value) -> CompilerOptionsValue {
     }
 }
 
-fn open(q: &Value) -> Result<(Session, Value), String> {
-    let cwd = tspath::normalize_path(field_str(q, "cwd")?);
+fn open(q: OpenInput) -> Result<(Session, OpenResult), String> {
+    let cwd = tspath::normalize_path(&q.cwd);
     let fs: Arc<dyn FS> = Arc::new(cachedvfs::from(bundled::wrap_fs(osvfs::fs())));
     let host = ConfigHost { fs: Arc::clone(&fs), cwd: cwd.clone() };
-    let roots: Vec<String> = field(q, "rootFiles")?
-        .as_array()
-        .ok_or("rootFiles: expected an array")?
-        .iter()
-        .map(|v| v.as_str().map(|s| tspath::get_normalized_absolute_path(s, &cwd)))
-        .collect::<Option<_>>()
-        .ok_or("rootFiles: expected strings")?;
+    let roots: Vec<String> =
+        q.root_files.iter().map(|f| tspath::get_normalized_absolute_path(f, &cwd)).collect();
     let mut json = OrderedMap::default();
-    json.insert("compilerOptions".to_string(), config_value(field(q, "compilerOptions")?));
+    json.insert("compilerOptions".to_string(), config_value(&q.compiler_options));
     json.insert(
         "files".to_string(),
         CompilerOptionsValue::Array(
@@ -304,21 +503,19 @@ fn open(q: &Value) -> Result<(Session, Value), String> {
     }
     let checker = program.get_type_checker(&Context::background());
     let mut s = Session { checker, files: Ids::new(), types: Ids::new(), symbols: Ids::new() };
-    let files: Vec<Value> = program
+    let files = program
         .get_source_files()
         .iter()
-        .map(|f| {
-            json!({
-                "id": s.files.intern(*f),
-                "fileName": f.file_name(),
-                "isDeclarationFile": f.is_declaration_file(),
-                "isDefaultLibrary": program.is_source_file_default_library(f.path()),
-            })
+        .map(|f| FileInfo {
+            id: s.files.intern(*f),
+            file_name: f.file_name(),
+            is_declaration_file: f.is_declaration_file(),
+            is_default_library: program.is_source_file_default_library(f.path()),
         })
         .collect();
     let undefined = s.checker.get_undefined_type();
-    let result = json!({ "protocol": PROTOCOL_REVISION, "files": files, "undefinedType": s.types.hand_out(undefined) });
-    Ok((s, result))
+    let undefined_type = s.types.hand_out(undefined);
+    Ok((s, OpenResult { protocol: PROTOCOL_REVISION, files, undefined_type }))
 }
 
 fn kind_name(kind: Kind) -> String {
@@ -356,188 +553,150 @@ fn find_node(node: P<Node>, pos: u32, end: u32, kind: &str) -> Option<P<Node>> {
 }
 
 impl Session {
-    fn node(&self, q: &Value) -> Result<P<Node>, String> {
-        let r = field(q, "node")?;
-        let file = self.files.get(field(r, "file")?, "file")?;
+    fn node(&self, r: &NodeRef) -> Result<P<Node>, String> {
+        let file = self.files.get(r.file, "file")?;
         let map = file.get_position_map();
-        let utf16 = |name: &str| -> Result<u32, String> {
-            field(r, name)?
-                .as_u64()
-                .map(|n| n as u32)
-                .ok_or_else(|| format!("node.{name}: expected a number"))
+        let utf16 = |name: &str, n: i64| {
+            u32::try_from(n).map_err(|_| format!("node.{name}: expected a position, got {n}"))
         };
-        let (pos16, end16) = (utf16("pos")?, utf16("end")?);
+        let (pos16, end16) = (utf16("pos", r.pos)?, utf16("end", r.end)?);
         let pos = map.utf16_to_utf8(pos16);
         let end = map.utf16_to_utf8(end16);
-        let kind = field_str(r, "kind")?;
+        let kind = r.kind.as_str();
         find_node(file.as_node(), pos, end, kind)
             .ok_or_else(|| format!("no {kind} node at {pos16}..{end16} in {}", file.file_name()))
     }
 
-    fn node_ref(&mut self, node: P<Node>) -> Value {
-        let Some(file) = tsrs_ast::get_source_file_of_node(node) else {
-            return Value::Null;
-        };
+    fn node_ref(&mut self, node: P<Node>) -> Option<NodeRef> {
+        let file = tsrs_ast::get_source_file_of_node(node)?;
         let map = file.get_position_map();
         let utf16 = |p: tsrs_core::text::TextPos| {
             p.source_offset().map_or(-1, |o| map.utf8_to_utf16(o) as i64)
         };
-        json!({
-            "file": self.files.intern(file),
-            "pos": utf16(node.pos()),
-            "end": utf16(node.end()),
-            "kind": kind_name(node.kind()),
+        Some(NodeRef {
+            file: self.files.intern(file),
+            pos: utf16(node.pos()),
+            end: utf16(node.end()),
+            kind: kind_name(node.kind()),
         })
     }
 
-    fn ty(&self, q: &Value, name: &str) -> Result<P<Type>, String> {
-        self.types.get(field(q, name)?, "type")
+    fn intern_types(&mut self, ts: &[P<Type>]) -> Vec<u32> {
+        ts.iter().map(|t| self.types.intern(*t)).collect()
     }
 
-    fn sym(&self, q: &Value) -> Result<P<Symbol>, String> {
-        self.symbols.get(field(q, "symbol")?, "symbol")
-    }
-
-    fn type_id(&mut self, t: P<Type>) -> Value {
-        json!(self.types.hand_out(t))
-    }
-
-    fn intern_types(&mut self, ts: &[P<Type>]) -> Value {
-        Value::Array(ts.iter().map(|t| json!(self.types.intern(*t))).collect())
-    }
-
-    fn opt_symbol(&mut self, s: Option<P<Symbol>>) -> Value {
-        s.map_or(Value::Null, |s| json!(self.symbols.hand_out(s)))
-    }
-
-    fn type_facts(&mut self, t: P<Type>) -> Value {
+    fn type_facts(&mut self, t: P<Type>) -> TypeFacts {
         let flags = t.flags();
-        let mut o = Map::new();
-        o.insert("id".into(), json!(self.types.intern(t)));
-        o.insert("flags".into(), flag_names(flags, TYPE_FLAG_NAMES));
-        let object_flags = if flags.intersects(TypeFlags::Object) {
-            flag_names(t.object_flags(), OBJECT_FLAG_NAMES)
-        } else {
-            json!([])
+        let mut facts = TypeFacts {
+            id: self.types.intern(t),
+            flags: flag_names(flags, TYPE_FLAG_NAMES),
+            object_flags: if flags.intersects(TypeFlags::Object) {
+                flag_names(t.object_flags(), OBJECT_FLAG_NAMES)
+            } else {
+                Vec::new()
+            },
+            intrinsic_name: None,
+            value: None,
+            symbol: t.symbol().map(|s| self.symbols.intern(s)),
+            alias_symbol: None,
+            alias_type_arguments: None,
+            type_arguments: None,
+            types: None,
+            origin: t.union_origin().map(|o| self.types.intern(o)),
+            target: None,
+            element_flags: None,
+            is_array: self.checker.is_array_type_exported(t),
+            is_tuple: tsrs_checker::is_tuple_type_exported(t),
+            base_literal: None,
         };
-        o.insert("objectFlags".into(), object_flags);
         if t.data_tag() == TypeDataTag::Intrinsic {
-            o.insert("intrinsicName".into(), json!(t.as_intrinsic_type().intrinsic_name()));
+            facts.intrinsic_name = Some(t.as_intrinsic_type().intrinsic_name());
         }
         if flags.intersects(TypeFlags::Freshable) {
             match t.as_literal_type().value() {
                 // TypeScript 6's true and false are intrinsic types named "true" and "false"; tsrs keeps them as
                 // boolean literal types.
                 Some(LiteralValue::Boolean(b)) => {
-                    o.insert("intrinsicName".into(), json!(if b { "true" } else { "false" }));
+                    facts.intrinsic_name = Some(if b { "true" } else { "false" });
                 }
-                Some(LiteralValue::String(s)) => {
-                    o.insert("value".into(), json!(s));
-                }
-                Some(LiteralValue::Number(n)) => {
-                    o.insert("value".into(), json!(n.0));
-                }
+                Some(LiteralValue::String(s)) => facts.value = Some(LiteralFact::String(s)),
+                Some(LiteralValue::Number(n)) => facts.value = Some(LiteralFact::Number(n.0)),
                 Some(LiteralValue::BigInt(b)) => {
                     let digits = if b.base10_value.is_empty() { "0" } else { b.base10_value };
-                    o.insert(
-                        "value".into(),
-                        json!({ "negative": b.negative, "base10Value": digits }),
-                    );
+                    facts.value =
+                        Some(LiteralFact::BigInt { negative: b.negative, base10_value: digits });
                 }
                 None => {}
             }
         }
-        if let Some(s) = t.symbol() {
-            o.insert("symbol".into(), json!(self.symbols.intern(s)));
-        }
         if let Some(alias) = t.alias() {
-            if let Some(s) = alias.symbol() {
-                o.insert("aliasSymbol".into(), json!(self.symbols.intern(s)));
-            }
+            facts.alias_symbol = alias.symbol().map(|s| self.symbols.intern(s));
             if !alias.type_arguments().is_empty() {
-                let args = self.intern_types(alias.type_arguments());
-                o.insert("aliasTypeArguments".into(), args);
+                facts.alias_type_arguments = Some(self.intern_types(alias.type_arguments()));
             }
         }
         if flags.intersects(TypeFlags::Object)
             && t.object_flags().intersects(ObjectFlags::Reference)
         {
             let args = self.checker.get_type_arguments_exported(t);
-            let args = self.intern_types(args);
-            o.insert("typeArguments".into(), args);
-            if let Some(target) = t.target() {
-                o.insert("target".into(), json!(self.types.intern(target)));
-            }
+            facts.type_arguments = Some(self.intern_types(args));
+            facts.target = t.target().map(|target| self.types.intern(target));
         }
         if flags.intersects(TypeFlags::UnionOrIntersection) {
-            let types = self.intern_types(t.types());
-            o.insert("types".into(), types);
-        }
-        if let Some(origin) = t.union_origin() {
-            o.insert("origin".into(), json!(self.types.intern(origin)));
+            facts.types = Some(self.intern_types(t.types()));
         }
         if tsrs_checker::is_tuple_type_target(t) {
-            let per_element = t
-                .as_tuple_type()
-                .element_flags()
-                .into_iter()
-                .map(|f| flag_names(f, ELEMENT_FLAG_NAMES))
-                .collect();
-            o.insert("elementFlags".into(), Value::Array(per_element));
+            let per_element = t.as_tuple_type().element_flags().into_iter();
+            facts.element_flags =
+                Some(per_element.map(|f| flag_names(f, ELEMENT_FLAG_NAMES)).collect());
         }
-        o.insert("isArray".into(), json!(self.checker.is_array_type_exported(t)));
-        o.insert("isTuple".into(), json!(tsrs_checker::is_tuple_type_exported(t)));
         if flags.intersects(TypeFlags::Literal | TypeFlags::EnumLiteral) {
             let base = self.checker.get_base_type_of_literal_type_exported(t);
-            o.insert("baseLiteral".into(), json!(self.types.intern(base)));
+            facts.base_literal = Some(self.types.intern(base));
         }
-        Value::Object(o)
+        facts
     }
 
-    fn symbol_facts(&mut self, s: P<Symbol>) -> Value {
+    fn symbol_facts(&mut self, s: P<Symbol>) -> SymbolFacts {
         let raw = tsrs_ast::symbol_name(s);
-        let mut o = Map::new();
-        o.insert("id".into(), json!(self.symbols.intern(s)));
-        o.insert("name".into(), json!(tsrs_ast::escape_internal_symbol_name(raw)));
-        o.insert("escapedName".into(), json!(tsrs_ast::escape_symbol_name(s.name())));
-        o.insert("flags".into(), flag_names(s.flags(), SYMBOL_FLAG_NAMES));
-        let decls = s.declarations().iter().map(|d| self.node_ref(*d)).collect();
-        o.insert("declarations".into(), Value::Array(decls));
-        if let Some(d) = s.value_declaration() {
-            o.insert("valueDeclaration".into(), self.node_ref(d));
-        }
-        if let Some(p) = s.parent() {
-            o.insert("parent".into(), json!(self.symbols.intern(p)));
-        }
-        if s.flags().intersects(SymbolFlags::Alias) {
+        let aliased = if s.flags().intersects(SymbolFlags::Alias) {
             let aliased = self.checker.get_aliased_symbol(s);
-            o.insert("aliased".into(), json!(self.symbols.intern(aliased)));
+            Some(self.symbols.intern(aliased))
+        } else {
+            None
+        };
+        SymbolFacts {
+            id: self.symbols.intern(s),
+            name: tsrs_ast::escape_internal_symbol_name(raw).to_string(),
+            escaped_name: tsrs_ast::escape_symbol_name(s.name()).to_string(),
+            flags: flag_names(s.flags(), SYMBOL_FLAG_NAMES),
+            declarations: s.declarations().iter().filter_map(|d| self.node_ref(*d)).collect(),
+            value_declaration: s.value_declaration().and_then(|d| self.node_ref(d)),
+            parent: s.parent().map(|p| self.symbols.intern(p)),
+            aliased,
+            synthetic_origin: self.checker.synthetic_origin_of(s).map(|o| self.symbols.intern(o)),
         }
-        if let Some(origin) = self.checker.synthetic_origin_of(s) {
-            o.insert("syntheticOrigin".into(), json!(self.symbols.intern(origin)));
-        }
-        Value::Object(o)
     }
 
     /// Adds the facts of the ids the last op handed out and Node does not have yet (PROTOCOL.md, inline facts).
     fn add_facts(&mut self, facts: &mut InlineFacts) {
         for id in self.types.take_unsent() {
             let t = self.types.list[id as usize - 1];
-            facts.types.insert(id.to_string(), self.type_facts(t));
+            facts.types.insert(id, self.type_facts(t));
             self.types.mark_sent(id);
         }
         for id in self.symbols.take_unsent() {
             let s = self.symbols.list[id as usize - 1];
-            facts.symbols.insert(id.to_string(), self.symbol_facts(s));
+            facts.symbols.insert(id, self.symbol_facts(s));
             self.symbols.mark_sent(id);
         }
     }
 
     /// PROTOCOL.md revision 4b.
-    fn prefetch_file(&mut self, file: P<SourceFile>) -> Value {
+    fn prefetch_file(&mut self, file: P<SourceFile>) -> PrefetchResult {
         struct Entries {
             seen: std::collections::HashSet<(u32, u32, String)>,
-            list: Vec<Value>,
+            list: Vec<Entry>,
         }
         impl Entries {
             fn push(
@@ -549,12 +708,12 @@ impl Session {
                 map: &tsrs_ast::PositionMap,
             ) {
                 if self.seen.insert((pos, end, kind.to_string())) {
-                    self.list.push(json!([
+                    self.list.push((
                         map.utf8_to_utf16(pos),
                         map.utf8_to_utf16(end),
-                        kind,
-                        id
-                    ]));
+                        kind.to_string(),
+                        id,
+                    ));
                 }
             }
         }
@@ -615,57 +774,45 @@ impl Session {
         for sym in property_symbols {
             if sym.flags().intersects(SymbolFlags::Property) && done.insert(sym) {
                 let t = self.checker.get_type_of_symbol_exported(sym);
-                type_of_symbol.push(json!([self.symbols.hand_out(sym), self.types.hand_out(t)]));
+                type_of_symbol.push((self.symbols.hand_out(sym), self.types.hand_out(t)));
             }
         }
-        json!({
-            "symbolAt": symbol_at.list,
-            "typeFrom": type_from.list,
-            "declared": declared.list,
-            "typeOfSymbol": type_of_symbol,
-        })
+        PrefetchResult {
+            symbol_at: symbol_at.list,
+            type_from: type_from.list,
+            declared: declared.list,
+            type_of_symbol,
+        }
     }
 
-    fn index_infos(&mut self, t: P<Type>) -> Value {
+    fn index_infos(&mut self, t: P<Type>) -> Vec<IndexInfo> {
         let infos = self.checker.get_index_infos_of_type_exported(t);
-        Value::Array(
-            infos
-                .iter()
-                .map(|i| {
-                    let mut entry = json!({
-                        "keyType": self.types.hand_out(i.key_type()),
-                        "type": self.types.hand_out(i.value_type()),
-                        "isReadonly": i.is_readonly(),
-                    });
-                    if let Some(d) = i.declaration() {
-                        let r = self.node_ref(d);
-                        if !r.is_null() {
-                            entry["declaration"] = r;
-                        }
-                    }
-                    entry
-                })
-                .collect(),
-        )
+        infos
+            .iter()
+            .map(|i| IndexInfo {
+                key_type: self.types.hand_out(i.key_type()),
+                ty: self.types.hand_out(i.value_type()),
+                is_readonly: i.is_readonly(),
+                declaration: i.declaration().and_then(|d| self.node_ref(d)),
+            })
+            .collect()
     }
 
-    fn print(&mut self, t: P<Type>) -> Value {
+    fn print(&mut self, t: P<Type>) -> Option<PrintResult> {
         let id_to_symbol = P::new(RefCell::new(FxHashMap::default()));
         // The printer must share the node builder's emit context: the builder records emit flags there (SingleLine
         // on type literals), as TypeScript 6 records them on the nodes.
         let emit_context = tsrs_printer::new_emit_context();
         let builder =
             tsrs_checker::new_node_builder_ex(&self.checker, emit_context, Some(id_to_symbol));
-        let Some(node) = builder.type_to_type_node(
+        let node = builder.type_to_type_node(
             &mut self.checker,
             t,
             None,
             BuilderFlags::NoTruncation,
             InternalFlags::None,
             None,
-        ) else {
-            return Value::Null;
-        };
+        )?;
         let mut printer = tsrs_printer::new_printer(
             tsrs_printer::PrinterOptions { remove_comments: true, ..Default::default() },
             tsrs_printer::PrintHandlers::default(),
@@ -687,147 +834,164 @@ impl Session {
             });
         }
         visit(node, &mut symbols, &id_to_symbol.borrow());
-        let identifiers = symbols.into_iter().map(|s| self.opt_symbol(s)).collect();
-        json!({ "text": text, "identifiers": Value::Array(identifiers) })
+        let identifiers =
+            symbols.into_iter().map(|s| s.map(|s| self.symbols.hand_out(s))).collect();
+        Some(PrintResult { text, identifiers })
+    }
+
+    fn ty(&self, id: u32) -> Result<P<Type>, String> {
+        self.types.get(id, "type")
+    }
+
+    fn sym(&self, id: u32) -> Result<P<Symbol>, String> {
+        self.symbols.get(id, "symbol")
+    }
+
+    fn node_of(&self, q: &Value) -> Result<P<Node>, String> {
+        self.node(&decode::<NodeInput>(q)?.node)
+    }
+
+    fn type_of(&self, q: &Value) -> Result<P<Type>, String> {
+        self.ty(decode::<TypeInput>(q)?.ty)
+    }
+
+    fn symbol_of(&self, q: &Value) -> Result<P<Symbol>, String> {
+        self.sym(decode::<SymbolInput>(q)?.symbol)
     }
 
     fn query(&mut self, op: &str, q: &Value) -> Res {
         Ok(match op {
-            "fileText" => json!(self.files.get(field(q, "file")?, "file")?.text()),
+            "fileText" => json!(self.files.get(decode::<FileInput>(q)?.file, "file")?.text()),
+            "prefetchFile" => {
+                let file = self.files.get(decode::<FileInput>(q)?.file, "file")?;
+                json!(self.prefetch_file(file))
+            }
             "typeAtLocation" => {
-                let node = self.node(q)?;
+                let node = self.node_of(q)?;
                 let t = self.checker.get_type_at_location(node);
-                self.type_id(t)
+                json!(self.types.hand_out(t))
             }
             "typeFromTypeNode" => {
-                let node = self.node(q)?;
+                let node = self.node_of(q)?;
                 let t = self.checker.get_type_from_type_node_exported(node);
-                self.type_id(t)
+                json!(self.types.hand_out(t))
             }
             "symbolAtLocation" => {
-                let node = self.node(q)?;
+                let node = self.node_of(q)?;
                 let s = self.checker.get_symbol_at_location_exported(node);
-                self.opt_symbol(s)
+                json!(s.map(|s| self.symbols.hand_out(s)))
             }
             "symbolOfDeclaration" => {
-                let node = self.node(q)?;
-                self.opt_symbol(node.symbol())
+                let node = self.node_of(q)?;
+                json!(node.symbol().map(|s| self.symbols.hand_out(s)))
             }
             "returnTypeOfDeclaration" => {
-                let node = self.node(q)?;
+                let node = self.node_of(q)?;
                 if !tsrs_ast::is_function_like(node) {
                     return Ok(Value::Null);
                 }
                 let sig = self.checker.get_signature_from_declaration_exported(node);
                 let t = self.checker.get_return_type_of_signature_exported(sig);
-                self.type_id(t)
+                json!(self.types.hand_out(t))
             }
             "constantValue" => {
-                let node = self.node(q)?;
+                let node = self.node_of(q)?;
                 match self.checker.get_constant_value(node) {
                     Some(LiteralValue::String(s)) => json!(s),
                     Some(LiteralValue::Number(n)) => json!(n.0),
                     _ => Value::Null,
                 }
             }
-            "type" => {
-                let t = self.ty(q, "type")?;
-                let facts = self.type_facts(t);
-                let id = self.types.intern(t);
-                self.types.mark_sent(id);
-                facts
-            }
-            "symbol" => {
-                let s = self.sym(q)?;
-                let facts = self.symbol_facts(s);
-                let id = self.symbols.intern(s);
-                self.symbols.mark_sent(id);
-                facts
-            }
-            "prefetchFile" => {
-                let file = self.files.get(field(q, "file")?, "file")?;
-                self.prefetch_file(file)
-            }
-            "typeOfSymbol" => {
-                let s = self.sym(q)?;
-                let t = self.checker.get_type_of_symbol_exported(s);
-                self.type_id(t)
-            }
             "resolveName" => {
-                let location = self.node(q)?;
-                let name = field_str(q, "name")?;
+                let input: ResolveNameInput = decode(q)?;
+                let location = self.node(&input.node)?;
                 let mut meaning = SymbolFlags::empty();
-                for flag in field(q, "meaning")?.as_array().ok_or("meaning: expected a list")? {
-                    let flag = flag.as_str().ok_or("meaning: expected names")?;
+                for flag in &input.meaning {
                     let (bits, _) = SYMBOL_FLAG_NAMES
                         .iter()
-                        .find(|(_, n)| *n == flag)
+                        .find(|(_, n)| n == flag)
                         .ok_or_else(|| format!("unknown SymbolFlags name {flag:?}"))?;
                     meaning |= *bits;
                 }
-                let found = self.checker.resolve_name_exported(name, location, meaning, false);
-                self.opt_symbol(found)
+                let found =
+                    self.checker.resolve_name_exported(&input.name, location, meaning, false);
+                json!(found.map(|s| self.symbols.hand_out(s)))
+            }
+            "type" => {
+                let t = self.type_of(q)?;
+                let facts = self.type_facts(t);
+                self.types.mark_sent(facts.id);
+                json!(facts)
+            }
+            "symbol" => {
+                let s = self.symbol_of(q)?;
+                let facts = self.symbol_facts(s);
+                self.symbols.mark_sent(facts.id);
+                json!(facts)
+            }
+            "typeOfSymbol" => {
+                let s = self.symbol_of(q)?;
+                let t = self.checker.get_type_of_symbol_exported(s);
+                json!(self.types.hand_out(t))
             }
             "exportOf" => {
-                let s = self.sym(q)?;
-                let name = field_str(q, "name")?;
-                let member = s.exports().and_then(|table| table.lookup(name));
-                self.opt_symbol(member)
-            }
-            "property" => {
-                let t = self.ty(q, "type")?;
-                let p = self.checker.get_property_of_type_exported(t, field_str(q, "name")?);
-                self.opt_symbol(p)
+                let input: ExportOfInput = decode(q)?;
+                let s = self.sym(input.symbol)?;
+                let member = s.exports().and_then(|table| table.lookup(&input.name));
+                json!(member.map(|m| self.symbols.hand_out(m)))
             }
             "members" => {
-                let t = self.ty(q, "type")?;
+                let t = self.type_of(q)?;
                 let props = self.checker.get_properties_of_type_exported(t);
                 let mut properties = Vec::with_capacity(props.len());
                 for p in props {
                     let pt = self.checker.get_type_of_symbol_exported(*p);
-                    properties.push(json!([self.symbols.hand_out(*p), self.types.hand_out(pt)]));
+                    properties.push((self.symbols.hand_out(*p), self.types.hand_out(pt)));
                 }
-                json!({ "properties": properties, "indexInfos": self.index_infos(t) })
+                json!(Members { properties, index_infos: self.index_infos(t) })
+            }
+            "property" => {
+                let input: PropertyInput = decode(q)?;
+                let t = self.ty(input.ty)?;
+                let p = self.checker.get_property_of_type_exported(t, &input.name);
+                json!(p.map(|p| self.symbols.hand_out(p)))
             }
             "callSignatures" => {
-                let t = self.ty(q, "type")?;
+                let t = self.type_of(q)?;
                 let sigs = self.checker.get_signatures_of_type_exported(t, SignatureKind::Call);
                 let mut out = Vec::with_capacity(sigs.len());
                 for sig in sigs {
                     let r = self.checker.get_return_type_of_signature_exported(*sig);
-                    out.push(json!({ "returnType": self.types.hand_out(r) }));
+                    out.push(CallSignature { return_type: self.types.hand_out(r) });
                 }
-                Value::Array(out)
+                json!(out)
             }
             "nonNullable" => {
-                let t = self.ty(q, "type")?;
+                let t = self.type_of(q)?;
                 let n = self.checker.get_non_nullable_type(t);
-                self.type_id(n)
+                json!(self.types.hand_out(n))
             }
             "union" => {
-                let types = field(q, "types")?
-                    .as_array()
-                    .ok_or("types: expected an array")?
-                    .iter()
-                    .map(|v| self.types.get(v, "type"))
-                    .collect::<Result<Vec<_>, _>>()?;
+                let input: UnionInput = decode(q)?;
+                let types =
+                    input.types.into_iter().map(|id| self.ty(id)).collect::<Result<Vec<_>, _>>()?;
                 let u = self.checker.get_union_type_exported(&types);
-                self.type_id(u)
+                json!(self.types.hand_out(u))
             }
             "assignable" => {
-                let source = self.ty(q, "source")?;
-                let target = self.ty(q, "target")?;
+                let input: AssignableInput = decode(q)?;
+                let (source, target) = (self.ty(input.source)?, self.ty(input.target)?);
                 json!(self.checker.is_type_assignable_to_exported(source, target))
             }
             "typeToString" => {
-                let t = self.ty(q, "type")?;
+                let t = self.type_of(q)?;
                 json!(self.checker.type_to_string_exported(t))
             }
             "print" => {
-                let t = self.ty(q, "type")?;
-                self.print(t)
+                let t = self.type_of(q)?;
+                json!(self.print(t))
             }
-            _ => return Err(format!("unknown op {op}")),
+            _ => return Err("unknown op".to_string()),
         })
     }
 }
@@ -846,25 +1010,29 @@ fn panic_text(p: &(dyn std::any::Any + Send)) -> String {
         .unwrap_or_else(|| "panic".to_string())
 }
 
-/// One query and the facts it adds, with a checker panic in either reported as the query's error rather than ending
-/// the process.
+/// One query and the facts it adds. Errors read "<op>: <error>", and a checker panic in either the op or its facts is
+/// the query's error rather than ending the process.
 fn answer(session: &mut Option<Session>, q: &Value, facts: &mut InlineFacts) -> Res {
-    let op = field_str(q, "op")?;
+    let op = decode::<Query>(q)?.op;
+    answer_op(session, &op, q, facts).map_err(|e| format!("{op}: {e}"))
+}
+
+fn answer_op(session: &mut Option<Session>, op: &str, q: &Value, facts: &mut InlineFacts) -> Res {
     let panicked = |p: Box<dyn std::any::Any + Send>| format!("panic: {}", panic_text(&*p));
     if op == "open" {
         if session.is_some() {
-            return Err("open: a program is already open".into());
+            return Err("a program is already open".into());
         }
         let (s, result) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let (mut s, result) = open(q)?;
+            let (mut s, result) = open(decode(q)?)?;
             s.add_facts(facts);
-            Ok::<_, String>((s, result))
+            Ok::<_, String>((s, json!(result)))
         }))
         .map_err(panicked)??;
         *session = Some(s);
         return Ok(result);
     }
-    let s = session.as_mut().ok_or("no program: send open first")?;
+    let s = session.as_mut().ok_or("no program is open")?;
     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let result = s.query(op, q);
         s.add_facts(facts);
@@ -904,11 +1072,15 @@ fn serve(mut input: impl Read, mut output: impl Write) {
             }
         };
         let response = match request.get("op").and_then(Value::as_str) {
-            Some("batch") => match request.get("queries").and_then(Value::as_array) {
-                Some(queries) => respond(Ok(Value::Array(
-                    queries.iter().map(|q| respond(answer(&mut session, q, &mut facts))).collect(),
+            Some("batch") => match decode::<Batch>(&request) {
+                Ok(batch) => respond(Ok(Value::Array(
+                    batch
+                        .queries
+                        .iter()
+                        .map(|q| respond(answer(&mut session, q, &mut facts)))
+                        .collect(),
                 ))),
-                None => respond(Err("batch: missing queries".into())),
+                Err(e) => respond(Err(format!("batch: {e}"))),
             },
             Some("close") => {
                 write_message(&mut output, &respond(Ok(Value::Null)));
@@ -917,8 +1089,8 @@ fn serve(mut input: impl Read, mut output: impl Write) {
             _ => respond(answer(&mut session, &request, &mut facts)),
         };
         let mut response = response;
-        if let Some(facts) = facts.into_value() {
-            response["facts"] = facts;
+        if !facts.types.is_empty() || !facts.symbols.is_empty() {
+            response["facts"] = json!(facts);
         }
         write_message(&mut output, &response);
     }

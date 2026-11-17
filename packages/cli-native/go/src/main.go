@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"runtime/debug"
 	"strings"
 
@@ -31,36 +32,200 @@ import (
 // protocolRevision is the PROTOCOL.md revision this helper speaks; `open` reports it.
 const protocolRevision = 8
 
-type nodeRef struct {
+// Wire shapes, field for field as in packages/cli/src/metadataGeneration/native/protocol.ts.
+
+type NodeRef struct {
 	File int    `json:"file"`
 	Pos  int    `json:"pos"`
 	End  int    `json:"end"`
 	Kind string `json:"kind"`
 }
 
-// args is every query's input; each op reads the fields its row in the protocol table names.
-type args struct {
-	Op              string            `json:"op"`
-	Queries         []json.RawMessage `json:"queries"`
-	Cwd             string            `json:"cwd"`
-	RootFiles       []string          `json:"rootFiles"`
-	CompilerOptions map[string]any    `json:"compilerOptions"`
-	File            int               `json:"file"`
-	Node            *nodeRef          `json:"node"`
-	Type            int               `json:"type"`
-	Types           []int             `json:"types"`
-	Symbol          int               `json:"symbol"`
-	Name            string            `json:"name"`
-	Source          int               `json:"source"`
-	Meaning         []string          `json:"meaning"`
-	Target          int               `json:"target"`
+type FileInfo struct {
+	ID                int    `json:"id"`
+	FileName          string `json:"fileName"`
+	IsDeclarationFile bool   `json:"isDeclarationFile"`
+	IsDefaultLibrary  bool   `json:"isDefaultLibrary"`
+}
+
+type OpenResult struct {
+	Protocol      int        `json:"protocol"`
+	Files         []FileInfo `json:"files"`
+	UndefinedType int        `json:"undefinedType"`
+}
+
+// TypeFacts omits absent fields with omitzero, so an empty list that is present (a tuple with no elements) still
+// goes out as [].
+type TypeFacts struct {
+	ID                 int        `json:"id"`
+	Flags              []string   `json:"flags"`
+	ObjectFlags        []string   `json:"objectFlags"`
+	IntrinsicName      string     `json:"intrinsicName,omitzero"`
+	Value              any        `json:"value,omitzero"`
+	Symbol             *int       `json:"symbol,omitzero"`
+	AliasSymbol        *int       `json:"aliasSymbol,omitzero"`
+	AliasTypeArguments []int      `json:"aliasTypeArguments,omitzero"`
+	TypeArguments      []int      `json:"typeArguments,omitzero"`
+	Types              []int      `json:"types,omitzero"`
+	Origin             *int       `json:"origin,omitzero"`
+	Target             *int       `json:"target,omitzero"`
+	ElementFlags       [][]string `json:"elementFlags,omitzero"`
+	IsArray            bool       `json:"isArray"`
+	IsTuple            bool       `json:"isTuple"`
+	BaseLiteral        *int       `json:"baseLiteral,omitzero"`
+}
+
+type BigIntValue struct {
+	Negative    bool   `json:"negative"`
+	Base10Value string `json:"base10Value"`
+}
+
+type SymbolFacts struct {
+	ID               int       `json:"id"`
+	Name             string    `json:"name"`
+	EscapedName      string    `json:"escapedName"`
+	Flags            []string  `json:"flags"`
+	Declarations     []NodeRef `json:"declarations"`
+	ValueDeclaration *NodeRef  `json:"valueDeclaration,omitzero"`
+	Parent           *int      `json:"parent,omitzero"`
+	Aliased          *int      `json:"aliased,omitzero"`
+	SyntheticOrigin  *int      `json:"syntheticOrigin,omitzero"`
+}
+
+type IndexInfo struct {
+	KeyType     int      `json:"keyType"`
+	Type        int      `json:"type"`
+	IsReadonly  bool     `json:"isReadonly"`
+	Declaration *NodeRef `json:"declaration,omitzero"`
+}
+
+type Members struct {
+	Properties [][2]int    `json:"properties"`
+	IndexInfos []IndexInfo `json:"indexInfos"`
+}
+
+type CallSignature struct {
+	ReturnType int `json:"returnType"`
+}
+
+// Entry is one prefetchFile answer; it goes out as [pos, end, kind, id].
+type Entry struct {
+	Pos, End int
+	Kind     string
+	ID       *int
+}
+
+func (e Entry) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]any{e.Pos, e.End, e.Kind, e.ID})
+}
+
+type PrefetchResult struct {
+	SymbolAt     []Entry  `json:"symbolAt"`
+	TypeFrom     []Entry  `json:"typeFrom"`
+	Declared     []Entry  `json:"declared"`
+	TypeOfSymbol [][2]int `json:"typeOfSymbol"`
+}
+
+type PrintResult struct {
+	Text        string `json:"text"`
+	Identifiers []*int `json:"identifiers"`
+}
+
+type InlineFacts struct {
+	Types   map[int]TypeFacts   `json:"types,omitempty"`
+	Symbols map[int]SymbolFacts `json:"symbols,omitempty"`
+}
+
+// Op inputs, one struct per input shape in the protocol's operation table. Every field is required.
+
+type request struct {
+	Op      string            `json:"op"`
+	Queries []json.RawMessage `json:"queries"`
+}
+
+type openInput struct {
+	Cwd             string         `json:"cwd"`
+	RootFiles       []string       `json:"rootFiles"`
+	CompilerOptions map[string]any `json:"compilerOptions"`
+}
+
+type fileInput struct {
+	File int `json:"file"`
+}
+
+type nodeInput struct {
+	Node NodeRef `json:"node"`
+}
+
+type typeInput struct {
+	Type int `json:"type"`
+}
+
+type symbolInput struct {
+	Symbol int `json:"symbol"`
+}
+
+type resolveNameInput struct {
+	Name    string   `json:"name"`
+	Node    NodeRef  `json:"node"`
+	Meaning []string `json:"meaning"`
+}
+
+type exportOfInput struct {
+	Symbol int    `json:"symbol"`
+	Name   string `json:"name"`
+}
+
+type propertyInput struct {
+	Type int    `json:"type"`
+	Name string `json:"name"`
+}
+
+type unionInput struct {
+	Types []int `json:"types"`
+}
+
+type assignableInput struct {
+	Source int `json:"source"`
+	Target int `json:"target"`
+}
+
+// decode parses an op's input, failing with "missing <field>" when the query leaves out a field of In or of a struct
+// inside it (a NodeRef's kind, say).
+func decode[In any](raw json.RawMessage) (In, error) {
+	var in In
+	if field := missingField(reflect.TypeFor[In](), raw); field != "" {
+		return in, errors.New("missing " + field)
+	}
+	return in, json.Unmarshal(raw, &in)
+}
+
+func missingField(t reflect.Type, raw json.RawMessage) string {
+	var present map[string]json.RawMessage
+	if json.Unmarshal(raw, &present) != nil {
+		return ""
+	}
+	for i := range t.NumField() {
+		field := t.Field(i)
+		name := field.Tag.Get("json")
+		value, ok := present[name]
+		if !ok {
+			return name
+		}
+		if field.Type.Kind() == reflect.Struct {
+			if inner := missingField(field.Type, value); inner != "" {
+				return inner
+			}
+		}
+	}
+	return ""
 }
 
 type response struct {
 	Ok     bool         `json:"ok"`
 	Result any          `json:"result"`
 	Error  string       `json:"error,omitempty"`
-	Facts  *inlineFacts `json:"facts,omitempty"`
+	Facts  *InlineFacts `json:"facts,omitempty"`
 }
 
 type session struct {
@@ -96,14 +261,30 @@ func (n *interner[T]) intern(v T) int {
 	return len(n.values)
 }
 
-// handOut interns v for an op's result; the zero value (a nil type or symbol) is null on the wire.
-func (n *interner[T]) handOut(v T) *int {
+// internOrNil is intern for optional fact fields: a nil type or symbol is absent.
+func (n *interner[T]) internOrNil(v T) *int {
 	var zero T
 	if v == zero {
 		return nil
 	}
 	id := n.intern(v)
+	return &id
+}
+
+// handOut interns v as part of an op's answer.
+func (n *interner[T]) handOut(v T) int {
+	id := n.intern(v)
 	n.handedOut = append(n.handedOut, id)
+	return id
+}
+
+// handOutOrNull is handOut for answers that may be null: a nil type or symbol.
+func (n *interner[T]) handOutOrNull(v T) *int {
+	var zero T
+	if v == zero {
+		return nil
+	}
+	id := n.handOut(v)
 	return &id
 }
 
@@ -176,7 +357,7 @@ func main() {
 }
 
 func (s *session) serve(body []byte) response {
-	facts := inlineFacts{Types: map[int]any{}, Symbols: map[int]any{}}
+	facts := InlineFacts{Types: map[int]TypeFacts{}, Symbols: map[int]SymbolFacts{}}
 	r := s.serveRequest(body, &facts)
 	if len(facts.Types) > 0 || len(facts.Symbols) > 0 {
 		r.Facts = &facts
@@ -184,13 +365,8 @@ func (s *session) serve(body []byte) response {
 	return r
 }
 
-type inlineFacts struct {
-	Types   map[int]any `json:"types,omitempty"`
-	Symbols map[int]any `json:"symbols,omitempty"`
-}
-
 // addFacts adds the facts of the ids the last op handed out and Node does not have yet.
-func (s *session) addFacts(facts *inlineFacts) {
+func (s *session) addFacts(facts *InlineFacts) {
 	for _, id := range s.types.takeUnsent() {
 		facts.Types[id] = s.typeFacts(s.types.values[id-1])
 		s.types.sent[id] = true
@@ -201,129 +377,147 @@ func (s *session) addFacts(facts *inlineFacts) {
 	}
 }
 
-func (s *session) serveRequest(body []byte, facts *inlineFacts) response {
-	var a args
-	if err := json.Unmarshal(body, &a); err != nil {
+func (s *session) serveRequest(body []byte, facts *InlineFacts) response {
+	var r request
+	if err := json.Unmarshal(body, &r); err != nil {
 		return response{Error: "invalid request: " + err.Error()}
 	}
-	if a.Op != "batch" {
-		return s.query(&a, facts)
+	if r.Op != "batch" {
+		return s.query(r.Op, body, facts)
 	}
-	results := make([]response, len(a.Queries))
-	for i, raw := range a.Queries {
-		var q args
+	results := make([]response, len(r.Queries))
+	for i, raw := range r.Queries {
+		var q request
 		if err := json.Unmarshal(raw, &q); err != nil {
 			results[i] = response{Error: "invalid query: " + err.Error()}
 			continue
 		}
-		results[i] = s.query(&q, facts)
+		results[i] = s.query(q.Op, raw, facts)
 	}
 	return response{Ok: true, Result: results}
 }
 
 // query answers one op. The facts it adds are computed under the same recover, so a panic in either fails the query.
-func (s *session) query(a *args, facts *inlineFacts) (r response) {
+func (s *session) query(op string, raw json.RawMessage, facts *InlineFacts) (r response) {
 	defer func() {
 		if p := recover(); p != nil {
 			s.types.handedOut, s.symbols.handedOut = nil, nil
-			r = response{Error: fmt.Sprintf("%s: panic: %v\n%s", a.Op, p, debug.Stack())}
+			r = response{Error: fmt.Sprintf("%s: panic: %v\n%s", op, p, debug.Stack())}
 		}
 	}()
-	handler, ok := handlers[a.Op]
+	handler, ok := handlers[op]
 	if !ok {
-		return response{Error: "unknown op " + a.Op}
+		return response{Error: op + ": unknown op"}
 	}
-	if a.Op != "open" && a.Op != "close" && s.checker == nil {
-		return response{Error: a.Op + ": no program is open"}
+	if op != "open" && op != "close" && s.checker == nil {
+		return response{Error: op + ": no program is open"}
 	}
-	result, err := handler(s, a)
+	result, err := handler(s, raw)
 	s.addFacts(facts)
 	if err != nil {
-		return response{Error: a.Op + ": " + err.Error()}
+		return response{Error: op + ": " + err.Error()}
 	}
 	return response{Ok: true, Result: result}
 }
 
-var handlers = map[string]func(s *session, a *args) (any, error){
-	"open":     (*session).open,
-	"close":    func(s *session, a *args) (any, error) { s.closed = true; return nil, nil },
-	"fileText": func(s *session, a *args) (any, error) { f, err := s.file(a.File); return text(f), err },
-	"typeAtLocation": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
-		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetTypeAtLocation(n) })
-	},
-	"typeFromTypeNode": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
-		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetTypeFromTypeNode(n) })
-	},
-	"symbolAtLocation": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
+type handler func(s *session, raw json.RawMessage) (any, error)
+
+// withInput, onNode, onType and onSymbol decode an op's input and resolve its ids before the op runs.
+func withInput[In any](answer func(s *session, in In) (any, error)) handler {
+	return func(s *session, raw json.RawMessage) (any, error) {
+		in, err := decode[In](raw)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbols.handOut(s.checker.GetSymbolAtLocation(n)), nil
-	},
-	"symbolOfDeclaration": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
+		return answer(s, in)
+	}
+}
+
+func onNode(answer func(s *session, n *ast.Node) any) handler {
+	return withInput(func(s *session, in nodeInput) (any, error) {
+		n, err := s.node(in.Node)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbols.handOut(n.Symbol()), nil
-	},
-	"returnTypeOfDeclaration": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
+		return answer(s, n), nil
+	})
+}
+
+func onType(answer func(s *session, t *checker.Type) any) handler {
+	return withInput(func(s *session, in typeInput) (any, error) {
+		t, err := s.types.get(in.Type)
 		if err != nil {
 			return nil, err
 		}
+		return answer(s, t), nil
+	})
+}
+
+func onSymbol(answer func(s *session, sym *ast.Symbol) any) handler {
+	return withInput(func(s *session, in symbolInput) (any, error) {
+		sym, err := s.symbols.get(in.Symbol)
+		if err != nil {
+			return nil, err
+		}
+		return answer(s, sym), nil
+	})
+}
+
+var handlers = map[string]handler{
+	"open":  withInput((*session).open),
+	"close": func(s *session, raw json.RawMessage) (any, error) { s.closed = true; return nil, nil },
+	"fileText": withInput(func(s *session, in fileInput) (any, error) {
+		f, err := s.file(in.File)
+		if err != nil {
+			return nil, err
+		}
+		return f.Text(), nil
+	}),
+	"prefetchFile": withInput(func(s *session, in fileInput) (any, error) {
+		f, err := s.file(in.File)
+		if err != nil {
+			return nil, err
+		}
+		return s.prefetchFile(f), nil
+	}),
+	"typeAtLocation": onNode(func(s *session, n *ast.Node) any {
+		return s.types.handOutOrNull(s.checker.GetTypeAtLocation(n))
+	}),
+	"typeFromTypeNode": onNode(func(s *session, n *ast.Node) any {
+		return s.types.handOutOrNull(s.checker.GetTypeFromTypeNode(n))
+	}),
+	"symbolAtLocation": onNode(func(s *session, n *ast.Node) any {
+		return s.symbols.handOutOrNull(s.checker.GetSymbolAtLocation(n))
+	}),
+	"symbolOfDeclaration": onNode(func(s *session, n *ast.Node) any {
+		return s.symbols.handOutOrNull(n.Symbol())
+	}),
+	"returnTypeOfDeclaration": onNode(func(s *session, n *ast.Node) any {
 		if !ast.IsFunctionLike(n) {
-			return nil, nil
+			return nil
 		}
 		sig := s.checker.GetSignatureFromDeclaration(n)
 		if sig == nil {
-			return nil, nil
+			return nil
 		}
-		return s.types.handOut(s.checker.GetReturnTypeOfSignature(sig)), nil
-	},
-	"constantValue": func(s *session, a *args) (any, error) {
-		n, err := s.node(a.Node)
-		if err != nil {
-			return nil, err
-		}
+		return s.types.handOutOrNull(s.checker.GetReturnTypeOfSignature(sig))
+	}),
+	"constantValue": onNode(func(s *session, n *ast.Node) any {
 		switch v := s.checker.GetConstantValue(n).(type) {
 		case string:
-			return v, nil
+			return v
 		case jsnum.Number:
-			return float64(v), nil
+			return float64(v)
 		}
-		return nil, nil
-	},
-	"type": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
-		if err != nil {
-			return nil, err
-		}
-		s.types.sent[a.Type] = true
-		return s.typeFacts(t), nil
-	},
-	"symbol": func(s *session, a *args) (any, error) {
-		sym, err := s.symbols.get(a.Symbol)
-		if err != nil {
-			return nil, err
-		}
-		s.symbols.sent[a.Symbol] = true
-		return s.symbolFacts(sym), nil
-	},
-	"typeOfSymbol": func(s *session, a *args) (any, error) {
-		sym, err := s.symbols.get(a.Symbol)
-		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetTypeOfSymbol(sym) })
-	},
-	"resolveName": func(s *session, a *args) (any, error) {
-		location, err := s.node(a.Node)
+		return nil
+	}),
+	"resolveName": withInput(func(s *session, in resolveNameInput) (any, error) {
+		location, err := s.node(in.Node)
 		if err != nil {
 			return nil, err
 		}
 		var meaning ast.SymbolFlags
-		for _, name := range a.Meaning {
+		for _, name := range in.Meaning {
 			found := false
 			for _, f := range symbolFlagNames {
 				if f.name == name {
@@ -335,103 +529,102 @@ var handlers = map[string]func(s *session, a *args) (any, error){
 				return nil, fmt.Errorf("unknown SymbolFlags name %q", name)
 			}
 		}
-		return s.symbols.handOut(s.checker.ResolveName(a.Name, location, meaning, false)), nil
-	},
-	"exportOf": func(s *session, a *args) (any, error) {
-		sym, err := s.symbols.get(a.Symbol)
+		return s.symbols.handOutOrNull(s.checker.ResolveName(in.Name, location, meaning, false)), nil
+	}),
+	"type": withInput(func(s *session, in typeInput) (any, error) {
+		t, err := s.types.get(in.Type)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbols.handOut(sym.Exports()[a.Name]), nil
-	},
-	"property": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
+		s.types.sent[in.Type] = true
+		return s.typeFacts(t), nil
+	}),
+	"symbol": withInput(func(s *session, in symbolInput) (any, error) {
+		sym, err := s.symbols.get(in.Symbol)
 		if err != nil {
 			return nil, err
 		}
-		return s.symbols.handOut(s.checker.GetPropertyOfType(t, a.Name)), nil
-	},
-	"members": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
+		s.symbols.sent[in.Symbol] = true
+		return s.symbolFacts(sym), nil
+	}),
+	"typeOfSymbol": onSymbol(func(s *session, sym *ast.Symbol) any {
+		return s.types.handOutOrNull(s.checker.GetTypeOfSymbol(sym))
+	}),
+	"exportOf": withInput(func(s *session, in exportOfInput) (any, error) {
+		sym, err := s.symbols.get(in.Symbol)
 		if err != nil {
 			return nil, err
 		}
-		properties := [][2]any{}
+		return s.symbols.handOutOrNull(sym.Exports()[in.Name]), nil
+	}),
+	"members": onType(func(s *session, t *checker.Type) any {
+		properties := [][2]int{}
 		for _, p := range s.checker.GetPropertiesOfType(t) {
-			properties = append(properties, [2]any{s.symbols.handOut(p), s.types.handOut(s.checker.GetTypeOfSymbol(p))})
+			properties = append(properties, [2]int{s.symbols.handOut(p), s.types.handOut(s.checker.GetTypeOfSymbol(p))})
 		}
-		return map[string]any{"properties": properties, "indexInfos": s.indexInfos(t)}, nil
-	},
-	"callSignatures": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
+		return Members{Properties: properties, IndexInfos: s.indexInfos(t)}
+	}),
+	"property": withInput(func(s *session, in propertyInput) (any, error) {
+		t, err := s.types.get(in.Type)
 		if err != nil {
 			return nil, err
 		}
-		sigs := []map[string]any{}
+		return s.symbols.handOutOrNull(s.checker.GetPropertyOfType(t, in.Name)), nil
+	}),
+	"callSignatures": onType(func(s *session, t *checker.Type) any {
+		sigs := []CallSignature{}
 		for _, sig := range s.checker.GetSignaturesOfType(t, checker.SignatureKindCall) {
-			sigs = append(sigs, map[string]any{"returnType": s.types.handOut(s.checker.GetReturnTypeOfSignature(sig))})
+			sigs = append(sigs, CallSignature{ReturnType: s.types.handOut(s.checker.GetReturnTypeOfSignature(sig))})
 		}
-		return sigs, nil
-	},
-	"nonNullable": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
-		return s.typeIdOr(err, func() *checker.Type { return s.checker.GetNonNullableType(t) })
-	},
-	"union": func(s *session, a *args) (any, error) {
-		types := make([]*checker.Type, len(a.Types))
-		for i, id := range a.Types {
+		return sigs
+	}),
+	"nonNullable": onType(func(s *session, t *checker.Type) any {
+		return s.types.handOutOrNull(s.checker.GetNonNullableType(t))
+	}),
+	"union": withInput(func(s *session, in unionInput) (any, error) {
+		types := make([]*checker.Type, len(in.Types))
+		for i, id := range in.Types {
 			t, err := s.types.get(id)
 			if err != nil {
 				return nil, err
 			}
 			types[i] = t
 		}
-		return s.types.handOut(s.checker.GetUnionType(types)), nil
-	},
-	"assignable": func(s *session, a *args) (any, error) {
-		source, err := s.types.get(a.Source)
+		return s.types.handOutOrNull(s.checker.GetUnionType(types)), nil
+	}),
+	"assignable": withInput(func(s *session, in assignableInput) (any, error) {
+		source, err := s.types.get(in.Source)
 		if err != nil {
 			return nil, err
 		}
-		target, err := s.types.get(a.Target)
+		target, err := s.types.get(in.Target)
 		if err != nil {
 			return nil, err
 		}
 		return s.checker.IsTypeAssignableTo(source, target), nil
-	},
-	"typeToString": func(s *session, a *args) (any, error) {
-		t, err := s.types.get(a.Type)
-		if err != nil {
-			return nil, err
-		}
-		return s.checker.TypeToString(t), nil
-	},
-	"print":        (*session).print,
-	"prefetchFile": (*session).prefetchFile,
+	}),
+	"typeToString": onType(func(s *session, t *checker.Type) any {
+		return s.checker.TypeToString(t)
+	}),
+	"print": onType(func(s *session, t *checker.Type) any {
+		return s.print(t)
+	}),
 }
 
-func (s *session) indexInfos(t *checker.Type) []map[string]any {
-	infos := []map[string]any{}
+func (s *session) indexInfos(t *checker.Type) []IndexInfo {
+	infos := []IndexInfo{}
 	for _, info := range s.checker.GetIndexInfosOfType(t) {
-		entry := map[string]any{"keyType": s.types.handOut(info.KeyType()), "type": s.types.handOut(info.ValueType()), "isReadonly": info.IsReadonly()}
-		if d := info.Declaration(); d != nil {
-			if ref := s.ref(d); ref != nil {
-				entry["declaration"] = ref
-			}
-		}
-		infos = append(infos, entry)
+		infos = append(infos, IndexInfo{
+			KeyType:     s.types.handOut(info.KeyType()),
+			Type:        s.types.handOut(info.ValueType()),
+			IsReadonly:  info.IsReadonly(),
+			Declaration: s.ref(info.Declaration()),
+		})
 	}
 	return infos
 }
 
-func text(f *ast.SourceFile) any {
-	if f == nil {
-		return nil
-	}
-	return f.Text()
-}
-
-func (s *session) open(a *args) (any, error) {
+func (s *session) open(a openInput) (any, error) {
 	if s.checker != nil {
 		return nil, errors.New("a program is already open")
 	}
@@ -465,19 +658,19 @@ func (s *session) open(a *args) (any, error) {
 	s.program = compiler.NewProgram(compiler.ProgramOptions{ProgramConfig: compiler.ProgramConfig{Config: config}, ProgramHosts: compiler.ProgramHosts{Host: host}})
 	s.checker, _ = checker.NewChecker(s.program, nil)
 	s.fileIds = map[*ast.SourceFile]int{}
-	infos := []map[string]any{}
+	infos := []FileInfo{}
 	for _, f := range s.program.GetSourceFiles() {
 		s.files = append(s.files, f)
 		id := len(s.files)
 		s.fileIds[f] = id
-		infos = append(infos, map[string]any{
-			"id":                id,
-			"fileName":          string(f.FileName()),
-			"isDeclarationFile": f.IsDeclarationFile,
-			"isDefaultLibrary":  s.program.IsSourceFileDefaultLibrary(f.PathKey()),
+		infos = append(infos, FileInfo{
+			ID:                id,
+			FileName:          string(f.FileName()),
+			IsDeclarationFile: f.IsDeclarationFile,
+			IsDefaultLibrary:  s.program.IsSourceFileDefaultLibrary(f.PathKey()),
 		})
 	}
-	return map[string]any{"protocol": protocolRevision, "files": infos, "undefinedType": s.types.handOut(s.checker.GetUndefinedType())}, nil
+	return OpenResult{Protocol: protocolRevision, Files: infos, UndefinedType: s.types.handOut(s.checker.GetUndefinedType())}, nil
 }
 
 func (s *session) file(id int) (*ast.SourceFile, error) {
@@ -487,18 +680,8 @@ func (s *session) file(id int) (*ast.SourceFile, error) {
 	return s.files[id-1], nil
 }
 
-func (s *session) typeIdOr(err error, get func() *checker.Type) (any, error) {
-	if err != nil {
-		return nil, err
-	}
-	return s.types.handOut(get()), nil
-}
-
 // node resolves a NodeRef: the first node in preorder with the ref's kind and UTF-16 full range.
-func (s *session) node(ref *nodeRef) (*ast.Node, error) {
-	if ref == nil {
-		return nil, errors.New("missing node")
-	}
+func (s *session) node(ref NodeRef) (*ast.Node, error) {
 	f, err := s.file(ref.File)
 	if err != nil {
 		return nil, err
@@ -530,7 +713,7 @@ func (s *session) node(ref *nodeRef) (*ast.Node, error) {
 	return found, nil
 }
 
-func (s *session) ref(n *ast.Node) any {
+func (s *session) ref(n *ast.Node) *NodeRef {
 	if n == nil {
 		return nil
 	}
@@ -544,7 +727,7 @@ func (s *session) ref(n *ast.Node) any {
 	if ts6Name, ok := kindRenames[kind]; ok {
 		kind = ts6Name
 	}
-	return nodeRef{File: id, Pos: pm.UTF8ToUTF16(n.Pos()), End: pm.UTF8ToUTF16(n.End()), Kind: kind}
+	return &NodeRef{File: id, Pos: pm.UTF8ToUTF16(n.Pos()), End: pm.UTF8ToUTF16(n.End()), Kind: kind}
 }
 
 // equivalentKinds lists TS 6 kinds that tsgo parses as another kind at the same span. tsgo parses an interface's
@@ -555,62 +738,53 @@ var equivalentKinds = map[string]string{"KindExpressionWithTypeArguments": "Kind
 // kindRenames maps tsgo SyntaxKind names to TS 6 names where the same kind is spelled differently.
 var kindRenames = map[string]string{"EndOfFile": "EndOfFileToken", "JSDocUnknownTag": "JSDocTag"}
 
-func (s *session) typeFacts(t *checker.Type) map[string]any {
+func (s *session) typeFacts(t *checker.Type) TypeFacts {
 	flags := t.Flags()
-	facts := map[string]any{
-		"id":          s.types.intern(t),
-		"flags":       flagNames(uint64(flags), typeFlagNames),
-		"objectFlags": objectFlagNames(t),
-		"isArray":     s.checker.IsArrayType(t),
-		"isTuple":     t.IsTupleType(),
+	facts := TypeFacts{
+		ID:          s.types.intern(t),
+		Flags:       flagNames(uint64(flags), typeFlagNames),
+		ObjectFlags: objectFlagNames(t),
+		IsArray:     s.checker.IsArrayType(t),
+		IsTuple:     t.IsTupleType(),
 	}
 	if name, ok := t.TsoaIntrinsicName(); ok {
-		facts["intrinsicName"] = name
+		facts.IntrinsicName = name
 	}
 	if flags&checker.TypeFlagsBooleanLiteral != 0 {
-		facts["intrinsicName"] = fmt.Sprint(t.AsLiteralType().Value())
+		facts.IntrinsicName = fmt.Sprint(t.AsLiteralType().Value())
 	} else if flags&(checker.TypeFlagsStringLiteral|checker.TypeFlagsNumberLiteral|checker.TypeFlagsBigIntLiteral) != 0 {
 		switch v := t.AsLiteralType().Value().(type) {
 		case string:
-			facts["value"] = v
+			facts.Value = v
 		case jsnum.Number:
-			facts["value"] = float64(v)
+			facts.Value = float64(v)
 		case jsnum.PseudoBigInt:
-			facts["value"] = map[string]any{"negative": v.Negative, "base10Value": core.IfElse(v.Base10Value == "", "0", v.Base10Value)}
+			facts.Value = BigIntValue{Negative: v.Negative, Base10Value: core.IfElse(v.Base10Value == "", "0", v.Base10Value)}
 		}
 	}
-	if t.Symbol() != nil {
-		facts["symbol"] = s.symbols.intern(t.Symbol())
-	}
+	facts.Symbol = s.symbols.internOrNil(t.Symbol())
 	if alias := t.Alias(); alias != nil {
-		if alias.Symbol() != nil {
-			facts["aliasSymbol"] = s.symbols.intern(alias.Symbol())
-		}
+		facts.AliasSymbol = s.symbols.internOrNil(alias.Symbol())
 		if args := alias.TypeArguments(); len(args) > 0 {
-			facts["aliasTypeArguments"] = s.internTypes(args)
+			facts.AliasTypeArguments = s.internTypes(args)
 		}
 	}
 	if flags&checker.TypeFlagsObject != 0 && t.ObjectFlags()&checker.ObjectFlagsReference != 0 {
-		facts["typeArguments"] = s.internTypes(s.checker.GetTypeArguments(t))
-		if t.Target() != nil {
-			facts["target"] = s.types.intern(t.Target())
-		}
+		facts.TypeArguments = s.internTypes(s.checker.GetTypeArguments(t))
+		facts.Target = s.types.internOrNil(t.Target())
 	}
 	if flags&checker.TypeFlagsUnionOrIntersection != 0 {
-		facts["types"] = s.internTypes(t.Types())
+		facts.Types = s.internTypes(t.Types())
 	}
-	if origin := t.TsoaOrigin(); origin != nil {
-		facts["origin"] = s.types.intern(origin)
-	}
+	facts.Origin = s.types.internOrNil(t.TsoaOrigin())
 	if t.IsTupleType() && t.Target() == t {
-		elementFlags := [][]string{}
+		facts.ElementFlags = [][]string{}
 		for _, f := range t.AsTupleType().ElementFlags() {
-			elementFlags = append(elementFlags, flagNames(uint64(f), elementFlagNames))
+			facts.ElementFlags = append(facts.ElementFlags, flagNames(uint64(f), elementFlagNames))
 		}
-		facts["elementFlags"] = elementFlags
 	}
 	if flags&(checker.TypeFlagsLiteral|checker.TypeFlagsEnumLiteral) != 0 {
-		facts["baseLiteral"] = s.types.intern(s.checker.GetBaseTypeOfLiteralType(t))
+		facts.BaseLiteral = s.types.internOrNil(s.checker.GetBaseTypeOfLiteralType(t))
 	}
 	return facts
 }
@@ -623,77 +797,61 @@ func (s *session) internTypes(types []*checker.Type) []int {
 	return ids
 }
 
-func (s *session) symbolFacts(sym *ast.Symbol) map[string]any {
-	declarations := []any{}
+func (s *session) symbolFacts(sym *ast.Symbol) SymbolFacts {
+	declarations := []NodeRef{}
 	for _, d := range sym.Declarations() {
 		if r := s.ref(d); r != nil {
-			declarations = append(declarations, r)
+			declarations = append(declarations, *r)
 		}
 	}
-	facts := map[string]any{
-		"id":           s.symbols.intern(sym),
-		"name":         ast.EscapeInternalSymbolName(ast.SymbolName(sym)),
-		"escapedName":  ast.EscapeSymbolName(sym.Name()),
-		"flags":        flagNames(uint64(sym.Flags()), symbolFlagNames),
-		"declarations": declarations,
-	}
-	if r := s.ref(sym.ValueDeclaration()); r != nil {
-		facts["valueDeclaration"] = r
-	}
-	if sym.Parent() != nil {
-		facts["parent"] = s.symbols.intern(sym.Parent())
+	facts := SymbolFacts{
+		ID:               s.symbols.intern(sym),
+		Name:             ast.EscapeInternalSymbolName(ast.SymbolName(sym)),
+		EscapedName:      ast.EscapeSymbolName(sym.Name()),
+		Flags:            flagNames(uint64(sym.Flags()), symbolFlagNames),
+		Declarations:     declarations,
+		ValueDeclaration: s.ref(sym.ValueDeclaration()),
+		Parent:           s.symbols.internOrNil(sym.Parent()),
+		SyntheticOrigin:  s.symbols.internOrNil(s.checker.TsoaSyntheticOrigin(sym)),
 	}
 	if sym.Flags()&ast.SymbolFlagsAlias != 0 {
-		if aliased := s.checker.GetAliasedSymbol(sym); aliased != nil {
-			facts["aliased"] = s.symbols.intern(aliased)
-		}
-	}
-	if origin := s.checker.TsoaSyntheticOrigin(sym); origin != nil {
-		facts["syntheticOrigin"] = s.symbols.intern(origin)
+		facts.Aliased = s.symbols.internOrNil(s.checker.GetAliasedSymbol(sym))
 	}
 	return facts
 }
 
-func (s *session) print(a *args) (any, error) {
-	t, err := s.types.get(a.Type)
-	if err != nil {
-		return nil, err
-	}
+func (s *session) print(t *checker.Type) *PrintResult {
 	emitContext := printer.NewEmitContext()
 	idToSymbol := map[*ast.IdentifierNode]*ast.Symbol{}
 	builder := checker.NewNodeBuilderEx(s.checker, emitContext, idToSymbol)
 	typeNode := builder.TypeToTypeNode(t, nil, nodebuilder.FlagsNoTruncation, nodebuilder.InternalFlagsNone, nil)
 	if typeNode == nil {
-		return nil, nil
+		return nil
 	}
 	p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, NewLine: core.NewLineKindLF}, printer.PrintHandlers{}, emitContext)
-	identifiers := []any{}
+	identifiers := []*int{}
 	var visit func(n *ast.Node) bool
 	visit = func(n *ast.Node) bool {
 		if ast.IsIdentifier(n) {
-			identifiers = append(identifiers, s.symbols.handOut(idToSymbol[n]))
+			identifiers = append(identifiers, s.symbols.handOutOrNull(idToSymbol[n]))
 		}
 		n.ForEachChild(visit)
 		return false
 	}
 	visit(typeNode)
-	return map[string]any{"text": p.Emit(typeNode, nil), "identifiers": identifiers}, nil
+	return &PrintResult{Text: p.Emit(typeNode, nil), Identifiers: identifiers}
 }
 
 // prefetchFile answers symbolAtLocation, typeFromTypeNode, symbolOfDeclaration and typeOfSymbol for every node
 // of one file (revision 4b). The first node in preorder wins for each pos, end and kind, as in node().
-func (s *session) prefetchFile(a *args) (any, error) {
-	f, err := s.file(a.File)
-	if err != nil {
-		return nil, err
-	}
+func (s *session) prefetchFile(f *ast.SourceFile) PrefetchResult {
 	pm := f.GetPositionMap()
 	type span struct {
 		pos, end int
 		kind     ast.Kind
 	}
 	seen := make(map[span]struct{}, 256)
-	symbolAt, typeFrom, declared := []any{}, []any{}, []any{}
+	result := PrefetchResult{SymbolAt: []Entry{}, TypeFrom: []Entry{}, Declared: []Entry{}, TypeOfSymbol: [][2]int{}}
 	var propertySymbols []*ast.Symbol
 	propertySeen := map[*ast.Symbol]bool{}
 	noteProperty := func(sym *ast.Symbol) {
@@ -708,25 +866,25 @@ func (s *session) prefetchFile(a *args) (any, error) {
 		if _, dup := seen[key]; !dup {
 			seen[key] = struct{}{}
 			var kind string
-			entry := func(id any) []any {
+			entry := func(id *int) Entry {
 				if kind == "" {
 					kind = strings.TrimPrefix(n.Kind.String(), "Kind")
 					if ts6Name, ok := kindRenames[kind]; ok {
 						kind = ts6Name
 					}
 				}
-				return []any{pm.UTF8ToUTF16(key.pos), pm.UTF8ToUTF16(key.end), kind, id}
+				return Entry{pm.UTF8ToUTF16(key.pos), pm.UTF8ToUTF16(key.end), kind, id}
 			}
 			if ast.IsIdentifier(n) {
 				sym := s.checker.GetSymbolAtLocation(n)
-				symbolAt = append(symbolAt, entry(s.symbols.handOut(sym)))
+				result.SymbolAt = append(result.SymbolAt, entry(s.symbols.handOutOrNull(sym)))
 				noteProperty(sym)
 			}
 			if ast.IsTypeNode(n) {
-				typeFrom = append(typeFrom, entry(s.types.handOut(s.checker.GetTypeFromTypeNode(n))))
+				result.TypeFrom = append(result.TypeFrom, entry(s.types.handOutOrNull(s.checker.GetTypeFromTypeNode(n))))
 			}
 			if sym := n.Symbol(); sym != nil {
-				declared = append(declared, entry(s.symbols.handOut(sym)))
+				result.Declared = append(result.Declared, entry(s.symbols.handOutOrNull(sym)))
 				noteProperty(sym)
 			}
 		}
@@ -734,9 +892,8 @@ func (s *session) prefetchFile(a *args) (any, error) {
 		return false
 	}
 	visit(f.AsNode())
-	typeOfSymbol := [][2]any{}
 	for _, sym := range propertySymbols {
-		typeOfSymbol = append(typeOfSymbol, [2]any{s.symbols.handOut(sym), s.types.handOut(s.checker.GetTypeOfSymbol(sym))})
+		result.TypeOfSymbol = append(result.TypeOfSymbol, [2]int{s.symbols.handOut(sym), s.types.handOut(s.checker.GetTypeOfSymbol(sym))})
 	}
-	return map[string]any{"symbolAt": symbolAt, "typeFrom": typeFrom, "declared": declared, "typeOfSymbol": typeOfSymbol}, nil
+	return result
 }

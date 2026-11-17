@@ -17,6 +17,7 @@ tsrs_printer.workspace = true
 tsrs_api_transport.workspace = true
 rustc-hash.workspace = true
 bitflags.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 mimalloc-safe.workspace = true
 
