@@ -95,9 +95,9 @@ function publish() {
     throw new Error(
       `${umbrella.name} needs a binary for every platform before it is published, and has none for ${missing.join(', ')}` +
         `${binariesDirectory ? ` in ${resolve(binariesDirectory, compiler)}` : ' (TSOA_HELPER_BINARIES is not set)'}. ` +
-        'Releases run in CI: .github/workflows/release.yml builds the binaries and runs the lerna release. ' +
-        'To release from here, download its helper-binaries-* artifacts into one directory (gh run download <run id> --pattern "helper-binaries-*" --dir <dir>) ' +
-        'and run with TSOA_HELPER_BINARIES=<dir>, which holds <tsgo|tsrs>/<os>-<cpu>/helper[.exe] with LICENSE and NOTICE.',
+        'Releases run in CI: .github/workflows/release.yml builds the binaries and runs the lerna release (see RELEASING.md). ' +
+        'To release from here, merge the helper-binaries-* artifacts of a release.yml run into one directory, ' +
+        'so that it holds <tsgo|tsrs>/<os>-<cpu>/helper[.exe] with LICENSE and NOTICE, and set TSOA_HELPER_BINARIES=<dir>.',
     );
   }
 
