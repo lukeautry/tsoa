@@ -26,11 +26,17 @@ describe('initConfig', () => {
     const spec = await validateSpecConfig(config);
     expect(spec.outputDirectory).to.equal('build');
     expect(spec.controllerPathGlobs).to.deep.equal(['src/**/*Controller.ts']);
+    expect(spec.specVersion).to.equal(3.1);
   });
 
   it('sets the middleware when it is not express', async () => {
     const config: Config = JSON.parse(readFileSync(await initConfig({ middleware: 'koa' }, projectDir), 'utf8'));
     expect(config.routes).to.deep.equal({ routesDir: 'build', middleware: 'koa' });
+  });
+
+  it('supports fastify as middleware', async () => {
+    const config: Config = JSON.parse(readFileSync(await initConfig({ middleware: 'fastify' }, projectDir), 'utf8'));
+    expect(config.routes).to.deep.equal({ routesDir: 'build', middleware: 'fastify' });
   });
 
   it('does not overwrite an existing tsoa.json', async () => {

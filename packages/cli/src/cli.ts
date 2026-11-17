@@ -320,7 +320,7 @@ export const initConfig = async (args: InitArgs = {}, cwd = workingDir): Promise
   const config = {
     noImplicitAdditionalProperties: 'throw-on-extras',
     controllerPathGlobs: ['src/**/*Controller.ts'],
-    spec: { outputDirectory: 'build', specVersion: 3 },
+    spec: { outputDirectory: 'build', specVersion: 3.1 },
     routes,
   };
   await fsWriteFile(configPath, JSON.stringify(config, null, 2) + '\n');
