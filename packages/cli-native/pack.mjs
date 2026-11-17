@@ -27,7 +27,7 @@ const umbrella = JSON.parse(readFileSync(umbrellaManifest, 'utf8'));
 const executable = platform => (platform.startsWith('win32-') ? 'helper.exe' : 'helper');
 const optionalDependencies = names => Object.fromEntries(names.map(platform => [`${umbrella.name}-${platform}`, umbrella.version]));
 // Through a shell, because npm on Windows is npm.cmd.
-const npm = (args, cwd) => execSync(`npm ${args}`, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
+const npm = (args, cwd, stderr = 'inherit') => execSync(`npm ${args}`, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', stderr] }).trim();
 
 /** A staging directory holding the platform package for `binary`, which has the upstream LICENSE and NOTICE beside it. */
 function stagePlatformPackage(platform, binary) {
@@ -111,8 +111,10 @@ function publish() {
     const spec = `${umbrella.name}-${platform}@${umbrella.version}`;
     let published = '';
     try {
-      published = npm(`view "${spec}" version${registry}`, umbrellaDirectory);
-    } catch {}
+      published = npm(`view "${spec}" version${registry}`, umbrellaDirectory, 'ignore');
+    } catch {
+      // npm view fails with E404 for a version not published yet.
+    }
     if (published === umbrella.version) {
       console.log(`${spec} is already published, skipping it`);
       continue;
