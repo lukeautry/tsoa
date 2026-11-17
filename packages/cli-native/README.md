@@ -5,7 +5,7 @@ tsoa can take its type information from TypeScript 7's native compilers instead 
 - `go/` links tsgo, the Go compiler from microsoft/TypeScript, pinned at `3e9236361fa97a9e6c685f4833ac457ae2d8c50a` (7.1 beta).
 - `rs/` links tsrs, the Rust port from oxc-project/tsrs, pinned at `v0.25.0` (`0f82b670e4ff861840b1315f8610816229e73e3a`).
 
-Neither ships inside `@tsoa/cli`. This directory is not a workspace package, so `yarn build` and lerna do not see it.
+Neither ships inside `@tsoa/cli`. This directory is not a workspace package, so `yarn build` and lerna do not see it. The helper packages users install are `packages/compiler-helper-tsgo` and `packages/compiler-helper-tsrs`.
 
 ## Which compiler tsoa uses
 
@@ -29,22 +29,20 @@ npm install --save-dev @tsoa/compiler-helper-tsgo   # with typescript 7
 npm install --save-dev @tsoa/compiler-helper-tsrs   # with tsrs
 ```
 
-Each umbrella package (`npm/compiler-helper-*`) lists one package per platform as an exact-version `optionalDependency`, and npm installs only the one whose `os` and `cpu` match. It has no install script. The platforms are `linux-x64`, `linux-arm64`, `darwin-x64`, `darwin-arm64` and `win32-x64`, and the package names follow `@tsoa/compiler-helper-tsgo-linux-x64`. tsrs Linux packages also say `libc: ["glibc"]`. The `tsoaCompilerHelper` field records the compiler, the TypeScript version it was built from, the upstream pin and the protocol revision. tsoa reads its `typescriptVersion` for the major check.
+Each umbrella package (`packages/compiler-helper-*`) lists one package per platform as an exact-version `optionalDependency`, and npm installs only the one whose `os` and `cpu` match. It has no install script. The platforms are `linux-x64`, `linux-arm64`, `darwin-x64`, `darwin-arm64` and `win32-x64`, and the package names follow `@tsoa/compiler-helper-tsgo-linux-x64`. tsrs Linux packages also say `libc: ["glibc"]`. The `tsoaCompilerHelper` field records the compiler, the TypeScript version it was built from, the upstream pin and the protocol revision. tsoa reads its `typescriptVersion` for the major check.
 
-These packages version on their own, outside lerna, and change only when a pin or the protocol changes. Change the version in the umbrella's `version` and in every `optionalDependencies` entry together.
+The umbrellas are lerna packages and release with the rest of tsoa at its version (see [RELEASING.md](../../RELEASING.md)). The repository holds no platform package and no `optionalDependencies`: yarn 1 refuses to install a workspace whose `os` or `cpu` is not the machine's. `pack.mjs` creates them from built binaries. At release, the umbrella's `prepublishOnly` runs `pack.mjs <tsgo|tsrs> --publish`, which publishes each platform package and then writes the `optionalDependencies` that lerna publishes the umbrella with. For a local check it packs tarballs instead:
 
 ```sh
 node packages/cli-native/pack.mjs tsgo out linux-x64=packages/cli-native/go/bin/helper   # umbrella + one platform tarball in out/
 node packages/cli-native/check-installed.mjs typescript@7.0.2 tsgo out                   # install them in a temporary project and generate
 ```
 
-`check-installed.mjs` installs the packed `@tsoa/cli`, the compiler and the tarballs into a temporary project. It checks that tsoa picks the helper there without `TSOA_COMPILER_HELPER`, and that the metadata matches TypeScript 6's after union members are sorted. With only a compiler (`typescript@6`), it checks that tsoa takes the TypeScript path and loads no native code. Plain `npm install` works with the platform packages not on npm yet: npm skips an optional dependency it cannot fetch. CI runs this check in every `compiler-helper` cell.
-
-`.github/workflows/release-compiler-helpers.yml` runs by hand only. It builds every platform's binaries, runs the suite and the installed check on each, and uploads the tarballs. It publishes them with `npm publish --provenance` only when its `publish` input is true, which needs the `NPM_TOKEN` secret.
+`check-installed.mjs` installs the packed `@tsoa/cli`, the compiler and the tarballs into a temporary project. It checks that tsoa picks the helper there without `TSOA_COMPILER_HELPER`, and that the metadata matches TypeScript 6's after union members are sorted. With only a compiler (`typescript@6`), it checks that tsoa takes the TypeScript path and loads no native code. CI runs this check in every `compiler-helper` cell and in every test cell of `.github/workflows/release.yml`.
 
 ## Build
 
-`build.mjs` fetches the pinned compiler into a gitignored directory, adds the helper's sources, and builds. It needs only Node, git and the language's toolchain, runs the same on Linux, macOS and Windows, is idempotent, and writes nothing outside this directory unless you pass an output path.
+`build.mjs` fetches the pinned compiler into a gitignored directory, adds the helper's sources, and builds. It copies the compiler's `LICENSE` and `NOTICE` next to the binary, and `pack.mjs` puts them in the platform package. It needs only Node, git and the language's toolchain, runs the same on Linux, macOS and Windows, is idempotent, and writes nothing outside this directory unless you pass an output path.
 
 ```sh
 node packages/cli-native/build.mjs go [output]   # default go/bin/helper; needs go >= the version tsc/go.mod asks for (1.27)
