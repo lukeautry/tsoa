@@ -25,6 +25,9 @@ const survivors = async (pids: number[]) => {
 };
 
 const suite = realHelper ? 'compiler helper errors' : 'compiler helper errors (skipped: set TSOA_COMPILER_HELPER to a compiler helper to run)';
+// Windows runs neither a `.cjs` file as a program nor file permissions, so the proxy and the executable-bit cases are
+// POSIX only. nativeProgram.spec.ts covers the protocol and prefetch errors on every platform with a fake channel.
+const posixOnly = process.platform === 'win32' ? it.skip : it;
 
 describe(suite, function () {
   this.timeout(30000);
@@ -48,19 +51,19 @@ describe(suite, function () {
     return () => readFileSync(pidFile, 'utf8').split('\n').filter(Boolean).map(Number);
   };
 
-  it('refuses a helper that speaks another protocol, and leaves no helper running', async () => {
+  posixOnly('refuses a helper that speaks another protocol, and leaves no helper running', async () => {
     const pids = useProxy('protocol7');
     expect(() => new MetadataGenerator(entryFile)).to.throw('tsoa compiler helper speaks protocol 7, this tsoa needs 8');
     expect(pids()).to.have.length(2);
     expect(await survivors(pids())).to.deep.equal([]);
   });
 
-  it('refuses a helper that reports no protocol', () => {
+  posixOnly('refuses a helper that reports no protocol', () => {
     useProxy('noprotocol');
     expect(() => new MetadataGenerator(entryFile)).to.throw('tsoa compiler helper speaks protocol undefined, this tsoa needs 8');
   });
 
-  it('names the file the helper failed to prefetch, and leaves no helper running', async () => {
+  posixOnly('names the file the helper failed to prefetch, and leaves no helper running', async () => {
     const pids = useProxy('prefetchfail');
     expect(() => new MetadataGenerator(entryFile).Generate()).to.throw(`tsoa compiler helper failed on ${resolve(entryFile)}: proxy refused prefetchFile`);
     expect(await survivors(pids())).to.deep.equal([]);
@@ -72,7 +75,7 @@ describe(suite, function () {
     expect(() => new MetadataGenerator(entryFile)).to.throw(`tsoa compiler helper not found or not executable: ${missing}`);
   });
 
-  it('reports a helper that is not executable', () => {
+  posixOnly('reports a helper that is not executable', () => {
     const plain = join(directory, 'helper');
     writeFileSync(plain, '');
     chmodSync(plain, 0o644);
