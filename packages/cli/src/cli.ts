@@ -303,7 +303,7 @@ export interface InitArgs {
 
 const middlewareArgs = {
   describe: 'Middleware the routes are generated for',
-  choices: ['express', 'koa', 'hapi'],
+  choices: ['express', 'koa', 'hapi', 'fastify'],
   default: 'express',
 } as const;
 
