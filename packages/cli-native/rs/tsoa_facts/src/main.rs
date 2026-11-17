@@ -5,7 +5,6 @@
 static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 use std::cell::RefCell;
-use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
@@ -14,10 +13,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tsrs_ast::{Kind, Node, SourceFile, Symbol, SymbolFlags};
-use tsrs_checker::{
-    ElementFlags, Flags as BuilderFlags, InternalFlags, LiteralValue, ObjectFlags, SignatureKind,
-    Type, TypeDataTag, TypeFlags,
-};
+use tsrs_checker::{Flags as BuilderFlags, InternalFlags, LiteralValue, SignatureKind, Type};
 use tsrs_compiler::{CheckerHandle, ProgramOptions};
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::{self, ComparePathsOptions};
@@ -25,133 +21,18 @@ use tsrs_core::{CompilerOptions, Context, P, Tristate};
 use tsrs_tsoptions::{CompilerOptionsValue, ParseConfigHost};
 use tsrs_vfs::{FS, bundled, cachedvfs, osvfs};
 
+mod facts;
+mod flags;
+
+use facts::{Ids, InlineFacts, NodeRef};
+use flags::{SYMBOL_FLAG_NAMES, kind_name, kind_names};
+
 type Res = Result<Value, String>;
 
 /// The PROTOCOL.md revision this helper speaks; `open` reports it.
 const PROTOCOL_REVISION: u32 = 8;
 
-const TYPE_FLAG_NAMES: &[(TypeFlags, &str)] = &[
-    (TypeFlags::Any, "Any"),
-    (TypeFlags::Unknown, "Unknown"),
-    (TypeFlags::Undefined, "Undefined"),
-    (TypeFlags::Null, "Null"),
-    (TypeFlags::Void, "Void"),
-    (TypeFlags::String, "String"),
-    (TypeFlags::Number, "Number"),
-    (TypeFlags::BigInt, "BigInt"),
-    (TypeFlags::Boolean, "Boolean"),
-    (TypeFlags::ESSymbol, "ESSymbol"),
-    (TypeFlags::StringLiteral, "StringLiteral"),
-    (TypeFlags::NumberLiteral, "NumberLiteral"),
-    (TypeFlags::BigIntLiteral, "BigIntLiteral"),
-    (TypeFlags::BooleanLiteral, "BooleanLiteral"),
-    (TypeFlags::UniqueESSymbol, "UniqueESSymbol"),
-    (TypeFlags::EnumLiteral, "EnumLiteral"),
-    (TypeFlags::Enum, "Enum"),
-    (TypeFlags::NonPrimitive, "NonPrimitive"),
-    (TypeFlags::Never, "Never"),
-    (TypeFlags::TypeParameter, "TypeParameter"),
-    (TypeFlags::Object, "Object"),
-    (TypeFlags::Index, "Index"),
-    (TypeFlags::TemplateLiteral, "TemplateLiteral"),
-    (TypeFlags::StringMapping, "StringMapping"),
-    (TypeFlags::Substitution, "Substitution"),
-    (TypeFlags::IndexedAccess, "IndexedAccess"),
-    (TypeFlags::Conditional, "Conditional"),
-    (TypeFlags::Union, "Union"),
-    (TypeFlags::Intersection, "Intersection"),
-];
-
-// Bits 22..29 of ObjectFlags mean different things per type kind; this table is the object-type reading. Bits 30
-// and 31 are tsrs-only memo bits and are never sent.
-const OBJECT_FLAG_NAMES: &[(ObjectFlags, &str)] = &[
-    (ObjectFlags::Class, "Class"),
-    (ObjectFlags::Interface, "Interface"),
-    (ObjectFlags::Reference, "Reference"),
-    (ObjectFlags::Tuple, "Tuple"),
-    (ObjectFlags::Anonymous, "Anonymous"),
-    (ObjectFlags::Mapped, "Mapped"),
-    (ObjectFlags::Instantiated, "Instantiated"),
-    (ObjectFlags::ObjectLiteral, "ObjectLiteral"),
-    (ObjectFlags::EvolvingArray, "EvolvingArray"),
-    (
-        ObjectFlags::ObjectLiteralPatternWithComputedProperties,
-        "ObjectLiteralPatternWithComputedProperties",
-    ),
-    (ObjectFlags::ReverseMapped, "ReverseMapped"),
-    (ObjectFlags::JsxAttributes, "JsxAttributes"),
-    (ObjectFlags::JSLiteral, "JSLiteral"),
-    (ObjectFlags::FreshLiteral, "FreshLiteral"),
-    (ObjectFlags::ArrayLiteral, "ArrayLiteral"),
-    (ObjectFlags::PrimitiveUnion, "PrimitiveUnion"),
-    (ObjectFlags::ContainsWideningType, "ContainsWideningType"),
-    (ObjectFlags::ContainsObjectOrArrayLiteral, "ContainsObjectOrArrayLiteral"),
-    (ObjectFlags::NonInferrableType, "NonInferrableType"),
-    (ObjectFlags::CouldContainTypeVariablesComputed, "CouldContainTypeVariablesComputed"),
-    (ObjectFlags::CouldContainTypeVariables, "CouldContainTypeVariables"),
-    (ObjectFlags::ContainsSpread, "ContainsSpread"),
-    (ObjectFlags::ObjectRestType, "ObjectRestType"),
-    (ObjectFlags::InstantiationExpressionType, "InstantiationExpressionType"),
-    (ObjectFlags::SingleSignatureType, "SingleSignatureType"),
-    (ObjectFlags::IsClassInstanceClone, "IsClassInstanceClone"),
-    (ObjectFlags::IdenticalBaseTypeCalculated, "IdenticalBaseTypeCalculated"),
-    (ObjectFlags::IdenticalBaseTypeExists, "IdenticalBaseTypeExists"),
-];
-
-const SYMBOL_FLAG_NAMES: &[(SymbolFlags, &str)] = &[
-    (SymbolFlags::FunctionScopedVariable, "FunctionScopedVariable"),
-    (SymbolFlags::BlockScopedVariable, "BlockScopedVariable"),
-    (SymbolFlags::Property, "Property"),
-    (SymbolFlags::EnumMember, "EnumMember"),
-    (SymbolFlags::Function, "Function"),
-    (SymbolFlags::Class, "Class"),
-    (SymbolFlags::Interface, "Interface"),
-    (SymbolFlags::ConstEnum, "ConstEnum"),
-    (SymbolFlags::RegularEnum, "RegularEnum"),
-    (SymbolFlags::ValueModule, "ValueModule"),
-    (SymbolFlags::NamespaceModule, "NamespaceModule"),
-    (SymbolFlags::TypeLiteral, "TypeLiteral"),
-    (SymbolFlags::ObjectLiteral, "ObjectLiteral"),
-    (SymbolFlags::Method, "Method"),
-    (SymbolFlags::Constructor, "Constructor"),
-    (SymbolFlags::GetAccessor, "GetAccessor"),
-    (SymbolFlags::SetAccessor, "SetAccessor"),
-    (SymbolFlags::Signature, "Signature"),
-    (SymbolFlags::TypeParameter, "TypeParameter"),
-    (SymbolFlags::TypeAlias, "TypeAlias"),
-    (SymbolFlags::ExportValue, "ExportValue"),
-    (SymbolFlags::Alias, "Alias"),
-    (SymbolFlags::Prototype, "Prototype"),
-    (SymbolFlags::ExportStar, "ExportStar"),
-    (SymbolFlags::Optional, "Optional"),
-    (SymbolFlags::Transient, "Transient"),
-    (SymbolFlags::Assignment, "Assignment"),
-    (SymbolFlags::ModuleExports, "ModuleExports"),
-];
-
-const ELEMENT_FLAG_NAMES: &[(ElementFlags, &str)] = &[
-    (ElementFlags::Required, "Required"),
-    (ElementFlags::Optional, "Optional"),
-    (ElementFlags::Rest, "Rest"),
-    (ElementFlags::Variadic, "Variadic"),
-];
-
-fn flag_names<F: bitflags::Flags + Copy>(
-    flags: F,
-    table: &[(F, &'static str)],
-) -> Vec<&'static str> {
-    table.iter().filter(|(f, _)| flags.contains(*f)).map(|(_, n)| *n).collect()
-}
-
 // Wire shapes, field for field as in packages/cli/src/metadataGeneration/native/protocol.ts.
-
-#[derive(Serialize, Deserialize)]
-struct NodeRef {
-    file: u32,
-    pos: i64,
-    end: i64,
-    kind: String,
-}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -168,68 +49,6 @@ struct OpenResult {
     protocol: u32,
     files: Vec<FileInfo>,
     undefined_type: u32,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct TypeFacts {
-    id: u32,
-    flags: Vec<&'static str>,
-    object_flags: Vec<&'static str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    intrinsic_name: Option<&'static str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    value: Option<LiteralFact>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    symbol: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    alias_symbol: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    alias_type_arguments: Option<Vec<u32>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    type_arguments: Option<Vec<u32>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    types: Option<Vec<u32>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    origin: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    target: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    element_flags: Option<Vec<Vec<&'static str>>>,
-    is_array: bool,
-    is_tuple: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    base_literal: Option<u32>,
-}
-
-#[derive(Serialize)]
-#[serde(untagged)]
-enum LiteralFact {
-    String(&'static str),
-    Number(f64),
-    #[serde(rename_all = "camelCase")]
-    BigInt {
-        negative: bool,
-        base10_value: &'static str,
-    },
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct SymbolFacts {
-    id: u32,
-    name: String,
-    escaped_name: String,
-    flags: Vec<&'static str>,
-    declarations: Vec<NodeRef>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    value_declaration: Option<NodeRef>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    parent: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    aliased: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    synthetic_origin: Option<u32>,
 }
 
 #[derive(Serialize)]
@@ -272,14 +91,6 @@ struct PrefetchResult {
 struct PrintResult {
     text: String,
     identifiers: Vec<Option<u32>>,
-}
-
-#[derive(Default, Serialize)]
-struct InlineFacts {
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    types: BTreeMap<u32, TypeFacts>,
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    symbols: BTreeMap<u32, SymbolFacts>,
 }
 
 // Op inputs, one struct per input shape in the protocol's operation table. Every field is required.
@@ -363,57 +174,6 @@ fn decode<In: DeserializeOwned>(q: &Value) -> Result<In, String> {
             None => e,
         }
     })
-}
-
-/// Interns checker values as protocol ids (1-based, stable for the session). `intern` only assigns; `hand_out` also
-/// records the id as returned to Node, so the response carries its facts (PROTOCOL.md, inline facts).
-struct Ids<T: 'static> {
-    list: Vec<P<T>>,
-    index: FxHashMap<P<T>, u32>,
-    handed_out: Vec<u32>,
-    /// Ids whose facts already went to Node, indexed by id - 1.
-    sent: Vec<bool>,
-}
-
-impl<T> Ids<T> {
-    fn new() -> Self {
-        Ids {
-            list: Vec::new(),
-            index: FxHashMap::default(),
-            handed_out: Vec::new(),
-            sent: Vec::new(),
-        }
-    }
-    fn intern(&mut self, v: P<T>) -> u32 {
-        *self.index.entry(v).or_insert_with(|| {
-            self.list.push(v);
-            self.sent.push(false);
-            self.list.len() as u32
-        })
-    }
-    fn hand_out(&mut self, v: P<T>) -> u32 {
-        let id = self.intern(v);
-        self.handed_out.push(id);
-        id
-    }
-    fn mark_sent(&mut self, id: u32) {
-        self.sent[id as usize - 1] = true;
-    }
-    /// The distinct ids handed out since the last call whose facts Node does not have yet, in first-handed-out order.
-    fn take_unsent(&mut self) -> Vec<u32> {
-        let mut seen = rustc_hash::FxHashSet::default();
-        std::mem::take(&mut self.handed_out)
-            .into_iter()
-            .filter(|&id| !self.sent[id as usize - 1] && seen.insert(id))
-            .collect()
-    }
-    fn get(&self, id: u32, what: &str) -> Result<P<T>, String> {
-        (id as usize)
-            .checked_sub(1)
-            .and_then(|i| self.list.get(i))
-            .copied()
-            .ok_or_else(|| format!("unknown {what} id {id}"))
-    }
 }
 
 struct Session {
@@ -518,40 +278,6 @@ fn open(q: OpenInput) -> Result<(Session, OpenResult), String> {
     Ok((s, OpenResult { protocol: PROTOCOL_REVISION, files, undefined_type }))
 }
 
-/// Each tsrs kind's TypeScript 6 name (its Rust name, except where TypeScript 6 spells the same kind differently), and
-/// the reverse.
-struct KindNames {
-    names: Vec<&'static str>,
-    kinds: FxHashMap<&'static str, Kind>,
-}
-
-fn kind_names() -> &'static KindNames {
-    static NAMES: std::sync::OnceLock<KindNames> = std::sync::OnceLock::new();
-    NAMES.get_or_init(|| {
-        let names: Vec<&'static str> = (0..Kind::Count as i16)
-            .map(|v| match Kind::from_i16(v) {
-                Kind::EndOfFile => "EndOfFileToken",
-                Kind::JSDocUnknownTag => "JSDocTag",
-                kind => format!("{kind:?}").leak(),
-            })
-            .collect();
-        let kinds = names.iter().enumerate().map(|(v, n)| (*n, Kind::from_i16(v as i16))).collect();
-        KindNames { names, kinds }
-    })
-}
-
-/// The node's TypeScript 6 SyntaxKind name. tsrs, like tsgo, parses an interface's `extends X` and a class's
-/// `implements X` element as a TypeReference (parser_1.rs parse_type_heritage_clause_element) where TypeScript 6 has
-/// an ExpressionWithTypeArguments; find_node accepts the TypeReference for an ExpressionWithTypeArguments ref.
-fn kind_name(node: P<Node>) -> &'static str {
-    if node.kind() == Kind::TypeReference
-        && node.parent().is_some_and(|p| p.kind() == Kind::HeritageClause)
-    {
-        return "ExpressionWithTypeArguments";
-    }
-    kind_names().names[node.kind() as usize]
-}
-
 fn find_node(node: P<Node>, pos: u32, end: u32, kind: Kind) -> Option<P<Node>> {
     if node.pos().source_offset() == Some(pos)
         && node.end().source_offset() == Some(end)
@@ -591,131 +317,6 @@ impl Session {
             .ok_or_else(|| {
                 format!("no {} node at {pos16}..{end16} in {}", r.kind, file.file_name())
             })
-    }
-
-    fn node_ref(&mut self, node: P<Node>) -> Option<NodeRef> {
-        let file = tsrs_ast::get_source_file_of_node(node)?;
-        let map = file.get_position_map();
-        let utf16 = |p: tsrs_core::text::TextPos| {
-            p.source_offset().map_or(-1, |o| map.utf8_to_utf16(o) as i64)
-        };
-        Some(NodeRef {
-            file: self.files.intern(file),
-            pos: utf16(node.pos()),
-            end: utf16(node.end()),
-            kind: kind_name(node).to_string(),
-        })
-    }
-
-    fn intern_types(&mut self, ts: &[P<Type>]) -> Vec<u32> {
-        ts.iter().map(|t| self.types.intern(*t)).collect()
-    }
-
-    fn type_facts(&mut self, t: P<Type>) -> TypeFacts {
-        let flags = t.flags();
-        let mut facts = TypeFacts {
-            id: self.types.intern(t),
-            flags: flag_names(flags, TYPE_FLAG_NAMES),
-            object_flags: if flags.intersects(TypeFlags::Object) {
-                flag_names(t.object_flags(), OBJECT_FLAG_NAMES)
-            } else {
-                Vec::new()
-            },
-            intrinsic_name: None,
-            value: None,
-            symbol: t.symbol().map(|s| self.symbols.intern(s)),
-            alias_symbol: None,
-            alias_type_arguments: None,
-            type_arguments: None,
-            types: None,
-            origin: t.union_origin().map(|o| self.types.intern(o)),
-            target: None,
-            element_flags: None,
-            is_array: self.checker.is_array_type_exported(t),
-            is_tuple: tsrs_checker::is_tuple_type_exported(t),
-            base_literal: None,
-        };
-        if t.data_tag() == TypeDataTag::Intrinsic {
-            facts.intrinsic_name = Some(t.as_intrinsic_type().intrinsic_name());
-        }
-        if flags.intersects(TypeFlags::Freshable) {
-            match t.as_literal_type().value() {
-                // TypeScript 6's true and false are intrinsic types named "true" and "false"; tsrs keeps them as
-                // boolean literal types.
-                Some(LiteralValue::Boolean(b)) => {
-                    facts.intrinsic_name = Some(if b { "true" } else { "false" });
-                }
-                Some(LiteralValue::String(s)) => facts.value = Some(LiteralFact::String(s)),
-                Some(LiteralValue::Number(n)) => facts.value = Some(LiteralFact::Number(n.0)),
-                Some(LiteralValue::BigInt(b)) => {
-                    let digits = if b.base10_value.is_empty() { "0" } else { b.base10_value };
-                    facts.value =
-                        Some(LiteralFact::BigInt { negative: b.negative, base10_value: digits });
-                }
-                None => {}
-            }
-        }
-        if let Some(alias) = t.alias() {
-            facts.alias_symbol = alias.symbol().map(|s| self.symbols.intern(s));
-            if !alias.type_arguments().is_empty() {
-                facts.alias_type_arguments = Some(self.intern_types(alias.type_arguments()));
-            }
-        }
-        if flags.intersects(TypeFlags::Object)
-            && t.object_flags().intersects(ObjectFlags::Reference)
-        {
-            let args = self.checker.get_type_arguments_exported(t);
-            facts.type_arguments = Some(self.intern_types(args));
-            facts.target = t.target().map(|target| self.types.intern(target));
-        }
-        if flags.intersects(TypeFlags::UnionOrIntersection) {
-            facts.types = Some(self.intern_types(t.types()));
-        }
-        if tsrs_checker::is_tuple_type_target(t) {
-            let per_element = t.as_tuple_type().element_flags().into_iter();
-            facts.element_flags =
-                Some(per_element.map(|f| flag_names(f, ELEMENT_FLAG_NAMES)).collect());
-        }
-        if flags.intersects(TypeFlags::Literal | TypeFlags::EnumLiteral) {
-            let base = self.checker.get_base_type_of_literal_type_exported(t);
-            facts.base_literal = Some(self.types.intern(base));
-        }
-        facts
-    }
-
-    fn symbol_facts(&mut self, s: P<Symbol>) -> SymbolFacts {
-        let raw = tsrs_ast::symbol_name(s);
-        let aliased = if s.flags().intersects(SymbolFlags::Alias) {
-            let aliased = self.checker.get_aliased_symbol(s);
-            Some(self.symbols.intern(aliased))
-        } else {
-            None
-        };
-        SymbolFacts {
-            id: self.symbols.intern(s),
-            name: tsrs_ast::escape_internal_symbol_name(raw).to_string(),
-            escaped_name: tsrs_ast::escape_symbol_name(s.name()).to_string(),
-            flags: flag_names(s.flags(), SYMBOL_FLAG_NAMES),
-            declarations: s.declarations().iter().filter_map(|d| self.node_ref(*d)).collect(),
-            value_declaration: s.value_declaration().and_then(|d| self.node_ref(d)),
-            parent: s.parent().map(|p| self.symbols.intern(p)),
-            aliased,
-            synthetic_origin: self.checker.synthetic_origin_of(s).map(|o| self.symbols.intern(o)),
-        }
-    }
-
-    /// Adds the facts of the ids the last op handed out and Node does not have yet (PROTOCOL.md, inline facts).
-    fn add_facts(&mut self, facts: &mut InlineFacts) {
-        for id in self.types.take_unsent() {
-            let t = self.types.list[id as usize - 1];
-            facts.types.insert(id, self.type_facts(t));
-            self.types.mark_sent(id);
-        }
-        for id in self.symbols.take_unsent() {
-            let s = self.symbols.list[id as usize - 1];
-            facts.symbols.insert(id, self.symbol_facts(s));
-            self.symbols.mark_sent(id);
-        }
     }
 
     /// PROTOCOL.md revision 4b.
