@@ -30,7 +30,7 @@ A batch answers with `ok: true` and `result: Response[]`, one per query in the s
   - `pos` and `end` are UTF-16 offsets with TypeScript's meaning: `pos` is the full start, leading trivia included, as in `node.pos`.
   - `kind` is the TypeScript 6 SyntaxKind name, for example `"TypeReference"`, never a number.
   - When several nodes share `pos`, `end` and `kind`, the helper takes the first one in `forEachChild` preorder. JSDoc nodes are not visited.
-  - Kinds that differ between parsers: when a NodeRef names a kind on the left, a helper also accepts a node of the kind on the right at the same `pos` and `end`. tsgo and tsrs parse an interface's `extends X` element as `TypeReference` where TypeScript 6 has `ExpressionWithTypeArguments`.
+  - Kinds that differ between parsers: tsgo and tsrs parse an interface's `extends X` and a class's `implements X` element as `TypeReference` where TypeScript 6 has `ExpressionWithTypeArguments`. Every NodeRef and prefetch entry a helper sends names such a node `ExpressionWithTypeArguments`, as TypeScript 6 does. When a NodeRef from Node names a kind on the left, a helper also accepts a node of the kind on the right at the same `pos` and `end`.
 
     | TypeScript 6 kind | helper may match |
     |---|---|
@@ -102,7 +102,7 @@ The helper walks the file in `forEachChild` preorder, JSDoc not included, visiti
 - `declared`: one entry per node that has a binder symbol, the answer `symbolOfDeclaration` gives.
 - `typeOfSymbol`: for every distinct symbol in `symbolAt` and `declared` whose flags include `Property`, the pair `[symbol, typeOfSymbol(symbol)]`.
 - When two nodes share `pos`, `end` and kind, only the first in preorder is reported.
-- Kinds are the helper's own node kinds under their TypeScript 6 names. The kind table under Identity does not apply here; Node applies it when it matches entries to its nodes.
+- Kinds are TypeScript 6 kind names, the kind table under Identity applied, so Node matches entries to its nodes by `pos`, `end` and kind alone.
 
 The answers are the values the single ops return for the same node. Node calls `prefetchFile` once per non-declaration file, the first time it asks about a node in that file. When the answer is `ok: false`, Node stops with `tsoa compiler helper failed on <fileName>: <error>`. Helpers still serve every single op for any node.
 
@@ -179,4 +179,4 @@ TypeScript 6 resolves `{@link X}` with `getSymbolAtLocation` on a JSDoc identifi
 5. `members`.
 6. `open` takes full `compilerOptions`; `tsconfig` and `strictNullChecks` dropped.
 7. `IndexInfo.declaration`; element flags on tuple targets only.
-8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member. Later, without a number change: helpers stop sending the names in that list, and the `--pipe` transport.
+8. `open` reports `protocol`; `prefetchFile` failures stop Node; `objectFlags` on object types only; the closed list of flag names without a TypeScript 6 member. Later, without a number change: helpers stop sending the names in that list; the `--pipe` transport; helpers send `ExpressionWithTypeArguments` for heritage-clause type references.

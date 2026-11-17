@@ -687,26 +687,23 @@ func (s *session) node(ref NodeRef) (*ast.Node, error) {
 		return nil, err
 	}
 	pm := f.GetPositionMap()
-	kind := ref.Kind
-	for goName, ts6Name := range kindRenames {
-		if ts6Name == kind {
-			kind = goName
-		}
-	}
-	pos, end, kind := pm.UTF16ToUTF8(ref.Pos), pm.UTF16ToUTF8(ref.End), "Kind"+kind
+	kind, known := kindsByName[ref.Kind]
+	pos, end := pm.UTF16ToUTF8(ref.Pos), pm.UTF16ToUTF8(ref.End)
 	var found *ast.Node
 	var visit func(n *ast.Node) bool
 	visit = func(n *ast.Node) bool {
 		if n.Pos() > pos || n.End() < end {
 			return false
 		}
-		if n.Pos() == pos && n.End() == end && (n.Kind.String() == kind || equivalentKinds[kind] == n.Kind.String()) {
+		if n.Pos() == pos && n.End() == end && (n.Kind == kind || kind == ast.KindExpressionWithTypeArguments && n.Kind == ast.KindTypeReference) {
 			found = n
 			return true
 		}
 		return n.ForEachChild(visit)
 	}
-	visit(f.AsNode())
+	if known {
+		visit(f.AsNode())
+	}
 	if found == nil {
 		return nil, fmt.Errorf("no %s at %d..%d in %s", ref.Kind, ref.Pos, ref.End, f.FileName())
 	}
@@ -723,20 +720,8 @@ func (s *session) ref(n *ast.Node) *NodeRef {
 		return nil
 	}
 	pm := f.GetPositionMap()
-	kind := strings.TrimPrefix(n.Kind.String(), "Kind")
-	if ts6Name, ok := kindRenames[kind]; ok {
-		kind = ts6Name
-	}
-	return &NodeRef{File: id, Pos: pm.UTF8ToUTF16(n.Pos()), End: pm.UTF8ToUTF16(n.End()), Kind: kind}
+	return &NodeRef{File: id, Pos: pm.UTF8ToUTF16(n.Pos()), End: pm.UTF8ToUTF16(n.End()), Kind: kindName(n)}
 }
-
-// equivalentKinds lists TS 6 kinds that tsgo parses as another kind at the same span. tsgo parses an interface's
-// `extends X` element as a TypeReference (parser.go parseTypeHeritageClauseElement), TS 6 as an
-// ExpressionWithTypeArguments.
-var equivalentKinds = map[string]string{"KindExpressionWithTypeArguments": "KindTypeReference"}
-
-// kindRenames maps tsgo SyntaxKind names to TS 6 names where the same kind is spelled differently.
-var kindRenames = map[string]string{"EndOfFile": "EndOfFileToken", "JSDocUnknownTag": "JSDocTag"}
 
 func (s *session) typeFacts(t *checker.Type) TypeFacts {
 	flags := t.Flags()
@@ -865,15 +850,8 @@ func (s *session) prefetchFile(f *ast.SourceFile) PrefetchResult {
 		key := span{n.Pos(), n.End(), n.Kind}
 		if _, dup := seen[key]; !dup {
 			seen[key] = struct{}{}
-			var kind string
 			entry := func(id *int) Entry {
-				if kind == "" {
-					kind = strings.TrimPrefix(n.Kind.String(), "Kind")
-					if ts6Name, ok := kindRenames[kind]; ok {
-						kind = ts6Name
-					}
-				}
-				return Entry{pm.UTF8ToUTF16(key.pos), pm.UTF8ToUTF16(key.end), kind, id}
+				return Entry{pm.UTF8ToUTF16(key.pos), pm.UTF8ToUTF16(key.end), kindName(n), id}
 			}
 			if ast.IsIdentifier(n) {
 				sym := s.checker.GetSymbolAtLocation(n)

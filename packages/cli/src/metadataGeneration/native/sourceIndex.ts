@@ -107,8 +107,7 @@ export function createSourceIndex(session: HelperSession, rootFiles: readonly st
     const index = indexFile(sourceFile);
     const seed = (op: NodeOp, entries: Array<[number, number, string, number | null]>) => {
       for (const [pos, end, kind, id] of entries) {
-        // Protocol revision 1: tsgo reports an interface's `extends X` as a TypeReference.
-        const node = index.get(nodeKey(pos, end, kind)) ?? (kind === 'TypeReference' ? index.get(nodeKey(pos, end, 'ExpressionWithTypeArguments')) : undefined);
+        const node = index.get(nodeKey(pos, end, kind));
         if (node) byNode[op].set(node, id);
       }
     };

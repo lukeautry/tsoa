@@ -1,9 +1,36 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 )
+
+// kindName is n's TypeScript 6 SyntaxKind name. tsgo parses an interface's `extends X` and a class's
+// `implements X` element as a TypeReference (parser.go parseTypeHeritageClauseElement) where TypeScript 6 has an
+// ExpressionWithTypeArguments; node() accepts the TypeReference for an ExpressionWithTypeArguments ref.
+func kindName(n *ast.Node) string {
+	if n.Kind == ast.KindTypeReference && n.Parent != nil && n.Parent.Kind == ast.KindHeritageClause {
+		return "ExpressionWithTypeArguments"
+	}
+	return kindNames[n.Kind]
+}
+
+// kindNames holds each tsgo kind's TypeScript 6 name: its Go name without "Kind", except where TypeScript 6 spells
+// the same kind differently. kindsByName is the reverse.
+var kindNames, kindsByName = func() ([]string, map[string]ast.Kind) {
+	renames := map[ast.Kind]string{ast.KindEndOfFile: "EndOfFileToken", ast.KindJSDocUnknownTag: "JSDocTag"}
+	names, kinds := make([]string, ast.KindCount), make(map[string]ast.Kind, ast.KindCount)
+	for kind := range ast.KindCount {
+		name, ok := renames[kind]
+		if !ok {
+			name = strings.TrimPrefix(kind.String(), "Kind")
+		}
+		names[kind], kinds[name] = name, kind
+	}
+	return names, kinds
+}()
 
 // Flag tables map tsgo's single-bit enum members to TypeScript 6's member names. Node maps the names back to
 // TS 6 numbers, so a Go member with no TS 6 counterpart has no entry.

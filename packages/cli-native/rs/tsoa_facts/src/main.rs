@@ -518,23 +518,45 @@ fn open(q: OpenInput) -> Result<(Session, OpenResult), String> {
     Ok((s, OpenResult { protocol: PROTOCOL_REVISION, files, undefined_type }))
 }
 
-fn kind_name(kind: Kind) -> String {
-    format!("{kind:?}")
+/// Each tsrs kind's TypeScript 6 name (its Rust name, except where TypeScript 6 spells the same kind differently), and
+/// the reverse.
+struct KindNames {
+    names: Vec<&'static str>,
+    kinds: FxHashMap<&'static str, Kind>,
 }
 
-/// TS 6 kinds that tsrs, like tsgo, parses as another kind at the same span (PROTOCOL.md revision 1).
-fn equivalent_kind(kind: &str) -> Option<&'static str> {
-    match kind {
-        "ExpressionWithTypeArguments" => Some("TypeReference"),
-        _ => None,
+fn kind_names() -> &'static KindNames {
+    static NAMES: std::sync::OnceLock<KindNames> = std::sync::OnceLock::new();
+    NAMES.get_or_init(|| {
+        let names: Vec<&'static str> = (0..Kind::Count as i16)
+            .map(|v| match Kind::from_i16(v) {
+                Kind::EndOfFile => "EndOfFileToken",
+                Kind::JSDocUnknownTag => "JSDocTag",
+                kind => format!("{kind:?}").leak(),
+            })
+            .collect();
+        let kinds = names.iter().enumerate().map(|(v, n)| (*n, Kind::from_i16(v as i16))).collect();
+        KindNames { names, kinds }
+    })
+}
+
+/// The node's TypeScript 6 SyntaxKind name. tsrs, like tsgo, parses an interface's `extends X` and a class's
+/// `implements X` element as a TypeReference (parser_1.rs parse_type_heritage_clause_element) where TypeScript 6 has
+/// an ExpressionWithTypeArguments; find_node accepts the TypeReference for an ExpressionWithTypeArguments ref.
+fn kind_name(node: P<Node>) -> &'static str {
+    if node.kind() == Kind::TypeReference
+        && node.parent().is_some_and(|p| p.kind() == Kind::HeritageClause)
+    {
+        return "ExpressionWithTypeArguments";
     }
+    kind_names().names[node.kind() as usize]
 }
 
-fn find_node(node: P<Node>, pos: u32, end: u32, kind: &str) -> Option<P<Node>> {
+fn find_node(node: P<Node>, pos: u32, end: u32, kind: Kind) -> Option<P<Node>> {
     if node.pos().source_offset() == Some(pos)
         && node.end().source_offset() == Some(end)
-        && (kind_name(node.kind()) == kind
-            || equivalent_kind(kind) == Some(kind_name(node.kind()).as_str()))
+        && (node.kind() == kind
+            || kind == Kind::ExpressionWithTypeArguments && node.kind() == Kind::TypeReference)
     {
         return Some(node);
     }
@@ -562,9 +584,13 @@ impl Session {
         let (pos16, end16) = (utf16("pos", r.pos)?, utf16("end", r.end)?);
         let pos = map.utf16_to_utf8(pos16);
         let end = map.utf16_to_utf8(end16);
-        let kind = r.kind.as_str();
-        find_node(file.as_node(), pos, end, kind)
-            .ok_or_else(|| format!("no {kind} node at {pos16}..{end16} in {}", file.file_name()))
+        kind_names()
+            .kinds
+            .get(r.kind.as_str())
+            .and_then(|kind| find_node(file.as_node(), pos, end, *kind))
+            .ok_or_else(|| {
+                format!("no {} node at {pos16}..{end16} in {}", r.kind, file.file_name())
+            })
     }
 
     fn node_ref(&mut self, node: P<Node>) -> Option<NodeRef> {
@@ -577,7 +603,7 @@ impl Session {
             file: self.files.intern(file),
             pos: utf16(node.pos()),
             end: utf16(node.end()),
-            kind: kind_name(node.kind()),
+            kind: kind_name(node).to_string(),
         })
     }
 
@@ -734,24 +760,24 @@ impl Session {
         ) {
             if let (Some(pos), Some(end)) = (node.pos().source_offset(), node.end().source_offset())
             {
-                let kind = kind_name(node.kind());
+                let kind = kind_name(node);
                 if node.kind() == Kind::Identifier {
                     let sym = s.checker.get_symbol_at_location_exported(node);
                     if let Some(sym) = sym {
                         property_symbols.push(sym);
                     }
                     let id = sym.map(|x| s.symbols.hand_out(x));
-                    symbol_at.push(pos, end, &kind, id, map);
+                    symbol_at.push(pos, end, kind, id, map);
                 }
                 if tsrs_ast::is_type_node(node) {
                     let t = s.checker.get_type_from_type_node_exported(node);
                     let id = s.types.hand_out(t);
-                    type_from.push(pos, end, &kind, Some(id), map);
+                    type_from.push(pos, end, kind, Some(id), map);
                 }
                 if let Some(sym) = node.symbol() {
                     property_symbols.push(sym);
                     let id = s.symbols.hand_out(sym);
-                    declared.push(pos, end, &kind, Some(id), map);
+                    declared.push(pos, end, kind, Some(id), map);
                 }
             }
             node.for_each_child(&mut |child| {
