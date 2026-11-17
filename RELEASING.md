@@ -22,7 +22,7 @@ It is needed for every package the workflow publishes:
 
 npm marks a new trusted publisher "Pending validation" and drops it unless a publish through it succeeds within 48 hours. GitHub only runs a manual workflow once its file is on the default branch. So set the trusted publishers up on release day, after `release.yml` is on `master` and the `release` environment exists, then run the release the same day.
 
-The 12 helper packages are not on npm yet. npm configures trusted publishing per package, so an owner must publish each name once by hand before it can have a trusted publisher. Any version works, for example a `0.0.0` with only a package.json. A maintainer of the GitHub repository also creates the `release` environment under Settings, Environments, and can require a reviewer there.
+All 12 helper names are on npm as `0.0.0` placeholders, holding only a package.json, so each can take a trusted publisher. npm points `latest` at a package's first version whatever `--tag` says, so until the first release `latest` is the placeholder. A maintainer of the GitHub repository also creates the `release` environment under Settings, Environments, and can require a reviewer there.
 
 ## Each release
 
