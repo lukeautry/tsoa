@@ -37,7 +37,8 @@ export function createSourceIndex(session: HelperSession, rootFiles: readonly st
   const parseFile = (info: FileInfo) => {
     const text = session.askHelper({ op: 'fileText', file: info.id });
     // TypeScript 6 names a root file as it was given (relative stays relative), other files by their resolved path.
-    const given = rootFiles[absoluteRoots.indexOf(info.fileName)];
+    // Helpers write paths with forward slashes on every platform, so compare resolved paths.
+    const given = rootFiles[absoluteRoots.indexOf(path.resolve(info.fileName))];
     const fileName = info.fileName.startsWith('bundled:///') ? path.join('/__tsoa_bundled__', info.fileName.slice('bundled:///'.length)) : (given ?? info.fileName);
     const sourceFile = ts.createSourceFile(fileName, text, compilerOptions.target ?? ts.ScriptTarget.ES2021, true);
     fileIds.set(sourceFile, info.id);
@@ -103,7 +104,7 @@ export function createSourceIndex(session: HelperSession, rootFiles: readonly st
     prefetched.add(file);
     const sourceFile = fileOf(file);
     if (sourceFile.isDeclarationFile) return;
-    const answers = session.askHelper({ op: 'prefetchFile', file }, `tsoa compiler helper failed on ${infos.get(file)!.fileName}`);
+    const answers = session.askHelper({ op: 'prefetchFile', file }, `tsoa compiler helper failed on ${path.resolve(infos.get(file)!.fileName)}`);
     const index = indexFile(sourceFile);
     const seed = (op: NodeOp, entries: Array<[number, number, string, number | null]>) => {
       for (const [pos, end, kind, id] of entries) {
