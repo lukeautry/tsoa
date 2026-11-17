@@ -1,5 +1,6 @@
 import { createProgram, type CompilerOptions, type Program, type Type, type TypeChecker } from 'typescript';
 import type * as NativeProgramModule from './native/program';
+import { findInstalledPackage, selectCompiler } from './native/selectCompiler';
 
 /** The part of a program metadata generation reads. A native program holds a helper process until `close()`. */
 export type MetadataProgram = Pick<Program, 'getTypeChecker' | 'getSourceFiles' | 'isSourceFileDefaultLibrary'> & { close(): void };
@@ -33,12 +34,18 @@ export type MetadataChecker = Pick<
 > & { getUnionType(types: readonly Type[]): Type };
 
 /**
- * TypeScript's own program, unless `TSOA_COMPILER_HELPER` names a native compiler helper (tsgo or tsrs speaking the
- * tsoa facts protocol), in which case TypeScript 6 parses syntax and the helper answers type questions.
+ * TypeScript's own program when the project in the working directory has TypeScript 5 or 6. With TypeScript 7 or tsrs
+ * (or `TSOA_COMPILER_HELPER` set), a native compiler helper answers type questions and TypeScript 6 parses syntax.
  */
 export function createMetadataProgram(rootFiles: string[], compilerOptions: CompilerOptions): MetadataProgram {
-  const helper = process.env.TSOA_COMPILER_HELPER;
-  if (!helper) {
+  const choice = selectCompiler({
+    projectDirectory: process.cwd(),
+    override: process.env.TSOA_COMPILER_HELPER,
+    platform: process.platform,
+    arch: process.arch,
+    findPackage: findInstalledPackage,
+  });
+  if (choice.kind === 'typescript') {
     const program = createProgram(rootFiles, compilerOptions);
     return {
       getTypeChecker: () => program.getTypeChecker(),
@@ -50,5 +57,5 @@ export function createMetadataProgram(rootFiles: string[], compilerOptions: Comp
   // Required here so the default path loads no native code and registers no exit listener.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createNativeProgram } = require('./native/program') as typeof NativeProgramModule;
-  return createNativeProgram(helper, rootFiles, compilerOptions);
+  return createNativeProgram(choice.helperPath, rootFiles, compilerOptions);
 }
