@@ -1,28 +1,17 @@
 import { Config, Tsoa } from '@tsoa/runtime';
 import { minimatch } from 'minimatch';
-import {
-  createProgram,
-  forEachChild,
-  isClassDeclaration,
-  type ClassDeclaration,
-  type CompilerOptions,
-  type Node,
-  type Program,
-  type SourceFile,
-  type Type,
-  type TypeChecker,
-  type TypeNode,
-} from 'typescript';
+import { forEachChild, isClassDeclaration, type ClassDeclaration, type CompilerOptions, type Node, type SourceFile, type Type, type TypeChecker, type TypeNode } from 'typescript';
 import { getDecorators } from '../utils/decoratorUtils';
 import { importClassesFromDirectories } from '../utils/importClassesFromDirectories';
 import { ControllerGenerator } from './controllerGenerator';
 import { GenerateMetadataError } from './exceptions';
+import { createMetadataProgram, type MetadataProgram } from './metadataProgram';
 import { TypeResolver } from './typeResolver/typeResolver';
 
 export class MetadataGenerator {
   public readonly controllerNodes = new Array<ClassDeclaration>();
   public readonly typeChecker: TypeChecker;
-  private readonly program: Program;
+  private readonly program: MetadataProgram;
   private referenceTypeMap: Tsoa.ReferenceTypeMap = {};
   private modelDefinitionPosMap: { [name: string]: Array<{ fileName: string; pos: number }> } = {};
   private expressionOrigNameMap: Record<string, string> = {};
@@ -39,22 +28,26 @@ export class MetadataGenerator {
     esm = false,
   ) {
     this.compilerOptions = { ...compilerOptions, strictNullChecks: compilerOptions?.strictNullChecks ?? compilerOptions?.strict ?? false };
-    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createProgram([entryFile], this.compilerOptions);
+    this.program = controllers ? this.setProgramToDynamicControllersFiles(controllers, esm) : createMetadataProgram([entryFile], this.compilerOptions);
     this.typeChecker = this.program.getTypeChecker();
   }
 
   public Generate(): Tsoa.Metadata {
-    this.extractNodeFromProgramSourceFiles();
+    try {
+      this.extractNodeFromProgramSourceFiles();
 
-    const controllers = this.buildControllers();
+      const controllers = this.buildControllers();
 
-    this.checkForMethodSignatureDuplicates(controllers);
-    this.checkForPathParamSignatureDuplicates(controllers);
+      this.checkForMethodSignatureDuplicates(controllers);
+      this.checkForPathParamSignatureDuplicates(controllers);
 
-    return {
-      controllers,
-      referenceTypeMap: this.referenceTypeMap,
-    };
+      return {
+        controllers,
+        referenceTypeMap: this.referenceTypeMap,
+      };
+    } finally {
+      this.program.close();
+    }
   }
 
   private setProgramToDynamicControllersFiles(controllers: string[], esm: boolean) {
@@ -63,7 +56,7 @@ export class MetadataGenerator {
       throw new GenerateMetadataError(`[${controllers.join(', ')}] globs found 0 controllers.`);
     }
 
-    return createProgram(allGlobFiles, this.compilerOptions);
+    return createMetadataProgram(allGlobFiles, this.compilerOptions);
   }
 
   private extractNodeFromProgramSourceFiles() {

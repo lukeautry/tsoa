@@ -1,0 +1,216 @@
+name: Release
+# Publishes the release that `yarn bump` tagged: builds both compiler helpers for every platform, runs tsoa's suite on
+# each binary on its own platform, then runs `lerna publish from-git`. The prepublishOnly of each helper umbrella
+# publishes its platform packages from these binaries before lerna publishes the umbrella (packages/cli-native/pack.mjs).
+# Run it on the tag: gh workflow run release.yml --ref v<version> -f dry_run=false. See RELEASING.md.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build, test and run the release with npm's --dry-run, publishing nothing
+        type: boolean
+        default: true
+      dist_tag:
+        description: The npm dist-tag every package is published with
+        type: string
+        default: latest
+
+permissions:
+  contents: read
+
+# One release per ref at a time, and a running publish is never cancelled.
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  go:
+    name: Build the Go helper for every platform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # tsc/go.mod at the tsgo pin asks for go 1.27; build.mjs fails if this is older.
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+
+      - name: Cross-compile
+        shell: bash
+        run: |
+          set -e
+          for target in linux/amd64/linux-x64 linux/arm64/linux-arm64 darwin/amd64/darwin-x64 darwin/arm64/darwin-arm64 windows/amd64/win32-x64; do
+            IFS=/ read -r goos goarch platform <<< "$target"
+            GOOS=$goos GOARCH=$goarch node packages/cli-native/build.mjs go "binaries/tsgo/$platform/helper$([ "$goos" = windows ] && echo .exe || true)"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: helper-binaries-tsgo
+          path: binaries
+
+  rs:
+    name: Build the Rust helper, ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Built on 22.04 so the binary needs at most glibc 2.35.
+          - platform: linux-x64
+            runner: ubuntu-22.04
+          - platform: linux-arm64
+            runner: ubuntu-22.04-arm
+          - platform: darwin-x64
+            runner: macos-15-intel
+          - platform: darwin-arm64
+            runner: macos-latest
+          - platform: win32-x64
+            runner: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # The toolchain tsrs v0.25.0 pins in its rust-toolchain.toml.
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+
+      - name: Build
+        shell: bash
+        run: node packages/cli-native/build.mjs rs "binaries/tsrs/${{ matrix.platform }}/helper${{ runner.os == 'Windows' && '.exe' || '' }}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: helper-binaries-tsrs-${{ matrix.platform }}
+          path: binaries
+
+  test:
+    name: Suite on the ${{ matrix.compiler }} helper, ${{ matrix.platform }}
+    needs: [go, rs]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [tsgo, tsrs]
+        platform: [linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64]
+        include:
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          - platform: darwin-x64
+            runner: macos-15-intel
+          - platform: darwin-arm64
+            runner: macos-latest
+          - platform: win32-x64
+            runner: windows-latest
+          - compiler: tsgo
+            compiler-package: typescript@7.0.2
+          - compiler: tsrs
+            compiler-package: tsrs@0.25.0-ts7.1.0-beta
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: helper-binaries-${{ matrix.compiler }}*
+          path: binaries
+          merge-multiple: true
+
+      # Artifacts do not keep the executable bit.
+      - name: Pick this platform's binary
+        shell: bash
+        run: |
+          binary=binaries/${{ matrix.compiler }}/${{ matrix.platform }}/helper${{ runner.os == 'Windows' && '.exe' || '' }}
+          chmod +x "$binary"
+          echo "HELPER_BINARY=$binary" >> "$GITHUB_ENV"
+          echo "TSOA_COMPILER_HELPER=${{ github.workspace }}/$binary" >> "$GITHUB_ENV"
+
+      - name: Install Yarn
+        run: npm install -g yarn@1.22.22
+
+      - name: Install
+        run: yarn install --ignore-scripts --frozen-lockfile
+
+      - name: Build
+        run: yarn run build
+
+      - name: Test on the built helper
+        working-directory: tests
+        run: yarn test
+
+      - name: Generate in a project with ${{ matrix.compiler-package }} and the packed helper installed
+        shell: bash
+        run: |
+          node packages/cli-native/pack.mjs ${{ matrix.compiler }} helper-packages "${{ matrix.platform }}=$HELPER_BINARY"
+          node packages/cli-native/check-installed.mjs ${{ matrix.compiler-package }} ${{ matrix.compiler }} helper-packages
+
+  publish:
+    name: lerna publish from-git${{ inputs.dry_run && ' (dry run)' || '' }}
+    needs: test
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing and provenance
+    steps:
+      # Every tag, so lerna finds the one on HEAD.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Without a release tag on HEAD, lerna publishes nothing and still succeeds.
+      - name: Require a release tag on HEAD
+        run: |
+          tag=$(git tag --points-at HEAD --list 'v*.*.*')
+          if [ -z "$tag" ]; then
+            echo "::error::HEAD ($GITHUB_REF) has no release tag. Run yarn bump, then run this workflow on the tag it pushed."
+            exit 1
+          fi
+          echo "Releasing $tag"
+
+      # No registry-url: it writes an .npmrc that authenticates with NODE_AUTH_TOKEN, and this job uses OIDC instead.
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Install npm and Yarn
+        run: npm install -g npm@^11.5.1 yarn@1.22.22
+
+      - name: Install
+        run: yarn install --ignore-scripts --frozen-lockfile
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: helper-binaries-*
+          path: ${{ runner.temp }}/helper-binaries
+          merge-multiple: true
+
+      # lerna and the helpers' prepublishOnly (pack.mjs) read the same npm settings from these variables.
+      - name: Publish
+        env:
+          TSOA_HELPER_BINARIES: ${{ runner.temp }}/helper-binaries
+          NPM_CONFIG_TAG: ${{ inputs.dist_tag }}
+          NPM_CONFIG_PROVENANCE: 'true'
+          NPM_CONFIG_DRY_RUN: ${{ inputs.dry_run }}
+        run: yarn lerna publish from-git --yes

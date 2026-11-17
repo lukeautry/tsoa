@@ -1,0 +1,31 @@
+{
+  "name": "@tsoa/compiler-helper-tsgo",
+  "version": "7.0.0-rc.0",
+  "description": "Lets tsoa take type information from tsgo, the Go compiler from microsoft/TypeScript",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/tsoa.git",
+    "directory": "packages/compiler-helper-tsgo"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../cli-native/pack.mjs tsgo --publish"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "tsoaCompilerHelper": {
+    "compiler": "tsgo",
+    "typescriptVersion": "7.1.0-beta",
+    "upstream": {
+      "repository": "https://github.com/microsoft/TypeScript",
+      "ref": "7.1.0-beta",
+      "revision": "3e9236361fa97a9e6c685f4833ac457ae2d8c50a"
+    },
+    "protocol": 8
+  }
+}

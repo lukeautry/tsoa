@@ -1,0 +1,31 @@
+{
+  "name": "@tsoa/compiler-helper-tsrs",
+  "version": "7.0.0-rc.0",
+  "description": "Lets tsoa take type information from tsrs, the Rust port of TypeScript from oxc-project/tsrs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukeautry/tsoa.git",
+    "directory": "packages/compiler-helper-tsrs"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../cli-native/pack.mjs tsrs --publish"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "tsoaCompilerHelper": {
+    "compiler": "tsrs",
+    "typescriptVersion": "7.1.0-beta",
+    "upstream": {
+      "repository": "https://github.com/oxc-project/tsrs",
+      "ref": "v0.25.0",
+      "revision": "0f82b670e4ff861840b1315f8610816229e73e3a"
+    },
+    "protocol": 8
+  }
+}
