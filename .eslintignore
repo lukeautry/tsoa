@@ -12,4 +12,5 @@ packages/cli-native/go/upstream/
 packages/cli-native/rs/tsrs/
 packages/cli-native/**/bin/
 # Plain JavaScript in the helper npm packages, outside every tsconfig the type-aware rules need.
-packages/cli-native/npm/
+packages/compiler-helper-tsgo/
+packages/compiler-helper-tsrs/
