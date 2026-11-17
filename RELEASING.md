@@ -12,12 +12,15 @@ The workflow publishes with npm trusted publishing (OIDC). It has no npm token. 
 - Organization or user: `lukeautry`, repository: `tsoa`
 - Workflow filename: `release.yml`
 - Environment: `release`
+- Allowed actions: check "Allow npm publish", leave "Allow npm dist-tag" unchecked. Without "Allow npm publish", npm only stages a release, and an owner approves each package on npmjs.com before it goes live; the workflow does not handle that.
 
 It is needed for every package the workflow publishes:
 
 - `tsoa`, `@tsoa/cli`, `@tsoa/runtime`
 - `@tsoa/compiler-helper-tsgo` and `@tsoa/compiler-helper-tsgo-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}`
 - `@tsoa/compiler-helper-tsrs` and `@tsoa/compiler-helper-tsrs-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}`
+
+npm marks a new trusted publisher "Pending validation" and drops it unless a publish through it succeeds within 48 hours. GitHub only runs a manual workflow once its file is on the default branch. So set the trusted publishers up on release day, after `release.yml` is on `master` and the `release` environment exists, then run the release the same day.
 
 The 12 helper packages are not on npm yet. npm configures trusted publishing per package, so an owner must publish each name once by hand before it can have a trusted publisher. Any version works, for example a `0.0.0` with only a package.json. A maintainer of the GitHub repository also creates the `release` environment under Settings, Environments, and can require a reviewer there.
 
