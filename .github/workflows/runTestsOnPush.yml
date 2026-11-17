@@ -80,9 +80,14 @@ jobs:
         working-directory: tests
         run: yarn cross-env NODE_ENV=tsoa_test mocha "integration/*express*.spec.ts"
 
-  compiler-helper-go:
-    name: Suite on the Go compiler helper
-    runs-on: ubuntu-latest
+  compiler-helper:
+    name: Suite on the ${{ matrix.helper }} compiler helper, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        helper: [go, rs]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
 
@@ -92,60 +97,30 @@ jobs:
           node-version: 24
           cache: yarn
 
-      # tsc/go.mod at the tsgo pin asks for go 1.27; go/build.sh fails if this is older.
+      # tsc/go.mod at the tsgo pin asks for go 1.27; build.mjs fails if this is older.
       - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: '1.27'
-
-      - name: Install Yarn
-        run: npm install -g yarn@1.22.22
-
-      - name: Install
-        run: yarn install --ignore-scripts --no-lockfile
-
-      - name: Build the Go helper
-        run: packages/cli-native/go/build.sh
-
-      - name: Build
-        run: yarn run build
-
-      - name: Test on the Go helper
-        working-directory: tests
-        run: TSOA_COMPILER_HELPER=$PWD/../packages/cli-native/go/bin/helper yarn test
-
-  compiler-helper-rust:
-    name: Suite on the Rust compiler helper, and conformance with Go
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: yarn
-
-      - name: Setup Go
+        if: matrix.helper == 'go'
         uses: actions/setup-go@v6
         with:
           go-version: '1.27'
 
       # The toolchain tsrs v0.25.0 pins in its rust-toolchain.toml.
       - name: Setup Rust
+        if: matrix.helper == 'rs'
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.99.1
 
       - name: Cache cargo and the tsrs build
+        if: matrix.helper == 'rs'
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             packages/cli-native/rs/tsrs/target
-          key: tsrs-v0.25.0-${{ hashFiles('packages/cli-native/rs/build.sh', 'packages/cli-native/rs/tsoa_facts/**', 'packages/cli-native/rs/tsrs-patch/**') }}
-          restore-keys: tsrs-v0.25.0-
+          key: tsrs-v0.25.0-${{ runner.os }}-${{ hashFiles('packages/cli-native/build.mjs', 'packages/cli-native/rs/tsoa_facts/**', 'packages/cli-native/rs/tsrs-patch/**') }}
+          restore-keys: tsrs-v0.25.0-${{ runner.os }}-
 
       - name: Install Yarn
         run: npm install -g yarn@1.22.22
@@ -153,18 +128,61 @@ jobs:
       - name: Install
         run: yarn install --ignore-scripts --no-lockfile
 
-      - name: Build the Rust helper
-        run: packages/cli-native/rs/build.sh
-
-      - name: Build the Go helper
-        run: packages/cli-native/go/build.sh
+      - name: Build the ${{ matrix.helper }} helper
+        run: node packages/cli-native/build.mjs ${{ matrix.helper }}
 
       - name: Build
         run: yarn run build
 
-      - name: Test on the Rust helper
+      - name: Test on the ${{ matrix.helper }} helper
         working-directory: tests
-        run: TSOA_COMPILER_HELPER=$PWD/../packages/cli-native/rs/bin/helper yarn test
+        env:
+          TSOA_COMPILER_HELPER: ${{ github.workspace }}/packages/cli-native/${{ matrix.helper }}/bin/helper${{ runner.os == 'Windows' && '.exe' || '' }}
+        run: yarn test
 
+      - name: Keep the Linux helper for conformance
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: helper-${{ matrix.helper }}
+          path: packages/cli-native/${{ matrix.helper }}/bin/helper
+
+  compiler-helper-conformance:
+    name: Conformance, Go against Rust
+    needs: compiler-helper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install Yarn
+        run: npm install -g yarn@1.22.22
+
+      - name: Install
+        run: yarn install --ignore-scripts --no-lockfile
+
+      - name: Build
+        run: yarn run build
+
+      - name: Download the Go helper
+        uses: actions/download-artifact@v8
+        with:
+          name: helper-go
+          path: packages/cli-native/go/bin
+
+      - name: Download the Rust helper
+        uses: actions/download-artifact@v8
+        with:
+          name: helper-rs
+          path: packages/cli-native/rs/bin
+
+      # Artifacts do not keep the executable bit.
       - name: Conformance, Go against Rust
-        run: node packages/cli-native/conformance/conformance.cjs packages/cli-native/go/bin/helper packages/cli-native/rs/bin/helper
+        run: |
+          chmod +x packages/cli-native/go/bin/helper packages/cli-native/rs/bin/helper
+          node packages/cli-native/conformance/conformance.cjs packages/cli-native/go/bin/helper packages/cli-native/rs/bin/helper
