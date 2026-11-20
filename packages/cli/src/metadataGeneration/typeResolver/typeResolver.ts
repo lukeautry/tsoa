@@ -71,7 +71,15 @@ export class TypeResolver {
 
   /** The single classification dispatch. Order matters. */
   public resolve(type: ts.Type, site: Site): Tsoa.Type {
-    const followed = descriptiveSite(this.checker, followSite(site));
+    const unfollowed = followSite(site);
+    const followed = descriptiveSite(this.checker, unfollowed);
+    // `Obj['prop']` is replaced by the declared type of `prop`; read through an optional `prop`, the
+    // checker type also holds the `undefined` optionality adds. The declared node then describes one
+    // member of that union: it is paired as a one-member written union, and the rest of the union is
+    // resolved from the checker.
+    if (unfollowed.node && ts.isIndexedAccessTypeNode(unfollowed.node) && followed.node && !ts.isUnionTypeNode(followed.node) && type.isUnion()) {
+      return this.resolveWrittenUnion(type.types, followed, [followed.node]);
+    }
     if (!isErrorType(type) && isPromise(type, followed)) {
       return this.resolve(this.checker.getTypeArguments(type as ts.TypeReference)[0], childSite(followed, typeArgumentNode(followed.node, 0)));
     }
@@ -92,7 +100,7 @@ export class TypeResolver {
     }
 
     if (followed.node && ts.isUnionTypeNode(followed.node)) {
-      return this.resolveWrittenUnion(type.isUnion() ? type.types : [type], followed, followed.node);
+      return this.resolveWrittenUnion(type.isUnion() ? type.types : [type], followed, followed.node.types);
     }
     if (followed.node && ts.isIntersectionTypeNode(followed.node)) {
       const written = this.resolveWrittenIntersection(followed, followed.node);
@@ -170,7 +178,7 @@ export class TypeResolver {
    * like `UUID | null` stay named). Written subtypes survive primitive widening, and written
    * null/undefined members are added back when non-strict programs erase them.
    */
-  private resolveWrittenUnion(members: readonly ts.Type[], site: Site, node: ts.UnionTypeNode): Tsoa.Type {
+  private resolveWrittenUnion(members: readonly ts.Type[], site: Site, written: readonly ts.TypeNode[]): Tsoa.Type {
     const remaining = [...members];
     const resolved: Tsoa.Type[] = [];
     // A written alternative is kept when its types are contained in the union, even if an earlier
@@ -185,7 +193,7 @@ export class TypeResolver {
       return true;
     };
 
-    for (const member of node.types) {
+    for (const member of written) {
       const memberSite = followSite(childSite(site, member));
       const nullish = nullishKeyword(memberSite.node);
       if (nullish) {
