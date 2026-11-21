@@ -12,6 +12,16 @@ import { TsoaRoute, isDefaultForAdditionalPropertiesAllowed } from './tsoa-route
 import { Tsoa } from '../metadataGeneration/tsoa';
 import ValidatorKey = Tsoa.ValidatorKey;
 
+// OpenAPI/JSON Schema patterns use unicode semantics (e.g. `\p{L}`), so prefer the `u` flag.
+// Fall back to legacy mode for patterns that are only valid without it (e.g. `\-` or `\h`).
+function toPatternRegExp(pattern: string): RegExp {
+  try {
+    return new RegExp(pattern, 'u');
+  } catch {
+    return new RegExp(pattern);
+  }
+}
+
 // for backwards compatibility with custom templates
 export function ValidateParam(
   property: TsoaRoute.PropertySchema,
@@ -419,7 +429,7 @@ export class ValidationService {
       }
     }
     if (validators.pattern && validators.pattern.value) {
-      if (!matches(String(stringValue), validators.pattern.value)) {
+      if (!matches(String(stringValue), toPatternRegExp(validators.pattern.value))) {
         fieldErrors[parent + name] = {
           message: validators.pattern.errorMsg || `Not match in '${validators.pattern.value}'`,
           value,

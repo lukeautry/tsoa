@@ -1156,6 +1156,28 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`Not match in 'a-z'`);
     });
+
+    it('should string pattern validate unicode property escapes', () => {
+      const validator = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      const pattern = { value: '^[\\p{L}\\p{N} ]{0,62}$' };
+
+      for (const value of ['Müller', 'Åman', 'Project 123']) {
+        const error: FieldErrors = {};
+        expect(validator.validateString('name', value, error, { pattern })).to.equal(value);
+        expect(error).to.deep.equal({});
+      }
+
+      const error: FieldErrors = {};
+      expect(validator.validateString('name', 'no-punctuation!', error, { pattern })).to.equal(undefined);
+      expect(error.name.message).to.equal(`Not match in '${pattern.value}'`);
+    });
+
+    it('should string pattern validate patterns that are invalid in unicode mode', () => {
+      const validator = new ValidationService({}, { noImplicitAdditionalProperties: 'ignore', bodyCoercion: true });
+      const error: FieldErrors = {};
+      expect(validator.validateString('name', 'a-b', error, { pattern: { value: '^a\\-b$' } })).to.equal('a-b');
+      expect(error).to.deep.equal({});
+    });
   });
 
   describe('Date validate', () => {
