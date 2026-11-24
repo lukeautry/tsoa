@@ -184,6 +184,18 @@ describe('validateCompilerOptions', () => {
       expect(options.configFile).to.equal(overrides.configFile);
     });
 
+    it('converts JSON string enum overrides from tsoa.json into values createProgram accepts', () => {
+      const options = validateCompilerOptions({ target: 'es2022', module: 'node16', moduleResolution: 'node16', lib: ['es2023'], strict: true }, projectDir);
+      expect(options.target).to.equal(ts.ScriptTarget.ES2022);
+      expect(options.module).to.equal(ts.ModuleKind.Node16);
+      expect(options.moduleResolution).to.equal(ts.ModuleResolutionKind.Node16);
+      expect(options.lib).to.deep.equal(['lib.es2023.d.ts']);
+      expect(options.strict).to.equal(true);
+      const controller = join(projectDir, 'controller.ts');
+      writeFileSync(controller, 'export class A {}');
+      expect(() => new MetadataGenerator(controller, options, undefined, [controller]).Generate()).to.not.throw(/is a string value/);
+    });
+
     it('should apply compilerOptions on top of tsconfig.json settings', () => {
       const options = validateCompilerOptions({ customConditions: ['custom'] }, fixtureDir);
       expect(options.customConditions).to.deep.equal(['custom']);
