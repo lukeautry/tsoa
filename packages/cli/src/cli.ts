@@ -89,6 +89,27 @@ const resolveConfig = async (config?: string | Config): Promise<Config> => {
   return typeof config === 'object' ? config : getConfig(config);
 };
 
+/**
+ * tsoa.json holds JSON, so enum-like options (target, module, jsx, ...) and `lib` arrive as strings
+ * such as "es2022". `ts.createProgram` needs the numeric/normalized form, so convert those here.
+ * Values that are already normalized (e.g. from a JS config) or are not enum-like are left untouched.
+ */
+const normalizeEnumOverrides = (overrides: CompilerOptions, cwd: string): CompilerOptions => {
+  const result = Object.defineProperties({}, Object.getOwnPropertyDescriptors(overrides)) as Record<string, unknown>;
+  for (const [key, raw] of Object.entries(overrides)) {
+    const isEnumString = typeof raw === 'string';
+    const isLib = key === 'lib' && Array.isArray(raw);
+    if (!isEnumString && !isLib) continue;
+    const converted = ts.convertCompilerOptionsFromJson({ [key]: raw }, cwd);
+    if (converted.errors.length) continue;
+    const value = (converted.options as Record<string, unknown>)[key];
+    if ((isEnumString && typeof value === 'number') || (isLib && Array.isArray(value))) {
+      Object.defineProperty(result, key, { value, enumerable: true, writable: true, configurable: true });
+    }
+  }
+  return result as CompilerOptions;
+};
+
 export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = workingDir): CompilerOptions => {
   const diagnostics: ts.Diagnostic[] = [];
   const tsconfigPath = ts.findConfigFile(cwd, path => ts.sys.fileExists(path));
@@ -117,7 +138,7 @@ export const validateCompilerOptions = (config?: Record<string, unknown>, cwd = 
       }),
     );
   }
-  const nativeOverrides = (config || {}) as CompilerOptions;
+  const nativeOverrides = normalizeEnumOverrides((config || {}) as CompilerOptions, cwd);
   if (nativeOverrides.paths) {
     baseOptions.pathsBasePath = cwd;
   }
