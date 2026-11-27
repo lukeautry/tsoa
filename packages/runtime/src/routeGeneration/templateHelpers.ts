@@ -313,7 +313,9 @@ export class ValidationService {
   }
 
   public validateDate(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !isISO8601(String(value), { strict: true })) {
+    const dateValue = this.hasCorrectJsType(value, 'string', isBodyParam) && isISO8601(String(value), { strict: true }) ? new Date(String(value)) : undefined;
+    // Some ISO 8601 forms (e.g. week dates or the basic format) pass isISO8601 but cannot be parsed by Date
+    if (!dateValue || Number.isNaN(dateValue.getTime())) {
       const message = validators && validators.isDate && validators.isDate.errorMsg ? validators.isDate.errorMsg : `invalid ISO 8601 date format, i.e. YYYY-MM-DD`;
       fieldErrors[parent + name] = {
         message,
@@ -322,7 +324,6 @@ export class ValidationService {
       return;
     }
 
-    const dateValue = new Date(String(value));
     if (!validators) {
       return dateValue;
     }
@@ -350,7 +351,9 @@ export class ValidationService {
   }
 
   public validateDateTime(name: string, value: any, fieldErrors: FieldErrors, isBodyParam: boolean, validators?: DateTimeValidator, parent = '') {
-    if (!this.hasCorrectJsType(value, 'string', isBodyParam) || !isISO8601(String(value), { strict: true })) {
+    const datetimeValue = this.hasCorrectJsType(value, 'string', isBodyParam) && isISO8601(String(value), { strict: true }) ? new Date(String(value)) : undefined;
+    // Some ISO 8601 forms (e.g. week dates or the basic format) pass isISO8601 but cannot be parsed by Date
+    if (!datetimeValue || Number.isNaN(datetimeValue.getTime())) {
       const message = validators && validators.isDateTime && validators.isDateTime.errorMsg ? validators.isDateTime.errorMsg : `invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`;
       fieldErrors[parent + name] = {
         message,
@@ -359,7 +362,6 @@ export class ValidationService {
       return;
     }
 
-    const datetimeValue = new Date(String(value));
     if (!validators) {
       return datetimeValue;
     }
