@@ -105,7 +105,8 @@ export class HapiTemplateService extends TemplateService<HapiApiHandlerParameter
           return result;
         }
         case 'body-prop': {
-          const descriptor = Object.getOwnPropertyDescriptor(request.payload, name);
+          // hapi sets the payload to null when the request has no body
+          const descriptor = Object.getOwnPropertyDescriptor(request.payload ?? {}, name);
           const value = descriptor ? descriptor.value : undefined;
           const bodyFieldErrors: FieldErrors = {};
           const result = this.validationService.ValidateParam(param, value, name, bodyFieldErrors, true, 'body.');

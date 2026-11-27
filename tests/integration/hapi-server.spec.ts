@@ -1120,6 +1120,19 @@ describe('Hapi Server', () => {
         );
       });
 
+      it('should invalid body props when the request has no body', () => {
+        return verifyRequest(
+          app,
+          (err, _res) => {
+            const body = JSON.parse(err.text);
+
+            expect(body.fields['body.name'].message).to.equal("'name' is required");
+          },
+          request => request.post(basePath + `/Validate/body-prop`),
+          400,
+        );
+      });
+
       it('should invalid body props incorrect type', () => {
         return verifyPostRequest(
           app,
