@@ -1186,6 +1186,23 @@ describe('ValidationService', () => {
       expect(error[name].message).to.equal(`invalid ISO 8601 date format, i.e. YYYY-MM-DD`);
     });
 
+    for (const value of ['2021-W22-3', '20210602', '2021-153']) {
+      it(`should reject the ISO 8601 date '${value}' that Date cannot parse`, () => {
+        const name = 'name';
+        const error: FieldErrors = {};
+        const result = new ValidationService(
+          {},
+          {
+            noImplicitAdditionalProperties: 'ignore',
+            bodyCoercion: true,
+          },
+        ).validateDate(name, value, error, true, { minDate: { value: '2017-07-01' } });
+        expect(result).to.equal(undefined);
+        expect(error[name].message).to.equal(`invalid ISO 8601 date format, i.e. YYYY-MM-DD`);
+        expect(error[name].value).to.equal(value);
+      });
+    }
+
     it('should date minDate validate', () => {
       const name = 'name';
       const value = '2017-06-01';
@@ -1254,6 +1271,23 @@ describe('ValidationService', () => {
       expect(result).to.equal(undefined);
       expect(error[name].message).to.equal(`invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`);
     });
+
+    for (const value of ['2021-W22-3T10:00:00', '20210602T101010']) {
+      it(`should reject the ISO 8601 datetime '${value}' that Date cannot parse`, () => {
+        const name = 'name';
+        const error: FieldErrors = {};
+        const result = new ValidationService(
+          {},
+          {
+            noImplicitAdditionalProperties: 'ignore',
+            bodyCoercion: true,
+          },
+        ).validateDateTime(name, value, error, true, { minDate: { value: '2017-12-31T00:00:00' } });
+        expect(result).to.equal(undefined);
+        expect(error[name].message).to.equal(`invalid ISO 8601 datetime format, i.e. YYYY-MM-DDTHH:mm:ss`);
+        expect(error[name].value).to.equal(value);
+      });
+    }
 
     it('should datetime minDate validate', () => {
       const name = 'name';
